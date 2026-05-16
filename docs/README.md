@@ -1,57 +1,259 @@
 # 语迹 / LangoTrace 文档总入口
 
-本文档是语迹 LangoTrace 后续开发的文档入口。项目按“严格工程化”方式推进：产品定位、架构决策、开发计划、测试验证、发布策略和外部参考都必须有明确记录，避免关键判断只停留在聊天记录或临时笔记中。
+本文档是语迹 LangoTrace 后续开发的唯一真实文档入口，也是 AI 辅助编程、产品讨论、技术评审和原型迭代时优先阅读的入口文件。
 
-若后续要在新的 AI 会话中继续讨论或开发，请优先携带并阅读：
+仓库根目录的 `AI_ENTRY_POINT.md`、`CLAUDE.md` 和 `AGENTS.md` 都是指向本文档的软链接，用于方便不同 AI 工具从仓库根目录直接读取入口内容。后续只维护本文档，不单独维护第二份入口内容。
 
-- [AI 会话入口](AI_ENTRY_POINT.md)：按任务类型指引 AI 阅读相关文档，避免只从局部需求出发。
+## 1. 使用原则
 
-## 1. 当前阶段
+每次新会话应先阅读根目录 `AI_ENTRY_POINT.md`、`CLAUDE.md`、`AGENTS.md` 或本文档，然后根据任务类型继续读取相关文档。这些入口指向同一份内容。
 
-当前项目处于工程初始化前阶段：
+AI 不应只根据用户当前一句需求直接实现功能。涉及产品、数据、隐私、同步、AI 请求、付费、测试或发布的任务，都必须回到对应文档确认边界。
 
-- 产品主设想、技术路线、开发环境和多端静态 HTML 原型已经建立。
-- SwiftUI Multiplatform 工程尚未创建。
-- 下一步应先完成原生 Apple 项目骨架，再逐步实现核心学习闭环。
+默认工作方式：
 
-## 2. 主参考文档
+1. 先确认当前任务属于产品、原型、工程、架构、测试、发布或研究中的哪一类。
+2. 按本文档的阅读路径读取相关资料。
+3. 对照既有产品决策和 ADR，避免引入冲突概念。
+4. 如果形成新的重要判断，更新对应文档，不只停留在聊天记录。
+5. 完成前运行适合当前任务的检查，例如链接检查、文档一致性检查、构建或测试。
 
-以下文档是后续开发的长期主参考：
+## 2. 项目当前状态
 
-- [产品主参考文档](product-main-reference.md)：产品名称、定位、核心理念、功能设想、语言空间、买断制、本地优先、AI Prompt 和长期记忆系统。
-- [技术框架与开发路线参考](technical-framework-roadmap.md)：Apple 三端技术选型、SwiftUI 原生路线、SQLite / GRDB、本地优先、Provider 架构、同步和向量索引判断。
-- [开发环境记录](development-environment.md)：当前 MacBook、Xcode、Simulator、Homebrew、SwiftLint、SwiftFormat、SF Symbols 等环境基线。
-- [开源项目参考记录](development-open-source-references.md)：后续开发可研究的开源项目和许可证注意事项。
-- [项目初始化规划](project-initialization.md)：第一阶段 SwiftUI 工程初始化的边界、目标、目录建议和验证标准。
-- [文档体系规范](documentation-system.md)：文档分类、命名、更新规则、决策记录和验证记录要求。
-- [AI 会话入口](AI_ENTRY_POINT.md)：后续 AI 辅助编程时的最小全局入口。
+当前仓库处于从产品文档和静态 HTML 原型进入原生工程初始化的阶段。
 
-## 3. 当前关键架构与决策文档
+已完成：
 
-当前已记录的初始架构与决策：
+- 产品主参考文档。
+- 技术框架与开发路线参考。
+- 开发环境记录。
+- 开源项目参考记录。
+- 多端静态 HTML 原型。
+- 文档体系、初始模块边界和关键 ADR。
+- 第一批开发一致性规范。
+- 统一开发工作记录目录和模板。
 
-- [初始模块边界](architecture/001-initial-module-boundaries.md)：App Shell、Core、UI、Data、AI、Speech、Sync 的第一阶段边界和依赖方向。
-- [ADR-001：采用严格工程化文档体系](decisions/001-use-strict-engineering-documentation.md)。
-- [ADR-002：使用 SwiftUI Multiplatform](decisions/002-use-swiftui-multiplatform.md)。
-- [ADR-003：使用 XcodeGen 管理 Xcode 工程生成](decisions/003-use-xcodegen-for-project-generation.md)。
-- [ADR-004：采用语言空间作为核心信息模型](decisions/004-use-language-space-as-primary-model.md)。
-- [ADR-005：坚持本地优先和用户自带 Provider](decisions/005-local-first-and-user-owned-providers.md)。
+尚未完成：
 
-## 4. 文档目录结构
+- SwiftUI Multiplatform 工程。
+- XcodeGen `project.yml`。
+- Swift Package 模块。
+- 数据库 schema。
+- AI Provider 代码。
+- 同步引擎。
+- StoreKit 配置。
+
+如果后续工程已经创建，必须同步更新本节。
+
+## 3. 项目北极星
+
+产品名称：
+
+- 中文名：语迹。
+- 英文名：LangoTrace。
+
+固定主 slogan：
+
+- 用生活记录学习语言。
+- Learn languages from your life.
+
+一句话定位：
+
+> 语迹是一款把你的真实生活变成外语学习材料的本地优先语言学习 App。
+
+产品不是：
+
+- 不是 AI 聊天工具。
+- 不是传统背单词 App。
+- 不是课程驱动产品。
+- 不是云端账号和平台绑定优先的学习平台。
+
+产品是：
+
+- 生活记录工具。
+- 语言学习工具。
+- 跟读、听写、回译和写作修改工具。
+- 本地优先的个人语言记忆系统。
+
+## 4. 不可轻易破坏的核心决策
+
+后续讨论和开发必须遵守以下当前决策。若要改变，必须新增或更新 ADR。
+
+1. Apple 三端首发，主框架采用 SwiftUI Multiplatform。
+2. iPhone、iPad、macOS 共享业务逻辑，但界面按设备分别设计。
+3. 第一版采用买断制、单人使用，不做多用户、家庭或教师学生系统。
+4. 一个语言空间对应一门目标语言，例如英语空间、日语空间。
+5. 工作、生活、旅行、会议、情绪不是空间，而是标签、场景或 Prompt 模式。
+6. 首次启动不默认创建语言空间，先询问母语、目标语言、水平自评，再创建第一个语言空间。
+7. 首次启动不要求用户选择数据目录，数据默认保存在 App 私有容器。
+8. AI Provider、Embedding、TTS、OCR、语音识别等能力通过 Provider 抽象。
+9. API Key 默认存入 Keychain，默认不同步。
+10. 照片、日记、音频等敏感内容只有在用户明确触发对应 AI 能力时才发送给 Provider。
+11. SQLite / GRDB 是长期主存储候选，SwiftData 只能作为备选或局部原型方案。
+12. 向量索引是本地可重建派生数据，默认不同步。
+13. 同步采用 Sync Engine + Adapter 思路，不绑定 CloudKit-only。
+14. Xcode 工程推荐通过 XcodeGen 生成，工程结构以 `project.yml` 为主要来源。
+15. 具体开发前应读取相关 `docs/guidelines/` 规范，避免导航、UI、SwiftUI 架构和 AI 请求路径发散。
+16. 新功能、bug 修复、架构调整、数据/AI/隐私/同步/权限/付费相关任务，实现前必须先创建 `docs/worklogs/YYYY-MM-DD-<type>-<short-topic>.md` 并经用户确认。
+
+## 5. 按任务类型读取文档
+
+### 5.1 产品、功能和交互讨论
+
+优先读取：
+
+- [开发工作记录规范](worklogs/README.md)
+- [产品主参考文档](product-main-reference.md)
+- [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2、10 节
+- [ADR-004：采用语言空间作为核心信息模型](decisions/004-use-language-space-as-primary-model.md)
+
+适用任务：
+
+- 新功能是否应该做。
+- 首次启动、语言空间、导航、设置入口、用户路径。
+- iPhone、iPad、Mac 的体验差异。
+- AI 生成模式、Prompt Preset、长期记忆体验。
+
+### 5.2 原型和 UI 设计
+
+优先读取：
+
+- [产品主参考文档](product-main-reference.md) 的第 7、8、9 节
+- [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 10 节
+- [UI 设计系统规范](guidelines/003-ui-design-system.md)
+- [导航与路由规范](guidelines/002-navigation-and-routing.md)
+- `prototypes/langotrace-multi-device-prototype/README.md`
+
+适用任务：
+
+- 静态 HTML 原型修改。
+- iPhone / iPad / Mac 页面结构优化。
+- 高级感、简洁性、导航和设置入口调整。
+
+### 5.3 SwiftUI 工程初始化
+
+优先读取：
+
+- [开发工作记录规范](worklogs/README.md)
+- [项目初始化规划](project-initialization.md)
+- [开发环境记录](development-environment.md)
+- [初始模块边界](architecture/001-initial-module-boundaries.md)
+- [开发规范治理](guidelines/001-guideline-governance.md)
+- [SwiftUI 架构规范](guidelines/004-swiftui-architecture.md)
+- [导航与路由规范](guidelines/002-navigation-and-routing.md)
+- [ADR-002：使用 SwiftUI Multiplatform](decisions/002-use-swiftui-multiplatform.md)
+- [ADR-003：使用 XcodeGen 管理 Xcode 工程生成](decisions/003-use-xcodegen-for-project-generation.md)
+
+适用任务：
+
+- 安装或检查 XcodeGen。
+- 创建 `project.yml`。
+- 创建 SwiftUI App shell。
+- 建立初始 Swift Package 或模块目录。
+- 运行 iOS Simulator 和 macOS 构建验证。
+
+### 5.4 数据、存储、同步和长期记忆
+
+优先读取：
+
+- [开发工作记录规范](worklogs/README.md)
+- [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2、5、6、9 节
+- [文档体系规范](documentation-system.md) 的第 4 节
+- [ADR-005：坚持本地优先和用户自带 Provider](decisions/005-local-first-and-user-owned-providers.md)
+
+适用任务：
+
+- SQLite / GRDB schema。
+- Repository、迁移和导出。
+- 附件存储。
+- FTS 和向量索引。
+- WebDAV / S3 / R2 / iCloud 同步。
+- 冲突解决。
+
+### 5.5 AI、Prompt、TTS、OCR 和语音能力
+
+优先读取：
+
+- [开发工作记录规范](worklogs/README.md)
+- [产品主参考文档](product-main-reference.md) 的第 9、10 节
+- [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 7、8 节
+- [初始模块边界](architecture/001-initial-module-boundaries.md)
+- [AI Provider、Prompt 与隐私规范](guidelines/005-ai-provider-prompt-and-privacy.md)
+- [ADR-005：坚持本地优先和用户自带 Provider](decisions/005-local-first-and-user-owned-providers.md)
+
+适用任务：
+
+- Prompt Preset 设计。
+- AI 文本转换、写作检查和修改。
+- 请求预览、请求日志和隐私边界。
+- AVSpeechSynthesizer、AVFoundation、Speech、Vision、PhotosUI 集成。
+
+### 5.6 测试、发布和付费
+
+优先读取：
+
+- [文档体系规范](documentation-system.md) 的第 2.7、2.8、4.3 节
+- [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2.8 节
+- [测试文档目录](testing/README.md)
+- [发布文档目录](release/README.md)
+
+适用任务：
+
+- StoreKit 买断制。
+- 恢复购买。
+- 权限说明。
+- App Store 隐私标签。
+- TestFlight。
+- 手动测试和回归检查清单。
+
+### 5.7 开源参考、竞品和外部研究
+
+优先读取：
+
+- [开源项目参考记录](development-open-source-references.md)
+- [研究文档目录](research/README.md)
+
+适用任务：
+
+- 下载或研究开源项目。
+- 许可证风险判断。
+- 对比竞品。
+- 调整产品差异化。
+
+## 6. 文档更新落点
+
+形成新结论时，按以下规则写回：
+
+- 每次重要开发或修复任务的过程记录：写入 `docs/worklogs/`。
+- 产品定位、语言空间、买断制、核心功能：更新 [产品主参考文档](product-main-reference.md)。
+- 技术选型、平台策略、数据和同步路线：更新 [技术框架与开发路线参考](technical-framework-roadmap.md)。
+- 不可轻易反转的取舍：新增或更新 `docs/decisions/`。
+- 模块边界、数据流、Provider、Sync、StoreKit 架构：新增或更新 `docs/architecture/`。
+- 导航、UI、SwiftUI 架构、AI 请求路径等开发一致性约束：新增或更新 `docs/guidelines/`。
+- 具体实施步骤：写入 `docs/development/` 或 `docs/superpowers/plans/`。
+- 大功能规格：写入 `docs/superpowers/specs/`。
+- 验证流程和手动测试：写入 `docs/testing/`。
+- App Store、TestFlight、StoreKit 和隐私标签：写入 `docs/release/`。
+- 研究材料和未定结论：写入 `docs/research/`。
+
+## 7. 文档目录结构
 
 ```text
+AI_ENTRY_POINT.md -> docs/README.md
+CLAUDE.md -> docs/README.md
+AGENTS.md -> docs/README.md
 docs/
   README.md
   product-main-reference.md
   technical-framework-roadmap.md
   development-environment.md
   development-open-source-references.md
-  AI_ENTRY_POINT.md
   project-initialization.md
   documentation-system.md
   architecture/
   decisions/
   guidelines/
+  worklogs/
   development/
   release/
   research/
@@ -61,11 +263,12 @@ docs/
     plans/
 ```
 
-## 5. 目录职责
+## 8. 目录职责
 
 - `architecture/`：工程架构、模块边界、数据模型、同步模型、AI Provider、长期记忆和安全边界。
 - `decisions/`：架构决策记录，采用 ADR 风格，记录重要取舍、背景、结论和复审条件。
 - `guidelines/`：开发一致性规范，记录导航、UI、SwiftUI 架构、AI Provider 和隐私等具体开发约束。
+- `worklogs/`：开发工作记录，记录功能开发、bug 修复、重构、调研和工程杂项的背景、方案、用户确认、实施和验证结果。
 - `development/`：阶段开发计划、工程任务拆分、初始化记录、里程碑状态和开发 runbook。
 - `release/`：买断制、StoreKit、App Store、TestFlight、版本策略和发布检查清单。
 - `research/`：竞品、开源项目、技术调研和设计研究。
@@ -73,10 +276,38 @@ docs/
 - `superpowers/specs/`：较大功能或架构变更的设计规格文档。
 - `superpowers/plans/`：经过确认的实施计划。
 
-## 6. 严格工程化原则
+## 9. 当前优先级
 
-1. 重要产品或技术判断必须写入文档。
-2. 每个重大功能先有规格或计划，再进入实现。
-3. 每个架构取舍必须能回溯决策依据和复审条件。
-4. 涉及数据、同步、隐私、AI 请求、付费、迁移和发布的功能必须有测试或验证记录。
-5. 文档不是为了堆数量，而是为了降低后续开发和发布风险。
+后续开发优先级应保持克制：
+
+1. 创建可启动、可构建的 SwiftUI Multiplatform App shell。
+2. 建立最小模块边界和工程生成方式。
+3. 做首次启动引导与语言空间的最小闭环。
+4. 做本地记录和英语示例学习闭环。
+5. 再接入真实 AI Provider、TTS、听写、回译、SQLite、同步和 StoreKit。
+
+第一阶段不要同时实现完整数据库、完整 AI、完整同步、完整 StoreKit 和完整视觉系统。
+
+## 10. 完成前检查
+
+涉及文档任务时，至少检查：
+
+```bash
+find docs -maxdepth 3 -type f | sort
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
+git status --short
+```
+
+涉及 Swift 工程任务时，根据实际工程状态检查：
+
+```bash
+xcodegen generate
+xcodebuild -list -project LangoTrace.xcodeproj
+xcodebuild -scheme LangoTrace -destination 'platform=iOS Simulator,name=iPhone 17' build
+xcodebuild -scheme LangoTrace -destination 'platform=macOS' build
+swiftlint
+swiftformat --lint .
+git status --short
+```
+
+如果某项检查暂时不能运行，必须说明原因和剩余风险。

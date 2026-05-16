@@ -22,7 +22,7 @@
 - `technical-framework-roadmap.md`：技术路线总纲，记录 Apple 原生路线、存储、同步、Provider 和长期架构判断。
 - `development-environment.md`：本机开发环境基线。
 - `development-open-source-references.md`：开源参考项目和许可证风险。
-- `AI_ENTRY_POINT.md`：AI 会话入口，规定后续新会话如何按任务类型读取相关文档。
+- `README.md`：文档总入口，也是 AI 会话入口；根目录 `AI_ENTRY_POINT.md`、`CLAUDE.md` 和 `AGENTS.md` 通过软链接指向它。
 - `project-initialization.md`：当前项目初始化规划。
 - `documentation-system.md`：本文档，规定文档体系。
 
@@ -119,7 +119,42 @@ docs/guidelines/005-ai-provider-prompt-and-privacy.md
 
 规范不是一成不变的教条。若开发中发现更优设计，可以更新对应 guideline；若影响产品核心模型、技术路线、数据边界、隐私边界或商业模式，应新增或更新 ADR。
 
-### 2.6 测试文档
+### 2.6 开发工作记录
+
+位置：`docs/worklogs/`
+
+用途：
+
+- 记录每一次重要功能开发、bug 修复、重构、调研和工程杂项任务。
+- 作为具体工作的过程记录入口，记录背景、目标、范围、分析、方案、风险、用户确认、实施和验证结果。
+- 避免拆分过多目录导致开发时不知道文档放在哪里。
+
+命名规范：
+
+```text
+YYYY-MM-DD-<type>-<short-topic>.md
+```
+
+允许的 `type`：
+
+- `feature`
+- `bug`
+- `refactor`
+- `research`
+- `chore`
+
+必须先创建 worklog 并经用户确认后再实现的任务：
+
+- 新功能。
+- bug 修复。
+- 架构调整。
+- 数据、AI、隐私、同步、权限、StoreKit 相关任务。
+- 影响用户路径或多端体验的任务。
+- 改变开发规范、模块边界或长期维护方式的任务。
+
+低风险错别字、轻量文档修正或用户明确要求跳过记录的小任务，可以不创建 worklog，但最终答复应说明原因。
+
+### 2.7 测试文档
 
 位置：`docs/testing/`
 
@@ -139,7 +174,7 @@ docs/guidelines/005-ai-provider-prompt-and-privacy.md
 - 同步冲突和数据导出。
 - StoreKit 买断制购买与恢复购买。
 
-### 2.7 发布文档
+### 2.8 发布文档
 
 位置：`docs/release/`
 
@@ -155,7 +190,7 @@ docs/release/002-app-store-review-checklist.md
 docs/release/003-privacy-labels-and-permissions.md
 ```
 
-### 2.8 研究文档
+### 2.9 研究文档
 
 位置：`docs/research/`
 
@@ -164,7 +199,7 @@ docs/release/003-privacy-labels-and-permissions.md
 - 记录竞品分析、开源项目阅读、设计研究、技术调研和许可证分析。
 - 不作为最终产品决策，除非后续同步到主参考文档或 ADR。
 
-### 2.9 规格与计划
+### 2.10 规格与计划
 
 位置：
 
@@ -183,6 +218,7 @@ docs/release/003-privacy-labels-and-permissions.md
 以下情况必须更新文档：
 
 - 项目当前状态变化，例如 SwiftUI 工程已创建、XcodeGen 已接入、MVP 里程碑发生改变。
+- 重要开发工作开始或完成，例如新增功能、bug 修复、架构调整和高风险文档变更。
 - 产品核心模型变化，例如语言空间、单人使用、首次启动、导航结构。
 - 技术路线变化，例如放弃 SwiftUI、改用 SwiftData、改用 CloudKit-only。
 - 开发规范变化，例如新增导航模式、UI 组件体系、SwiftUI 状态管理方式或 AI 请求路径。
@@ -214,13 +250,13 @@ docs/release/003-privacy-labels-and-permissions.md
 
 ## 4. 严格工程化要求
 
-### 4.0 AI 会话入口优先
+### 4.0 文档入口优先
 
-后续 AI 辅助编程或产品讨论应优先阅读 `docs/AI_ENTRY_POINT.md`。
+后续 AI 辅助编程或产品讨论应优先阅读根目录 `AI_ENTRY_POINT.md`、`CLAUDE.md`、`AGENTS.md` 或 `docs/README.md`。这些入口指向同一份内容。
 
 这个入口文件只承担路由和全局约束作用，不替代具体文档。AI 应根据任务类型继续阅读产品主参考、技术路线、ADR、架构文档、开发规范、测试文档或发布文档。
 
-如果入口文件中的“项目当前状态”与仓库实际状态不一致，应优先更新入口文件和 `docs/README.md`，避免后续会话建立错误上下文。
+如果入口文件中的“项目当前状态”与仓库实际状态不一致，应优先更新 `docs/README.md`，避免后续会话建立错误上下文。
 
 ### 4.1 先边界，后实现
 
@@ -244,6 +280,24 @@ docs/release/003-privacy-labels-and-permissions.md
 - 做 AI 请求前读 AI Provider、Prompt 与隐私规范。
 
 如果规范与实际实现冲突，应先明确是更新规范还是修正实现，不能让两套模式并存。
+
+### 4.1.2 先记录，后实现
+
+新功能、bug 修复、架构调整、数据/AI/隐私/同步/权限/付费相关任务，在实现前必须先创建 `docs/worklogs/YYYY-MM-DD-<type>-<short-topic>.md`。
+
+worklog 应至少写清：
+
+- 背景。
+- 目标。
+- 范围。
+- 不做什么。
+- 分析。
+- 方案。
+- 风险与边界。
+- 测试与验证。
+- 用户确认记录。
+
+状态为 `Draft` 时不能开始实现。用户确认后将状态改为 `User Approved`，再进入实现。
 
 ### 4.2 先主数据，后派生能力
 
@@ -313,3 +367,7 @@ find docs -maxdepth 3 -type f | sort
 ```
 
 若涉及 Markdown 结构，可额外使用 ripgrep 检查未完成占位表达。
+
+```bash
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
+```

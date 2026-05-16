@@ -53,7 +53,7 @@
 
 后续 AI 会话如果涉及具体开发，应先阅读：
 
-1. `docs/AI_ENTRY_POINT.md`
+1. 根目录 `AI_ENTRY_POINT.md`、`CLAUDE.md`、`AGENTS.md` 或 `docs/README.md`
 2. 与任务相关的主参考文档或 ADR
 3. 本目录中对应的 guideline
 
