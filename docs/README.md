@@ -51,6 +51,7 @@ docs/
   documentation-system.md
   architecture/
   decisions/
+  guidelines/
   development/
   release/
   research/
@@ -64,6 +65,7 @@ docs/
 
 - `architecture/`：工程架构、模块边界、数据模型、同步模型、AI Provider、长期记忆和安全边界。
 - `decisions/`：架构决策记录，采用 ADR 风格，记录重要取舍、背景、结论和复审条件。
+- `guidelines/`：开发一致性规范，记录导航、UI、SwiftUI 架构、AI Provider 和隐私等具体开发约束。
 - `development/`：阶段开发计划、工程任务拆分、初始化记录、里程碑状态和开发 runbook。
 - `release/`：买断制、StoreKit、App Store、TestFlight、版本策略和发布检查清单。
 - `research/`：竞品、开源项目、技术调研和设计研究。

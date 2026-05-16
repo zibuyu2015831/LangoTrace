@@ -97,7 +97,29 @@ docs/development/002-first-launch-onboarding-plan.md
 docs/development/003-language-space-mvp-plan.md
 ```
 
-### 2.5 测试文档
+### 2.5 开发规范
+
+位置：`docs/guidelines/`
+
+用途：
+
+- 记录后续开发必须遵守的导航、UI、SwiftUI 架构、AI Provider、隐私和测试等一致性规范。
+- 帮助后续 AI 会话保持实现风格一致，避免每个功能重新定义局部架构。
+- 标注哪些规则是强制的，哪些是默认推荐，哪些可以在开发过程中演进。
+
+第一批规范：
+
+```text
+docs/guidelines/001-guideline-governance.md
+docs/guidelines/002-navigation-and-routing.md
+docs/guidelines/003-ui-design-system.md
+docs/guidelines/004-swiftui-architecture.md
+docs/guidelines/005-ai-provider-prompt-and-privacy.md
+```
+
+规范不是一成不变的教条。若开发中发现更优设计，可以更新对应 guideline；若影响产品核心模型、技术路线、数据边界、隐私边界或商业模式，应新增或更新 ADR。
+
+### 2.6 测试文档
 
 位置：`docs/testing/`
 
@@ -117,7 +139,7 @@ docs/development/003-language-space-mvp-plan.md
 - 同步冲突和数据导出。
 - StoreKit 买断制购买与恢复购买。
 
-### 2.6 发布文档
+### 2.7 发布文档
 
 位置：`docs/release/`
 
@@ -133,7 +155,7 @@ docs/release/002-app-store-review-checklist.md
 docs/release/003-privacy-labels-and-permissions.md
 ```
 
-### 2.7 研究文档
+### 2.8 研究文档
 
 位置：`docs/research/`
 
@@ -142,7 +164,7 @@ docs/release/003-privacy-labels-and-permissions.md
 - 记录竞品分析、开源项目阅读、设计研究、技术调研和许可证分析。
 - 不作为最终产品决策，除非后续同步到主参考文档或 ADR。
 
-### 2.8 规格与计划
+### 2.9 规格与计划
 
 位置：
 
@@ -163,6 +185,7 @@ docs/release/003-privacy-labels-and-permissions.md
 - 项目当前状态变化，例如 SwiftUI 工程已创建、XcodeGen 已接入、MVP 里程碑发生改变。
 - 产品核心模型变化，例如语言空间、单人使用、首次启动、导航结构。
 - 技术路线变化，例如放弃 SwiftUI、改用 SwiftData、改用 CloudKit-only。
+- 开发规范变化，例如新增导航模式、UI 组件体系、SwiftUI 状态管理方式或 AI 请求路径。
 - 数据边界变化，例如哪些数据是主数据、哪些是可重建派生数据。
 - 隐私边界变化，例如哪些内容会发送给 AI Provider。
 - 同步方案变化，例如新增 WebDAV / S3 / R2 同步。
@@ -195,7 +218,7 @@ docs/release/003-privacy-labels-and-permissions.md
 
 后续 AI 辅助编程或产品讨论应优先阅读 `docs/AI_ENTRY_POINT.md`。
 
-这个入口文件只承担路由和全局约束作用，不替代具体文档。AI 应根据任务类型继续阅读产品主参考、技术路线、ADR、架构文档、测试文档或发布文档。
+这个入口文件只承担路由和全局约束作用，不替代具体文档。AI 应根据任务类型继续阅读产品主参考、技术路线、ADR、架构文档、开发规范、测试文档或发布文档。
 
 如果入口文件中的“项目当前状态”与仓库实际状态不一致，应优先更新入口文件和 `docs/README.md`，避免后续会话建立错误上下文。
 
@@ -209,6 +232,18 @@ docs/release/003-privacy-labels-and-permissions.md
 - 权限影响。
 - 隐私影响。
 - 测试方式。
+
+### 4.1.1 先规范，后代码
+
+涉及具体实现风格的开发任务，应先读取对应 `docs/guidelines/` 文档。
+
+例如：
+
+- 做页面路由前读导航与路由规范。
+- 做 SwiftUI 组件前读 UI 设计系统规范和 SwiftUI 架构规范。
+- 做 AI 请求前读 AI Provider、Prompt 与隐私规范。
+
+如果规范与实际实现冲突，应先明确是更新规范还是修正实现，不能让两套模式并存。
 
 ### 4.2 先主数据，后派生能力
 

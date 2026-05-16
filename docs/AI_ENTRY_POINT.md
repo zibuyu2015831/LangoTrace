@@ -28,6 +28,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - 开源项目参考记录。
 - 多端静态 HTML 原型。
 - 文档体系、初始模块边界和关键 ADR。
+- 第一批开发一致性规范。
 
 尚未完成：
 
@@ -89,6 +90,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 12. 向量索引是本地可重建派生数据，默认不同步。
 13. 同步采用 Sync Engine + Adapter 思路，不绑定 CloudKit-only。
 14. Xcode 工程推荐通过 XcodeGen 生成，工程结构以 `project.yml` 为主要来源。
+15. 具体开发前应读取相关 `docs/guidelines/` 规范，避免导航、UI、SwiftUI 架构和 AI 请求路径发散。
 
 ## 5. 按任务类型读取文档
 
@@ -113,6 +115,8 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 - [产品主参考文档](product-main-reference.md) 的第 7、8、9 节
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 10 节
+- [UI 设计系统规范](guidelines/003-ui-design-system.md)
+- [导航与路由规范](guidelines/002-navigation-and-routing.md)
 - `prototypes/langotrace-multi-device-prototype/README.md`
 
 适用任务：
@@ -128,6 +132,9 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - [项目初始化规划](project-initialization.md)
 - [开发环境记录](development-environment.md)
 - [初始模块边界](architecture/001-initial-module-boundaries.md)
+- [开发规范治理](guidelines/001-guideline-governance.md)
+- [SwiftUI 架构规范](guidelines/004-swiftui-architecture.md)
+- [导航与路由规范](guidelines/002-navigation-and-routing.md)
 - [ADR-002：使用 SwiftUI Multiplatform](decisions/002-use-swiftui-multiplatform.md)
 - [ADR-003：使用 XcodeGen 管理 Xcode 工程生成](decisions/003-use-xcodegen-for-project-generation.md)
 
@@ -163,6 +170,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - [产品主参考文档](product-main-reference.md) 的第 9、10 节
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 7、8 节
 - [初始模块边界](architecture/001-initial-module-boundaries.md)
+- [AI Provider、Prompt 与隐私规范](guidelines/005-ai-provider-prompt-and-privacy.md)
 - [ADR-005：坚持本地优先和用户自带 Provider](decisions/005-local-first-and-user-owned-providers.md)
 
 适用任务：
@@ -176,7 +184,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 优先读取：
 
-- [文档体系规范](documentation-system.md) 的第 2.5、2.6、4.3 节
+- [文档体系规范](documentation-system.md) 的第 2.6、2.7、4.3 节
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2.8 节
 - [测试文档目录](testing/README.md)
 - [发布文档目录](release/README.md)
@@ -212,6 +220,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - 技术选型、平台策略、数据和同步路线：更新 [技术框架与开发路线参考](technical-framework-roadmap.md)。
 - 不可轻易反转的取舍：新增或更新 `docs/decisions/`。
 - 模块边界、数据流、Provider、Sync、StoreKit 架构：新增或更新 `docs/architecture/`。
+- 导航、UI、SwiftUI 架构、AI 请求路径等开发一致性约束：新增或更新 `docs/guidelines/`。
 - 具体实施步骤：写入 `docs/development/` 或 `docs/superpowers/plans/`。
 - 大功能规格：写入 `docs/superpowers/specs/`。
 - 验证流程和手动测试：写入 `docs/testing/`。
