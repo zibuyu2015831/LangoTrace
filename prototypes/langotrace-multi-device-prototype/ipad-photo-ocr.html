@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iPad 照片与手写录入 - 语迹</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand-lockup"><div class="mark">语</div><div><h1 class="brand-name">iPad <span>照片/OCR</span></h1><p class="slogan">照片引导写作，也支持拍照录入手写文章。</p></div></div>
+      <nav class="page-tabs"><a href="index.html">总览</a><a href="ipad-desk.html">桌面</a><a class="active" href="ipad-photo-ocr.html">照片/OCR</a><a href="ipad-correction.html">纠错</a><a href="ipad-memory.html">记忆</a></nav>
+    </header>
+    <section class="device-frame">
+      <div class="screen app-layout">
+        <aside class="pane sidebar"><p class="mini-title">Input Source</p><div class="stack"><article class="card active"><p class="row-title">照片引导写作</p><p class="row-meta">从图片场景生成写作问题。</p></article><article class="card"><p class="row-title">手写文章 OCR</p><p class="row-meta">识别目标语言手写文本。</p></article><article class="card"><p class="row-title">图片隐私</p><p class="row-meta">默认本地，仅确认后发送 AI。</p></article></div></aside>
+        <section class="pane workspace">
+          <div class="global-strip">
+            <div class="space-pill">英语空间 · B1</div>
+            <div class="global-actions"><span class="sync-pill">本地保存</span><span class="icon-btn" aria-label="设置">⚙</span></div>
+          </div>
+          <div class="page-head"><div><h2 class="page-title">照片与手写录入</h2><p class="page-subtitle">一张照片可以变成话题；一页手写文章可以进入检测、修改和长期错误模式沉淀。</p></div><span class="secondary-btn">用户确认后分析图片</span></div>
+          <div class="editor-grid">
+            <article class="entry-card"><div class="block-label"><span>Photo</span><span>本地图片</span></div><div class="photo-sim" style="margin-top:12px;border-radius:10px"></div><p class="row-meta">AI 建议：描述窗外天气、解释为什么停留、回忆类似经历。</p></article>
+            <article class="entry-card"><div class="block-label"><span>Handwriting</span><span>OCR 校对</span></div><div class="handwriting">Yesterday I wrote<br>in my notebook at<br>the library. It was<br>difficult, but I enjoyed it.</div></article>
+          </div>
+          <div class="practice-grid">
+            <article class="card active"><p class="row-title">识别结果校对</p><p class="row-meta">用户可在进入 AI 修改前修正 OCR 误识别，避免错误进入学习记忆。</p></article>
+            <article class="card"><p class="row-title">照片话题生成</p><p class="row-meta">不是替用户写完，而是给出观察角度、故事线索和可练习表达。</p></article>
+            <article class="card"><p class="row-title">隐私提示</p><p class="row-meta">图片和 OCR 文本分别显示是否会发送给 Provider。</p></article>
+            <article class="card"><p class="row-title">进入纠错</p><p class="row-meta">目标语言手写内容识别后可进入写作检测和润色流程。</p></article>
+          </div>
+        </section>
+        <aside class="pane inspector"><p class="mini-title">AI Prompt</p><div class="stack"><article class="card"><p class="row-title">照片引导</p><p class="row-meta">请基于图片生成 5 个写作切入点，覆盖场景、情绪、物品、原因和回忆。</p></article><article class="card"><p class="row-title">OCR 后处理</p><p class="row-meta">只修正明显识别错误，不改写用户原文。</p></article></div></aside>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

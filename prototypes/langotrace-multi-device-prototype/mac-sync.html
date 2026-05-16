@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mac 隐私与同步 - 语迹</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand-lockup"><div class="mark">语</div><div><h1 class="brand-name">MacBook <span>隐私与同步</span></h1><p class="slogan">买断制、本地优先、自定义 AI 和对象存储。</p></div></div>
+      <nav class="page-tabs"><a href="index.html">总览</a><a href="mac-library.html">资料库</a><a href="mac-prompts.html">Prompt</a><a class="active" href="mac-sync.html">同步</a><a href="mac-import-export.html">导入导出</a></nav>
+    </header>
+    <section class="device-frame">
+      <div class="screen app-layout mac">
+        <aside class="pane sidebar"><p class="mini-title">Settings</p><div class="stack"><article class="card active"><p class="row-title">AI Provider</p><p class="row-meta">OpenAI-compatible</p></article><article class="card"><p class="row-title">对象存储</p><p class="row-meta">S3 / R2 / WebDAV</p></article><article class="card"><p class="row-title">本地加密</p><p class="row-meta">Keychain 管理密钥</p></article><article class="card"><p class="row-title">向量索引</p><p class="row-meta">本地可重建</p></article></div></aside>
+        <section class="pane workspace">
+          <div class="global-strip">
+            <div class="space-pill">英语空间 · B1</div>
+            <div class="global-actions"><span class="sync-pill">本地优先</span><span class="icon-btn" aria-label="设置">⚙</span></div>
+          </div>
+          <div class="page-head"><div><h2 class="page-title">隐私与同步配置</h2><p class="page-subtitle">把“用户掌控数据”做成可理解、可检查、可恢复的高级能力。</p></div></div>
+          <div class="settings-grid">
+            <article class="setting-row"><p class="row-title"><span class="status-dot"></span>语言空间</p><p class="row-meta">英语空间独立保存词句、错误模式、复习队列和成长报告。日语空间可单独创建。</p></article>
+            <article class="setting-row"><p class="row-title"><span class="status-dot"></span>AI 请求配置</p><p class="row-meta">Base URL、模型、API Key、请求头和超时策略。API Key 存入 Keychain。</p></article>
+            <article class="setting-row"><p class="row-title"><span class="status-dot warn"></span>对象存储同步</p><p class="row-meta">用户配置 R2 / S3 / WebDAV。首次同步前展示将上传的 manifest。</p></article>
+            <article class="setting-row"><p class="row-title"><span class="status-dot"></span>图片发送确认</p><p class="row-meta">照片默认本地保存，只有点击“用 AI 分析照片”才发送。</p></article>
+            <article class="setting-row"><p class="row-title"><span class="status-dot off"></span>向量索引</p><p class="row-meta">不默认同步，只保存 embedding provider 和索引版本，可在设备上重建。</p></article>
+          </div>
+          <div class="card" style="margin-top:14px"><p class="row-title">同步冲突</p><p class="row-meta">显示设备、时间、字段差异和附件状态，允许保留本机、保留远端或复制为新记录。</p></div>
+        </section>
+        <aside class="pane inspector"><p class="mini-title">Request Preview</p><div class="stack"><article class="card"><p class="row-title">即将发送</p><p class="row-meta">目标语言文本、用户选中的照片摘要、相似记忆 3 条。</p></article><article class="card"><p class="row-title">不会发送</p><p class="row-meta">本地数据库、完整照片库、API Key、未选中的历史记录。</p></article></div></aside>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
