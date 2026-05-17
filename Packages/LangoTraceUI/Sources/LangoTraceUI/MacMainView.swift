@@ -33,6 +33,33 @@ struct MacMainView: View {
         }
         .frame(minWidth: minimumWindowWidth, minHeight: 720)
         .langoPageBackground()
+        .toolbar {
+            ToolbarItemGroup(placement: .navigation) {
+                Button {
+                    isSidebarVisible.toggle()
+                } label: {
+                    Label(isSidebarVisible ? "隐藏侧边栏" : "显示侧边栏", systemImage: "sidebar.left")
+                }
+                Button {
+                    isInspectorVisible.toggle()
+                } label: {
+                    Label(isInspectorVisible ? "隐藏检查器" : "显示检查器", systemImage: "sidebar.right")
+                }
+            }
+            ToolbarItemGroup(placement: .primaryAction) {
+                Button {
+                    selectedSection = .entries
+                    route = .unavailable("search")
+                } label: {
+                    Label("搜索", systemImage: "magnifyingglass")
+                }
+                Button {
+                    isEntryEditorPresented = true
+                } label: {
+                    Label("新建记录", systemImage: "plus")
+                }
+            }
+        }
         .animation(panelAnimation, value: isSidebarVisible)
         .animation(panelAnimation, value: isInspectorVisible)
         .sheet(isPresented: $isEntryEditorPresented) {
@@ -88,18 +115,14 @@ struct MacMainView: View {
     }
 
     private var minimumWindowWidth: CGFloat {
-        switch (isSidebarVisible, isInspectorVisible) {
-        case (true, true):
-            1160
-        case (true, false), (false, true):
-            900
-        case (false, false):
-            680
-        }
+        MacWindowLayout.minimumWidth(
+            sidebarVisible: isSidebarVisible,
+            inspectorVisible: isInspectorVisible
+        )
     }
 
     private var panelAnimation: Animation? {
-        reduceMotion ? nil : .easeInOut(duration: 0.18)
+        reduceMotion ? nil : .easeInOut(duration: LangoTraceDesign.Motion.panelTransitionDuration)
     }
 
     private func panelTransition(edge: Edge) -> AnyTransition {
@@ -160,7 +183,7 @@ struct MacMainView: View {
             )
         }
         .padding(24)
-        .frame(width: 300, alignment: .topLeading)
+        .frame(width: LangoTraceDesign.Density.macSidebarWidth, alignment: .topLeading)
     }
 
     private var main: some View {
@@ -192,21 +215,6 @@ struct MacMainView: View {
 
     private var header: some View {
         HStack {
-            HStack(spacing: 8) {
-                LangoPanelToggleButton(
-                    systemImage: "sidebar.left",
-                    isActive: isSidebarVisible,
-                    accessibilityLabel: isSidebarVisible ? "隐藏侧边栏" : "显示侧边栏",
-                    action: { isSidebarVisible.toggle() }
-                )
-                LangoPanelToggleButton(
-                    systemImage: "sidebar.right",
-                    isActive: isInspectorVisible,
-                    accessibilityLabel: isInspectorVisible ? "隐藏检查器" : "显示检查器",
-                    action: { isInspectorVisible.toggle() }
-                )
-            }
-
             VStack(alignment: .leading, spacing: 8) {
                 Text(selectedSection.title)
                     .font(.largeTitle.weight(.semibold))
@@ -214,12 +222,6 @@ struct MacMainView: View {
                     .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
             }
             Spacer()
-            Button {
-                isEntryEditorPresented = true
-            } label: {
-                Label("新建记录", systemImage: "plus")
-            }
-            .buttonStyle(.borderedProminent)
         }
     }
 
@@ -240,6 +242,6 @@ struct MacMainView: View {
             }
             .padding(24)
         }
-        .frame(width: 340, alignment: .topLeading)
+        .frame(width: LangoTraceDesign.Density.macInspectorWidth, alignment: .topLeading)
     }
 }

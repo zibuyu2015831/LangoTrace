@@ -2,7 +2,7 @@
 
 类型：feature
 
-状态：Reviewed
+状态：Implemented
 
 日期：2026-05-18
 
@@ -26,13 +26,15 @@
 
 关联提交：
 
-- 未提交
+- 待提交
 
 ## 1. 审查背景和目标
 
 当前 LangoTrace 已经完成 Welcome / Onboarding / Main 启动路由、iPhone Tab、iPad 学习桌面、macOS 工作台、Mock 学习内容、隐私状态图标、设置能力说明和 iPad 边缘手势。三端已经能展示产品骨架，但仍处于真实数据、真实 AI、真实语音、真实同步和 StoreKit 之前的早期阶段。
 
-本轮目标不是直接美化页面，也不是修改 SwiftUI 代码，而是站在系统架构师和专业 iOS / iPadOS / macOS 交互设计师角度，把“付费级 UI”拆成有代码和文档证据的问题清单、设计系统补强建议、样板页面选择和分阶段优化方案。
+首次审查目标不是直接美化页面，也不是修改 SwiftUI 代码，而是站在系统架构师和专业 iOS / iPadOS / macOS 交互设计师角度，把“付费级 UI”拆成有代码和文档证据的问题清单、设计系统补强建议、样板页面选择和分阶段优化方案。
+
+2026-05-18 复查后，用户要求针对本 worklog 站在资深 Apple 应用交互设计师角度严格复查，并开始修复和完善直至完成整体优化。本 worklog 因此从审查记录推进为实施记录：先确认问题是否真实存在、描述是否准确，再修复 P1 / 高风险 P2 中会直接影响平台原生交互、隐私可信度、响应式布局和国际化边界的项目。
 
 付费级 UI 的判断基准来自产品定位：LangoTrace 是“用生活记录学习语言”的本地优先 Apple 三端原生 App。优秀 UI 应强化个人语言资料库、生活记录到学习闭环、隐私可信状态和平台原生体验，而不是通过装饰性渐变、阴影、卡片堆叠或营销式文案制造高级感。
 
@@ -526,15 +528,21 @@
 
 ## 12. 本轮不进入实现的内容
 
-本轮明确不处理：
+首次审查阶段明确不处理：
 
-- 不修改 SwiftUI 代码。
 - 不调整 `project.yml`、Swift Package、资源文件或 Xcode 工程。
 - 不接入真实 SQLite / GRDB、AI Provider、Keychain、TTS、Speech、OCR、Photos、Sync、StoreKit。
 - 不建立完整品牌手册。
 - 不做全量视觉重写。
 - 不承诺深色模式已经支持。
 - 不创建新的 ADR；本轮没有改变核心产品决策，只形成 UI 审查和后续优化方案。
+
+复查实施阶段已修改 SwiftUI / Swift package 代码，但仍遵守以下边界：
+
+- 不接入真实 SQLite / GRDB、AI Provider、Keychain、TTS、Speech、OCR、Photos、Sync、StoreKit。
+- 不修改 `project.yml`、Xcode 工程、包结构或资源目录结构。
+- 不声称深色模式、真实搜索、真实 AI、真实导入导出或真实语音能力已经可用。
+- 不创建新的 ADR；本轮修复没有改变第 4 节核心产品和架构决策。
 
 ## 13. 文档影响检查
 
@@ -543,9 +551,9 @@
 - `docs/review/`：本轮是专项 UI 审查方案，不触发数据库、AI Provider、权限、同步、StoreKit、XcodeGen、包边界或 App 启动结构专项审查。
 - `docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md`：本轮审查结果符合该规格，不需要修改规格。
 
-## 14. 验证计划
+## 14. 首次审查阶段验证计划
 
-本轮是文档审查任务，按用户要求完成后运行：
+首次审查阶段是文档审查任务，按用户要求完成后运行：
 
 ```bash
 find docs -maxdepth 3 -type f | sort
@@ -554,9 +562,9 @@ git diff --check
 git status --short
 ```
 
-本轮不运行 `scripts/verify.sh`，因为没有修改 Swift、XcodeGen、Package 或资源文件。
+首次审查阶段不运行 `scripts/verify.sh`，因为当时没有修改 Swift、XcodeGen、Package 或资源文件。复查实施阶段的完整 Swift 验证见第 19 节。
 
-## 15. 验证结果
+## 15. 首次审查阶段验证结果
 
 2026-05-18 已运行：
 
@@ -572,5 +580,86 @@ git status --short
 - `find docs -maxdepth 3 -type f | sort` 已确认本 worklog 位于 `docs/worklogs/2026-05-18-feature-premium-ui-audit.md`。
 - 占位词扫描无命中；`rg` 返回 exit 1，表示没有匹配项。
 - `git diff --check` 通过。
-- `git status --short` 显示当前仅有文档层改动：`docs/superpowers/specs/README.md` 已修改，`docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md`、`docs/worklogs/2026-05-18-chore-premium-ui-principles-review-plan.md` 和本 worklog 为未跟踪文件。
-- 本轮未运行 `scripts/verify.sh`，因为没有修改 Swift、XcodeGen、Package 或资源文件。
+- 首次审查阶段的 `git status --short` 显示当时仅有文档层改动：`docs/superpowers/specs/README.md` 已修改，`docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md`、`docs/worklogs/2026-05-18-chore-premium-ui-principles-review-plan.md` 和本 worklog 为未跟踪文件。
+- 首次审查阶段未运行 `scripts/verify.sh`，因为当时没有修改 Swift、XcodeGen、Package 或资源文件；复查实施阶段已补充运行，结果见第 19 节。
+
+## 16. 资深 Apple 交互复查结论
+
+2026-05-18 复查结论：
+
+- I-01 真实存在且描述准确：`PhoneMainView` 曾在整个 `TabView` 上挂全屏水平 `DragGesture`，这是 iPhone Tab / NavigationStack / 未来编辑控件的高风险冲突点。
+- I-02 真实存在且描述准确：首页三枚同权重 ActionChip 会把当前可用文本记录与未接入照片、语音能力放在同一优先级。
+- I-03 真实存在且描述准确：iPhone `EntryDetailView` 曾用双列 `HStack` 展示母语记录和目标语言，小屏与 Dynamic Type 风险明确。
+- P-02 真实存在且描述准确：iPad compact width 处理曾只发生在 `.onAppear`，运行中分屏或 Stage Manager 尺寸变化没有可测试策略。
+- P-03 真实存在且描述准确：iPad 搜索区域曾是静态 HStack，看起来像输入框但不可交互。
+- P-04 真实存在且描述准确：右侧学习面板在无 memory / practice item 时可能显示空字符串。
+- M-01 / M-02 / M-03 / M-04 真实存在且描述准确：Mac 工作台此前主要依赖自绘 header 和固定宽度策略，Today 也把未接入的搜索/导入说明放在当前记录之前。
+- S-02 真实存在且描述准确：Local Mock 请求预览曾出现“即将发送”，与“不发送外部请求”同屏冲突。
+- S-03 真实存在且描述准确：Data 层曾输出设置能力、状态、来源标题和练习步骤等中文 UI chrome。复查时确认 mock 用户内容可以保留特定语言，但能力边界、状态名、来源名和步骤名应由 UI 层渲染。
+
+本次未把 S-01 / S-04 / S-05 扩展为完整品牌和全量本地化重构。原因：这三项仍然成立，但完整修复需要 String Catalog 大规模补 key、截图矩阵和视觉 token 全量替换，超出当前“先修复真实高风险问题”的可控范围。已完成的改动为后续 token / component rollout 预留了边界。
+
+## 17. 已实施修复
+
+### 17.1 iPhone
+
+- 删除 `PhoneMainView` 顶层 `TabView` 的全屏 `.simultaneousGesture(tabSwipeGesture)`，Tab 切换回归系统 Tab Bar。
+- `HeroActionCard` 将 `写一句` 调整为唯一主 CTA；`拍照写作` 和 `听一句` 降为次级按钮，并显示未接入状态说明。
+- `EntryDetailView` 在 iPhone 路径改为垂直展示母语记录和目标语言，避免小屏双列阅读断裂。
+
+### 17.2 iPad
+
+- 新增 `PadAdaptivePanelLayout` 和 `PadPanelVisibility` 纯逻辑，compact width 时保护主内容并隐藏右侧学习面板。
+- `PadMainView` 在 `.onAppear` 和 `horizontalSizeClass` 变化时应用同一响应式策略。
+- `PadWorkspaceBar` 的搜索区域改为真实 `Button`，触发统一 `UnavailableCapabilityView`，不再伪装成可输入搜索框。
+- `PadLearningPanelView` 为无词句、无练习项提供明确空态说明，不再显示空字符串。
+
+### 17.3 macOS
+
+- 新增 `MacWindowLayout`，降低固定最小宽度并把宽度策略抽成可测试逻辑。
+- `MacMainView` 将 Sidebar / Inspector toggle、搜索、新建记录移入 `.toolbar` 候选，减少自绘 header 的平台债务。
+- `MacWorkspaceContentView.todayContent` 优先展示当前记录和学习状态，将搜索 / 批量导入改为 unavailable 入口并下移。
+- `MacInspectorContent` 增加记录元数据、词句候选和本地化设置详情，减少静态说明侧栏。
+
+### 17.4 Shared / Data
+
+- 新增 `RequestPreviewCopy`，Local Mock 状态显示“真实接入后会请求确认...当前不会发送外部请求”，真实 Provider 请求才使用“将发送”。
+- 新增 `CapabilityStatusTone` 和 `CapabilityStatusBadge`，让 ready / Local Mock / unavailable 使用明确视觉 tone，不再在组件内散落状态颜色判断。
+- 新增 `EntryRenderingStatus`，让记录详情 header 区分未生成、Local Mock 和真实 Provider 渲染状态，避免无 rendering 时误显示 Local Mock。
+- 扩展 `LangoTraceDesign` 的 surface、state、density 和 motion token：补充 canvas / sidebar / panel / inspector / selected surface、ready / local mock / unavailable / warning / error 状态、iPad / Mac 面板宽度、触控目标和动效时长。
+- 新增 `EntryDetailHeader`，统一记录标题、来源 metadata、目标语言、Local Mock 状态和来源关系说明；iPhone 详情和 iPad 主工作区共用该 header。
+- UI 层新增 `EntrySource.displayTitle`、`LearningEntry.displaySourceTitle` 和 `PracticeSessionStep.displayTitle`，Data 层不再输出这些中文 UI chrome。
+- `SettingsCapability` 的 summary / detail / nextRequirement 改为稳定 key；Settings 详情继续由 UI package 的 String Catalog key 渲染。
+- 新增 Data / UI 测试约束：Local Mock 请求预览不出现“即将发送”；iPad compact 面板策略可测试；Mac 窗口最小宽度策略可测试；记录详情 header 状态可测试；Data 能力和状态模型不输出中文 UI chrome。
+
+## 18. 复查后的剩余边界
+
+- 设计 token 已完成第一层 surface / state / density / motion 补强，但仍未完成完整品牌系统、深色模式 token 映射和截图验证；不宣称视觉系统已最终付费级。
+- 多数非样板 SwiftUI 页面仍存在中文硬编码 chrome；样板之外的全量 String Catalog 迁移需要单独阶段推进。
+- Data 层仍保留 mock 用户内容和 mock 生成内容的中文，例如 seed entry、自动创建记录的 mock note、practice summary。这属于当前 Local Mock 内容资产，不等同于设置能力或状态 chrome；真实数据层接入前仍需继续收敛。
+- 未做截图矩阵、VoiceOver 实机走查、Dynamic Type 全尺寸截图和深色模式验证；这些仍属于第四阶段质量验证内容。
+
+## 19. 复查实施阶段验证结果
+
+2026-05-18 已运行：
+
+```bash
+swift test --package-path Packages/LangoTraceData
+swift test --package-path Packages/LangoTraceUI
+scripts/verify.sh
+find docs -maxdepth 3 -type f | sort
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
+git diff --check
+git status --short
+```
+
+结果：
+
+- `Packages/LangoTraceData`：10 个 Swift Testing 测试通过。
+- `Packages/LangoTraceUI`：19 个 Swift Testing 测试通过。
+- `scripts/verify.sh` 通过，覆盖 XcodeGen 生成、`xcodebuild -list`、Core / Data / UI package tests、iPhone 17 simulator build、iPad Pro 13-inch (M5) simulator build、macOS arm64 build、SwiftLint、SwiftFormat 和文档占位扫描。
+- `find docs -maxdepth 3 -type f | sort` 已确认本 worklog 仍在 `docs/worklogs/`。
+- 占位词扫描无命中；`rg` 返回 exit 1，表示没有匹配项。
+- `git diff --check` 通过。
+- `rg "sourceTitle|step\\.title|capability\\.detail|capability\\.nextRequirement|capability\\.kind\\.title|shouldPreferSingleMainColumn|tabSwipeGesture|即将发送" Packages/LangoTraceUI/Sources/LangoTraceUI Packages/LangoTraceData/Sources/LangoTraceData` 仅剩 `LearningEntry.sourceTitle` 属性定义本身；UI 不再读取该中文展示来源，Local Mock 请求预览源码不再包含“即将发送”。
+- `git status --short` 显示本轮有 Swift / 测试 / worklog 改动，尚未提交。

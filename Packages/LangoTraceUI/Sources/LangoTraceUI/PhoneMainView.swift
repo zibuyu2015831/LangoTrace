@@ -96,7 +96,6 @@ struct PhoneMainView: View {
                 }
                 .tag(PhoneRootTab.settings)
             }
-            .simultaneousGesture(tabSwipeGesture)
             .phoneTabBarBackground()
             .navigationDestination(for: PhoneRoute.self) { route in
                 switch route {
@@ -182,16 +181,6 @@ struct PhoneMainView: View {
     private func showEntryDetail(_ entry: LearningEntry) {
         contentRepository.selectEntry(id: entry.id, spaceID: languageSpace.id)
         navigationPath.append(.entryDetail(entry.id))
-    }
-
-    private var tabSwipeGesture: some Gesture {
-        DragGesture(minimumDistance: 24, coordinateSpace: .local)
-            .onEnded { value in
-                selectedTab = selectedTab.tab(
-                    horizontalTranslation: Double(value.translation.width),
-                    verticalTranslation: Double(value.translation.height)
-                )
-            }
     }
 }
 

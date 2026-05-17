@@ -17,7 +17,12 @@ struct MacInspectorContent: View {
         switch route {
         case let .entryDetail(entryID):
             if let entry = entries.first(where: { $0.id == entryID }) {
+                TextPanel(
+                    title: "记录元数据",
+                    text: "\(entry.displaySourceTitle) · \(entry.scene) · \(entry.practiceSummary)"
+                )
                 RequestPreviewCard(entry: entry, rendering: contentRepository.rendering(for: entry.id))
+                memoryCandidates(for: entry)
                 TextPanel(title: "隐私边界", text: "当前详情只读取内存 mock 内容，不访问网络、Keychain 或真实数据库。")
             } else {
                 TextPanel(title: "没有记录", text: "请选择记录库中的记录。")
@@ -27,13 +32,42 @@ struct MacInspectorContent: View {
             TextPanel(title: "后续能力", text: "语音播放、录音、评分和听写结果需要 Speech / TTS 模块接入。")
         case let .settings(kind):
             if let capability = settingsCapabilities.first(where: { $0.kind == kind }) {
-                TextPanel(title: capability.kind.title, text: capability.detail)
-                TextPanel(title: "后续接入条件", text: capability.nextRequirement)
+                LocalizedTextPanel(
+                    titleKey: capability.kind.localizedTitleKey,
+                    textKey: settingsCapabilityDetailLocalizationKeys(for: capability.kind).detail
+                )
+                LocalizedTextPanel(
+                    titleKey: settingsNextRequirementTitleKey,
+                    textKey: settingsCapabilityDetailLocalizationKeys(for: capability.kind).nextRequirement
+                )
             }
         case .unavailable:
             TextPanel(title: "不可用能力", text: "当前入口只展示页面闭环，不会触发导入、导出、同步或外部请求。")
         case .overview:
             overviewInspector
+        }
+    }
+
+    private func memoryCandidates(for entry: LearningEntry) -> some View {
+        let candidates = contentRepository
+            .memoryItems(for: entry.spaceID)
+            .filter { $0.entryID == entry.id }
+
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("词句候选")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+
+            if candidates.isEmpty {
+                TextPanel(
+                    title: "暂无词句",
+                    text: "这条记录还没有提取词句。当前不会调用 AI，也不会写入向量索引。"
+                )
+            } else {
+                ForEach(candidates) { item in
+                    CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
+                }
+            }
         }
     }
 

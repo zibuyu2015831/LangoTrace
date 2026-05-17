@@ -5,16 +5,7 @@ public enum PracticeSessionStep: String, CaseIterable, Equatable, Hashable, Send
     case completed
 
     public var title: String {
-        switch self {
-        case .prepare:
-            "准备"
-        case .shadow:
-            "跟读"
-        case .compare:
-            "对照"
-        case .completed:
-            "完成"
-        }
+        rawValue
     }
 }
 

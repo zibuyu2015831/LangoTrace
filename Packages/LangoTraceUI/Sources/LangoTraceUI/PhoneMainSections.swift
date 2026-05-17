@@ -73,7 +73,7 @@ struct EntriesView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(entry.title)
                                 .font(.headline)
-                            Text("\(entry.sourceTitle) · \(languageSpace.targetLanguage) · \(entry.scene)")
+                            Text("\(entry.displaySourceTitle) · \(languageSpace.targetLanguage) · \(entry.scene)")
                                 .font(.footnote)
                                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                         }

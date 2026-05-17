@@ -110,6 +110,11 @@ struct MacUnavailableContent {
             summary = "当前不会打开文件面板、读取磁盘文件、写入导出包或访问附件目录。"
             nextRequirement = "完成 SQLite / GRDB、附件存储、安全作用域文件访问和导出格式设计。"
             systemImage = "tray.and.arrow.down"
+        case "search":
+            title = "搜索尚未接入"
+            summary = "当前不会查询真实数据库、FTS、embedding 或向量索引，只展示入口边界。"
+            nextRequirement = "完成 SQLite / GRDB、FTS、可重建向量索引和 Mac 搜索结果路由。"
+            systemImage = "magnifyingglass"
         default:
             title = "能力尚未接入"
             summary = "当前只展示页面闭环，不触发真实副作用。"

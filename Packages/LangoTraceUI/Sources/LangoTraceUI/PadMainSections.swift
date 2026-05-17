@@ -71,8 +71,13 @@ struct PadSidebarView: View {
             )
         }
         .padding(22)
-        .frame(minWidth: 240, idealWidth: 270, maxWidth: 300, alignment: .topLeading)
-        .background(LangoTraceDesign.ColorToken.paper.opacity(0.72))
+        .frame(
+            minWidth: 240,
+            idealWidth: LangoTraceDesign.Density.padSidebarWidth,
+            maxWidth: 300,
+            alignment: .topLeading
+        )
+        .background(LangoTraceDesign.ColorToken.surfaceSidebar.opacity(0.72))
     }
 }
 
@@ -118,7 +123,11 @@ struct PadWorkspaceContentView: View {
         ScrollView {
             if let selectedEntry {
                 VStack(alignment: .leading, spacing: 18) {
-                    workspaceHeader(for: selectedEntry)
+                    EntryDetailHeader(
+                        entry: selectedEntry,
+                        targetLanguage: languageSpace.targetLanguage,
+                        rendering: selectedRendering
+                    )
                     HStack(alignment: .top, spacing: 14) {
                         TextPanel(title: "母语记录", text: selectedEntry.body)
                         TextPanel(title: "目标语言", text: selectedRendering?.targetText ?? "等待生成")
@@ -132,17 +141,6 @@ struct PadWorkspaceContentView: View {
                 EmptyWorkspacePanel()
                     .padding(26)
             }
-        }
-    }
-
-    private func workspaceHeader(for entry: LearningEntry) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(entry.title)
-                .font(.system(.largeTitle, design: .default, weight: .semibold))
-            Text("把中文生活记录转换为 \(languageSpace.targetLanguage) 学习材料，支持逐句朗读、解释和练习。")
-                .font(.body)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -286,8 +284,13 @@ struct PadLearningPanelView: View {
             }
             .padding(22)
         }
-        .frame(minWidth: 300, idealWidth: 330, maxWidth: 360, alignment: .topLeading)
-        .background(LangoTraceDesign.ColorToken.paper.opacity(0.58))
+        .frame(
+            minWidth: 300,
+            idealWidth: LangoTraceDesign.Density.padInspectorWidth,
+            maxWidth: 360,
+            alignment: .topLeading
+        )
+        .background(LangoTraceDesign.ColorToken.surfaceInspector.opacity(0.58))
     }
 
     private func selectedEntryContent(_ entry: LearningEntry) -> some View {
@@ -298,19 +301,14 @@ struct PadLearningPanelView: View {
             )
             TextPanel(
                 title: "词句提取",
-                text: memoryItems
-                    .filter { $0.entryID == entry.id }
-                    .map(\.text)
-                    .joined(separator: ", ")
+                text: memorySummary(for: entry)
             )
             CapabilityStatusRow(
                 title: "进入练习",
-                summary: contentRepository.practiceItems(for: entry.id)
-                    .map(\.summary)
-                    .joined(separator: " · "),
-                status: .mockOnly,
+                summary: practiceSummary(for: entry),
+                status: contentRepository.practiceItems(for: entry.id).isEmpty ? .unavailable : .mockOnly,
                 systemImage: "waveform",
-                action: { onRoute(.practice(entry.id)) }
+                action: contentRepository.practiceItems(for: entry.id).isEmpty ? nil : { onRoute(.practice(entry.id)) }
             )
             CapabilityStatusRow(
                 title: "空间设置",
@@ -321,5 +319,27 @@ struct PadLearningPanelView: View {
             )
             RequestPreviewCard(entry: entry, rendering: selectedRendering)
         }
+    }
+
+    private func memorySummary(for entry: LearningEntry) -> String {
+        let extracted = memoryItems
+            .filter { $0.entryID == entry.id }
+            .map(\.text)
+
+        guard !extracted.isEmpty else {
+            return "这条记录还没有提取词句。当前不会调用 AI，也不会写入向量索引。"
+        }
+
+        return extracted.joined(separator: ", ")
+    }
+
+    private func practiceSummary(for entry: LearningEntry) -> String {
+        let summaries = contentRepository.practiceItems(for: entry.id).map(\.summary)
+
+        guard !summaries.isEmpty else {
+            return "这条记录还没有可练习内容。真实生成能力接入前不会触发外部请求。"
+        }
+
+        return summaries.joined(separator: " · ")
     }
 }

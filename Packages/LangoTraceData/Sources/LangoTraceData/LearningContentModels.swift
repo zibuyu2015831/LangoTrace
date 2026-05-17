@@ -37,14 +37,7 @@ public struct LearningEntry: Equatable, Identifiable, Sendable {
     }
 
     public var sourceTitle: String {
-        switch source {
-        case .typedText:
-            "文字记录"
-        case .photoWriting:
-            "照片写作"
-        case .targetLanguageWriting:
-            "目标语言写作"
-        }
+        source.rawValue
     }
 }
 

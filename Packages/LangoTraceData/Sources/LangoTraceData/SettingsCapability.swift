@@ -4,14 +4,7 @@ public enum CapabilityStatus: String, Equatable, Sendable {
     case unavailable
 
     public var title: String {
-        switch self {
-        case .ready:
-            "可用"
-        case .mockOnly:
-            "Local Mock"
-        case .unavailable:
-            "未接入"
-        }
+        rawValue
     }
 }
 
@@ -26,22 +19,7 @@ public struct SettingsCapability: Equatable, Identifiable, Sendable {
         case export
 
         public var title: String {
-            switch self {
-            case .languageSpace:
-                "语言空间"
-            case .interfaceLanguage:
-                "界面语言"
-            case .aiProvider:
-                "AI Provider"
-            case .sync:
-                "同步"
-            case .localData:
-                "本地数据"
-            case .privacy:
-                "隐私边界"
-            case .export:
-                "导出"
-            }
+            rawValue
         }
 
         public var systemImage: String {

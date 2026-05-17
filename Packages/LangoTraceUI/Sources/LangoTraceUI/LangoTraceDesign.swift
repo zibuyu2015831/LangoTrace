@@ -26,6 +26,17 @@ enum LangoTraceDesign {
         static let danger = Color(red: 0.680, green: 0.155, blue: 0.130)
         static let privacyLocal = deepTeal
         static let privacyExternal = gold
+        static let surfaceCanvas = surfaceBase
+        static let surfaceSidebar = surfaceMuted
+        static let surfacePanel = surfaceRaised
+        static let surfaceInspector = Color(red: 0.955, green: 0.942, blue: 0.910)
+        static let surfaceSelected = surfaceAccentMuted
+        static let stateReady = privacyLocal
+        static let stateLocalMock = accent
+        static let stateUnavailable = textSecondary
+        static let stateWarning = warning
+        static let stateError = danger
+        static let separator = borderSubtle
     }
 
     enum Typography {
@@ -48,6 +59,20 @@ enum LangoTraceDesign {
         static let page: CGFloat = 24
         static let section: CGFloat = 18
         static let compact: CGFloat = 10
+    }
+
+    enum Density {
+        static let minimumTouchTarget: CGFloat = 44
+        static let phonePagePadding: CGFloat = 20
+        static let padSidebarWidth: CGFloat = 270
+        static let padInspectorWidth: CGFloat = 330
+        static let macSidebarWidth: CGFloat = 300
+        static let macInspectorWidth: CGFloat = 340
+    }
+
+    enum Motion {
+        static let panelTransitionDuration: TimeInterval = 0.18
+        static let microFeedbackDuration: TimeInterval = 0.12
     }
 }
 

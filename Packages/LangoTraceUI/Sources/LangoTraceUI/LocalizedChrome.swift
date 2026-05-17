@@ -101,3 +101,37 @@ extension SettingsCapability.Kind {
         }
     }
 }
+
+extension EntrySource {
+    var displayTitle: String {
+        switch self {
+        case .typedText:
+            "文字记录"
+        case .photoWriting:
+            "照片写作"
+        case .targetLanguageWriting:
+            "目标语言写作"
+        }
+    }
+}
+
+extension LearningEntry {
+    var displaySourceTitle: String {
+        source.displayTitle
+    }
+}
+
+extension PracticeSessionStep {
+    var displayTitle: String {
+        switch self {
+        case .prepare:
+            "准备"
+        case .shadow:
+            "跟读"
+        case .compare:
+            "对照"
+        case .completed:
+            "完成"
+        }
+    }
+}

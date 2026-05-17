@@ -18,7 +18,7 @@ struct EntryTimelineRow: View {
                     Text(entry.title)
                         .font(.headline)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                    Text("\(entry.sourceTitle) · \(targetLanguage) · \(entry.scene)")
+                    Text("\(entry.displaySourceTitle) · \(targetLanguage) · \(entry.scene)")
                         .font(.footnote)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     Text(entry.practiceSummary)
@@ -37,7 +37,7 @@ struct EntryTimelineRow: View {
             }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(entry.title)，\(entry.sourceTitle)，\(entry.practiceSummary)")
+        .accessibilityLabel("\(entry.title)，\(entry.displaySourceTitle)，\(entry.practiceSummary)")
         .accessibilityValue(isSelected ? "当前选中" : "未选中")
     }
 }
@@ -115,7 +115,7 @@ struct RequestPreviewCard: View {
                 Image(systemName: "eye")
             }
             .font(.headline)
-            Text(sentContent)
+            Text(previewCopy.body)
                 .font(.callout)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -135,12 +135,12 @@ struct RequestPreviewCard: View {
         .langoPanel()
     }
 
-    private var sentContent: String {
-        if let rendering {
-            "即将发送：\(entry.title)、选中的正文片段、Prompt \(rendering.promptLabel)。"
-        } else {
-            "即将发送：\(entry.title)、选中的正文片段、生成意图。"
+    private var previewCopy: RequestPreviewCopy {
+        if rendering?.isMock == false {
+            return .externalRequest(entryTitle: entry.title, promptLabel: rendering?.promptLabel)
         }
+
+        return .localMock(entryTitle: entry.title, promptLabel: rendering?.promptLabel)
     }
 }
 
@@ -230,13 +230,7 @@ struct CapabilityStatusRow: View {
                     titleText
                         .font(.headline)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                    localizedText(status.localizedTitleKey)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(statusColor)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .background(statusColor.opacity(0.12))
-                        .clipShape(Capsule())
+                    CapabilityStatusBadge(status: status)
                 }
                 summaryText
                     .font(.callout)
@@ -276,13 +270,13 @@ struct CapabilityStatusRow: View {
     }
 
     private var statusColor: Color {
-        switch status {
+        switch status.visualTone {
         case .ready:
-            LangoTraceDesign.ColorToken.privacyLocal
-        case .mockOnly:
-            LangoTraceDesign.ColorToken.accent
+            LangoTraceDesign.ColorToken.stateReady
+        case .localMock:
+            LangoTraceDesign.ColorToken.stateLocalMock
         case .unavailable:
-            LangoTraceDesign.ColorToken.textSecondary
+            LangoTraceDesign.ColorToken.stateUnavailable
         }
     }
 }
@@ -300,7 +294,7 @@ struct PracticeControlBar: View {
                     Button {
                         onSelectStep(step)
                     } label: {
-                        Text(step.title)
+                        Text(step.displayTitle)
                             .font(.caption.weight(.semibold))
                             .frame(maxWidth: .infinity, minHeight: 36)
                     }
@@ -312,7 +306,7 @@ struct PracticeControlBar: View {
                             : LangoTraceDesign.ColorToken.surfaceAccentMuted
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .accessibilityLabel(step.title)
+                    .accessibilityLabel(step.displayTitle)
                     .accessibilityValue(step == currentStep ? "当前步骤" : "可切换")
                 }
             }

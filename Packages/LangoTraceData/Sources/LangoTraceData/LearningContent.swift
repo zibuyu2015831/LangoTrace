@@ -126,21 +126,21 @@ public final class InMemoryLearningContentRepository {
         memoryItemsBySpace[spaceID, default: []]
     }
 
-    public func settingsCapabilities(for spaceID: String) -> [SettingsCapability] {
+    public func settingsCapabilities(for _: String) -> [SettingsCapability] {
         [
             SettingsCapability(
                 kind: .languageSpace,
                 status: .mockOnly,
-                summary: "当前空间 \(spaceID) 使用内存 preview",
-                detail: "当前语言空间只存在于 App 会话状态中，用于验证首次启动和页面闭环。",
-                nextRequirement: "接入真实语言空间持久化和启动恢复。"
+                summary: "settings.languageSpace.summary",
+                detail: "settings.languageSpace.detail",
+                nextRequirement: "settings.languageSpace.nextRequirement"
             ),
             SettingsCapability(
                 kind: .interfaceLanguage,
                 status: .mockOnly,
-                summary: "当前默认跟随系统，未支持的系统语言回退英文",
-                detail: "界面语言只影响 App chrome，不改变用户母语、不改变目标语言，也不重写已生成内容。",
-                nextRequirement: "接入 String Catalog、系统 per-app language 关系说明和界面语言偏好持久化。"
+                summary: "settings.interfaceLanguage.summary",
+                detail: "settings.interfaceLanguage.detail",
+                nextRequirement: "settings.interfaceLanguage.nextRequirement"
             ),
         ] + Self.serviceSettingsCapabilities
     }
@@ -150,37 +150,37 @@ public final class InMemoryLearningContentRepository {
             SettingsCapability(
                 kind: .aiProvider,
                 status: .mockOnly,
-                summary: "未配置真实 Provider，所有生成均为 Local Mock",
-                detail: "请求预览只说明将来会发送哪些内容，当前不会读取 Keychain，也不会发起网络请求。",
-                nextRequirement: "设计 Provider 配置、Keychain API Key 和请求日志。"
+                summary: "settings.aiProvider.summary",
+                detail: "settings.aiProvider.detail",
+                nextRequirement: "settings.aiProvider.nextRequirement"
             ),
             SettingsCapability(
                 kind: .sync,
                 status: .unavailable,
-                summary: "同步引擎尚未接入",
-                detail: "记录、照片、向量索引和 API Key 当前都不会同步。",
-                nextRequirement: "设计 Sync Engine、Adapter、冲突处理和同步范围。"
+                summary: "settings.sync.summary",
+                detail: "settings.sync.detail",
+                nextRequirement: "settings.sync.nextRequirement"
             ),
             SettingsCapability(
                 kind: .localData,
                 status: .mockOnly,
-                summary: "当前使用内存 repository",
-                detail: "重启后 mock 内容会恢复为示例数据；当前没有 SQLite schema、迁移或附件存储。",
-                nextRequirement: "接入 SQLite / GRDB Repository、迁移和导出边界。"
+                summary: "settings.localData.summary",
+                detail: "settings.localData.detail",
+                nextRequirement: "settings.localData.nextRequirement"
             ),
             SettingsCapability(
                 kind: .privacy,
                 status: .ready,
-                summary: "本地优先边界已在 UI 中表达",
-                detail: "敏感内容只有在用户明确触发对应能力时才应进入请求预览和 Provider 调用。",
-                nextRequirement: "在真实 AI、语音、照片和同步接入时保留确认路径。"
+                summary: "settings.privacy.summary",
+                detail: "settings.privacy.detail",
+                nextRequirement: "settings.privacy.nextRequirement"
             ),
             SettingsCapability(
                 kind: .export,
                 status: .unavailable,
-                summary: "导出尚未实现",
-                detail: "当前没有真实数据库和附件目录，因此不能生成完整导出包。",
-                nextRequirement: "在数据层稳定后设计 Markdown、JSON 和附件导出。"
+                summary: "settings.export.summary",
+                detail: "settings.export.detail",
+                nextRequirement: "settings.export.nextRequirement"
             ),
         ]
     }

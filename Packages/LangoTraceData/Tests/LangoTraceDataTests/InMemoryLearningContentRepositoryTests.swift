@@ -1,3 +1,4 @@
+import Foundation
 @testable import LangoTraceData
 import Testing
 
@@ -72,6 +73,36 @@ func defaultSettingsCapabilitiesExposeCompleteDetailPages() {
     #expect(capabilities.filter(\.nextRequirement.isEmpty).isEmpty)
     #expect(capabilities.first { $0.kind == .privacy }?.status == .ready)
     #expect(capabilities.first { $0.kind == .export }?.status == .unavailable)
+}
+
+@Test("Data capability and status models do not expose Chinese UI chrome")
+func dataCapabilityAndStatusModelsDoNotExposeChineseUIChrome() {
+    let repository = InMemoryLearningContentRepository.seeded(spaceID: "en")
+    let capabilityText = repository.settingsCapabilities(for: "en").flatMap {
+        [$0.summary, $0.detail, $0.nextRequirement, $0.kind.title, $0.status.title]
+    }
+    let sourceTitles = [EntrySource.typedText, .photoWriting, .targetLanguageWriting].map { source in
+        LearningEntry(
+            id: "entry-\(source.rawValue)",
+            spaceID: "en",
+            title: "Fixture",
+            body: "Fixture",
+            source: source,
+            scene: "fixture",
+            createdAt: Date(timeIntervalSince1970: 0)
+        ).sourceTitle
+    }
+    let practiceStepTitles = PracticeSessionStep.allCases.map(\.title)
+
+    for text in capabilityText + sourceTitles + practiceStepTitles {
+        #expect(!containsChineseCharacters(text))
+    }
+}
+
+private func containsChineseCharacters(_ text: String) -> Bool {
+    text.unicodeScalars.contains { scalar in
+        (0x4E00 ... 0x9FFF).contains(Int(scalar.value))
+    }
 }
 
 @Test("Mock practice session progresses through local-only steps")

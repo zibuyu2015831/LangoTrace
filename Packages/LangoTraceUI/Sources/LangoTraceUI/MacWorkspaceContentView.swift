@@ -58,10 +58,6 @@ struct MacWorkspaceContentView: View {
 
     private var todayContent: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top, spacing: 14) {
-                TextPanel(title: "搜索与筛选", text: "搜索当前记录、词句、相似生活片段。后续接 SQLite FTS5 与本地向量索引。")
-                TextPanel(title: "批量导入", text: "拖入 Markdown、图片或音频前，需要先完成本地数据层和附件存储。")
-            }
             if let selectedEntry {
                 EntryDetailView(
                     languageSpace: languageSpace,
@@ -72,6 +68,22 @@ struct MacWorkspaceContentView: View {
                 )
             } else {
                 CompactPanel(title: "还没有记录", text: "创建第一条生活记录后，这里会显示请求预览和学习材料。", systemImage: "square.and.pencil")
+            }
+            HStack(alignment: .top, spacing: 14) {
+                CapabilityStatusRow(
+                    title: "搜索与筛选",
+                    summary: "后续接 SQLite FTS5 与本地向量索引；当前不会查询真实数据库。",
+                    status: .unavailable,
+                    systemImage: "magnifyingglass",
+                    action: { onRoute(.unavailable("search")) }
+                )
+                CapabilityStatusRow(
+                    title: "批量导入",
+                    summary: "拖入 Markdown、图片或音频前，需要先完成本地数据层和附件存储。",
+                    status: .unavailable,
+                    systemImage: "tray.and.arrow.down",
+                    action: { onRoute(.unavailable("import-export")) }
+                )
             }
         }
     }

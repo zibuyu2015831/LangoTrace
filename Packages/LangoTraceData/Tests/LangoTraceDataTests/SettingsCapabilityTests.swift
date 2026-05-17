@@ -10,8 +10,7 @@ func settingsCapabilitiesExposeInterfaceLanguageWithoutChangingLearningContext()
 
     #expect(interfaceLanguage != nil)
     #expect(interfaceLanguage?.status == .mockOnly)
-    #expect(interfaceLanguage?.summary.contains("跟随系统") == true)
-    #expect(interfaceLanguage?.detail.contains("不改变用户母语") == true)
-    #expect(interfaceLanguage?.detail.contains("不改变目标语言") == true)
-    #expect(interfaceLanguage?.detail.contains("不重写已生成内容") == true)
+    #expect(interfaceLanguage?.summary == "settings.interfaceLanguage.summary")
+    #expect(interfaceLanguage?.detail == "settings.interfaceLanguage.detail")
+    #expect(interfaceLanguage?.nextRequirement == "settings.interfaceLanguage.nextRequirement")
 }

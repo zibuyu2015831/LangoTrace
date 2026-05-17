@@ -25,6 +25,7 @@ struct PadMainView: View {
                 isLearningPanelVisible: isLearningPanelVisible,
                 onToggleTimeline: { isTimelineVisible.toggle() },
                 onToggleLearningPanel: { isLearningPanelVisible.toggle() },
+                onSearch: { presentedSheet = .unavailableSearch },
                 onNewEntry: { presentedSheet = .entryEditor }
             )
             Divider()
@@ -82,15 +83,23 @@ struct PadMainView: View {
                     route = .entryDetail(entry.id)
                     presentedSheet = nil
                 }
+            case .unavailableSearch:
+                UnavailableCapabilityView(
+                    title: "搜索尚未接入",
+                    summary: "当前不会查询真实数据库、FTS、embedding 或向量索引，只展示入口边界。",
+                    nextRequirement: "完成 SQLite / GRDB、FTS、可重建向量索引和搜索结果路由。",
+                    systemImage: "magnifyingglass"
+                )
             }
         }
         .onAppear {
             contentRepository.ensureSeeded(spaceID: languageSpace.id)
             selectedEntryID = selectedEntryID ?? contentRepository.selectedEntry(for: languageSpace.id)?.id
-            if shouldPreferSingleMainColumn {
-                isLearningPanelVisible = false
-            }
+            applyAdaptivePanelVisibility()
             contentRevision += 1
+        }
+        .onChange(of: horizontalSizeClass) {
+            applyAdaptivePanelVisibility()
         }
     }
 
@@ -126,16 +135,12 @@ struct PadMainView: View {
         return contentRepository.rendering(for: selectedEntry.id)
     }
 
-    private var shouldPreferSingleMainColumn: Bool {
-        horizontalSizeClass == .compact
-    }
-
     private var settingsCapabilities: [SettingsCapability] {
         contentRepository.settingsCapabilities(for: languageSpace.id)
     }
 
     private var panelAnimation: Animation? {
-        reduceMotion ? nil : .easeInOut(duration: 0.18)
+        reduceMotion ? nil : .easeInOut(duration: LangoTraceDesign.Motion.panelTransitionDuration)
     }
 
     private func panelTransition(edge: Edge) -> AnyTransition {
@@ -180,6 +185,16 @@ struct PadMainView: View {
         case .hideLearningPanel:
             isLearningPanelVisible = false
         }
+    }
+
+    private func applyAdaptivePanelVisibility() {
+        let preferred = PadAdaptivePanelLayout.visibility(
+            for: horizontalSizeClass,
+            current: PadPanelVisibility(timeline: isTimelineVisible, learningPanel: isLearningPanelVisible)
+        )
+
+        isTimelineVisible = preferred.timeline
+        isLearningPanelVisible = preferred.learningPanel
     }
 
     private var sidebar: some View {

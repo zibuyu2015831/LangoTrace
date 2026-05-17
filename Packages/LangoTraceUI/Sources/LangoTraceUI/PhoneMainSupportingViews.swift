@@ -69,14 +69,13 @@ struct EntryDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                SectionHeader(
-                    title: entry.title,
-                    subtitle: "\(entry.sourceTitle) · \(languageSpace.targetLanguage) · \(entry.scene)"
+                EntryDetailHeader(
+                    entry: entry,
+                    targetLanguage: languageSpace.targetLanguage,
+                    rendering: rendering
                 )
-                HStack(alignment: .top, spacing: 14) {
-                    TextPanel(title: "母语记录", text: entry.body)
-                    TextPanel(title: "目标语言", text: rendering?.targetText ?? "等待生成")
-                }
+                TextPanel(title: "母语记录", text: entry.body)
+                TextPanel(title: "目标语言", text: rendering?.targetText ?? "等待生成")
                 if let rendering {
                     RequestPreviewCard(entry: entry, rendering: rendering)
                     SectionHeader(title: "逐句练习", subtitle: "Local Mock 生成，可先验证页面闭环")
@@ -235,11 +234,18 @@ struct HeroActionCard: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            HStack(spacing: 10) {
-                ActionChip(title: "写一句", systemImage: "pencil", action: onNewEntry)
-                ActionChip(title: "拍照", systemImage: "camera", action: onPhotoWriting)
-                ActionChip(title: "听一句", systemImage: "play", action: onListenOne)
+            Button(action: onNewEntry) {
+                Label("写一句", systemImage: "pencil")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 48)
             }
+            .buttonStyle(.borderedProminent)
+
+            HStack(spacing: 10) {
+                SecondaryActionChip(title: "拍照写作", systemImage: "camera", action: onPhotoWriting)
+                SecondaryActionChip(title: "听一句", systemImage: "play", action: onListenOne)
+            }
+            InlineStatusLabel(text: "照片和语音当前为未接入能力", systemImage: "exclamationmark.circle")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .langoPanel(padding: 20)
@@ -260,7 +266,7 @@ struct EntryCard: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(entry.title)
                             .font(.headline)
-                        Text("\(entry.sourceTitle) · \(targetLanguage) · \(entry.scene)")
+                        Text("\(entry.displaySourceTitle) · \(targetLanguage) · \(entry.scene)")
                             .font(.footnote.weight(.medium))
                             .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     }
@@ -329,7 +335,7 @@ struct SectionHeader: View {
     }
 }
 
-struct ActionChip: View {
+struct SecondaryActionChip: View {
     let title: String
     let systemImage: String
     let action: () -> Void
@@ -339,11 +345,15 @@ struct ActionChip: View {
             Label(title, systemImage: systemImage)
                 .font(.callout.weight(.semibold))
                 .frame(maxWidth: .infinity, minHeight: 44)
-                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
         }
         .buttonStyle(.plain)
-        .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(LangoTraceDesign.ColorToken.surfaceRaised)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(LangoTraceDesign.ColorToken.borderSubtle, lineWidth: 1)
+        }
         .accessibilityLabel(title)
     }
 }
