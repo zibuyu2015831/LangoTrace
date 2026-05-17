@@ -92,11 +92,15 @@ struct SentencePairView: View {
             }
             Spacer()
             HStack(spacing: 8) {
-                Button("听") {}
-                    .buttonStyle(.bordered)
-                    .accessibilityHint("当前为本地 mock，不播放真实语音")
-                Button("练", action: onPractice)
-                    .buttonStyle(.borderedProminent)
+                Button {} label: {
+                    localizedText("common.listen")
+                }
+                .buttonStyle(.bordered)
+                .accessibilityHint(localizedText("practice.listen.hint"))
+                Button(action: onPractice) {
+                    localizedText("common.practice")
+                }
+                .buttonStyle(.borderedProminent)
             }
         }
         .langoPanel()
@@ -307,79 +311,25 @@ struct PracticeControlBar: View {
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .accessibilityLabel(step.displayTitle)
-                    .accessibilityValue(step == currentStep ? "当前步骤" : "可切换")
+                    .accessibilityValue(accessibilityValue(for: step))
                 }
             }
             Button(action: onNext) {
-                Label(currentStep == .completed ? "保持完成状态" : "下一步", systemImage: "arrow.right")
-                    .frame(maxWidth: .infinity, minHeight: 44)
+                Label {
+                    localizedText(currentStep == .completed ? "common.keepCompleted" : "common.nextStep")
+                } icon: {
+                    Image(systemName: "arrow.right")
+                }
+                .frame(maxWidth: .infinity, minHeight: 44)
             }
             .buttonStyle(.borderedProminent)
         }
         .langoPanel(padding: 14)
     }
-}
 
-struct InlineStatusLabel: View {
-    let text: String
-    let systemImage: String
-
-    var body: some View {
-        Label(text, systemImage: systemImage)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(LangoTraceDesign.ColorToken.accent)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
-            .clipShape(Capsule())
-    }
-}
-
-struct TextPanel: View {
-    let title: String
-    let text: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            Text(text)
-                .font(.body)
-                .lineSpacing(4)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-        .langoPanel()
-    }
-}
-
-struct AudioPanel: View {
-    private static let waveformHeights = [24, 38, 28, 46, 40, 32, 26, 38, 46, 20]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("朗读音频", systemImage: "waveform")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                Spacer()
-                Text("0.85x")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            }
-            HStack(alignment: .center, spacing: 5) {
-                ForEach(Self.waveformHeights.indices, id: \.self) { index in
-                    RoundedRectangle(cornerRadius: 5)
-                        .fill(LangoTraceDesign.ColorToken.accent.opacity(0.45))
-                        .frame(width: 8, height: CGFloat(Self.waveformHeights[index]))
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(14)
-            .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
-        .langoPanel()
+    private func accessibilityValue(for step: PracticeSessionStep) -> Text {
+        step == currentStep
+            ? localizedText("common.currentStep")
+            : localizedText("common.switchable")
     }
 }

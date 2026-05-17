@@ -226,30 +226,40 @@ struct HeroActionCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("今天记录一点生活")
+                localizedText("hero.title")
                     .font(.system(.title2, design: .default, weight: .semibold))
-                Text("写一句、拍一张照片，或把今天想说的话留给之后的 \(languageSpace.targetLanguage) 练习。")
+                heroSubtitle
                     .font(.callout)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             Button(action: onNewEntry) {
-                Label("写一句", systemImage: "pencil")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, minHeight: 48)
+                Label {
+                    localizedText("common.writeSentence")
+                } icon: {
+                    Image(systemName: "pencil")
+                }
+                .font(.headline)
+                .frame(maxWidth: .infinity, minHeight: 48)
             }
             .buttonStyle(.borderedProminent)
 
             HStack(spacing: 10) {
-                SecondaryActionChip(title: "拍照写作", systemImage: "camera", action: onPhotoWriting)
-                SecondaryActionChip(title: "听一句", systemImage: "play", action: onListenOne)
+                SecondaryActionChip(titleKey: "entrySource.photoWriting", systemImage: "camera", action: onPhotoWriting)
+                SecondaryActionChip(titleKey: "common.listen", systemImage: "play", action: onListenOne)
             }
-            InlineStatusLabel(text: "照片和语音当前为未接入能力", systemImage: "exclamationmark.circle")
+            InlineStatusLabel(localizedTextKey: "hero.secondaryUnavailable", systemImage: "exclamationmark.circle")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .langoPanel(padding: 20)
         .langoSoftShadow()
+    }
+
+    private var heroSubtitle: Text {
+        localizedText("hero.subtitle.prefix")
+            + Text(" \(languageSpace.targetLanguage) ")
+            + localizedText("hero.subtitle.suffix")
     }
 }
 
@@ -305,13 +315,21 @@ struct EmptyEntryPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("还没有记录", systemImage: "square.and.pencil")
-                .font(.headline)
-            Text("先写下一条生活片段，再生成本地 mock 学习材料。")
+            Label {
+                localizedText("entry.empty.title")
+            } icon: {
+                Image(systemName: "square.and.pencil")
+            }
+            .font(.headline)
+            localizedText("entry.empty.body")
                 .font(.callout)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
             Button(action: onNewEntry) {
-                Label("创建第一条记录", systemImage: "plus")
+                Label {
+                    localizedText("entry.empty.action")
+                } icon: {
+                    Image(systemName: "plus")
+                }
             }
             .buttonStyle(.borderedProminent)
         }
@@ -332,56 +350,5 @@ struct SectionHeader: View {
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
         }
         .padding(.top, 4)
-    }
-}
-
-struct SecondaryActionChip: View {
-    let title: String
-    let systemImage: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Label(title, systemImage: systemImage)
-                .font(.callout.weight(.semibold))
-                .frame(maxWidth: .infinity, minHeight: 44)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-        }
-        .buttonStyle(.plain)
-        .background(LangoTraceDesign.ColorToken.surfaceRaised)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(LangoTraceDesign.ColorToken.borderSubtle, lineWidth: 1)
-        }
-        .accessibilityLabel(title)
-    }
-}
-
-struct CompactPanel: View {
-    let title: String
-    let text: String
-    let systemImage: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: systemImage)
-                .font(.headline)
-                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
-                .frame(width: 34, height: 34)
-                .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
-                .clipShape(Circle())
-            VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(.headline)
-                Text(text)
-                    .font(.callout)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .langoPanel(padding: 16)
     }
 }

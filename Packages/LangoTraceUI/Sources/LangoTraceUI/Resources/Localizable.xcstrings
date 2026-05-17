@@ -266,6 +266,23 @@
         }
       }
     },
+    "audioPanel.title": {
+      "comment": "Audio panel title for local mock read-aloud controls.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-Aloud Audio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "朗读音频"
+          }
+        }
+      }
+    },
     "common.cancel": {
       "comment": "Cancel button title.",
       "localizations": {
@@ -4131,6 +4148,448 @@
           "stringUnit": {
             "state": "translated",
             "value": "Запишите немного жизни сегодня"
+          }
+        }
+      }
+    },
+    "common.currentStep": {
+      "comment": "Accessibility value for the current practice step.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current step"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前步骤"
+          }
+        }
+      }
+    },
+    "common.keepCompleted": {
+      "comment": "Button title for staying in the completed practice state.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep Completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持完成状态"
+          }
+        }
+      }
+    },
+    "common.listen": {
+      "comment": "Short button title for listening playback.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "听"
+          }
+        }
+      }
+    },
+    "common.newEntry": {
+      "comment": "Button title for creating a new entry.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建记录"
+          }
+        }
+      }
+    },
+    "common.nextStep": {
+      "comment": "Button title for advancing practice.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next Step"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一步"
+          }
+        }
+      }
+    },
+    "common.practice": {
+      "comment": "Short button title for starting practice.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练"
+          }
+        }
+      }
+    },
+    "common.search": {
+      "comment": "Toolbar button title for search.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索"
+          }
+        }
+      }
+    },
+    "common.switchable": {
+      "comment": "Accessibility value for a selectable step.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can switch"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可切换"
+          }
+        }
+      }
+    },
+    "common.writeSentence": {
+      "comment": "Primary action title for writing one sentence.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write One"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写一句"
+          }
+        }
+      }
+    },
+    "entry.empty.action": {
+      "comment": "Button title for creating the first entry.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create First Entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建第一条记录"
+          }
+        }
+      }
+    },
+    "entry.empty.body": {
+      "comment": "Empty state body shown before any entry exists.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write one life moment first, then generate local mock learning material."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先写下一条生活片段，再生成本地 mock 学习材料。"
+          }
+        }
+      }
+    },
+    "entry.empty.title": {
+      "comment": "Empty state title shown before any entry exists.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No entries yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有记录"
+          }
+        }
+      }
+    },
+    "entryDetail.header.boundary": {
+      "comment": "Entry detail header copy explaining source relationship and local mock boundary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The life entry and target-language version keep their source relationship. Current learning material is a local sample and will not send external requests."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生活记录和目标语言版本保持来源关系；当前学习材料为本地示例，不会发送外部请求。"
+          }
+        }
+      }
+    },
+    "entrySource.photoWriting": {
+      "comment": "Entry source title for photo writing.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo Writing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片写作"
+          }
+        }
+      }
+    },
+    "hero.secondaryUnavailable": {
+      "comment": "Inline status explaining secondary hero actions are not connected yet.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo and voice are unavailable in this build"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片和语音当前为未接入能力"
+          }
+        }
+      }
+    },
+    "hero.subtitle.prefix": {
+      "comment": "Hero subtitle prefix before target language name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write a sentence, add a photo, or save what you want to say for later"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写一句、拍一张照片，或把今天想说的话留给之后的"
+          }
+        }
+      }
+    },
+    "hero.subtitle.suffix": {
+      "comment": "Hero subtitle suffix after target language name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "practice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习。"
+          }
+        }
+      }
+    },
+    "hero.title": {
+      "comment": "iPhone Today hero title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record a little life today"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天记录一点生活"
+          }
+        }
+      }
+    },
+    "ipad.emptyWorkspace.body": {
+      "comment": "iPad empty workspace body before any entries exist.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After you create the first life entry, the workspace will show the native-language note, target-language mock rendering, and sentence practice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建第一条生活记录后，中间工作台会显示母语记录、目标语言 mock rendering 和逐句练习。"
+          }
+        }
+      }
+    },
+    "mac.inspector.memoryCandidates": {
+      "comment": "Mac inspector section title for memory candidates.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory Candidates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "词句候选"
+          }
+        }
+      }
+    },
+    "mac.inspector.noMemory.body": {
+      "comment": "Mac inspector empty memory candidate body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This entry has no extracted phrases yet. The current build does not call AI or write to the vector index."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条记录还没有提取词句。当前不会调用 AI，也不会写入向量索引。"
+          }
+        }
+      }
+    },
+    "mac.inspector.noMemory.title": {
+      "comment": "Mac inspector empty memory candidate title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No phrases yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无词句"
+          }
+        }
+      }
+    },
+    "mac.inspector.unavailable.body": {
+      "comment": "Mac inspector body for unavailable route boundary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This route only shows the page boundary. It does not import, export, sync, or send external requests."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前入口只展示页面闭环，不会触发导入、导出、同步或外部请求。"
+          }
+        }
+      }
+    },
+    "pad.search.hint": {
+      "comment": "Accessibility hint for unavailable iPad search.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search is not connected yet. Opens a capability boundary explanation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索尚未接入，会显示能力边界说明"
+          }
+        }
+      }
+    },
+    "pad.search.placeholder": {
+      "comment": "iPad workspace search button title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search entries, phrases, and similar life moments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索记录、词句、相似生活片段"
+          }
+        }
+      }
+    },
+    "practice.listen.hint": {
+      "comment": "Accessibility hint for unavailable local mock listening.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local mock only. No real audio plays."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前为本地 mock，不播放真实语音"
           }
         }
       }

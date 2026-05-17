@@ -20,10 +20,10 @@ struct PadWorkspaceBar: View {
             Button(action: onSearch) {
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
-                    Text("搜索记录、词句、相似生活片段")
+                    localizedText("pad.search.placeholder")
                         .lineLimit(1)
                     Spacer(minLength: 0)
-                    Text("未接入")
+                    localizedText("capabilityStatus.unavailable")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 }
@@ -39,8 +39,8 @@ struct PadWorkspaceBar: View {
                 }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("搜索记录、词句、相似生活片段")
-            .accessibilityHint("搜索尚未接入，会显示能力边界说明")
+            .accessibilityLabel(localizedText("pad.search.placeholder"))
+            .accessibilityHint(localizedText("pad.search.hint"))
 
             LangoPanelToggleButton(
                 systemImage: "sidebar.right",
@@ -50,7 +50,11 @@ struct PadWorkspaceBar: View {
             )
 
             Button(action: onNewEntry) {
-                Label("新建记录", systemImage: "plus")
+                Label {
+                    localizedText("common.newEntry")
+                } icon: {
+                    Image(systemName: "plus")
+                }
             }
             .buttonStyle(.borderedProminent)
         }

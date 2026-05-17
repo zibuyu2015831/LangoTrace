@@ -84,9 +84,13 @@ struct SectionCaption: View {
 struct EmptyWorkspacePanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("还没有记录", systemImage: "square.and.pencil")
-                .font(.headline)
-            Text("创建第一条生活记录后，中间工作台会显示母语记录、目标语言 mock rendering 和逐句练习。")
+            Label {
+                localizedText("entry.empty.title")
+            } icon: {
+                Image(systemName: "square.and.pencil")
+            }
+            .font(.headline)
+            localizedText("ipad.emptyWorkspace.body")
                 .font(.body)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)

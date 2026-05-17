@@ -19,7 +19,7 @@ struct EntryDetailHeader: View {
             Text("\(entry.displaySourceTitle) · \(targetLanguage) · \(entry.scene)")
                 .font(.footnote.weight(.medium))
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            Text("生活记录和目标语言版本保持来源关系；当前学习材料为本地示例，不会发送外部请求。")
+            localizedText("entryDetail.header.boundary")
                 .font(.callout)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)

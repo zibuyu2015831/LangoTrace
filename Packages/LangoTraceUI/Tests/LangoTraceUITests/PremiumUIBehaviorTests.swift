@@ -1,3 +1,4 @@
+import Foundation
 import LangoTraceData
 @testable import LangoTraceUI
 import Testing
@@ -69,6 +70,38 @@ struct PremiumUIBehaviorTests {
         #expect(EntryRenderingStatus.status(for: rendering(isMock: false)) == .ready)
     }
 
+    @Test("Stage two sample paths keep migrated chrome in localization resources")
+    func stageTwoSamplePathsKeepMigratedChromeLocalized() throws {
+        let files = [
+            "PadWorkspaceBar.swift",
+            "PhoneMainSupportingViews.swift",
+            "EntryDetailHeader.swift",
+            "MacMainView.swift",
+            "MacInspectorContent.swift",
+            "LearningContentComponents.swift",
+            "PadSidebarControls.swift",
+            "ContentUtilityComponents.swift",
+        ]
+        let forbiddenSnippets = [
+            "搜索记录、词句、相似生活片段",
+            "照片和语音当前为未接入能力",
+            "今天记录一点生活",
+            "生活记录和目标语言版本保持来源关系",
+            "词句候选",
+            "保持完成状态",
+            "当前步骤",
+            "当前为本地 mock，不播放真实语音",
+            "朗读音频",
+        ]
+
+        for file in files {
+            let source = try String(contentsOf: sourceFileURL(named: file), encoding: .utf8)
+            for snippet in forbiddenSnippets {
+                #expect(!source.contains(snippet))
+            }
+        }
+    }
+
     private func rendering(isMock: Bool) -> LearningRendering {
         LearningRendering(
             id: "rendering-1",
@@ -79,5 +112,15 @@ struct PremiumUIBehaviorTests {
             isMock: isMock,
             sentences: []
         )
+    }
+
+    private func sourceFileURL(named fileName: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources")
+            .appendingPathComponent("LangoTraceUI")
+            .appendingPathComponent(fileName)
     }
 }

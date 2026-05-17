@@ -42,7 +42,10 @@ struct MacInspectorContent: View {
                 )
             }
         case .unavailable:
-            TextPanel(title: "不可用能力", text: "当前入口只展示页面闭环，不会触发导入、导出、同步或外部请求。")
+            LocalizedTextPanel(
+                titleKey: "capabilityStatus.unavailable",
+                textKey: "mac.inspector.unavailable.body"
+            )
         case .overview:
             overviewInspector
         }
@@ -54,14 +57,14 @@ struct MacInspectorContent: View {
             .filter { $0.entryID == entry.id }
 
         return VStack(alignment: .leading, spacing: 10) {
-            Text("词句候选")
+            localizedText("mac.inspector.memoryCandidates")
                 .font(.caption.weight(.bold))
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
 
             if candidates.isEmpty {
-                TextPanel(
-                    title: "暂无词句",
-                    text: "这条记录还没有提取词句。当前不会调用 AI，也不会写入向量索引。"
+                LocalizedTextPanel(
+                    titleKey: "mac.inspector.noMemory.title",
+                    textKey: "mac.inspector.noMemory.body"
                 )
             } else {
                 ForEach(candidates) { item in

@@ -51,12 +51,20 @@ struct MacMainView: View {
                     selectedSection = .entries
                     route = .unavailable("search")
                 } label: {
-                    Label("搜索", systemImage: "magnifyingglass")
+                    Label {
+                        localizedText("common.search")
+                    } icon: {
+                        Image(systemName: "magnifyingglass")
+                    }
                 }
                 Button {
                     isEntryEditorPresented = true
                 } label: {
-                    Label("新建记录", systemImage: "plus")
+                    Label {
+                        localizedText("common.newEntry")
+                    } icon: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
         }
