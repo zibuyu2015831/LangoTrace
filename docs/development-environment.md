@@ -107,6 +107,10 @@ iOS 26.5 (26.5 - 23F77) - com.apple.CoreSimulator.SimRuntime.iOS-26-5
 - XcodeGen 配置位于 `project.yml`。
 - Xcode 工程位于 `LangoTrace.xcodeproj`。
 - 初始模块位于 `Packages/LangoTraceCore`、`Packages/LangoTraceUI`、`Packages/LangoTraceData`、`Packages/LangoTraceAI`、`Packages/LangoTraceSpeech` 和 `Packages/LangoTraceSync`。
+- App 入口位于 `LangoTraceApp/`，当前通过 `AppEnvironment` 装配 empty / disabled 边界实现。
+- 当前已有 Welcome / Onboarding / Main 启动状态、内存语言空间 preview、三端 SwiftUI 产品骨架、隐私状态图标和 iPad 面板手势 helper。
+- `Packages/LangoTraceCore` 和 `Packages/LangoTraceUI` 已有首批 Testing 测试。
+- `scripts/verify.sh` 是当前统一验证入口。
 - 仓库已有初始提交：`7ce34b7 Initial LangoTrace product docs and prototype`。
 - 本地 `.vscode/` 设置目录存在，但仍是未跟踪文件，不属于已提交的项目基线。
 
@@ -138,7 +142,7 @@ xcrun simctl list devices available
 
 ## 8. 下一步工程动作
 
-当前环境已经满足继续开发语迹 LangoTrace SwiftUI Multiplatform 应用的要求。当前原生 Apple 项目骨架已覆盖：
+当前环境已经满足继续开发语迹 LangoTrace SwiftUI Multiplatform 应用的要求。当前原生 Apple 项目骨架和产品体验骨架已覆盖：
 
 - iOS
 - iPadOS
@@ -146,20 +150,22 @@ xcrun simctl list devices available
 
 下一步实现里程碑应保持克制，优先完成：
 
-- 首次启动提问
-- 第一个语言空间创建
-- 基础本地状态
-- iPhone / iPad / macOS 根路由衔接
+- 真实语言空间持久化和启动恢复。
+- 最小本地记录模型与创建流程。
+- 本地记录时间线和记录选择状态。
+- 英语示例学习材料展示闭环。
 
 继续暂不加入：
 
-- 数据库、AI Provider、同步引擎或 StoreKit 逻辑
+- 完整数据库迁移体系、真实 AI Provider、同步引擎或 StoreKit 逻辑。
+- TTS、录音、Speech、OCR、照片权限等平台能力。
 
 已完成的初始化验证包括：
 
 - `xcodegen generate`
 - `xcodebuild -list -project LangoTrace.xcodeproj`
 - `swift test --package-path Packages/LangoTraceCore`
+- `swift test --package-path Packages/LangoTraceUI`
 - `xcodebuild -quiet -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build`
 - `xcodebuild -quiet -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build`
 - `xcodebuild -quiet -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build`

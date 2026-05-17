@@ -34,7 +34,9 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 ## 2. 项目当前状态
 
-当前仓库已经完成 SwiftUI Multiplatform 工程初始化，处于 App Shell 后、首次启动和语言空间功能前的阶段。
+当前仓库已经完成 SwiftUI Multiplatform 工程初始化，并从纯 App Shell 推进到产品体验骨架阶段。现有实现可以展示 Welcome / Onboarding / Main 启动路由、内存语言空间 preview、iPhone / iPad / macOS 分平台主界面、Mock 学习内容、隐私状态图标、iPad 侧栏折叠和边缘手势。
+
+当前仍处于真实数据、真实 AI、真实语音、真实同步和 StoreKit 之前的早期阶段。现有页面和状态用于验证产品方向、平台结构和工程边界，不代表核心学习闭环已经可用。
 
 已完成：
 
@@ -49,13 +51,29 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - SwiftUI Multiplatform App Shell。
 - XcodeGen `project.yml` 和生成的 `LangoTrace.xcodeproj`。
 - Core / UI / Data / AI / Speech / Sync 初始本地 Swift Package 边界。
+- `LangoTraceApp` 中的 `AppEnvironment` 和 `AppSessionState`。
+- Welcome / Onboarding / Main 三段启动状态。
+- `LaunchRoute` 缺少语言空间时回到 onboarding 的路由保护。
+- `OnboardingDraft`、`LearningLanguage`、`LanguageLevel` 和 `LanguageSpacePreview` 的内存模型。
+- iPhone Tab、iPad 学习桌面、macOS 工作台的原生 SwiftUI 骨架。
+- 隐私状态模型和 AI / 同步 / 设置状态图标展示。
+- iPad 左右辅助面板折叠按钮和边缘手势判定 helper。
+- Core 和 UI package 的首批单元测试。
+- 统一验证脚本 `scripts/verify.sh`。
 
 尚未完成：
 
+- 真实语言空间持久化和启动恢复。
+- 真实生活记录创建、时间线选择和本地记录闭环。
 - 数据库 schema。
-- AI Provider 代码。
+- SQLite / GRDB Repository、迁移、FTS、附件存储和导出。
+- AI Provider 真实配置、Keychain API Key、请求预览、请求日志和外部请求。
+- Prompt Preset 的真实渲染和执行链路。
+- TTS、录音、Speech、OCR、照片和权限接入。
 - 同步引擎。
+- Sync Adapter、冲突处理和对象存储配置。
 - StoreKit 配置。
+- TestFlight / App Store 发布材料和隐私标签。
 
 ## 3. 项目北极星
 
@@ -318,6 +336,11 @@ scripts/verify.sh
 当前 `scripts/verify.sh` 展开为：
 
 ```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
 xcodegen generate
 xcodebuild -list -project LangoTrace.xcodeproj
 swift test --package-path Packages/LangoTraceCore
@@ -327,6 +350,10 @@ xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad
 xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
 swiftlint --no-cache
 swiftformat --lint . --cache ignore
+if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'; then
+  echo "Documentation placeholder scan found entries." >&2
+  exit 1
+fi
 git status --short
 ```
 

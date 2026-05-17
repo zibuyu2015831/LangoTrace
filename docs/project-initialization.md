@@ -2,6 +2,8 @@
 
 本文档记录语迹 LangoTrace 从产品文档与静态原型进入原生工程开发时的初始化边界。目标是为后续付费 App 开发建立可维护、可测试、可扩展的 Apple 三端工程基础。
 
+状态说明：本文档最初用于工程创建前的规划。当前 SwiftUI Multiplatform 工程、XcodeGen 配置、本地 Swift Package 边界、产品体验骨架和首批测试已经落地；本文档仍保留为初始化边界和验证标准的历史依据。当前事实以本节和 `docs/README.md` 的项目当前状态为准。
+
 ## 1. 初始化目标
 
 第一阶段项目初始化只解决一件事：
@@ -19,13 +21,23 @@
 - `docs/development-environment.md`：本机开发环境记录。
 - `docs/development-open-source-references.md`：开源项目参考。
 - `prototypes/langotrace-multi-device-prototype/`：静态 HTML 多端原型。
+- `project.yml`：XcodeGen 工程定义。
+- `LangoTrace.xcodeproj`：由 XcodeGen 生成的 Xcode 工程。
+- `LangoTraceApp/`：App 入口、环境装配、启动状态和资源。
+- `Packages/LangoTraceCore/`：产品身份、平台、语言、隐私、启动路由和 onboarding draft 等核心模型。
+- `Packages/LangoTraceUI/`：Welcome、Onboarding、iPhone、iPad、macOS 主界面和共享 UI 组件。
+- `Packages/LangoTraceData/`：`LanguageSpaceRepository` 协议和 `EmptyLanguageSpaceRepository`。
+- `Packages/LangoTraceAI/`：`AIProvider` 协议和 `DisabledAIProvider`。
+- `Packages/LangoTraceSpeech/`：`SpeechService` 协议和 `DisabledSpeechService`。
+- `Packages/LangoTraceSync/`：`SyncService` 协议和 `DisabledSyncService`。
+- `scripts/verify.sh`：当前统一验证入口。
 
-当前仓库尚未创建：
+当前仓库尚未创建或尚未实现：
 
-- SwiftUI App 工程。
-- Swift Package 模块。
 - 数据库 schema。
-- AI Provider 代码。
+- SQLite / GRDB Repository 和迁移。
+- 真实 AI Provider 代码。
+- TTS、录音、Speech、OCR、照片和权限接入。
 - 同步引擎。
 - StoreKit 配置。
 
@@ -67,17 +79,20 @@ iPadOS 作为 iOS target 的自适应体验处理，但在 UI 架构中保留 iP
 - 哪些内容可能发送给 AI Provider。
 - 哪些模块未来会影响 StoreKit、同步、导出和迁移。
 
-## 4. 建议工程结构
+## 4. 工程结构
 
-建议采用可扩展但不过度复杂的结构：
+已采用可扩展但不过度复杂的结构：
 
 ```text
 LangoTrace/
   LangoTrace.xcodeproj
+  project.yml
+  scripts/
   LangoTraceApp/
     LangoTraceApp.swift
-    RootView.swift
-    Platform/
+    AppEnvironment.swift
+    Resources/
+    Supporting/
   Packages/
     LangoTraceCore/
     LangoTraceUI/
@@ -85,28 +100,26 @@ LangoTrace/
     LangoTraceAI/
     LangoTraceSpeech/
     LangoTraceSync/
-  Resources/
-  Tests/
 ```
 
-第一阶段可以先创建 App target 和少量本地 Swift Package。若 Xcode 项目生成成本过高，也可以先创建 App target 与清晰目录，随后再拆出 Swift Package。
+其中 iPhone 和 iPad 共享 `LangoTrace-iOS` target，iPad 通过设备形态和 UI 分支获得专属布局；macOS 使用 `LangoTrace-macOS` target。当前测试位于 `Packages/LangoTraceCore/Tests` 和 `Packages/LangoTraceUI/Tests`。
 
 ## 5. 第一阶段范围
 
 ### 5.1 应该完成
 
-- 创建 SwiftUI Multiplatform App。
-- App 名称使用 `LangoTrace`。
+- 创建 SwiftUI Multiplatform App。已完成。
+- App 名称使用 `LangoTrace`。已完成。
 - Bundle / Display Name 后续可再调整为 `语迹` 或 `语迹 LangoTrace`。
-- 支持 iOS、iPadOS、macOS 启动。
-- 根视图展示初始占位界面。
-- 占位界面体现产品主线：
+- 支持 iOS、iPadOS、macOS 启动。已完成构建验证。
+- 根视图展示初始占位界面。已推进为产品体验骨架。
+- 占位界面体现产品主线。已完成：
   - `语迹 / LangoTrace`
   - `用生活记录学习语言。`
   - `Learn languages from your life.`
-- 根导航为后续首次启动引导、语言空间、记录和练习留出位置。
-- 加入最小测试或构建验证。
-- 更新文档记录初始化方式。
+- 根导航为后续首次启动引导、语言空间、记录和练习留出位置。已完成。
+- 加入最小测试或构建验证。已完成，并统一到 `scripts/verify.sh`。
+- 更新文档记录初始化方式。已完成。
 
 ### 5.2 暂不完成
 
@@ -121,9 +134,9 @@ LangoTrace/
 - OCR。
 - 同步。
 - StoreKit。
-- App icon。
-- 复杂设计系统。
-- 完整 onboarding。
+- 最终品牌 App icon。
+- 完整设计系统。
+- 真实持久化 onboarding。
 
 这些能力需要后续单独规格、计划、实现和验证。
 
@@ -197,20 +210,35 @@ LangoTrace/
 - SwiftFormat 可以检查，或明确记录暂未接入。
 - `git status --short` 中没有意外临时文件。
 
-后续可使用的验证命令示例：
+当前统一验证入口：
 
 ```bash
+scripts/verify.sh
+```
+
+当前脚本展开为：
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
 xcodegen generate
 xcodebuild -list -project LangoTrace.xcodeproj
+swift test --package-path Packages/LangoTraceCore
+swift test --package-path Packages/LangoTraceUI
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
 xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
-swiftlint
-swiftformat --lint .
+swiftlint --no-cache
+swiftformat --lint . --cache ignore
+if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'; then
+  echo "Documentation placeholder scan found entries." >&2
+  exit 1
+fi
 git status --short
 ```
-
-具体命令需在工程创建后根据实际 scheme 和 project 路径调整。
 
 ## 9. 后续里程碑建议
 

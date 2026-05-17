@@ -851,6 +851,15 @@ LangoTraceApp
 - 系统 TTS 播放。
 - 一条记录生成目标语言并播放的闭环。
 
+当前进度：
+
+- 已完成 SwiftUI 三端工程壳、XcodeGen 工程定义和本地 package 边界。
+- 已完成 Welcome / Onboarding / Main 启动路由、内存语言空间 preview、iPhone / iPad / macOS 产品体验骨架、隐私状态图标和 iPad 面板手势 helper。
+- 已建立 Core / UI 的首批单元测试和 `scripts/verify.sh` 统一验证入口。
+- 尚未完成 SQLite / GRDB 数据模型验证、本地附件存储、真实 OpenAI-compatible Provider、Prompt Preset 执行、系统 TTS 播放和记录生成目标语言并播放的闭环。
+
+因此，当前项目处于 Phase 0 的前半段：平台和产品骨架已经可运行，数据层、AI、TTS 和核心学习闭环仍待单独设计与实现。
+
 ### Phase 1：iPhone + iPad MVP
 
 目标：
