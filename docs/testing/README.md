@@ -114,7 +114,9 @@ macOS 手动验证：
 
 补充记录：
 
+- 2026-05-18 回归：用户截图发现 English 设置下 Settings detail 仍混入中文，且 iPhone 二级页标题重叠。本轮修复后，设置列表和设置详情中 `SettingsCapability` 驱动的 title / summary / detail / next requirement / no side effects chrome 均改由 UI 层 String Catalog 渲染；`SettingsCapabilityDetailView` 在 iOS 上固定 inline navigation title。`PageClosureStateTests` 已覆盖每个设置能力的 detail key 映射，`scripts/verify.sh` 通过且 SwiftLint 0 warning。
 - iPhone / iPad 模拟器 tab bar 的子元素在 Computer Use accessibility tree 中没有稳定暴露，未保留 Settings 页截图；Settings 可达性通过 `PageClosureStateTests` 的 route 断言和 settings capability localization key 断言覆盖。
+- 2026-05-18 回归验证时已启动 iPhone 17 / iPad Pro 13-inch (M5) Simulator 并安装修复后构建；由于当前 App 尚无语言空间持久化，重启后回到 onboarding，自动化工具未能稳定导航到 Settings detail 重新截图。
 - macOS Settings 页面复查时发现 settings row 的 accessibility label 曾暴露本地化 key；已改为使用 `Text` 组合本地化标题和状态，避免 VoiceOver 读出 catalog key。
 
 检查标准：

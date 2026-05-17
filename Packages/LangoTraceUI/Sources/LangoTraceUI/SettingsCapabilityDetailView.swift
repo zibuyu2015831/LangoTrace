@@ -9,12 +9,14 @@ struct SettingsCapabilityDetailView: View {
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
     var body: some View {
+        let localizationKeys = settingsCapabilityDetailLocalizationKeys(for: capability.kind)
+
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 header
                 CapabilityStatusRow(
                     localizedTitleKey: capability.kind.localizedTitleKey,
-                    summary: capability.summary,
+                    localizedSummaryKey: localizationKeys.summary,
                     status: capability.status,
                     systemImage: capability.kind.systemImage,
                     action: nil
@@ -22,16 +24,23 @@ struct SettingsCapabilityDetailView: View {
                 if capability.kind == .interfaceLanguage {
                     interfaceLanguagePicker
                 }
-                TextPanel(title: "当前边界", text: capability.detail)
-                TextPanel(title: "后续接入条件", text: capability.nextRequirement)
-                TextPanel(
-                    title: "不会发生",
-                    text: "本页不会保存密钥、不会写入真实数据库、不会访问照片或麦克风、不会发起网络请求。"
+                LocalizedTextPanel(
+                    titleKey: settingsCurrentBoundaryTitleKey,
+                    textKey: localizationKeys.detail
+                )
+                LocalizedTextPanel(
+                    titleKey: settingsNextRequirementTitleKey,
+                    textKey: localizationKeys.nextRequirement
+                )
+                LocalizedTextPanel(
+                    titleKey: settingsNoSideEffectsTitleKey,
+                    textKey: settingsNoSideEffectsBodyKey
                 )
             }
             .padding(20)
         }
         .navigationTitle(localizedText(capability.kind.localizedTitleKey))
+        .langoInlineNavigationTitle()
         .langoPageBackground()
     }
 
@@ -79,5 +88,16 @@ struct SettingsCapabilityDetailView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .langoPanel()
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func langoInlineNavigationTitle() -> some View {
+        #if os(iOS)
+            navigationBarTitleDisplayMode(.inline)
+        #else
+            self
+        #endif
     }
 }

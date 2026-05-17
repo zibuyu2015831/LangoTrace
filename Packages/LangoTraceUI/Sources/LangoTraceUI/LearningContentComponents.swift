@@ -148,6 +148,7 @@ struct CapabilityStatusRow: View {
     let title: String
     let localizedTitleKey: String?
     let summary: String
+    let localizedSummaryKey: String?
     let status: CapabilityStatus
     let systemImage: String
     let action: (() -> Void)?
@@ -162,6 +163,7 @@ struct CapabilityStatusRow: View {
         self.title = title
         localizedTitleKey = nil
         self.summary = summary
+        localizedSummaryKey = nil
         self.status = status
         self.systemImage = systemImage
         self.action = action
@@ -177,6 +179,23 @@ struct CapabilityStatusRow: View {
         title = localizedTitleKey
         self.localizedTitleKey = localizedTitleKey
         self.summary = summary
+        localizedSummaryKey = nil
+        self.status = status
+        self.systemImage = systemImage
+        self.action = action
+    }
+
+    init(
+        localizedTitleKey: String,
+        localizedSummaryKey: String,
+        status: CapabilityStatus,
+        systemImage: String,
+        action: (() -> Void)?
+    ) {
+        title = localizedTitleKey
+        self.localizedTitleKey = localizedTitleKey
+        summary = localizedSummaryKey
+        self.localizedSummaryKey = localizedSummaryKey
         self.status = status
         self.systemImage = systemImage
         self.action = action
@@ -189,12 +208,12 @@ struct CapabilityStatusRow: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(accessibilityLabelText)
-            .accessibilityHint(summary)
+            .accessibilityHint(summaryText)
         } else {
             rowContent(trailingImage: nil)
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel(accessibilityLabelText)
-                .accessibilityHint(summary)
+                .accessibilityHint(summaryText)
         }
     }
 
@@ -219,7 +238,7 @@ struct CapabilityStatusRow: View {
                         .background(statusColor.opacity(0.12))
                         .clipShape(Capsule())
                 }
-                Text(summary)
+                summaryText
                     .font(.callout)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -241,6 +260,14 @@ struct CapabilityStatusRow: View {
             localizedText(localizedTitleKey)
         } else {
             Text(title)
+        }
+    }
+
+    private var summaryText: Text {
+        if let localizedSummaryKey {
+            localizedText(localizedSummaryKey)
+        } else {
+            Text(summary)
         }
     }
 

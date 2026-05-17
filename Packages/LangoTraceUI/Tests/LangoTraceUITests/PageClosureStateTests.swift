@@ -62,4 +62,20 @@ struct PageClosureStateTests {
         #expect(interfaceLanguagePreferenceTitleKey(for: .english) == "settings.interfaceLanguage.english")
         #expect(interfaceLanguagePreferenceTitleKey(for: .simplifiedChinese) == "settings.interfaceLanguage.zhHans")
     }
+
+    @Test("Settings capability detail chrome uses UI localization keys")
+    func settingsCapabilityDetailChromeUsesUILocalizationKeys() {
+        for kind in SettingsCapability.Kind.allCases {
+            let keys = settingsCapabilityDetailLocalizationKeys(for: kind)
+
+            #expect(keys.summary == "settings.\(kind.rawValue).summary")
+            #expect(keys.detail == "settings.\(kind.rawValue).detail")
+            #expect(keys.nextRequirement == "settings.\(kind.rawValue).nextRequirement")
+        }
+
+        #expect(settingsCurrentBoundaryTitleKey == "settings.detail.currentBoundary")
+        #expect(settingsNextRequirementTitleKey == "settings.detail.nextRequirement")
+        #expect(settingsNoSideEffectsTitleKey == "settings.detail.noSideEffects")
+        #expect(settingsNoSideEffectsBodyKey == "settings.detail.noSideEffects.body")
+    }
 }

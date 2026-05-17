@@ -253,11 +253,144 @@
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "简体中文" } }
       }
     },
+    "settings.aiProvider.detail" : {
+      "comment" : "AI Provider settings detail body.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Request preview only explains what would be sent later. The current app does not read Keychain or make network requests." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请求预览只说明将来会发送哪些内容，当前不会读取 Keychain，也不会发起网络请求。" } }
+      }
+    },
+    "settings.aiProvider.nextRequirement" : {
+      "comment" : "AI Provider settings next requirement.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Design Provider configuration, Keychain API keys, and request logs." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设计 Provider 配置、Keychain API Key 和请求日志。" } }
+      }
+    },
+    "settings.aiProvider.summary" : {
+      "comment" : "AI Provider settings summary.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No real Provider is configured. All generation is Local Mock." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未配置真实 Provider，所有生成均为 Local Mock。" } }
+      }
+    },
+    "settings.detail.currentBoundary" : {
+      "comment" : "Settings detail panel title for current boundary.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Current Boundary" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前边界" } }
+      }
+    },
+    "settings.detail.nextRequirement" : {
+      "comment" : "Settings detail panel title for next requirement.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Next Requirement" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "后续接入条件" } }
+      }
+    },
+    "settings.detail.noSideEffects" : {
+      "comment" : "Settings detail panel title for unavailable side effects.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Will Not Happen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不会发生" } }
+      }
+    },
+    "settings.detail.noSideEffects.body" : {
+      "comment" : "Settings detail panel body for unavailable side effects.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This page will not save secrets, write to a real database, access photos or microphone, or make network requests." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本页不会保存密钥、不会写入真实数据库、不会访问照片或麦克风、不会发起网络请求。" } }
+      }
+    },
+    "settings.export.detail" : {
+      "comment" : "Export settings detail body.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "There is no real database or attachment directory yet, so the app cannot generate a complete export package." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前没有真实数据库和附件目录，因此不能生成完整导出包。" } }
+      }
+    },
+    "settings.export.nextRequirement" : {
+      "comment" : "Export settings next requirement.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "After the data layer is stable, design Markdown, JSON, and attachment export." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在数据层稳定后设计 Markdown、JSON 和附件导出。" } }
+      }
+    },
+    "settings.export.summary" : {
+      "comment" : "Export settings summary.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export is not implemented yet." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导出尚未实现。" } }
+      }
+    },
+    "settings.interfaceLanguage.detail" : {
+      "comment" : "Interface language settings detail body.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Interface language only affects app chrome. It does not change the user's native language, target language, or rewrite generated content." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "界面语言只影响 App chrome，不改变用户母语、不改变目标语言，也不重写已生成内容。" } }
+      }
+    },
+    "settings.interfaceLanguage.nextRequirement" : {
+      "comment" : "Interface language settings next requirement.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep String Catalog coverage, system per-app language boundary notes, and interface language preference persistence aligned." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保持 String Catalog、系统 per-app language 关系说明和界面语言偏好持久化一致。" } }
+      }
+    },
+    "settings.interfaceLanguage.summary" : {
+      "comment" : "Interface language settings summary.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The default follows the system. Unsupported system languages fall back to English." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前默认跟随系统，未支持的系统语言回退英文。" } }
+      }
+    },
+    "settings.languageSpace.detail" : {
+      "comment" : "Language space settings detail body.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The current language space only exists in app session state and is used to validate onboarding and page closure." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前语言空间只存在于 App 会话状态中，用于验证首次启动和页面闭环。" } }
+      }
+    },
+    "settings.languageSpace.nextRequirement" : {
+      "comment" : "Language space settings next requirement.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add real language space persistence and startup restoration." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "接入真实语言空间持久化和启动恢复。" } }
+      }
+    },
+    "settings.languageSpace.summary" : {
+      "comment" : "Language space settings summary.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The current space uses an in-memory preview." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前空间使用内存 preview。" } }
+      }
+    },
     "settings.languageSpace.title" : {
       "comment" : "Settings row title for language space.",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Language Space" } },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "语言空间" } }
+      }
+    },
+    "settings.localData.detail" : {
+      "comment" : "Local data settings detail body.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "After restart, mock content returns to the seed examples. There is no SQLite schema, migration, or attachment storage yet." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重启后 mock 内容会恢复为示例数据；当前没有 SQLite schema、迁移或附件存储。" } }
+      }
+    },
+    "settings.localData.nextRequirement" : {
+      "comment" : "Local data settings next requirement.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add SQLite / GRDB repositories, migrations, and export boundaries." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "接入 SQLite / GRDB Repository、迁移和导出边界。" } }
+      }
+    },
+    "settings.localData.summary" : {
+      "comment" : "Local data settings summary.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The app currently uses an in-memory repository." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前使用内存 repository。" } }
       }
     },
     "settings.localData.title" : {
@@ -267,11 +400,53 @@
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本地数据" } }
       }
     },
+    "settings.privacy.detail" : {
+      "comment" : "Privacy settings detail body.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sensitive content should only enter request preview and Provider calls after the user explicitly triggers the relevant capability." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "敏感内容只有在用户明确触发对应能力时才应进入请求预览和 Provider 调用。" } }
+      }
+    },
+    "settings.privacy.nextRequirement" : {
+      "comment" : "Privacy settings next requirement.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep confirmation paths when real AI, speech, photos, and sync are added." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在真实 AI、语音、照片和同步接入时保留确认路径。" } }
+      }
+    },
+    "settings.privacy.summary" : {
+      "comment" : "Privacy settings summary.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local-first boundaries are already represented in the UI." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本地优先边界已在 UI 中表达。" } }
+      }
+    },
     "settings.privacy.title" : {
       "comment" : "Settings row title for privacy boundary.",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Privacy Boundary" } },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "隐私边界" } }
+      }
+    },
+    "settings.sync.detail" : {
+      "comment" : "Sync settings detail body.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Entries, photos, vector indexes, and API keys are not synced in the current build." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "记录、照片、向量索引和 API Key 当前都不会同步。" } }
+      }
+    },
+    "settings.sync.nextRequirement" : {
+      "comment" : "Sync settings next requirement.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Design Sync Engine, adapters, conflict handling, and sync scope." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设计 Sync Engine、Adapter、冲突处理和同步范围。" } }
+      }
+    },
+    "settings.sync.summary" : {
+      "comment" : "Sync settings summary.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sync Engine is not connected yet." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "同步引擎尚未接入。" } }
       }
     },
     "settings.sync.title" : {

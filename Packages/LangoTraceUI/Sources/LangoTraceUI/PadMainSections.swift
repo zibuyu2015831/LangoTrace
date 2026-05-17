@@ -211,7 +211,7 @@ struct PadWorkspaceContentView: View {
                 ForEach(settingsCapabilities) { capability in
                     CapabilityStatusRow(
                         localizedTitleKey: capability.kind.localizedTitleKey,
-                        summary: capability.summary,
+                        localizedSummaryKey: settingsCapabilityDetailLocalizationKeys(for: capability.kind).summary,
                         status: capability.status,
                         systemImage: capability.kind.systemImage,
                         action: { onRoute(.settings(capability.kind)) }

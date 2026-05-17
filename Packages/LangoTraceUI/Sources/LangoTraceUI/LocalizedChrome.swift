@@ -17,6 +17,28 @@ func interfaceLanguagePreferenceTitleKey(for preference: InterfaceLanguagePrefer
     }
 }
 
+struct SettingsCapabilityDetailLocalizationKeys: Equatable {
+    let summary: String
+    let detail: String
+    let nextRequirement: String
+}
+
+let settingsCurrentBoundaryTitleKey = "settings.detail.currentBoundary"
+let settingsNextRequirementTitleKey = "settings.detail.nextRequirement"
+let settingsNoSideEffectsTitleKey = "settings.detail.noSideEffects"
+let settingsNoSideEffectsBodyKey = "settings.detail.noSideEffects.body"
+
+func settingsCapabilityDetailLocalizationKeys(
+    for kind: SettingsCapability.Kind
+) -> SettingsCapabilityDetailLocalizationKeys {
+    let baseKey = "settings.\(kind.rawValue)"
+    return SettingsCapabilityDetailLocalizationKeys(
+        summary: "\(baseKey).summary",
+        detail: "\(baseKey).detail",
+        nextRequirement: "\(baseKey).nextRequirement"
+    )
+}
+
 extension PhoneRootTab {
     var localizedTitleKey: String {
         switch self {
