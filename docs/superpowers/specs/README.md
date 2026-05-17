@@ -7,3 +7,4 @@
 ## 当前草案
 
 - `2026-05-17-string-catalog-interface-language-settings-design.md`：String Catalog 与界面语言设置闭环规格草案。
+- `2026-05-18-premium-ui-principles-and-review-plan.md`：付费级 UI 设计原则与三端审查计划草案。
