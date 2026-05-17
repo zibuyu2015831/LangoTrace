@@ -11,6 +11,11 @@ func launchRouteEntersMainWithLanguageSpace() {
     #expect(LaunchRoute.route(hasLanguageSpace: true) == .main)
 }
 
+@Test("Launch route rejects main phase when there is no language space")
+func launchRouteRejectsMainPhaseWithoutLanguageSpace() {
+    #expect(LaunchRoute.route(requestedPhase: .main, hasLanguageSpace: false) == .onboarding)
+}
+
 @Test("Onboarding draft creates an English language space preview")
 func onboardingDraftCreatesLanguageSpacePreview() {
     let draft = OnboardingDraft(

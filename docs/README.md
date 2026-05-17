@@ -312,9 +312,16 @@ git status --short
 涉及 Swift 工程任务时，根据实际工程状态检查：
 
 ```bash
+scripts/verify.sh
+```
+
+当前 `scripts/verify.sh` 展开为：
+
+```bash
 xcodegen generate
 xcodebuild -list -project LangoTrace.xcodeproj
 swift test --package-path Packages/LangoTraceCore
+swift test --package-path Packages/LangoTraceUI
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
 xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build

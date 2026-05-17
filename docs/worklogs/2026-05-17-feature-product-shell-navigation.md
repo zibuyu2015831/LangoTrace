@@ -2,7 +2,7 @@
 
 类型：feature
 
-状态：User Approved
+状态：Verified
 
 日期：2026-05-17
 

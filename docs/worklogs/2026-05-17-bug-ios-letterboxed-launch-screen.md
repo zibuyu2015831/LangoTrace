@@ -2,7 +2,7 @@
 
 类型：bugfix
 
-状态：Implemented
+状态：Verified
 
 日期：2026-05-17
 

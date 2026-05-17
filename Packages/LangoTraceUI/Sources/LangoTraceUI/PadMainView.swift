@@ -295,6 +295,8 @@ struct TextPanel: View {
 }
 
 struct AudioPanel: View {
+    private static let waveformHeights = [24, 38, 28, 46, 40, 32, 26, 38, 46, 20]
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -307,10 +309,10 @@ struct AudioPanel: View {
                     .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
             }
             HStack(alignment: .center, spacing: 5) {
-                ForEach([24, 38, 28, 46, 40, 32, 26, 38, 46, 20], id: \.self) { height in
+                ForEach(Self.waveformHeights.indices, id: \.self) { index in
                     RoundedRectangle(cornerRadius: 5)
                         .fill(LangoTraceDesign.ColorToken.teal.opacity(0.45))
-                        .frame(width: 8, height: CGFloat(height))
+                        .frame(width: 8, height: CGFloat(Self.waveformHeights[index]))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

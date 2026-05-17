@@ -34,7 +34,7 @@ public struct LangoTraceRootView: View {
 
     public var body: some View {
         Group {
-            switch phase {
+            switch effectivePhase {
             case .welcome:
                 WelcomeView(onFinished: onWelcomeFinished)
             case .onboarding:
@@ -47,6 +47,25 @@ public struct LangoTraceRootView: View {
             }
         }
         .tint(LangoTraceDesign.ColorToken.teal)
+    }
+
+    private var effectivePhase: LangoTraceAppPhase {
+        switch phase {
+        case .welcome:
+            .welcome
+        case .onboarding:
+            .onboarding
+        case .main:
+            switch LaunchRoute.route(
+                requestedPhase: .main,
+                hasLanguageSpace: languageSpace != nil
+            ) {
+            case .onboarding:
+                .onboarding
+            case .main:
+                .main
+            }
+        }
     }
 }
 
