@@ -8,11 +8,21 @@ import SwiftUI
 @main
 struct LangoTraceApp: App {
     private let environment = AppEnvironment.bootstrap()
+    @StateObject private var session = AppSessionState()
 
     var body: some Scene {
         WindowGroup {
-            LangoTraceRootView()
-                .environment(\.appEnvironment, environment)
+            LangoTraceRootView(
+                phase: session.phase,
+                languageSpace: session.currentLanguageSpace,
+                onboardingDraft: Binding(
+                    get: { session.onboardingDraft },
+                    set: { session.onboardingDraft = $0 }
+                ),
+                onWelcomeFinished: session.completeWelcome,
+                onCreateLanguageSpace: session.createLanguageSpace
+            )
+            .environment(\.appEnvironment, environment)
         }
         #if os(macOS)
         .windowResizability(.contentSize)

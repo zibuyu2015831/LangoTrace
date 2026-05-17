@@ -47,6 +47,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.zibuyu.LangoTrace
         PRODUCT_NAME: LangoTrace
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTED_PLATFORMS: iphonesimulator iphoneos
     dependencies:
@@ -77,6 +78,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.zibuyu.LangoTrace.mac
         PRODUCT_NAME: LangoTrace
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SUPPORTED_PLATFORMS: macosx
     dependencies:
       - package: LangoTraceCore

@@ -2,7 +2,7 @@
 
 类型：feature
 
-状态：Draft
+状态：User Approved
 
 日期：2026-05-17
 
@@ -26,7 +26,7 @@
 
 关联提交：
 
-- 未提交
+- 待本次实现提交后补充
 
 ## 1. 背景
 
@@ -267,13 +267,55 @@ git status --short
 用户确认后记录：
 
 ```text
-YYYY-MM-DD：用户确认本方案，可以开始实现。
+2026-05-17：用户确认先提交当前 worklog，然后进入实施。
 ```
 
 ## 10. 实施记录
 
-未开始。
+- 已补充 Core 层启动流模型与测试：
+  - `LanguageLevel`
+  - `LanguageSpacePreview`
+  - `LaunchRoute`
+  - `OnboardingDraft`
+  - `LaunchFlowTests`
+- 已在 App target 中加入轻量 `AppSessionState`，用于模拟 welcome / onboarding / main 三段启动路径。
+- 已将根视图从工程占位替换为产品体验骨架：
+  - 欢迎页展示 `语迹 / LangoTrace`、固定 slogan、`本地优先`、`未配置 AI` 和 `今天记录一点生活`。
+  - 首次引导页询问母语、目标语言和水平自评，并创建第一个语言空间。
+  - iPhone 使用 `今日 / 记录 / 练习 / 记忆 / 设置` 五个 Tab。
+  - iPad 使用三栏学习桌面骨架。
+  - macOS 使用资料库工作台骨架。
+- 已新增 `LangoTraceDesign` 作为首版视觉 token，统一纸感背景、墨黑文字、深松石强调、低饱和金色点缀、面板圆角和基础间距。
+- 已新增首版可替换 App icon 资产：
+  - 使用深松石底色、暖白记录页、抽象语言轨迹和金色点缀。
+  - 通过 `scripts/generate-app-icon.swift` 生成 iOS / iPadOS / macOS 所需 PNG 尺寸。
+  - 通过 XcodeGen `ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon` 接入 App target。
 
 ## 11. 验证结果
 
-未验证。
+已验证通过：
+
+```bash
+xcodegen generate
+swift test --package-path Packages/LangoTraceCore
+xcodebuild -list -project LangoTrace.xcodeproj
+xcodebuild -quiet -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
+xcodebuild -quiet -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
+xcodebuild -quiet -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
+swiftlint --no-cache
+swiftformat --lint . --cache ignore
+git diff --check
+xcrun simctl install booted /Users/zibuyu/Library/Developer/Xcode/DerivedData/LangoTrace-hdfadqhothdwgbahopjjqiwrxhky/Build/Products/Debug-iphonesimulator/LangoTrace.app
+xcrun simctl launch booted com.zibuyu.LangoTrace
+```
+
+结果：
+
+- Core 测试 4 个全部通过。
+- iPhone 17 Simulator 构建通过。
+- iPad Pro 13-inch (M5) Simulator 构建通过。
+- macOS arm64 构建通过。
+- SwiftLint 0 violations。
+- SwiftFormat lint 0 files require formatting。
+- `git diff --check` 无空白错误。
+- Booted iPhone 17 Simulator 已成功安装并启动 `com.zibuyu.LangoTrace`。

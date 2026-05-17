@@ -10,6 +10,7 @@
 		0548E052E158D42FC7E67126 /* LangoTraceSpeech in Frameworks */ = {isa = PBXBuildFile; productRef = 09143DC8CECD45543B21548B /* LangoTraceSpeech */; };
 		0D3503C2DD79BED572680AF6 /* LangoTraceData in Frameworks */ = {isa = PBXBuildFile; productRef = AFC9862224C1E0FF7AD0437F /* LangoTraceData */; };
 		12452CFC72AFD551AF7F6DF1 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55AB1C12E4A7F5AD1D8D6EF5 /* AppEnvironment.swift */; };
+		17BAC31EBE1F532A93D2969F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8AFCBB8E848E5F670A1593D /* Assets.xcassets */; };
 		19941825A76E03AF7F9C7703 /* LangoTraceAI in Frameworks */ = {isa = PBXBuildFile; productRef = 09AA8FC7CF739D141BB84A80 /* LangoTraceAI */; };
 		22F9EC06C5D1B79894717CD9 /* LangoTraceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865760D55CBEA4D850C601D4 /* LangoTraceApp.swift */; };
 		418045BF438605B96C0F20DF /* LangoTraceUI in Frameworks */ = {isa = PBXBuildFile; productRef = 67B74CA14B0E2B331EF7DCDC /* LangoTraceUI */; };
@@ -20,6 +21,7 @@
 		7F23FD5F12487CD0E8CCC1DC /* LangoTraceSync in Frameworks */ = {isa = PBXBuildFile; productRef = 6A92F5CC68F9FD853A10B295 /* LangoTraceSync */; };
 		9D2EF9D0EDA8A1F0A943EE3D /* LangoTraceAI in Frameworks */ = {isa = PBXBuildFile; productRef = 210415632B487DCC91FBBFFF /* LangoTraceAI */; };
 		AA1CB673BA6891C34FA32E27 /* LangoTraceSync in Frameworks */ = {isa = PBXBuildFile; productRef = 378EDEB396E0A2055B2870EA /* LangoTraceSync */; };
+		B19F2252EC5BA90A1D260033 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8AFCBB8E848E5F670A1593D /* Assets.xcassets */; };
 		EB02E286E1BE8E66F8F87B52 /* LangoTraceUI in Frameworks */ = {isa = PBXBuildFile; productRef = CC1B4AA214F35F5CE1410E53 /* LangoTraceUI */; };
 		F5FDC6FC683BA9C03E64CDC7 /* LangoTraceCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6EFB5DE61879E201E9275D3E /* LangoTraceCore */; };
 		FE4794B5CBCE114478CCE549 /* LangoTraceSpeech in Frameworks */ = {isa = PBXBuildFile; productRef = 07CDBF13A625DCDE0818512C /* LangoTraceSpeech */; };
@@ -36,6 +38,7 @@
 		865760D55CBEA4D850C601D4 /* LangoTraceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LangoTraceApp.swift; sourceTree = "<group>"; };
 		8F21F6C7B2D8AFDEA037D72A /* LangoTraceAI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceAI; path = Packages/LangoTraceAI; sourceTree = SOURCE_ROOT; };
 		9E26B8428DFC59071FEA5779 /* LangoTraceData */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceData; path = Packages/LangoTraceData; sourceTree = SOURCE_ROOT; };
+		D8AFCBB8E848E5F670A1593D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E49E708AF58B9623000A4245 /* LangoTraceSpeech */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceSpeech; path = Packages/LangoTraceSpeech; sourceTree = SOURCE_ROOT; };
 		FEB330D2E3E7B7586B6D3694 /* LangoTraceSync */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceSync; path = Packages/LangoTraceSync; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -73,6 +76,7 @@
 		3C6A4E055E2E9009B7FF06BF /* LangoTraceApp */ = {
 			isa = PBXGroup;
 			children = (
+				ADD75FBD92D1274B62C7A43B /* Resources */,
 				B0ADB75EB0AE508DBE84045F /* Supporting */,
 				55AB1C12E4A7F5AD1D8D6EF5 /* AppEnvironment.swift */,
 				865760D55CBEA4D850C601D4 /* LangoTraceApp.swift */,
@@ -102,6 +106,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		ADD75FBD92D1274B62C7A43B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D8AFCBB8E848E5F670A1593D /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		B0ADB75EB0AE508DBE84045F /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -128,6 +140,7 @@
 			buildConfigurationList = 91263C0F59D7D287F2343527 /* Build configuration list for PBXNativeTarget "LangoTrace-iOS" */;
 			buildPhases = (
 				BB059F094F2C9BEAA7496348 /* Sources */,
+				E40F97E3924C7CAF00F7521A /* Resources */,
 				3259B04FDA2E3325C65AB31D /* Frameworks */,
 			);
 			buildRules = (
@@ -152,6 +165,7 @@
 			buildConfigurationList = F71E6663F25469210EA4F7B4 /* Build configuration list for PBXNativeTarget "LangoTrace-macOS" */;
 			buildPhases = (
 				1020D16EDE0C99BD8DA57E27 /* Sources */,
+				E892CE2B27748B48F8F63D10 /* Resources */,
 				086911DEE3D85911D884E7C3 /* Frameworks */,
 			);
 			buildRules = (
@@ -215,6 +229,25 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E40F97E3924C7CAF00F7521A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B19F2252EC5BA90A1D260033 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E892CE2B27748B48F8F63D10 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				17BAC31EBE1F532A93D2969F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1020D16EDE0C99BD8DA57E27 /* Sources */ = {

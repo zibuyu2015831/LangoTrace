@@ -1,7 +1,9 @@
 import LangoTraceAI
+import LangoTraceCore
 import LangoTraceData
 import LangoTraceSpeech
 import LangoTraceSync
+import LangoTraceUI
 import SwiftUI
 
 struct AppEnvironment {
@@ -22,4 +24,31 @@ struct AppEnvironment {
 
 extension EnvironmentValues {
     @Entry var appEnvironment: AppEnvironment = .bootstrap()
+}
+
+@MainActor
+final class AppSessionState: ObservableObject {
+    @Published var phase: LangoTraceAppPhase = .welcome
+    @Published var onboardingDraft = OnboardingDraft()
+    @Published private(set) var currentLanguageSpace: LanguageSpacePreview?
+
+    func completeWelcome() {
+        phase = LaunchRoute.route(hasLanguageSpace: currentLanguageSpace != nil).appPhase
+    }
+
+    func createLanguageSpace() {
+        currentLanguageSpace = onboardingDraft.makeLanguageSpacePreview()
+        phase = .main
+    }
+}
+
+private extension LaunchRoute {
+    var appPhase: LangoTraceAppPhase {
+        switch self {
+        case .onboarding:
+            .onboarding
+        case .main:
+            .main
+        }
+    }
 }
