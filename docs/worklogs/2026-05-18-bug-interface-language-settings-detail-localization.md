@@ -19,7 +19,7 @@
 
 关联提交：
 
-- 未提交
+- `45f9cf6 fix: localize settings capability chrome`
 
 ## 1. 背景
 
