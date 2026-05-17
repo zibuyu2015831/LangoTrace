@@ -136,6 +136,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 - [开发工作记录规范](worklogs/README.md)
 - [项目初始化规划](project-initialization.md)
+- [三端开发顺序方案](development/001-platform-development-sequence.md)
 - [开发环境记录](development-environment.md)
 - [初始模块边界](architecture/001-initial-module-boundaries.md)
 - [开发规范治理](guidelines/001-guideline-governance.md)

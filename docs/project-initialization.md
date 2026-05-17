@@ -41,6 +41,8 @@
 
 iPadOS 作为 iOS target 的自适应体验处理，但在 UI 架构中保留 iPad 专属布局。
 
+三端开发顺序遵循 [三端开发顺序方案](development/001-platform-development-sequence.md)：工程层面同时初始化 iPhone、iPad 和 macOS；MVP 功能优先 iPhone + iPad；Mac 第一阶段保持基础可运行，后续增强为语言资料库与创作工作台。
+
 ### 3.2 模块边界先于功能堆叠
 
 第一阶段应先建立边界，而不是快速把所有功能写进一个 App 文件。
@@ -189,6 +191,7 @@ LangoTrace/
 - `xcodegen generate` 可以生成 Xcode 工程。
 - `xcodebuild` 可以列出 schemes。
 - iOS Simulator 可以构建。
+- iPad Simulator 可以构建。
 - macOS target 可以构建。
 - SwiftLint 可以运行，或明确记录暂未接入。
 - SwiftFormat 可以检查，或明确记录暂未接入。
@@ -200,6 +203,7 @@ LangoTrace/
 xcodegen generate
 xcodebuild -list -project LangoTrace.xcodeproj
 xcodebuild -scheme LangoTrace -destination 'platform=iOS Simulator,name=iPhone 17' build
+xcodebuild -scheme LangoTrace -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4)' build
 xcodebuild -scheme LangoTrace -destination 'platform=macOS' build
 swiftlint
 swiftformat --lint .
@@ -226,7 +230,8 @@ git status --short
 
 - 创建生活记录。
 - 展示记录时间线。
-- 支持中文到英语示例转换占位。
+- 以“中文母语 -> 英语目标语言”作为首个示例转换占位。
+- 示例语言不能写死到数据模型、Prompt Preset、TTS 设置或路由中。
 
 ### Milestone 4：AI Provider 抽象
 
@@ -257,4 +262,3 @@ git status --short
 - 初始工程目录名已明确。
 - 第一个提交只包含工程骨架和必要文档，不混入功能实现。
 - `.vscode/` 是否纳入版本控制已明确。
-
