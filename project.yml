@@ -43,6 +43,8 @@ targets:
           - Supporting/Info-macOS.plist
     info:
       path: LangoTraceApp/Supporting/Info-iOS.plist
+      properties:
+        UILaunchStoryboardName: LaunchScreen
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.zibuyu.LangoTrace
@@ -72,6 +74,7 @@ targets:
       - path: LangoTraceApp
         excludes:
           - Supporting/Info-iOS.plist
+          - Resources/LaunchScreen.storyboard
     info:
       path: LangoTraceApp/Supporting/Info-macOS.plist
     settings:

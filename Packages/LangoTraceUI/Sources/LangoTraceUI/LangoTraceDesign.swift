@@ -8,8 +8,11 @@ enum LangoTraceDesign {
         static let mutedInk = Color(red: 0.425, green: 0.467, blue: 0.500)
         static let hairline = Color(red: 0.865, green: 0.835, blue: 0.780)
         static let teal = Color(red: 0.070, green: 0.420, blue: 0.365)
+        static let deepTeal = Color(red: 0.050, green: 0.330, blue: 0.295)
         static let paleTeal = Color(red: 0.875, green: 0.945, blue: 0.925)
         static let gold = Color(red: 0.690, green: 0.505, blue: 0.215)
+        static let paleGold = Color(red: 0.965, green: 0.920, blue: 0.800)
+        static let whiteInk = Color(red: 0.985, green: 0.980, blue: 0.960)
     }
 
     enum Radius {
@@ -39,5 +42,9 @@ extension View {
     func langoPageBackground() -> some View {
         background(LangoTraceDesign.ColorToken.paper)
             .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+    }
+
+    func langoSoftShadow() -> some View {
+        shadow(color: LangoTraceDesign.ColorToken.ink.opacity(0.07), radius: 16, x: 0, y: 8)
     }
 }

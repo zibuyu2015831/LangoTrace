@@ -4,31 +4,62 @@ import SwiftUI
 struct MacMainView: View {
     let languageSpace: LanguageSpacePreview
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isSidebarVisible = true
+    @State private var isInspectorVisible = true
+
     var body: some View {
         HStack(spacing: 0) {
-            sidebar
-            Divider()
+            if isSidebarVisible {
+                sidebar
+                    .transition(panelTransition(edge: .leading))
+                Divider()
+            }
             main
-            Divider()
-            inspector
+            if isInspectorVisible {
+                Divider()
+                inspector
+                    .transition(panelTransition(edge: .trailing))
+            }
         }
-        .frame(minWidth: 1120, minHeight: 720)
+        .frame(minWidth: minimumWindowWidth, minHeight: 720)
         .langoPageBackground()
+        .animation(panelAnimation, value: isSidebarVisible)
+        .animation(panelAnimation, value: isInspectorVisible)
+    }
+
+    private var minimumWindowWidth: CGFloat {
+        switch (isSidebarVisible, isInspectorVisible) {
+        case (true, true):
+            1160
+        case (true, false), (false, true):
+            900
+        case (false, false):
+            680
+        }
+    }
+
+    private var panelAnimation: Animation? {
+        reduceMotion ? nil : .easeInOut(duration: 0.18)
+    }
+
+    private func panelTransition(edge: Edge) -> AnyTransition {
+        reduceMotion ? .identity : .move(edge: edge).combined(with: .opacity)
     }
 
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text(ProductIdentity.displayName)
                 .font(.title2.weight(.semibold))
-            LanguageSpaceBadge(languageSpace: languageSpace)
             SideItem(title: "今日", subtitle: "继续雨天咖啡馆", active: true)
             SideItem(title: "记录库", subtitle: "128 条生活片段", active: false)
             SideItem(title: "词句记忆", subtitle: "本地向量索引可重建", active: false)
             Spacer()
-            Button {} label: {
-                Label("设置", systemImage: "gearshape")
-            }
-            .buttonStyle(.bordered)
+            LanguageSpaceFooter(
+                languageSpace: languageSpace,
+                showsPrivacyStatus: false,
+                isCompact: true
+            )
         }
         .padding(24)
         .frame(width: 300, alignment: .topLeading)
@@ -38,6 +69,21 @@ struct MacMainView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
+                    HStack(spacing: 8) {
+                        LangoPanelToggleButton(
+                            systemImage: "sidebar.left",
+                            isActive: isSidebarVisible,
+                            accessibilityLabel: isSidebarVisible ? "隐藏侧边栏" : "显示侧边栏",
+                            action: { isSidebarVisible.toggle() }
+                        )
+                        LangoPanelToggleButton(
+                            systemImage: "sidebar.right",
+                            isActive: isInspectorVisible,
+                            accessibilityLabel: isInspectorVisible ? "隐藏检查器" : "显示检查器",
+                            action: { isInspectorVisible.toggle() }
+                        )
+                    }
+
                     VStack(alignment: .leading, spacing: 8) {
                         Text("语言资料库工作台")
                             .font(.largeTitle.weight(.semibold))
@@ -69,7 +115,8 @@ struct MacMainView: View {
             }
             .padding(26)
         }
-        .frame(maxWidth: .infinity)
+        .frame(minWidth: 500, maxWidth: .infinity)
+        .layoutPriority(1)
     }
 
     private var inspector: some View {

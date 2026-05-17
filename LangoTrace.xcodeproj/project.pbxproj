@@ -22,6 +22,7 @@
 		9D2EF9D0EDA8A1F0A943EE3D /* LangoTraceAI in Frameworks */ = {isa = PBXBuildFile; productRef = 210415632B487DCC91FBBFFF /* LangoTraceAI */; };
 		AA1CB673BA6891C34FA32E27 /* LangoTraceSync in Frameworks */ = {isa = PBXBuildFile; productRef = 378EDEB396E0A2055B2870EA /* LangoTraceSync */; };
 		B19F2252EC5BA90A1D260033 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8AFCBB8E848E5F670A1593D /* Assets.xcassets */; };
+		C1DE991E87E423CA1071F883 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D8441E632488B62B53C28B85 /* LaunchScreen.storyboard */; };
 		EB02E286E1BE8E66F8F87B52 /* LangoTraceUI in Frameworks */ = {isa = PBXBuildFile; productRef = CC1B4AA214F35F5CE1410E53 /* LangoTraceUI */; };
 		F5FDC6FC683BA9C03E64CDC7 /* LangoTraceCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6EFB5DE61879E201E9275D3E /* LangoTraceCore */; };
 		FE4794B5CBCE114478CCE549 /* LangoTraceSpeech in Frameworks */ = {isa = PBXBuildFile; productRef = 07CDBF13A625DCDE0818512C /* LangoTraceSpeech */; };
@@ -38,6 +39,7 @@
 		865760D55CBEA4D850C601D4 /* LangoTraceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LangoTraceApp.swift; sourceTree = "<group>"; };
 		8F21F6C7B2D8AFDEA037D72A /* LangoTraceAI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceAI; path = Packages/LangoTraceAI; sourceTree = SOURCE_ROOT; };
 		9E26B8428DFC59071FEA5779 /* LangoTraceData */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceData; path = Packages/LangoTraceData; sourceTree = SOURCE_ROOT; };
+		D8441E632488B62B53C28B85 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D8AFCBB8E848E5F670A1593D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E49E708AF58B9623000A4245 /* LangoTraceSpeech */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceSpeech; path = Packages/LangoTraceSpeech; sourceTree = SOURCE_ROOT; };
 		FEB330D2E3E7B7586B6D3694 /* LangoTraceSync */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceSync; path = Packages/LangoTraceSync; sourceTree = SOURCE_ROOT; };
@@ -110,6 +112,7 @@
 			isa = PBXGroup;
 			children = (
 				D8AFCBB8E848E5F670A1593D /* Assets.xcassets */,
+				D8441E632488B62B53C28B85 /* LaunchScreen.storyboard */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -236,6 +239,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B19F2252EC5BA90A1D260033 /* Assets.xcassets in Resources */,
+				C1DE991E87E423CA1071F883 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
