@@ -80,18 +80,130 @@ struct EntryDetailView: View {
 struct PracticeSessionView: View {
     let entry: LearningEntry
     let rendering: LearningRendering?
+    let session: PracticeSessionState?
+
+    @State private var currentStep: PracticeSessionStep = .prepare
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            SectionHeader(title: "跟读练习", subtitle: entry.title)
-            Text(rendering?.targetText ?? "当前记录还没有可练习内容。")
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SectionHeader(title: "跟读练习", subtitle: entry.title)
+                if let session {
+                    PracticeControlBar(
+                        steps: session.steps,
+                        currentStep: currentStep,
+                        onSelectStep: { currentStep = $0 },
+                        onNext: { currentStep = session.nextStep(after: currentStep) }
+                    )
+                    PracticeStepPanel(
+                        step: currentStep,
+                        targetText: session.targetText,
+                        providerLabel: session.providerLabel
+                    )
+                    RequestPreviewCard(entry: entry, rendering: rendering)
+                } else {
+                    CapabilityStatusRow(
+                        title: "暂无可练习内容",
+                        summary: "这条记录还没有 mock rendering。真实生成能力接入前不会触发外部 AI 请求。",
+                        status: .unavailable,
+                        systemImage: "waveform",
+                        action: nil
+                    )
+                }
+            }
+            .padding(20)
+        }
+        .navigationTitle("练习")
+        .langoPageBackground()
+    }
+}
+
+private struct PracticeStepPanel: View {
+    let step: PracticeSessionStep
+    let targetText: String
+    let providerLabel: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label(labelTitle, systemImage: labelIcon)
+                .font(.headline)
+            Text(mainText)
                 .font(.title3.weight(.semibold))
                 .lineSpacing(5)
-            RequestPreviewCard(entry: entry, rendering: rendering)
-            Spacer()
+                .fixedSize(horizontal: false, vertical: true)
+            Text("来源：\(providerLabel)。当前只切换本地练习状态，不播放音频、不录音、不保存结果。")
+                .font(.callout)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(20)
-        .navigationTitle("练习")
+        .langoPanel()
+    }
+
+    private var labelTitle: String {
+        switch step {
+        case .prepare:
+            "准备材料"
+        case .shadow:
+            "跟读"
+        case .compare:
+            "对照"
+        case .completed:
+            "完成"
+        }
+    }
+
+    private var labelIcon: String {
+        switch step {
+        case .prepare:
+            "text.magnifyingglass"
+        case .shadow:
+            "waveform"
+        case .compare:
+            "checklist"
+        case .completed:
+            "checkmark.circle"
+        }
+    }
+
+    private var mainText: String {
+        switch step {
+        case .prepare:
+            "先快速读一遍目标语言文本，确认这一轮只使用本地 mock 内容。"
+        case .shadow:
+            targetText
+        case .compare:
+            "对照原记录，找出你最想记住的一句表达。"
+        case .completed:
+            "本轮 mock 练习已完成。真实评分、录音和听写结果会在语音能力接入后设计。"
+        }
+    }
+}
+
+struct SettingsCapabilityDetailView: View {
+    let languageSpace: LanguageSpacePreview
+    let capability: SettingsCapability
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SectionHeader(title: capability.kind.title, subtitle: languageSpace.displayContext)
+                CapabilityStatusRow(
+                    title: capability.kind.title,
+                    summary: capability.summary,
+                    status: capability.status,
+                    systemImage: capability.kind.systemImage,
+                    action: nil
+                )
+                TextPanel(title: "当前边界", text: capability.detail)
+                TextPanel(title: "后续接入条件", text: capability.nextRequirement)
+                TextPanel(
+                    title: "不会发生",
+                    text: "本页不会保存密钥、不会写入真实数据库、不会访问照片或麦克风、不会发起网络请求。"
+                )
+            }
+            .padding(20)
+        }
+        .navigationTitle(capability.kind.title)
         .langoPageBackground()
     }
 }

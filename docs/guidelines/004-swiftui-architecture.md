@@ -101,6 +101,8 @@ View 不直接创建真实 Provider、Repository 或 KeychainStore。预览、�
 
 不要把所有状态塞进单一全局对象，也不要让每个 View 各自复制语言空间状态。
 
+MVP 早期允许在 Data package 中提供无副作用的 preview / mock 纯值状态，例如设置能力状态和练习会话步骤。此类模型只能表达 UI 可见状态和后续真实接入边界，不能读取 Keychain、访问网络、写入数据库或直接启动系统权限流程。
+
 ### 4.6 错误与加载
 
 涉及存储、AI、TTS、OCR、Speech、Sync 的能力必须暴露：
@@ -153,3 +155,4 @@ AI 在写 SwiftUI 代码前应先回答：
 
 - 2026-05-17：创建第一版 SwiftUI 架构规范。
 - 2026-05-17：补充 App Environment、状态边界、异步任务和错误加载状态要求。原因：避免早期 SwiftUI 代码形成全局状态和副作用债务。影响范围：App Shell、UI、服务调用。是否需要 ADR：否。
+- 2026-05-17：补充 MVP 早期 mock 纯值状态边界。原因：设置与练习状态闭环需要 Data package 暴露可测试状态模型，但仍不能引入真实 Keychain、网络、数据库或权限副作用。影响范围：Data、UI 和 App Shell 状态装配。是否需要 ADR：否。

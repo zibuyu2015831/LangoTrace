@@ -36,7 +36,8 @@ struct PhoneMainView: View {
                 PracticeView(
                     languageSpace: languageSpace,
                     entries: entries,
-                    repository: contentRepository
+                    repository: contentRepository,
+                    onPractice: { entry in navigationPath.append(.practice(entry.id)) }
                 )
                 .tabItem { Label(PhoneRootTab.practice.title, systemImage: "waveform") }
                 .tag(PhoneRootTab.practice)
@@ -48,9 +49,13 @@ struct PhoneMainView: View {
                 .tabItem { Label(PhoneRootTab.memory.title, systemImage: "archivebox") }
                 .tag(PhoneRootTab.memory)
 
-                SettingsView(languageSpace: languageSpace)
-                    .tabItem { Label(PhoneRootTab.settings.title, systemImage: "gearshape") }
-                    .tag(PhoneRootTab.settings)
+                SettingsView(
+                    languageSpace: languageSpace,
+                    capabilities: contentRepository.settingsCapabilities(for: languageSpace.id),
+                    onSelectCapability: { kind in navigationPath.append(.settings(kind)) }
+                )
+                .tabItem { Label(PhoneRootTab.settings.title, systemImage: "gearshape") }
+                .tag(PhoneRootTab.settings)
             }
             .simultaneousGesture(tabSwipeGesture)
             .phoneTabBarBackground()
@@ -70,7 +75,15 @@ struct PhoneMainView: View {
                     if let entry = entry(id: entryID) {
                         PracticeSessionView(
                             entry: entry,
-                            rendering: rendering(for: entry)
+                            rendering: rendering(for: entry),
+                            session: contentRepository.practiceSession(for: entry.id)
+                        )
+                    }
+                case let .settings(kind):
+                    if let capability = capability(kind: kind) {
+                        SettingsCapabilityDetailView(
+                            languageSpace: languageSpace,
+                            capability: capability
                         )
                     }
                 }
@@ -111,6 +124,12 @@ struct PhoneMainView: View {
         contentRepository.rendering(for: entry.id)
     }
 
+    private func capability(kind: SettingsCapability.Kind) -> SettingsCapability? {
+        contentRepository
+            .settingsCapabilities(for: languageSpace.id)
+            .first { $0.kind == kind }
+    }
+
     private func showEntryDetail(_ entry: LearningEntry) {
         contentRepository.selectEntry(id: entry.id, spaceID: languageSpace.id)
         navigationPath.append(.entryDetail(entry.id))
@@ -130,6 +149,7 @@ struct PhoneMainView: View {
 private enum PhoneRoute: Hashable {
     case entryDetail(String)
     case practice(String)
+    case settings(SettingsCapability.Kind)
 }
 
 private enum PhoneSheet: Identifiable {
@@ -236,6 +256,7 @@ private struct PracticeView: View {
     let languageSpace: LanguageSpacePreview
     let entries: [LearningEntry]
     let repository: InMemoryLearningContentRepository
+    let onPractice: (LearningEntry) -> Void
 
     var body: some View {
         PhonePage(
@@ -244,13 +265,30 @@ private struct PracticeView: View {
             statusText: "\(languageSpace.targetLanguage) 听说读写"
         ) {
             SectionHeader(title: "从生活记录练起", subtitle: "练习入口与原始记录保持关联")
-            ForEach(entries) { entry in
-                ForEach(repository.practiceItems(for: entry.id)) { item in
-                    CompactPanel(
-                        title: item.title,
-                        text: "\(entry.title) · \(item.summary)",
-                        systemImage: icon(for: item.kind)
-                    )
+            if entries.isEmpty {
+                CompactPanel(title: "暂无练习", text: "先创建生活记录，再生成本地 mock 练习。", systemImage: "waveform")
+            } else {
+                ForEach(entries) { entry in
+                    let items = repository.practiceItems(for: entry.id)
+                    if items.isEmpty {
+                        CapabilityStatusRow(
+                            title: entry.title,
+                            summary: "还没有可练习内容",
+                            status: .unavailable,
+                            systemImage: "waveform",
+                            action: nil
+                        )
+                    } else {
+                        ForEach(items) { item in
+                            CapabilityStatusRow(
+                                title: item.title,
+                                summary: "\(entry.title) · \(item.summary)",
+                                status: .mockOnly,
+                                systemImage: icon(for: item.kind),
+                                action: { onPractice(entry) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -291,6 +329,8 @@ private struct MemoryView: View {
 
 private struct SettingsView: View {
     let languageSpace: LanguageSpacePreview
+    let capabilities: [SettingsCapability]
+    let onSelectCapability: (SettingsCapability.Kind) -> Void
 
     var body: some View {
         PhonePage(
@@ -299,10 +339,15 @@ private struct SettingsView: View {
             statusText: "隐私、同步和 AI 请求由用户掌控"
         ) {
             SectionHeader(title: "当前空间", subtitle: "配置不抢占记录和学习主流程")
-            CompactPanel(title: "语言空间", text: languageSpace.displayContext, systemImage: "text.badge.star")
-            CompactPanel(title: "AI Provider", text: "未配置 · Local Mock only", systemImage: "sparkle.magnifyingglass")
-            CompactPanel(title: "对象存储", text: "未配置 · S3 / R2 / WebDAV", systemImage: "externaldrive")
-            CompactPanel(title: "本地优先", text: "照片、记录和 API Key 默认不发送。", systemImage: "lock")
+            ForEach(capabilities) { capability in
+                CapabilityStatusRow(
+                    title: capability.kind.title,
+                    summary: capability.summary,
+                    status: capability.status,
+                    systemImage: capability.kind.systemImage,
+                    action: { onSelectCapability(capability.kind) }
+                )
+            }
         }
     }
 }

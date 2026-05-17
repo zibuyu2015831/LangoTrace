@@ -136,6 +136,118 @@ struct RequestPreviewCard: View {
     }
 }
 
+struct CapabilityStatusRow: View {
+    let title: String
+    let summary: String
+    let status: CapabilityStatus
+    let systemImage: String
+    let action: (() -> Void)?
+
+    var body: some View {
+        if let action {
+            Button(action: action) {
+                rowContent(trailingImage: "chevron.right")
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(title)，\(status.title)")
+            .accessibilityHint(summary)
+        } else {
+            rowContent(trailingImage: nil)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(title)，\(status.title)")
+                .accessibilityHint(summary)
+        }
+    }
+
+    private func rowContent(trailingImage: String?) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.headline)
+                .foregroundStyle(statusColor)
+                .frame(width: 36, height: 36)
+                .background(statusColor.opacity(0.12))
+                .clipShape(Circle())
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Text(title)
+                        .font(.headline)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                    Text(status.title)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(statusColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(statusColor.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+                Text(summary)
+                    .font(.callout)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+            if let trailingImage {
+                Image(systemName: trailingImage)
+                    .font(.footnote.weight(.bold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    .padding(.top, 9)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .langoPanel(padding: 16)
+    }
+
+    private var statusColor: Color {
+        switch status {
+        case .ready:
+            LangoTraceDesign.ColorToken.privacyLocal
+        case .mockOnly:
+            LangoTraceDesign.ColorToken.accent
+        case .unavailable:
+            LangoTraceDesign.ColorToken.textSecondary
+        }
+    }
+}
+
+struct PracticeControlBar: View {
+    let steps: [PracticeSessionStep]
+    let currentStep: PracticeSessionStep
+    let onSelectStep: (PracticeSessionStep) -> Void
+    let onNext: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                ForEach(steps, id: \.self) { step in
+                    Button {
+                        onSelectStep(step)
+                    } label: {
+                        Text(step.title)
+                            .font(.caption.weight(.semibold))
+                            .frame(maxWidth: .infinity, minHeight: 36)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(step == currentStep ? .white : LangoTraceDesign.ColorToken.accent)
+                    .background(
+                        step == currentStep
+                            ? LangoTraceDesign.ColorToken.accent
+                            : LangoTraceDesign.ColorToken.surfaceAccentMuted
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .accessibilityLabel(step.title)
+                    .accessibilityValue(step == currentStep ? "当前步骤" : "可切换")
+                }
+            }
+            Button(action: onNext) {
+                Label(currentStep == .completed ? "保持完成状态" : "下一步", systemImage: "arrow.right")
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .langoPanel(padding: 14)
+    }
+}
+
 struct InlineStatusLabel: View {
     let text: String
     let systemImage: String
