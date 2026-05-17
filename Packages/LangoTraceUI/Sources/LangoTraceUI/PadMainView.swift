@@ -66,7 +66,8 @@ struct PadMainView: View {
 
             LanguageSpaceFooter(
                 languageSpace: languageSpace,
-                showsPrivacyStatus: true,
+                aiStatus: .notConfigured,
+                syncStatus: .off,
                 isCompact: false
             )
         }

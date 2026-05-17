@@ -32,10 +32,6 @@ struct PadWorkspaceBar: View {
                     .stroke(LangoTraceDesign.ColorToken.hairline, lineWidth: 1)
             }
 
-            Label("本地优先 · 未配置 AI", systemImage: "lock")
-                .font(.footnote.weight(.medium))
-                .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-
             LangoPanelToggleButton(
                 systemImage: "sidebar.right",
                 isActive: isLearningPanelVisible,

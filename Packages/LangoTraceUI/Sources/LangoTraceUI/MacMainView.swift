@@ -57,7 +57,8 @@ struct MacMainView: View {
             Spacer()
             LanguageSpaceFooter(
                 languageSpace: languageSpace,
-                showsPrivacyStatus: false,
+                aiStatus: .notConfigured,
+                syncStatus: .off,
                 isCompact: true
             )
         }
