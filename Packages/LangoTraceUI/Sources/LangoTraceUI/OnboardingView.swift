@@ -5,9 +5,6 @@ struct OnboardingView: View {
     @Binding var draft: OnboardingDraft
     let onCreateLanguageSpace: () -> Void
 
-    private let nativeLanguages = ["中文", "英语", "日语", "韩语", "法语", "德语", "西班牙语"]
-    private let targetLanguages = ["英语", "日语", "法语", "德语", "西班牙语", "韩语"]
-
     var body: some View {
         ZStack {
             ScrollView {
@@ -52,28 +49,34 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 14) {
             PickerRow(
                 title: "母语",
-                value: draft.nativeLanguage,
                 systemImage: "person.text.rectangle"
             ) {
-                Picker("母语", selection: $draft.nativeLanguage) {
-                    ForEach(nativeLanguages, id: \.self) { language in
-                        Text(language).tag(language)
+                LanguageMenu(
+                    title: "母语",
+                    selectedLanguage: draft.resolvedNativeLanguage,
+                    languages: LearningLanguage.supportedNativeLanguages,
+                    onSelect: { language in
+                        draft.nativeLanguageCode = language.code
+                        draft = draft.normalized()
                     }
-                }
+                )
             }
 
             Divider()
 
             PickerRow(
                 title: "目标语言",
-                value: draft.targetLanguage,
                 systemImage: "text.bubble"
             ) {
-                Picker("目标语言", selection: $draft.targetLanguage) {
-                    ForEach(targetLanguages, id: \.self) { language in
-                        Text(language).tag(language)
+                LanguageMenu(
+                    title: "目标语言",
+                    selectedLanguage: draft.resolvedTargetLanguage,
+                    languages: draft.availableTargetLanguages,
+                    onSelect: { language in
+                        draft.targetLanguageCode = language.code
+                        draft = draft.normalized()
                     }
-                }
+                )
             }
 
             Divider()
@@ -100,7 +103,9 @@ struct OnboardingView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                .accessibilityHint("选择当前 \(draft.targetLanguage) 水平")
+                .labelsHidden()
+                .accessibilityLabel("水平自评")
+                .accessibilityHint("选择当前 \(draft.resolvedTargetLanguage.zhHansName) 水平")
             }
         }
         .langoPanel(padding: 18)
@@ -122,11 +127,11 @@ struct OnboardingView: View {
 
     private var createButton: some View {
         VStack(spacing: 8) {
-            Text("\(draft.nativeLanguage) -> \(draft.targetLanguage) · \(draft.level.rawValue)")
+            Text(createSummary)
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
             Button(action: onCreateLanguageSpace) {
-                Label("创建 \(draft.targetLanguage) 空间", systemImage: "plus.circle.fill")
+                Label("创建 \(draft.resolvedTargetLanguage.zhHansName) 空间", systemImage: "plus.circle.fill")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
@@ -136,18 +141,58 @@ struct OnboardingView: View {
             .buttonBorderShape(.roundedRectangle(radius: 16))
             .controlSize(.large)
             .tint(LangoTraceDesign.ColorToken.deepTeal)
-            .accessibilityHint("创建 \(draft.targetLanguage) 学习空间并进入主体页面")
+            .accessibilityHint("创建 \(draft.resolvedTargetLanguage.zhHansName) 学习空间并进入主体页面")
         }
         .padding(.horizontal, 24)
         .padding(.top, 12)
         .padding(.bottom, 10)
         .background(.regularMaterial)
     }
+
+    private var createSummary: String {
+        "\(draft.resolvedNativeLanguage.selectedTitleForChineseUI) -> " +
+            "\(draft.resolvedTargetLanguage.selectedTitleForChineseUI) · \(draft.level.rawValue)"
+    }
+}
+
+private struct LanguageMenu: View {
+    let title: String
+    let selectedLanguage: LearningLanguage
+    let languages: [LearningLanguage]
+    let onSelect: (LearningLanguage) -> Void
+
+    var body: some View {
+        Menu {
+            ForEach(languages) { language in
+                Button {
+                    onSelect(language)
+                } label: {
+                    Text(language.pickerMenuTitleForChineseUI)
+                }
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Text(selectedLanguage.selectedTitleForChineseUI)
+                    .lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption.weight(.semibold))
+            }
+            .font(.headline)
+            .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+            .padding(.horizontal, 14)
+            .frame(minHeight: 36)
+            .background(LangoTraceDesign.ColorToken.hairline.opacity(0.35))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        }
+        .menuStyle(.button)
+        .accessibilityLabel(title)
+        .accessibilityValue(selectedLanguage.pickerMenuTitleForChineseUI)
+        .accessibilityHint("选择\(title)")
+    }
 }
 
 private struct PickerRow<PickerContent: View>: View {
     let title: String
-    let value: String
     let systemImage: String
     @ViewBuilder let picker: PickerContent
 
@@ -162,9 +207,6 @@ private struct PickerRow<PickerContent: View>: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.headline)
-                Text(value)
-                    .font(.footnote.weight(.medium))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
             }
             Spacer(minLength: 12)
             picker

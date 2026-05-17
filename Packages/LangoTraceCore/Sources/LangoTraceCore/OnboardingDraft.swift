@@ -1,25 +1,59 @@
 public struct OnboardingDraft: Equatable, Sendable {
-    public var nativeLanguage: String
-    public var targetLanguage: String
+    public var nativeLanguageCode: String
+    public var targetLanguageCode: String
     public var level: LanguageLevel
 
     public init(
-        nativeLanguage: String = "中文",
-        targetLanguage: String = "英语",
+        nativeLanguageCode: String = LearningLanguage.defaultNative.code,
+        targetLanguageCode: String = LearningLanguage.defaultTarget.code,
         level: LanguageLevel = .b1
     ) {
-        self.nativeLanguage = nativeLanguage
-        self.targetLanguage = targetLanguage
+        self.nativeLanguageCode = nativeLanguageCode
+        self.targetLanguageCode = targetLanguageCode
         self.level = level
     }
 
+    public var resolvedNativeLanguage: LearningLanguage {
+        LearningLanguage.find(code: nativeLanguageCode) ?? LearningLanguage.defaultNative
+    }
+
+    public var resolvedTargetLanguage: LearningLanguage {
+        LearningLanguage.find(code: targetLanguageCode) ?? LearningLanguage.defaultTarget
+    }
+
+    public var availableTargetLanguages: [LearningLanguage] {
+        LearningLanguage.targetLanguages(excludingNativeCode: resolvedNativeLanguage.code)
+    }
+
+    public func normalized() -> OnboardingDraft {
+        guard LearningLanguage.find(code: nativeLanguageCode) != nil,
+              LearningLanguage.find(code: targetLanguageCode) != nil
+        else {
+            return OnboardingDraft(level: level)
+        }
+
+        guard nativeLanguageCode != targetLanguageCode else {
+            return OnboardingDraft(
+                nativeLanguageCode: nativeLanguageCode,
+                targetLanguageCode: availableTargetLanguages.first?.code ?? LearningLanguage.defaultTarget.code,
+                level: level
+            )
+        }
+
+        return self
+    }
+
     public func makeLanguageSpacePreview() -> LanguageSpacePreview {
-        LanguageSpacePreview(
-            id: targetLanguage.lowercased(),
-            name: "\(targetLanguage)空间",
-            nativeLanguage: nativeLanguage,
-            targetLanguage: targetLanguage,
-            level: level
+        let normalizedDraft = normalized()
+        let nativeLanguage = normalizedDraft.resolvedNativeLanguage
+        let targetLanguage = normalizedDraft.resolvedTargetLanguage
+
+        return LanguageSpacePreview(
+            id: targetLanguage.code,
+            name: targetLanguage.spaceNameForChineseUI,
+            nativeLanguage: nativeLanguage.zhHansName,
+            targetLanguage: targetLanguage.zhHansName,
+            level: normalizedDraft.level
         )
     }
 }
