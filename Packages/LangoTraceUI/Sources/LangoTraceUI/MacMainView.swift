@@ -1,12 +1,19 @@
 import LangoTraceCore
+import LangoTraceData
 import SwiftUI
 
 struct MacMainView: View {
     let languageSpace: LanguageSpacePreview
+    let contentRepository: InMemoryLearningContentRepository
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isSidebarVisible = true
     @State private var isInspectorVisible = true
+    @State private var selectedSection: MacWorkspaceSection = .today
+    @State private var selectedEntryID: String?
+    @State private var route: MacWorkspaceRoute = .overview
+    @State private var isEntryEditorPresented = false
+    @State private var contentRevision = 0
 
     var body: some View {
         HStack(spacing: 0) {
@@ -26,6 +33,56 @@ struct MacMainView: View {
         .langoPageBackground()
         .animation(panelAnimation, value: isSidebarVisible)
         .animation(panelAnimation, value: isInspectorVisible)
+        .sheet(isPresented: $isEntryEditorPresented) {
+            EntryEditorView(languageSpace: languageSpace) { title, body in
+                let entry = contentRepository.createEntry(
+                    spaceID: languageSpace.id,
+                    title: title,
+                    body: body,
+                    source: .typedText
+                )
+                contentRevision += 1
+                selectedEntryID = entry.id
+                selectedSection = .entries
+                route = .entryDetail(entry.id)
+                isEntryEditorPresented = false
+            }
+        }
+        .onAppear {
+            contentRepository.ensureSeeded(spaceID: languageSpace.id)
+            selectedEntryID = selectedEntryID ?? contentRepository.selectedEntry(for: languageSpace.id)?.id
+            contentRevision += 1
+        }
+    }
+
+    private var entries: [LearningEntry] {
+        _ = contentRevision
+        return contentRepository.entries(for: languageSpace.id)
+    }
+
+    private var memoryItems: [MemoryItem] {
+        _ = contentRevision
+        return contentRepository.memoryItems(for: languageSpace.id)
+    }
+
+    private var selectedEntry: LearningEntry? {
+        if let selectedEntryID, let entry = entries.first(where: { $0.id == selectedEntryID }) {
+            return entry
+        }
+
+        return contentRepository.selectedEntry(for: languageSpace.id)
+    }
+
+    private var selectedRendering: LearningRendering? {
+        guard let selectedEntry else {
+            return nil
+        }
+
+        return contentRepository.rendering(for: selectedEntry.id)
+    }
+
+    private var settingsCapabilities: [SettingsCapability] {
+        contentRepository.settingsCapabilities(for: languageSpace.id)
     }
 
     private var minimumWindowWidth: CGFloat {
@@ -47,19 +104,57 @@ struct MacMainView: View {
         reduceMotion ? .identity : .move(edge: edge).combined(with: .opacity)
     }
 
+    private func selectSection(_ section: MacWorkspaceSection) {
+        selectedSection = section
+        route = .overview
+    }
+
+    private func showEntry(_ entry: LearningEntry) {
+        selectedEntryID = entry.id
+        contentRepository.selectEntry(id: entry.id, spaceID: languageSpace.id)
+        route = .entryDetail(entry.id)
+    }
+
+    private func routeFooterAction(_ action: MacFooterAction) {
+        selectedSection = action.section
+        route = action.route
+    }
+
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text(ProductIdentity.displayName)
                 .font(.title2.weight(.semibold))
-            SideItem(title: "今日", subtitle: "继续雨天咖啡馆", active: true)
-            SideItem(title: "记录库", subtitle: "128 条生活片段", active: false)
-            SideItem(title: "词句记忆", subtitle: "本地向量索引可重建", active: false)
+
+            VStack(spacing: 8) {
+                ForEach(MacWorkspaceSection.allCases, id: \.self) { section in
+                    Button {
+                        selectSection(section)
+                    } label: {
+                        SideItem(
+                            title: section.title,
+                            subtitle: section.subtitle(
+                                entriesCount: entries.count,
+                                memoryCount: memoryItems.count
+                            ),
+                            active: selectedSection == section
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(section.title)
+                    .accessibilityValue(selectedSection == section ? "当前选中" : "未选中")
+                }
+            }
+
             Spacer()
             LanguageSpaceFooter(
                 languageSpace: languageSpace,
                 aiStatus: .notConfigured,
                 syncStatus: .off,
-                isCompact: true
+                isCompact: true,
+                onLanguageSpace: { routeFooterAction(.languageSpace) },
+                onAIStatus: { routeFooterAction(.aiProvider) },
+                onSyncStatus: { routeFooterAction(.sync) },
+                onSettings: { routeFooterAction(.settings) }
             )
         }
         .padding(24)
@@ -69,50 +164,21 @@ struct MacMainView: View {
     private var main: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                HStack {
-                    HStack(spacing: 8) {
-                        LangoPanelToggleButton(
-                            systemImage: "sidebar.left",
-                            isActive: isSidebarVisible,
-                            accessibilityLabel: isSidebarVisible ? "隐藏侧边栏" : "显示侧边栏",
-                            action: { isSidebarVisible.toggle() }
-                        )
-                        LangoPanelToggleButton(
-                            systemImage: "sidebar.right",
-                            isActive: isInspectorVisible,
-                            accessibilityLabel: isInspectorVisible ? "隐藏检查器" : "显示检查器",
-                            action: { isInspectorVisible.toggle() }
-                        )
-                    }
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("语言资料库工作台")
-                            .font(.largeTitle.weight(.semibold))
-                        Text("Mac 端用于批量整理、搜索、导入导出和高级配置。当前为 Mock 骨架。")
-                            .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-                    }
-                    Spacer()
-                    Button {} label: {
-                        Label("新建记录", systemImage: "plus")
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-
-                HStack(alignment: .top, spacing: 14) {
-                    TextPanel(title: "搜索与筛选", text: "搜索当前记录、词句、相似生活片段。后续接 SQLite FTS5 与本地向量索引。")
-                    TextPanel(title: "批量导入", text: "拖入 Markdown、图片或音频，生成可学习的语言材料。")
-                }
-
-                TextPanel(
-                    title: "当前记录",
-                    text: """
-                    雨天咖啡馆
-
-                    I spent a long time at the cafe today. It kept drizzling outside, \
-                    and I was in no hurry to go home.
-                    """
+                header
+                MacWorkspaceContentView(
+                    selectedSection: selectedSection,
+                    route: route,
+                    languageSpace: languageSpace,
+                    entries: entries,
+                    selectedEntryID: selectedEntryID,
+                    selectedEntry: selectedEntry,
+                    selectedRendering: selectedRendering,
+                    memoryItems: memoryItems,
+                    settingsCapabilities: settingsCapabilities,
+                    contentRepository: contentRepository,
+                    onShowEntry: showEntry,
+                    onRoute: { route = $0 }
                 )
-                AudioPanel()
             }
             .padding(26)
         }
@@ -120,17 +186,56 @@ struct MacMainView: View {
         .layoutPriority(1)
     }
 
-    private var inspector: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("INSPECTOR")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-            TextPanel(title: "请求预览", text: "即将发送：目标语言文本、用户选中的照片摘要、相似记忆 3 条。")
-            TextPanel(title: "不会发送", text: "本地数据库、完整照片库、API Key、未选中的历史记录。")
-            TextPanel(title: "快捷键", text: "Cmd+N 新建 · Cmd+K 命令面板 · Space 播放/暂停")
+    private var header: some View {
+        HStack {
+            HStack(spacing: 8) {
+                LangoPanelToggleButton(
+                    systemImage: "sidebar.left",
+                    isActive: isSidebarVisible,
+                    accessibilityLabel: isSidebarVisible ? "隐藏侧边栏" : "显示侧边栏",
+                    action: { isSidebarVisible.toggle() }
+                )
+                LangoPanelToggleButton(
+                    systemImage: "sidebar.right",
+                    isActive: isInspectorVisible,
+                    accessibilityLabel: isInspectorVisible ? "隐藏检查器" : "显示检查器",
+                    action: { isInspectorVisible.toggle() }
+                )
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(selectedSection.title)
+                    .font(.largeTitle.weight(.semibold))
+                Text(selectedSection.description)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+            }
             Spacer()
+            Button {
+                isEntryEditorPresented = true
+            } label: {
+                Label("新建记录", systemImage: "plus")
+            }
+            .buttonStyle(.borderedProminent)
         }
-        .padding(24)
+    }
+
+    private var inspector: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("INSPECTOR")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+                MacInspectorContent(
+                    route: route,
+                    selectedSection: selectedSection,
+                    entries: entries,
+                    settingsCapabilities: settingsCapabilities,
+                    contentRepository: contentRepository
+                )
+                Spacer()
+            }
+            .padding(24)
+        }
         .frame(width: 340, alignment: .topLeading)
     }
 }

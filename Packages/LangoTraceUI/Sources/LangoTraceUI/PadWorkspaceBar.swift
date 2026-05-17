@@ -5,6 +5,7 @@ struct PadWorkspaceBar: View {
     let isLearningPanelVisible: Bool
     let onToggleTimeline: () -> Void
     let onToggleLearningPanel: () -> Void
+    let onNewEntry: () -> Void
 
     var body: some View {
         HStack(spacing: 14) {
@@ -38,6 +39,11 @@ struct PadWorkspaceBar: View {
                 accessibilityLabel: isLearningPanelVisible ? "隐藏学习面板" : "显示学习面板",
                 action: onToggleLearningPanel
             )
+
+            Button(action: onNewEntry) {
+                Label("新建记录", systemImage: "plus")
+            }
+            .buttonStyle(.borderedProminent)
         }
         .padding(.horizontal, 22)
         .padding(.vertical, 14)

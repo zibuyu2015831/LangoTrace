@@ -115,6 +115,21 @@ MVP 早期允许在 Data package 中提供无副作用的 preview / mock 纯值�
 
 UI 可以简化展示，但底层状态不能丢失。
 
+### 4.7 页面闭环阶段的共享内容与平台外壳
+
+三端页面闭环阶段应明确区分共享内容视图和平台外壳，避免为了复用而牺牲 iPad 和 macOS 的原生形态。
+
+推荐边界：
+
+- 共享内容视图负责呈现记录详情、练习会话、设置能力详情、请求预览和 unavailable 状态。
+- iPhone 外壳负责 Tab、NavigationStack、sheet 和 iPhone 顶部语言空间上下文。
+- iPad 外壳负责三栏工作台、timeline selection、filter、route、sheet、左右面板展开状态和窄窗口降级。
+- macOS 外壳负责 Sidebar section、route、toolbar 区域、Inspector、窗口尺寸和 repository 注入。
+- `MacMainView` 必须从 App Shell 接收 `InMemoryLearningContentRepository` 或后续真实 repository 协议，不能在 View 内重新创建内容仓库。
+- route、section、filter、sheet、selected entry 和面板展开状态属于 transient UI state；除非另有 worklog 和 ADR/规范支撑，不进入 `LanguageSpacePreview`、数据库、同步 manifest 或启动恢复。
+- 筛选、route 推导和 selected entry fallback 如可表达为纯函数或小型 helper，应优先这样做，以便通过 Swift package 单元测试覆盖。
+- `contentRevision` 这类手动刷新触发器只可作为早期内存 repository 的临时 UI 状态；真实数据层接入前不得扩展成跨页面事件总线。
+
 ## 5. 可演进部分
 
 以下内容需结合最低系统版本和实际 SwiftUI 工程再确定：
@@ -156,3 +171,4 @@ AI 在写 SwiftUI 代码前应先回答：
 - 2026-05-17：创建第一版 SwiftUI 架构规范。
 - 2026-05-17：补充 App Environment、状态边界、异步任务和错误加载状态要求。原因：避免早期 SwiftUI 代码形成全局状态和副作用债务。影响范围：App Shell、UI、服务调用。是否需要 ADR：否。
 - 2026-05-17：补充 MVP 早期 mock 纯值状态边界。原因：设置与练习状态闭环需要 Data package 暴露可测试状态模型，但仍不能引入真实 Keychain、网络、数据库或权限副作用。影响范围：Data、UI 和 App Shell 状态装配。是否需要 ADR：否。
+- 2026-05-17：补充页面闭环阶段的共享内容与平台外壳规则。原因：新增三端页面补全计划需要复用记录、练习和设置内容，同时保持 iPhone、iPad、macOS 的原生导航和状态边界。影响范围：LangoTraceUI、App Shell repository 注入、页面 route 和测试设计。是否需要 ADR：否。

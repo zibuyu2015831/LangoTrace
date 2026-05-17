@@ -7,9 +7,14 @@ struct PadMainView: View {
     let contentRepository: InMemoryLearningContentRepository
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var isTimelineVisible = true
     @State private var isLearningPanelVisible = true
     @State private var selectedEntryID: String?
+    @State private var route: PadWorkspaceRoute = .workspace
+    @State private var presentedSheet: PadSheet?
+    @State private var activeFilter: PadFilter = .all
+    @State private var contentRevision = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -17,7 +22,8 @@ struct PadMainView: View {
                 isTimelineVisible: isTimelineVisible,
                 isLearningPanelVisible: isLearningPanelVisible,
                 onToggleTimeline: { isTimelineVisible.toggle() },
-                onToggleLearningPanel: { isLearningPanelVisible.toggle() }
+                onToggleLearningPanel: { isLearningPanelVisible.toggle() },
+                onNewEntry: { presentedSheet = .entryEditor }
             )
             Divider()
             GeometryReader { proxy in
@@ -59,14 +65,45 @@ struct PadMainView: View {
         .langoPageBackground()
         .animation(panelAnimation, value: isTimelineVisible)
         .animation(panelAnimation, value: isLearningPanelVisible)
+        .sheet(item: $presentedSheet) { sheet in
+            switch sheet {
+            case .entryEditor:
+                EntryEditorView(languageSpace: languageSpace) { title, body in
+                    let entry = contentRepository.createEntry(
+                        spaceID: languageSpace.id,
+                        title: title,
+                        body: body,
+                        source: .typedText
+                    )
+                    contentRevision += 1
+                    selectedEntryID = entry.id
+                    route = .entryDetail(entry.id)
+                    presentedSheet = nil
+                }
+            }
+        }
         .onAppear {
             contentRepository.ensureSeeded(spaceID: languageSpace.id)
             selectedEntryID = selectedEntryID ?? contentRepository.selectedEntry(for: languageSpace.id)?.id
+            if shouldPreferSingleMainColumn {
+                isLearningPanelVisible = false
+            }
+            contentRevision += 1
         }
     }
 
     private var entries: [LearningEntry] {
-        contentRepository.entries(for: languageSpace.id)
+        _ = contentRevision
+        return contentRepository.entries(for: languageSpace.id)
+    }
+
+    private var memoryItems: [MemoryItem] {
+        _ = contentRevision
+        return contentRepository.memoryItems(for: languageSpace.id)
+    }
+
+    private var filteredEntries: [LearningEntry] {
+        entries.filter { activeFilter.includes(entry: $0, memoryItems: memoryItems) }
     }
 
     private var selectedEntry: LearningEntry? {
@@ -85,6 +122,14 @@ struct PadMainView: View {
         }
 
         return contentRepository.rendering(for: selectedEntry.id)
+    }
+
+    private var shouldPreferSingleMainColumn: Bool {
+        horizontalSizeClass == .compact
+    }
+
+    private var settingsCapabilities: [SettingsCapability] {
+        contentRepository.settingsCapabilities(for: languageSpace.id)
     }
 
     private var panelAnimation: Animation? {
@@ -136,193 +181,52 @@ struct PadMainView: View {
     }
 
     private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            SidebarSectionTitle("时间线")
-            VStack(spacing: 10) {
-                ForEach(entries) { entry in
-                    EntryTimelineRow(
-                        entry: entry,
-                        targetLanguage: languageSpace.targetLanguage,
-                        isSelected: entry.id == selectedEntry?.id
-                    ) {
-                        selectedEntryID = entry.id
-                        contentRepository.selectEntry(id: entry.id, spaceID: languageSpace.id)
-                    }
-                }
-            }
-
-            SidebarSectionTitle("筛选")
-                .padding(.top, 4)
-            VStack(alignment: .leading, spacing: 8) {
-                FilterPill(title: "全部记录", count: "\(entries.count)", active: true)
-                FilterPill(
-                    title: "照片写作",
-                    count: "\(entries.count(where: { $0.source == .photoWriting }))",
-                    active: false
-                )
-                FilterPill(
-                    title: "待练习",
-                    count: "\(entries.count(where: { $0.practiceSummary.contains("待") }))",
-                    active: false
-                )
-                FilterPill(
-                    title: "已入记忆",
-                    count: "\(contentRepository.memoryItems(for: languageSpace.id).count)",
-                    active: false
-                )
-            }
-
-            Spacer()
-
-            LanguageSpaceFooter(
-                languageSpace: languageSpace,
-                aiStatus: .notConfigured,
-                syncStatus: .off,
-                isCompact: false
-            )
-        }
-        .padding(22)
-        .frame(minWidth: 240, idealWidth: 270, maxWidth: 300, alignment: .topLeading)
-        .background(LangoTraceDesign.ColorToken.paper.opacity(0.72))
+        PadSidebarView(
+            languageSpace: languageSpace,
+            entries: entries,
+            filteredEntries: filteredEntries,
+            memoryItems: memoryItems,
+            selectedEntry: selectedEntry,
+            activeFilter: activeFilter,
+            route: route,
+            onSelectEntry: selectEntry,
+            onSelectFilter: selectFilter,
+            onRoute: { route = $0 }
+        )
     }
 
     private var writingDesk: some View {
-        ScrollView {
-            if let selectedEntry {
-                VStack(alignment: .leading, spacing: 18) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(selectedEntry.title)
-                            .font(.system(.largeTitle, design: .default, weight: .semibold))
-                        Text("把中文生活记录转换为 \(languageSpace.targetLanguage) 学习材料，支持逐句朗读、解释和练习。")
-                            .font(.body)
-                            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    HStack(alignment: .top, spacing: 14) {
-                        TextPanel(title: "母语记录", text: selectedEntry.body)
-                        TextPanel(title: "目标语言", text: selectedRendering?.targetText ?? "等待生成")
-                    }
-
-                    AudioPanel()
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        SectionCaption(title: "逐句练习", subtitle: "从真实记录进入听、读、跟读和回译")
-                        ForEach(
-                            Array((selectedRendering?.sentences ?? []).enumerated()),
-                            id: \.element.id
-                        ) { index, sentence in
-                            SentencePairView(index: index + 1, sentence: sentence) {}
-                        }
-                    }
-                }
-                .padding(26)
-                .frame(maxWidth: 820, alignment: .leading)
-            } else {
-                EmptyWorkspacePanel()
-                    .padding(26)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .layoutPriority(1)
+        PadWorkspaceContentView(
+            route: route,
+            languageSpace: languageSpace,
+            entries: entries,
+            selectedEntry: selectedEntry,
+            selectedRendering: selectedRendering,
+            memoryItems: memoryItems,
+            settingsCapabilities: settingsCapabilities,
+            contentRepository: contentRepository,
+            onRoute: { route = $0 }
+        )
     }
 
     private var learningPanel: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                SectionCaption(title: "学习面板", subtitle: "围绕当前记录生成")
-                if let selectedEntry {
-                    TextPanel(
-                        title: "当前句讲解",
-                        text: selectedRendering?.sentences.first?.note ?? "等待生成后显示句子讲解。"
-                    )
-                    TextPanel(
-                        title: "词句提取",
-                        text: contentRepository.memoryItems(for: languageSpace.id)
-                            .filter { $0.entryID == selectedEntry.id }
-                            .map(\.text)
-                            .joined(separator: ", ")
-                    )
-                    TextPanel(
-                        title: "练习入口",
-                        text: contentRepository.practiceItems(for: selectedEntry.id)
-                            .map(\.summary)
-                            .joined(separator: " · ")
-                    )
-                    RequestPreviewCard(entry: selectedEntry, rendering: selectedRendering)
-                } else {
-                    TextPanel(title: "没有记录", text: "创建第一条生活记录后，这里会展示请求预览、词句提取和练习入口。")
-                }
-            }
-            .padding(22)
-        }
-        .frame(minWidth: 300, idealWidth: 330, maxWidth: 360, alignment: .topLeading)
-        .background(LangoTraceDesign.ColorToken.paper.opacity(0.58))
-    }
-}
-
-private struct SidebarSectionTitle: View {
-    let title: String
-
-    init(_ title: String) {
-        self.title = title
+        PadLearningPanelView(
+            selectedEntry: selectedEntry,
+            selectedRendering: selectedRendering,
+            memoryItems: memoryItems,
+            contentRepository: contentRepository,
+            onRoute: { route = $0 }
+        )
     }
 
-    var body: some View {
-        Text(title)
-            .font(.caption.weight(.bold))
-            .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+    private func selectEntry(_ entry: LearningEntry) {
+        selectedEntryID = entry.id
+        contentRepository.selectEntry(id: entry.id, spaceID: languageSpace.id)
+        route = .entryDetail(entry.id)
     }
-}
 
-private struct FilterPill: View {
-    let title: String
-    let count: String
-    let active: Bool
-
-    var body: some View {
-        HStack {
-            Text(title)
-            Spacer()
-            Text(count)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(active ? LangoTraceDesign.ColorToken.whiteInk : LangoTraceDesign.ColorToken.mutedInk)
-        }
-        .font(.callout.weight(.medium))
-        .foregroundStyle(active ? LangoTraceDesign.ColorToken.whiteInk : LangoTraceDesign.ColorToken.ink)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
-        .background(active ? LangoTraceDesign.ColorToken.deepTeal : LangoTraceDesign.ColorToken.elevatedPaper)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-    }
-}
-
-private struct SectionCaption: View {
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.headline)
-            Text(subtitle)
-                .font(.footnote)
-                .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-        }
-    }
-}
-
-private struct EmptyWorkspacePanel: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("还没有记录", systemImage: "square.and.pencil")
-                .font(.headline)
-            Text("创建第一条生活记录后，中间工作台会显示母语记录、目标语言 mock rendering 和逐句练习。")
-                .font(.body)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: 560, alignment: .leading)
-        .langoPanel()
+    private func selectFilter(_ filter: PadFilter) {
+        activeFilter = filter
+        route = .workspace
     }
 }

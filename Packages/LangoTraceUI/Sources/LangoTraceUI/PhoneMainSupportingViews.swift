@@ -231,6 +231,8 @@ struct PhoneContextHeader: View {
 struct HeroActionCard: View {
     let languageSpace: LanguageSpacePreview
     let onNewEntry: () -> Void
+    let onPhotoWriting: () -> Void
+    let onListenOne: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -245,8 +247,8 @@ struct HeroActionCard: View {
 
             HStack(spacing: 10) {
                 ActionChip(title: "写一句", systemImage: "pencil", action: onNewEntry)
-                ActionChip(title: "拍照", systemImage: "camera") {}
-                ActionChip(title: "听一句", systemImage: "play") {}
+                ActionChip(title: "拍照", systemImage: "camera", action: onPhotoWriting)
+                ActionChip(title: "听一句", systemImage: "play", action: onListenOne)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -6,13 +6,19 @@ struct LanguageSpaceFooter: View {
     let aiStatus: AIProviderStatus
     let syncStatus: SyncProviderStatus
     let isCompact: Bool
+    var onLanguageSpace: (() -> Void)?
+    var onAIStatus: (() -> Void)?
+    var onSyncStatus: (() -> Void)?
+    var onSettings: (() -> Void)?
 
     @State private var activePopover: PrivacyStatusPopover?
 
     var body: some View {
         VStack(alignment: .leading, spacing: isCompact ? 8 : 10) {
             HStack(alignment: .center, spacing: 8) {
-                Button {} label: {
+                Button {
+                    onLanguageSpace?()
+                } label: {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(languageSpace.name)
                             .font(isCompact ? .callout.weight(.semibold) : .headline)
@@ -38,7 +44,11 @@ struct LanguageSpaceFooter: View {
                         severity: aiStatus.severity,
                         isCompact: isCompact
                     ) {
-                        activePopover = .ai(aiStatus)
+                        if let onAIStatus {
+                            onAIStatus()
+                        } else {
+                            activePopover = .ai(aiStatus)
+                        }
                     }
 
                     PrivacyStatusIconButton(
@@ -49,11 +59,17 @@ struct LanguageSpaceFooter: View {
                         severity: syncStatus.severity,
                         isCompact: isCompact
                     ) {
-                        activePopover = .sync(syncStatus)
+                        if let onSyncStatus {
+                            onSyncStatus()
+                        } else {
+                            activePopover = .sync(syncStatus)
+                        }
                     }
                 }
 
-                Button {} label: {
+                Button {
+                    onSettings?()
+                } label: {
                     Image(systemName: "gearshape")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)

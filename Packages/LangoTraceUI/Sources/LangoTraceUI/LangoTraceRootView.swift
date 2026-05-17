@@ -88,7 +88,10 @@ private struct PlatformMainView: View {
                 PhoneMainView(languageSpace: languageSpace, contentRepository: learningContentRepository)
             }
         #elseif os(macOS)
-            MacMainView(languageSpace: languageSpace)
+            MacMainView(
+                languageSpace: languageSpace,
+                contentRepository: learningContentRepository
+            )
         #endif
     }
 }
