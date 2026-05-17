@@ -17,17 +17,39 @@ struct PadMainView: View {
                 onToggleLearningPanel: { isLearningPanelVisible.toggle() }
             )
             Divider()
-            HStack(spacing: 0) {
-                if isTimelineVisible {
-                    sidebar
-                        .transition(panelTransition(edge: .leading))
-                    Divider()
+            GeometryReader { proxy in
+                HStack(spacing: 0) {
+                    if isTimelineVisible {
+                        sidebar
+                            .transition(panelTransition(edge: .leading))
+                            .simultaneousGesture(panelGesture(workspaceWidth: proxy.size.width))
+                        Divider()
+                    }
+                    writingDesk
+                    if isLearningPanelVisible {
+                        Divider()
+                        learningPanel
+                            .transition(panelTransition(edge: .trailing))
+                            .simultaneousGesture(
+                                panelGesture(
+                                    workspaceWidth: proxy.size.width,
+                                    startXOffset: max(0, proxy.size.width - 360)
+                                )
+                            )
+                    }
                 }
-                writingDesk
-                if isLearningPanelVisible {
-                    Divider()
-                    learningPanel
-                        .transition(panelTransition(edge: .trailing))
+                .overlay(alignment: .leading) {
+                    if !isTimelineVisible {
+                        edgeGestureZone(workspaceWidth: proxy.size.width)
+                    }
+                }
+                .overlay(alignment: .trailing) {
+                    if !isLearningPanelVisible {
+                        edgeGestureZone(
+                            workspaceWidth: proxy.size.width,
+                            startXOffset: max(0, proxy.size.width - 32)
+                        )
+                    }
                 }
             }
         }
@@ -42,6 +64,46 @@ struct PadMainView: View {
 
     private func panelTransition(edge: Edge) -> AnyTransition {
         reduceMotion ? .identity : .move(edge: edge).combined(with: .opacity)
+    }
+
+    private func edgeGestureZone(workspaceWidth: CGFloat, startXOffset: CGFloat = 0) -> some View {
+        Color.clear
+            .contentShape(Rectangle())
+            .frame(width: 32)
+            .gesture(panelGesture(workspaceWidth: workspaceWidth, startXOffset: startXOffset))
+    }
+
+    private func panelGesture(workspaceWidth: CGFloat, startXOffset: CGFloat = 0) -> some Gesture {
+        DragGesture(minimumDistance: 20, coordinateSpace: .local)
+            .onEnded { value in
+                let context = PadPanelGestureContext(
+                    startX: startXOffset + value.startLocation.x,
+                    translationX: value.translation.width,
+                    translationY: value.translation.height,
+                    workspaceWidth: workspaceWidth,
+                    isTimelineVisible: isTimelineVisible,
+                    isLearningPanelVisible: isLearningPanelVisible
+                )
+
+                guard let action = PadPanelGestureAction.action(in: context) else {
+                    return
+                }
+
+                applyPanelGestureAction(action)
+            }
+    }
+
+    private func applyPanelGestureAction(_ action: PadPanelGestureAction) {
+        switch action {
+        case .showTimeline:
+            isTimelineVisible = true
+        case .hideTimeline:
+            isTimelineVisible = false
+        case .showLearningPanel:
+            isLearningPanelVisible = true
+        case .hideLearningPanel:
+            isLearningPanelVisible = false
+        }
     }
 
     private var sidebar: some View {
