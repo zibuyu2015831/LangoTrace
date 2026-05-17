@@ -1,3 +1,5 @@
+import Foundation
+import LangoTraceCore
 import LangoTraceData
 @testable import LangoTraceUI
 import Testing
@@ -61,6 +63,58 @@ struct PageClosureStateTests {
         #expect(interfaceLanguagePreferenceTitleKey(for: .system) == "settings.interfaceLanguage.system")
         #expect(interfaceLanguagePreferenceTitleKey(for: .english) == "settings.interfaceLanguage.english")
         #expect(interfaceLanguagePreferenceTitleKey(for: .simplifiedChinese) == "settings.interfaceLanguage.zhHans")
+        #expect(interfaceLanguagePreferenceTitleKey(for: .spanish) == "settings.interfaceLanguage.spanish")
+        #expect(interfaceLanguagePreferenceTitleKey(for: .japanese) == "settings.interfaceLanguage.japanese")
+        #expect(interfaceLanguagePreferenceTitleKey(for: .french) == "settings.interfaceLanguage.french")
+        #expect(interfaceLanguagePreferenceTitleKey(for: .german) == "settings.interfaceLanguage.german")
+        #expect(interfaceLanguagePreferenceTitleKey(for: .korean) == "settings.interfaceLanguage.korean")
+        #expect(interfaceLanguagePreferenceTitleKey(for: .russian) == "settings.interfaceLanguage.russian")
+    }
+
+    @Test("Interface language list exposes system plus first batch options")
+    func interfaceLanguageListExposesFirstBatchOptions() {
+        #expect(InterfaceLanguagePreference.allCases.map(interfaceLanguagePreferenceTitleKey(for:)) == [
+            "settings.interfaceLanguage.system",
+            "settings.interfaceLanguage.english",
+            "settings.interfaceLanguage.zhHans",
+            "settings.interfaceLanguage.spanish",
+            "settings.interfaceLanguage.japanese",
+            "settings.interfaceLanguage.french",
+            "settings.interfaceLanguage.german",
+            "settings.interfaceLanguage.korean",
+            "settings.interfaceLanguage.russian",
+        ])
+    }
+
+    @Test("Interface language option resources use native language names")
+    func interfaceLanguageOptionResourcesUseNativeLanguageNames() throws {
+        let catalogURL = try #require(localizableCatalogURL())
+        let data = try Data(contentsOf: catalogURL)
+        let root = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let strings = try #require(root["strings"] as? [String: Any])
+        let expectedNativeNames = [
+            "settings.interfaceLanguage.english": "English",
+            "settings.interfaceLanguage.zhHans": "简体中文",
+            "settings.interfaceLanguage.spanish": "Español",
+            "settings.interfaceLanguage.japanese": "日本語",
+            "settings.interfaceLanguage.french": "Français",
+            "settings.interfaceLanguage.german": "Deutsch",
+            "settings.interfaceLanguage.korean": "한국어",
+            "settings.interfaceLanguage.russian": "Русский",
+        ]
+        let interfaceLocales = ["en", "zh-Hans", "es", "ja", "fr", "de", "ko", "ru"]
+
+        for (key, expectedName) in expectedNativeNames {
+            let entry = try #require(strings[key] as? [String: Any])
+            let localizations = try #require(entry["localizations"] as? [String: Any])
+
+            for locale in interfaceLocales {
+                let localization = try #require(localizations[locale] as? [String: Any])
+                let stringUnit = try #require(localization["stringUnit"] as? [String: Any])
+
+                #expect(stringUnit["value"] as? String == expectedName)
+            }
+        }
     }
 
     @Test("Settings capability detail chrome uses UI localization keys")
@@ -77,5 +131,13 @@ struct PageClosureStateTests {
         #expect(settingsNextRequirementTitleKey == "settings.detail.nextRequirement")
         #expect(settingsNoSideEffectsTitleKey == "settings.detail.noSideEffects")
         #expect(settingsNoSideEffectsBodyKey == "settings.detail.noSideEffects.body")
+    }
+
+    private func localizableCatalogURL() -> URL? {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources/LangoTraceUI/Resources/Localizable.xcstrings")
     }
 }

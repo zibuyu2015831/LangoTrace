@@ -25,11 +25,23 @@ struct InterfaceLanguagePreferenceStoreTests {
     @Test("Store recovers invalid values as system")
     func recoversInvalidValues() {
         let defaults = Self.makeDefaults(named: "invalid")
-        defaults.set("fr", forKey: UserDefaultsInterfaceLanguageStore.storageKey)
+        defaults.set("it", forKey: UserDefaultsInterfaceLanguageStore.storageKey)
 
         let store = UserDefaultsInterfaceLanguageStore(defaults: defaults)
 
         #expect(store.preference == .system)
+    }
+
+    @Test("Store persists first batch explicit preferences")
+    func persistsFirstBatchExplicitPreferences() {
+        let defaults = Self.makeDefaults(named: "first-batch")
+        let store = UserDefaultsInterfaceLanguageStore(defaults: defaults)
+
+        store.preference = .french
+        #expect(UserDefaultsInterfaceLanguageStore(defaults: defaults).preference == .french)
+
+        store.preference = .russian
+        #expect(UserDefaultsInterfaceLanguageStore(defaults: defaults).preference == .russian)
     }
 
     @Test("Store resets preference")

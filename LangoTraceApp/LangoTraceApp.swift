@@ -22,7 +22,7 @@ struct LangoTraceApp: App {
     var body: some Scene {
         WindowGroup {
             let resolvedLanguageCode = interfaceLanguagePreference.resolvedLanguageCode(
-                systemLanguageCodes: Locale.preferredLanguages
+                systemLanguageCodes: Bundle.main.preferredLocalizations
             )
 
             LangoTraceRootView(

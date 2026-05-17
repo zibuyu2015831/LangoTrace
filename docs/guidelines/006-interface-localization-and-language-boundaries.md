@@ -28,7 +28,7 @@
 
 > App 默认跟随系统语言；当系统语言暂不支持时回退英文；用户可以在设置中主动覆盖为其他已支持界面语言。
 
-英文应作为基础发行语言和 fallback 语言。简体中文应作为当前开发阶段的主要验证语言之一。第一阶段不追求支持大量语言，而是先建立正确的语言边界、资源结构和验证流程。
+英文应作为基础发行语言和 fallback 语言。简体中文应作为当前开发阶段的主要验证语言之一。第一批主流界面语言候选清单为 `en / zh-Hans / es / ja / fr / de / ko / ru`，分别对应 English、简体中文、Español、日本語、Français、Deutsch、한국어、Русский。小语种暂不进入第一批正式支持，但架构和布局不得阻断未来扩展。
 
 产品和工程上需要区分两层能力：
 
@@ -40,11 +40,13 @@
 当前实现方向采用两者并存：
 
 1. `System` 表示跟随系统语言或系统为语迹设置的 per-app language。
-2. App 内显式选择 `English` 或 `简体中文` 时，只覆盖语迹自有 SwiftUI chrome。
+2. App 内显式选择 `English`、`简体中文` 或第一批候选语言时，只覆盖语迹自有 SwiftUI chrome。
 3. App 内设置不修改系统 per-app language，不覆盖权限弹窗、StoreKit sheet、文件选择器、分享面板、系统键盘候选、第三方 SDK UI 或 Apple 服务 UI。
 4. 如果系统 per-app language 在 App 运行中被修改，第一阶段只要求下次启动或重新激活后表现正确，不把监听系统设置变化作为基础能力。
 
-实现边界补充：Swift Package 内的 `Localizable.xcstrings` 可以承载 package 自有 SwiftUI chrome，但不应被视为主 App bundle 已经完整支持对应系统级 App 语言。若产品文案声明系统 per-app language 可选择 `English / 简体中文`，App target 也必须通过 `CFBundleLocalizations`、App target 本地化资源或等效配置声明这些语言，并在系统设置中验证。否则设置页只能说明“跟随平台当前语言偏好”，不能暗示系统设置一定会出现所有 App 内支持语言。
+实现边界补充：Swift Package 内的 `Localizable.xcstrings` 可以承载 package 自有 SwiftUI chrome，但不应被视为主 App bundle 已经完整支持对应系统级 App 语言。若产品文案声明系统 per-app language 可选择 `English / 简体中文 / Español / 日本語 / Français / Deutsch / 한국어 / Русский`，App target 也必须通过 `CFBundleLocalizations`、App target 本地化资源或等效配置声明这些语言，并在系统设置中验证。否则设置页只能说明“跟随平台当前语言偏好”，不能暗示系统设置一定会出现所有 App 内支持语言。
+
+`System` 模式应以 Apple bundle localization 结果为准，优先使用 `Bundle.main.preferredLocalizations` 或等效结果与语迹支持语言清单求交集。显式语言模式通过 SwiftUI `locale` 环境和 UI 层本地化封装影响自有 chrome，不改变 `Bundle.main.preferredLocalizations`。
 
 ## 3. 语言概念边界
 
@@ -115,13 +117,15 @@ Provider / Prompt 输出语言必须由请求构建层显式传入，不得从�
 - 语言空间切换不得自动改变 App 界面语言。
 - 用户修改 App 界面语言不得自动改变语言空间目标语言、用户母语或已生成学习内容。
 - App 默认应跟随系统语言；系统语言未支持时回退英文。
-- 设置中必须预留界面语言入口，至少能表达 `跟随系统 / English / 简体中文` 的产品结构。
+- 设置中必须预留界面语言入口，至少能表达 `System / English / 简体中文`；进入主流语言扩展阶段后，应容纳 `Español / 日本語 / Français / Deutsch / 한국어 / Русский`，且不能使用只适合 3 项以内的横向 segmented control 作为唯一交互。
 - 界面语言设置属于设备级或 App 偏好，不属于语言空间主数据；第一阶段不得写入语言空间模型、同步 manifest 或学习记录。
 - iPhone、iPad、macOS 三端必须共享同一套界面语言偏好语义，但可使用各自平台合适的设置呈现方式。
 - 页面设计不得依赖固定中文短标签；按钮、segmented control、tab、sidebar row 和 toolbar item 需要为长文本、截断、换行或图标辅助预留策略。
+- Data / Core 层可以提供稳定 kind、状态、业务语义和 mock 内容，但不得把中文或英文展示说明当成可切换 App chrome 的唯一来源；设置能力说明、状态摘要、错误说明和不可用说明等 UI chrome 必须由 UI 层 String Catalog 或等效本地化资源渲染。
 - AI 请求预览、隐私说明、权限说明和不可用能力说明必须使用当前界面语言展示，同时清楚说明会发送哪些目标语言或母语内容。
 - App Store、TestFlight、权限提示和截图文案进入发布阶段时，必须与支持的界面语言清单保持一致。
 - iOS / iPadOS / macOS 的系统级 App 语言设置与语迹 App 内界面语言偏好必须在设计中明确关系；不得假设 App 内一个 Picker 就能覆盖所有系统 UI、权限弹窗、StoreKit sheet 或第三方 Provider 错误。
+- `System` 是偏好模式，不是一种语言；显式语言选择不得写入系统 per-app language，也不得承诺改变 bundle 级系统 UI。
 - 日期、时间、数字、货币、单位和复数规则必须使用系统格式化或本地化资源能力，不得在 UI 中手写固定中文或英文格式。
 - 新页面必须使用 leading / trailing、语义对齐和系统布局能力，避免把 left / right 写成不可翻转的业务含义；确有平台导航含义时，应在设计中说明。
 - 即使第一阶段只支持英文和简体中文，也不得在组件结构上阻断未来从右到左语言、较长翻译文本或非拉丁文字。
@@ -129,15 +133,20 @@ Provider / Prompt 输出语言必须由请求构建层显式传入，不得从�
 
 ## 5. 默认推荐
 
-### 5.1 第一阶段语言范围
+### 5.1 第一批语言范围
 
-第一阶段建议只把国际化架构做扎实：
+第一阶段已经完成英文和简体中文的最小国际化闭环。下一阶段建议把第一批主流界面语言候选明确为：
 
 - 英文：基础语言和 fallback。
 - 简体中文：当前开发验证语言。
-- 其他语言：先不承诺，只保留资源和布局扩展能力。
+- 西班牙语：主流国际市场语言，不作为小语种处理。
+- 日语：重要付费 App 市场语言。
+- 法语：覆盖欧洲、加拿大和多地区学习市场。
+- 德语：重要欧洲市场语言，也是长文本布局压力测试语言。
+- 韩语：重要移动 App 和语言学习市场语言。
+- 俄语：覆盖广泛，可提前验证西里尔文字和长词断行。
 
-不建议在没有术语表、截图验证和母语讲解策略前一次性铺开日语、韩语、法语、西语等多种界面语言。
+这些语言进入候选清单不等于已经正式发布支持。正式开放前必须完成 String Catalog 资源、术语审校、三端布局验证、权限和发布材料检查。小语种暂不进入第一批，但新增语言时应沿用同一质量门槛。
 
 ### 5.2 设置入口
 
@@ -148,6 +157,12 @@ Interface Language
 System
 English
 简体中文
+Español
+日本語
+Français
+Deutsch
+한국어
+Русский
 ```
 
 中文界面可显示为：
@@ -157,6 +172,12 @@ English
 跟随系统
 English
 简体中文
+Español
+日本語
+Français
+Deutsch
+한국어
+Русский
 ```
 
 设置说明应明确：
@@ -175,6 +196,7 @@ English
 实现时应逐步做到：
 
 - 当前主要 SwiftUI chrome 位于 `LangoTraceUI` package，因此首批 `Localizable.xcstrings` 放在 `Packages/LangoTraceUI/Sources/LangoTraceUI/Resources/`，并通过 Swift Package resources 打包。
+- `LangoTraceUI` package 内 String Catalog 只管理 package 自有 SwiftUI chrome。App target、InfoPlist、App Intent、权限 purpose strings、StoreKit、本地通知、widget 或后续 extension 的用户可见文案，应在对应 target 或平台配置中单独本地化。
 - package 内本地化查找必须显式使用 `Bundle.module` 或统一封装；`Button("...")`、`Label("...", systemImage:)`、`.navigationTitle("...")`、`.accessibilityLabel("...")` 这类便捷 API 不能直接替换为 key 后结束。
 - 依赖 SwiftUI `locale` 环境即时切换的文案应优先保持为 `Text`、label builder 或其他环境感知 View。`String(localized:bundle:)` 会立即求值，只有在显式传入当前 resolved locale 或用于非即时刷新路径时才可使用。
 - `project.yml` 的 `developmentLanguage` 与 String Catalog `sourceLanguage` 必须保持英文 `en`。
@@ -236,7 +258,25 @@ iPhone 上界面语言设置应尽量遵守系统心智：
 - 切换界面语言属于低频设置，不应占用今日记录、练习或记忆的主操作位置。
 - iOS 上用户可能已经在系统设置中为 App 指定语言；App 内设置页需要展示或解释这种关系，避免两个入口互相打架。
 
-### 5.7 测试与验证
+### 5.7 iPadOS 交互边界
+
+iPad 上界面语言设置应适配多窗口和多尺寸：
+
+- regular width 下保持 sidebar / workspace / inspector 的上下文，不用全屏 modal 打断当前工作台。
+- compact width、Slide Over 或窄 Stage Manager 窗口可退化为 iPhone 式纵向设置详情。
+- 语言列表必须支持 pointer、键盘焦点、滚动和动态字体。
+- 切换界面语言后应保留侧栏选择、当前 workspace 页面、选中记录和面板展开状态。
+
+### 5.8 macOS 交互边界
+
+Mac 上界面语言设置应符合桌面偏好设置心智：
+
+- 长期应接入 SwiftUI `Settings` scene，并让 `Cmd+,` 打开设置。
+- 当前 workspace 内 Settings 可以保留为产品内入口，但不应成为 Mac 上唯一偏好入口。
+- 语言选择控件必须支持键盘导航、VoiceOver、窗口缩放和较长本地化文案。
+- 菜单栏、系统 Settings scene、App target InfoPlist、App Intents 和后续本地通知等不属于 `LangoTraceUI` package catalog 自动覆盖范围。
+
+### 5.9 测试与验证
 
 后续进入实现阶段后，应逐步建立以下验证：
 

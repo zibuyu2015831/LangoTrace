@@ -1,517 +1,4193 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "app.badge.aiNotConfigured" : {
-      "comment" : "Badge indicating external AI is not configured.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "AI not configured" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未配置 AI" } }
-      }
-    },
-    "app.badge.localFirst" : {
-      "comment" : "Badge for local-first product behavior.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local-first" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本地优先" } }
-      }
-    },
-    "capabilityStatus.mockOnly" : {
-      "comment" : "Status badge for local mock-only capability.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local Mock" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Local Mock" } }
-      }
-    },
-    "capabilityStatus.ready" : {
-      "comment" : "Status badge for available capability.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ready" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "可用" } }
-      }
-    },
-    "capabilityStatus.unavailable" : {
-      "comment" : "Status badge for unavailable capability.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unavailable" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未接入" } }
-      }
-    },
-    "common.cancel" : {
-      "comment" : "Cancel button title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消" } }
-      }
-    },
-    "common.save" : {
-      "comment" : "Save button title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保存" } }
-      }
-    },
-    "entryDetail.title" : {
-      "comment" : "Navigation title for entry detail.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Entry Detail" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "记录详情" } }
-      }
-    },
-    "entryEditor.privacy.localOnly" : {
-      "comment" : "Privacy note in local entry editor.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Saved locally as Local Mock. Nothing is sent to external AI." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前为本地保存和 Local Mock，不会发送到外部 AI。" } }
-      }
-    },
-    "entryEditor.section.content" : {
-      "comment" : "Entry editor section title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Life Entry" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "生活记录" } }
-      }
-    },
-    "entryEditor.title" : {
-      "comment" : "Navigation title for entry editor.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Write One Line" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "写一句" } }
-      }
-    },
-    "entryEditor.titleField" : {
-      "comment" : "Entry title text field placeholder.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Title" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "标题" } }
-      }
-    },
-    "entryEditor.section.privacy" : {
-      "comment" : "Privacy section title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Privacy" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "隐私" } }
-      }
-    },
-    "onboarding.createSpace" : {
-      "comment" : "Create language space button title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Create Language Space" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "创建语言空间" } }
-      }
-    },
-    "onboarding.eyebrow" : {
-      "comment" : "Small label above onboarding title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "FIRST LANGUAGE SPACE" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "FIRST LANGUAGE SPACE" } }
-      }
-    },
-    "onboarding.level.summary" : {
-      "comment" : "Onboarding level helper text.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Used to tune generated material. You can change it later." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "用于调整生成难度，之后可以随时修改。" } }
-      }
-    },
-    "onboarding.level.title" : {
-      "comment" : "Onboarding level picker title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Level" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "水平自评" } }
-      }
-    },
-    "onboarding.nativeLanguage" : {
-      "comment" : "Native language picker title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Native Language" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "母语" } }
-      }
-    },
-    "onboarding.privacy.localStorage" : {
-      "comment" : "Onboarding local storage note.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Data is stored on this device by default" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "数据默认保存在本机" } }
-      }
-    },
-    "onboarding.privacy.noExternalAI" : {
-      "comment" : "Onboarding AI privacy note.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "No entry is sent while AI is not configured. AI, sync, dictionaries and prompts can be set up later." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未配置 AI 时不会发送任何记录。AI、同步、词典和 Prompt 都可以稍后在设置中处理。" } }
-      }
-    },
-    "onboarding.subtitle" : {
-      "comment" : "Onboarding subtitle.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "A language space is a long-term learning profile for one target language. Start with the minimum setup, then turn life into learning material." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "一个语言空间，就是一门目标语言的长期学习档案。先记录最少信息，之后再开始把生活变成学习材料。" } }
-      }
-    },
-    "onboarding.targetLanguage" : {
-      "comment" : "Target language picker title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Target Language" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "目标语言" } }
-      }
-    },
-    "onboarding.title" : {
-      "comment" : "Onboarding title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Create Language Space" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "创建语言空间" } }
-      }
-    },
-    "practice.title" : {
-      "comment" : "Practice navigation title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Practice" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "练习" } }
-      }
-    },
-    "requestPreview.localMock" : {
-      "comment" : "Request preview local mock notice.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Current mode is Local Mock. No external AI request is made." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前使用 Local Mock，不会触发外部 AI 请求。" } }
-      }
-    },
-    "requestPreview.notSent" : {
-      "comment" : "Request preview exclusion list.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not sent: local database, full photo library, API keys, or unselected history." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不会发送：本地数据库、完整照片库、API Key、未选中的历史记录。" } }
-      }
-    },
-    "requestPreview.title" : {
-      "comment" : "Request preview card title.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Request Preview" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请求预览" } }
-      }
-    },
-    "settings.aiProvider.title" : {
-      "comment" : "Settings row title for AI provider configuration.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "AI Provider" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "AI Provider" } }
-      }
-    },
-    "settings.export.title" : {
-      "comment" : "Settings row title for export.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导出" } }
-      }
-    },
-    "settings.interfaceLanguage.contentBoundary" : {
-      "comment" : "Interface language setting content boundary explanation.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "This does not change your native language, target language, language spaces, saved entries, generated content, or Provider output." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不会改变母语、目标语言、语言空间、已保存记录、已生成内容或 Provider 输出。" } }
-      }
-    },
-    "settings.interfaceLanguage.english" : {
-      "comment" : "Picker option for English interface.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "English" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "English" } }
-      }
-    },
-    "settings.interfaceLanguage.explanation" : {
-      "comment" : "Interface language setting explanation.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose the language used by LangoTrace app chrome." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "选择语迹自有界面文案使用的语言。" } }
-      }
-    },
-    "settings.interfaceLanguage.system" : {
-      "comment" : "Picker option that follows system app language.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "System" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "跟随系统" } }
-      }
-    },
-    "settings.interfaceLanguage.systemBoundary" : {
-      "comment" : "Interface language setting system UI boundary explanation.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "System follows the device language or the per-app language chosen for LangoTrace. System dialogs, StoreKit, file pickers, and third-party UI may still follow platform rules." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "跟随系统会使用设备语言或系统为语迹设置的 App 语言。系统弹窗、StoreKit、文件选择器和第三方 UI 仍可能遵循平台规则。" } }
-      }
-    },
-    "settings.interfaceLanguage.title" : {
-      "comment" : "Settings row title for choosing app interface language.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Interface Language" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "界面语言" } }
-      }
-    },
-    "settings.interfaceLanguage.zhHans" : {
-      "comment" : "Picker option for Simplified Chinese interface.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Simplified Chinese" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "简体中文" } }
-      }
-    },
-    "settings.aiProvider.detail" : {
-      "comment" : "AI Provider settings detail body.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Request preview only explains what would be sent later. The current app does not read Keychain or make network requests." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请求预览只说明将来会发送哪些内容，当前不会读取 Keychain，也不会发起网络请求。" } }
-      }
-    },
-    "settings.aiProvider.nextRequirement" : {
-      "comment" : "AI Provider settings next requirement.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Design Provider configuration, Keychain API keys, and request logs." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设计 Provider 配置、Keychain API Key 和请求日志。" } }
-      }
-    },
-    "settings.aiProvider.summary" : {
-      "comment" : "AI Provider settings summary.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "No real Provider is configured. All generation is Local Mock." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未配置真实 Provider，所有生成均为 Local Mock。" } }
-      }
-    },
-    "settings.detail.currentBoundary" : {
-      "comment" : "Settings detail panel title for current boundary.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Current Boundary" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前边界" } }
-      }
-    },
-    "settings.detail.nextRequirement" : {
-      "comment" : "Settings detail panel title for next requirement.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Next Requirement" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "后续接入条件" } }
-      }
-    },
-    "settings.detail.noSideEffects" : {
-      "comment" : "Settings detail panel title for unavailable side effects.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Will Not Happen" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不会发生" } }
-      }
-    },
-    "settings.detail.noSideEffects.body" : {
-      "comment" : "Settings detail panel body for unavailable side effects.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "This page will not save secrets, write to a real database, access photos or microphone, or make network requests." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本页不会保存密钥、不会写入真实数据库、不会访问照片或麦克风、不会发起网络请求。" } }
-      }
-    },
-    "settings.export.detail" : {
-      "comment" : "Export settings detail body.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "There is no real database or attachment directory yet, so the app cannot generate a complete export package." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前没有真实数据库和附件目录，因此不能生成完整导出包。" } }
-      }
-    },
-    "settings.export.nextRequirement" : {
-      "comment" : "Export settings next requirement.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "After the data layer is stable, design Markdown, JSON, and attachment export." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在数据层稳定后设计 Markdown、JSON 和附件导出。" } }
-      }
-    },
-    "settings.export.summary" : {
-      "comment" : "Export settings summary.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export is not implemented yet." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导出尚未实现。" } }
-      }
-    },
-    "settings.interfaceLanguage.detail" : {
-      "comment" : "Interface language settings detail body.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Interface language only affects app chrome. It does not change the user's native language, target language, or rewrite generated content." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "界面语言只影响 App chrome，不改变用户母语、不改变目标语言，也不重写已生成内容。" } }
-      }
-    },
-    "settings.interfaceLanguage.nextRequirement" : {
-      "comment" : "Interface language settings next requirement.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep String Catalog coverage, system per-app language boundary notes, and interface language preference persistence aligned." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保持 String Catalog、系统 per-app language 关系说明和界面语言偏好持久化一致。" } }
-      }
-    },
-    "settings.interfaceLanguage.summary" : {
-      "comment" : "Interface language settings summary.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "The default follows the system. Unsupported system languages fall back to English." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前默认跟随系统，未支持的系统语言回退英文。" } }
-      }
-    },
-    "settings.languageSpace.detail" : {
-      "comment" : "Language space settings detail body.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "The current language space only exists in app session state and is used to validate onboarding and page closure." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前语言空间只存在于 App 会话状态中，用于验证首次启动和页面闭环。" } }
-      }
-    },
-    "settings.languageSpace.nextRequirement" : {
-      "comment" : "Language space settings next requirement.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add real language space persistence and startup restoration." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "接入真实语言空间持久化和启动恢复。" } }
-      }
-    },
-    "settings.languageSpace.summary" : {
-      "comment" : "Language space settings summary.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "The current space uses an in-memory preview." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前空间使用内存 preview。" } }
-      }
-    },
-    "settings.languageSpace.title" : {
-      "comment" : "Settings row title for language space.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Language Space" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "语言空间" } }
-      }
-    },
-    "settings.localData.detail" : {
-      "comment" : "Local data settings detail body.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "After restart, mock content returns to the seed examples. There is no SQLite schema, migration, or attachment storage yet." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重启后 mock 内容会恢复为示例数据；当前没有 SQLite schema、迁移或附件存储。" } }
-      }
-    },
-    "settings.localData.nextRequirement" : {
-      "comment" : "Local data settings next requirement.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add SQLite / GRDB repositories, migrations, and export boundaries." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "接入 SQLite / GRDB Repository、迁移和导出边界。" } }
-      }
-    },
-    "settings.localData.summary" : {
-      "comment" : "Local data settings summary.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "The app currently uses an in-memory repository." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前使用内存 repository。" } }
-      }
-    },
-    "settings.localData.title" : {
-      "comment" : "Settings row title for local data.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local Data" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本地数据" } }
-      }
-    },
-    "settings.privacy.detail" : {
-      "comment" : "Privacy settings detail body.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sensitive content should only enter request preview and Provider calls after the user explicitly triggers the relevant capability." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "敏感内容只有在用户明确触发对应能力时才应进入请求预览和 Provider 调用。" } }
-      }
-    },
-    "settings.privacy.nextRequirement" : {
-      "comment" : "Privacy settings next requirement.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep confirmation paths when real AI, speech, photos, and sync are added." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在真实 AI、语音、照片和同步接入时保留确认路径。" } }
-      }
-    },
-    "settings.privacy.summary" : {
-      "comment" : "Privacy settings summary.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local-first boundaries are already represented in the UI." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本地优先边界已在 UI 中表达。" } }
-      }
-    },
-    "settings.privacy.title" : {
-      "comment" : "Settings row title for privacy boundary.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Privacy Boundary" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "隐私边界" } }
-      }
-    },
-    "settings.sync.detail" : {
-      "comment" : "Sync settings detail body.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Entries, photos, vector indexes, and API keys are not synced in the current build." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "记录、照片、向量索引和 API Key 当前都不会同步。" } }
-      }
-    },
-    "settings.sync.nextRequirement" : {
-      "comment" : "Sync settings next requirement.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Design Sync Engine, adapters, conflict handling, and sync scope." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设计 Sync Engine、Adapter、冲突处理和同步范围。" } }
-      }
-    },
-    "settings.sync.summary" : {
-      "comment" : "Sync settings summary.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sync Engine is not connected yet." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "同步引擎尚未接入。" } }
-      }
-    },
-    "settings.sync.title" : {
-      "comment" : "Settings row title for sync.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sync" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "同步" } }
-      }
-    },
-    "tab.entries" : {
-      "comment" : "iPhone tab for entries.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Entries" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "记录" } }
-      }
-    },
-    "tab.memory" : {
-      "comment" : "iPhone tab for memory.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Memory" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "记忆" } }
-      }
-    },
-    "tab.practice" : {
-      "comment" : "iPhone tab for practice.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Practice" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "练习" } }
-      }
-    },
-    "tab.settings" : {
-      "comment" : "iPhone tab for settings.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设置" } }
-      }
-    },
-    "tab.today" : {
-      "comment" : "iPhone tab for today's learning workspace.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日" } }
-      }
-    },
-    "welcome.accessibility.badges" : {
-      "comment" : "Combined accessibility label for welcome privacy badges.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local-first, AI not configured" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本地优先，未配置 AI" } }
-      }
-    },
-    "welcome.headline" : {
-      "comment" : "Welcome headline.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Record a little life today" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今天记录一点生活" } }
-      }
-    },
-    "welcome.subtitle" : {
-      "comment" : "Welcome subtitle.",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Preparing your language space. First use asks for native language, target language, and self-assessed level." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在准备你的语言空间。首次使用会先询问母语、目标语言和水平自评。" } }
+  "sourceLanguage": "en",
+  "strings": {
+    "app.badge.aiNotConfigured": {
+      "comment": "Badge indicating external AI is not configured.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI not configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未配置 AI"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IA sin configurar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI未設定"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IA non configurée"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI nicht konfiguriert"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI가 설정되지 않음"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ИИ не настроен"
+          }
+        }
+      }
+    },
+    "app.badge.localFirst": {
+      "comment": "Badge for local-first product behavior.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local-first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地优先"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local primero"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカル優先"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local d’abord"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokal zuerst"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 우선"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сначала локально"
+          }
+        }
+      }
+    },
+    "capabilityStatus.mockOnly": {
+      "comment": "Status badge for local mock-only capability.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local Mock"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local Mock"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mock local"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカルMock"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mock local"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokaler Mock"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 Mock"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Локальный mock"
+          }
+        }
+      }
+    },
+    "capabilityStatus.ready": {
+      "comment": "Status badge for available capability.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用可能"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prêt"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereit"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사용 가능"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово"
+          }
+        }
+      }
+    },
+    "capabilityStatus.unavailable": {
+      "comment": "Status badge for unavailable capability.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未接入"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No disponible"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未対応"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indisponible"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht verfügbar"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사용 불가"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Недоступно"
+          }
+        }
+      }
+    },
+    "common.cancel": {
+      "comment": "Cancel button title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセル"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취소"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отмена"
+          }
+        }
+      }
+    },
+    "common.save": {
+      "comment": "Save button title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichern"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранить"
+          }
+        }
+      }
+    },
+    "entryDetail.title": {
+      "comment": "Navigation title for entry detail.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry Detail"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录详情"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detalle de entrada"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記録の詳細"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détail de l’entrée"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eintragsdetails"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기록 상세"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сведения о записи"
+          }
+        }
+      }
+    },
+    "entryEditor.privacy.localOnly": {
+      "comment": "Privacy note in local entry editor.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved locally as Local Mock. Nothing is sent to external AI."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前为本地保存和 Local Mock，不会发送到外部 AI。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se guarda localmente como Mock local. No se envía nada a una IA externa."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカルMockとして端末内に保存されます。外部AIには送信されません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistré localement comme mock local. Rien n’est envoyé à une IA externe."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird lokal als lokaler Mock gespeichert. Es wird nichts an externe KI gesendet."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 Mock으로 기기에 저장됩니다. 외부 AI로 전송되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохраняется локально как локальный mock. Ничего не отправляется внешнему ИИ."
+          }
+        }
+      }
+    },
+    "entryEditor.section.content": {
+      "comment": "Entry editor section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Life Entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生活记录"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrada de vida"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生活記録"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrée de vie"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lebenseintrag"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "생활 기록"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Жизненная запись"
+          }
+        }
+      }
+    },
+    "entryEditor.section.privacy": {
+      "comment": "Privacy section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacidad"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシー"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confidentialité"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenschutz"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "개인정보"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Конфиденциальность"
+          }
+        }
+      }
+    },
+    "entryEditor.title": {
+      "comment": "Navigation title for entry editor.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write One Line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写一句"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribe una línea"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一行を書く"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Écrire une ligne"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Zeile schreiben"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한 줄 쓰기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Написать одну строку"
+          }
+        }
+      }
+    },
+    "entryEditor.titleField": {
+      "comment": "Entry title text field placeholder.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标题"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Título"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タイトル"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titre"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "제목"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заголовок"
+          }
+        }
+      }
+    },
+    "onboarding.createSpace": {
+      "comment": "Create language space button title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Language Space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建语言空间"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear espacio de idioma"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "言語スペースを作成"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créer un espace de langue"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachraum erstellen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "언어 공간 만들기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Создать языковое пространство"
+          }
+        }
+      }
+    },
+    "onboarding.eyebrow": {
+      "comment": "Small label above onboarding title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FIRST LANGUAGE SPACE"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FIRST LANGUAGE SPACE"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRIMER ESPACIO DE IDIOMA"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最初の言語スペース"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PREMIER ESPACE DE LANGUE"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ERSTER SPRACHRAUM"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "첫 언어 공간"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ПЕРВОЕ ЯЗЫКОВОЕ ПРОСТРАНСТВО"
+          }
+        }
+      }
+    },
+    "onboarding.level.summary": {
+      "comment": "Onboarding level helper text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used to tune generated material. You can change it later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用于调整生成难度，之后可以随时修改。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se usa para ajustar el material generado. Puedes cambiarlo más tarde."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成される教材の難易度調整に使います。後で変更できます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisé pour ajuster les supports générés. Vous pourrez le modifier plus tard."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird verwendet, um generiertes Material anzupassen. Du kannst es später ändern."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "생성되는 자료의 난이도를 조정하는 데 사용됩니다. 나중에 변경할 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Используется для настройки созданных материалов. Позже это можно изменить."
+          }
+        }
+      }
+    },
+    "onboarding.level.title": {
+      "comment": "Onboarding level picker title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Level"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "水平自评"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nivel"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "レベル"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niveau"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niveau"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "수준"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Уровень"
+          }
+        }
+      }
+    },
+    "onboarding.nativeLanguage": {
+      "comment": "Native language picker title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native Language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "母语"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lengua materna"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "母語"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langue maternelle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muttersprache"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모국어"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Родной язык"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.localStorage": {
+      "comment": "Onboarding local storage note.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data is stored on this device by default"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据默认保存在本机"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los datos se guardan en este dispositivo por defecto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データは既定でこのデバイスに保存されます"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les données sont stockées sur cet appareil par défaut"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten werden standardmäßig auf diesem Gerät gespeichert"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "데이터는 기본적으로 이 기기에 저장됩니다"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По умолчанию данные хранятся на этом устройстве"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.noExternalAI": {
+      "comment": "Onboarding AI privacy note.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No entry is sent while AI is not configured. AI, sync, dictionaries and prompts can be set up later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未配置 AI 时不会发送任何记录。AI、同步、词典和 Prompt 都可以稍后在设置中处理。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se envía ninguna entrada mientras la IA no esté configurada. IA, sincronización, diccionarios y prompts se pueden configurar más tarde."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AIが未設定の間、記録は送信されません。AI、同期、辞書、Promptは後で設定できます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune entrée n’est envoyée tant que l’IA n’est pas configurée. IA, synchronisation, dictionnaires et prompts pourront être configurés plus tard."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solange KI nicht konfiguriert ist, wird kein Eintrag gesendet. KI, Sync, Wörterbücher und Prompts können später eingerichtet werden."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI가 설정되지 않은 동안에는 어떤 기록도 전송되지 않습니다. AI, 동기화, 사전, Prompt는 나중에 설정할 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пока ИИ не настроен, записи не отправляются. ИИ, синхронизацию, словари и prompt можно настроить позже."
+          }
+        }
+      }
+    },
+    "onboarding.subtitle": {
+      "comment": "Onboarding subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A language space is a long-term learning profile for one target language. Start with the minimum setup, then turn life into learning material."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一个语言空间，就是一门目标语言的长期学习档案。先记录最少信息，之后再开始把生活变成学习材料。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un espacio de idioma es un perfil de aprendizaje a largo plazo para un idioma objetivo. Empieza con la configuración mínima y convierte la vida en material de aprendizaje."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "言語スペースは、1つの目標言語のための長期学習プロファイルです。最小限の設定から始め、生活を学習素材に変えていきます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un espace de langue est un profil d’apprentissage à long terme pour une langue cible. Commencez avec la configuration minimale, puis transformez la vie en support d’apprentissage."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Sprachraum ist ein langfristiges Lernprofil für eine Zielsprache. Beginne mit der minimalen Einrichtung und mache Alltag zu Lernmaterial."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "언어 공간은 하나의 목표 언어를 위한 장기 학습 프로필입니다. 최소 설정으로 시작한 뒤 생활을 학습 자료로 바꿉니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Языковое пространство — это долгосрочный профиль обучения для одного целевого языка. Начните с минимальной настройки и превращайте жизнь в учебный материал."
+          }
+        }
+      }
+    },
+    "onboarding.targetLanguage": {
+      "comment": "Target language picker title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target Language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标语言"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idioma objetivo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目標言語"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langue cible"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zielsprache"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "목표 언어"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Целевой язык"
+          }
+        }
+      }
+    },
+    "onboarding.title": {
+      "comment": "Onboarding title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Language Space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建语言空间"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear espacio de idioma"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "言語スペースを作成"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créer un espace de langue"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachraum erstellen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "언어 공간 만들기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Создать языковое пространство"
+          }
+        }
+      }
+    },
+    "practice.title": {
+      "comment": "Practice navigation title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Práctica"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "練習"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exercice"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Üben"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연습"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Практика"
+          }
+        }
+      }
+    },
+    "requestPreview.localMock": {
+      "comment": "Request preview local mock notice.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current mode is Local Mock. No external AI request is made."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前使用 Local Mock，不会触发外部 AI 请求。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El modo actual es Mock local. No se realiza ninguna solicitud de IA externa."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在はローカルMockモードです。外部AIリクエストは行われません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le mode actuel est Mock local. Aucune requête vers une IA externe n’est effectuée."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der aktuelle Modus ist lokaler Mock. Es wird keine externe KI-Anfrage gesendet."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 모드는 로컬 Mock입니다. 외부 AI 요청은 발생하지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текущий режим — локальный mock. Запрос к внешнему ИИ не выполняется."
+          }
+        }
+      }
+    },
+    "requestPreview.notSent": {
+      "comment": "Request preview exclusion list.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent: local database, full photo library, API keys, or unselected history."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会发送：本地数据库、完整照片库、API Key、未选中的历史记录。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se envían: base de datos local, fototeca completa, claves API ni historial no seleccionado."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信されないもの: ローカルデータベース、写真ライブラリ全体、APIキー、未選択の履歴。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non envoyés : base de données locale, photothèque complète, clés API ou historique non sélectionné."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht gesendet: lokale Datenbank, gesamte Fotomediathek, API-Schlüssel oder nicht ausgewählter Verlauf."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전송되지 않음: 로컬 데이터베이스, 전체 사진 보관함, API 키, 선택하지 않은 기록."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не отправляются: локальная база данных, вся фототека, API-ключи и невыбранная история."
+          }
+        }
+      }
+    },
+    "requestPreview.title": {
+      "comment": "Request preview card title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求预览"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista previa de solicitud"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リクエストプレビュー"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aperçu de la requête"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anfragevorschau"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "요청 미리보기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Предпросмотр запроса"
+          }
+        }
+      }
+    },
+    "settings.aiProvider.detail": {
+      "comment": "AI Provider settings detail body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request preview only explains what would be sent later. The current app does not read Keychain or make network requests."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求预览只说明将来会发送哪些内容，当前不会读取 Keychain，也不会发起网络请求。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La vista previa solo explica qué se enviaría más tarde. La app actual no lee Keychain ni realiza solicitudes de red."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リクエストプレビューは将来送信される内容を説明するだけです。現在のアプリはKeychainを読まず、ネットワークリクエストも行いません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’aperçu de requête explique seulement ce qui serait envoyé plus tard. L’app actuelle ne lit pas le trousseau et n’effectue aucune requête réseau."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Anfragevorschau erklärt nur, was später gesendet würde. Die aktuelle App liest keinen Keychain und stellt keine Netzwerkanfragen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "요청 미리보기는 나중에 무엇이 전송될지만 설명합니다. 현재 앱은 Keychain을 읽거나 네트워크 요청을 하지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Предпросмотр запроса только объясняет, что будет отправлено позже. Текущая версия не читает Keychain и не выполняет сетевые запросы."
+          }
+        }
+      }
+    },
+    "settings.aiProvider.nextRequirement": {
+      "comment": "AI Provider settings next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Design Provider configuration, Keychain API keys, and request logs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设计 Provider 配置、Keychain API Key 和请求日志。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diseñar la configuración de Provider, claves API en Keychain y registros de solicitud."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider設定、Keychain APIキー、リクエストログを設計します。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concevoir la configuration Provider, les clés API dans le trousseau et les journaux de requêtes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider-Konfiguration, Keychain-API-Schlüssel und Anfrageprotokolle entwerfen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider 설정, Keychain API 키, 요청 로그를 설계합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Спроектировать настройку Provider, API-ключи в Keychain и журналы запросов."
+          }
+        }
+      }
+    },
+    "settings.aiProvider.summary": {
+      "comment": "AI Provider settings summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No real Provider is configured. All generation is Local Mock."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未配置真实 Provider，所有生成均为 Local Mock。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay Provider real configurado. Toda la generación es Mock local."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実際のProviderは未設定です。すべての生成はローカルMockです。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun vrai Provider n’est configuré. Toute la génération est un mock local."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es ist kein echter Provider konfiguriert. Alle Generierung ist lokaler Mock."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실제 Provider가 설정되어 있지 않습니다. 모든 생성은 로컬 Mock입니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настоящий Provider не настроен. Вся генерация — локальный mock."
+          }
+        }
+      }
+    },
+    "settings.aiProvider.title": {
+      "comment": "Settings row title for AI provider configuration.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider de IA"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider IA"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI-Provider"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        }
+      }
+    },
+    "settings.detail.currentBoundary": {
+      "comment": "Settings detail panel title for current boundary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current Boundary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前边界"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Límite actual"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在の境界"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite actuelle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelle Grenze"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 경계"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текущая граница"
+          }
+        }
+      }
+    },
+    "settings.detail.nextRequirement": {
+      "comment": "Settings detail panel title for next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next Requirement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后续接入条件"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siguiente requisito"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次の接続条件"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prochaine exigence"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächste Anforderung"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다음 접속 조건"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Следующее требование"
+          }
+        }
+      }
+    },
+    "settings.detail.noSideEffects": {
+      "comment": "Settings detail panel title for unavailable side effects.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Will Not Happen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会发生"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No ocurrirá"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "発生しないこと"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne se produira pas"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird nicht passieren"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "발생하지 않음"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не произойдет"
+          }
+        }
+      }
+    },
+    "settings.detail.noSideEffects.body": {
+      "comment": "Settings detail panel body for unavailable side effects.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page will not save secrets, write to a real database, access photos or microphone, or make network requests."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页不会保存密钥、不会写入真实数据库、不会访问照片或麦克风、不会发起网络请求。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta página no guardará secretos, no escribirá en una base de datos real, no accederá a fotos ni micrófono y no hará solicitudes de red."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このページはシークレットを保存せず、実データベースに書き込まず、写真やマイクにアクセスせず、ネットワークリクエストも行いません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette page n’enregistrera pas de secrets, n’écrira pas dans une vraie base de données, n’accédera pas aux photos ni au micro et n’effectuera aucune requête réseau."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite speichert keine Geheimnisse, schreibt nicht in eine echte Datenbank, greift nicht auf Fotos oder Mikrofon zu und stellt keine Netzwerkanfragen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 페이지는 비밀 정보를 저장하지 않고, 실제 데이터베이스에 쓰지 않으며, 사진이나 마이크에 접근하지 않고, 네트워크 요청을 하지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Эта страница не сохраняет секреты, не пишет в настоящую базу данных, не обращается к фото или микрофону и не выполняет сетевые запросы."
+          }
+        }
+      }
+    },
+    "settings.export.detail": {
+      "comment": "Export settings detail body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is no real database or attachment directory yet, so the app cannot generate a complete export package."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有真实数据库和附件目录，因此不能生成完整导出包。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay base de datos real ni directorio de adjuntos, así que la app no puede generar un paquete de exportación completo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "まだ実データベースや添付ファイルディレクトリがないため、完全なエクスポートパッケージは生成できません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il n’y a pas encore de vraie base de données ni de dossier de pièces jointes ; l’app ne peut donc pas générer un paquet d’export complet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es gibt noch keine echte Datenbank und kein Anhangsverzeichnis, daher kann die App kein vollständiges Exportpaket erzeugen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 실제 데이터베이스나 첨부 파일 디렉터리가 없어 완전한 내보내기 패키지를 만들 수 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настоящей базы данных и каталога вложений пока нет, поэтому приложение не может создать полный пакет экспорта."
+          }
+        }
+      }
+    },
+    "settings.export.nextRequirement": {
+      "comment": "Export settings next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After the data layer is stable, design Markdown, JSON, and attachment export."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在数据层稳定后设计 Markdown、JSON 和附件导出。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando la capa de datos sea estable, diseñar exportación Markdown, JSON y adjuntos."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データ層が安定した後、Markdown、JSON、添付ファイルのエクスポートを設計します。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une fois la couche de données stable, concevoir l’export Markdown, JSON et pièces jointes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Stabilisierung der Datenschicht Markdown-, JSON- und Anhangsexport entwerfen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "데이터 계층이 안정된 뒤 Markdown, JSON, 첨부 파일 내보내기를 설계합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "После стабилизации слоя данных спроектировать экспорт Markdown, JSON и вложений."
+          }
+        }
+      }
+    },
+    "settings.export.summary": {
+      "comment": "Export settings summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export is not implemented yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出尚未实现。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La exportación aún no está implementada."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エクスポートはまだ実装されていません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’export n’est pas encore implémenté."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export ist noch nicht implementiert."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내보내기는 아직 구현되지 않았습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экспорт пока не реализован."
+          }
+        }
+      }
+    },
+    "settings.export.title": {
+      "comment": "Settings row title for export.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エクスポート"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporter"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내보내기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экспорт"
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.contentBoundary": {
+      "comment": "Interface language setting content boundary explanation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This does not change your native language, target language, language spaces, saved entries, generated content, or Provider output."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会改变母语、目标语言、语言空间、已保存记录、已生成内容或 Provider 输出。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto no cambia tu lengua materna, idioma objetivo, espacios de idioma, entradas guardadas, contenido generado ni salida del Provider."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "母語、目標言語、言語スペース、保存済み記録、生成済みコンテンツ、Provider出力は変更されません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela ne modifie pas votre langue maternelle, langue cible, espaces de langue, entrées enregistrées, contenu généré ni sortie Provider."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dies ändert nicht Muttersprache, Zielsprache, Sprachräume, gespeicherte Einträge, generierte Inhalte oder Provider-Ausgaben."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모국어, 목표 언어, 언어 공간, 저장된 기록, 생성된 콘텐츠, Provider 출력은 변경하지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Это не меняет родной язык, целевой язык, языковые пространства, сохраненные записи, созданный контент или вывод Provider."
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.detail": {
+      "comment": "Interface language settings detail body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interface language only affects app chrome. It does not change the user's native language, target language, or rewrite generated content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "界面语言只影响 App chrome，不改变用户母语、不改变目标语言，也不重写已生成内容。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El idioma de interfaz solo afecta al chrome de la app. No cambia la lengua materna, el idioma objetivo ni reescribe contenido generado."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "界面言語はアプリのchromeだけに影響します。母語や目標言語を変えず、生成済みコンテンツも書き換えません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La langue d’interface n’affecte que le chrome de l’app. Elle ne change pas la langue maternelle, la langue cible et ne réécrit pas le contenu généré."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Oberflächensprache betrifft nur die App-Chrome. Sie ändert weder Muttersprache noch Zielsprache und schreibt keine generierten Inhalte um."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "인터페이스 언어는 앱 chrome에만 영향을 줍니다. 모국어, 목표 언어를 바꾸거나 생성된 콘텐츠를 다시 쓰지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Язык интерфейса влияет только на chrome приложения. Он не меняет родной или целевой язык и не переписывает созданный контент."
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.english": {
+      "comment": "Picker option for English interface.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.explanation": {
+      "comment": "Interface language setting explanation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the language used by LangoTrace app chrome."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择语迹自有界面文案使用的语言。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige el idioma usado por el chrome de LangoTrace."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LangoTraceのアプリchromeで使う言語を選びます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez la langue utilisée par le chrome de LangoTrace."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle die Sprache für die LangoTrace-App-Chrome."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LangoTrace 앱 chrome에 사용할 언어를 선택합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите язык chrome приложения LangoTrace."
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.french": {
+      "comment": "Picker option for French interface.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Français"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Français"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Français"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Français"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Français"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Français"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Français"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Français"
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.german": {
+      "comment": "Picker option for German interface.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.japanese": {
+      "comment": "Picker option for Japanese interface.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本語"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本語"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本語"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本語"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本語"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本語"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本語"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本語"
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.korean": {
+      "comment": "Picker option for Korean interface.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한국어"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한국어"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한국어"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한국어"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한국어"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한국어"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한국어"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한국어"
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.nextRequirement": {
+      "comment": "Interface language settings next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep String Catalog coverage, system per-app language boundary notes, and interface language preference persistence aligned."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持 String Catalog、系统 per-app language 关系说明和界面语言偏好持久化一致。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener alineados String Catalog, notas sobre per-app language del sistema y persistencia de la preferencia."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "String Catalog、システムのper-app language境界メモ、界面言語設定の永続化を揃えて保ちます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder alignés le String Catalog, les notes de limite per-app language système et la persistance de la préférence."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "String Catalog, Hinweise zur System-per-app-language-Grenze und Persistenz der Oberflächensprache konsistent halten."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "String Catalog, 시스템 per-app language 경계 설명, 인터페이스 언어 선호 저장을 일관되게 유지합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизировать String Catalog, заметки о системном per-app language и сохранение языковой настройки."
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.russian": {
+      "comment": "Picker option for Russian interface.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский"
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.spanish": {
+      "comment": "Picker option for Spanish interface.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Español"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Español"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Español"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Español"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Español"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Español"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Español"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Español"
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.summary": {
+      "comment": "Interface language settings summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The default follows the system. Unsupported system languages fall back to English."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前默认跟随系统，未支持的系统语言回退英文。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por defecto sigue el sistema. Los idiomas de sistema no admitidos vuelven a inglés."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "既定ではシステムに従います。未対応のシステム言語は英語に戻ります。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Par défaut, suit le système. Les langues système non prises en charge reviennent à l’anglais."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardmäßig folgt die App dem System. Nicht unterstützte Systemsprachen fallen auf Englisch zurück."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기본값은 시스템을 따릅니다. 지원하지 않는 시스템 언어는 영어로 돌아갑니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По умолчанию следует системе. Неподдерживаемые системные языки возвращаются к английскому."
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.system": {
+      "comment": "Picker option that follows system app language.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随系统"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistema"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "システムに従う"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Système"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시스템 따르기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Система"
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.systemBoundary": {
+      "comment": "Interface language setting system UI boundary explanation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System follows the device language or the per-app language chosen for LangoTrace. System dialogs, StoreKit, file pickers, and third-party UI may still follow platform rules."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随系统会使用设备语言或系统为语迹设置的 App 语言。系统弹窗、StoreKit、文件选择器和第三方 UI 仍可能遵循平台规则。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistema sigue el idioma del dispositivo o el idioma por app elegido para LangoTrace. Diálogos del sistema, StoreKit, selectores de archivos e interfaces de terceros pueden seguir reglas de la plataforma."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "システムはデバイス言語、またはLangoTraceに選ばれたAppごとの言語に従います。システムダイアログ、StoreKit、ファイル選択、第三者UIはプラットフォーム規則に従う場合があります。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Système suit la langue de l’appareil ou la langue par app choisie pour LangoTrace. Les dialogues système, StoreKit, sélecteurs de fichiers et UI tierces peuvent suivre les règles de la plateforme."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System folgt der Gerätesprache oder der für LangoTrace gewählten App-Sprache. Systemdialoge, StoreKit, Dateiauswahl und Drittanbieter-UI können Plattformregeln folgen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시스템 따르기는 기기 언어 또는 LangoTrace에 대해 선택된 앱별 언어를 사용합니다. 시스템 대화상자, StoreKit, 파일 선택기, 타사 UI는 플랫폼 규칙을 따를 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Система следует языку устройства или языку приложения, выбранному для LangoTrace. Системные диалоги, StoreKit, выбор файлов и сторонний UI могут следовать правилам платформы."
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.title": {
+      "comment": "Settings row title for choosing app interface language.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interface Language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "界面语言"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idioma de interfaz"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "界面言語"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langue d’interface"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oberflächensprache"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "인터페이스 언어"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Язык интерфейса"
+          }
+        }
+      }
+    },
+    "settings.interfaceLanguage.zhHans": {
+      "comment": "Picker option for Simplified Chinese interface.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "简体中文"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "简体中文"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "简体中文"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "简体中文"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "简体中文"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "简体中文"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "简体中文"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "简体中文"
+          }
+        }
+      }
+    },
+    "settings.languageSpace.detail": {
+      "comment": "Language space settings detail body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current language space only exists in app session state and is used to validate onboarding and page closure."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前语言空间只存在于 App 会话状态中，用于验证首次启动和页面闭环。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El espacio de idioma actual solo existe en el estado de sesión de la app y se usa para validar onboarding y cierre de páginas."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在の言語スペースはアプリのセッション状態にのみ存在し、オンボーディングとページ閉鎖の検証に使われます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’espace de langue actuel n’existe que dans l’état de session de l’app et sert à valider l’onboarding et la clôture des pages."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der aktuelle Sprachraum existiert nur im App-Sitzungszustand und validiert Onboarding und Seitenschluss."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 언어 공간은 앱 세션 상태에만 있으며 온보딩과 페이지 폐쇄를 검증하는 데 사용됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текущее языковое пространство существует только в состоянии сеанса приложения и используется для проверки onboarding и закрытия страниц."
+          }
+        }
+      }
+    },
+    "settings.languageSpace.nextRequirement": {
+      "comment": "Language space settings next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add real language space persistence and startup restoration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接入真实语言空间持久化和启动恢复。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir persistencia real de espacios de idioma y restauración al inicio."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実際の言語スペース永続化と起動時復元を追加します。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter la persistance réelle des espaces de langue et la restauration au lancement."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Echte Persistenz von Sprachräumen und Wiederherstellung beim Start hinzufügen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실제 언어 공간 저장과 시작 시 복원을 추가합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить настоящее сохранение языковых пространств и восстановление при запуске."
+          }
+        }
+      }
+    },
+    "settings.languageSpace.summary": {
+      "comment": "Language space settings summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current space uses an in-memory preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前空间使用内存 preview。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El espacio actual usa una vista previa en memoria."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在のスペースはメモリ内previewを使います。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’espace actuel utilise un aperçu en mémoire."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der aktuelle Raum verwendet eine In-Memory-Vorschau."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 공간은 메모리 preview를 사용합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текущее пространство использует preview в памяти."
+          }
+        }
+      }
+    },
+    "settings.languageSpace.title": {
+      "comment": "Settings row title for language space.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language Space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言空间"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espacio de idioma"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "言語スペース"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espace de langue"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachraum"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "언어 공간"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Языковое пространство"
+          }
+        }
+      }
+    },
+    "settings.localData.detail": {
+      "comment": "Local data settings detail body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After restart, mock content returns to the seed examples. There is no SQLite schema, migration, or attachment storage yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重启后 mock 内容会恢复为示例数据；当前没有 SQLite schema、迁移或附件存储。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Después de reiniciar, el contenido mock vuelve a los ejemplos semilla. Aún no hay esquema SQLite, migraciones ni almacenamiento de adjuntos."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再起動後、mockコンテンツはseedサンプルに戻ります。SQLite schema、migration、添付ファイル保存はまだありません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Après redémarrage, le contenu mock revient aux exemples de départ. Il n’y a pas encore de schéma SQLite, migration ni stockage de pièces jointes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach dem Neustart kehren Mock-Inhalte zu Seed-Beispielen zurück. Es gibt noch kein SQLite-Schema, keine Migration und keinen Anhangsspeicher."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "재시작 후 mock 콘텐츠는 시드 예시로 돌아갑니다. 아직 SQLite schema, migration, 첨부 저장소가 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "После перезапуска mock-контент возвращается к исходным примерам. SQLite schema, миграций и хранилища вложений пока нет."
+          }
+        }
+      }
+    },
+    "settings.localData.nextRequirement": {
+      "comment": "Local data settings next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add SQLite / GRDB repositories, migrations, and export boundaries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接入 SQLite / GRDB Repository、迁移和导出边界。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir repositorios SQLite / GRDB, migraciones y límites de exportación."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQLite / GRDB Repository、migration、エクスポート境界を追加します。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter les repositories SQLite / GRDB, migrations et limites d’export."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQLite-/GRDB-Repositories, Migrationen und Exportgrenzen hinzufügen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQLite / GRDB Repository, migration, 내보내기 경계를 추가합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить SQLite / GRDB Repository, миграции и границы экспорта."
+          }
+        }
+      }
+    },
+    "settings.localData.summary": {
+      "comment": "Local data settings summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app currently uses an in-memory repository."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前使用内存 repository。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La app usa actualmente un repositorio en memoria."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在のアプリはメモリ内repositoryを使います。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’app utilise actuellement un repository en mémoire."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die App verwendet derzeit ein In-Memory-Repository."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 앱은 메모리 repository를 사용합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сейчас приложение использует repository в памяти."
+          }
+        }
+      }
+    },
+    "settings.localData.title": {
+      "comment": "Settings row title for local data.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local Data"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地数据"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos locales"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカルデータ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Données locales"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokale Daten"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 데이터"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Локальные данные"
+          }
+        }
+      }
+    },
+    "settings.privacy.detail": {
+      "comment": "Privacy settings detail body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensitive content should only enter request preview and Provider calls after the user explicitly triggers the relevant capability."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "敏感内容只有在用户明确触发对应能力时才应进入请求预览和 Provider 调用。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El contenido sensible solo debe entrar en la vista previa y llamadas Provider después de que el usuario active explícitamente la capacidad correspondiente."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機密コンテンツは、ユーザーが該当機能を明示的に実行した後にだけ、リクエストプレビューやProvider呼び出しに入るべきです。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le contenu sensible ne doit entrer dans l’aperçu de requête et les appels Provider qu’après déclenchement explicite de la capacité par l’utilisateur."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensible Inhalte sollen erst nach expliziter Auslösung der passenden Funktion in Anfragevorschau und Provider-Aufrufe gelangen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "민감한 콘텐츠는 사용자가 해당 기능을 명시적으로 실행한 뒤에만 요청 미리보기와 Provider 호출에 포함되어야 합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Чувствительный контент должен попадать в предпросмотр запроса и вызовы Provider только после явного действия пользователя."
+          }
+        }
+      }
+    },
+    "settings.privacy.nextRequirement": {
+      "comment": "Privacy settings next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep confirmation paths when real AI, speech, photos, and sync are added."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在真实 AI、语音、照片和同步接入时保留确认路径。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener rutas de confirmación al añadir IA real, voz, fotos y sincronización."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実AI、音声、写真、同期を追加するときも確認経路を維持します。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conserver les chemins de confirmation lors de l’ajout de l’IA réelle, de la voix, des photos et de la sync."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestätigungspfade beibehalten, wenn echte KI, Sprache, Fotos und Sync hinzukommen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실제 AI, 음성, 사진, 동기화가 추가될 때 확인 경로를 유지합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранить пути подтверждения при добавлении настоящего ИИ, речи, фото и синхронизации."
+          }
+        }
+      }
+    },
+    "settings.privacy.summary": {
+      "comment": "Privacy settings summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local-first boundaries are already represented in the UI."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地优先边界已在 UI 中表达。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los límites local-first ya están representados en la UI."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカル優先の境界はすでにUIに表現されています。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les limites local-first sont déjà représentées dans l’UI."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local-first-Grenzen sind bereits in der UI dargestellt."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 우선 경계는 이미 UI에 표현되어 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Границы local-first уже представлены в интерфейсе."
+          }
+        }
+      }
+    },
+    "settings.privacy.title": {
+      "comment": "Settings row title for privacy boundary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy Boundary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私边界"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Límite de privacidad"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシー境界"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite de confidentialité"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenschutzgrenze"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "개인정보 경계"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Граница конфиденциальности"
+          }
+        }
+      }
+    },
+    "settings.sync.detail": {
+      "comment": "Sync settings detail body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entries, photos, vector indexes, and API keys are not synced in the current build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录、照片、向量索引和 API Key 当前都不会同步。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entradas, fotos, índices vectoriales y claves API no se sincronizan en la versión actual."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在のビルドでは、記録、写真、ベクトルインデックス、APIキーは同期されません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les entrées, photos, index vectoriels et clés API ne sont pas synchronisés dans la version actuelle."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einträge, Fotos, Vektorindizes und API-Schlüssel werden im aktuellen Build nicht synchronisiert."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 빌드에서는 기록, 사진, 벡터 인덱스, API 키가 동기화되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записи, фото, векторные индексы и API-ключи в текущей сборке не синхронизируются."
+          }
+        }
+      }
+    },
+    "settings.sync.nextRequirement": {
+      "comment": "Sync settings next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Design Sync Engine, adapters, conflict handling, and sync scope."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设计 Sync Engine、Adapter、冲突处理和同步范围。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diseñar Sync Engine, adaptadores, manejo de conflictos y alcance de sincronización."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync Engine、Adapter、競合処理、同期範囲を設計します。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concevoir Sync Engine, adapters, gestion des conflits et périmètre de sync."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync Engine, Adapter, Konfliktbehandlung und Sync-Umfang entwerfen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync Engine, Adapter, 충돌 처리, 동기화 범위를 설계합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Спроектировать Sync Engine, adapter, обработку конфликтов и область синхронизации."
+          }
+        }
+      }
+    },
+    "settings.sync.summary": {
+      "comment": "Sync settings summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync Engine is not connected yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同步引擎尚未接入。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync Engine aún no está conectado."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync Engineはまだ接続されていません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync Engine n’est pas encore connecté."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync Engine ist noch nicht angebunden."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync Engine은 아직 연결되지 않았습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync Engine пока не подключен."
+          }
+        }
+      }
+    },
+    "settings.sync.title": {
+      "comment": "Settings row title for sync.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同步"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronización"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同期"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동기화"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизация"
+          }
+        }
+      }
+    },
+    "tab.entries": {
+      "comment": "iPhone tab for entries.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entries"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entradas"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記録"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrées"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einträge"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기록"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записи"
+          }
+        }
+      }
+    },
+    "tab.memory": {
+      "comment": "iPhone tab for memory.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记忆"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memoria"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記憶"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mémoire"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gedächtnis"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기억"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Память"
+          }
+        }
+      }
+    },
+    "tab.practice": {
+      "comment": "iPhone tab for practice.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Práctica"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "練習"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exercice"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Üben"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연습"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Практика"
+          }
+        }
+      }
+    },
+    "tab.settings": {
+      "comment": "iPhone tab for settings.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки"
+          }
+        }
+      }
+    },
+    "tab.today": {
+      "comment": "iPhone tab for today's learning workspace.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aujourd’hui"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сегодня"
+          }
+        }
+      }
+    },
+    "welcome.accessibility.badges": {
+      "comment": "Combined accessibility label for welcome privacy badges.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local-first, AI not configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地优先，未配置 AI"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local primero, IA sin configurar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカル優先、AI未設定"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local d’abord, IA non configurée"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokal zuerst, KI nicht konfiguriert"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 우선, AI가 설정되지 않음"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сначала локально, ИИ не настроен"
+          }
+        }
+      }
+    },
+    "welcome.headline": {
+      "comment": "Welcome headline.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record a little life today"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天记录一点生活"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registra un poco de vida hoy"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日の生活を少し記録"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notez un peu de vie aujourd’hui"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute ein Stück Alltag festhalten"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘의 생활을 조금 기록하기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запишите немного жизни сегодня"
+          }
+        }
+      }
+    },
+    "welcome.subtitle": {
+      "comment": "Welcome subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing your language space. First use asks for native language, target language, and self-assessed level."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在准备你的语言空间。首次使用会先询问母语、目标语言和水平自评。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando tu espacio de idioma. El primer uso pregunta lengua materna, idioma objetivo y nivel autoevaluado."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "言語スペースを準備しています。初回利用時に母語、目標言語、自己評価レベルを尋ねます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparation de votre espace de langue. La première utilisation demande la langue maternelle, la langue cible et le niveau autoévalué."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Sprachraum wird vorbereitet. Beim ersten Start fragt die App nach Muttersprache, Zielsprache und Selbsteinschätzung."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "언어 공간을 준비하는 중입니다. 처음 사용할 때 모국어, 목표 언어, 자기 평가 수준을 묻습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подготовка языкового пространства. При первом запуске будут запрошены родной язык, целевой язык и самооценка уровня."
+          }
+        }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

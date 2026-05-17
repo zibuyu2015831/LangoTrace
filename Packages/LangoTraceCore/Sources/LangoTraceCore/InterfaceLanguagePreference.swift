@@ -4,6 +4,14 @@ public enum InterfaceLanguagePreference: String, CaseIterable, Equatable, Identi
     case system
     case english = "en"
     case simplifiedChinese = "zh-Hans"
+    case spanish = "es"
+    case japanese = "ja"
+    case french = "fr"
+    case german = "de"
+    case korean = "ko"
+    case russian = "ru"
+
+    public static let supportedLanguageCodes = allCases.compactMap(\.languageCode)
 
     public var id: String {
         storageValue
@@ -17,10 +25,8 @@ public enum InterfaceLanguagePreference: String, CaseIterable, Equatable, Identi
         switch self {
         case .system:
             nil
-        case .english:
-            "en"
-        case .simplifiedChinese:
-            "zh-Hans"
+        case .english, .simplifiedChinese, .spanish, .japanese, .french, .german, .korean, .russian:
+            rawValue
         }
     }
 
@@ -32,6 +38,18 @@ public enum InterfaceLanguagePreference: String, CaseIterable, Equatable, Identi
             "English"
         case .simplifiedChinese:
             "Simplified Chinese"
+        case .spanish:
+            "Spanish"
+        case .japanese:
+            "Japanese"
+        case .french:
+            "French"
+        case .german:
+            "German"
+        case .korean:
+            "Korean"
+        case .russian:
+            "Russian"
         }
     }
 
@@ -43,6 +61,18 @@ public enum InterfaceLanguagePreference: String, CaseIterable, Equatable, Identi
             "English"
         case .simplifiedChinese:
             "简体中文"
+        case .spanish:
+            "Español"
+        case .japanese:
+            "日本語"
+        case .french:
+            "Français"
+        case .german:
+            "Deutsch"
+        case .korean:
+            "한국어"
+        case .russian:
+            "Русский"
         }
     }
 
@@ -69,8 +99,10 @@ public enum InterfaceLanguagePreference: String, CaseIterable, Equatable, Identi
             return "zh-Hans"
         }
 
-        if normalized == "en" || normalized.hasPrefix("en-") {
-            return "en"
+        for code in supportedLanguageCodes where code != "zh-Hans" {
+            if normalized == code || normalized.hasPrefix("\(code)-") {
+                return code
+            }
         }
 
         return nil

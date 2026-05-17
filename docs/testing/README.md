@@ -103,6 +103,32 @@ macOS 手动验证：
 
 本清单用于验证 `LangoTraceUI` String Catalog、App 内界面语言设置和三端页面 chrome 本地化。实现完成后必须补齐实际截图或问题链接。
 
+## 主流界面语言扩展验证清单
+
+首批主流界面语言扩展覆盖 `en / zh-Hans / es / ja / fr / de / ko / ru`。该清单只验证 App 自有 SwiftUI chrome 的界面语言能力，不代表目标学习语言、TTS、OCR、Speech、AI Provider 输出、App Store 元数据或权限弹窗已经完成对应语言支持。
+
+自动化最低要求：
+
+- Core 测试：`InterfaceLanguagePreference` 的 `system / en / zh-Hans / es / ja / fr / de / ko / ru` 稳定存储值和 `supportedLanguageCodes` 顺序。
+- Core 测试：`System` 模式对 `es-* / ja-* / fr-* / de-* / ko-* / ru-* / zh-Hans-*` 解析到对应支持语言，`zh-Hant-*` 和未支持语言回退英文。
+- Core 测试：UserDefaults 可以持久化第一批显式语言偏好，未知值回到 `system`。
+- UI 测试：界面语言设置列表包含 `System` 加 8 个候选界面语言，且 title key 稳定。
+- String Catalog 检查：`Localizable.xcstrings` 的所有核心 chrome key 都包含 `en / zh-Hans / es / ja / fr / de / ko / ru`，`sourceLanguage` 保持 `en`。
+- App target 配置检查：`project.yml` 中 iOS 和 macOS target 的 `CFBundleLocalizations` 包含同一 8 语言清单，且 `xcodegen generate` 后不会丢失。
+- 完整收口：`scripts/verify.sh` 通过，除非当前环境缺少明确工具；跳过时必须记录原因和剩余风险。
+
+手动验证分层：
+
+- 常规回归：`en`、`zh-Hans`、`de`、`ru`，覆盖 Welcome、Onboarding、Settings 和 Interface Language detail。
+- 字体和断行 smoke：`ja`、`ko`，重点检查系统字体、行高、断行、按钮和设置列表行。
+- 发布前完整验证：`en / zh-Hans / es / ja / fr / de / ko / ru` 三端覆盖 Welcome、Onboarding、iPhone main tabs、iPad workspace、macOS workspace、Settings、Interface Language detail、Request Preview 和 unavailable capability page。
+
+发布前附加门槛：
+
+- 新增语言翻译需要人工审校或至少人工抽检核心路径。
+- 权限 purpose strings、隐私说明、App Store 元数据、截图和客服材料需要分别完成本地化检查。
+- 对外文案只能宣称界面语言支持，不能写成“支持西班牙语学习 / 支持日语学习”等学习能力承诺。
+
 | 平台 | 界面语言 | 覆盖页面 | 结果 |
 | --- | --- | --- | --- |
 | iPhone 17 | English | Welcome + Onboarding + Settings | 通过，Onboarding 截图：`/private/tmp/langotrace-ui-review/iphone17-en.png`；Settings 路由和 Picker key 由 `LangoTraceUITests` 覆盖。 |

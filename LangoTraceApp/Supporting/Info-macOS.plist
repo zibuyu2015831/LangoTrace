@@ -14,6 +14,12 @@
 	<array>
 		<string>en</string>
 		<string>zh-Hans</string>
+		<string>es</string>
+		<string>ja</string>
+		<string>fr</string>
+		<string>de</string>
+		<string>ko</string>
+		<string>ru</string>
 	</array>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>

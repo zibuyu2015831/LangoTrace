@@ -14,6 +14,18 @@ func interfaceLanguagePreferenceTitleKey(for preference: InterfaceLanguagePrefer
         "settings.interfaceLanguage.english"
     case .simplifiedChinese:
         "settings.interfaceLanguage.zhHans"
+    case .spanish:
+        "settings.interfaceLanguage.spanish"
+    case .japanese:
+        "settings.interfaceLanguage.japanese"
+    case .french:
+        "settings.interfaceLanguage.french"
+    case .german:
+        "settings.interfaceLanguage.german"
+    case .korean:
+        "settings.interfaceLanguage.korean"
+    case .russian:
+        "settings.interfaceLanguage.russian"
     }
 }
 
