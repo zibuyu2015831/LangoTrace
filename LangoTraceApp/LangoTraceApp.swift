@@ -15,6 +15,7 @@ struct LangoTraceApp: App {
             LangoTraceRootView(
                 phase: session.phase,
                 languageSpace: session.currentLanguageSpace,
+                learningContentRepository: environment.learningContentRepository,
                 onboardingDraft: Binding(
                     get: { session.onboardingDraft },
                     set: { session.onboardingDraft = $0 }

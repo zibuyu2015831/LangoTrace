@@ -8,6 +8,7 @@ import SwiftUI
 
 struct AppEnvironment {
     let languageSpaceRepository: any LanguageSpaceRepository
+    let learningContentRepository: InMemoryLearningContentRepository
     let aiProvider: any AIProvider
     let speechService: any SpeechService
     let syncService: any SyncService
@@ -15,6 +16,7 @@ struct AppEnvironment {
     static func bootstrap() -> AppEnvironment {
         AppEnvironment(
             languageSpaceRepository: EmptyLanguageSpaceRepository(),
+            learningContentRepository: InMemoryLearningContentRepository(seedEntries: []),
             aiProvider: DisabledAIProvider(),
             speechService: DisabledSpeechService(),
             syncService: DisabledSyncService()

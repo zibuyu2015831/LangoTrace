@@ -13,11 +13,35 @@ enum LangoTraceDesign {
         static let gold = Color(red: 0.690, green: 0.505, blue: 0.215)
         static let paleGold = Color(red: 0.965, green: 0.920, blue: 0.800)
         static let whiteInk = Color(red: 0.985, green: 0.980, blue: 0.960)
+        static let surfaceBase = paper
+        static let surfaceRaised = elevatedPaper
+        static let surfaceMuted = Color(red: 0.945, green: 0.930, blue: 0.895)
+        static let surfaceAccentMuted = paleTeal
+        static let textPrimary = ink
+        static let textSecondary = mutedInk
+        static let borderSubtle = hairline
+        static let accent = teal
+        static let accentStrong = deepTeal
+        static let warning = gold
+        static let danger = Color(red: 0.680, green: 0.155, blue: 0.130)
+        static let privacyLocal = deepTeal
+        static let privacyExternal = gold
+    }
+
+    enum Typography {
+        static let screenTitle = Font.largeTitle.weight(.semibold)
+        static let sectionTitle = Font.headline
+        static let body = Font.body
+        static let bodyEmphasis = Font.body.weight(.semibold)
+        static let caption = Font.caption
+        static let controlLabel = Font.callout.weight(.semibold)
     }
 
     enum Radius {
         static let panel: CGFloat = 18
         static let control: CGFloat = 12
+        static let badge: CGFloat = 999
+        static let sheet: CGFloat = 22
     }
 
     enum Spacing {

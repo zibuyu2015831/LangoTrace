@@ -16,12 +16,14 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../LangoTraceCore"),
+        .package(path: "../LangoTraceData"),
     ],
     targets: [
         .target(
             name: "LangoTraceUI",
             dependencies: [
                 .product(name: "LangoTraceCore", package: "LangoTraceCore"),
+                .product(name: "LangoTraceData", package: "LangoTraceData"),
             ]
         ),
         .testTarget(
