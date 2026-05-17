@@ -17,6 +17,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 3. 对照既有产品决策和 ADR，避免引入冲突概念。
 4. 如果形成新的重要判断，更新对应文档，不只停留在聊天记录。
 5. 完成前运行适合当前任务的检查，例如链接检查、文档一致性检查、构建或测试。
+6. 如果任务可能导致文档滞后于代码，按 [文档审查机制](review/README.md) 做日常文档影响检查、事件触发专项审查或里程碑轻量全审。
 
 ### 1.1 早期开发阶段的重构原则
 
@@ -125,6 +126,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 14. Xcode 工程推荐通过 XcodeGen 生成，工程结构以 `project.yml` 为主要来源。
 15. 具体开发前应读取相关 `docs/guidelines/` 规范，避免导航、UI、SwiftUI 架构和 AI 请求路径发散。
 16. 新功能、bug 修复、架构调整、数据/AI/隐私/同步/权限/付费相关任务，实现前必须先创建 `docs/worklogs/YYYY-MM-DD-<type>-<short-topic>.md` 并经用户确认。
+17. 高风险实现或阶段性完成后必须检查文档影响。数据库、AI Provider、权限、同步、StoreKit、发布验证、ADR 冲突、首次启动闭环、语言空间闭环、本地记录闭环、验证脚本、XcodeGen、包边界或 App 启动结构变化，应按 [文档审查机制](review/README.md) 触发专项审查或在 worklog 中说明跳过原因。
 
 ## 5. 按任务类型读取文档
 
@@ -251,6 +253,23 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - 对比竞品。
 - 调整产品差异化。
 
+### 5.8 文档审查和文档一致性治理
+
+优先读取：
+
+- [开发工作记录规范](worklogs/README.md)
+- [文档体系规范](documentation-system.md)
+- [文档审查机制](review/README.md)
+- [文档审查索引](review/INDEX.md)
+
+适用任务：
+
+- 检查 docs 是否和代码实现一致。
+- 阶段性功能完成后的文档影响检查。
+- 数据、AI、权限、同步、StoreKit、发布验证或 ADR 冲突后的专项审查。
+- MVP、数据层、AI 层、同步层、付费发布层结束时的里程碑轻量全审。
+- AI 会话发现文档与代码不一致后的定向审查。
+
 ## 6. 文档更新落点
 
 形成新结论时，按以下规则写回：
@@ -266,6 +285,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - 验证流程和手动测试：写入 `docs/testing/`。
 - App Store、TestFlight、StoreKit 和隐私标签：写入 `docs/release/`。
 - 研究材料和未定结论：写入 `docs/research/`。
+- 文档审查机制、审查轮次索引、专项审查和里程碑全审：写入 `docs/review/`。
 
 ## 7. 文档目录结构
 
@@ -285,6 +305,10 @@ docs/
   decisions/
   guidelines/
   worklogs/
+  review/
+    README.md
+    INDEX.md
+    rounds/
   development/
   release/
   research/
@@ -300,6 +324,7 @@ docs/
 - `decisions/`：架构决策记录，采用 ADR 风格，记录重要取舍、背景、结论和复审条件。
 - `guidelines/`：开发一致性规范，记录导航、UI、SwiftUI 架构、AI Provider 和隐私等具体开发约束。
 - `worklogs/`：开发工作记录，记录功能开发、bug 修复、重构、调研和工程杂项的背景、方案、用户确认、实施和验证结果。
+- `review/`：文档一致性治理机制、审查轮次索引、专项审查和里程碑轻量全审记录。
 - `development/`：阶段开发计划、工程任务拆分、初始化记录、里程碑状态和开发 runbook。
 - `release/`：买断制、StoreKit、App Store、TestFlight、版本策略和发布检查清单。
 - `research/`：竞品、开源项目、技术调研和设计研究。
@@ -324,8 +349,11 @@ docs/
 ```bash
 find docs -maxdepth 3 -type f | sort
 rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
+git diff --check
 git status --short
 ```
+
+如果文档任务涉及代码实现状态、核心决策、跨文档一致性或阶段性完成，还应按 [文档审查机制](review/README.md) 做语义检查，确认当前事实、决策、计划和过程记录没有混用。
 
 涉及 Swift 工程任务时，根据实际工程状态检查：
 

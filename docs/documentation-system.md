@@ -11,6 +11,7 @@
 - SwiftUI 工程初始化、架构拆分、数据库设计、AI Provider、同步引擎、StoreKit 和发布流程都有固定文档落点。
 - 避免“聊天里讨论过，但仓库里找不到”的知识丢失。
 - 避免早期开发为了速度牺牲付费 App 所需的稳定性、可测试性和数据安全边界。
+- 避免代码持续演进后，入口文档、架构文档、开发规范、测试文档和发布文档滞后于实际实现。
 
 ## 2. 文档分层
 
@@ -211,6 +212,32 @@ docs/release/003-privacy-labels-and-permissions.md
 - `specs/` 保存较大功能或架构变更的设计规格。
 - `plans/` 保存具体实施计划，供当前会话或后续会话按步骤执行。
 
+### 2.11 文档审查
+
+位置：`docs/review/`
+
+用途：
+
+- 定义文档一致性治理机制。
+- 保存审查轮次总索引。
+- 保存事件触发专项审查和里程碑轻量全审记录。
+- 区分当前事实源、决策源、执行规则源、过程记录和审查记录，避免把历史记录误当成当前实现事实。
+
+目录结构：
+
+```text
+docs/review/
+  README.md
+  INDEX.md
+  rounds/
+```
+
+`docs/review/README.md` 规定审查目标、文档分级、断言依据、触发矩阵、问题分流、写入权限、审查产物和验收方式。
+
+`docs/review/INDEX.md` 是所有审查轮次的长期索引，只保存长期状态，不存放单轮细节。
+
+`docs/review/rounds/` 保存专项审查和里程碑轻量全审。日常文档影响检查写在对应 worklog 中，不在这里创建目录。
+
 ## 3. 文档更新规则
 
 ### 3.1 必须更新文档的情况
@@ -227,6 +254,22 @@ docs/release/003-privacy-labels-and-permissions.md
 - 同步方案变化，例如新增 WebDAV / S3 / R2 同步。
 - 付费策略变化，例如买断制、内购、订阅、试用。
 - 发布流程变化，例如 TestFlight、App Store 审核和隐私标签。
+
+### 3.1.1 必须检查文档影响的情况
+
+以下情况完成后必须检查是否触发 `docs/review/README.md` 定义的审查机制：
+
+- 数据库 schema、Repository、迁移、导出、备份。
+- AI Provider、Keychain、请求预览、请求日志、隐私边界。
+- 权限、Speech、OCR、Photos、TTS、录音。
+- 同步引擎、Sync Adapter、冲突处理。
+- StoreKit、发布验证、App Store 隐私标签。
+- ADR 冲突或核心产品决策冲突。
+- 首次启动闭环、语言空间闭环、本地记录闭环。
+- 多端导航结构、验证脚本、XcodeGen、包边界或 App 启动结构变化。
+- AI 会话发现文档与代码不一致。
+
+未命中专项审查条件的一般功能、bug、重构、UI 体验调整和测试补充，应在对应 worklog 的“文档影响检查”中记录是否需要更新文档。
 
 ### 3.2 可以只写阶段记录的情况
 
@@ -247,6 +290,18 @@ docs/release/003-privacy-labels-and-permissions.md
 - 没有结论的零散竞品截图描述。
 
 若内容有参考价值，应先放入 `docs/research/`，待形成结论后再迁移到主参考文档或 ADR。
+
+### 3.4 文档审查规则
+
+文档审查遵循以下权威关系：
+
+- 当前实现事实以代码、`project.yml`、脚本和测试为最高依据。
+- 产品核心决策以产品主参考文档、ADR 和用户明确确认为最高依据。
+- 架构和隐私决策以 ADR、技术路线和 guidelines 为最高依据。
+- 未来计划以 roadmap、worklog、规格或计划文档为依据，必须明确写成计划、候选或后续。
+- worklog、research、review round 是过程记录，不强制改写为最新事实。
+
+如果代码与 ADR 或核心产品决策冲突，不能默认改文档迁就代码，应触发复审、记录架构债、修正实现或新增 ADR。
 
 ## 4. 严格工程化要求
 
@@ -298,6 +353,18 @@ worklog 应至少写清：
 - 用户确认记录。
 
 状态为 `Draft` 时不能开始实现。用户确认后将状态改为 `User Approved`，再进入实现。
+
+### 4.1.3 先检查文档影响，后收尾
+
+重要功能、bug 修复、架构调整和高风险文档任务完成前，应检查本次变更是否影响文档体系。
+
+默认规则：
+
+- 日常文档影响检查写入对应 worklog。
+- 事件触发专项审查写入 `docs/review/rounds/YYYY-MM-DD-<topic>/README.md`。
+- 里程碑轻量全审写入 `docs/review/rounds/YYYY-MM-DD-<topic>/README.md`，并更新 `docs/review/INDEX.md`。
+
+审查过程中发现代码问题时，不应顺手修改代码；应分流为 bug、refactor、chore、testing 或 ADR 复审任务。
 
 ### 4.2 先主数据，后派生能力
 
@@ -364,6 +431,7 @@ worklog 应至少写清：
 ```bash
 git status --short
 find docs -maxdepth 3 -type f | sort
+git diff --check
 ```
 
 若涉及 Markdown 结构，可额外使用 ripgrep 检查未完成占位表达。
