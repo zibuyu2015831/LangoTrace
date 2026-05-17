@@ -202,9 +202,9 @@ LangoTrace/
 ```bash
 xcodegen generate
 xcodebuild -list -project LangoTrace.xcodeproj
-xcodebuild -scheme LangoTrace -destination 'platform=iOS Simulator,name=iPhone 17' build
-xcodebuild -scheme LangoTrace -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4)' build
-xcodebuild -scheme LangoTrace -destination 'platform=macOS' build
+xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
+xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
+xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
 swiftlint
 swiftformat --lint .
 git status --short

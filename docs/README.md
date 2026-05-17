@@ -20,7 +20,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 ## 2. 项目当前状态
 
-当前仓库处于从产品文档和静态 HTML 原型进入原生工程初始化的阶段。
+当前仓库已经完成 SwiftUI Multiplatform 工程初始化，处于 App Shell 后、首次启动和语言空间功能前的阶段。
 
 已完成：
 
@@ -32,18 +32,16 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - 文档体系、初始模块边界和关键 ADR。
 - 第一批开发一致性规范。
 - 统一开发工作记录目录和模板。
+- SwiftUI Multiplatform App Shell。
+- XcodeGen `project.yml` 和生成的 `LangoTrace.xcodeproj`。
+- Core / UI / Data / AI / Speech / Sync 初始本地 Swift Package 边界。
 
 尚未完成：
 
-- SwiftUI Multiplatform 工程。
-- XcodeGen `project.yml`。
-- Swift Package 模块。
 - 数据库 schema。
 - AI Provider 代码。
 - 同步引擎。
 - StoreKit 配置。
-
-如果后续工程已经创建，必须同步更新本节。
 
 ## 3. 项目北极星
 
@@ -281,11 +279,9 @@ docs/
 
 后续开发优先级应保持克制：
 
-1. 创建可启动、可构建的 SwiftUI Multiplatform App shell。
-2. 建立最小模块边界和工程生成方式。
-3. 做首次启动引导与语言空间的最小闭环。
-4. 做本地记录和英语示例学习闭环。
-5. 再接入真实 AI Provider、TTS、听写、回译、SQLite、同步和 StoreKit。
+1. 做首次启动引导与语言空间的最小闭环。
+2. 做本地记录和英语示例学习闭环。
+3. 再接入真实 AI Provider、TTS、听写、回译、SQLite、同步和 StoreKit。
 
 第一阶段不要同时实现完整数据库、完整 AI、完整同步、完整 StoreKit 和完整视觉系统。
 
@@ -304,10 +300,12 @@ git status --short
 ```bash
 xcodegen generate
 xcodebuild -list -project LangoTrace.xcodeproj
-xcodebuild -scheme LangoTrace -destination 'platform=iOS Simulator,name=iPhone 17' build
-xcodebuild -scheme LangoTrace -destination 'platform=macOS' build
-swiftlint
-swiftformat --lint .
+swift test --package-path Packages/LangoTraceCore
+xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
+xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
+xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
+swiftlint --no-cache
+swiftformat --lint . --cache ignore
 git status --short
 ```
 

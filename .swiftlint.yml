@@ -1,0 +1,13 @@
+disabled_rules:
+  - trailing_comma
+
+excluded:
+  - .build
+  - LangoTrace.xcodeproj
+  - Packages/*/.build
+  - Packages/*/.swiftpm
+
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1

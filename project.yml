@@ -1,0 +1,114 @@
+name: LangoTrace
+options:
+  bundleIdPrefix: com.zibuyu
+  deploymentTarget:
+    iOS: "18.0"
+    macOS: "15.0"
+  developmentLanguage: zh-Hans
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+packages:
+  LangoTraceCore:
+    path: Packages/LangoTraceCore
+  LangoTraceUI:
+    path: Packages/LangoTraceUI
+  LangoTraceData:
+    path: Packages/LangoTraceData
+  LangoTraceAI:
+    path: Packages/LangoTraceAI
+  LangoTraceSpeech:
+    path: Packages/LangoTraceSpeech
+  LangoTraceSync:
+    path: Packages/LangoTraceSync
+
+settings:
+  base:
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 0.1.0
+    SWIFT_VERSION: 6.0
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGNING_ALLOWED: NO
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED: YES
+
+targets:
+  LangoTrace-iOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: LangoTraceApp
+        excludes:
+          - Supporting/Info-macOS.plist
+    info:
+      path: LangoTraceApp/Supporting/Info-iOS.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.zibuyu.LangoTrace
+        PRODUCT_NAME: LangoTrace
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTED_PLATFORMS: iphonesimulator iphoneos
+    dependencies:
+      - package: LangoTraceCore
+        product: LangoTraceCore
+      - package: LangoTraceUI
+        product: LangoTraceUI
+      - package: LangoTraceData
+        product: LangoTraceData
+      - package: LangoTraceAI
+        product: LangoTraceAI
+      - package: LangoTraceSpeech
+        product: LangoTraceSpeech
+      - package: LangoTraceSync
+        product: LangoTraceSync
+
+  LangoTrace-macOS:
+    type: application
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: LangoTraceApp
+        excludes:
+          - Supporting/Info-iOS.plist
+    info:
+      path: LangoTraceApp/Supporting/Info-macOS.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.zibuyu.LangoTrace.mac
+        PRODUCT_NAME: LangoTrace
+        SUPPORTED_PLATFORMS: macosx
+    dependencies:
+      - package: LangoTraceCore
+        product: LangoTraceCore
+      - package: LangoTraceUI
+        product: LangoTraceUI
+      - package: LangoTraceData
+        product: LangoTraceData
+      - package: LangoTraceAI
+        product: LangoTraceAI
+      - package: LangoTraceSpeech
+        product: LangoTraceSpeech
+      - package: LangoTraceSync
+        product: LangoTraceSync
+
+schemes:
+  LangoTrace-iOS:
+    build:
+      targets:
+        LangoTrace-iOS: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+
+  LangoTrace-macOS:
+    build:
+      targets:
+        LangoTrace-macOS: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true

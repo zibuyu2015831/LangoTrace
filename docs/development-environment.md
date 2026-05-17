@@ -81,6 +81,7 @@ iOS 26.5 (26.5 - 23F77) - com.apple.CoreSimulator.SimRuntime.iOS-26-5
 - Homebrew prefix：`/opt/homebrew`
 - Git：系统 Apple Git 可用
 - SQLite：3.51.0
+- XcodeGen：2.45.4
 - SwiftLint：0.63.2
 - SwiftFormat：0.61.1
 - GitHub CLI：2.92.0
@@ -102,7 +103,10 @@ iOS 26.5 (26.5 - 23F77) - com.apple.CoreSimulator.SimRuntime.iOS-26-5
 
 - 产品文档位于 `docs/`。
 - 静态 HTML 原型位于 `prototypes/langotrace-multi-device-prototype/`。
-- SwiftUI 工程尚未创建。
+- SwiftUI Multiplatform 工程已创建。
+- XcodeGen 配置位于 `project.yml`。
+- Xcode 工程位于 `LangoTrace.xcodeproj`。
+- 初始模块位于 `Packages/LangoTraceCore`、`Packages/LangoTraceUI`、`Packages/LangoTraceData`、`Packages/LangoTraceAI`、`Packages/LangoTraceSpeech` 和 `Packages/LangoTraceSync`。
 - 仓库已有初始提交：`7ce34b7 Initial LangoTrace product docs and prototype`。
 - 本地 `.vscode/` 设置目录存在，但仍是未跟踪文件，不属于已提交的项目基线。
 
@@ -116,6 +120,7 @@ xcode-select -p
 xcodebuild -version
 swift --version
 xcodebuild -showsdks
+xcodegen --version
 swiftlint --version
 swiftformat --version
 gh --version
@@ -133,16 +138,28 @@ xcrun simctl list devices available
 
 ## 8. 下一步工程动作
 
-当前环境已经满足创建语迹 LangoTrace 初始 SwiftUI Multiplatform 应用的要求。建议下一步创建原生 Apple 项目骨架，目标平台包括：
+当前环境已经满足继续开发语迹 LangoTrace SwiftUI Multiplatform 应用的要求。当前原生 Apple 项目骨架已覆盖：
 
 - iOS
 - iPadOS
 - macOS
 
-第一个实现里程碑应保持克制，只完成：
+下一步实现里程碑应保持克制，优先完成：
 
-- App shell
-- 共享模块结构
-- 基础启动页或占位视图
-- 暂不加入数据库、AI Provider、同步引擎或 StoreKit 逻辑
+- 首次启动提问
+- 第一个语言空间创建
+- 基础本地状态
+- iPhone / iPad / macOS 根路由衔接
 
+继续暂不加入：
+
+- 数据库、AI Provider、同步引擎或 StoreKit 逻辑
+
+已完成的初始化验证包括：
+
+- `xcodegen generate`
+- `xcodebuild -list -project LangoTrace.xcodeproj`
+- `swift test --package-path Packages/LangoTraceCore`
+- `xcodebuild -quiet -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build`
+- `xcodebuild -quiet -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build`
+- `xcodebuild -quiet -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build`
