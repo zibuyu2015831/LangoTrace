@@ -38,6 +38,7 @@
 - [003：UI 设计系统规范](003-ui-design-system.md)
 - [004：SwiftUI 架构规范](004-swiftui-architecture.md)
 - [005：AI Provider、Prompt 与隐私规范](005-ai-provider-prompt-and-privacy.md)
+- [006：界面国际化与语言边界规范](006-interface-localization-and-language-boundaries.md)
 
 后续建议补充：
 
@@ -47,7 +48,7 @@
 - 错误、空状态和加载状态规范。
 - 测试与验证规范。
 - 日志和诊断规范。
-- 可访问性与国际化规范。
+- 可访问性规范。
 
 ## 3. AI 开发使用方式
 

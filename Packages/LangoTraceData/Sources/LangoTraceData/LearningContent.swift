@@ -136,6 +136,18 @@ public final class InMemoryLearningContentRepository {
                 nextRequirement: "接入真实语言空间持久化和启动恢复。"
             ),
             SettingsCapability(
+                kind: .interfaceLanguage,
+                status: .mockOnly,
+                summary: "当前默认跟随系统，未支持的系统语言回退英文",
+                detail: "界面语言只影响 App chrome，不改变用户母语、不改变目标语言，也不重写已生成内容。",
+                nextRequirement: "接入 String Catalog、系统 per-app language 关系说明和界面语言偏好持久化。"
+            ),
+        ] + Self.serviceSettingsCapabilities
+    }
+
+    private static var serviceSettingsCapabilities: [SettingsCapability] {
+        [
+            SettingsCapability(
                 kind: .aiProvider,
                 status: .mockOnly,
                 summary: "未配置真实 Provider，所有生成均为 Local Mock",

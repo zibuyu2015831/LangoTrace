@@ -24,6 +24,9 @@ let package = Package(
             dependencies: [
                 .product(name: "LangoTraceCore", package: "LangoTraceCore"),
                 .product(name: "LangoTraceData", package: "LangoTraceData"),
+            ],
+            resources: [
+                .process("Resources"),
             ]
         ),
         .testTarget(

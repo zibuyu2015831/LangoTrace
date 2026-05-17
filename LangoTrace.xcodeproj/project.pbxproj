@@ -220,11 +220,11 @@
 				};
 			};
 			buildConfigurationList = CE63A75F5385E202FFE8CA12 /* Build configuration list for PBXProject "LangoTrace" */;
-			developmentRegion = "zh-Hans";
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
-				"zh-Hans",
+				en,
 			);
 			mainGroup = CEB5CFF2CBC36987F2D7BCA1;
 			minimizedProjectReferenceProxies = 1;

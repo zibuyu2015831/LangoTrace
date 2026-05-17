@@ -1,0 +1,342 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "app.badge.aiNotConfigured" : {
+      "comment" : "Badge indicating external AI is not configured.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "AI not configured" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未配置 AI" } }
+      }
+    },
+    "app.badge.localFirst" : {
+      "comment" : "Badge for local-first product behavior.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local-first" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本地优先" } }
+      }
+    },
+    "capabilityStatus.mockOnly" : {
+      "comment" : "Status badge for local mock-only capability.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local Mock" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Local Mock" } }
+      }
+    },
+    "capabilityStatus.ready" : {
+      "comment" : "Status badge for available capability.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ready" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "可用" } }
+      }
+    },
+    "capabilityStatus.unavailable" : {
+      "comment" : "Status badge for unavailable capability.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unavailable" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未接入" } }
+      }
+    },
+    "common.cancel" : {
+      "comment" : "Cancel button title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消" } }
+      }
+    },
+    "common.save" : {
+      "comment" : "Save button title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保存" } }
+      }
+    },
+    "entryDetail.title" : {
+      "comment" : "Navigation title for entry detail.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Entry Detail" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "记录详情" } }
+      }
+    },
+    "entryEditor.privacy.localOnly" : {
+      "comment" : "Privacy note in local entry editor.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Saved locally as Local Mock. Nothing is sent to external AI." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前为本地保存和 Local Mock，不会发送到外部 AI。" } }
+      }
+    },
+    "entryEditor.section.content" : {
+      "comment" : "Entry editor section title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Life Entry" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "生活记录" } }
+      }
+    },
+    "entryEditor.title" : {
+      "comment" : "Navigation title for entry editor.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Write One Line" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "写一句" } }
+      }
+    },
+    "entryEditor.titleField" : {
+      "comment" : "Entry title text field placeholder.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Title" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "标题" } }
+      }
+    },
+    "entryEditor.section.privacy" : {
+      "comment" : "Privacy section title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Privacy" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "隐私" } }
+      }
+    },
+    "onboarding.createSpace" : {
+      "comment" : "Create language space button title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Create Language Space" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "创建语言空间" } }
+      }
+    },
+    "onboarding.eyebrow" : {
+      "comment" : "Small label above onboarding title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "FIRST LANGUAGE SPACE" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "FIRST LANGUAGE SPACE" } }
+      }
+    },
+    "onboarding.level.summary" : {
+      "comment" : "Onboarding level helper text.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Used to tune generated material. You can change it later." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "用于调整生成难度，之后可以随时修改。" } }
+      }
+    },
+    "onboarding.level.title" : {
+      "comment" : "Onboarding level picker title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Level" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "水平自评" } }
+      }
+    },
+    "onboarding.nativeLanguage" : {
+      "comment" : "Native language picker title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Native Language" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "母语" } }
+      }
+    },
+    "onboarding.privacy.localStorage" : {
+      "comment" : "Onboarding local storage note.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Data is stored on this device by default" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "数据默认保存在本机" } }
+      }
+    },
+    "onboarding.privacy.noExternalAI" : {
+      "comment" : "Onboarding AI privacy note.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No entry is sent while AI is not configured. AI, sync, dictionaries and prompts can be set up later." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未配置 AI 时不会发送任何记录。AI、同步、词典和 Prompt 都可以稍后在设置中处理。" } }
+      }
+    },
+    "onboarding.subtitle" : {
+      "comment" : "Onboarding subtitle.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "A language space is a long-term learning profile for one target language. Start with the minimum setup, then turn life into learning material." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "一个语言空间，就是一门目标语言的长期学习档案。先记录最少信息，之后再开始把生活变成学习材料。" } }
+      }
+    },
+    "onboarding.targetLanguage" : {
+      "comment" : "Target language picker title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Target Language" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "目标语言" } }
+      }
+    },
+    "onboarding.title" : {
+      "comment" : "Onboarding title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Create Language Space" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "创建语言空间" } }
+      }
+    },
+    "practice.title" : {
+      "comment" : "Practice navigation title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Practice" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "练习" } }
+      }
+    },
+    "requestPreview.localMock" : {
+      "comment" : "Request preview local mock notice.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Current mode is Local Mock. No external AI request is made." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前使用 Local Mock，不会触发外部 AI 请求。" } }
+      }
+    },
+    "requestPreview.notSent" : {
+      "comment" : "Request preview exclusion list.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not sent: local database, full photo library, API keys, or unselected history." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不会发送：本地数据库、完整照片库、API Key、未选中的历史记录。" } }
+      }
+    },
+    "requestPreview.title" : {
+      "comment" : "Request preview card title.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Request Preview" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请求预览" } }
+      }
+    },
+    "settings.aiProvider.title" : {
+      "comment" : "Settings row title for AI provider configuration.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "AI Provider" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "AI Provider" } }
+      }
+    },
+    "settings.export.title" : {
+      "comment" : "Settings row title for export.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导出" } }
+      }
+    },
+    "settings.interfaceLanguage.contentBoundary" : {
+      "comment" : "Interface language setting content boundary explanation.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This does not change your native language, target language, language spaces, saved entries, generated content, or Provider output." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不会改变母语、目标语言、语言空间、已保存记录、已生成内容或 Provider 输出。" } }
+      }
+    },
+    "settings.interfaceLanguage.english" : {
+      "comment" : "Picker option for English interface.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "English" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "English" } }
+      }
+    },
+    "settings.interfaceLanguage.explanation" : {
+      "comment" : "Interface language setting explanation.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose the language used by LangoTrace app chrome." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "选择语迹自有界面文案使用的语言。" } }
+      }
+    },
+    "settings.interfaceLanguage.system" : {
+      "comment" : "Picker option that follows system app language.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "System" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "跟随系统" } }
+      }
+    },
+    "settings.interfaceLanguage.systemBoundary" : {
+      "comment" : "Interface language setting system UI boundary explanation.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "System follows the device language or the per-app language chosen for LangoTrace. System dialogs, StoreKit, file pickers, and third-party UI may still follow platform rules." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "跟随系统会使用设备语言或系统为语迹设置的 App 语言。系统弹窗、StoreKit、文件选择器和第三方 UI 仍可能遵循平台规则。" } }
+      }
+    },
+    "settings.interfaceLanguage.title" : {
+      "comment" : "Settings row title for choosing app interface language.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Interface Language" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "界面语言" } }
+      }
+    },
+    "settings.interfaceLanguage.zhHans" : {
+      "comment" : "Picker option for Simplified Chinese interface.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Simplified Chinese" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "简体中文" } }
+      }
+    },
+    "settings.languageSpace.title" : {
+      "comment" : "Settings row title for language space.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Language Space" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "语言空间" } }
+      }
+    },
+    "settings.localData.title" : {
+      "comment" : "Settings row title for local data.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local Data" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本地数据" } }
+      }
+    },
+    "settings.privacy.title" : {
+      "comment" : "Settings row title for privacy boundary.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Privacy Boundary" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "隐私边界" } }
+      }
+    },
+    "settings.sync.title" : {
+      "comment" : "Settings row title for sync.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sync" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "同步" } }
+      }
+    },
+    "tab.entries" : {
+      "comment" : "iPhone tab for entries.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Entries" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "记录" } }
+      }
+    },
+    "tab.memory" : {
+      "comment" : "iPhone tab for memory.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Memory" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "记忆" } }
+      }
+    },
+    "tab.practice" : {
+      "comment" : "iPhone tab for practice.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Practice" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "练习" } }
+      }
+    },
+    "tab.settings" : {
+      "comment" : "iPhone tab for settings.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设置" } }
+      }
+    },
+    "tab.today" : {
+      "comment" : "iPhone tab for today's learning workspace.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日" } }
+      }
+    },
+    "welcome.accessibility.badges" : {
+      "comment" : "Combined accessibility label for welcome privacy badges.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local-first, AI not configured" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本地优先，未配置 AI" } }
+      }
+    },
+    "welcome.headline" : {
+      "comment" : "Welcome headline.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Record a little life today" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今天记录一点生活" } }
+      }
+    },
+    "welcome.subtitle" : {
+      "comment" : "Welcome subtitle.",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Preparing your language space. First use asks for native language, target language, and self-assessed level." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在准备你的语言空间。首次使用会先询问母语、目标语言和水平自评。" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

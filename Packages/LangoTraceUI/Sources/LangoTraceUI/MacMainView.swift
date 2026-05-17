@@ -5,6 +5,8 @@ import SwiftUI
 struct MacMainView: View {
     let languageSpace: LanguageSpacePreview
     let contentRepository: InMemoryLearningContentRepository
+    let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isSidebarVisible = true
@@ -176,6 +178,8 @@ struct MacMainView: View {
                     memoryItems: memoryItems,
                     settingsCapabilities: settingsCapabilities,
                     contentRepository: contentRepository,
+                    interfaceLanguagePreference: interfaceLanguagePreference,
+                    onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
                     onShowEntry: showEntry,
                     onRoute: { route = $0 }
                 )

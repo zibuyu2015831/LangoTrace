@@ -4,7 +4,7 @@ options:
   deploymentTarget:
     iOS: "18.0"
     macOS: "15.0"
-  developmentLanguage: zh-Hans
+  developmentLanguage: en
   createIntermediateGroups: true
   groupSortPosition: top
 
@@ -44,6 +44,9 @@ targets:
     info:
       path: LangoTraceApp/Supporting/Info-iOS.plist
       properties:
+        CFBundleLocalizations:
+          - en
+          - zh-Hans
         UILaunchStoryboardName: LaunchScreen
     settings:
       base:
@@ -78,6 +81,10 @@ targets:
           - Resources/LaunchScreen.storyboard
     info:
       path: LangoTraceApp/Supporting/Info-macOS.plist
+      properties:
+        CFBundleLocalizations:
+          - en
+          - zh-Hans
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.zibuyu.LangoTrace.mac

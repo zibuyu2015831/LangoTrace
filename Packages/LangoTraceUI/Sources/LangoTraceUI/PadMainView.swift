@@ -5,6 +5,8 @@ import SwiftUI
 struct PadMainView: View {
     let languageSpace: LanguageSpacePreview
     let contentRepository: InMemoryLearningContentRepository
+    let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -205,6 +207,8 @@ struct PadMainView: View {
             memoryItems: memoryItems,
             settingsCapabilities: settingsCapabilities,
             contentRepository: contentRepository,
+            interfaceLanguagePreference: interfaceLanguagePreference,
+            onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
             onRoute: { route = $0 }
         )
     }

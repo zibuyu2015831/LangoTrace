@@ -47,6 +47,7 @@ func defaultSettingsCapabilitiesAreReadOnly() {
 
     #expect(capabilities.map(\.kind) == [
         .languageSpace,
+        .interfaceLanguage,
         .aiProvider,
         .sync,
         .localData,

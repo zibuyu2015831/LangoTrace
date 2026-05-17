@@ -5,6 +5,8 @@ import SwiftUI
 struct PhoneMainView: View {
     let languageSpace: LanguageSpacePreview
     let contentRepository: InMemoryLearningContentRepository
+    let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
     @State private var selectedTab: PhoneRootTab = .today
     @State private var navigationPath: [PhoneRoute] = []
@@ -24,7 +26,13 @@ struct PhoneMainView: View {
                     onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
                     onSelectEntry: showEntryDetail
                 )
-                .tabItem { Label(PhoneRootTab.today.title, systemImage: "sun.max") }
+                .tabItem {
+                    Label {
+                        localizedText(PhoneRootTab.today.localizedTitleKey)
+                    } icon: {
+                        Image(systemName: "sun.max")
+                    }
+                }
                 .tag(PhoneRootTab.today)
 
                 EntriesView(
@@ -34,7 +42,13 @@ struct PhoneMainView: View {
                     onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
                     onSelectEntry: showEntryDetail
                 )
-                .tabItem { Label(PhoneRootTab.entries.title, systemImage: "square.and.pencil") }
+                .tabItem {
+                    Label {
+                        localizedText(PhoneRootTab.entries.localizedTitleKey)
+                    } icon: {
+                        Image(systemName: "square.and.pencil")
+                    }
+                }
                 .tag(PhoneRootTab.entries)
 
                 PracticeView(
@@ -44,7 +58,13 @@ struct PhoneMainView: View {
                     onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
                     onPractice: { entry in navigationPath.append(.practice(entry.id)) }
                 )
-                .tabItem { Label(PhoneRootTab.practice.title, systemImage: "waveform") }
+                .tabItem {
+                    Label {
+                        localizedText(PhoneRootTab.practice.localizedTitleKey)
+                    } icon: {
+                        Image(systemName: "waveform")
+                    }
+                }
                 .tag(PhoneRootTab.practice)
 
                 MemoryView(
@@ -52,7 +72,13 @@ struct PhoneMainView: View {
                     memoryItems: contentRepository.memoryItems(for: languageSpace.id),
                     onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) }
                 )
-                .tabItem { Label(PhoneRootTab.memory.title, systemImage: "archivebox") }
+                .tabItem {
+                    Label {
+                        localizedText(PhoneRootTab.memory.localizedTitleKey)
+                    } icon: {
+                        Image(systemName: "archivebox")
+                    }
+                }
                 .tag(PhoneRootTab.memory)
 
                 SettingsView(
@@ -61,7 +87,13 @@ struct PhoneMainView: View {
                     onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
                     onSelectCapability: { kind in navigationPath.append(.settings(kind)) }
                 )
-                .tabItem { Label(PhoneRootTab.settings.title, systemImage: "gearshape") }
+                .tabItem {
+                    Label {
+                        localizedText(PhoneRootTab.settings.localizedTitleKey)
+                    } icon: {
+                        Image(systemName: "gearshape")
+                    }
+                }
                 .tag(PhoneRootTab.settings)
             }
             .simultaneousGesture(tabSwipeGesture)
@@ -90,7 +122,9 @@ struct PhoneMainView: View {
                     if let capability = capability(kind: kind) {
                         SettingsCapabilityDetailView(
                             languageSpace: languageSpace,
-                            capability: capability
+                            capability: capability,
+                            interfaceLanguagePreference: interfaceLanguagePreference,
+                            onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
                         )
                     }
                 }

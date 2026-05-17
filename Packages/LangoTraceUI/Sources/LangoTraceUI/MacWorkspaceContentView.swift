@@ -13,6 +13,8 @@ struct MacWorkspaceContentView: View {
     let memoryItems: [MemoryItem]
     let settingsCapabilities: [SettingsCapability]
     let contentRepository: InMemoryLearningContentRepository
+    let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
     let onShowEntry: (LearningEntry) -> Void
     let onRoute: (MacWorkspaceRoute) -> Void
 
@@ -140,7 +142,7 @@ struct MacWorkspaceContentView: View {
             SectionHeader(title: "设置", subtitle: "当前只读说明能力边界，不保存真实配置。")
             ForEach(settingsCapabilities) { capability in
                 CapabilityStatusRow(
-                    title: capability.kind.title,
+                    localizedTitleKey: capability.kind.localizedTitleKey,
                     summary: capability.summary,
                     status: capability.status,
                     systemImage: capability.kind.systemImage,
@@ -181,7 +183,12 @@ struct MacWorkspaceContentView: View {
     @ViewBuilder
     private func settingDetail(kind: SettingsCapability.Kind) -> some View {
         if let capability = settingsCapabilities.first(where: { $0.kind == kind }) {
-            SettingsCapabilityDetailView(languageSpace: languageSpace, capability: capability)
+            SettingsCapabilityDetailView(
+                languageSpace: languageSpace,
+                capability: capability,
+                interfaceLanguagePreference: interfaceLanguagePreference,
+                onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
+            )
         } else {
             CompactPanel(title: "设置项不存在", text: "请选择侧边栏中的设置项。", systemImage: "gearshape")
         }

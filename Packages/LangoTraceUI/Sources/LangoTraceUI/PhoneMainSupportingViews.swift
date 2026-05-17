@@ -14,24 +14,43 @@ struct EntryEditorView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("生活记录") {
-                    TextField("标题", text: $title)
+                Section {
+                    TextField(
+                        text: $title,
+                        prompt: localizedText("entryEditor.titleField")
+                    ) {
+                        localizedText("entryEditor.titleField")
+                    }
                     TextEditor(text: $bodyText)
                         .frame(minHeight: 180)
+                } header: {
+                    localizedText("entryEditor.section.content")
                 }
-                Section("隐私") {
-                    Label("当前为本地保存和 Local Mock，不会发送到外部 AI。", systemImage: "lock")
+                Section {
+                    Label {
+                        localizedText("entryEditor.privacy.localOnly")
+                    } icon: {
+                        Image(systemName: "lock")
+                    }
+                } header: {
+                    localizedText("entryEditor.section.privacy")
                 }
             }
-            .navigationTitle("写一句")
+            .navigationTitle(localizedText("entryEditor.title"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        localizedText("common.cancel")
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
+                    Button {
                         onSave(title, bodyText)
                         dismiss()
+                    } label: {
+                        localizedText("common.save")
                     }
                     .disabled(bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
@@ -72,7 +91,7 @@ struct EntryDetailView: View {
             }
             .padding(20)
         }
-        .navigationTitle("记录详情")
+        .navigationTitle(localizedText("entryDetail.title"))
         .langoPageBackground()
     }
 }
@@ -113,7 +132,7 @@ struct PracticeSessionView: View {
             }
             .padding(20)
         }
-        .navigationTitle("练习")
+        .navigationTitle(localizedText("practice.title"))
         .langoPageBackground()
     }
 }
@@ -176,35 +195,6 @@ private struct PracticeStepPanel: View {
         case .completed:
             "本轮 mock 练习已完成。真实评分、录音和听写结果会在语音能力接入后设计。"
         }
-    }
-}
-
-struct SettingsCapabilityDetailView: View {
-    let languageSpace: LanguageSpacePreview
-    let capability: SettingsCapability
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                SectionHeader(title: capability.kind.title, subtitle: languageSpace.displayContext)
-                CapabilityStatusRow(
-                    title: capability.kind.title,
-                    summary: capability.summary,
-                    status: capability.status,
-                    systemImage: capability.kind.systemImage,
-                    action: nil
-                )
-                TextPanel(title: "当前边界", text: capability.detail)
-                TextPanel(title: "后续接入条件", text: capability.nextRequirement)
-                TextPanel(
-                    title: "不会发生",
-                    text: "本页不会保存密钥、不会写入真实数据库、不会访问照片或麦克风、不会发起网络请求。"
-                )
-            }
-            .padding(20)
-        }
-        .navigationTitle(capability.kind.title)
-        .langoPageBackground()
     }
 }
 

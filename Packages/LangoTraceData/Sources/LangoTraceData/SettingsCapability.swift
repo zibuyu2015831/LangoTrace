@@ -18,6 +18,7 @@ public enum CapabilityStatus: String, Equatable, Sendable {
 public struct SettingsCapability: Equatable, Identifiable, Sendable {
     public enum Kind: String, CaseIterable, Equatable, Hashable, Sendable {
         case languageSpace
+        case interfaceLanguage
         case aiProvider
         case sync
         case localData
@@ -28,6 +29,8 @@ public struct SettingsCapability: Equatable, Identifiable, Sendable {
             switch self {
             case .languageSpace:
                 "语言空间"
+            case .interfaceLanguage:
+                "界面语言"
             case .aiProvider:
                 "AI Provider"
             case .sync:
@@ -45,6 +48,8 @@ public struct SettingsCapability: Equatable, Identifiable, Sendable {
             switch self {
             case .languageSpace:
                 "text.badge.star"
+            case .interfaceLanguage:
+                "globe"
             case .aiProvider:
                 "sparkles"
             case .sync:

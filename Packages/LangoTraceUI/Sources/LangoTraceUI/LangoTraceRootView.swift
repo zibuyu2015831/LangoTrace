@@ -16,24 +16,30 @@ public struct LangoTraceRootView: View {
     private let phase: LangoTraceAppPhase
     private let languageSpace: LanguageSpacePreview?
     private let learningContentRepository: InMemoryLearningContentRepository
+    private let interfaceLanguagePreference: InterfaceLanguagePreference
     @Binding private var onboardingDraft: OnboardingDraft
     private let onWelcomeFinished: () -> Void
     private let onCreateLanguageSpace: () -> Void
+    private let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
     public init(
         phase: LangoTraceAppPhase,
         languageSpace: LanguageSpacePreview?,
         learningContentRepository: InMemoryLearningContentRepository,
+        interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         onboardingDraft: Binding<OnboardingDraft>,
         onWelcomeFinished: @escaping () -> Void,
-        onCreateLanguageSpace: @escaping () -> Void
+        onCreateLanguageSpace: @escaping () -> Void,
+        onInterfaceLanguagePreferenceChange: @escaping (InterfaceLanguagePreference) -> Void = { _ in }
     ) {
         self.phase = phase
         self.languageSpace = languageSpace
         self.learningContentRepository = learningContentRepository
+        self.interfaceLanguagePreference = interfaceLanguagePreference
         _onboardingDraft = onboardingDraft
         self.onWelcomeFinished = onWelcomeFinished
         self.onCreateLanguageSpace = onCreateLanguageSpace
+        self.onInterfaceLanguagePreferenceChange = onInterfaceLanguagePreferenceChange
     }
 
     public var body: some View {
@@ -49,7 +55,9 @@ public struct LangoTraceRootView: View {
             case .main:
                 PlatformMainView(
                     languageSpace: languageSpace ?? onboardingDraft.makeLanguageSpacePreview(),
-                    learningContentRepository: learningContentRepository
+                    learningContentRepository: learningContentRepository,
+                    interfaceLanguagePreference: interfaceLanguagePreference,
+                    onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
                 )
             }
         }
@@ -79,18 +87,32 @@ public struct LangoTraceRootView: View {
 private struct PlatformMainView: View {
     let languageSpace: LanguageSpacePreview
     let learningContentRepository: InMemoryLearningContentRepository
+    let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
     var body: some View {
         #if os(iOS)
             if UIDevice.current.userInterfaceIdiom == .pad {
-                PadMainView(languageSpace: languageSpace, contentRepository: learningContentRepository)
+                PadMainView(
+                    languageSpace: languageSpace,
+                    contentRepository: learningContentRepository,
+                    interfaceLanguagePreference: interfaceLanguagePreference,
+                    onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
+                )
             } else {
-                PhoneMainView(languageSpace: languageSpace, contentRepository: learningContentRepository)
+                PhoneMainView(
+                    languageSpace: languageSpace,
+                    contentRepository: learningContentRepository,
+                    interfaceLanguagePreference: interfaceLanguagePreference,
+                    onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
+                )
             }
         #elseif os(macOS)
             MacMainView(
                 languageSpace: languageSpace,
-                contentRepository: learningContentRepository
+                contentRepository: learningContentRepository,
+                interfaceLanguagePreference: interfaceLanguagePreference,
+                onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
             )
         #endif
     }

@@ -109,20 +109,28 @@ struct RequestPreviewCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("请求预览", systemImage: "eye")
-                .font(.headline)
+            Label {
+                localizedText("requestPreview.title")
+            } icon: {
+                Image(systemName: "eye")
+            }
+            .font(.headline)
             Text(sentContent)
                 .font(.callout)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Divider()
-            Text("不会发送：本地数据库、完整照片库、API Key、未选中的历史记录。")
+            localizedText("requestPreview.notSent")
                 .font(.callout)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Label("当前使用 Local Mock，不会触发外部 AI 请求。", systemImage: "lock")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.privacyLocal)
+            Label {
+                localizedText("requestPreview.localMock")
+            } icon: {
+                Image(systemName: "lock")
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(LangoTraceDesign.ColorToken.privacyLocal)
         }
         .langoPanel()
     }
@@ -138,10 +146,41 @@ struct RequestPreviewCard: View {
 
 struct CapabilityStatusRow: View {
     let title: String
+    let localizedTitleKey: String?
     let summary: String
     let status: CapabilityStatus
     let systemImage: String
     let action: (() -> Void)?
+
+    init(
+        title: String,
+        summary: String,
+        status: CapabilityStatus,
+        systemImage: String,
+        action: (() -> Void)?
+    ) {
+        self.title = title
+        localizedTitleKey = nil
+        self.summary = summary
+        self.status = status
+        self.systemImage = systemImage
+        self.action = action
+    }
+
+    init(
+        localizedTitleKey: String,
+        summary: String,
+        status: CapabilityStatus,
+        systemImage: String,
+        action: (() -> Void)?
+    ) {
+        title = localizedTitleKey
+        self.localizedTitleKey = localizedTitleKey
+        self.summary = summary
+        self.status = status
+        self.systemImage = systemImage
+        self.action = action
+    }
 
     var body: some View {
         if let action {
@@ -149,12 +188,12 @@ struct CapabilityStatusRow: View {
                 rowContent(trailingImage: "chevron.right")
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("\(title)，\(status.title)")
+            .accessibilityLabel(accessibilityLabelText)
             .accessibilityHint(summary)
         } else {
             rowContent(trailingImage: nil)
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel("\(title)，\(status.title)")
+                .accessibilityLabel(accessibilityLabelText)
                 .accessibilityHint(summary)
         }
     }
@@ -169,10 +208,10 @@ struct CapabilityStatusRow: View {
                 .clipShape(Circle())
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
-                    Text(title)
+                    titleText
                         .font(.headline)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                    Text(status.title)
+                    localizedText(status.localizedTitleKey)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(statusColor)
                         .padding(.horizontal, 8)
@@ -195,6 +234,18 @@ struct CapabilityStatusRow: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .langoPanel(padding: 16)
+    }
+
+    private var titleText: Text {
+        if let localizedTitleKey {
+            localizedText(localizedTitleKey)
+        } else {
+            Text(title)
+        }
+    }
+
+    private var accessibilityLabelText: Text {
+        titleText + Text("，") + localizedText(status.localizedTitleKey)
     }
 
     private var statusColor: Color {

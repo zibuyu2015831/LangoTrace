@@ -185,7 +185,7 @@ struct SettingsView: View {
             SectionHeader(title: "当前空间", subtitle: "配置不抢占记录和学习主流程")
             ForEach(capabilities) { capability in
                 CapabilityStatusRow(
-                    title: capability.kind.title,
+                    localizedTitleKey: capability.kind.localizedTitleKey,
                     summary: capability.summary,
                     status: capability.status,
                     systemImage: capability.kind.systemImage,

@@ -50,18 +50,22 @@ struct WelcomeView: View {
 
     private var statusStrip: some View {
         HStack(spacing: 10) {
-            CapsuleLabel(text: "本地优先", systemImage: "lock")
-            CapsuleLabel(text: "未配置 AI", systemImage: "sparkle.magnifyingglass")
+            CapsuleLabel(systemImage: "lock") {
+                localizedText("app.badge.localFirst")
+            }
+            CapsuleLabel(systemImage: "sparkle.magnifyingglass") {
+                localizedText("app.badge.aiNotConfigured")
+            }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("本地优先，未配置 AI")
+        .accessibilityLabel(localizedText("welcome.accessibility.badges"))
     }
 
     private var entryBlock: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("今天记录一点生活")
+            localizedText("welcome.headline")
                 .font(.title2.weight(.semibold))
-            Text("正在准备你的语言空间。首次使用会先询问母语、目标语言和水平自评。")
+            localizedText("welcome.subtitle")
                 .font(.body)
                 .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
                 .fixedSize(horizontal: false, vertical: true)
@@ -73,16 +77,20 @@ struct WelcomeView: View {
     }
 }
 
-private struct CapsuleLabel: View {
-    let text: String
+private struct CapsuleLabel<Title: View>: View {
     let systemImage: String
+    @ViewBuilder let title: Title
 
     var body: some View {
-        Label(text, systemImage: systemImage)
-            .font(.caption.weight(.medium))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(LangoTraceDesign.ColorToken.paleTeal)
-            .clipShape(Capsule())
+        Label {
+            title
+        } icon: {
+            Image(systemName: systemImage)
+        }
+        .font(.caption.weight(.medium))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(LangoTraceDesign.ColorToken.paleTeal)
+        .clipShape(Capsule())
     }
 }

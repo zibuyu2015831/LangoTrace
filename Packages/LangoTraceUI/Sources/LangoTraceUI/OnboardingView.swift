@@ -32,13 +32,13 @@ struct OnboardingView: View {
                 Circle()
                     .fill(LangoTraceDesign.ColorToken.gold)
                     .frame(width: 8, height: 8)
-                Text("FIRST LANGUAGE SPACE")
+                localizedText("onboarding.eyebrow")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
             }
-            Text("创建语言空间")
+            localizedText("onboarding.title")
                 .font(.system(.largeTitle, design: .default, weight: .semibold))
-            Text("一个语言空间，就是一门目标语言的长期学习档案。先记录最少信息，之后再开始把生活变成学习材料。")
+            localizedText("onboarding.subtitle")
                 .font(.body.weight(.regular))
                 .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
                 .fixedSize(horizontal: false, vertical: true)
@@ -48,11 +48,11 @@ struct OnboardingView: View {
     private var languageForm: some View {
         VStack(alignment: .leading, spacing: 14) {
             PickerRow(
-                title: "母语",
+                titleKey: "onboarding.nativeLanguage",
                 systemImage: "person.text.rectangle"
             ) {
                 LanguageMenu(
-                    title: "母语",
+                    titleKey: "onboarding.nativeLanguage",
                     selectedLanguage: draft.resolvedNativeLanguage,
                     languages: LearningLanguage.supportedNativeLanguages,
                     onSelect: { language in
@@ -65,11 +65,11 @@ struct OnboardingView: View {
             Divider()
 
             PickerRow(
-                title: "目标语言",
+                titleKey: "onboarding.targetLanguage",
                 systemImage: "text.bubble"
             ) {
                 LanguageMenu(
-                    title: "目标语言",
+                    titleKey: "onboarding.targetLanguage",
                     selectedLanguage: draft.resolvedTargetLanguage,
                     languages: draft.availableTargetLanguages,
                     onSelect: { language in
@@ -90,21 +90,23 @@ struct OnboardingView: View {
                         .background(LangoTraceDesign.ColorToken.paleTeal)
                         .clipShape(Circle())
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("水平自评")
+                        localizedText("onboarding.level.title")
                             .font(.headline)
-                        Text("用于调整生成难度，之后可以随时修改。")
+                        localizedText("onboarding.level.summary")
                             .font(.footnote)
                             .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
                     }
                 }
-                Picker("水平自评", selection: $draft.level) {
+                Picker(selection: $draft.level) {
                     ForEach(LanguageLevel.allCases, id: \.self) { level in
                         Text(level.rawValue).tag(level)
                     }
+                } label: {
+                    localizedText("onboarding.level.title")
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .accessibilityLabel("水平自评")
+                .accessibilityLabel(localizedText("onboarding.level.title"))
                 .accessibilityHint("选择当前 \(draft.resolvedTargetLanguage.zhHansName) 水平")
             }
         }
@@ -114,10 +116,14 @@ struct OnboardingView: View {
 
     private var privacyNote: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("数据默认保存在本机", systemImage: "lock")
-                .font(.headline)
-                .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-            Text("未配置 AI 时不会发送任何记录。AI、同步、词典和 Prompt 都可以稍后在设置中处理。")
+            Label {
+                localizedText("onboarding.privacy.localStorage")
+            } icon: {
+                Image(systemName: "lock")
+            }
+            .font(.headline)
+            .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+            localizedText("onboarding.privacy.noExternalAI")
                 .font(.callout)
                 .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
                 .fixedSize(horizontal: false, vertical: true)
@@ -131,11 +137,15 @@ struct OnboardingView: View {
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
             Button(action: onCreateLanguageSpace) {
-                Label("创建 \(draft.resolvedTargetLanguage.zhHansName) 空间", systemImage: "plus.circle.fill")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.whiteInk)
+                Label {
+                    localizedText("onboarding.createSpace")
+                } icon: {
+                    Image(systemName: "plus.circle.fill")
+                }
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .foregroundStyle(LangoTraceDesign.ColorToken.whiteInk)
             }
             .buttonStyle(.borderedProminent)
             .buttonBorderShape(.roundedRectangle(radius: 16))
@@ -156,7 +166,7 @@ struct OnboardingView: View {
 }
 
 private struct LanguageMenu: View {
-    let title: String
+    let titleKey: String
     let selectedLanguage: LearningLanguage
     let languages: [LearningLanguage]
     let onSelect: (LearningLanguage) -> Void
@@ -185,14 +195,14 @@ private struct LanguageMenu: View {
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
         .menuStyle(.button)
-        .accessibilityLabel(title)
+        .accessibilityLabel(localizedText(titleKey))
         .accessibilityValue(selectedLanguage.pickerMenuTitleForChineseUI)
-        .accessibilityHint("选择\(title)")
+        .accessibilityHint(localizedText(titleKey))
     }
 }
 
 private struct PickerRow<PickerContent: View>: View {
-    let title: String
+    let titleKey: String
     let systemImage: String
     @ViewBuilder let picker: PickerContent
 
@@ -205,7 +215,7 @@ private struct PickerRow<PickerContent: View>: View {
                 .background(LangoTraceDesign.ColorToken.paleTeal)
                 .clipShape(Circle())
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
+                localizedText(titleKey)
                     .font(.headline)
             }
             Spacer(minLength: 12)

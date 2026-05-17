@@ -154,6 +154,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 10 节
 - [UI 设计系统规范](guidelines/003-ui-design-system.md)
 - [导航与路由规范](guidelines/002-navigation-and-routing.md)
+- [界面国际化与语言边界规范](guidelines/006-interface-localization-and-language-boundaries.md)
 - `prototypes/langotrace-multi-device-prototype/README.md`
 
 适用任务：
@@ -161,6 +162,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - 静态 HTML 原型修改。
 - iPhone / iPad / Mac 页面结构优化。
 - 高级感、简洁性、导航和设置入口调整。
+- 界面语言、母语和目标学习语言的显示边界。
 
 ### 5.3 SwiftUI 工程初始化
 
@@ -372,6 +374,7 @@ cd "$(dirname "$0")/.."
 xcodegen generate
 xcodebuild -list -project LangoTrace.xcodeproj
 swift test --package-path Packages/LangoTraceCore
+swift test --package-path Packages/LangoTraceData
 swift test --package-path Packages/LangoTraceUI
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build

@@ -22,8 +22,8 @@ struct PageClosureStateTests {
     @Test("Pad footer actions route to visible pages")
     func padFooterActionsRouteToVisiblePages() {
         #expect(PadFooterAction.languageSpace.route == .languageSpaceUnavailable)
-        #expect(PadFooterAction.aiProvider.route == .settings(.aiProvider))
-        #expect(PadFooterAction.sync.route == .settings(.sync))
+        #expect(PadFooterAction.aiProvider.route == .settings(SettingsCapability.Kind.aiProvider))
+        #expect(PadFooterAction.sync.route == .settings(SettingsCapability.Kind.sync))
         #expect(PadFooterAction.settings.route == .settingsList)
     }
 
@@ -40,10 +40,26 @@ struct PageClosureStateTests {
         #expect(MacFooterAction.languageSpace.section == .settings)
         #expect(MacFooterAction.languageSpace.route == .unavailable("language-space"))
         #expect(MacFooterAction.aiProvider.section == .settings)
-        #expect(MacFooterAction.aiProvider.route == .settings(.aiProvider))
+        #expect(MacFooterAction.aiProvider.route == .settings(SettingsCapability.Kind.aiProvider))
         #expect(MacFooterAction.sync.section == .settings)
-        #expect(MacFooterAction.sync.route == .settings(.sync))
+        #expect(MacFooterAction.sync.route == .settings(SettingsCapability.Kind.sync))
         #expect(MacFooterAction.settings.section == .settings)
         #expect(MacFooterAction.settings.route == .overview)
+    }
+
+    @Test("Settings capability chrome uses UI localization keys")
+    func settingsCapabilityChromeUsesUILocalizationKeys() {
+        #expect(SettingsCapability.Kind.interfaceLanguage.localizedTitleKey == "settings.interfaceLanguage.title")
+        #expect(SettingsCapability.Kind.aiProvider.localizedTitleKey == "settings.aiProvider.title")
+        #expect(CapabilityStatus.ready.localizedTitleKey == "capabilityStatus.ready")
+        #expect(CapabilityStatus.mockOnly.localizedTitleKey == "capabilityStatus.mockOnly")
+        #expect(CapabilityStatus.unavailable.localizedTitleKey == "capabilityStatus.unavailable")
+    }
+
+    @Test("Interface language option keys are stable")
+    func interfaceLanguageOptionKeysAreStable() {
+        #expect(interfaceLanguagePreferenceTitleKey(for: .system) == "settings.interfaceLanguage.system")
+        #expect(interfaceLanguagePreferenceTitleKey(for: .english) == "settings.interfaceLanguage.english")
+        #expect(interfaceLanguagePreferenceTitleKey(for: .simplifiedChinese) == "settings.interfaceLanguage.zhHans")
     }
 }

@@ -85,6 +85,8 @@ struct PadWorkspaceContentView: View {
     let memoryItems: [MemoryItem]
     let settingsCapabilities: [SettingsCapability]
     let contentRepository: InMemoryLearningContentRepository
+    let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
     let onRoute: (PadWorkspaceRoute) -> Void
 
     var body: some View {
@@ -190,7 +192,12 @@ struct PadWorkspaceContentView: View {
     @ViewBuilder
     private func settingDetail(kind: SettingsCapability.Kind) -> some View {
         if let capability = settingsCapabilities.first(where: { $0.kind == kind }) {
-            SettingsCapabilityDetailView(languageSpace: languageSpace, capability: capability)
+            SettingsCapabilityDetailView(
+                languageSpace: languageSpace,
+                capability: capability,
+                interfaceLanguagePreference: interfaceLanguagePreference,
+                onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
+            )
         } else {
             EmptyWorkspacePanel()
                 .padding(26)
@@ -203,7 +210,7 @@ struct PadWorkspaceContentView: View {
                 SectionCaption(title: "设置", subtitle: "当前只读说明能力边界，不保存真实配置。")
                 ForEach(settingsCapabilities) { capability in
                     CapabilityStatusRow(
-                        title: capability.kind.title,
+                        localizedTitleKey: capability.kind.localizedTitleKey,
                         summary: capability.summary,
                         status: capability.status,
                         systemImage: capability.kind.systemImage,
