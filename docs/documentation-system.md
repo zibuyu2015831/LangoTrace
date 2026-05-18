@@ -121,20 +121,21 @@ docs/spec/005-ai-provider-prompt-and-privacy.md
 
 规范不是一成不变的教条。当前项目处于起步阶段，若开发中发现更优设计，可以更新对应 spec；若影响产品核心模型、技术路线、数据边界、隐私边界或商业模式，应新增或更新 ADR。
 
-### 2.6 开发工作记录
+### 2.6 任务方案
 
-位置：`docs/worklogs/`
+位置：`docs/plans/`
 
 用途：
 
-- 记录每一次重要功能开发、bug 修复、重构、调研和工程杂项任务。
-- 作为具体工作的过程记录入口，记录背景、目标、范围、分析、方案、风险、用户确认、实施和验证结果。
-- 避免拆分过多目录导致开发时不知道文档放在哪里。
+- 记录每一次重要功能开发、bug 修复、重构、调研、文档治理和工程杂项任务。
+- 作为具体工作的唯一方案入口，记录背景、目标、范围、分析、方案、风险、用户确认、实施和验证结果。
+- 用 `active/` 与 `done/` 表达任务生命周期，避免 worklog 草案和 plan 分散维护。
 
 命名规范：
 
 ```text
-YYYY-MM-DD-<type>-<short-topic>.md
+docs/plans/active/YYYY-MM-DD-<type>-<short-topic>.md
+docs/plans/done/YYYY-MM-DD-<type>-<short-topic>.md
 ```
 
 允许的 `type`：
@@ -145,7 +146,7 @@ YYYY-MM-DD-<type>-<short-topic>.md
 - `research`
 - `chore`
 
-必须先创建 worklog 并经用户确认后再实现的任务：
+必须先创建任务方案并经用户确认后再实现的任务：
 
 - 新功能。
 - bug 修复。
@@ -154,7 +155,7 @@ YYYY-MM-DD-<type>-<short-topic>.md
 - 影响用户路径或多端体验的任务。
 - 改变开发规范、模块边界或长期维护方式的任务。
 
-低风险错别字、轻量文档修正或用户明确要求跳过记录的小任务，可以不创建 worklog，但最终答复应说明原因。
+低风险错别字、轻量文档修正或用户明确要求跳过记录的小任务，可以不创建任务方案，但最终答复应说明原因。
 
 ### 2.7 测试文档
 
@@ -201,7 +202,7 @@ docs/release/003-privacy-labels-and-permissions.md
 - 记录竞品分析、开源项目阅读、设计研究、技术调研和许可证分析。
 - 不作为最终产品决策，除非后续同步到主参考文档或 ADR。
 
-### 2.10 规格与计划
+### 2.10 历史规格与计划目录
 
 位置：
 
@@ -210,8 +211,9 @@ docs/release/003-privacy-labels-and-permissions.md
 
 用途：
 
-- `specs/` 保存较大功能或架构变更的设计规格。
-- `plans/` 保存具体实施计划，供当前会话或后续会话按步骤执行。
+- 这两个目录是待迁移历史目录，不再作为新任务入口。
+- 仍有价值的规格迁入 `docs/spec/`。
+- 仍有价值的实施计划迁入 `docs/plans/active/` 或 `docs/plans/done/`。
 
 ### 2.11 文档审查
 
@@ -237,7 +239,7 @@ docs/review/
 
 `docs/review/INDEX.md` 是所有审查轮次的长期索引，只保存长期状态，不存放单轮细节。
 
-`docs/review/rounds/` 保存专项审查和里程碑轻量全审。日常文档影响检查写在对应 worklog 中，不在这里创建目录。
+`docs/review/rounds/` 保存专项审查和里程碑轻量全审。日常文档影响检查写在对应任务方案中，不在这里创建目录。
 
 ## 3. 文档更新规则
 
@@ -270,7 +272,7 @@ docs/review/
 - 多端导航结构、验证脚本、XcodeGen、包边界或 App 启动结构变化。
 - AI 会话发现文档与代码不一致。
 
-未命中专项审查条件的一般功能、bug、重构、UI 体验调整和测试补充，应在对应 worklog 的“文档影响检查”中记录是否需要更新文档。
+未命中专项审查条件的一般功能、bug、重构、UI 体验调整和测试补充，应在对应任务方案的“文档影响检查”中记录是否需要更新文档。
 
 ### 3.2 可以只写阶段记录的情况
 
@@ -299,8 +301,8 @@ docs/review/
 - 当前实现事实以代码、`project.yml`、脚本和测试为最高依据。
 - 产品核心决策以产品主参考文档、ADR 和用户明确确认为最高依据。
 - 架构和隐私决策以 ADR、技术路线和 spec 为最高依据。
-- 未来计划以 roadmap、worklog、规格或计划文档为依据，必须明确写成计划、候选或后续。
-- worklog、research、review round 是过程记录，不强制改写为最新事实。
+- 未来计划以 roadmap、任务方案、规格或计划文档为依据，必须明确写成计划、候选或后续。
+- 历史 worklog、research、review round 是过程记录，不强制改写为最新事实。
 
 如果代码与 ADR 或核心产品决策冲突，不能默认改文档迁就代码，应触发复审、记录架构债、修正实现或新增 ADR。
 
@@ -339,9 +341,9 @@ docs/review/
 
 ### 4.1.2 先记录，后实现
 
-新功能、bug 修复、架构调整、数据/AI/隐私/同步/权限/付费相关任务，在实现前必须先创建 `docs/worklogs/YYYY-MM-DD-<type>-<short-topic>.md`。
+新功能、bug 修复、架构调整、数据/AI/隐私/同步/权限/付费相关任务，在实现前必须先创建 `docs/plans/active/YYYY-MM-DD-<type>-<short-topic>.md`。
 
-worklog 应至少写清：
+任务方案应至少写清：
 
 - 背景。
 - 目标。
@@ -361,7 +363,7 @@ worklog 应至少写清：
 
 默认规则：
 
-- 日常文档影响检查写入对应 worklog。
+- 日常文档影响检查写入对应任务方案。
 - 事件触发专项审查写入 `docs/review/rounds/YYYY-MM-DD-<topic>/README.md`。
 - 里程碑轻量全审写入 `docs/review/rounds/YYYY-MM-DD-<topic>/README.md`，并更新 `docs/review/INDEX.md`。
 
@@ -438,5 +440,5 @@ git diff --check
 若涉及 Markdown 结构，可额外使用 ripgrep 检查未完成占位表达。
 
 ```bash
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*'
 ```

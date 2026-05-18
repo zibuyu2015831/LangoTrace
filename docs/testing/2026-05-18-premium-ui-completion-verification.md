@@ -16,7 +16,7 @@ rg -n '[\p{Han}]' Packages/LangoTraceUI/Sources/LangoTraceUI --glob '*.swift'
 swift test --package-path Packages/LangoTraceUI
 scripts/verify.sh
 find docs -maxdepth 3 -type f | sort
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*'
 git diff --check
 git status --short
 ```

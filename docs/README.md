@@ -27,8 +27,8 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 1. 如果发现现有框架、模块边界、数据模型、路由设计、UI 结构或交互方案存在明显问题，可以直接提出推翻重做，不必为了保留早期 mock 或临时代码而做复杂兼容。
 2. 当前阶段不为尚不存在的历史数据设计迁移，不为临时展示字符串设计向后兼容，不为已废弃的原型页面保留代码路径。
-3. 重要重做仍必须先写入 `docs/worklogs/`，说明为什么原设计不再适合、替代方案是什么、会删除或重写哪些内容，并经用户确认后执行。
-4. 如果推翻的是第 4 节中的核心产品或架构决策，必须新增或更新 ADR；如果只是清理早期实现细节，可在 worklog 中记录即可。
+3. 重要重做仍必须先写入 `docs/plans/active/` 任务方案，说明为什么原设计不再适合、替代方案是什么、会删除或重写哪些内容，并经用户确认后执行。
+4. 如果推翻的是第 4 节中的核心产品或架构决策，必须新增或更新 ADR；如果只是清理早期实现细节，可在任务方案中记录即可。
 5. 判断优先级是：产品正确性、长期架构清晰度、三端体验质量、测试可维护性，优先于早期代码的局部兼容。
 
 简言之：早期实现可以被重写，核心决策需要有记录地调整。不要让临时代码变成长期架构。
@@ -125,8 +125,8 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 13. 同步采用 Sync Engine + Adapter 思路，不绑定 CloudKit-only。
 14. Xcode 工程推荐通过 XcodeGen 生成，工程结构以 `project.yml` 为主要来源。
 15. 具体开发前应读取相关 `docs/spec/` 规范，避免导航、UI、SwiftUI 架构和 AI 请求路径发散。
-16. 新功能、bug 修复、架构调整、数据/AI/隐私/同步/权限/付费相关任务，实现前必须先创建 `docs/worklogs/YYYY-MM-DD-<type>-<short-topic>.md` 并经用户确认。
-17. 高风险实现或阶段性完成后必须检查文档影响。数据库、AI Provider、权限、同步、StoreKit、发布验证、ADR 冲突、首次启动闭环、语言空间闭环、本地记录闭环、验证脚本、XcodeGen、包边界或 App 启动结构变化，应按 [文档审查机制](review/README.md) 触发专项审查或在 worklog 中说明跳过原因。
+16. 新功能、bug 修复、架构调整、数据/AI/隐私/同步/权限/付费相关任务，实现前必须先创建 `docs/plans/active/YYYY-MM-DD-<type>-<short-topic>.md` 并经用户确认。
+17. 高风险实现或阶段性完成后必须检查文档影响。数据库、AI Provider、权限、同步、StoreKit、发布验证、ADR 冲突、首次启动闭环、语言空间闭环、本地记录闭环、验证脚本、XcodeGen、包边界或 App 启动结构变化，应按 [文档审查机制](review/README.md) 触发专项审查或在任务方案中说明跳过原因。
 
 ## 5. 按任务类型读取文档
 
@@ -134,7 +134,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 优先读取：
 
-- [开发工作记录规范](worklogs/README.md)
+- [任务方案文档规范](plans/README.md)
 - [产品主参考文档](product-main-reference.md)
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2、10 节
 - [ADR-004：采用语言空间作为核心信息模型](decisions/004-use-language-space-as-primary-model.md)
@@ -168,7 +168,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 优先读取：
 
-- [开发工作记录规范](worklogs/README.md)
+- [任务方案文档规范](plans/README.md)
 - [项目初始化规划](project-initialization.md)
 - [三端开发顺序方案](development/001-platform-development-sequence.md)
 - [开发环境记录](development-environment.md)
@@ -191,7 +191,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 优先读取：
 
-- [开发工作记录规范](worklogs/README.md)
+- [任务方案文档规范](plans/README.md)
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2、5、6、9 节
 - [文档体系规范](documentation-system.md) 的第 4 节
 - [ADR-005：坚持本地优先和用户自带 Provider](decisions/005-local-first-and-user-owned-providers.md)
@@ -209,7 +209,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 优先读取：
 
-- [开发工作记录规范](worklogs/README.md)
+- [任务方案文档规范](plans/README.md)
 - [产品主参考文档](product-main-reference.md) 的第 9、10 节
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 7、8 节
 - [初始模块边界](architecture/001-initial-module-boundaries.md)
@@ -259,7 +259,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 优先读取：
 
-- [开发工作记录规范](worklogs/README.md)
+- [任务方案文档规范](plans/README.md)
 - [文档体系规范](documentation-system.md)
 - [文档审查机制](review/README.md)
 - [文档审查索引](review/INDEX.md)
@@ -276,14 +276,14 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 形成新结论时，按以下规则写回：
 
-- 每次重要开发或修复任务的过程记录：写入 `docs/worklogs/`。
+- 每次重要开发或修复任务的任务方案：写入 `docs/plans/active/`，完成后移入 `docs/plans/done/`。
 - 产品定位、语言空间、买断制、核心功能：更新 [产品主参考文档](product-main-reference.md)。
 - 技术选型、平台策略、数据和同步路线：更新 [技术框架与开发路线参考](technical-framework-roadmap.md)。
 - 不可轻易反转的取舍：新增或更新 `docs/decisions/`。
 - 模块边界、数据流、Provider、Sync、StoreKit 架构：新增或更新 `docs/architecture/`。
 - 导航、UI、SwiftUI 架构、AI 请求路径等开发一致性约束：新增或更新 `docs/spec/`。
-- 具体实施步骤：写入 `docs/development/` 或 `docs/superpowers/plans/`。
-- 大功能规格：写入 `docs/superpowers/specs/`。
+- 具体实施步骤：写入 `docs/plans/active/`。
+- 大功能规格和长期规范：写入 `docs/spec/`；如果只是一次性任务执行方案，写入 `docs/plans/active/`。
 - 验证流程和手动测试：写入 `docs/testing/`。
 - App Store、TestFlight、StoreKit 和隐私标签：写入 `docs/release/`。
 - 研究材料和未定结论：写入 `docs/research/`。
@@ -305,6 +305,11 @@ docs/
   documentation-system.md
   architecture/
   decisions/
+  plans/
+    README.md
+    active/
+    done/
+    examples/
   spec/
   worklogs/
   review/
@@ -324,15 +329,16 @@ docs/
 
 - `architecture/`：工程架构、模块边界、数据模型、同步模型、AI Provider、长期记忆和安全边界。
 - `decisions/`：架构决策记录，采用 ADR 风格，记录重要取舍、背景、结论和复审条件。
+- `plans/`：统一任务方案目录；一项需求、一个 bug 或一次文档治理只维护一份方案，按 active/done 管理生命周期。
 - `spec/`：开发一致性规范，记录导航、UI、SwiftUI 架构、AI Provider 和隐私等具体开发约束。
-- `worklogs/`：开发工作记录，记录功能开发、bug 修复、重构、调研和工程杂项的背景、方案、用户确认、实施和验证结果。
+- `worklogs/`：待迁移历史目录，不再作为新任务入口；迁移完成后由用户手动删除空目录。
 - `review/`：文档一致性治理机制、审查轮次索引、专项审查和里程碑轻量全审记录。
 - `development/`：阶段开发计划、工程任务拆分、初始化记录、里程碑状态和开发 runbook。
 - `release/`：买断制、StoreKit、App Store、TestFlight、版本策略和发布检查清单。
 - `research/`：竞品、开源项目、技术调研和设计研究。
 - `testing/`：测试策略、手动测试流程、回归用例、模拟器与真机验证记录。
-- `superpowers/specs/`：较大功能或架构变更的设计规格文档。
-- `superpowers/plans/`：经过确认的实施计划。
+- `superpowers/specs/`：待迁移历史规格目录。
+- `superpowers/plans/`：待迁移历史实施计划目录。
 
 ## 9. 当前优先级
 
@@ -350,7 +356,7 @@ docs/
 
 ```bash
 find docs -maxdepth 3 -type f | sort
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*'
 git diff --check
 git status --short
 ```
@@ -381,7 +387,7 @@ xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad
 xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
 swiftlint --no-cache
 swiftformat --lint . --cache ignore
-if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'; then
+if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*'; then
   echo "Documentation placeholder scan found entries." >&2
   exit 1
 fi

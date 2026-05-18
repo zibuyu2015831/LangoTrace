@@ -22,7 +22,7 @@
 | 当前事实源 | `docs/README.md`、`docs/development-environment.md`、`docs/project-initialization.md`、`docs/architecture/` | 必须与当前代码、脚本和工程结构匹配 |
 | 决策源 | `docs/decisions/`、`docs/product-main-reference.md`、`docs/technical-framework-roadmap.md` | 必须与核心产品、架构、隐私、付费和同步决策一致 |
 | 执行规则源 | `docs/spec/`、`docs/testing/`、`docs/release/` | 必须能指导后续实现和验证，允许包含尚未完全实现的规则 |
-| 过程记录 | `docs/worklogs/`、`docs/research/`、`docs/superpowers/` | 保留历史过程，不要求持续改写为最新事实 |
+| 过程记录 | `docs/plans/`、`docs/research/`、历史 `docs/worklogs/`、历史 `docs/superpowers/` | 保留任务过程，不要求持续改写为最新事实 |
 | 审查记录 | `docs/review/rounds/` | 记录某次审查的代码快照、范围、结论和剩余风险 |
 
 过程记录和审查记录不能被当作当前实现事实反复改写。若历史记录与当前代码不同，应在新的事实源文档或新的审查记录中说明演进结果。
@@ -36,8 +36,8 @@
 | 当前实现事实 | 当前代码、`project.yml`、脚本、测试 | 文档必须向实际实现对齐 |
 | 产品核心决策 | 产品主参考文档、ADR、用户明确确认 | 代码若冲突，不能直接改文档迁就代码，应触发复审 |
 | 架构和隐私决策 | ADR、技术路线、spec | 代码若偏离，需要记录为架构债、bug 或 ADR 复审 |
-| 未来计划 | roadmap、worklog、规格或计划文档 | 必须明确写成计划、候选、后续，不得伪装成已实现 |
-| 历史过程 | worklog、research、review round | 保留当时上下文，不强制改写为最新事实 |
+| 未来计划 | roadmap、任务方案、规格或计划文档 | 必须明确写成计划、候选、后续，不得伪装成已实现 |
+| 历史过程 | 历史 worklog、research、review round | 保留当时上下文，不强制改写为最新事实 |
 | 无法从代码判断的设计意图 | 用户澄清或新增决策记录 | 先记录问题，不凭空补入长期文档 |
 
 审查不是为了让所有文档都服从当前代码，而是为了让不同来源的权威关系清晰。
@@ -53,7 +53,7 @@
 
 要求：
 
-- 写在对应 worklog 的“文档影响检查”章节中。
+- 写在对应任务方案的“文档影响检查”章节中。
 - 明确本次变更是否影响 `docs/README.md`、主参考文档、架构文档、spec、testing 或 release 文档。
 - 若不更新文档，应写清理由。
 - 不创建 `docs/review/rounds/`，除非命中专项审查触发条件。
@@ -69,7 +69,7 @@
 - StoreKit、发布验证、App Store 隐私标签。
 - ADR 冲突或核心产品决策冲突。
 
-以下情况默认触发专项审查；若跳过，必须在 worklog 中说明原因：
+以下情况默认触发专项审查；若跳过，必须在任务方案中说明原因：
 
 - 首次启动闭环。
 - 语言空间闭环。
@@ -167,8 +167,8 @@ docs/review/rounds/YYYY-MM-DD-<topic>/
 | 文档完整性问题 | 代码已有关键状态流转，但文档没有说明 | 补全文档 |
 | 跨文档一致性问题 | README 与架构文档对同一模块状态描述不同 | 统一主入口和相关文档 |
 | ADR 冲突 | 代码实现改变核心决策 | 新增或更新 ADR，不能只改普通文档 |
-| 明显代码 bug | 审查时发现状态流转错误、数据丢失风险或崩溃路径 | 新建 `bug` worklog，不在审查中顺手修代码 |
-| 架构债 | 代码能运行但边界与长期架构不匹配 | 新建 `refactor` 或 `chore` worklog，必要时关联 ADR |
+| 明显代码 bug | 审查时发现状态流转错误、数据丢失风险或崩溃路径 | 新建 `bug` 任务方案，不在审查中顺手修代码 |
+| 架构债 | 代码能运行但边界与长期架构不匹配 | 新建 `refactor` 或 `chore` 任务方案，必要时关联 ADR |
 | 测试缺口 | 文档要求某能力有验证，但测试或手动流程缺失 | 更新 `docs/testing/` 或创建测试补充任务 |
 | 未确认设计意图 | 代码看不出为什么这样设计 | 记录为用户澄清项，不凭空写入长期文档 |
 
@@ -176,7 +176,8 @@ docs/review/rounds/YYYY-MM-DD-<topic>/
 
 | 文件或目录 | 谁可以写 | 何时写 |
 | --- | --- | --- |
-| `docs/worklogs/` | 当前任务执行者 | 日常文档影响检查或新问题分流 |
+| `docs/plans/active/` | 当前任务执行者 | 日常文档影响检查或新问题分流 |
+| `docs/plans/done/` | 当前任务执行者 | 任务完成并验证后从 active 移入 |
 | `docs/review/INDEX.md` | 主会话或人工维护者 | 创建或完成审查轮次时 |
 | `docs/review/rounds/<round>/README.md` | 主会话或人工维护者 | 专项审查和里程碑全审 |
 | `docs/review/rounds/<round>/_meta.md` | 主会话或人工维护者 | 复杂审查状态维护 |
@@ -218,7 +219,7 @@ Draft -> In Progress -> Waiting for Clarification -> Waiting for Approval -> Upd
 
 文档审查的最终验收不是文件都写完，而是新会话可用。
 
-- 对日常影响检查：后续执行者能从 worklog 看出本次是否影响文档，影响了哪些文档。
+- 对日常影响检查：后续执行者能从任务方案看出本次是否影响文档，影响了哪些文档。
 - 对专项审查：新会话读取入口文档和相关目标文档后，能说清当前实现状态、下一步边界和验证方式。
 - 对里程碑全审：随机抽取一个核心能力，新会话能仅凭文档找到代码入口和验证路径。
 
@@ -230,7 +231,7 @@ Draft -> In Progress -> Waiting for Clarification -> Waiting for Approval -> Upd
 
 ```bash
 find docs -maxdepth 3 -type f | sort
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*'
 git diff --check
 git status --short
 ```
