@@ -2,28 +2,63 @@ import LangoTraceData
 import SwiftUI
 
 struct UnavailableCapabilityView: View {
+    @Environment(\.dismiss) private var dismiss
+
     let content: UnavailableCapabilityContent
+    var onDismiss: (() -> Void)?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            CapabilityStatusRow(
-                localizedTitleKey: content.titleKey,
-                localizedSummaryKey: content.summaryKey,
-                status: .unavailable,
-                systemImage: content.systemImage,
-                action: nil
-            )
-            LocalizedTextPanel(
-                titleKey: "unavailable.nextRequirement.title",
-                textKey: content.nextRequirementKey
-            )
-            LocalizedTextPanel(
-                titleKey: "unavailable.noSideEffects.title",
-                textKey: "unavailable.noSideEffects.body"
-            )
+        VStack(alignment: .leading, spacing: 0) {
+            if onDismiss != nil {
+                sheetHeader
+                Divider()
+            }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    CapabilityStatusRow(
+                        localizedTitleKey: content.titleKey,
+                        localizedSummaryKey: content.summaryKey,
+                        status: .unavailable,
+                        systemImage: content.systemImage,
+                        action: nil
+                    )
+                    LocalizedTextPanel(
+                        titleKey: "unavailable.nextRequirement.title",
+                        textKey: content.nextRequirementKey
+                    )
+                    LocalizedTextPanel(
+                        titleKey: "unavailable.noSideEffects.title",
+                        textKey: "unavailable.noSideEffects.body"
+                    )
+                }
+                .padding(20)
+            }
         }
-        .padding(20)
         .langoPageBackground()
+    }
+
+    private var sheetHeader: some View {
+        HStack(spacing: 12) {
+            localizedText(presentationTitleKey)
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+            Spacer()
+            Button(action: dismissSheet) {
+                localizedText("common.close")
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+    }
+
+    private var presentationTitleKey: String {
+        content.titleKey
+    }
+
+    private func dismissSheet() {
+        onDismiss?()
+        dismiss()
     }
 }
 

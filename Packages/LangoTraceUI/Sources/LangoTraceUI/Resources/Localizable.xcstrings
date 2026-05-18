@@ -336,6 +336,112 @@
         }
       }
     },
+    "common.close": {
+      "comment": "Close button title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "閉じる"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schließen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "닫기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Закрыть"
+          }
+        }
+      }
+    },
+    "common.continue": {
+      "comment": "Continue button title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "続ける"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계속"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продолжить"
+          }
+        }
+      }
+    },
     "common.save": {
       "comment": "Save button title.",
       "localizations": {
@@ -707,6 +813,112 @@
         }
       }
     },
+    "entryEditor.bodyField.accessibilityHint": {
+      "comment": "Accessibility hint for the entry body editor.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Writes the life moment that will be saved locally."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写将保存在本地的生活片段。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribe el momento de vida que se guardará localmente."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカルに保存する生活の一場面を書きます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rédige le moment de vie qui sera enregistré localement."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schreibt den Lebensmoment, der lokal gespeichert wird."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬에 저장할 생활 순간을 작성합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записывает жизненный момент, который будет сохранен локально."
+          }
+        }
+      }
+    },
+    "entryEditor.bodyField.accessibilityLabel": {
+      "comment": "Accessibility label for the entry body editor.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Life entry body"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生活记录正文"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuerpo de la entrada de vida"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生活記録の本文"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corps de l’entrée de vie"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text des Lebenseintrags"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "생활 기록 본문"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текст жизненной записи"
+          }
+        }
+      }
+    },
     "onboarding.createSpace": {
       "comment": "Create language space button title.",
       "localizations": {
@@ -1026,54 +1238,54 @@
       }
     },
     "onboarding.privacy.noExternalAI": {
-      "comment": "Onboarding AI privacy note.",
+      "comment": "Onboarding local storage note.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No entry is sent while AI is not configured. AI, sync, dictionaries and prompts can be set up later."
+            "value": "Your first language space starts locally. Capability boundaries can be reviewed later in settings."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未配置 AI 时不会发送任何记录。AI、同步、词典和 Prompt 都可以稍后在设置中处理。"
+            "value": "第一个语言空间从本地开始。能力边界稍后可在设置中查看。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se envía ninguna entrada mientras la IA no esté configurada. IA, sincronización, diccionarios y prompts se pueden configurar más tarde."
+            "value": "Tu primer espacio de idioma empieza localmente. Los límites de capacidades se pueden revisar más tarde en ajustes."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "AIが未設定の間、記録は送信されません。AI、同期、辞書、Promptは後で設定できます。"
+            "value": "最初の言語スペースはローカルから始まります。機能の境界は後で設定で確認できます。"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucune entrée n’est envoyée tant que l’IA n’est pas configurée. IA, synchronisation, dictionnaires et prompts pourront être configurés plus tard."
+            "value": "Votre premier espace de langue commence localement. Les limites des capacités peuvent être relues plus tard dans les réglages."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solange KI nicht konfiguriert ist, wird kein Eintrag gesendet. KI, Sync, Wörterbücher und Prompts können später eingerichtet werden."
+            "value": "Dein erster Sprachraum startet lokal. Funktionsgrenzen kannst du später in den Einstellungen prüfen."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI가 설정되지 않은 동안에는 어떤 기록도 전송되지 않습니다. AI, 동기화, 사전, Prompt는 나중에 설정할 수 있습니다."
+            "value": "첫 언어 공간은 로컬에서 시작합니다. 기능 경계는 나중에 설정에서 확인할 수 있습니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Пока ИИ не настроен, записи не отправляются. ИИ, синхронизацию, словари и prompt можно настроить позже."
+            "value": "Первое языковое пространство начинается локально. Границы возможностей можно позже проверить в настройках."
           }
         }
       }
@@ -4998,6 +5210,59 @@
           "stringUnit": {
             "state": "translated",
             "value": "本地向量索引尚未接入"
+          }
+        }
+      }
+    },
+    "welcome.localOnlyNote": {
+      "comment": "Short welcome note explaining the first step is local-only.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue when you are ready. No AI, sync, or external request starts from this screen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备好后再继续。本页不会启动 AI、同步或任何外部请求。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continúa cuando estés listo. Esta pantalla no inicia IA, sincronización ni solicitudes externas."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "準備できたら続けてください。この画面からAI、同期、外部リクエストは開始されません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuez quand vous êtes prêt. Cet écran ne lance ni IA, ni sync, ni requête externe."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fahre fort, wenn du bereit bist. Dieser Bildschirm startet keine KI, Sync oder externe Anfrage."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "준비되면 계속하세요. 이 화면에서는 AI, 동기화 또는 외부 요청이 시작되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продолжайте, когда будете готовы. Этот экран не запускает ИИ, синхронизацию или внешние запросы."
           }
         }
       }

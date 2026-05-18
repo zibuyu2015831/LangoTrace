@@ -18,10 +18,6 @@ struct WelcomeView: View {
             .padding(.vertical, 36)
             .frame(maxWidth: 640, maxHeight: .infinity, alignment: .leading)
         }
-        .task {
-            try? await Task.sleep(for: .milliseconds(650))
-            onFinished()
-        }
     }
 
     private var brandBlock: some View {
@@ -69,8 +65,20 @@ struct WelcomeView: View {
                 .font(.body)
                 .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
                 .fixedSize(horizontal: false, vertical: true)
-            ProgressView()
-                .controlSize(.small)
+            Button(action: onFinished) {
+                Label {
+                    localizedText("common.continue")
+                } icon: {
+                    Image(systemName: "arrow.right")
+                }
+                .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.borderedProminent)
+            .padding(.top, 4)
+            localizedText("welcome.localOnlyNote")
+                .font(.footnote)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 4)
         }
         .langoPanel(padding: 22)

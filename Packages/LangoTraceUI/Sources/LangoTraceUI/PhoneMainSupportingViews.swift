@@ -23,6 +23,8 @@ struct EntryEditorView: View {
                     }
                     TextEditor(text: $bodyText)
                         .frame(minHeight: 180)
+                        .accessibilityLabel(localizedText("entryEditor.bodyField.accessibilityLabel"))
+                        .accessibilityHint(localizedText("entryEditor.bodyField.accessibilityHint"))
                 } header: {
                     localizedText("entryEditor.section.content")
                 }

@@ -726,6 +726,33 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 - 本阶段只建立最小替换 seam，不改变 `createEntry` 自动生成 mock closure 的旧行为；P1-003 留到任务 5 单独收敛。
 - App composition root 仍使用 in-memory repository，后续真实 repository 由数据持久化计划承接。
 
+### 2026-05-18 阶段 2：Visible interaction and accessibility baseline
+
+处理范围：
+
+- 完成任务 2 / P1-009 的第一轮实现，并覆盖 Welcome 自动跳转、unavailable sheet、Entry editor body accessibility label、Onboarding 首屏说明收敛。
+- `SentencePairView` 增加 `onListen` seam；默认点击 Listen 展示 `.listenOne` unavailable sheet，不再存在可见空 action。
+- `UnavailableCapabilityView` 改为滚动内容，作为 sheet 使用时显示标题和关闭按钮；iPhone / iPad sheet 调用传入 `onDismiss`。
+- `WelcomeView` 删除 650ms 自动推进，改为显式 Continue button；补充不会从欢迎页启动 AI、同步或外部请求的轻量说明。
+- `EntryEditorView` 为 `TextEditor` 增加 body accessibility label / hint。
+- Onboarding 隐私说明从 AI / 同步 / 词典 / Prompt 列表收敛为“本地创建第一个语言空间，能力边界稍后在设置中查看”。
+- String Catalog 补充 `common.close`、`common.continue`、`welcome.localOnlyNote`、`entryEditor.bodyField.accessibilityLabel`、`entryEditor.bodyField.accessibilityHint`。
+
+验证结果：
+
+- TDD red：`swift test --package-path Packages/LangoTraceUI --filter stageFourVisibleInteractionAndAccessibilityGapsStayClosed` 初次失败，覆盖 `Button {}`、Welcome `.task`、Entry editor body label、Unavailable sheet 结构缺口。
+- TDD green：同一测试通过。
+- `swift test --package-path Packages/LangoTraceUI` 通过，26 个测试通过。
+- `ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI/Resources/Localizable.xcstrings")); puts "json ok"'` 通过。
+- `rg -n "Button \\{\\}|\\.task \\{" Packages/LangoTraceUI/Sources/LangoTraceUI` 无命中。
+- `git diff --check` 通过。
+- `xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build` 通过。
+
+剩余边界：
+
+- 本阶段只关闭明显可点入口和基础 accessibility 风险；Dynamic Type / 44pt / compact row 的完整模式仍由任务 8、任务 12、任务 13 继续收敛。
+- Listen 当前仍是 unavailable / local mock 反馈，不接入真实 TTS 或音频播放。
+
 ## 17. 完成标准
 
 本任务完成必须同时满足：

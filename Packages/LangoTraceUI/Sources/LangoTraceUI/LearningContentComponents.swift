@@ -70,7 +70,9 @@ struct SideItem: View {
 struct SentencePairView: View {
     let index: Int
     let sentence: RenderingSentence
+    var onListen: (() -> Void)?
     let onPractice: () -> Void
+    @State private var isListenUnavailablePresented = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
@@ -92,7 +94,13 @@ struct SentencePairView: View {
             }
             Spacer()
             HStack(spacing: 8) {
-                Button {} label: {
+                Button {
+                    if let onListen {
+                        onListen()
+                    } else {
+                        isListenUnavailablePresented = true
+                    }
+                } label: {
                     localizedText("common.listen")
                 }
                 .buttonStyle(.bordered)
@@ -104,6 +112,12 @@ struct SentencePairView: View {
             }
         }
         .langoPanel()
+        .sheet(isPresented: $isListenUnavailablePresented) {
+            UnavailableCapabilityView(content: .listenOne) {
+                isListenUnavailablePresented = false
+            }
+            .presentationDetents([.medium, .large])
+        }
     }
 }
 

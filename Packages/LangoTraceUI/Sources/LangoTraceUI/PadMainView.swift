@@ -81,7 +81,9 @@ struct PadMainView: View {
                     presentedSheet = nil
                 }
             case .unavailableSearch:
-                UnavailableCapabilityView(content: .search)
+                UnavailableCapabilityView(content: .search) {
+                    presentedSheet = nil
+                }
             }
         }
         .onAppear {

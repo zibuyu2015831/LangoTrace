@@ -146,6 +146,32 @@ struct PremiumUIBehaviorTests {
         }
     }
 
+    @Test("Stage four visible interaction and accessibility gaps stay closed")
+    func stageFourVisibleInteractionAndAccessibilityGapsStayClosed() throws {
+        let learningContentComponents = try String(
+            contentsOf: sourceFileURL(named: "LearningContentComponents.swift"),
+            encoding: .utf8
+        )
+        let welcomeView = try String(contentsOf: sourceFileURL(named: "WelcomeView.swift"), encoding: .utf8)
+        let phoneSupportingViews = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
+            encoding: .utf8
+        )
+        let unavailableView = try String(
+            contentsOf: sourceFileURL(named: "UnavailableCapabilityView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(!learningContentComponents.contains("Button {}"))
+        #expect(learningContentComponents.contains("onListen"))
+        #expect(!welcomeView.contains(".task {"))
+        #expect(welcomeView.contains("Button(action: onFinished)"))
+        #expect(phoneSupportingViews.contains(#"accessibilityLabel(localizedText("entryEditor.bodyField.accessibilityLabel"))"#))
+        #expect(unavailableView.contains("ScrollView"))
+        #expect(unavailableView.contains("presentationTitleKey"))
+        #expect(unavailableView.contains("onDismiss"))
+    }
+
     @Test("LangoTraceUI Swift chrome contains no hard-coded Han characters")
     func langoTraceUISwiftChromeContainsNoHardCodedHanCharacters() throws {
         let sourcesRoot = URL(fileURLWithPath: #filePath)
