@@ -50,7 +50,7 @@ public struct OnboardingDraft: Equatable, Sendable {
 
         return LanguageSpacePreview(
             id: targetLanguage.code,
-            name: targetLanguage.spaceNameForChineseUI,
+            name: targetLanguage.defaultSpaceName,
             nativeLanguage: nativeLanguage.zhHansName,
             targetLanguage: targetLanguage.zhHansName,
             level: normalizedDraft.level

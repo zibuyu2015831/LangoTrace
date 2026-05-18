@@ -40,6 +40,11 @@ public struct LangoTraceRootView: View {
         self.onWelcomeFinished = onWelcomeFinished
         self.onCreateLanguageSpace = onCreateLanguageSpace
         self.onInterfaceLanguagePreferenceChange = onInterfaceLanguagePreferenceChange
+        LocalizedChromeLanguageResolver.use(
+            languageCode: interfaceLanguagePreference.resolvedLanguageCode(
+                systemLanguageCodes: Bundle.main.preferredLocalizations
+            )
+        )
     }
 
     public var body: some View {
@@ -61,6 +66,10 @@ public struct LangoTraceRootView: View {
                 )
             }
         }
+        .onAppear(perform: applyInterfaceChromeLanguage)
+        .onChange(of: interfaceLanguagePreference) {
+            applyInterfaceChromeLanguage()
+        }
         .tint(LangoTraceDesign.ColorToken.teal)
     }
 
@@ -81,6 +90,13 @@ public struct LangoTraceRootView: View {
                 .main
             }
         }
+    }
+
+    private func applyInterfaceChromeLanguage() {
+        let resolvedLanguageCode = interfaceLanguagePreference.resolvedLanguageCode(
+            systemLanguageCodes: Bundle.main.preferredLocalizations
+        )
+        LocalizedChromeLanguageResolver.use(languageCode: resolvedLanguageCode)
     }
 }
 

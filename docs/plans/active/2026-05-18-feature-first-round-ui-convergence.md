@@ -753,6 +753,31 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 - 本阶段只关闭明显可点入口和基础 accessibility 风险；Dynamic Type / 44pt / compact row 的完整模式仍由任务 8、任务 12、任务 13 继续收敛。
 - Listen 当前仍是 unavailable / local mock 反馈，不接入真实 TTS 或音频播放。
 
+### 2026-05-18 阶段 3：Explicit interface language chrome
+
+处理范围：
+
+- 完成任务 3 / P1-007 的第一轮实现。
+- `LocalizedChrome` 不再直接读取 `Locale.preferredLanguages`；新增 `LocalizedChromeLanguageResolver`，由 `LangoTraceRootView` 根据 `InterfaceLanguagePreference.resolvedLanguageCode(systemLanguageCodes: Bundle.main.preferredLocalizations)` 驱动自有 chrome。
+- 增加 `withLocalizedChromeLanguageCode` 测试辅助，验证 English / 简体中文 / Español 可驱动 `localizedString("tab.settings")`。
+- 保留 `System` 语义：仍由 `InterfaceLanguagePreference.system.resolvedLanguageCode(systemLanguageCodes:)` 与支持语言求交集，无法匹配时回退 English。
+- 新增 `InterfaceLocalization.swift`，将 onboarding 语言显示投影移到 UI 层的 `LearningLanguageDisplayPolicy`；Core 的 `LearningLanguage` 不再暴露 `ChineseUI` 命名的 display helper。
+- 更新 Core 测试，保留模型稳定字段和默认语言空间名称测试。
+
+验证结果：
+
+- TDD red：阶段 3 新增测试初次失败，原因是缺少 chrome language override 和 UI display projection 文件；Core 测试也暴露旧 `ChineseUI` helper 依赖。
+- `swift test --package-path Packages/LangoTraceCore` 通过，26 个测试通过。
+- `swift test --package-path Packages/LangoTraceUI` 通过，29 个测试通过。
+- `rg -n "Locale\\.preferredLanguages|ChineseUI|pickerMenuTitleForChineseUI|selectedTitleForChineseUI|spaceNameForChineseUI" Packages/LangoTraceUI/Sources Packages/LangoTraceCore/Sources LangoTraceApp` 无命中。
+- `git diff --check` 通过。
+- `xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build` 通过。
+
+剩余边界：
+
+- 本阶段只覆盖 package-owned SwiftUI chrome；InfoPlist、权限弹窗、StoreKit、文件选择器、系统 per-app language 和 Provider 输出仍按 `spec/006` 的分层边界处理。
+- UI 内语言切换不会改变语言空间、学习内容或 Provider 输出。
+
 ## 17. 完成标准
 
 本任务完成必须同时满足：

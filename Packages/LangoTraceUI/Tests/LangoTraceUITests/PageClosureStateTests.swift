@@ -117,6 +117,43 @@ struct PageClosureStateTests {
         }
     }
 
+    @Test("Explicit interface language drives localized chrome lookup")
+    func explicitInterfaceLanguageDrivesLocalizedChromeLookup() {
+        withLocalizedChromeLanguageCode("en") {
+            #expect(localizedString("tab.settings") == "Settings")
+        }
+
+        withLocalizedChromeLanguageCode("zh-Hans") {
+            #expect(localizedString("tab.settings") == "设置")
+        }
+
+        withLocalizedChromeLanguageCode("es") {
+            #expect(localizedString("tab.settings") == "Ajustes")
+        }
+    }
+
+    @Test("System interface language resolves through supported bundle languages")
+    func systemInterfaceLanguageResolvesThroughSupportedBundleLanguages() {
+        #expect(InterfaceLanguagePreference.system.resolvedLanguageCode(
+            systemLanguageCodes: ["pt-BR", "es-MX", "en"]
+        ) == "es")
+        #expect(InterfaceLanguagePreference.system.resolvedLanguageCode(
+            systemLanguageCodes: ["zh-Hans-CN", "en"]
+        ) == "zh-Hans")
+        #expect(InterfaceLanguagePreference.system.resolvedLanguageCode(
+            systemLanguageCodes: ["pt-BR"]
+        ) == "en")
+    }
+
+    @Test("Learning language display projection stays in UI layer")
+    func learningLanguageDisplayProjectionStaysInUILayer() throws {
+        let coreSource = try String(contentsOf: coreSourceFileURL(named: "LearningLanguage.swift"), encoding: .utf8)
+        let uiSource = try String(contentsOf: sourceFileURL(named: "InterfaceLocalization.swift"), encoding: .utf8)
+
+        #expect(!coreSource.contains("ChineseUI"))
+        #expect(uiSource.contains("LearningLanguageDisplayPolicy"))
+    }
+
     @Test("Settings capability detail chrome uses UI localization keys")
     func settingsCapabilityDetailChromeUsesUILocalizationKeys() {
         for kind in SettingsCapability.Kind.allCases {
@@ -139,5 +176,27 @@ struct PageClosureStateTests {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .appendingPathComponent("Sources/LangoTraceUI/Resources/Localizable.xcstrings")
+    }
+
+    private func coreSourceFileURL(named fileName: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("LangoTraceCore")
+            .appendingPathComponent("Sources")
+            .appendingPathComponent("LangoTraceCore")
+            .appendingPathComponent(fileName)
+    }
+
+    private func sourceFileURL(named fileName: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources")
+            .appendingPathComponent("LangoTraceUI")
+            .appendingPathComponent(fileName)
     }
 }

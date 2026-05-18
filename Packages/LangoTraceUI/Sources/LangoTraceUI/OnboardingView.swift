@@ -164,8 +164,8 @@ struct OnboardingView: View {
     }
 
     private var createSummary: String {
-        "\(draft.resolvedNativeLanguage.selectedTitleForChineseUI) -> " +
-            "\(draft.resolvedTargetLanguage.selectedTitleForChineseUI) · \(draft.level.rawValue)"
+        "\(draft.resolvedNativeLanguage.displayTitle(for: .selectedValue)) -> " +
+            "\(draft.resolvedTargetLanguage.displayTitle(for: .selectedValue)) · \(draft.level.rawValue)"
     }
 }
 
@@ -181,12 +181,12 @@ private struct LanguageMenu: View {
                 Button {
                     onSelect(language)
                 } label: {
-                    Text(language.pickerMenuTitleForChineseUI)
+                    Text(language.displayTitle(for: .onboardingPicker))
                 }
             }
         } label: {
             HStack(spacing: 8) {
-                Text(selectedLanguage.selectedTitleForChineseUI)
+                Text(selectedLanguage.displayTitle(for: .selectedValue))
                     .lineLimit(1)
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.caption.weight(.semibold))
@@ -200,7 +200,7 @@ private struct LanguageMenu: View {
         }
         .menuStyle(.button)
         .accessibilityLabel(localizedText(titleKey))
-        .accessibilityValue(selectedLanguage.pickerMenuTitleForChineseUI)
+        .accessibilityValue(selectedLanguage.displayTitle(for: .onboardingPicker))
         .accessibilityHint(localizedText(titleKey))
     }
 }

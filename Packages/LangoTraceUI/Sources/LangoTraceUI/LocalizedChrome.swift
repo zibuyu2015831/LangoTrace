@@ -8,7 +8,10 @@ func localizedText(_ key: String) -> Text {
 }
 
 func localizedString(_ key: String) -> String {
-    LocalizedChromeCatalog.shared.localizedString(for: key)
+    LocalizedChromeCatalog.shared.localizedString(
+        for: key,
+        preferredLanguageCodes: LocalizedChromeLanguageResolver.preferredLanguageCodes
+    )
 }
 
 func localizedString(_ key: String, _ arguments: CVarArg...) -> String {
@@ -53,12 +56,12 @@ private struct LocalizedChromeCatalog {
         }
     }
 
-    func localizedString(for key: String) -> String {
+    func localizedString(for key: String, preferredLanguageCodes: [String]) -> String {
         guard let localizations = strings[key] else {
             return key
         }
 
-        for identifier in Locale.preferredLanguages {
+        for identifier in preferredLanguageCodes {
             if let exact = localizations[identifier] {
                 return exact
             }
@@ -75,6 +78,39 @@ private struct LocalizedChromeCatalog {
 
         return localizations["en"] ?? localizations["zh-Hans"] ?? key
     }
+}
+
+enum LocalizedChromeLanguageResolver {
+    nonisolated(unsafe) private static var overrideLanguageCodes: [String]?
+
+    static var preferredLanguageCodes: [String] {
+        overrideLanguageCodes ?? ["en"]
+    }
+
+    static func use(languageCode: String?) {
+        if let languageCode {
+            overrideLanguageCodes = [languageCode]
+        } else {
+            overrideLanguageCodes = nil
+        }
+    }
+
+    static func snapshotOverride() -> [String]? {
+        overrideLanguageCodes
+    }
+
+    static func restoreOverride(_ languageCodes: [String]?) {
+        overrideLanguageCodes = languageCodes
+    }
+}
+
+func withLocalizedChromeLanguageCode<T>(_ languageCode: String, operation: () throws -> T) rethrows -> T {
+    let previous = LocalizedChromeLanguageResolver.snapshotOverride()
+    LocalizedChromeLanguageResolver.use(languageCode: languageCode)
+    defer {
+        LocalizedChromeLanguageResolver.restoreOverride(previous)
+    }
+    return try operation()
 }
 
 func interfaceLanguagePreferenceTitleKey(for preference: InterfaceLanguagePreference) -> String {

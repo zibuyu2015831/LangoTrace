@@ -8,15 +8,7 @@ public struct LearningLanguage: Equatable, Sendable, Identifiable {
         code
     }
 
-    public var pickerMenuTitleForChineseUI: String {
-        nativeName == zhHansName ? nativeName : "\(nativeName)（\(zhHansName)）"
-    }
-
-    public var selectedTitleForChineseUI: String {
-        nativeName
-    }
-
-    public var spaceNameForChineseUI: String {
+    public var defaultSpaceName: String {
         "\(zhHansName)空间"
     }
 
