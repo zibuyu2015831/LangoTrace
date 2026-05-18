@@ -22,7 +22,7 @@
 | 当前事实源 | `docs/README.md`、`docs/development-environment.md`、`docs/project-initialization.md`、`docs/architecture/` | 必须与当前代码、脚本和工程结构匹配 |
 | 决策源 | `docs/decisions/`、`docs/product-main-reference.md`、`docs/technical-framework-roadmap.md` | 必须与核心产品、架构、隐私、付费和同步决策一致 |
 | 执行规则源 | `docs/spec/`、`docs/testing/`、`docs/release/` | 必须能指导后续实现和验证，允许包含尚未完全实现的规则 |
-| 过程记录 | `docs/plans/`、`docs/research/`、历史 `docs/worklogs/`、历史 `docs/superpowers/` | 保留任务过程，不要求持续改写为最新事实 |
+| 过程记录 | `docs/plans/`、`docs/research/`、历史 `docs/archive/worklogs/`、历史 `docs/archive/superpowers/` | 保留任务过程，不要求持续改写为最新事实 |
 | 审查记录 | `docs/review/rounds/` | 记录某次审查的代码快照、范围、结论和剩余风险 |
 
 过程记录和审查记录不能被当作当前实现事实反复改写。若历史记录与当前代码不同，应在新的事实源文档或新的审查记录中说明演进结果。

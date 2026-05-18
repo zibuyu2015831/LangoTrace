@@ -205,7 +205,7 @@ iPad 和 macOS 上，语言空间和设置入口默认属于 Sidebar 底部工�
 
 设计系统规格入口：
 
-- `docs/superpowers/specs/mvp-ui-flow-and-design-system.md`
+- `docs/spec/ui-design/mvp-ui-flow-and-design-system.md`
 
 ### 4.11 页面闭环先于整体视觉升级
 

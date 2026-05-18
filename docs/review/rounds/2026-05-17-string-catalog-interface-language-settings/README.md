@@ -6,12 +6,12 @@
 
 关联工作记录：
 
-- `docs/worklogs/2026-05-17-feature-string-catalog-interface-language-settings.md`
+- `docs/plans/done/2026-05-17-feature-string-catalog-interface-language-settings.md`
 
 关联规格和计划：
 
-- `docs/superpowers/specs/2026-05-17-string-catalog-interface-language-settings-design.md`
-- `docs/superpowers/plans/2026-05-17-string-catalog-interface-language-settings.md`
+- `docs/spec/interface-localization/2026-05-17-string-catalog-interface-language-settings-design.md`
+- `docs/archive/superpowers/plans/2026-05-17-string-catalog-interface-language-settings.md`
 
 ## 审查范围
 

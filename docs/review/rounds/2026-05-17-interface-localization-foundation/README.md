@@ -18,7 +18,7 @@
 - `docs/README.md` 中验证脚本展开说明
 - `docs/testing/README.md`
 - `docs/spec/006-interface-localization-and-language-boundaries.md`
-- `docs/worklogs/2026-05-17-feature-interface-localization-foundation.md`
+- `docs/plans/done/2026-05-17-feature-interface-localization-foundation.md`
 
 ## 3. 相关源码、脚本和配置
 
@@ -51,7 +51,7 @@
 
 - 更新 `docs/README.md`：验证脚本展开说明加入 Data package 测试。
 - 更新 `docs/testing/README.md`：新增界面国际化基础验证清单。
-- 更新 `docs/worklogs/2026-05-17-feature-interface-localization-foundation.md`：记录实现和验证脚本影响。
+- 更新 `docs/plans/done/2026-05-17-feature-interface-localization-foundation.md`：记录实现和验证脚本影响。
 
 ## 7. 用户澄清
 

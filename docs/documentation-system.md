@@ -218,14 +218,13 @@ docs/release/003-privacy-labels-and-permissions.md
 
 位置：
 
-- `docs/superpowers/specs/`
-- `docs/superpowers/plans/`
+- `docs/archive/superpowers/`
 
 用途：
 
-- 这两个目录是待迁移历史目录，不再作为新任务入口。
-- 仍有价值的规格迁入 `docs/spec/`。
-- 仍有价值的实施计划迁入 `docs/plans/active/` 或 `docs/plans/done/`。
+- 这是旧 `docs/superpowers/` 的历史归档位置，不再作为新任务入口。
+- 仍有价值的规格已经迁入 `docs/spec/`。
+- 与历史任务重复的旧实施计划归档到 `docs/archive/superpowers/plans/`，避免在 `docs/plans/` 下为同一任务保留两份方案。
 
 ### 2.11 文档审查
 
