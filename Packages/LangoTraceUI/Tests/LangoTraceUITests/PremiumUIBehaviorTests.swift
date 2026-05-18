@@ -243,7 +243,9 @@ struct PremiumUIBehaviorTests {
         #expect(learningContentComponents.contains("onListen"))
         #expect(!welcomeView.contains(".task {"))
         #expect(welcomeView.contains("Button(action: onFinished)"))
-        #expect(phoneSupportingViews.contains(#"accessibilityLabel(localizedText("entryEditor.bodyField.accessibilityLabel"))"#))
+        #expect(phoneSupportingViews.contains(
+            #"accessibilityLabel(localizedText("entryEditor.bodyField.accessibilityLabel"))"#
+        ))
         #expect(unavailableView.contains("ScrollView"))
         #expect(unavailableView.contains("presentationTitleKey"))
         #expect(unavailableView.contains("onDismiss"))
@@ -267,8 +269,10 @@ struct PremiumUIBehaviorTests {
             #expect(source.range(of: #"\p{script=Han}"#, options: .regularExpression) == nil)
         }
     }
+}
 
-    private func rendering(isMock: Bool) -> LearningRendering {
+private extension PremiumUIBehaviorTests {
+    func rendering(isMock: Bool) -> LearningRendering {
         LearningRendering(
             id: "rendering-1",
             entryID: "entry-1",
@@ -280,7 +284,7 @@ struct PremiumUIBehaviorTests {
         )
     }
 
-    private func sourceFileURL(named fileName: String) -> URL {
+    func sourceFileURL(named fileName: String) -> URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()

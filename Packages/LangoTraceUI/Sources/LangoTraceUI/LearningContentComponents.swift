@@ -66,31 +66,6 @@ struct EntryTimelineRow: View {
     }
 }
 
-struct SideItem: View {
-    let title: String
-    let subtitle: String
-    let active: Bool
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.headline)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-            Text(subtitle)
-                .font(.caption)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(active ? LangoTraceDesign.ColorToken.surfaceRaised : Color.clear)
-        .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous)
-                .stroke(active ? LangoTraceDesign.ColorToken.accent.opacity(0.25) : Color.clear, lineWidth: 1)
-        }
-    }
-}
-
 struct MemoryLayerSummaryView: View {
     let memoryItems: [MemoryItem]
 
@@ -376,54 +351,5 @@ struct CapabilityStatusRow: View {
         case .info:
             LangoTraceDesign.ColorToken.accent
         }
-    }
-}
-
-struct PracticeControlBar: View {
-    let steps: [PracticeSessionStep]
-    let currentStep: PracticeSessionStep
-    let onSelectStep: (PracticeSessionStep) -> Void
-    let onNext: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                ForEach(steps, id: \.self) { step in
-                    Button {
-                        onSelectStep(step)
-                    } label: {
-                        Text(step.displayTitle)
-                            .font(.caption.weight(.semibold))
-                            .frame(maxWidth: .infinity, minHeight: 36)
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(step == currentStep ? .white : LangoTraceDesign.ColorToken.accent)
-                    .background(
-                        step == currentStep
-                            ? LangoTraceDesign.ColorToken.accent
-                            : LangoTraceDesign.ColorToken.surfaceAccentMuted
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .accessibilityLabel(step.displayTitle)
-                    .accessibilityValue(accessibilityValue(for: step))
-                }
-            }
-            Button(action: onNext) {
-                Label {
-                    localizedText(currentStep == .completed ? "common.keepCompleted" : "common.nextStep")
-                } icon: {
-                    Image(systemName: "arrow.right")
-                }
-                .frame(maxWidth: .infinity, minHeight: 44)
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .langoPanel(padding: 14)
-    }
-
-    private func accessibilityValue(for step: PracticeSessionStep) -> Text {
-        step == currentStep
-            ? localizedText("common.currentStep")
-            : localizedText("common.switchable")
     }
 }

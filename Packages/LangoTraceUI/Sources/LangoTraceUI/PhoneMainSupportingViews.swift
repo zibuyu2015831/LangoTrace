@@ -54,10 +54,14 @@ struct EntryEditorView: View {
                     } label: {
                         localizedText("common.save")
                     }
-                    .disabled(bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(!canSave)
                 }
             }
         }
+    }
+
+    private var canSave: Bool {
+        !bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
 

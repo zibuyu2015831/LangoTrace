@@ -77,19 +77,17 @@ struct MacMainView: View {
         }
         .animation(panelAnimation, value: isSidebarVisible)
         .animation(panelAnimation, value: isInspectorVisible)
-        .sheet(isPresented: $isEntryEditorPresented) {
-            EntryEditorView(languageSpace: languageSpace) { title, body in
-                let entry = contentStore.createEntry(
-                    title: title,
-                    body: body,
-                    source: .typedText
+        .overlay {
+            if isEntryEditorPresented {
+                MacEntryEditorOverlay(
+                    languageSpace: languageSpace,
+                    onCancel: closeEntryEditor,
+                    onSave: saveEntry
                 )
-                selectedEntryID = entry.id
-                selectedSection = .entries
-                route = .entryDetail(entry.id)
-                isEntryEditorPresented = false
+                .transition(reduceMotion ? .identity : .opacity)
             }
         }
+        .animation(panelAnimation, value: isEntryEditorPresented)
         .onAppear {
             contentStore.ensureSeeded()
             selectedEntryID = selectedEntryID ?? contentStore.selectedEntry?.id
@@ -172,10 +170,6 @@ struct MacMainView: View {
         route = action.route
     }
 
-    private func selectionAccessibilityValue(for section: MacWorkspaceSection) -> Text {
-        localizedText(selectedSection == section ? "accessibility.selected" : "accessibility.unselected")
-    }
-
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text(ProductIdentity.displayName)
@@ -183,21 +177,17 @@ struct MacMainView: View {
 
             VStack(spacing: 8) {
                 ForEach(MacWorkspaceSection.allCases, id: \.self) { section in
-                    Button {
-                        selectSection(section)
-                    } label: {
-                        SideItem(
-                            title: localizedString(section.titleKey),
-                            subtitle: section.subtitle(
-                                entriesCount: entries.count,
-                                memoryCount: memoryItems.count
-                            ),
-                            active: selectedSection == section
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(localizedText(section.titleKey))
-                    .accessibilityValue(selectionAccessibilityValue(for: section))
+                    MacSidebarItem(
+                        title: localizedString(section.titleKey),
+                        subtitle: section.subtitle(
+                            entriesCount: entries.count,
+                            memoryCount: memoryItems.count
+                        ),
+                        active: selectedSection == section,
+                        action: {
+                            selectSection(section)
+                        }
+                    )
                 }
             }
 
@@ -274,5 +264,110 @@ struct MacMainView: View {
             .padding(24)
         }
         .frame(width: LangoTraceDesign.Density.macInspectorWidth, alignment: .topLeading)
+    }
+}
+
+private extension MacMainView {
+    func closeEntryEditor() {
+        isEntryEditorPresented = false
+    }
+
+    func saveEntry(title: String, body: String) {
+        let entry = contentStore.createEntry(
+            title: title,
+            body: body,
+            source: .typedText
+        )
+        selectedEntryID = entry.id
+        selectedSection = .entries
+        route = .entryDetail(entry.id)
+        isEntryEditorPresented = false
+    }
+}
+
+private struct MacEntryEditorOverlay: View {
+    let languageSpace: LanguageSpacePreview
+    let onCancel: () -> Void
+    let onSave: (String, String) -> Void
+
+    var body: some View {
+        ZStack {
+            LangoTraceDesign.ColorToken.ink.opacity(0.20)
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    onCancel()
+                }
+
+            MacEntryEditorSheet(
+                languageSpace: languageSpace,
+                onCancel: onCancel,
+                onSave: onSave
+            )
+            .padding(28)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .contain)
+    }
+}
+
+private struct MacSidebarItem: View {
+    let title: String
+    let subtitle: String
+    let active: Bool
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+            .background(itemBackground)
+            .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous)
+                    .stroke(itemStroke, lineWidth: 1)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .focusable()
+        .focusEffectDisabled()
+        .onHover { isHovered = $0 }
+        .contextMenu {
+            Button(action: action) {
+                Text(title)
+            }
+        }
+        .help(title)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(title))
+        .accessibilityValue(localizedText(active ? "accessibility.selected" : "accessibility.unselected"))
+        .accessibilityAddTraits(active ? .isSelected : [])
+    }
+
+    private var itemBackground: Color {
+        if active {
+            return LangoTraceDesign.ColorToken.surfaceRaised
+        }
+
+        return isHovered ? LangoTraceDesign.ColorToken.elevatedPaper : .clear
+    }
+
+    private var itemStroke: Color {
+        if active {
+            return LangoTraceDesign.ColorToken.accent.opacity(0.25)
+        }
+
+        return isHovered ? LangoTraceDesign.ColorToken.hairline : .clear
     }
 }
