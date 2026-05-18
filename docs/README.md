@@ -310,6 +310,7 @@ docs/
     active/
     done/
     examples/
+  prompts/
   spec/
   worklogs/
   review/
@@ -330,6 +331,7 @@ docs/
 - `architecture/`：工程架构、模块边界、数据模型、同步模型、AI Provider、长期记忆和安全边界。
 - `decisions/`：架构决策记录，采用 ADR 风格，记录重要取舍、背景、结论和复审条件。
 - `plans/`：统一任务方案目录；一项需求、一个 bug 或一次文档治理只维护一份方案，按 active/done 管理生命周期。
+- `prompts/`：Prompt Registry，记录真实代码 Prompt 的英文版本、中文版本、输入变量、输出契约和隐私边界。
 - `spec/`：开发一致性规范，记录导航、UI、SwiftUI 架构、AI Provider 和隐私等具体开发约束。
 - `worklogs/`：待迁移历史目录，不再作为新任务入口；迁移完成后由用户手动删除空目录。
 - `review/`：文档一致性治理机制、审查轮次索引、专项审查和里程碑轻量全审记录。

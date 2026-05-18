@@ -287,6 +287,8 @@ git status --short
 - 2026-05-18：阶段 1 执行 `docs/guidelines/` -> `docs/spec/` 目录重命名，批量更新旧路径引用，并同步更新 `docs/README.md`、`docs/documentation-system.md`、`docs/review/README.md`、`docs/review/INDEX.md` 等入口和治理文档。
 - 2026-05-18：提交阶段 1：`2379417 docs: rename documentation guidelines to spec`。
 - 2026-05-18：阶段 2 创建 `docs/plans/README.md`、`docs/plans/done/README.md` 和 `docs/plans/examples/task-plan-template.md`，并将入口规则从新建 worklog 切换为新建任务方案。
+- 2026-05-18：提交阶段 2：`8f76bf3 docs: add unified task plan system`。
+- 2026-05-18：阶段 3 和 4 创建 `docs/spec/examples/impl-template.md` 与 `docs/prompts/README.md`，并在入口和文档体系说明中登记 Prompt Registry 与实现地图规则。
 
 ## 17. 完成标准
 

@@ -177,6 +177,18 @@ docs/plans/done/YYYY-MM-DD-<type>-<short-topic>.md
 - 同步冲突和数据导出。
 - StoreKit 买断制购买与恢复购买。
 
+### 2.7.1 Prompt 文档
+
+位置：`docs/prompts/`
+
+用途：
+
+- 记录代码中真实使用或计划使用的 Prompt。
+- 记录 Prompt 输入变量、输出契约、请求预览、隐私等级和评测方式。
+- 同时保存英文版本和中文版本；代码内置 Prompt 以英文为准，中文用于客户阅读、校对和隐私审查。
+
+具体 Prompt 文档在功能落地时创建。当前阶段只维护 `docs/prompts/README.md` 规则，不预先创建具体 Prompt 文档。
+
 ### 2.8 发布文档
 
 位置：`docs/release/`
