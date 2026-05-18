@@ -19,6 +19,7 @@ struct FilterPill: View {
     let count: String
     let active: Bool
     let action: () -> Void
+    @State private var isHovered = false
 
     var body: some View {
         Button(action: action) {
@@ -35,16 +36,31 @@ struct FilterPill: View {
             .foregroundStyle(active ? LangoTraceDesign.ColorToken.whiteInk : LangoTraceDesign.ColorToken.ink)
             .padding(.horizontal, 12)
             .padding(.vertical, 9)
-            .background(active ? LangoTraceDesign.ColorToken.deepTeal : LangoTraceDesign.ColorToken.elevatedPaper)
+            .background(backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
+        .focusable()
+        .onHover { isHovered = $0 }
+        .contextMenu {
+            Button(action: action) {
+                localizedText(titleKey)
+            }
+        }
         .accessibilityLabel(localizedText(titleKey))
         .accessibilityValue(
             active
                 ? localizedString("accessibility.selectedCount", count)
                 : localizedString("accessibility.unselectedCount", count)
         )
+    }
+
+    private var backgroundColor: Color {
+        if active {
+            return LangoTraceDesign.ColorToken.deepTeal
+        }
+
+        return isHovered ? LangoTraceDesign.ColorToken.surfaceRaised : LangoTraceDesign.ColorToken.elevatedPaper
     }
 }
 

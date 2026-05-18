@@ -828,6 +828,29 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 - 本阶段仍只生成 local mock preview，不接入真实 AI Provider、Prompt Registry 渲染、请求预览确认流或外部请求日志。
 - Memory tab 仍展示 store 中已有 memory items；更完整的空态、筛选和向量索引状态由任务 8、任务 12、任务 13 继续收敛。
 
+### 2026-05-18 阶段 6：iPad responsive workspace and input
+
+处理范围：
+
+- 完成任务 6 / P1-005 的第一轮实现。
+- 新增 `PadWorkspaceWidthClass`，按实际 workspace width 定义 three-column / two-column / single-column；`PadAdaptivePanelLayout` 不再只依赖 `horizontalSizeClass`。
+- `PadMainView` 在 workspace `GeometryReader` 中根据宽度调整 panel 可见性：宽屏保留当前状态，中等宽度隐藏 learning panel，窄宽度同时隐藏 timeline 和 learning panel，保护主写作区。
+- `PadWorkspaceBar` 增加稳定 Settings 入口，使隐藏左栏后 Settings / Search / New Entry 仍可达。
+- `PadWorkspaceBar` 增加第一轮键盘快捷键：New Entry、Search、Settings、Toggle Timeline、Toggle Learning Panel。
+- `EntryTimelineRow` 和 `FilterPill` 增加 focusable、hover state 和 context menu，补齐 iPad pointer / keyboard 第一轮 affordance。
+
+验证结果：
+
+- TDD red：新增 `iPadWorkspaceWidthClassesProtectWritingDesk` 后初次失败，原因是缺少 `PadWorkspaceWidthClass` 和 width-based visibility API。
+- TDD green：`swift test --package-path Packages/LangoTraceUI --filter iPadWorkspaceWidthClassesProtectWritingDesk` 通过。
+- `swift test --package-path Packages/LangoTraceUI --filter iPadWorkspaceBarKeepsUtilityActionsAndKeyboardShortcutsReachable` 通过，确认 top bar 保留 utility actions 和快捷键。
+- `swift test --package-path Packages/LangoTraceUI` 通过，32 个测试通过。
+
+剩余边界：
+
+- 本阶段不做真实 Search，不接入外部键盘 command menu；真实菜单命令和 macOS commands 留给任务 7。
+- iPad 多宽度截图验证、Stage Manager / Split View 手动矩阵和截图基线仍由任务 10、任务 14 收口。
+
 ## 17. 完成标准
 
 本任务完成必须同时满足：

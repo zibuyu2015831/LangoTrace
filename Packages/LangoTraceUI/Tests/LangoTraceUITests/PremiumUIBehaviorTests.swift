@@ -50,6 +50,63 @@ struct PremiumUIBehaviorTests {
         ) == current)
     }
 
+    @Test("iPad workspace width classes protect the writing desk")
+    func iPadWorkspaceWidthClassesProtectWritingDesk() {
+        let current = PadPanelVisibility(timeline: true, learningPanel: true)
+
+        #expect(PadWorkspaceWidthClass.classify(width: 1180) == .threeColumn)
+        #expect(PadAdaptivePanelLayout.visibility(
+            forWidth: 1180,
+            horizontalSizeClass: .regular,
+            current: current
+        ) == current)
+
+        #expect(PadWorkspaceWidthClass.classify(width: 820) == .twoColumn)
+        #expect(PadAdaptivePanelLayout.visibility(
+            forWidth: 820,
+            horizontalSizeClass: .regular,
+            current: current
+        ) == PadPanelVisibility(timeline: true, learningPanel: false))
+
+        #expect(PadWorkspaceWidthClass.classify(width: 620) == .singleColumn)
+        #expect(PadAdaptivePanelLayout.visibility(
+            forWidth: 620,
+            horizontalSizeClass: .regular,
+            current: current
+        ) == PadPanelVisibility(timeline: false, learningPanel: false))
+    }
+
+    @Test("iPad workspace bar keeps utility actions and keyboard shortcuts reachable")
+    func iPadWorkspaceBarKeepsUtilityActionsAndKeyboardShortcutsReachable() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "PadWorkspaceBar.swift"), encoding: .utf8)
+
+        for expected in [
+            "onSettings",
+            ".keyboardShortcut(\"n\"",
+            ".keyboardShortcut(\"f\"",
+            ".keyboardShortcut(\",\"",
+            ".keyboardShortcut(\"[\"",
+            ".keyboardShortcut(\"]\"",
+        ] {
+            #expect(source.contains(expected))
+        }
+    }
+
+    @Test("iPad timeline and filter controls expose pointer focus and context affordances")
+    func iPadTimelineAndFilterControlsExposePointerFocusAndContextAffordances() throws {
+        let timelineSource = try String(
+            contentsOf: sourceFileURL(named: "LearningContentComponents.swift"),
+            encoding: .utf8
+        )
+        let sidebarSource = try String(contentsOf: sourceFileURL(named: "PadSidebarControls.swift"), encoding: .utf8)
+
+        for source in [timelineSource, sidebarSource] {
+            #expect(source.contains(".focusable()"))
+            #expect(source.contains(".onHover"))
+            #expect(source.contains(".contextMenu"))
+        }
+    }
+
     @Test("Mac minimum window widths keep narrow layouts usable")
     func macMinimumWindowWidthsKeepNarrowLayoutsUsable() {
         #expect(MacWindowLayout.minimumWidth(sidebarVisible: true, inspectorVisible: true) == 1040)

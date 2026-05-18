@@ -6,6 +6,7 @@ struct EntryTimelineRow: View {
     let targetLanguage: String
     let isSelected: Bool
     let action: () -> Void
+    @State private var isHovered = false
 
     var body: some View {
         Button(action: action) {
@@ -29,16 +30,39 @@ struct EntryTimelineRow: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(isSelected ? LangoTraceDesign.ColorToken.surfaceRaised : .clear)
+            .background(rowBackground)
             .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous)
-                    .stroke(isSelected ? LangoTraceDesign.ColorToken.accent.opacity(0.35) : .clear, lineWidth: 1)
+                    .stroke(rowStroke, lineWidth: 1)
             }
         }
         .buttonStyle(.plain)
+        .focusable()
+        .onHover { isHovered = $0 }
+        .contextMenu {
+            Button(action: action) {
+                localizedText("entryDetail.title")
+            }
+        }
         .accessibilityLabel("\(entry.title)，\(entry.displaySourceTitle)，\(entry.practiceSummary)")
         .accessibilityValue(localizedText(isSelected ? "accessibility.selected" : "accessibility.unselected"))
+    }
+
+    private var rowBackground: Color {
+        if isSelected {
+            return LangoTraceDesign.ColorToken.surfaceRaised
+        }
+
+        return isHovered ? LangoTraceDesign.ColorToken.elevatedPaper : .clear
+    }
+
+    private var rowStroke: Color {
+        if isSelected {
+            return LangoTraceDesign.ColorToken.accent.opacity(0.35)
+        }
+
+        return isHovered ? LangoTraceDesign.ColorToken.hairline : .clear
     }
 }
 

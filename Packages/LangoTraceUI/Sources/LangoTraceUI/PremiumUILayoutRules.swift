@@ -43,13 +43,50 @@ struct PadPanelVisibility: Equatable {
     var learningPanel: Bool
 }
 
+enum PadWorkspaceWidthClass: Equatable {
+    case singleColumn
+    case twoColumn
+    case threeColumn
+
+    static func classify(width: CGFloat) -> PadWorkspaceWidthClass {
+        if width < 700 {
+            return .singleColumn
+        }
+
+        if width < 980 {
+            return .twoColumn
+        }
+
+        return .threeColumn
+    }
+}
+
 enum PadAdaptivePanelLayout {
     static func visibility(
         for horizontalSizeClass: UserInterfaceSizeClass?,
         current: PadPanelVisibility
     ) -> PadPanelVisibility {
+        visibility(forWidth: nil, horizontalSizeClass: horizontalSizeClass, current: current)
+    }
+
+    static func visibility(
+        forWidth width: CGFloat?,
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        current: PadPanelVisibility
+    ) -> PadPanelVisibility {
         guard horizontalSizeClass == .compact else {
-            return current
+            guard let width else {
+                return current
+            }
+
+            switch PadWorkspaceWidthClass.classify(width: width) {
+            case .threeColumn:
+                return current
+            case .twoColumn:
+                return PadPanelVisibility(timeline: current.timeline, learningPanel: false)
+            case .singleColumn:
+                return PadPanelVisibility(timeline: false, learningPanel: false)
+            }
         }
 
         return PadPanelVisibility(timeline: current.timeline, learningPanel: false)

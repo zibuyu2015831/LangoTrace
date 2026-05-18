@@ -25,6 +25,7 @@ struct PadMainView: View {
                 onToggleTimeline: { isTimelineVisible.toggle() },
                 onToggleLearningPanel: { isLearningPanelVisible.toggle() },
                 onSearch: { presentedSheet = .unavailableSearch },
+                onSettings: { route = .settingsList },
                 onNewEntry: { presentedSheet = .entryEditor }
             )
             Divider()
@@ -48,6 +49,12 @@ struct PadMainView: View {
                                 )
                             )
                     }
+                }
+                .onAppear {
+                    applyAdaptivePanelVisibility(workspaceWidth: proxy.size.width)
+                }
+                .onChange(of: proxy.size.width) { _, width in
+                    applyAdaptivePanelVisibility(workspaceWidth: width)
                 }
                 .overlay(alignment: .leading) {
                     if !isTimelineVisible {
@@ -178,9 +185,10 @@ struct PadMainView: View {
         }
     }
 
-    private func applyAdaptivePanelVisibility() {
+    private func applyAdaptivePanelVisibility(workspaceWidth: CGFloat? = nil) {
         let preferred = PadAdaptivePanelLayout.visibility(
-            for: horizontalSizeClass,
+            forWidth: workspaceWidth,
+            horizontalSizeClass: horizontalSizeClass,
             current: PadPanelVisibility(timeline: isTimelineVisible, learningPanel: isLearningPanelVisible)
         )
 

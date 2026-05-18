@@ -6,6 +6,7 @@ struct PadWorkspaceBar: View {
     let onToggleTimeline: () -> Void
     let onToggleLearningPanel: () -> Void
     let onSearch: () -> Void
+    let onSettings: () -> Void
     let onNewEntry: () -> Void
 
     var body: some View {
@@ -16,6 +17,7 @@ struct PadWorkspaceBar: View {
                 accessibilityLabelKey: isTimelineVisible ? "ipad.timeline.hide" : "ipad.timeline.show",
                 action: onToggleTimeline
             )
+            .keyboardShortcut("[", modifiers: [.command, .option])
 
             Button(action: onSearch) {
                 HStack(spacing: 8) {
@@ -41,6 +43,7 @@ struct PadWorkspaceBar: View {
             .buttonStyle(.plain)
             .accessibilityLabel(localizedText("pad.search.placeholder"))
             .accessibilityHint(localizedText("pad.search.hint"))
+            .keyboardShortcut("f", modifiers: .command)
 
             LangoPanelToggleButton(
                 systemImage: "sidebar.right",
@@ -48,6 +51,15 @@ struct PadWorkspaceBar: View {
                 accessibilityLabelKey: isLearningPanelVisible ? "ipad.learningPanel.hide" : "ipad.learningPanel.show",
                 action: onToggleLearningPanel
             )
+            .keyboardShortcut("]", modifiers: [.command, .option])
+
+            Button(action: onSettings) {
+                Image(systemName: "gearshape")
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityLabel(localizedText("tab.settings"))
+            .keyboardShortcut(",", modifiers: .command)
 
             Button(action: onNewEntry) {
                 Label {
@@ -57,6 +69,7 @@ struct PadWorkspaceBar: View {
                 }
             }
             .buttonStyle(.borderedProminent)
+            .keyboardShortcut("n", modifiers: .command)
         }
         .padding(.horizontal, 22)
         .padding(.vertical, 14)
