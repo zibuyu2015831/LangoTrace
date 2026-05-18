@@ -2,6 +2,8 @@
 
 本目录用于保存 ADR（Architecture Decision Record）。
 
+ADR 只记录不可轻易反转的重要取舍，不维护 implementation 文档、阶段 runbook 或单项任务方案。若需要记录当前实现地图，应写入 `docs/spec/<module>/impl.md` 或 `docs/architecture/`；若需要记录执行步骤，应写入 `docs/development/` 或 `docs/plans/active/`。
+
 每个重要技术或产品结构决策都应记录：
 
 - 背景。

@@ -866,7 +866,7 @@ AI 修改应提供多种层级：
 
 开发参考资料：
 
-- [语迹 / LangoTrace 开源项目参考记录](development-open-source-references.md)：记录后续开发时可下载研究的 GitHub 项目、模块映射、研究清单和商业闭源许可证注意事项。
+- [语迹 / LangoTrace 参考项目使用指南](reference/README.md)：记录后续开发时可本地阅读的参考项目、模块映射、研究清单和商业闭源许可证注意事项。
 - [语迹 / LangoTrace 技术框架与开发路线参考](technical-framework-roadmap.md)：记录 Apple 三端框架选择、决策依据、三端差异化交互、数据层、Provider 架构、同步和向量化路线。
 
 ## 18. 产品核心对象模型

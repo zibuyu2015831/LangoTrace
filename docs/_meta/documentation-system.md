@@ -15,19 +15,22 @@
 
 ## 2. 文档分层
 
-### 2.1 主参考文档
+### 2.1 根目录主参考文档
 
-主参考文档放在 `docs/` 根目录，用于长期稳定引用。
+根目录只保留需要被新会话高频读取、且不明显属于某个子目录职责的长期主参考文档。
 
 - `product-main-reference.md`：产品北极星，记录产品名称、定位、核心闭环、功能边界和商业设计。
 - `technical-framework-roadmap.md`：技术路线总纲，记录 Apple 原生路线、存储、同步、Provider 和长期架构判断。
-- `development-environment.md`：本机开发环境基线。
-- `development-open-source-references.md`：开源参考项目和许可证风险。
 - `README.md`：文档总入口，也是 AI 会话入口；根目录 `AI_ENTRY_POINT.md`、`CLAUDE.md` 和 `AGENTS.md` 通过软链接指向它。
-- `project-initialization.md`：当前项目初始化规划。
-- `documentation-system.md`：本文档，规定文档体系。
 
 主参考文档应保持相对稳定。若发生关键变化，需要同步更新相关决策记录。
+
+以下长期文档虽然重要，但已经归入职责更明确的子目录：
+
+- `docs/_meta/documentation-system.md`：文档体系规范。
+- `docs/development/environment.md`：本机开发环境基线。
+- `docs/development/project-initialization.md`：项目初始化规划和当前初始化基线。
+- `docs/reference/README.md`：外部参考项目、本地源码软链接、功能参考映射和许可证边界。
 
 ### 2.2 架构文档
 
@@ -56,6 +59,7 @@ docs/architecture/004-sync-engine.md
 
 - 记录不可轻易更改的重要决策。
 - 说明背景、备选方案、最终结论、影响范围和复审条件。
+- 不维护 implementation 文档、实现地图或阶段执行细节；这些内容分别写入 `docs/spec/<module>/impl.md`、`docs/architecture/`、`docs/development/` 或 `docs/plans/`。
 
 推荐采用 ADR 风格：
 
@@ -81,21 +85,24 @@ docs/decisions/003-language-space-as-primary-information-model.md
 ## 复审条件
 ```
 
+如果某份阶段 runbook 中形成了不可轻易反转的平台、架构、隐私、同步或商业取舍，应把“决策本身”抽取为 ADR；原 runbook 可以继续保留执行顺序、验证矩阵和操作步骤。不要在 `docs/decisions/` 下新增 `implementation.md` 来替代 `docs/development/` 或 `docs/spec/<module>/impl.md`。
+
 ### 2.4 开发文档
 
 位置：`docs/development/`
 
 用途：
 
-- 记录阶段计划、开发 runbook、工程初始化步骤和里程碑。
-- 给后续开发会话提供明确执行入口。
+- 记录阶段级开发 runbook、工程初始化步骤、开发环境基线、跨任务工程路线和里程碑状态。
+- 给后续开发会话提供阶段上下文，不替代 `docs/plans/active/` 中的一项需求或一个 bug 的唯一实施方案。
 
 推荐命名：
 
 ```text
 docs/development/001-initial-swiftui-project-runbook.md
-docs/development/002-first-launch-onboarding-plan.md
-docs/development/003-language-space-mvp-plan.md
+docs/development/002-platform-development-sequence.md
+docs/development/003-release-readiness-runbook.md
+docs/development/environment.md
 ```
 
 ### 2.5 规范文档
@@ -205,14 +212,20 @@ docs/release/002-app-store-review-checklist.md
 docs/release/003-privacy-labels-and-permissions.md
 ```
 
-### 2.9 研究文档
+### 2.9 参考和研究文档
 
-位置：`docs/research/`
+位置：
+
+- `docs/reference/`
+- `docs/reference/projects/`
+- `docs/reference/research/`
 
 用途：
 
-- 记录竞品分析、开源项目阅读、设计研究、技术调研和许可证分析。
-- 不作为最终产品决策，除非后续同步到主参考文档或 ADR。
+- `docs/reference/README.md` 作为外部参考项目总入口，记录本地源码软链接、功能参考映射、项目阅读顺序和许可证边界。
+- `docs/reference/projects/` 只放当前已登记参考项目的本地源码软链接，不作为 LangoTrace 当前代码事实源。
+- `docs/reference/research/` 记录参考项目研究、竞品分析、设计研究、技术调研和许可证分析。
+- 参考和研究资料不作为最终产品决策、架构事实或实现事实；被采纳的结论必须同步到主参考文档、`docs/spec/`、`docs/architecture/` 或 `docs/decisions/`。
 
 ### 2.10 历史规格与计划目录
 
@@ -287,11 +300,11 @@ docs/review/
 
 ### 3.2 可以只写阶段记录的情况
 
-以下情况可以写在 `docs/development/` 或 `docs/testing/`：
+以下情况可以写在 `docs/development/` 或 `docs/testing/`，但不能替代单项任务方案：
 
 - 某次环境检查结果。
 - 某个模拟器验证结果。
-- 某个里程碑临时计划。
+- 跨多个任务的阶段路线或里程碑 runbook。
 - 某个功能的手动测试流程。
 
 ### 3.3 不应写入长期文档的内容
@@ -303,7 +316,7 @@ docs/review/
 - 已废弃且无复审价值的原型细节。
 - 没有结论的零散竞品截图描述。
 
-若内容有参考价值，应先放入 `docs/research/`，待形成结论后再迁移到主参考文档或 ADR。
+若内容有参考价值，应先放入 `docs/reference/research/`，待形成结论后再同步到主参考文档、spec、architecture 或 ADR。
 
 ### 3.4 文档审查规则
 
@@ -313,7 +326,7 @@ docs/review/
 - 产品核心决策以产品主参考文档、ADR 和用户明确确认为最高依据。
 - 架构和隐私决策以 ADR、技术路线和 spec 为最高依据。
 - 未来计划以 roadmap、任务方案、规格或计划文档为依据，必须明确写成计划、候选或后续。
-- 历史 worklog、research、review round 是过程记录，不强制改写为最新事实。
+- 历史 worklog、reference research、review round 是过程记录，不强制改写为最新事实。
 
 如果代码与 ADR 或核心产品决策冲突，不能默认改文档迁就代码，应触发复审、记录架构债、修正实现或新增 ADR。
 
@@ -451,5 +464,5 @@ git diff --check
 若涉及 Markdown 结构，可额外使用 ripgrep 检查未完成占位表达。
 
 ```bash
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
 ```

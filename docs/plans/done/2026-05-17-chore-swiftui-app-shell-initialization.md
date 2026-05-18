@@ -9,9 +9,9 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/project-initialization.md`
+- `docs/development/project-initialization.md`
 - `docs/development/001-platform-development-sequence.md`
-- `docs/development-environment.md`
+- `docs/development/environment.md`
 - `docs/architecture/001-initial-module-boundaries.md`
 - `docs/spec/002-navigation-and-routing.md`
 - `docs/spec/004-swiftui-architecture.md`
@@ -125,7 +125,7 @@ iPhone、iPad 和 macOS 从第一天进入构建验证，但完成度只要求 `
 - 用户已通过 Homebrew 安装 `xcodegen`，当前验证版本为 2.45.4。
 - 当前环境记录中的 iPad 模拟器是 `iPad Pro 13-inch (M5)`。如果实际设备名变化，需要先用 `xcrun simctl list devices available` 查找可用设备，再调整验证命令。
 - 如果 macOS 签名配置导致构建失败，优先调整本地开发签名设置，不引入 App Store 发布配置。
-- 如果 Xcode 版本生成的工程字段与 XcodeGen 默认设置不兼容，应把修正写回本工作记录和 `docs/development-environment.md`。
+- 如果 Xcode 版本生成的工程字段与 XcodeGen 默认设置不兼容，应把修正写回本工作记录和 `docs/development/environment.md`。
 - 如果本地 Swift Package 依赖配置在 XcodeGen 中产生不必要复杂度，可以退回到同仓库源码目录分层，但必须更新本文档说明原因。
 - 本次不创建真实数据，不存在数据迁移和用户数据损坏风险。
 - 本次不触发网络、相机、麦克风、照片、Keychain 或 AI Provider，不产生隐私发送风险。
@@ -181,7 +181,7 @@ git status --short
 - 在 UI 中创建 `LangoTraceRootView`，根据 iPhone、iPad、macOS 展示差异化 App Shell 占位。
 - 在 Data / AI / Speech / Sync 中创建最小协议和禁用实现，作为后续真实实现的替换边界。
 - 创建 Core 单元测试 `ProductIdentityTests`。
-- 更新 `docs/README.md`、`docs/development-environment.md` 和 `docs/project-initialization.md`，记录初始化后的实际状态和命令。
+- 更新 `docs/README.md`、`docs/development/environment.md` 和 `docs/development/project-initialization.md`，记录初始化后的实际状态和命令。
 
 实现过程中的偏离：
 

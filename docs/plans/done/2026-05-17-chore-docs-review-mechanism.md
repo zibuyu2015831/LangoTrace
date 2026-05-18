@@ -9,7 +9,7 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/documentation-system.md`
+- `docs/_meta/documentation-system.md`
 - `docs/archive/worklogs/README.md`
 - `case_skillatlas_review/核心原则说明.md`
 - `case_skillatlas_review/审核计划.md`
@@ -41,7 +41,7 @@ LangoTrace 已经把 `docs/README.md` 作为 AI 会话、产品讨论、技术�
 - 明确文档问题、代码 bug、架构债、测试缺口、跨文档冲突和 ADR 冲突分别如何处理。
 - 建立一个后续可落地的 `docs/review/` 目录方案。
 - 保留从轻量专项审查升级到复杂多阶段审查的路径，包括中间产物、用户澄清、方案批准和断点续审。
-- 将审查机制纳入现有 `docs/README.md`、`docs/documentation-system.md` 和 `docs/archive/worklogs/README.md` 的规则体系。
+- 将审查机制纳入现有 `docs/README.md`、`docs/_meta/documentation-system.md` 和 `docs/archive/worklogs/README.md` 的规则体系。
 - 保持流程轻量，避免每次小改动都触发完整审计。
 
 ## 3. 范围
@@ -49,7 +49,7 @@ LangoTrace 已经把 `docs/README.md` 作为 AI 会话、产品讨论、技术�
 本次拟处理：
 
 - 新增 `docs/review/README.md`，定义 LangoTrace 文档审查机制。
-- 在 `docs/documentation-system.md` 中补充文档审查机制的目录职责、触发条件和提交前检查要求。
+- 在 `docs/_meta/documentation-system.md` 中补充文档审查机制的目录职责、触发条件和提交前检查要求。
 - 在 `docs/README.md` 中补充任务阅读路径或完成前检查说明，让后续 AI 会话知道何时读取 `docs/review/README.md`。
 - 视需要在 `docs/archive/worklogs/README.md` 中补充“文档影响检查”要求，要求重要开发任务完成时记录文档是否需要更新。
 
@@ -90,7 +90,7 @@ LangoTrace 的文档不是普通说明文件，而是后续 AI 辅助开发的�
 
 | 类型 | 代表文档 | 审查重点 |
 | --- | --- | --- |
-| 当前事实源 | `docs/README.md`、`docs/development-environment.md`、`docs/project-initialization.md`、`docs/architecture/` | 必须与当前代码、脚本和工程结构匹配 |
+| 当前事实源 | `docs/README.md`、`docs/development/environment.md`、`docs/development/project-initialization.md`、`docs/architecture/` | 必须与当前代码、脚本和工程结构匹配 |
 | 决策源 | `docs/decisions/`、`docs/product-main-reference.md`、`docs/technical-framework-roadmap.md` | 必须与核心产品、架构、隐私、付费和同步决策一致 |
 | 执行规则源 | `docs/spec/`、`docs/testing/`、`docs/release/` | 必须能指导后续实现和验证，允许包含尚未完全实现的规则 |
 | 过程记录 | `docs/plans/done/`、`docs/research/`、`docs/superpowers/` | 保留历史过程，不要求持续改写为最新事实 |
@@ -482,7 +482,7 @@ scripts/verify.sh
 
 2026-05-17：更新 `docs/README.md`，加入文档审查任务阅读路径、文档更新落点、目录职责和完成前检查要求。
 
-2026-05-17：更新 `docs/documentation-system.md`，加入 `docs/review/` 分层职责、必须检查文档影响的情况、断言依据规则和收尾前文档影响检查。
+2026-05-17：更新 `docs/_meta/documentation-system.md`，加入 `docs/review/` 分层职责、必须检查文档影响的情况、断言依据规则和收尾前文档影响检查。
 
 2026-05-17：更新 `docs/archive/worklogs/README.md` 和 `docs/archive/worklogs/TEMPLATE.md`，把“文档影响检查”纳入重要任务收尾流程。
 
@@ -491,7 +491,7 @@ scripts/verify.sh
 ## 11. 文档影响检查
 
 - 已影响 `docs/README.md`：新增文档审查任务阅读路径、目录结构、目录职责、完成前检查说明。
-- 已影响 `docs/documentation-system.md`：新增文档审查分层、触发条件、断言依据和收尾规则。
+- 已影响 `docs/_meta/documentation-system.md`：新增文档审查分层、触发条件、断言依据和收尾规则。
 - 已影响 `docs/archive/worklogs/README.md`：新增文档影响检查要求。
 - 已影响 `docs/archive/worklogs/TEMPLATE.md`：新增“文档影响检查”章节。
 - 已新增 `docs/review/README.md`、`docs/review/INDEX.md`、`docs/review/rounds/README.md`。
@@ -519,20 +519,20 @@ git status --short
 语义抽样已检查：
 
 ```bash
-rg -n "文档审查|docs/review|review/README|review/INDEX|文档影响检查|专项审查|里程碑轻量全审" docs/README.md docs/documentation-system.md docs/archive/worklogs/README.md docs/archive/worklogs/TEMPLATE.md docs/review/README.md docs/review/INDEX.md docs/review/rounds/README.md docs/plans/done/2026-05-17-chore-docs-review-mechanism.md
-rg -n "四类文档分级|verified_at|季度|月度|case_skillatlas_review" docs/README.md docs/documentation-system.md docs/archive/worklogs/README.md docs/archive/worklogs/TEMPLATE.md docs/review docs/plans/done/2026-05-17-chore-docs-review-mechanism.md
+rg -n "文档审查|docs/review|review/README|review/INDEX|文档影响检查|专项审查|里程碑轻量全审" docs/README.md docs/_meta/documentation-system.md docs/archive/worklogs/README.md docs/archive/worklogs/TEMPLATE.md docs/review/README.md docs/review/INDEX.md docs/review/rounds/README.md docs/plans/done/2026-05-17-chore-docs-review-mechanism.md
+rg -n "四类文档分级|verified_at|季度|月度|case_skillatlas_review" docs/README.md docs/_meta/documentation-system.md docs/archive/worklogs/README.md docs/archive/worklogs/TEMPLATE.md docs/review docs/plans/done/2026-05-17-chore-docs-review-mechanism.md
 ```
 
 结果：
 
-- 文档审查相关入口在 `docs/README.md`、`docs/documentation-system.md`、`docs/archive/worklogs/README.md`、`docs/archive/worklogs/TEMPLATE.md` 和 `docs/review/` 中均有对应落点。
+- 文档审查相关入口在 `docs/README.md`、`docs/_meta/documentation-system.md`、`docs/archive/worklogs/README.md`、`docs/archive/worklogs/TEMPLATE.md` 和 `docs/review/` 中均有对应落点。
 - 未发现“文档分级”仍被错误写作“四类文档分级”。
 - `case_skillatlas_review/` 只出现在本 worklog 的参考来源和排除说明中，没有被纳入 `docs/review/` 机制正文。
 
 2026-05-17 复查补充执行：
 
 ```bash
-rg -n "审查类型：|docs/review/README.md|review/" docs/README.md docs/documentation-system.md docs/archive/worklogs/README.md docs/archive/worklogs/TEMPLATE.md docs/review docs/plans/done/2026-05-17-chore-docs-review-mechanism.md
+rg -n "审查类型：|docs/review/README.md|review/" docs/README.md docs/_meta/documentation-system.md docs/archive/worklogs/README.md docs/archive/worklogs/TEMPLATE.md docs/review docs/plans/done/2026-05-17-chore-docs-review-mechanism.md
 ```
 
 结果：

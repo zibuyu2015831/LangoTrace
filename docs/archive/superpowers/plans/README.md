@@ -1,9 +1,19 @@
-# 实施计划
+# 旧 superpowers 实施计划归档
 
-本目录用于保存经过确认的实施计划。
+本目录保存旧 `docs/superpowers/plans/` 中已经完成或仅作为迁移证据保留的历史计划。
 
-实施计划应包含明确任务、文件路径、验证命令和提交边界，便于当前会话或后续会话继续执行。
+当前任务方案入口已经迁移到：
 
-## 当前计划
+- `docs/plans/active/`
+- `docs/plans/done/`
 
-- `2026-05-17-string-catalog-interface-language-settings.md`：String Catalog 与界面语言设置闭环实施计划草案。
+本目录不再保存当前可执行计划。若历史计划仍未完成且仍适合继续，应迁入 `docs/plans/active/` 并更新入口引用；已完成计划不移回 active。
+
+## 归档文件状态
+
+- `2026-05-17-mvp-ui-flow-and-design-system-implementation.md`：已完成，作为 UI 闭环历史证据保留。
+- `2026-05-17-settings-and-practice-state-closure.md`：已完成，作为设置与练习状态闭环历史证据保留。
+- `2026-05-17-string-catalog-interface-language-settings.md`：已完成，作为 String Catalog 与界面语言设置历史证据保留。
+- `2026-05-17-three-platform-page-closure.md`：已完成，作为三端页面闭环历史证据保留。
+
+语言空间持久化与启动恢复计划仍未完成，已迁入 `docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md`，不再在本归档目录保留活跃副本。

@@ -310,7 +310,7 @@ Stage 3：
 
 本文档是执行层方案，结论应与以下文档保持一致：
 
-- [项目初始化规划](../project-initialization.md)
+- [项目初始化规划](project-initialization.md)
 - [技术框架与开发路线参考](../technical-framework-roadmap.md)
 - [SwiftUI 架构规范](../spec/004-swiftui-architecture.md)
 - [导航与路由规范](../spec/002-navigation-and-routing.md)

@@ -2,7 +2,7 @@
 
 类型：feature
 
-状态：Shelved
+状态：Draft
 
 日期：2026-05-17
 
@@ -17,7 +17,7 @@
 - `docs/testing/README.md`
 - `docs/review/README.md`
 - `docs/review/INDEX.md`
-- `docs/archive/superpowers/plans/2026-05-17-language-space-persistence-startup-restore.md`
+- 旧 `docs/superpowers/plans/2026-05-17-language-space-persistence-startup-restore.md` 已并入本方案；`docs/superpowers/` 已退出当前文档体系。
 
 关联 ADR：
 
@@ -194,9 +194,11 @@ git status --short
 
 ## 10. 用户确认记录
 
-状态为 `Shelved`，不能开始实现。
+状态为 `Draft`，不能开始实现。
 
 2026-05-17：用户调整优先级，要求先完成 iPad 和 macOS 页面闭环，再进行设计优化，待整体页面设计完成后再进入功能开发和细节优化。本草案暂时搁置，后续恢复前需要重新复查页面闭环后的代码和文档状态。
+
+2026-05-18：复查 `docs/archive/superpowers/plans/` 后确认，本方案仍对应当前 `docs/README.md` 中“真实语言空间持久化和启动恢复”的优先级，已作为唯一活跃方案保留在 `docs/plans/active/`。归档目录中的旧英文执行计划副本已移除，避免后续误读为另一个可执行入口。开始实现前仍需要用户重新确认。
 
 如后续恢复本方案，需要重新确认后记录：
 

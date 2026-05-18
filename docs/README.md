@@ -44,7 +44,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - 产品主参考文档。
 - 技术框架与开发路线参考。
 - 开发环境记录。
-- 开源项目参考记录。
+- 参考项目使用指南。
 - 多端静态 HTML 原型。
 - 文档体系、初始模块边界和关键 ADR。
 - 第一批开发一致性规范。
@@ -169,9 +169,9 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 优先读取：
 
 - [任务方案文档规范](plans/README.md)
-- [项目初始化规划](project-initialization.md)
+- [项目初始化规划](development/project-initialization.md)
 - [三端开发顺序方案](development/001-platform-development-sequence.md)
-- [开发环境记录](development-environment.md)
+- [开发环境记录](development/environment.md)
 - [初始模块边界](architecture/001-initial-module-boundaries.md)
 - [开发规范治理](spec/001-guideline-governance.md)
 - [SwiftUI 架构规范](spec/004-swiftui-architecture.md)
@@ -193,7 +193,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 - [任务方案文档规范](plans/README.md)
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2、5、6、9 节
-- [文档体系规范](documentation-system.md) 的第 4 节
+- [文档体系规范](_meta/documentation-system.md) 的第 4 节
 - [ADR-005：坚持本地优先和用户自带 Provider](decisions/005-local-first-and-user-owned-providers.md)
 
 适用任务：
@@ -227,7 +227,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 优先读取：
 
-- [文档体系规范](documentation-system.md) 的第 2.7、2.8、4.3 节
+- [文档体系规范](_meta/documentation-system.md) 的第 2.7、2.8、4.3 节
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2.8 节
 - [测试文档目录](testing/README.md)
 - [发布文档目录](release/README.md)
@@ -245,8 +245,8 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 优先读取：
 
-- [开源项目参考记录](development-open-source-references.md)
-- [研究文档目录](research/README.md)
+- [参考项目使用指南](reference/README.md)
+- [参考研究文档目录](reference/research/README.md)
 
 适用任务：
 
@@ -260,7 +260,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 优先读取：
 
 - [任务方案文档规范](plans/README.md)
-- [文档体系规范](documentation-system.md)
+- [文档体系规范](_meta/documentation-system.md)
 - [文档审查机制](review/README.md)
 - [文档审查索引](review/INDEX.md)
 
@@ -286,7 +286,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - 大功能规格和长期规范：写入 `docs/spec/`；如果只是一次性任务执行方案，写入 `docs/plans/active/`。
 - 验证流程和手动测试：写入 `docs/testing/`。
 - App Store、TestFlight、StoreKit 和隐私标签：写入 `docs/release/`。
-- 研究材料和未定结论：写入 `docs/research/`。
+- 外部参考、研究材料和未定结论：写入 `docs/reference/` 或 `docs/reference/research/`；结论被采纳后写回主参考、spec、architecture 或 ADR。
 - 文档审查机制、审查轮次索引、专项审查和里程碑全审：写入 `docs/review/`。
 
 ## 7. 文档目录结构
@@ -299,29 +299,34 @@ docs/
   README.md
   _meta/
     directory-responsibilities.md
+    documentation-system.md
   archive/
   product-main-reference.md
   technical-framework-roadmap.md
-  development-environment.md
-  development-open-source-references.md
-  project-initialization.md
-  documentation-system.md
   architecture/
   decisions/
+  development/
+    README.md
+    environment.md
+    project-initialization.md
+    001-platform-development-sequence.md
   plans/
     README.md
     active/
     done/
     examples/
   prompts/
+  reference/
+    README.md
+    projects/
+    research/
+      README.md
   spec/
   review/
     README.md
     INDEX.md
     rounds/
-  development/
   release/
-  research/
   testing/
 ```
 
@@ -330,17 +335,17 @@ docs/
 - `architecture/`：工程架构、模块边界、数据模型、同步模型、AI Provider、长期记忆和安全边界。
 - `_meta/`：文档体系自身规则，记录目录职责、权威类型、写入规则和退出目录。
 - `archive/`：历史参考和已退出目录内容，不作为新任务入口。
-- `decisions/`：架构决策记录，采用 ADR 风格，记录重要取舍、背景、结论和复审条件。
+- `decisions/`：架构决策记录，采用 ADR 风格，记录重要取舍、背景、结论和复审条件；不维护 implementation 文档或阶段执行细节。
 - `plans/`：统一任务方案目录；一项需求、一个 bug 或一次文档治理只维护一份方案，按 active/done 管理生命周期。
 - `prompts/`：Prompt Registry，记录真实代码 Prompt 的英文版本、中文版本、输入变量、输出契约和隐私边界。
-- `spec/`：开发一致性规范，记录导航、UI、SwiftUI 架构、AI Provider 和隐私等具体开发约束。
+- `reference/`：外部参考和研究资料入口，包含本地参考项目软链接、功能参考映射、许可证边界和研究材料；不是产品决策源、架构事实源或实现事实源。
+- `spec/`：开发一致性规范和实现地图，记录导航、UI、SwiftUI 架构、AI Provider、隐私等具体开发约束；模块级 `impl.md` 放在这里而不是 `decisions/`。
 - `review/`：文档一致性治理机制、审查轮次索引、专项审查和里程碑轻量全审记录。
-- `development/`：阶段开发计划、工程任务拆分、初始化记录、里程碑状态和开发 runbook。
+- `development/`：阶段级开发 runbook、工程初始化记录和跨任务工程路线；不存放单项需求或 bug 的实施方案。
 - `release/`：买断制、StoreKit、App Store、TestFlight、版本策略和发布检查清单。
-- `research/`：竞品、开源项目、技术调研和设计研究。
 - `testing/`：测试策略、手动测试流程、回归用例、模拟器与真机验证记录。
 
-已退出目录见 [_meta/directory-responsibilities.md](_meta/directory-responsibilities.md)。`docs/worklogs/` 和 `docs/superpowers/` 迁移完成后只保留空目录，空目录由用户手动删除。
+已退出目录见 [_meta/directory-responsibilities.md](_meta/directory-responsibilities.md)。`docs/worklogs/` 和 `docs/superpowers/` 已完成迁移，不再作为当前目录保留或恢复。
 
 ## 9. 当前优先级
 
@@ -358,7 +363,7 @@ docs/
 
 ```bash
 find docs -maxdepth 3 -type f | sort
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
 git diff --check
 git status --short
 ```
@@ -389,7 +394,7 @@ xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad
 xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
 swiftlint --no-cache
 swiftformat --lint . --cache ignore
-if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*'; then
+if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'; then
   echo "Documentation placeholder scan found entries." >&2
   exit 1
 fi

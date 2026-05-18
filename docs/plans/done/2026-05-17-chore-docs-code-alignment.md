@@ -9,9 +9,9 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/project-initialization.md`
+- `docs/development/project-initialization.md`
 - `docs/technical-framework-roadmap.md`
-- `docs/development-environment.md`
+- `docs/development/environment.md`
 - `docs/architecture/001-initial-module-boundaries.md`
 
 关联 ADR：
@@ -68,10 +68,10 @@
 文档侧主要偏差：
 
 - `docs/README.md` 的当前状态过旧，只写到 App Shell 后、首次启动和语言空间功能前。
-- `docs/project-initialization.md` 仍把 SwiftUI App 工程和 Swift Package 模块列为尚未创建。
+- `docs/development/project-initialization.md` 仍把 SwiftUI App 工程和 Swift Package 模块列为尚未创建。
 - `docs/architecture/001-initial-module-boundaries.md` 没有反映当前实际类型和测试边界。
 - `docs/technical-framework-roadmap.md` 缺少 Phase 0 当前进度说明。
-- `docs/development-environment.md` 的下一步仍写成首次启动提问和根路由衔接，未体现这些已有内存骨架。
+- `docs/development/environment.md` 的下一步仍写成首次启动提问和根路由衔接，未体现这些已有内存骨架。
 
 ## 6. 方案
 
@@ -107,12 +107,12 @@ git status --short
 ## 10. 实施记录
 
 - 更新 `docs/README.md` 的项目当前状态、已完成/未完成清单和验证脚本展开。
-- 更新 `docs/project-initialization.md`，说明初始化规划已完成，并列出当前代码基线。
+- 更新 `docs/development/project-initialization.md`，说明初始化规划已完成，并列出当前代码基线。
 - 更新 `docs/architecture/001-initial-module-boundaries.md`，补充当前落地快照和未实现边界。
 - 更新 `docs/technical-framework-roadmap.md`，补充 Phase 0 当前进度。
-- 更新 `docs/development-environment.md` 的当前状态和下一步工程动作。
+- 更新 `docs/development/environment.md` 的当前状态和下一步工程动作。
 - 复查当前 Swift 类型后，将架构文档中的 `PrivacyStatus` 修正为实际存在的 `PrivacyStatusSeverity`、`AIProviderStatus` 和 `SyncProviderStatus`。
-- 复查 `scripts/verify.sh` 后，将 `docs/README.md` 和 `docs/project-initialization.md` 中的脚本片段改为包含 `set -euo pipefail`、`cd` 和文档占位词失败门禁的实际结构。
+- 复查 `scripts/verify.sh` 后，将 `docs/README.md` 和 `docs/development/project-initialization.md` 中的脚本片段改为包含 `set -euo pipefail`、`cd` 和文档占位词失败门禁的实际结构。
 
 ## 11. 验证结果
 
@@ -121,7 +121,7 @@ git status --short
 ```bash
 find docs -maxdepth 3 -type f | sort
 rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
-git diff -- docs/README.md docs/project-initialization.md docs/architecture/001-initial-module-boundaries.md docs/technical-framework-roadmap.md docs/development-environment.md docs/plans/done/2026-05-17-chore-docs-code-alignment.md
+git diff -- docs/README.md docs/development/project-initialization.md docs/architecture/001-initial-module-boundaries.md docs/technical-framework-roadmap.md docs/development/environment.md docs/plans/done/2026-05-17-chore-docs-code-alignment.md
 rg -n "当前仓库尚未创建|SwiftUI App 工程|Swift Package 模块|处于 App Shell 后、首次启动和语言空间功能前|后续可使用的验证命令示例|RootView.swift|Resources/|Tests/|完整 onboarding|App icon。" docs --glob '!worklogs/TEMPLATE.md'
 git diff --check
 git status --short
@@ -141,8 +141,8 @@ git status --short
 rg -n '处于 App Shell 后|首次启动和语言空间功能前|当前仓库尚未创建：|SwiftUI App 工程。|Swift Package 模块。|RootView\.swift|后续可使用的验证命令示例|具体命令需在工程创建后|只需要落地|不需要落地|PrivacyStatus`' docs --glob '!docs/plans/done/**'
 sed -n '1,80p' scripts/verify.sh
 sed -n '330,365p' docs/README.md
-sed -n '214,245p' docs/project-initialization.md
-rg -n 'LanguageSpaceRepository|EmptyLanguageSpaceRepository|AIProvider|DisabledAIProvider|SpeechService|DisabledSpeechService|SyncService|DisabledSyncService|PrivacyStatusSeverity|AIProviderStatus|SyncProviderStatus|PadPanelGestureAction|LangoTraceRootView|AppSessionState|AppEnvironment' docs/architecture/001-initial-module-boundaries.md docs/project-initialization.md docs/README.md docs/development-environment.md Packages LangoTraceApp --glob '*.md' --glob '*.swift'
+sed -n '214,245p' docs/development/project-initialization.md
+rg -n 'LanguageSpaceRepository|EmptyLanguageSpaceRepository|AIProvider|DisabledAIProvider|SpeechService|DisabledSpeechService|SyncService|DisabledSyncService|PrivacyStatusSeverity|AIProviderStatus|SyncProviderStatus|PadPanelGestureAction|LangoTraceRootView|AppSessionState|AppEnvironment' docs/architecture/001-initial-module-boundaries.md docs/development/project-initialization.md docs/README.md docs/development/environment.md Packages LangoTraceApp --glob '*.md' --glob '*.swift'
 find docs -maxdepth 3 -type f | sort
 rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
 git diff --check
@@ -152,6 +152,6 @@ git status --short
 追加复查结果：
 
 - 非 worklog 主文档未再命中“工程未创建”“旧阶段”“RootView.swift”“旧验证命令示例”等旧状态表述。
-- `scripts/verify.sh` 与 `docs/README.md`、`docs/project-initialization.md` 中的脚本片段一致，均包含 `set -euo pipefail`、仓库根目录切换、Core/UI 测试、三端构建、SwiftLint、SwiftFormat 和文档占位词失败门禁。
+- `scripts/verify.sh` 与 `docs/README.md`、`docs/development/project-initialization.md` 中的脚本片段一致，均包含 `set -euo pipefail`、仓库根目录切换、Core/UI 测试、三端构建、SwiftLint、SwiftFormat 和文档占位词失败门禁。
 - 架构文档中新增的类型名与当前 Swift 文件一致，包括 `PrivacyStatusSeverity`、`AIProviderStatus`、`SyncProviderStatus` 以及 Data / AI / Speech / Sync 的 empty / disabled 边界类型。
 - 最终文档占位词扫描无命中，`git diff --check` 无输出。

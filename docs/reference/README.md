@@ -1,30 +1,39 @@
-# 语迹 / LangoTrace 开源项目参考记录
+# 语迹 / LangoTrace 参考项目使用指南
 
-本文记录开发语迹 / LangoTrace 时可研究的开源项目。当前结论是：暂未发现一个开源项目完整覆盖“生活记录 + AI 转目标语言 + 配音跟读 + 听写回译 + 单词本 + 本地优先 + 多端同步”这个组合；但以下项目可以按模块拆开研究。
+本文是语迹 / LangoTrace 外部参考资料的总入口，统一记录本地源码软链接、功能参考映射、项目阅读顺序和许可证边界。当前结论是：暂未发现一个开源项目完整覆盖“生活记录 + AI 转目标语言 + 配音跟读 + 听写回译 + 单词本 + 本地优先 + 多端同步”这个组合；但以下项目可以按模块拆开研究。
 
-这些项目只作为产品结构、交互逻辑、数据模型和技术方案参考。商业闭源开发时，不应直接复制许可证不兼容项目的代码。
+`docs/reference/` 是外部参考和研究资料入口，不是产品决策源、架构事实源或实现事实源。研究结论如果被采纳，必须同步写回 `docs/product-main-reference.md`、`docs/spec/`、`docs/architecture/` 或 `docs/decisions/`。
 
-## 0. 本地源码位置
+## 0. 使用规则
 
-以下源码已克隆到本机 `/Users/zibuyu/code/openSource`，后续开发和调研可直接从本地路径打开。若后续需要引用、复制、改造代码或引入依赖，仍必须先按第 5 节重新检查仓库当前 `LICENSE` 和依赖许可证。
+- 只参考产品结构、交互逻辑、数据模型和技术路线。
+- 复制代码、配置、资源或依赖前，必须重新审查目标仓库当前 `LICENSE`、依赖许可证和资源授权。
+- GPL / AGPL 项目可以研究思想和结构；闭源商业实现时应自行重写，不直接复用代码。
+- MIT / Apache / BSD / CC0 等相对友好的许可证，也需要保留必要声明并确认依赖链条。
+- 本地软链接只是阅读入口，不代表参考项目代码属于 LangoTrace 当前实现事实。
+- 外部项目不能改变语迹的北极星：用生活记录学习语言。
 
-| 项目 | GitHub 地址 | 本地源码位置 |
-|---|---|---|
-| Memex | https://github.com/memex-lab/memex | `/Users/zibuyu/code/openSource/memex` |
-| OpenKoto | https://github.com/hikariming/openkoto | `/Users/zibuyu/code/openSource/openkoto` |
-| EchoTalk | https://github.com/alisolphp/EchoTalk | `/Users/zibuyu/code/openSource/EchoTalk` |
-| VocabSieve | https://github.com/FreeLanguageTools/vocabsieve | `/Users/zibuyu/code/openSource/vocabsieve` |
-| Ulangi | https://github.com/subconcept-labs/ulangi | `/Users/zibuyu/code/openSource/ulangi` |
-| Dayflow | https://github.com/JerryZLiu/Dayflow | `/Users/zibuyu/code/openSource/Dayflow` |
-| Memos | https://github.com/usememos/memos | `/Users/zibuyu/code/openSource/memos` |
-| language-learning-prompts | https://github.com/aoilang/language-learning-prompts | `/Users/zibuyu/code/openSource/language-learning-prompts` |
-| Anki | https://github.com/ankitects/anki | `/Users/zibuyu/code/openSource/anki` |
-| LinguaCafe | https://github.com/simjanos-dev/LinguaCafe | `/Users/zibuyu/code/openSource/LinguaCafe` |
-| Lute v3 | https://github.com/LuteOrg/lute-v3 | `/Users/zibuyu/code/openSource/lute-v3` |
-| Readest | https://github.com/readest/readest | `/Users/zibuyu/code/openSource/readest` |
-| LibreLingo | https://github.com/kantord/LibreLingo | `/Users/zibuyu/code/openSource/LibreLingo` |
+## 1. 本地源码软链接清单
 
-## 1. 优先研究结论
+以下源码已克隆到本机 `/Users/zibuyu/code/openSource`，后续开发和调研可直接从本地路径打开。若后续需要引用、复制、改造代码或引入依赖，仍必须先按第 7 节重新检查仓库当前 `LICENSE` 和依赖许可证。
+
+| 项目 | GitHub 地址 | 本地软链接 | 真实本地路径 | 许可证快照 |
+|---|---|---|---|---|
+| Memex | https://github.com/memex-lab/memex | `projects/memex` | `/Users/zibuyu/code/openSource/memex` | GPL-3.0 |
+| OpenKoto | https://github.com/hikariming/openkoto | `projects/openkoto` | `/Users/zibuyu/code/openSource/openkoto` | Apache License 2.0 |
+| EchoTalk | https://github.com/alisolphp/EchoTalk | `projects/EchoTalk` | `/Users/zibuyu/code/openSource/EchoTalk` | MIT |
+| VocabSieve | https://github.com/FreeLanguageTools/vocabsieve | `projects/vocabsieve` | `/Users/zibuyu/code/openSource/vocabsieve` | GPL-3.0 |
+| Ulangi | https://github.com/subconcept-labs/ulangi | `projects/ulangi` | `/Users/zibuyu/code/openSource/ulangi` | GPL-3.0，仓库已归档 |
+| Dayflow | https://github.com/JerryZLiu/Dayflow | `projects/Dayflow` | `/Users/zibuyu/code/openSource/Dayflow` | MIT |
+| Memos | https://github.com/usememos/memos | `projects/memos` | `/Users/zibuyu/code/openSource/memos` | MIT |
+| language-learning-prompts | https://github.com/aoilang/language-learning-prompts | `projects/language-learning-prompts` | `/Users/zibuyu/code/openSource/language-learning-prompts` | CC0-1.0 |
+| Anki | https://github.com/ankitects/anki | `projects/anki` | `/Users/zibuyu/code/openSource/anki` | AGPL-3.0 or later，含部分 BSD / MIT / Apache 等组件 |
+| LinguaCafe | https://github.com/simjanos-dev/LinguaCafe | `projects/LinguaCafe` | `/Users/zibuyu/code/openSource/LinguaCafe` | GPL-3.0 |
+| Lute v3 | https://github.com/LuteOrg/lute-v3 | `projects/lute-v3` | `/Users/zibuyu/code/openSource/lute-v3` | MIT |
+| Readest | https://github.com/readest/readest | `projects/readest` | `/Users/zibuyu/code/openSource/readest` | AGPL-3.0 |
+| LibreLingo | https://github.com/kantord/LibreLingo | `projects/LibreLingo` | `/Users/zibuyu/code/openSource/LibreLingo` | AGPL-3.0 |
+
+## 2. 优先研究结论
 
 第一批建议优先研究 5 个项目：
 
@@ -44,9 +53,9 @@
 - 词典导入、单词本、句子挖掘。
 - 移动端语言学习、TTS、间隔重复。
 
-## 2. 按功能模块拆分的参考项目
+## 3. 按功能模块拆分的参考项目
 
-### 2.1 生活记录、日记、本地优先
+### 3.1 生活记录、时间线、本地优先
 
 | 项目 | GitHub 地址 | 可参考点 |
 |---|---|---|
@@ -61,7 +70,7 @@
 - 本地优先不是一句隐私文案，而是要体现在数据位置、导出、备份、同步配置和 AI 请求透明度上。
 - 语迹可以学习时间线和回顾结构，但核心仍是语言学习闭环，而不是通用日记或生活日志。
 
-### 2.2 AI 语言学习与材料转化
+### 3.2 AI 转目标语言和 Prompt Preset
 
 | 项目 | GitHub 地址 | 可参考点 |
 |---|---|---|
@@ -75,7 +84,7 @@
 - 用户自定义 Prompt Preset 应有可复制、可导入导出、可按语种启用的管理方式。
 - AI 生成结果需要保留模型、Provider、Prompt Preset、生成时间和用户反馈，方便后续追踪质量。
 
-### 2.3 跟读、TTS、录音和 Shadowing
+### 3.3 跟读、TTS、录音和 Shadowing
 
 | 项目 | GitHub 地址 | 可参考点 |
 |---|---|---|
@@ -88,7 +97,7 @@
 - 后续可以再加入发音评分、波形对比、节奏提示和跟读回放。
 - 语迹不应变成单纯口语评分工具，跟读功能应始终服务于“自己的生活内容”。
 
-### 2.4 单词本、词典、句子挖掘和复习
+### 3.4 单词本、词典、句子挖掘和复习
 
 | 项目 | GitHub 地址 | 可参考点 |
 |---|---|---|
@@ -103,7 +112,7 @@
 - 词典导入是高级用户会重视的能力，应预留本地词典资源管理。
 - 间隔重复可以借鉴成熟模型，但语迹的复习对象应包括词、短语、句型、整句、错误模式和照片相关表达。
 
-### 2.5 阅读型语言学习
+### 3.5 阅读视图、点词和 TTS 阅读
 
 | 项目 | GitHub 地址 | 可参考点 |
 |---|---|---|
@@ -117,7 +126,7 @@
 - 目标语言内容需要良好的阅读视图：逐句对齐、点词、收藏、朗读、显示/隐藏母语、练习状态。
 - Readest 对跨端阅读体验、TTS、翻译和同步的处理值得研究。
 
-### 2.6 课程、练习和记忆系统
+### 3.6 练习系统、听写、回译和复习
 
 | 项目 | GitHub 地址 | 可参考点 |
 |---|---|---|
@@ -130,7 +139,34 @@
 - 练习题应从用户自己的记录、AI 生成文本、收藏词句和错误模式中动态生成。
 - 复习调度应服务于长期语言记忆，而不是强迫用户完成平台课程。
 
-## 3. 与语迹核心能力的映射
+### 3.7 多端同步、冲突和离线状态
+
+| 项目 | GitHub 地址 | 可参考点 |
+|---|---|---|
+| Readest | https://github.com/readest/readest | 跨端阅读体验、阅读状态同步、离线访问和多设备一致性。 |
+| Anki | https://github.com/ankitects/anki | 学习历史、复习状态、同步冲突和长期数据演进。 |
+| LibreLingo | https://github.com/kantord/LibreLingo | PouchDB 同步、离线练习状态和 Web App 数据同步。 |
+
+对语迹的启发：
+
+- 同步对象应按主数据、派生数据和缓存分层，不应把所有本地数据一股脑同步。
+- 学习历史、练习状态和冲突解决会直接影响长期记忆可信度。
+- 离线状态需要成为产品体验的一部分，而不是错误弹窗。
+
+### 3.8 长期记忆、AI 组织和语义搜索
+
+| 项目 | GitHub 地址 | 可参考点 |
+|---|---|---|
+| Memex | https://github.com/memex-lab/memex | 个人材料的 AI 组织、语义搜索和多模态记忆结构。 |
+| Dayflow | https://github.com/JerryZLiu/Dayflow | 时间线、日/周回顾、本地 AI 和多 Provider 组织个人活动。 |
+
+对语迹的启发：
+
+- 长期记忆应先服务语言学习，不应扩张成通用第二大脑。
+- 向量索引和 AI 摘要是可重建派生数据，默认不应成为同步主数据。
+- 语义搜索需要保留来源 Entry、Rendering、Practice 的可追溯关系。
+
+## 4. 与语迹核心能力的映射
 
 | 语迹核心能力 | 主要参考项目 | 研究重点 |
 |---|---|---|
@@ -145,7 +181,25 @@
 | 多端同步 | Readest / LibreLingo / Anki | 同步数据边界、冲突处理、离线状态、复习历史一致性。 |
 | 长期记忆与向量化 | Memex / Dayflow | 个人数据组织、AI 总结、语义搜索、历史召回。 |
 
-## 4. 后续阅读本地源码时的研究清单
+## 5. 项目使用边界
+
+| 项目 | 适合参考什么 | 不适合参考什么 | 开发哪些 LangoTrace 功能时优先阅读 | 许可证注意事项 |
+|---|---|---|---|---|
+| Memex | 生活记录、本地优先、AI 组织、语义搜索 | 通用 AI 笔记产品定位和可直接复用代码 | 本地记录、长期记忆、AI 组织、向量检索 | GPL-3.0；闭源实现不要复制代码 |
+| OpenKoto | AI 语言学习、多格式材料导入、翻译和词汇提取 | Tauri 桌面架构直接迁移到 Apple 原生 App | Prompt Preset、AI 材料转化、桌面端语言学习工作流 | Apache License 2.0；复用前仍需查依赖 |
+| EchoTalk | Shadowing、TTS、录音、本地练习历史 | 把语迹简化成单一跟读工具 | 跟读、听写、回译、练习历史 | MIT；复用前保留许可证声明 |
+| VocabSieve | 查词、词典导入、句子挖掘、Anki 工作流 | 直接复制 GPL 代码或把语迹变成 Anki 伴侣 | 单词本、词典、例句挖掘、摘录导入 | GPL-3.0；闭源实现应自行重写 |
+| Ulangi | 移动端语言学习结构、TTS、词典、复习 | 归档仓库中的旧技术栈和直接代码依赖 | 移动端词汇学习、quiz、复习状态 | GPL-3.0；仓库已归档，闭源实现不要复制代码 |
+| Dayflow | Mac 本地优先时间线、活动回顾、多 Provider | 工作流监控型产品方向 | Mac 工作台、生活时间线、日/周回顾 | MIT；复用前查当前许可证 |
+| Memos | 轻量记录流、Markdown、标签、自托管数据所有权 | 自托管社区产品定位 | 快速记录、时间线、标签和导出 | MIT；复用前保留许可证声明 |
+| language-learning-prompts | Prompt 类型灵感、语言学习任务覆盖 | 直接照搬为语迹内置 Prompt 体系 | Prompt Registry、Prompt Preset、练习生成 | CC0-1.0；仍建议改写成语迹自己的语气和输出契约 |
+| Anki | 间隔重复、卡片模型、学习历史、同步冲突 | 直接复用核心调度或把语迹做成 Anki 替代品 | 复习调度、学习历史、冲突策略 | AGPL-3.0 or later；核心代码不适合闭源复用 |
+| LinguaCafe | 阅读、点词、生词复习、多语言支持 | 自托管阅读平台定位和 GPL 代码复用 | 阅读视图、点词、复习状态 | GPL-3.0；闭源实现应自行重写 |
+| Lute v3 | 轻量文本学习、生词标注、阅读进度 | 以外部文本课程替代生活记录主闭环 | 阅读视图、生词状态、文本进度 | MIT；复用前保留许可证声明 |
+| Readest | 跨端阅读、TTS、翻译、同步 | 直接继承 AGPL 阅读器实现 | 阅读体验、TTS 阅读、多端同步状态 | AGPL-3.0；闭源实现不要复制代码 |
+| LibreLingo | 练习系统、课程数据结构、PouchDB 同步 | 课程树驱动的产品结构 | 听写、回译、互动练习、离线练习状态 | AGPL-3.0；闭源实现不要复制代码 |
+
+## 6. 后续阅读本地源码时的研究清单
 
 阅读每个项目源码时，建议按以下问题记录：
 
@@ -161,7 +215,7 @@
 - UI 交互：哪些流程可以借鉴，哪些流程会偏离语迹定位？
 - 可复用思想：哪些是产品结构或交互思想，哪些是不能直接使用的代码实现？
 
-## 5. 商业闭源开发的许可证原则
+## 7. 商业闭源开发的许可证原则
 
 语迹计划做收费 App，并且强调本地数据和用户自定义配置。商业开发时要特别注意开源许可证：
 
@@ -192,7 +246,7 @@
 
 > 优先参考产品结构、交互逻辑、数据模型和技术方案；真正实现时自己重写，或者只使用许可证兼容的库。
 
-## 6. 语迹需要保持的边界
+## 8. 语迹需要保持的边界
 
 研究开源项目时，必须避免语迹被带偏：
 
@@ -207,9 +261,9 @@
 > 用生活记录学习语言。  
 > Learn languages from your life.
 
-## 7. 推荐研究顺序
+## 9. 推荐研究顺序
 
-### 7.1 第一批：核心闭环
+### 9.1 第一批：核心闭环
 
 1. Memex：生活记录、本地优先、AI 组织、多模态片段。
 2. OpenKoto：AI 语言学习、桌面端架构、材料转化、词汇提取。
@@ -217,7 +271,7 @@
 4. VocabSieve：单词本、词典导入、句子挖掘、本地优先。
 5. Ulangi：移动端语言学习、TTS、间隔重复、词典和练习结构。
 
-### 7.2 第二批：阅读、复习和同步
+### 9.2 第二批：阅读、复习和同步
 
 1. LinguaCafe：阅读、点词、生词复习、多语言支持。
 2. Lute v3：轻量文本学习模型。
@@ -225,13 +279,13 @@
 4. LibreLingo：练习系统、课程数据结构、PouchDB 同步。
 5. Anki：间隔重复、卡片模型、学习历史、同步冲突。
 
-### 7.3 第三批：Prompt 设计
+### 9.3 第三批：Prompt 设计
 
 1. language-learning-prompts：整理可迁移的 prompt 类型。
 2. 将可用 prompt 思路改写成语迹自己的 Prompt Preset。
 3. 为每个 Prompt Preset 定义输入、输出结构、适用语种、适用水平和是否进入长期记忆。
 
-## 8. 后续落地建议
+## 10. 后续落地建议
 
 后续研究本地源码时，建议不要只看功能列表，而要形成模块级调研笔记：
 

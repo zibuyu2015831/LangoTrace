@@ -10,7 +10,7 @@
 
 - `docs/README.md`
 - `docs/product-main-reference.md`
-- `docs/project-initialization.md`
+- `docs/development/project-initialization.md`
 - `docs/development/001-platform-development-sequence.md`
 - `docs/architecture/001-initial-module-boundaries.md`
 - `docs/spec/002-navigation-and-routing.md`

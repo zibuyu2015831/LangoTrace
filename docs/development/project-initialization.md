@@ -18,8 +18,8 @@
 
 - `docs/product-main-reference.md`：产品主参考。
 - `docs/technical-framework-roadmap.md`：技术路线参考。
-- `docs/development-environment.md`：本机开发环境记录。
-- `docs/development-open-source-references.md`：开源项目参考。
+- `docs/development/environment.md`：本机开发环境记录。
+- `docs/reference/README.md`：参考项目使用指南。
 - `prototypes/langotrace-multi-device-prototype/`：静态 HTML 多端原型。
 - `project.yml`：XcodeGen 工程定义。
 - `LangoTrace.xcodeproj`：由 XcodeGen 生成的 Xcode 工程。
@@ -53,7 +53,7 @@
 
 iPadOS 作为 iOS target 的自适应体验处理，但在 UI 架构中保留 iPad 专属布局。
 
-三端开发顺序遵循 [三端开发顺序方案](development/001-platform-development-sequence.md)：工程层面同时初始化 iPhone、iPad 和 macOS；MVP 功能优先 iPhone + iPad；Mac 第一阶段保持基础可运行，后续增强为语言资料库与创作工作台。
+三端开发顺序遵循 [三端开发顺序方案](001-platform-development-sequence.md)：工程层面同时初始化 iPhone、iPad 和 macOS；MVP 功能优先 iPhone + iPad；Mac 第一阶段保持基础可运行，后续增强为语言资料库与创作工作台。
 
 ### 3.2 模块边界先于功能堆叠
 
@@ -227,13 +227,14 @@ cd "$(dirname "$0")/.."
 xcodegen generate
 xcodebuild -list -project LangoTrace.xcodeproj
 swift test --package-path Packages/LangoTraceCore
+swift test --package-path Packages/LangoTraceData
 swift test --package-path Packages/LangoTraceUI
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
 xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
 swiftlint --no-cache
 swiftformat --lint . --cache ignore
-if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*'; then
+if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'; then
   echo "Documentation placeholder scan found entries." >&2
   exit 1
 fi
@@ -285,7 +286,7 @@ git status --short
 开始创建 SwiftUI 工程前，应确认：
 
 - Xcode 和 iOS Simulator 已安装并可启动。
-- `development-environment.md` 中环境记录仍然准确。
+- `environment.md` 中环境记录仍然准确。
 - 是否采用 XcodeGen 已明确。
 - 初始工程目录名已明确。
 - 第一个提交只包含工程骨架和必要文档，不混入功能实现。

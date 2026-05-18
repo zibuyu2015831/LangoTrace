@@ -5,7 +5,7 @@
 ## 最新状态摘要
 
 - 最近审查轮次：`2026-05-17-string-catalog-interface-language-settings`。
-- 最近完成时间：进行中。
+- 最近完成时间：2026-05-17。
 - 待用户澄清的问题数：0。
 - 延后项：3。
 
@@ -13,7 +13,7 @@
 
 | 轮次 ID | 类型 | 启动时间 | 完成时间 | 状态 | 链接 |
 | --- | --- | --- | --- | --- | --- |
-| `2026-05-17-string-catalog-interface-language-settings` | 专项审查 | 2026-05-17 | 进行中 | In Progress | [README](rounds/2026-05-17-string-catalog-interface-language-settings/README.md) |
+| `2026-05-17-string-catalog-interface-language-settings` | 专项审查 | 2026-05-17 | 2026-05-17 | Verified | [README](rounds/2026-05-17-string-catalog-interface-language-settings/README.md) |
 | `2026-05-17-interface-localization-foundation` | 专项审查 | 2026-05-17 | 2026-05-17 | Verified | [README](rounds/2026-05-17-interface-localization-foundation/README.md) |
 
 ## 重审触发日志
@@ -27,5 +27,5 @@
 
 | 轮次 | 问题数 | 代码问题记录数 | 新会话可用抽样 |
 | --- | --- | --- | --- |
-| `2026-05-17-string-catalog-interface-language-settings` | 审查中 | 审查中 | 审查中：等待完整验证和视觉记录 |
+| `2026-05-17-string-catalog-interface-language-settings` | 0 个阻断问题，3 个延后项 | 0 | 通过：验证命令、String Catalog 边界和视觉记录风险均已写入单轮记录 |
 | `2026-05-17-interface-localization-foundation` | 0 | 0 | 通过：入口文档、验证脚本和测试文档均能指向当前验证方式 |

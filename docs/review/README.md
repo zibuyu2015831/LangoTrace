@@ -19,10 +19,10 @@
 
 | 类型 | 代表文档 | 审查重点 |
 | --- | --- | --- |
-| 当前事实源 | `docs/README.md`、`docs/development-environment.md`、`docs/project-initialization.md`、`docs/architecture/` | 必须与当前代码、脚本和工程结构匹配 |
+| 当前事实源 | `docs/README.md`、`docs/development/environment.md`、`docs/development/project-initialization.md`、`docs/architecture/` | 必须与当前代码、脚本和工程结构匹配 |
 | 决策源 | `docs/decisions/`、`docs/product-main-reference.md`、`docs/technical-framework-roadmap.md` | 必须与核心产品、架构、隐私、付费和同步决策一致 |
 | 执行规则源 | `docs/spec/`、`docs/testing/`、`docs/release/` | 必须能指导后续实现和验证，允许包含尚未完全实现的规则 |
-| 过程记录 | `docs/plans/`、`docs/research/`、历史 `docs/archive/worklogs/`、历史 `docs/archive/superpowers/` | 保留任务过程，不要求持续改写为最新事实 |
+| 过程记录 | `docs/plans/`、`docs/reference/research/`、历史 `docs/archive/worklogs/`、历史 `docs/archive/superpowers/` | 保留任务过程，不要求持续改写为最新事实 |
 | 审查记录 | `docs/review/rounds/` | 记录某次审查的代码快照、范围、结论和剩余风险 |
 
 过程记录和审查记录不能被当作当前实现事实反复改写。若历史记录与当前代码不同，应在新的事实源文档或新的审查记录中说明演进结果。
@@ -37,7 +37,7 @@
 | 产品核心决策 | 产品主参考文档、ADR、用户明确确认 | 代码若冲突，不能直接改文档迁就代码，应触发复审 |
 | 架构和隐私决策 | ADR、技术路线、spec | 代码若偏离，需要记录为架构债、bug 或 ADR 复审 |
 | 未来计划 | roadmap、任务方案、规格或计划文档 | 必须明确写成计划、候选、后续，不得伪装成已实现 |
-| 历史过程 | 历史 worklog、research、review round | 保留当时上下文，不强制改写为最新事实 |
+| 历史过程 | 历史 worklog、reference research、review round | 保留当时上下文，不强制改写为最新事实 |
 | 无法从代码判断的设计意图 | 用户澄清或新增决策记录 | 先记录问题，不凭空补入长期文档 |
 
 审查不是为了让所有文档都服从当前代码，而是为了让不同来源的权威关系清晰。

@@ -23,13 +23,14 @@
 具体要求：
 
 - `docs/README.md` 作为文档总入口。
-- `docs/documentation-system.md` 规定文档分层、更新规则和提交前检查。
+- `docs/_meta/documentation-system.md` 规定文档分层、更新规则和提交前检查。
 - 重要架构和产品取舍进入 `docs/decisions/`。
 - 架构边界进入 `docs/architecture/`。
-- 阶段计划和 runbook 进入 `docs/development/`。
+- 阶段级 runbook、工程初始化记录和跨任务工程路线进入 `docs/development/`。
 - 测试策略和验证记录进入 `docs/testing/`。
 - 发布、StoreKit、隐私标签和审核事项进入 `docs/release/`。
-- 较大功能先写规格，再写实施计划。
+- 新功能、bug 修复、架构调整和高风险任务先写 `docs/plans/active/` 任务方案。
+- 开发一致性规范和模块级实现地图进入 `docs/spec/`；`docs/decisions/` 不维护 implementation 文档。
 
 ## 备选方案
 
@@ -79,7 +80,7 @@
 缓解方式：
 
 - 只有重大功能、架构取舍、数据边界、隐私边界、付费发布相关内容必须写入长期文档。
-- 小型阶段记录可以放入 `docs/development/` 或 `docs/testing/`。
+- 小型阶段记录可以放入 `docs/development/` 或 `docs/testing/`，但不能替代单项任务方案。
 - 每次提交前检查文档与实际状态是否一致。
 
 ## 复审条件
@@ -90,4 +91,3 @@
 - 项目范围明显缩小为内部 Demo 或一次性原型。
 - 文档维护成本明显阻碍核心开发。
 - 进入 TestFlight 或 App Store 发布前，需要进一步收紧发布与测试文档要求。
-

@@ -4,6 +4,7 @@ disabled_rules:
 excluded:
   - .build
   - LangoTrace.xcodeproj
+  - docs/reference/projects
   - Packages/*/.build
   - Packages/*/.swiftpm
 

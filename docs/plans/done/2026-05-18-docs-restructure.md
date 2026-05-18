@@ -75,7 +75,7 @@
 重点修改：
 
 - `docs/README.md`
-- `docs/documentation-system.md`
+- `docs/_meta/documentation-system.md`
 - `docs/review/README.md`
 - `docs/review/INDEX.md`
 - `docs/guidelines/` -> `docs/spec/`
@@ -284,7 +284,7 @@ git status --short
 - 2026-05-18：采集当前 `git status --short`、`docs` 文件清单、旧路径引用和根入口软链接。
 - 2026-05-18：创建本任务方案并建立 `docs/superpowers/`、`docs/worklogs/` 迁移清单。
 - 2026-05-18：提交阶段 0：`50a30ee docs: prepare documentation restructure plan`。
-- 2026-05-18：阶段 1 执行 `docs/guidelines/` -> `docs/spec/` 目录重命名，批量更新旧路径引用，并同步更新 `docs/README.md`、`docs/documentation-system.md`、`docs/review/README.md`、`docs/review/INDEX.md` 等入口和治理文档。
+- 2026-05-18：阶段 1 执行 `docs/guidelines/` -> `docs/spec/` 目录重命名，批量更新旧路径引用，并同步更新 `docs/README.md`、`docs/_meta/documentation-system.md`、`docs/review/README.md`、`docs/review/INDEX.md` 等入口和治理文档。
 - 2026-05-18：提交阶段 1：`2379417 docs: rename documentation guidelines to spec`。
 - 2026-05-18：阶段 2 创建 `docs/plans/README.md`、`docs/plans/done/README.md` 和 `docs/plans/examples/task-plan-template.md`，并将入口规则从新建 worklog 切换为新建任务方案。
 - 2026-05-18：提交阶段 2：`8f76bf3 docs: add unified task plan system`。
