@@ -1,6 +1,6 @@
 # 任务方案：全面页面审核与设计提升
 
-状态：Draft
+状态：Review Completed / Implementation Pending
 类型：feature
 创建日期：2026-05-18
 最后更新日期：2026-05-18
@@ -9,7 +9,9 @@
 
 状态为 `Draft` 时不能开始实现。用户确认后记录确认时间、确认内容和范围边界。
 
-本方案当前只完成计划记录，尚未进入页面审核和代码修改。
+2026-05-18：用户确认本方案已经通过审核，要求完整阅读方案、修改方案状态、制定详细计划，并对照方案完成全面 UI / 设计 / 规范 / 代码契合度审核任务。
+
+本轮先进入审核与审查产物阶段；是否进入 SwiftUI 实现修改、长期规范更新或新 active plan 拆分，必须以本轮审核结论为依据。
 
 ## 1. 需求或 bug 描述
 
@@ -507,7 +509,39 @@ scripts/verify.sh
 
 2026-05-18：创建本任务方案，并新增 `docs/development/mvp-development-roadmap.md` 作为跨任务开发路线事实源。
 
-页面审核尚未开始。
+2026-05-18：用户确认本方案已经通过审核，本方案进入执行状态。已按方案完成全面 UI / 设计 / 规范 / 代码契合度审查，审查产物写入：
+
+- `docs/review/rounds/2026-05-18-comprehensive-ui-review/README.md`
+- `docs/review/rounds/2026-05-18-comprehensive-ui-review/process-log.md`
+- `docs/review/rounds/2026-05-18-comprehensive-ui-review/page-map.md`
+- `docs/review/rounds/2026-05-18-comprehensive-ui-review/findings.md`
+- `docs/review/rounds/2026-05-18-comprehensive-ui-review/skill-evidence.md`
+- `docs/review/rounds/2026-05-18-comprehensive-ui-review/spec-gap-review.md`
+- `docs/review/rounds/2026-05-18-comprehensive-ui-review/subagent-reports/`
+
+本轮实际调用并使用的专业 skill：
+
+- `ui-ux-pro-max`
+- `ios-design-guidelines`
+- `ipados-design-guidelines`
+- `macos-design-guidelines`
+- `swiftui-pro`
+- `iOS SwiftUI Accessibility`
+- `verification-before-completion`
+
+本轮使用 6 个只读子代理完成分域审查：产品与信息架构、iPhone / iOS、iPadOS、macOS、设计系统与视觉、SwiftUI 架构与规范契合。由于会话子代理数量达到上限，可访问性与本地化审查由主线程补审并写入 `subagent-reports/accessibility-localization.md`。
+
+审核主裁决：
+
+- iPhone 顶层 IA 不应继续默认保留 `今日 / 记录 / 练习 / 记忆 / 设置` 五 Tab。`今日` 与 `记录` 存在 Entry 创建和记录发现重复，`设置` 作为底部 Tab 层级过重。第一轮 UI 收敛建议合并 `今日 / 记录`，将 `设置` 降级为 toolbar / 语言空间菜单 / 系统设置入口。
+- 语言空间长期应允许删除，但必须拆新的 active plan 定义删除、最后空间回退、关联 Entry / Rendering / Practice / Memory / 附件、导出、撤销和未来同步 tombstone 边界；本轮不直接实现删除。
+- iOS 首次创建语言空间页的三项基础表单和底部创建按钮合理，但 Welcome / Onboarding 不应过早暴露 AI、同步、词典和 Prompt 等后续能力说明。
+- macOS 底部 AI / Sync / Settings 三个图标不应表现为三个等价设置入口；AI / Sync 应是状态或配置详情入口，gear 才是通用设置。macOS 还缺少 `Settings` scene、commands 和键盘快捷键。
+- iPad 三栏方向保留，但当前固定宽度 HStack 和左栏职责过重，需要补宽度断点、keyboard / pointer、稳定配置入口和状态驱动右侧学习 Inspector。
+- 设计系统应先扩展 token、状态矩阵、action hierarchy 和 empty / unavailable pattern，再做逐页视觉提升。
+- SwiftUI 架构需要修复 interface-language resolver、repository seam、`contentRevision` 扩散和 `SentencePairView` Listen 空 action。
+
+本方案当前状态为 `Review Completed / Implementation Pending`：审查任务已完成，但第一轮 UI 收敛、规范更新和语言空间生命周期方案尚未实施。后续不应直接把本方案移入 `done/`，除非已拆分并确认后续 active plan，或完成本方案第 16 节中的实现和验证条件。
 
 ## 16. 完成标准
 
