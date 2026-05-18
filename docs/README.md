@@ -59,7 +59,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - iPhone Tab、iPad 学习桌面、macOS 工作台的原生 SwiftUI 骨架。
 - 隐私状态模型和 AI / 同步 / 设置状态图标展示。
 - iPad 左右辅助面板折叠按钮和边缘手势判定 helper。
-- Core 和 UI package 的首批单元测试。
+- Core、Data 和 UI package 的首批单元测试。
 - 统一验证脚本 `scripts/verify.sh`。
 
 尚未完成：
