@@ -259,7 +259,7 @@ struct MacMainView: View {
     private var inspector: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                Text("INSPECTOR")
+                localizedText("mac.inspector.title")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
                 MacInspectorContent(

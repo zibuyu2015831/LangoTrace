@@ -6884,6 +6884,23 @@
         }
       }
     },
+    "mac.inspector.title": {
+      "comment": "Mac inspector panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learning Panel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "学习面板"
+          }
+        }
+      }
+    },
     "mac.section.today.description": {
       "comment": "Mac section description.",
       "localizations": {
