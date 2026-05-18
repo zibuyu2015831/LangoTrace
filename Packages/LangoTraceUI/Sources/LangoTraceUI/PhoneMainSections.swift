@@ -17,7 +17,6 @@ struct PhoneRecordWorkspaceView: View {
         PhonePage(
             titleKey: "tab.entries",
             languageSpace: languageSpace,
-            statusTextKey: "phone.entries.status",
             onLanguageSpaceAction: onLanguageSpaceAction,
             onSettingsAction: onSettingsAction
         ) {
@@ -27,7 +26,7 @@ struct PhoneRecordWorkspaceView: View {
                 onPhotoWriting: onPhotoWriting,
                 onListenOne: onListenOne
             )
-            SectionHeader(titleKey: "phone.today.recent.title", subtitleKey: "phone.today.recent.subtitle")
+            SectionHeader(titleKey: "phone.today.recent.title")
             if entries.isEmpty {
                 EmptyEntryPanel(onNewEntry: onNewEntry)
             } else {
@@ -56,12 +55,10 @@ struct PracticeView: View {
         PhonePage(
             titleKey: "tab.practice",
             languageSpace: languageSpace,
-            statusTextKey: "phone.practice.status",
-            statusArgument: languageSpace.targetLanguage,
             onLanguageSpaceAction: onLanguageSpaceAction,
             onSettingsAction: onSettingsAction
         ) {
-            SectionHeader(titleKey: "phone.practice.fromLife.title", subtitleKey: "phone.practice.fromLife.subtitle")
+            SectionHeader(titleKey: "phone.practice.fromLife.title")
             if entries.isEmpty {
                 LocalizedCompactPanel(
                     titleKey: "phone.practice.empty.title",
@@ -119,11 +116,10 @@ struct MemoryView: View {
         PhonePage(
             titleKey: "tab.memory",
             languageSpace: languageSpace,
-            statusTextKey: "phone.memory.status",
             onLanguageSpaceAction: onLanguageSpaceAction,
             onSettingsAction: onSettingsAction
         ) {
-            SectionHeader(titleKey: "phone.memory.personal.title", subtitleKey: "phone.memory.personal.subtitle")
+            SectionHeader(titleKey: "phone.memory.personal.title")
             MemoryLayerSummaryView(memoryItems: memoryItems)
             ForEach(memoryItems) { item in
                 CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
@@ -148,7 +144,6 @@ struct SettingsView: View {
         PhonePage(
             titleKey: "tab.settings",
             languageSpace: languageSpace,
-            statusTextKey: "phone.settings.status",
             onLanguageSpaceAction: onLanguageSpaceAction,
             onSettingsAction: onSettingsAction
         ) {
@@ -172,8 +167,6 @@ struct SettingsView: View {
 struct PhonePage<Content: View>: View {
     let titleKey: String
     let languageSpace: LanguageSpacePreview
-    let statusTextKey: String
-    var statusArgument: String?
     let onLanguageSpaceAction: () -> Void
     var onSettingsAction: (() -> Void)?
     @ViewBuilder let content: Content
@@ -181,38 +174,17 @@ struct PhonePage<Content: View>: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                PhoneContextHeader(languageSpace: languageSpace, statusText: statusText)
+                PhoneContextHeader(
+                    languageSpace: languageSpace,
+                    onLanguageSpaceAction: onLanguageSpaceAction,
+                    onSettingsAction: onSettingsAction
+                )
                 content
             }
             .padding(20)
             .padding(.bottom, 92)
         }
         .navigationTitle(localizedText(titleKey))
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                if let onSettingsAction {
-                    Button(action: onSettingsAction) {
-                        Image(systemName: "gearshape")
-                    }
-                    .accessibilityLabel(localizedText("tab.settings"))
-                }
-            }
-            ToolbarItem(placement: .automatic) {
-                Button(action: onLanguageSpaceAction) {
-                    Image(systemName: "chevron.down.circle")
-                }
-                .accessibilityLabel(localizedText("languageSpace.switcher.label"))
-                .accessibilityHint(localizedText("languageSpace.switcher.hint"))
-            }
-        }
         .langoPageBackground()
-    }
-
-    private var statusText: String {
-        if let statusArgument {
-            return localizedString(statusTextKey, statusArgument)
-        }
-
-        return localizedString(statusTextKey)
     }
 }

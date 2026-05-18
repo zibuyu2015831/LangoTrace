@@ -45,7 +45,7 @@ enum SeedLearningContent {
             and I was in no hurry to go home.
             """,
             promptLabel: "自然表达",
-            providerLabel: "Local Mock",
+            providerLabel: "LangoTrace Draft",
             isMock: true,
             sentences: [
                 RenderingSentence(

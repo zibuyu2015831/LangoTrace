@@ -31,7 +31,10 @@ let package = Package(
         ),
         .testTarget(
             name: "LangoTraceUITests",
-            dependencies: ["LangoTraceUI"]
+            dependencies: [
+                "LangoTraceUI",
+                .product(name: "LangoTraceData", package: "LangoTraceData"),
+            ]
         ),
     ]
 )

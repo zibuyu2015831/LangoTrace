@@ -113,49 +113,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local Mock"
+            "value": "Local-first"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local Mock"
+            "value": "本地优先"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mock local"
+            "value": "Local-first"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ローカルMock"
+            "value": "Local-first"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mock local"
+            "value": "Local-first"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lokaler Mock"
+            "value": "Local-first"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "로컬 Mock"
+            "value": "Local-first"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Локальный mock"
+            "value": "Local-first"
           }
         }
       }
@@ -219,49 +219,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable"
+            "value": "Needs setup"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未接入"
+            "value": "待配置"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No disponible"
+            "value": "Needs setup"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "未対応"
+            "value": "Needs setup"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Indisponible"
+            "value": "Needs setup"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht verfügbar"
+            "value": "Needs setup"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "사용 불가"
+            "value": "Needs setup"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Недоступно"
+            "value": "Needs setup"
           }
         }
       }
@@ -554,49 +554,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved locally as Local Mock. Nothing is sent to external AI."
+            "value": "Saved on this device. Nothing is sent to external AI."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前为本地保存和 Local Mock，不会发送到外部 AI。"
+            "value": "保存在本机，不会发送到外部 AI。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se guarda localmente como Mock local. No se envía nada a una IA externa."
+            "value": "Saved on this device. Nothing is sent to external AI."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ローカルMockとして端末内に保存されます。外部AIには送信されません。"
+            "value": "Saved on this device. Nothing is sent to external AI."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enregistré localement comme mock local. Rien n’est envoyé à une IA externe."
+            "value": "Saved on this device. Nothing is sent to external AI."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wird lokal als lokaler Mock gespeichert. Es wird nichts an externe KI gesendet."
+            "value": "Saved on this device. Nothing is sent to external AI."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "로컬 Mock으로 기기에 저장됩니다. 외부 AI로 전송되지 않습니다."
+            "value": "Saved on this device. Nothing is sent to external AI."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Сохраняется локально как локальный mock. Ничего не отправляется внешнему ИИ."
+            "value": "Saved on this device. Nothing is sent to external AI."
           }
         }
       }
@@ -1508,49 +1508,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current mode is Local Mock. No external AI request is made."
+            "value": "Local draft"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前使用 Local Mock，不会触发外部 AI 请求。"
+            "value": "本地草稿"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El modo actual es Mock local. No se realiza ninguna solicitud de IA externa."
+            "value": "Local draft"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "現在はローカルMockモードです。外部AIリクエストは行われません。"
+            "value": "Local draft"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le mode actuel est Mock local. Aucune requête vers une IA externe n’est effectuée."
+            "value": "Local draft"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der aktuelle Modus ist lokaler Mock. Es wird keine externe KI-Anfrage gesendet."
+            "value": "Local draft"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "현재 모드는 로컬 Mock입니다. 외부 AI 요청은 발생하지 않습니다."
+            "value": "Local draft"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Текущий режим — локальный mock. Запрос к внешнему ИИ не выполняется."
+            "value": "Local draft"
           }
         }
       }
@@ -1561,49 +1561,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not sent: local database, full photo library, API keys, or unselected history."
+            "value": "Not sent: unrelated history, full photo access, credentials, or unselected content."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不会发送：本地数据库、完整照片库、API Key、未选中的历史记录。"
+            "value": "不会发送：无关历史记录、完整照片访问权限、凭证或未选中的内容。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se envían: base de datos local, fototeca completa, claves API ni historial no seleccionado."
+            "value": "Not sent: unrelated history, full photo access, credentials, or unselected content."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "送信されないもの: ローカルデータベース、写真ライブラリ全体、APIキー、未選択の履歴。"
+            "value": "Not sent: unrelated history, full photo access, credentials, or unselected content."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non envoyés : base de données locale, photothèque complète, clés API ou historique non sélectionné."
+            "value": "Not sent: unrelated history, full photo access, credentials, or unselected content."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht gesendet: lokale Datenbank, gesamte Fotomediathek, API-Schlüssel oder nicht ausgewählter Verlauf."
+            "value": "Not sent: unrelated history, full photo access, credentials, or unselected content."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "전송되지 않음: 로컬 데이터베이스, 전체 사진 보관함, API 키, 선택하지 않은 기록."
+            "value": "Not sent: unrelated history, full photo access, credentials, or unselected content."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не отправляются: локальная база данных, вся фототека, API-ключи и невыбранная история."
+            "value": "Not sent: unrelated history, full photo access, credentials, or unselected content."
           }
         }
       }
@@ -1667,49 +1667,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request preview only explains what would be sent later. The current app does not read Keychain or make network requests."
+            "value": "Provider credentials should be stored securely. Life content is sent only after the user explicitly starts an online generation action."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请求预览只说明将来会发送哪些内容，当前不会读取 Keychain，也不会发起网络请求。"
+            "value": "Provider 凭证应安全保存。生活内容只有在用户明确发起在线生成时才会发送。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La vista previa solo explica qué se enviaría más tarde. La app actual no lee Keychain ni realiza solicitudes de red."
+            "value": "Provider credentials should be stored securely. Life content is sent only after the user explicitly starts an online generation action."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "リクエストプレビューは将来送信される内容を説明するだけです。現在のアプリはKeychainを読まず、ネットワークリクエストも行いません。"
+            "value": "Provider credentials should be stored securely. Life content is sent only after the user explicitly starts an online generation action."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’aperçu de requête explique seulement ce qui serait envoyé plus tard. L’app actuelle ne lit pas le trousseau et n’effectue aucune requête réseau."
+            "value": "Provider credentials should be stored securely. Life content is sent only after the user explicitly starts an online generation action."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Anfragevorschau erklärt nur, was später gesendet würde. Die aktuelle App liest keinen Keychain und stellt keine Netzwerkanfragen."
+            "value": "Provider credentials should be stored securely. Life content is sent only after the user explicitly starts an online generation action."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "요청 미리보기는 나중에 무엇이 전송될지만 설명합니다. 현재 앱은 Keychain을 읽거나 네트워크 요청을 하지 않습니다."
+            "value": "Provider credentials should be stored securely. Life content is sent only after the user explicitly starts an online generation action."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Предпросмотр запроса только объясняет, что будет отправлено позже. Текущая версия не читает Keychain и не выполняет сетевые запросы."
+            "value": "Provider credentials should be stored securely. Life content is sent only after the user explicitly starts an online generation action."
           }
         }
       }
@@ -1720,49 +1720,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Design Provider configuration, Keychain API keys, and request logs."
+            "value": "Add secure credential storage, request preview, provider health checks, and request logs before enabling external generation."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "设计 Provider 配置、Keychain API Key 和请求日志。"
+            "value": "启用外部生成前，需要补齐安全凭证存储、请求预览、Provider 健康检查和请求日志。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diseñar la configuración de Provider, claves API en Keychain y registros de solicitud."
+            "value": "Add secure credential storage, request preview, provider health checks, and request logs before enabling external generation."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provider設定、Keychain APIキー、リクエストログを設計します。"
+            "value": "Add secure credential storage, request preview, provider health checks, and request logs before enabling external generation."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Concevoir la configuration Provider, les clés API dans le trousseau et les journaux de requêtes."
+            "value": "Add secure credential storage, request preview, provider health checks, and request logs before enabling external generation."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provider-Konfiguration, Keychain-API-Schlüssel und Anfrageprotokolle entwerfen."
+            "value": "Add secure credential storage, request preview, provider health checks, and request logs before enabling external generation."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provider 설정, Keychain API 키, 요청 로그를 설계합니다."
+            "value": "Add secure credential storage, request preview, provider health checks, and request logs before enabling external generation."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Спроектировать настройку Provider, API-ключи в Keychain и журналы запросов."
+            "value": "Add secure credential storage, request preview, provider health checks, and request logs before enabling external generation."
           }
         }
       }
@@ -1773,49 +1773,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No real Provider is configured. All generation is Local Mock."
+            "value": "Generation stays on this device until you add a provider."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未配置真实 Provider，所有生成均为 Local Mock。"
+            "value": "添加 Provider 前，生成流程保留在本机。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No hay Provider real configurado. Toda la generación es Mock local."
+            "value": "Generation stays on this device until you add a provider."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "実際のProviderは未設定です。すべての生成はローカルMockです。"
+            "value": "Generation stays on this device until you add a provider."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucun vrai Provider n’est configuré. Toute la génération est un mock local."
+            "value": "Generation stays on this device until you add a provider."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Es ist kein echter Provider konfiguriert. Alle Generierung ist lokaler Mock."
+            "value": "Generation stays on this device until you add a provider."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "실제 Provider가 설정되어 있지 않습니다. 모든 생성은 로컬 Mock입니다."
+            "value": "Generation stays on this device until you add a provider."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Настоящий Provider не настроен. Вся генерация — локальный mock."
+            "value": "Generation stays on this device until you add a provider."
           }
         }
       }
@@ -1879,13 +1879,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current Boundary"
+            "value": "Current Status"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前边界"
+            "value": "当前状态"
           }
         },
         "es": {
@@ -1932,13 +1932,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Next Requirement"
+            "value": "Next Step"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "后续接入条件"
+            "value": "接下来"
           }
         },
         "es": {
@@ -1985,13 +1985,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Will Not Happen"
+            "value": "Privacy Note"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不会发生"
+            "value": "隐私说明"
           }
         },
         "es": {
@@ -2038,49 +2038,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This page will not save secrets, write to a real database, access photos or microphone, or make network requests."
+            "value": "Opening this page does not request permissions, send content, or change stored data."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本页不会保存密钥、不会写入真实数据库、不会访问照片或麦克风、不会发起网络请求。"
+            "value": "打开本页不会申请权限、发送内容或改变已保存数据。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta página no guardará secretos, no escribirá en una base de datos real, no accederá a fotos ni micrófono y no hará solicitudes de red."
+            "value": "Opening this page does not request permissions, send content, or change stored data."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このページはシークレットを保存せず、実データベースに書き込まず、写真やマイクにアクセスせず、ネットワークリクエストも行いません。"
+            "value": "Opening this page does not request permissions, send content, or change stored data."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cette page n’enregistrera pas de secrets, n’écrira pas dans une vraie base de données, n’accédera pas aux photos ni au micro et n’effectuera aucune requête réseau."
+            "value": "Opening this page does not request permissions, send content, or change stored data."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diese Seite speichert keine Geheimnisse, schreibt nicht in eine echte Datenbank, greift nicht auf Fotos oder Mikrofon zu und stellt keine Netzwerkanfragen."
+            "value": "Opening this page does not request permissions, send content, or change stored data."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이 페이지는 비밀 정보를 저장하지 않고, 실제 데이터베이스에 쓰지 않으며, 사진이나 마이크에 접근하지 않고, 네트워크 요청을 하지 않습니다."
+            "value": "Opening this page does not request permissions, send content, or change stored data."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Эта страница не сохраняет секреты, не пишет в настоящую базу данных, не обращается к фото или микрофону и не выполняет сетевые запросы."
+            "value": "Opening this page does not request permissions, send content, or change stored data."
           }
         }
       }
@@ -2091,49 +2091,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "There is no real database or attachment directory yet, so the app cannot generate a complete export package."
+            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前没有真实数据库和附件目录，因此不能生成完整导出包。"
+            "value": "本地资料库模型稳定后，导出应覆盖生活记录、学习材料、附件和隐私安全的元数据。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aún no hay base de datos real ni directorio de adjuntos, así que la app no puede generar un paquete de exportación completo."
+            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "まだ実データベースや添付ファイルディレクトリがないため、完全なエクスポートパッケージは生成できません。"
+            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Il n’y a pas encore de vraie base de données ni de dossier de pièces jointes ; l’app ne peut donc pas générer un paquet d’export complet."
+            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Es gibt noch keine echte Datenbank und kein Anhangsverzeichnis, daher kann die App kein vollständiges Exportpaket erzeugen."
+            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "아직 실제 데이터베이스나 첨부 파일 디렉터리가 없어 완전한 내보내기 패키지를 만들 수 없습니다."
+            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Настоящей базы данных и каталога вложений пока нет, поэтому приложение не может создать полный пакет экспорта."
+            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
           }
         }
       }
@@ -2197,49 +2197,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export is not implemented yet."
+            "value": "Export will cover your local library after the data model is stable."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导出尚未实现。"
+            "value": "数据模型稳定后，导出将覆盖本地资料库。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La exportación aún no está implementada."
+            "value": "Export will cover your local library after the data model is stable."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "エクスポートはまだ実装されていません。"
+            "value": "Export will cover your local library after the data model is stable."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’export n’est pas encore implémenté."
+            "value": "Export will cover your local library after the data model is stable."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export ist noch nicht implementiert."
+            "value": "Export will cover your local library after the data model is stable."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "내보내기는 아직 구현되지 않았습니다."
+            "value": "Export will cover your local library after the data model is stable."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Экспорт пока не реализован."
+            "value": "Export will cover your local library after the data model is stable."
           }
         }
       }
@@ -2886,49 +2886,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The default follows the system. Unsupported system languages fall back to English."
+            "value": "Follows the system by default and falls back to English when needed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前默认跟随系统，未支持的系统语言回退英文。"
+            "value": "默认跟随系统，必要时回退英文。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Por defecto sigue el sistema. Los idiomas de sistema no admitidos vuelven a inglés."
+            "value": "Follows the system by default and falls back to English when needed."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "既定ではシステムに従います。未対応のシステム言語は英語に戻ります。"
+            "value": "Follows the system by default and falls back to English when needed."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Par défaut, suit le système. Les langues système non prises en charge reviennent à l’anglais."
+            "value": "Follows the system by default and falls back to English when needed."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standardmäßig folgt die App dem System. Nicht unterstützte Systemsprachen fallen auf Englisch zurück."
+            "value": "Follows the system by default and falls back to English when needed."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "기본값은 시스템을 따릅니다. 지원하지 않는 시스템 언어는 영어로 돌아갑니다."
+            "value": "Follows the system by default and falls back to English when needed."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "По умолчанию следует системе. Неподдерживаемые системные языки возвращаются к английскому."
+            "value": "Follows the system by default and falls back to English when needed."
           }
         }
       }
@@ -3151,49 +3151,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current language space only exists in app session state and is used to validate onboarding and page closure."
+            "value": "Language spaces define the source language, target language, level, and learning context used by the app."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前语言空间只存在于 App 会话状态中，用于验证首次启动和页面闭环。"
+            "value": "语言空间定义应用使用的母语、目标语言、水平和学习上下文。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El espacio de idioma actual solo existe en el estado de sesión de la app y se usa para validar onboarding y cierre de páginas."
+            "value": "Language spaces define the source language, target language, level, and learning context used by the app."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "現在の言語スペースはアプリのセッション状態にのみ存在し、オンボーディングとページ閉鎖の検証に使われます。"
+            "value": "Language spaces define the source language, target language, level, and learning context used by the app."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’espace de langue actuel n’existe que dans l’état de session de l’app et sert à valider l’onboarding et la clôture des pages."
+            "value": "Language spaces define the source language, target language, level, and learning context used by the app."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der aktuelle Sprachraum existiert nur im App-Sitzungszustand und validiert Onboarding und Seitenschluss."
+            "value": "Language spaces define the source language, target language, level, and learning context used by the app."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "현재 언어 공간은 앱 세션 상태에만 있으며 온보딩과 페이지 폐쇄를 검증하는 데 사용됩니다."
+            "value": "Language spaces define the source language, target language, level, and learning context used by the app."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Текущее языковое пространство существует только в состоянии сеанса приложения и используется для проверки onboarding и закрытия страниц."
+            "value": "Language spaces define the source language, target language, level, and learning context used by the app."
           }
         }
       }
@@ -3257,49 +3257,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current space uses an in-memory preview."
+            "value": "The current space keeps your language direction, level, and learning context."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前空间使用内存 preview。"
+            "value": "当前空间保存语言方向、水平和学习上下文。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El espacio actual usa una vista previa en memoria."
+            "value": "The current space keeps your language direction, level, and learning context."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "現在のスペースはメモリ内previewを使います。"
+            "value": "The current space keeps your language direction, level, and learning context."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’espace actuel utilise un aperçu en mémoire."
+            "value": "The current space keeps your language direction, level, and learning context."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der aktuelle Raum verwendet eine In-Memory-Vorschau."
+            "value": "The current space keeps your language direction, level, and learning context."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "현재 공간은 메모리 preview를 사용합니다."
+            "value": "The current space keeps your language direction, level, and learning context."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Текущее пространство использует preview в памяти."
+            "value": "The current space keeps your language direction, level, and learning context."
           }
         }
       }
@@ -3363,49 +3363,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After restart, mock content returns to the seed examples. There is no SQLite schema, migration, or attachment storage yet."
+            "value": "Local data should cover life entries, learning material, attachments, search, memory, and export boundaries."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重启后 mock 内容会恢复为示例数据；当前没有 SQLite schema、迁移或附件存储。"
+            "value": "本地数据应覆盖生活记录、学习材料、附件、搜索、记忆和导出边界。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Después de reiniciar, el contenido mock vuelve a los ejemplos semilla. Aún no hay esquema SQLite, migraciones ni almacenamiento de adjuntos."
+            "value": "Local data should cover life entries, learning material, attachments, search, memory, and export boundaries."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "再起動後、mockコンテンツはseedサンプルに戻ります。SQLite schema、migration、添付ファイル保存はまだありません。"
+            "value": "Local data should cover life entries, learning material, attachments, search, memory, and export boundaries."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Après redémarrage, le contenu mock revient aux exemples de départ. Il n’y a pas encore de schéma SQLite, migration ni stockage de pièces jointes."
+            "value": "Local data should cover life entries, learning material, attachments, search, memory, and export boundaries."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nach dem Neustart kehren Mock-Inhalte zu Seed-Beispielen zurück. Es gibt noch kein SQLite-Schema, keine Migration und keinen Anhangsspeicher."
+            "value": "Local data should cover life entries, learning material, attachments, search, memory, and export boundaries."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "재시작 후 mock 콘텐츠는 시드 예시로 돌아갑니다. 아직 SQLite schema, migration, 첨부 저장소가 없습니다."
+            "value": "Local data should cover life entries, learning material, attachments, search, memory, and export boundaries."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "После перезапуска mock-контент возвращается к исходным примерам. SQLite schema, миграций и хранилища вложений пока нет."
+            "value": "Local data should cover life entries, learning material, attachments, search, memory, and export boundaries."
           }
         }
       }
@@ -3416,49 +3416,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add SQLite / GRDB repositories, migrations, and export boundaries."
+            "value": "Add the local library, migrations, attachment storage, and export boundaries."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "接入 SQLite / GRDB Repository、迁移和导出边界。"
+            "value": "补齐本地资料库、迁移、附件存储和导出边界。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Añadir repositorios SQLite / GRDB, migraciones y límites de exportación."
+            "value": "Add the local library, migrations, attachment storage, and export boundaries."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "SQLite / GRDB Repository、migration、エクスポート境界を追加します。"
+            "value": "Add the local library, migrations, attachment storage, and export boundaries."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ajouter les repositories SQLite / GRDB, migrations et limites d’export."
+            "value": "Add the local library, migrations, attachment storage, and export boundaries."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "SQLite-/GRDB-Repositories, Migrationen und Exportgrenzen hinzufügen."
+            "value": "Add the local library, migrations, attachment storage, and export boundaries."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "SQLite / GRDB Repository, migration, 내보내기 경계를 추가합니다."
+            "value": "Add the local library, migrations, attachment storage, and export boundaries."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Добавить SQLite / GRDB Repository, миграции и границы экспорта."
+            "value": "Add the local library, migrations, attachment storage, and export boundaries."
           }
         }
       }
@@ -3469,49 +3469,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The app currently uses an in-memory repository."
+            "value": "Life entries and learning material stay on this device."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前使用内存 repository。"
+            "value": "生活记录和学习材料保留在本机。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La app usa actualmente un repositorio en memoria."
+            "value": "Life entries and learning material stay on this device."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "現在のアプリはメモリ内repositoryを使います。"
+            "value": "Life entries and learning material stay on this device."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’app utilise actuellement un repository en mémoire."
+            "value": "Life entries and learning material stay on this device."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die App verwendet derzeit ein In-Memory-Repository."
+            "value": "Life entries and learning material stay on this device."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "현재 앱은 메모리 repository를 사용합니다."
+            "value": "Life entries and learning material stay on this device."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Сейчас приложение использует repository в памяти."
+            "value": "Life entries and learning material stay on this device."
           }
         }
       }
@@ -3787,49 +3787,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entries, photos, vector indexes, and API keys are not synced in the current build."
+            "value": "Entries, photos, memory indexes, and credentials stay out of sync until you choose a sync provider and confirm the scope."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "记录、照片、向量索引和 API Key 当前都不会同步。"
+            "value": "选择同步 Provider 并确认范围前，记录、照片、记忆索引和凭证都不会参与同步。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entradas, fotos, índices vectoriales y claves API no se sincronizan en la versión actual."
+            "value": "Entries, photos, memory indexes, and credentials stay out of sync until you choose a sync provider and confirm the scope."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "現在のビルドでは、記録、写真、ベクトルインデックス、APIキーは同期されません。"
+            "value": "Entries, photos, memory indexes, and credentials stay out of sync until you choose a sync provider and confirm the scope."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les entrées, photos, index vectoriels et clés API ne sont pas synchronisés dans la version actuelle."
+            "value": "Entries, photos, memory indexes, and credentials stay out of sync until you choose a sync provider and confirm the scope."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Einträge, Fotos, Vektorindizes und API-Schlüssel werden im aktuellen Build nicht synchronisiert."
+            "value": "Entries, photos, memory indexes, and credentials stay out of sync until you choose a sync provider and confirm the scope."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "현재 빌드에서는 기록, 사진, 벡터 인덱스, API 키가 동기화되지 않습니다."
+            "value": "Entries, photos, memory indexes, and credentials stay out of sync until you choose a sync provider and confirm the scope."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Записи, фото, векторные индексы и API-ключи в текущей сборке не синхронизируются."
+            "value": "Entries, photos, memory indexes, and credentials stay out of sync until you choose a sync provider and confirm the scope."
           }
         }
       }
@@ -3893,49 +3893,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sync Engine is not connected yet."
+            "value": "Sync is off. Your current content stays on this device."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "同步引擎尚未接入。"
+            "value": "同步已关闭，当前内容保留在本机。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sync Engine aún no está conectado."
+            "value": "Sync is off. Your current content stays on this device."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sync Engineはまだ接続されていません。"
+            "value": "Sync is off. Your current content stays on this device."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sync Engine n’est pas encore connecté."
+            "value": "Sync is off. Your current content stays on this device."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sync Engine ist noch nicht angebunden."
+            "value": "Sync is off. Your current content stays on this device."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sync Engine은 아직 연결되지 않았습니다."
+            "value": "Sync is off. Your current content stays on this device."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sync Engine пока не подключен."
+            "value": "Sync is off. Your current content stays on this device."
           }
         }
       }
@@ -4540,13 +4540,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write one life moment first, then generate local mock learning material."
+            "value": "Write a life moment to start building your language material."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "先写下一条生活片段，再生成本地 mock 学习材料。"
+            "value": "写下一段生活片段，开始积累自己的语言材料。"
           }
         }
       }
@@ -4574,13 +4574,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The life entry and target-language version keep their source relationship. Current learning material is a local sample and will not send external requests."
+            "value": "The life entry and target-language version stay linked. Review the material on this device before using any online capability."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "生活记录和目标语言版本保持来源关系；当前学习材料为本地示例，不会发送外部请求。"
+            "value": "生活记录和目标语言版本保持来源关系。使用在线能力前，可先在本机检查学习材料。"
           }
         }
       }
@@ -4608,13 +4608,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo and voice are unavailable in this build"
+            "value": "Photo and voice tools are planned"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "照片和语音当前为未接入能力"
+            "value": "照片和语音工具规划中"
           }
         }
       }
@@ -4676,13 +4676,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After you create the first life entry, the workspace will show the native-language note, target-language mock rendering, and sentence practice."
+            "value": "After you create the first life entry, the workspace will show the native-language note, target-language draft, and sentence practice."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "创建第一条生活记录后，中间工作台会显示母语记录、目标语言 mock rendering 和逐句练习。"
+            "value": "创建第一条生活记录后，中间工作台会显示母语记录、目标语言草稿和逐句练习。"
           }
         }
       }
@@ -4744,13 +4744,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This route only shows the page boundary. It does not import, export, sync, or send external requests."
+            "value": "Choose an available action or configure the required capability first."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前入口只展示页面闭环，不会触发导入、导出、同步或外部请求。"
+            "value": "请选择可用操作，或先完成对应能力配置。"
           }
         }
       }
@@ -4761,13 +4761,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search is not connected yet. Opens a capability boundary explanation."
+            "value": "Opens search capability details."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "搜索尚未接入，会显示能力边界说明"
+            "value": "打开搜索能力说明。"
           }
         }
       }
@@ -4795,13 +4795,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local mock only. No real audio plays."
+            "value": "Opens listening details for this sentence."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前为本地 mock，不播放真实语音"
+            "value": "打开这句话的听力说明。"
           }
         }
       }
@@ -4829,13 +4829,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This route only closes the page loop and does not trigger real side effects."
+            "value": "This action needs more setup before it becomes part of the main workflow."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前只展示页面闭环，不触发真实副作用。"
+            "value": "这个操作需要完成更多配置后再进入主流程。"
           }
         }
       }
@@ -4846,13 +4846,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capability Not Connected"
+            "value": "Needs Setup"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "能力尚未接入"
+            "value": "需要配置"
           }
         }
       }
@@ -4863,13 +4863,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete SQLite / GRDB, attachment storage, security-scoped file access, and export format design."
+            "value": "Finish the local library model, attachment handling, file access rules, and export format design."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "完成 SQLite / GRDB、附件存储、安全作用域文件访问和导出格式设计。"
+            "value": "完成本地资料库模型、附件处理、文件访问规则和导出格式设计。"
           }
         }
       }
@@ -4897,13 +4897,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import and Export Not Connected"
+            "value": "Import and Export Planned"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导入导出尚未接入"
+            "value": "导入导出规划中"
           }
         }
       }
@@ -4931,13 +4931,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current build has one in-memory language space preview and will not create, switch, or persist multiple spaces."
+            "value": "The current build starts with one language space. Multi-space creation and switching will be added later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前只有一个内存语言空间 preview，不会创建、切换或持久化多语言空间。"
+            "value": "当前版本先从一个语言空间开始，后续会加入多空间创建和切换。"
           }
         }
       }
@@ -4948,13 +4948,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Language Space Switching Not Connected"
+            "value": "Language Space Switching Planned"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "语言空间切换尚未接入"
+            "value": "语言空间切换规划中"
           }
         }
       }
@@ -4999,13 +4999,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Listen One Not Connected"
+            "value": "Listening Planned"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "听一句尚未接入"
+            "value": "听力播放规划中"
           }
         }
       }
@@ -5016,13 +5016,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Required Before Connecting"
+            "value": "Next Step"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "后续接入条件"
+            "value": "接下来"
           }
         }
       }
@@ -5033,13 +5033,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This build will not access photos, the microphone, network, Keychain, real databases, sync services, or export files."
+            "value": "Nothing is sent, recorded, imported, exported, or changed when this page opens."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前不会访问照片、麦克风、网络、Keychain、真实数据库、同步服务或导出文件。"
+            "value": "打开本页不会发送、录音、导入、导出或修改内容。"
           }
         }
       }
@@ -5050,13 +5050,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What Will Not Happen"
+            "value": "Privacy Note"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不会发生"
+            "value": "隐私说明"
           }
         }
       }
@@ -5101,13 +5101,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo Writing Not Connected"
+            "value": "Photo Writing Planned"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "照片写作尚未接入"
+            "value": "照片写作规划中"
           }
         }
       }
@@ -5118,13 +5118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete SQLite / GRDB, FTS, the rebuildable vector index, and search result routing."
+            "value": "Finish local search, phrase indexing, and result routing."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "完成 SQLite / GRDB、FTS、可重建向量索引和搜索结果路由。"
+            "value": "完成本地搜索、词句索引和结果路由。"
           }
         }
       }
@@ -5135,13 +5135,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current build will not query a real database, FTS, embeddings, or the vector index. It only shows the route boundary."
+            "value": "Search will cover your life entries and learning material. Opening this page does not query or send content."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前不会查询真实数据库、FTS、embedding 或向量索引，只展示入口边界。"
+            "value": "搜索将覆盖生活记录和学习材料。打开本页不会查询或发送内容。"
           }
         }
       }
@@ -5152,13 +5152,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search Not Connected"
+            "value": "Search Planned"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "搜索尚未接入"
+            "value": "搜索规划中"
           }
         }
       }
@@ -5169,13 +5169,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete SQLite / GRDB, an embedding provider, a rebuildable index, and sync-exclusion boundaries."
+            "value": "Finish local memory indexing, provider configuration, rebuild rules, and sync exclusion boundaries."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "完成 SQLite / GRDB、embedding provider、可重建索引和同步排除边界。"
+            "value": "完成本地记忆索引、Provider 配置、重建规则和同步排除边界。"
           }
         }
       }
@@ -5186,13 +5186,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current build only shows mock memory items. It does not create embeddings or write to a vector index."
+            "value": "Memory search will be rebuilt from your local life entries when enabled."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前只展示 mock 记忆项，不建立 embedding，也不写入向量索引。"
+            "value": "开启后，记忆搜索会从本地生活记录重建。"
           }
         }
       }
@@ -5203,13 +5203,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local Vector Index Not Connected"
+            "value": "Memory Search Planned"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地向量索引尚未接入"
+            "value": "记忆搜索规划中"
           }
         }
       }
@@ -5220,49 +5220,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue when you are ready. No AI, sync, or external request starts from this screen."
+            "value": "Continue when you are ready. This screen does not start AI, sync, or online transfer."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "准备好后再继续。本页不会启动 AI、同步或任何外部请求。"
+            "value": "准备好后再继续。本页不会启动 AI、同步或在线传输。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continúa cuando estés listo. Esta pantalla no inicia IA, sincronización ni solicitudes externas."
+            "value": "Continue when you are ready. This screen does not start AI, sync, or online transfer."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "準備できたら続けてください。この画面からAI、同期、外部リクエストは開始されません。"
+            "value": "Continue when you are ready. This screen does not start AI, sync, or online transfer."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continuez quand vous êtes prêt. Cet écran ne lance ni IA, ni sync, ni requête externe."
+            "value": "Continue when you are ready. This screen does not start AI, sync, or online transfer."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fahre fort, wenn du bereit bist. Dieser Bildschirm startet keine KI, Sync oder externe Anfrage."
+            "value": "Continue when you are ready. This screen does not start AI, sync, or online transfer."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "준비되면 계속하세요. 이 화면에서는 AI, 동기화 또는 외부 요청이 시작되지 않습니다."
+            "value": "Continue when you are ready. This screen does not start AI, sync, or online transfer."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Продолжайте, когда будете готовы. Этот экран не запускает ИИ, синхронизацию или внешние запросы."
+            "value": "Continue when you are ready. This screen does not start AI, sync, or online transfer."
           }
         }
       }
@@ -5598,13 +5598,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This mock session is complete. Real scoring and recording are not connected yet."
+            "value": "This practice session is complete. Review the phrases you want to keep."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地 mock 练习已完成，真实评分和录音尚未接入。"
+            "value": "本次练习已完成。你可以复习想保留的词句。"
           }
         }
       }
@@ -5683,13 +5683,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creates sample learning material on device only. Real AI generation is not connected."
+            "value": "Create a target-language draft on this device. Nothing leaves your device."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅在本机生成示例学习材料，真实 AI 生成尚未接入。"
+            "value": "在本机生成目标语言草稿，内容不会离开设备。"
           }
         }
       }
@@ -5751,13 +5751,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose one entry to inspect its mock learning material."
+            "value": "Choose one entry to inspect its learning material."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择一条记录查看本地 mock 学习材料。"
+            "value": "选择一条记录查看学习材料。"
           }
         }
       }
@@ -5768,13 +5768,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local mock entries only. SQLite is not connected."
+            "value": "Life entries are stored on this device."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前仅为本地 mock 记录，SQLite 尚未接入。"
+            "value": "生活记录保存在本机。"
           }
         }
       }
@@ -5853,13 +5853,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mock sessions only. Audio, recording, and scoring are unavailable."
+            "value": "Practice listening, shadowing, recall, and comparison from life entries."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前仅为 mock 会话，音频、录音和评分尚未接入。"
+            "value": "从生活记录开始听、跟读、回忆和对照练习。"
           }
         }
       }
@@ -5887,13 +5887,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create or select an entry with mock learning material first."
+            "value": "Create or select an entry with learning material first."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请先创建或选择带有 mock 学习材料的记录。"
+            "value": "请先创建或选择带有学习材料的记录。"
           }
         }
       }
@@ -5904,13 +5904,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No mock rendering is available for this entry yet."
+            "value": "Create learning material for an entry before starting practice."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条记录还没有 mock rendering。"
+            "value": "先为一条记录生成学习材料，再开始练习。"
           }
         }
       }
@@ -5921,13 +5921,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Memory items are local mock extracts."
+            "value": "Phrase memory comes from your life entries."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "记忆项为本地 mock 提取结果。"
+            "value": "词句记忆来自你的生活记录。"
           }
         }
       }
@@ -5955,13 +5955,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collected from life-entry context. Vector search is unavailable."
+            "value": "Collected from life-entry context for later review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来自生活记录上下文；向量搜索尚未接入。"
+            "value": "来自生活记录上下文，便于之后复习。"
           }
         }
       }
@@ -6057,13 +6057,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review scheduling is not connected in this build."
+            "value": "Review scheduling will use your saved phrase memory."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "复习排程当前尚未接入。"
+            "value": "复习排程将基于已保存的词句记忆。"
           }
         }
       }
@@ -6091,13 +6091,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The vector index is a rebuildable local derived data set and is not connected in this build."
+            "value": "The local memory index will be rebuilt from your life entries when search is enabled."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "向量索引是可重建的本地派生数据，当前尚未接入。"
+            "value": "开启搜索后，本地记忆索引会从生活记录重新构建。"
           }
         }
       }
@@ -6108,13 +6108,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only capability boundaries."
+            "value": "Capability boundaries and preferences."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只读能力边界说明。"
+            "value": "能力边界和偏好设置。"
           }
         }
       }
@@ -6142,13 +6142,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI, sync, local data, and privacy boundaries are visible but not configurable yet."
+            "value": "Review AI, sync, local data, and privacy preferences."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI、同步、本地数据和隐私边界可查看，尚不能真实配置。"
+            "value": "查看 AI、同步、本地数据和隐私偏好。"
           }
         }
       }
@@ -6176,13 +6176,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Language switching is unavailable in this build."
+            "value": "Opens language space details."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前版本尚未接入语言空间切换。"
+            "value": "打开语言空间详情。"
           }
         }
       }
@@ -6261,13 +6261,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mock practice is local and does not play audio or record voice."
+            "value": "Practice stays on this device and does not record voice."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地 mock 练习不会播放音频或录音。"
+            "value": "练习保留在本机，不会录音。"
           }
         }
       }
@@ -6312,13 +6312,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This entry does not have mock practice content yet."
+            "value": "This entry needs learning material before practice can start."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条记录还没有 mock 练习内容。"
+            "value": "这条记录需要先生成学习材料才能练习。"
           }
         }
       }
@@ -6329,13 +6329,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source: %@. This mock session stays local."
+            "value": "Source: %@. This session stays on this device."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源：%@。本地 mock 会话不会离开设备。"
+            "value": "来源：%@。本次练习保留在本机。"
           }
         }
       }
@@ -6567,13 +6567,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only capability boundaries. Real settings are not saved yet."
+            "value": "Review local-first, language, provider, sync, and export preferences."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前只读说明能力边界，不保存真实配置。"
+            "value": "查看本地优先、语言、Provider、同步和导出偏好。"
           }
         }
       }
@@ -6771,13 +6771,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View read-only AI, sync, local data, and privacy boundaries."
+            "value": "Review AI, sync, local data, and privacy preferences."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看 AI、同步、本地数据和隐私边界的只读说明。"
+            "value": "查看 AI、同步、本地数据和隐私偏好。"
           }
         }
       }
@@ -6805,13 +6805,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This entry has no practice content yet. No external request is triggered before real generation is connected."
+            "value": "This entry needs practice material before training can start."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条记录还没有可练习内容。真实生成能力接入前不会触发外部请求。"
+            "value": "这条记录需要先生成练习材料。"
           }
         }
       }
@@ -6907,13 +6907,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capture one life moment and review its mock learning material."
+            "value": "Capture one life moment and review its learning material."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "记录一个生活片段，并查看本地 mock 学习材料。"
+            "value": "记录一个生活片段，并查看对应学习材料。"
           }
         }
       }
@@ -6924,13 +6924,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Browse local mock entries and inspect request boundaries."
+            "value": "Browse life entries and inspect their learning material."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "浏览本地 mock 记录并检查请求边界。"
+            "value": "浏览生活记录并查看对应学习材料。"
           }
         }
       }
@@ -6975,13 +6975,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import and export remain unavailable until local storage is connected."
+            "value": "Prepare local library import and export workflows."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地存储接入后再开放导入导出。"
+            "value": "准备本地资料库导入导出流程。"
           }
         }
       }
@@ -7043,13 +7043,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mock sessions"
+            "value": "Practice sessions"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地 mock 会话"
+            "value": "练习会话"
           }
         }
       }
@@ -7077,13 +7077,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable"
+            "value": "Planned workflow"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未接入"
+            "value": "规划中"
           }
         }
       }
@@ -7094,13 +7094,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only"
+            "value": "Preferences"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只读"
+            "value": "偏好"
           }
         }
       }
@@ -7162,13 +7162,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "SQLite FTS5 and the local vector index are not connected yet. No real database query is made."
+            "value": "Search will cover your life entries, phrases, and review material."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "后续接 SQLite FTS5 与本地向量索引；当前不会查询真实数据库。"
+            "value": "搜索将覆盖生活记录、词句和复习材料。"
           }
         }
       }
@@ -7230,13 +7230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current list is Local Mock. SQLite and FTS are not connected."
+            "value": "Your saved life entries and learning material."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前为 Local Mock 列表，后续接 SQLite / FTS。"
+            "value": "你的生活记录和学习材料。"
           }
         }
       }
@@ -7281,13 +7281,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This entry has no mock rendering yet, so practice is unavailable."
+            "value": "Create learning material for this entry before starting practice."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条记录还没有 mock rendering，暂不能进入练习。"
+            "value": "先为这条记录生成学习材料，再开始练习。"
           }
         }
       }
@@ -7315,13 +7315,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Memory items come from life-entry context. Vector indexing is not connected."
+            "value": "Collected from life-entry context for later review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "记忆项来自生活记录上下文，向量索引仍为未接入。"
+            "value": "来自生活记录上下文，便于之后复习。"
           }
         }
       }
@@ -7349,13 +7349,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only capability boundaries. Real settings are not saved yet."
+            "value": "Review local-first, language, provider, sync, and export preferences."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前只读说明能力边界，不保存真实配置。"
+            "value": "查看本地优先、语言、Provider、同步和导出偏好。"
           }
         }
       }
@@ -7400,13 +7400,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Practice Unavailable"
+            "value": "Practice Needs Material"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "练习不可用"
+            "value": "练习需要材料"
           }
         }
       }
@@ -7502,13 +7502,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This detail view reads in-memory mock content only. It does not access the network, Keychain, or a real database."
+            "value": "This detail view reads the current life entry and learning material on this device. It does not send content anywhere by itself."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前详情只读取内存 mock 内容，不访问网络、Keychain 或真实数据库。"
+            "value": "当前详情页只读取本机生活记录和学习材料，不会自行发送内容。"
           }
         }
       }
@@ -7570,13 +7570,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current mock practice only switches local steps. It does not play audio, record voice, or save results."
+            "value": "Practice moves through listening, shadowing, recall, and comparison steps on this device."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前只切换本地 mock 练习步骤，不播放音频、不录音、不保存结果。"
+            "value": "练习会在本机完成听、跟读、回忆和对照步骤。"
           }
         }
       }
@@ -7638,13 +7638,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Today uses in-memory mock content to verify the Mac page flow."
+            "value": "Today focuses on the selected life entry and its learning material."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "今日工作台使用内存 mock 内容，用于验证 Mac 页面闭环。"
+            "value": "今日工作台聚焦当前生活记录和学习材料。"
           }
         }
       }
@@ -7706,13 +7706,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Practice sessions are Local Mock and do not use real audio or recording."
+            "value": "Practice sessions use your selected life entry as the source material."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "练习会话为 Local Mock，不接入真实音频和录音。"
+            "value": "练习会话以当前选中的生活记录为材料。"
           }
         }
       }
@@ -7740,13 +7740,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The vector index is rebuildable local derived data and is not connected yet."
+            "value": "Phrase memory is collected from your life entries and can support later review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "向量索引是本地可重建派生数据，当前未接入。"
+            "value": "词句记忆来自生活记录，可用于之后复习。"
           }
         }
       }
@@ -7774,13 +7774,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import and export require the real database, attachment directory, and file safety boundary first."
+            "value": "Import and export will be designed around your local library and attachment folders."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导入导出需要真实数据库、附件目录和文件安全边界后再实现。"
+            "value": "导入导出将围绕本地资料库和附件目录设计。"
           }
         }
       }
@@ -7808,13 +7808,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The settings page explains capability boundaries and does not save API keys, sync configuration, or export files."
+            "value": "Settings explains capability boundaries without changing provider, sync, or export preferences."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "设置页展示能力边界，不保存 API Key、同步配置或导出文件。"
+            "value": "设置页展示能力边界，不会改变 Provider、同步或导出偏好。"
           }
         }
       }
@@ -7859,13 +7859,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When real integration is connected, LangoTrace will ask for confirmation before sending: %@, selected text snippets, Prompt %@. Current build sends no external request."
+            "value": "When online generation is enabled, LangoTrace will ask for confirmation before sending %@, selected text snippets, and the selected writing style %@."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "真实接入后会请求确认：%@、选中的正文片段、Prompt %@。当前不会发送外部请求。"
+            "value": "启用在线生成时，语迹会先请求确认，再发送 %@、选中的正文片段和所选表达风格 %@。"
           }
         }
       }
@@ -7876,13 +7876,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Will send: %@, selected text snippets, Prompt %@."
+            "value": "Will send after confirmation: %@, selected text snippets, and the selected writing style %@."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将发送：%@、选中的正文片段、Prompt %@。"
+            "value": "确认后将发送：%@、选中的正文片段和所选表达风格 %@。"
           }
         }
       }

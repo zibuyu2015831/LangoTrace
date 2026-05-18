@@ -106,15 +106,15 @@ private func containsChineseCharacters(_ text: String) -> Bool {
     }
 }
 
-@Test("Mock practice session progresses through local-only steps")
-func mockPracticeSessionProgressesThroughLocalOnlySteps() {
+@Test("Practice session progresses through local-only steps")
+func practiceSessionProgressesThroughLocalOnlySteps() {
     let repository = InMemoryLearningContentRepository.seeded(spaceID: "en")
     let entry = repository.entries(for: "en")[0]
 
     let session = repository.practiceSession(for: entry.id)
 
     #expect(session?.entryID == entry.id)
-    #expect(session?.providerLabel == "Local Mock")
+    #expect(session?.providerLabel == "LangoTrace Draft")
     #expect(session?.steps == [.prepare, .shadow, .compare, .completed])
     #expect(session?.nextStep(after: .prepare) == .shadow)
     #expect(session?.nextStep(after: .completed) == .completed)
@@ -152,7 +152,7 @@ func createdEntriesReceiveLocalPreviewOnlyAfterExplicitGeneration() {
     #expect(generated?.entryID == entry.id)
     #expect(rendering?.isMock == true)
     #expect(session?.targetText == rendering?.targetText)
-    #expect(session?.providerLabel == "Local Mock")
+    #expect(session?.providerLabel == "LangoTrace Draft")
     #expect(session?.isLocalOnly == true)
     #expect(repository.practiceItems(for: entry.id).count == 1)
     #expect(repository.memoryItems(for: "en").contains { $0.entryID == entry.id })

@@ -17,7 +17,7 @@ public struct PracticeSessionState: Equatable, Sendable {
     public let targetText: String
 
     public var isLocalOnly: Bool {
-        !isExternalRequestRequired && providerLabel == "Local Mock"
+        !isExternalRequestRequired
     }
 
     public init(

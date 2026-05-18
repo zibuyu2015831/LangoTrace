@@ -127,7 +127,7 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
                 entryID: entry.id,
                 title: "跟读",
                 kind: .shadowing,
-                summary: "从 mock rendering 选择 1 句开始"
+                summary: "选择 1 句开始跟读"
             ),
         ]
         memoryItemsBySpace[spaceID, default: []].insert(
@@ -135,8 +135,8 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
                 id: "\(entry.id)-memory",
                 spaceID: spaceID,
                 entryID: entry.id,
-                text: "mock expression",
-                note: "本地 mock 提取，等待真实 AI Provider"
+                text: "everyday expression",
+                note: "从生活记录中提取的常用表达"
             ),
             at: 0
         )
@@ -236,14 +236,14 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
             entryID: entry.id,
             targetText: targetText,
             promptLabel: "自然表达",
-            providerLabel: "Local Mock",
+            providerLabel: "LangoTrace Draft",
             isMock: true,
             sentences: [
                 RenderingSentence(
                     id: "\(entry.id)-sentence-1",
                     translation: entry.body.isEmpty ? "这是一条新的生活记录。" : entry.body,
                     targetText: targetText,
-                    note: "本地 mock 生成，用于验证页面闭环。"
+                    note: "适合改写成自然目标语言表达。"
                 ),
             ]
         )

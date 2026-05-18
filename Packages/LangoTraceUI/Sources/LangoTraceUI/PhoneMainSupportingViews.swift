@@ -231,26 +231,6 @@ private struct PracticeStepPanel: View {
     }
 }
 
-struct PhoneContextHeader: View {
-    let languageSpace: LanguageSpacePreview
-    let statusText: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(languageSpace.displayContext, systemImage: "text.badge.star")
-                .font(.callout.weight(.semibold))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
-                .clipShape(Capsule())
-            Label(statusText, systemImage: "lock")
-                .font(.footnote.weight(.medium))
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .accessibilityLabel(statusText)
-        }
-    }
-}
-
 struct HeroActionCard: View {
     let languageSpace: LanguageSpacePreview
     let onNewEntry: () -> Void
@@ -283,7 +263,6 @@ struct HeroActionCard: View {
                 SecondaryActionChip(titleKey: "entrySource.photoWriting", systemImage: "camera", action: onPhotoWriting)
                 SecondaryActionChip(titleKey: "common.listen", systemImage: "play", action: onListenOne)
             }
-            InlineStatusLabel(localizedTextKey: "hero.secondaryUnavailable", systemImage: "exclamationmark.circle")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .langoPanel(padding: 20)
@@ -380,18 +359,24 @@ struct SectionHeader: View {
         VStack(alignment: .leading, spacing: 4) {
             localizedText(titleKey)
                 .font(.headline)
-            subtitleText
-                .font(.footnote)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            if let subtitleText {
+                subtitleText
+                    .font(.footnote)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
         }
         .padding(.top, 4)
     }
 
-    private var subtitleText: Text {
+    private var subtitleText: Text? {
         if let subtitleKey {
-            localizedText(subtitleKey)
-        } else {
-            Text(subtitle ?? "")
+            return localizedText(subtitleKey)
         }
+
+        if let subtitle, !subtitle.isEmpty {
+            return Text(subtitle)
+        }
+
+        return nil
     }
 }
