@@ -1,6 +1,6 @@
 # 文档体系重整任务方案
 
-状态：In Progress
+状态：Done
 类型：docs
 创建日期：2026-05-18
 最后更新日期：2026-05-18
@@ -291,6 +291,8 @@ git status --short
 - 2026-05-18：阶段 3 和 4 创建 `docs/spec/examples/impl-template.md` 与 `docs/prompts/README.md`，并在入口和文档体系说明中登记 Prompt Registry 与实现地图规则。
 - 2026-05-18：提交阶段 3/4：`973eba9 docs: add spec implementation and prompt registry rules`。
 - 2026-05-18：阶段 5/6 将 `docs/superpowers/specs/` 中长期规格迁入 `docs/spec/`，将 `docs/superpowers/plans/` 中与历史任务重复的实施计划归档到 `docs/archive/superpowers/plans/`，将 `docs/worklogs/` 迁入 `docs/plans/active/`、`docs/plans/done/` 或 `docs/archive/worklogs/`。
+- 2026-05-18：提交阶段 5/6：`f359018 docs: migrate legacy worklogs and superpowers`。
+- 2026-05-18：阶段 7 创建 `docs/_meta/directory-responsibilities.md`，更新 `docs/README.md` 当前目录结构和已退出目录说明，并准备将本任务方案移入 `docs/plans/done/`。
 
 ## 17. 完成标准
 
