@@ -1,6 +1,6 @@
 # 任务方案：全面页面审核与设计提升
 
-状态：Review Completed / Implementation Pending
+状态：Verified
 类型：feature
 创建日期：2026-05-18
 最后更新日期：2026-05-18
@@ -541,7 +541,12 @@ scripts/verify.sh
 - 设计系统应先扩展 token、状态矩阵、action hierarchy 和 empty / unavailable pattern，再做逐页视觉提升。
 - SwiftUI 架构需要修复 interface-language resolver、repository seam、`contentRevision` 扩散和 `SentencePairView` Listen 空 action。
 
-本方案当前状态为 `Review Completed / Implementation Pending`：审查任务已完成，但第一轮 UI 收敛、规范更新和语言空间生命周期方案尚未实施。后续不应直接把本方案移入 `done/`，除非已拆分并确认后续 active plan，或完成本方案第 16 节中的实现和验证条件。
+2026-05-18：归档复查确认，本方案可以移入 `done/`。依据：
+
+- 审查任务本身已经完成，审查产物写入 `docs/review/rounds/2026-05-18-comprehensive-ui-review/`，并包含 `completion-audit.md`。
+- 第一轮 UI 收敛、规范同步和对应测试已经由 `docs/plans/done/2026-05-18-feature-first-round-ui-convergence.md` 承接并完成，状态为 `Verified`。
+- 语言空间添加、切换和删除已拆为独立 active plan：`docs/plans/active/2026-05-18-feature-language-space-lifecycle-and-deletion.md`。
+- 本方案不再承担未完成实现任务；后续真实语言空间持久化、生命周期、真实 AI / TTS / 同步 / StoreKit 仍由各自 active plan 承接。
 
 ## 16. 完成标准
 
