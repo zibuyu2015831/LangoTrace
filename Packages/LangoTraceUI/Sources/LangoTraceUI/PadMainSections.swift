@@ -228,12 +228,7 @@ struct PadWorkspaceContentView: View {
                 ForEach(memoryItems) { item in
                     CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
                 }
-                UnavailableCapabilityView(
-                    title: "本地向量索引尚未接入",
-                    summary: "当前只展示 mock 记忆项，不建立 embedding，也不写入向量索引。",
-                    nextRequirement: "完成 SQLite / GRDB、embedding provider、可重建索引和同步排除边界。",
-                    systemImage: "square.stack.3d.up"
-                )
+                UnavailableCapabilityView(content: .vectorIndex)
             }
             .padding(26)
             .frame(maxWidth: 820, alignment: .leading)
@@ -242,25 +237,15 @@ struct PadWorkspaceContentView: View {
 
     private var importExportPage: some View {
         ScrollView {
-            UnavailableCapabilityView(
-                title: "导入导出尚未接入",
-                summary: "当前不会打开文件面板、读取磁盘文件、写入导出包或访问附件目录。",
-                nextRequirement: "完成 SQLite / GRDB、附件存储、安全作用域文件访问和导出格式设计。",
-                systemImage: "tray.and.arrow.down"
-            )
-            .frame(maxWidth: 820, alignment: .leading)
+            UnavailableCapabilityView(content: .importExport)
+                .frame(maxWidth: 820, alignment: .leading)
         }
     }
 
     private var languageSpaceUnavailablePage: some View {
         ScrollView {
-            UnavailableCapabilityView(
-                title: "语言空间切换尚未接入",
-                summary: "当前只有一个内存语言空间 preview，不会创建、切换或持久化多语言空间。",
-                nextRequirement: "完成语言空间持久化、最近使用空间恢复和多空间选择 UI。",
-                systemImage: "text.badge.star"
-            )
-            .frame(maxWidth: 820, alignment: .leading)
+            UnavailableCapabilityView(content: .languageSpace)
+                .frame(maxWidth: 820, alignment: .leading)
         }
     }
 }

@@ -93,33 +93,18 @@ enum MacFooterAction {
 }
 
 struct MacUnavailableContent {
-    let title: String
-    let summary: String
-    let nextRequirement: String
-    let systemImage: String
+    let content: UnavailableCapabilityContent
 
     init(kind: String) {
         switch kind {
         case "language-space":
-            title = "语言空间切换尚未接入"
-            summary = "当前只有一个内存语言空间 preview，不会创建、切换或持久化多语言空间。"
-            nextRequirement = "完成语言空间持久化、最近使用空间恢复和多空间选择 UI。"
-            systemImage = "text.badge.star"
+            content = .languageSpace
         case "import-export":
-            title = "导入导出尚未接入"
-            summary = "当前不会打开文件面板、读取磁盘文件、写入导出包或访问附件目录。"
-            nextRequirement = "完成 SQLite / GRDB、附件存储、安全作用域文件访问和导出格式设计。"
-            systemImage = "tray.and.arrow.down"
+            content = .importExport
         case "search":
-            title = "搜索尚未接入"
-            summary = "当前不会查询真实数据库、FTS、embedding 或向量索引，只展示入口边界。"
-            nextRequirement = "完成 SQLite / GRDB、FTS、可重建向量索引和 Mac 搜索结果路由。"
-            systemImage = "magnifyingglass"
+            content = .search
         default:
-            title = "能力尚未接入"
-            summary = "当前只展示页面闭环，不触发真实副作用。"
-            nextRequirement = "在对应模块完成方案和 worklog 后再接入真实能力。"
-            systemImage = "exclamationmark.circle"
+            content = .generic
         }
     }
 }

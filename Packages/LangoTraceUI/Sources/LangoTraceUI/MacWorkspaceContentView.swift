@@ -140,12 +140,7 @@ struct MacWorkspaceContentView: View {
             ForEach(memoryItems) { item in
                 CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
             }
-            UnavailableCapabilityView(
-                title: "本地向量索引尚未接入",
-                summary: "当前只展示 mock 记忆项，不建立 embedding，也不写入向量索引。",
-                nextRequirement: "完成 SQLite / GRDB、embedding provider、可重建索引和同步排除边界。",
-                systemImage: "square.stack.3d.up"
-            )
+            UnavailableCapabilityView(content: .vectorIndex)
         }
     }
 
@@ -208,11 +203,6 @@ struct MacWorkspaceContentView: View {
 
     private func macUnavailableView(kind: String) -> some View {
         let content = MacUnavailableContent(kind: kind)
-        return UnavailableCapabilityView(
-            title: content.title,
-            summary: content.summary,
-            nextRequirement: content.nextRequirement,
-            systemImage: content.systemImage
-        )
+        return UnavailableCapabilityView(content: content.content)
     }
 }

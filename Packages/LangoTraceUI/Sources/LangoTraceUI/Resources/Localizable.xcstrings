@@ -4594,6 +4594,414 @@
         }
       }
     },
+    "unavailable.generic.nextRequirement": {
+      "comment": "Generic unavailable capability next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect the real capability only after its module plan and worklog are complete."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在对应模块完成方案和 worklog 后再接入真实能力。"
+          }
+        }
+      }
+    },
+    "unavailable.generic.summary": {
+      "comment": "Generic unavailable capability summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This route only closes the page loop and does not trigger real side effects."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前只展示页面闭环，不触发真实副作用。"
+          }
+        }
+      }
+    },
+    "unavailable.generic.title": {
+      "comment": "Generic unavailable capability title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capability Not Connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "能力尚未接入"
+          }
+        }
+      }
+    },
+    "unavailable.importExport.nextRequirement": {
+      "comment": "Import/export unavailable next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete SQLite / GRDB, attachment storage, security-scoped file access, and export format design."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成 SQLite / GRDB、附件存储、安全作用域文件访问和导出格式设计。"
+          }
+        }
+      }
+    },
+    "unavailable.importExport.summary": {
+      "comment": "Import/export unavailable summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current build will not open file panels, read disk files, write export packages, or access attachment folders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前不会打开文件面板、读取磁盘文件、写入导出包或访问附件目录。"
+          }
+        }
+      }
+    },
+    "unavailable.importExport.title": {
+      "comment": "Import/export unavailable title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import and Export Not Connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入导出尚未接入"
+          }
+        }
+      }
+    },
+    "unavailable.languageSpace.nextRequirement": {
+      "comment": "Language space switching unavailable next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete language space persistence, recent-space restore, and the multi-space selection UI."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成语言空间持久化、最近使用空间恢复和多空间选择 UI。"
+          }
+        }
+      }
+    },
+    "unavailable.languageSpace.summary": {
+      "comment": "Language space switching unavailable summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current build has one in-memory language space preview and will not create, switch, or persist multiple spaces."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前只有一个内存语言空间 preview，不会创建、切换或持久化多语言空间。"
+          }
+        }
+      }
+    },
+    "unavailable.languageSpace.title": {
+      "comment": "Language space switching unavailable title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language Space Switching Not Connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言空间切换尚未接入"
+          }
+        }
+      }
+    },
+    "unavailable.listenOne.nextRequirement": {
+      "comment": "Listen-one unavailable next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect TTS, playback controls, practice session state, and a cancellable speech service boundary."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接入 TTS、播放控制、练习会话状态和可取消的语音服务边界。"
+          }
+        }
+      }
+    },
+    "unavailable.listenOne.summary": {
+      "comment": "Listen-one unavailable summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This route only shows the entry boundary. It does not play real TTS, record audio, or save practice results."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前页面只展示入口边界，不播放真实 TTS、不录音、不保存练习结果。"
+          }
+        }
+      }
+    },
+    "unavailable.listenOne.title": {
+      "comment": "Listen-one unavailable title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen One Not Connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "听一句尚未接入"
+          }
+        }
+      }
+    },
+    "unavailable.nextRequirement.title": {
+      "comment": "Panel title for requirements before an unavailable capability can be connected.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required Before Connecting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后续接入条件"
+          }
+        }
+      }
+    },
+    "unavailable.noSideEffects.body": {
+      "comment": "Shared no-side-effects body for unavailable capability pages.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This build will not access photos, the microphone, network, Keychain, real databases, sync services, or export files."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前不会访问照片、麦克风、网络、Keychain、真实数据库、同步服务或导出文件。"
+          }
+        }
+      }
+    },
+    "unavailable.noSideEffects.title": {
+      "comment": "Panel title for side effects that will not happen on unavailable capability pages.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What Will Not Happen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会发生"
+          }
+        }
+      }
+    },
+    "unavailable.photoWriting.nextRequirement": {
+      "comment": "Photo writing unavailable next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect PhotosUI, OCR / Vision, attachment storage, request preview, and a user confirmation flow."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接入 PhotosUI、OCR / Vision、附件存储、请求预览和用户确认流程。"
+          }
+        }
+      }
+    },
+    "unavailable.photoWriting.summary": {
+      "comment": "Photo writing unavailable summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page only closes the entry loop. It will not access the photo library or start OCR or AI generation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前页面只补齐入口反馈，不访问照片库，也不会启动 OCR 或 AI 生成。"
+          }
+        }
+      }
+    },
+    "unavailable.photoWriting.title": {
+      "comment": "Photo writing unavailable title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo Writing Not Connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片写作尚未接入"
+          }
+        }
+      }
+    },
+    "unavailable.search.nextRequirement": {
+      "comment": "Search unavailable next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete SQLite / GRDB, FTS, the rebuildable vector index, and search result routing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成 SQLite / GRDB、FTS、可重建向量索引和搜索结果路由。"
+          }
+        }
+      }
+    },
+    "unavailable.search.summary": {
+      "comment": "Search unavailable summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current build will not query a real database, FTS, embeddings, or the vector index. It only shows the route boundary."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前不会查询真实数据库、FTS、embedding 或向量索引，只展示入口边界。"
+          }
+        }
+      }
+    },
+    "unavailable.search.title": {
+      "comment": "Search unavailable title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search Not Connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索尚未接入"
+          }
+        }
+      }
+    },
+    "unavailable.vectorIndex.nextRequirement": {
+      "comment": "Vector index unavailable next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete SQLite / GRDB, an embedding provider, a rebuildable index, and sync-exclusion boundaries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成 SQLite / GRDB、embedding provider、可重建索引和同步排除边界。"
+          }
+        }
+      }
+    },
+    "unavailable.vectorIndex.summary": {
+      "comment": "Vector index unavailable summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current build only shows mock memory items. It does not create embeddings or write to a vector index."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前只展示 mock 记忆项，不建立 embedding，也不写入向量索引。"
+          }
+        }
+      }
+    },
+    "unavailable.vectorIndex.title": {
+      "comment": "Vector index unavailable title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local Vector Index Not Connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地向量索引尚未接入"
+          }
+        }
+      }
+    },
     "welcome.subtitle": {
       "comment": "Welcome subtitle.",
       "localizations": {

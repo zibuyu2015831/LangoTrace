@@ -143,13 +143,8 @@ struct PhoneMainView: View {
                         navigationPath.append(.entryDetail(entry.id))
                     }
                 case let .unavailable(action):
-                    UnavailableCapabilityView(
-                        title: action.title,
-                        summary: action.summary,
-                        nextRequirement: action.nextRequirement,
-                        systemImage: action.systemImage
-                    )
-                    .presentationDetents([.medium, .large])
+                    UnavailableCapabilityView(content: action.content)
+                        .presentationDetents([.medium, .large])
                 }
             }
             .onAppear {

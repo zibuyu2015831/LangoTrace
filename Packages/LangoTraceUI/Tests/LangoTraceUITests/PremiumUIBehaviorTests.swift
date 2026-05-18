@@ -70,6 +70,17 @@ struct PremiumUIBehaviorTests {
         #expect(EntryRenderingStatus.status(for: rendering(isMock: false)) == .ready)
     }
 
+    @Test("Unavailable capability content uses stable localization keys")
+    func unavailableCapabilityContentUsesStableLocalizationKeys() {
+        #expect(PhoneUnavailableAction.photoWriting.content == .photoWriting)
+        #expect(PhoneUnavailableAction.listenOne.content == .listenOne)
+        #expect(PhoneUnavailableAction.languageSwitcher.content == .languageSpace)
+        #expect(MacUnavailableContent(kind: "search").content == .search)
+        #expect(MacUnavailableContent(kind: "import-export").content == .importExport)
+        #expect(MacUnavailableContent(kind: "language-space").content == .languageSpace)
+        #expect(MacUnavailableContent(kind: "unknown").content == .generic)
+    }
+
     @Test("Stage two sample paths keep migrated chrome in localization resources")
     func stageTwoSamplePathsKeepMigratedChromeLocalized() throws {
         let files = [
@@ -92,6 +103,37 @@ struct PremiumUIBehaviorTests {
             "当前步骤",
             "当前为本地 mock，不播放真实语音",
             "朗读音频",
+        ]
+
+        for file in files {
+            let source = try String(contentsOf: sourceFileURL(named: file), encoding: .utf8)
+            for snippet in forbiddenSnippets {
+                #expect(!source.contains(snippet))
+            }
+        }
+    }
+
+    @Test("Stage three unavailable pages keep migrated chrome localized")
+    func stageThreeUnavailablePagesKeepMigratedChromeLocalized() throws {
+        let files = [
+            "UnavailableCapabilityView.swift",
+            "PhoneMainModels.swift",
+            "PhoneMainView.swift",
+            "PadMainView.swift",
+            "PadMainSections.swift",
+            "MacMainModels.swift",
+            "MacWorkspaceContentView.swift",
+        ]
+        let forbiddenSnippets = [
+            "后续接入条件",
+            "不会发生",
+            "照片写作尚未接入",
+            "听一句尚未接入",
+            "语言空间切换尚未接入",
+            "导入导出尚未接入",
+            "搜索尚未接入",
+            "本地向量索引尚未接入",
+            "当前不会访问照片、麦克风、网络、Keychain、真实数据库、同步服务或导出文件",
         ]
 
         for file in files {

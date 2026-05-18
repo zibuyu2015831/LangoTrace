@@ -84,12 +84,7 @@ struct PadMainView: View {
                     presentedSheet = nil
                 }
             case .unavailableSearch:
-                UnavailableCapabilityView(
-                    title: "搜索尚未接入",
-                    summary: "当前不会查询真实数据库、FTS、embedding 或向量索引，只展示入口边界。",
-                    nextRequirement: "完成 SQLite / GRDB、FTS、可重建向量索引和搜索结果路由。",
-                    systemImage: "magnifyingglass"
-                )
+                UnavailableCapabilityView(content: .search)
             }
         }
         .onAppear {
