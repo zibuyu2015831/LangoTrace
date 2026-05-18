@@ -57,7 +57,7 @@
 - `docs/README.md`：一个语言空间对应一门目标语言，工作、生活、旅行、会议和情绪不是空间。
 - `docs/decisions/004-use-language-space-as-primary-model.md`：语言空间是核心信息模型。
 - `docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md`：单空间持久化计划明确排除多空间、切换和删除。
-- `docs/plans/active/2026-05-18-feature-first-round-ui-convergence.md`：任务 11 要求独立记录 lifecycle 和删除方案。
+- `docs/plans/done/2026-05-18-feature-first-round-ui-convergence.md`：任务 11 要求独立记录 lifecycle 和删除方案。
 
 ## 8. 涉及代码文件路径
 

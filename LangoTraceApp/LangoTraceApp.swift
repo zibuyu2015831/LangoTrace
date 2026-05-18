@@ -23,28 +23,28 @@ struct LangoTraceApp: App {
         mainWindowScene
 
         #if os(macOS)
-        Settings {
-            LangoTraceSettingsSceneView(capabilities: settingsCapabilities)
-                .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
-                .environment(\.appEnvironment, environment)
-        }
+            Settings {
+                LangoTraceSettingsSceneView(capabilities: settingsCapabilities)
+                    .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
+                    .environment(\.appEnvironment, environment)
+            }
         #endif
     }
 
     @SceneBuilder
     private var mainWindowScene: some Scene {
         #if os(macOS)
-        WindowGroup {
-            rootContent
-        }
-        .windowResizability(.contentSize)
-        .commands {
-            LangoTraceCommands()
-        }
+            WindowGroup {
+                rootContent
+            }
+            .windowResizability(.contentSize)
+            .commands {
+                LangoTraceCommands()
+            }
         #else
-        WindowGroup {
-            rootContent
-        }
+            WindowGroup {
+                rootContent
+            }
         #endif
     }
 
@@ -83,47 +83,47 @@ struct LangoTraceApp: App {
 }
 
 #if os(macOS)
-private struct LangoTraceCommands: Commands {
-    @Environment(\.openSettings) private var openSettings
+    private struct LangoTraceCommands: Commands {
+        @Environment(\.openSettings) private var openSettings
 
-    var body: some Commands {
-        CommandGroup(replacing: .newItem) {
-            Button("New Entry") {
-                post(LangoTraceAppCommand.newEntry)
+        var body: some Commands {
+            CommandGroup(replacing: .newItem) {
+                Button("New Entry") {
+                    post(LangoTraceAppCommand.newEntry)
+                }
+                .keyboardShortcut("n", modifiers: .command)
             }
-            .keyboardShortcut("n", modifiers: .command)
+
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings...") {
+                    post(LangoTraceAppCommand.showSettings)
+                    openSettings()
+                }
+                .keyboardShortcut(",", modifiers: .command)
+            }
+
+            CommandMenu("Workspace") {
+                Button("Search") {
+                    post(LangoTraceAppCommand.search)
+                }
+                .keyboardShortcut("f", modifiers: .command)
+
+                Divider()
+
+                Button("Toggle Sidebar") {
+                    post(LangoTraceAppCommand.toggleSidebar)
+                }
+                .keyboardShortcut("[", modifiers: [.command, .option])
+
+                Button("Toggle Inspector") {
+                    post(LangoTraceAppCommand.toggleInspector)
+                }
+                .keyboardShortcut("]", modifiers: [.command, .option])
+            }
         }
 
-        CommandGroup(replacing: .appSettings) {
-            Button("Settings...") {
-                post(LangoTraceAppCommand.showSettings)
-                openSettings()
-            }
-            .keyboardShortcut(",", modifiers: .command)
-        }
-
-        CommandMenu("Workspace") {
-            Button("Search") {
-                post(LangoTraceAppCommand.search)
-            }
-            .keyboardShortcut("f", modifiers: .command)
-
-            Divider()
-
-            Button("Toggle Sidebar") {
-                post(LangoTraceAppCommand.toggleSidebar)
-            }
-            .keyboardShortcut("[", modifiers: [.command, .option])
-
-            Button("Toggle Inspector") {
-                post(LangoTraceAppCommand.toggleInspector)
-            }
-            .keyboardShortcut("]", modifiers: [.command, .option])
+        private func post(_ command: Notification.Name) {
+            NotificationCenter.default.post(name: command, object: nil)
         }
     }
-
-    private func post(_ command: Notification.Name) {
-        NotificationCenter.default.post(name: command, object: nil)
-    }
-}
 #endif

@@ -1,6 +1,6 @@
 # 任务方案：第一轮 UI 收敛与规范同步
 
-状态：In Progress
+状态：Verified
 类型：feature
 创建日期：2026-05-18
 最后更新日期：2026-05-18
@@ -218,7 +218,7 @@
 
 本任务方案：
 
-- `docs/plans/active/2026-05-18-feature-first-round-ui-convergence.md`
+- `docs/plans/done/2026-05-18-feature-first-round-ui-convergence.md`
 
 需要同步更新：
 
@@ -821,7 +821,7 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 - `swift test --package-path Packages/LangoTraceData` 通过，10 个测试通过。
 - `swift test --package-path Packages/LangoTraceUI` 通过，29 个测试通过。
 - `ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI/Resources/Localizable.xcstrings")); puts "json ok"'` 通过。
-- `rg -n "creates mock rendering|Created entries receive mock|renderingsByEntryID\\[entry\\.id\\]|generateLocalPreview|entry\\.rendering\\.localPreview" Packages/LangoTraceData Packages/LangoTraceUI docs/plans/active/2026-05-18-feature-first-round-ui-convergence.md` 确认自动生成旧测试文案已移除，生成入口只剩显式 preview seam 和 UI 文案。
+- `rg -n "creates mock rendering|Created entries receive mock|renderingsByEntryID\\[entry\\.id\\]|generateLocalPreview|entry\\.rendering\\.localPreview" Packages/LangoTraceData Packages/LangoTraceUI docs/plans/done/2026-05-18-feature-first-round-ui-convergence.md` 确认自动生成旧测试文案已移除，生成入口只剩显式 preview seam 和 UI 文案。
 
 剩余边界：
 
@@ -929,6 +929,26 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 - 本阶段没有实现真实语言空间添加、切换、删除、持久化、导出或同步 tombstone。
 - `docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md` 仍承接单空间启动恢复；新 lifecycle 方案承接多空间和删除。
 - 完整截图矩阵、high contrast / dark mode 和真实权限 / 同步 / AI 错误样板仍由后续验证或真实功能接入阶段处理。
+
+### 2026-05-18 阶段 10：Final verification and closeout
+
+处理范围：
+
+- 执行统一验证脚本 `scripts/verify.sh`。
+- 首次运行失败于 `swiftformat --lint`，前置步骤已通过：XcodeGen、Core / Data / UI package tests、iPhone 17 build、iPad Pro 13-inch (M5) build、macOS arm64 build、SwiftLint 和文档占位扫描。
+- 失败原因是格式化漂移：`LangoTraceApp/LangoTraceApp.swift`、`Packages/LangoTraceUI/Sources/LangoTraceUI/LocalizedChrome.swift`、`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainView.swift`。
+- 运行 `swiftformat LangoTraceApp/LangoTraceApp.swift Packages/LangoTraceUI/Sources/LangoTraceUI/LocalizedChrome.swift Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainView.swift --cache ignore` 修正格式。
+
+验证结果：
+
+- `scripts/verify.sh` 二次运行通过。
+- SwiftLint 仍有 3 个 warning：`PremiumUIBehaviorTests.swift` line length / type body length、`LearningContentComponents.swift` file length；脚本未将 warning 视为失败，保留为后续 hygiene。
+- SwiftFormat lint 通过，0 个文件需要格式化。
+
+剩余边界：
+
+- 未执行截图矩阵或真机手动验证；本轮以 package tests、iOS/iPad/macOS build、状态扫描和文档同步作为自动化收口依据。
+- 真实 AI Provider、TTS/Speech/OCR、同步、StoreKit、语言空间持久化、语言空间删除、完整深色模式和高对比验证均未在本轮实现。
 
 ## 17. 完成标准
 

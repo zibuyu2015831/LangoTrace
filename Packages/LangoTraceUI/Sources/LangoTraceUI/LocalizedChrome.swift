@@ -81,7 +81,7 @@ private struct LocalizedChromeCatalog {
 }
 
 enum LocalizedChromeLanguageResolver {
-    nonisolated(unsafe) private static var overrideLanguageCodes: [String]?
+    private nonisolated(unsafe) static var overrideLanguageCodes: [String]?
 
     static var preferredLanguageCodes: [String] {
         overrideLanguageCodes ?? ["en"]

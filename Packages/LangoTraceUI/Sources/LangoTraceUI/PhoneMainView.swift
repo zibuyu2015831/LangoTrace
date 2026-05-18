@@ -66,7 +66,6 @@ struct PhoneMainView: View {
                     }
                 }
                 .tag(PhoneRootTab.memory)
-
             }
             .phoneTabBarBackground()
             .navigationDestination(for: PhoneRoute.self) { route in
@@ -125,7 +124,7 @@ struct PhoneMainView: View {
                     UnavailableCapabilityView(content: action.content) {
                         presentedSheet = nil
                     }
-                        .presentationDetents([.medium, .large])
+                    .presentationDetents([.medium, .large])
                 case .languageSpaceSummary:
                     NavigationStack {
                         LanguageSpaceSummaryView(languageSpace: languageSpace)
