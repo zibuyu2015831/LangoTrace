@@ -14,6 +14,90 @@
 
 ---
 
+## 0. 执行前门禁
+
+本计划是后续文档重整任务的临时权威。直到 `docs/_meta/directory-responsibilities.md` 创建并完成入口接管之前，执行者必须优先读取：
+
+1. `docs/README.md`。
+2. `docs-system-improvement-plan.md`。
+3. 当前执行阶段涉及的源目录文档。
+
+执行者拿到本计划后，先做以下检查，不得直接移动或删除文件：
+
+```bash
+git status --short
+find docs -maxdepth 3 -type f | sort
+find docs/guidelines docs/superpowers docs/worklogs -maxdepth 3 -type f | sort
+```
+
+检查要求：
+
+- 如果工作区存在未提交改动，先判断是否属于本次文档重整；无关改动不得覆盖、回滚或顺手格式化。
+- 当前 `docs/README.md` 仍把新任务指向 `docs/worklogs/`，这是待重整的已知冲突。执行第一阶段时必须先修正入口，否则后续 AI 会继续按旧规则创建 worklog。
+- 根目录 `AI_ENTRY_POINT.md`、`CLAUDE.md`、`AGENTS.md` 指向 `docs/README.md`。通常只要更新 `docs/README.md` 即可更新根入口语义，但执行后仍要确认这些入口没有断链。
+- 任何删除动作都必须先有迁移清单、证据和用户确认。没有用户确认时，只能迁移或归档，不能删除。
+- `docs/superpowers/` 和 `docs/worklogs/` 即使清空，也由用户手动删除目录；执行者不删除空目录。
+
+### 0.1 当前基线记录
+
+真正开始重整前，必须在本次任务方案中记录基线输出摘要。推荐先创建：
+
+```text
+docs/plans/active/YYYY-MM-DD-docs-restructure.md
+```
+
+如果执行时 `docs/plans/` 还不存在，允许在阶段 0 先创建最小目录：
+
+```text
+docs/plans/active/
+```
+
+`docs/plans/README.md`、`docs/plans/done/` 和模板仍放在阶段 2 完成。
+
+这份任务方案是本次重整的唯一执行记录，至少记录：
+
+- `git status --short` 的结果。
+- `docs/guidelines/`、`docs/superpowers/`、`docs/worklogs/` 的文件清单。
+- 本次准备修改的入口文档、规范文档和迁移目标目录。
+- 每个阶段的执行结果、验证命令和剩余风险。
+
+### 0.2 迁移清单要求
+
+在处理 `docs/superpowers/` 和 `docs/worklogs/` 前，必须先在本次任务方案中建立逐文件迁移清单。
+
+清单字段：
+
+```text
+源路径
+当前用途
+目标动作
+目标路径
+判断依据
+已检查引用
+是否包含用户确认或关键决策
+是否需要用户确认后删除
+执行状态
+```
+
+目标动作只能使用以下值：
+
+```text
+move-active
+move-done
+move-spec
+move-impl
+move-adr
+archive
+delete-after-confirmation
+keep-temporarily
+```
+
+删除相关规则：
+
+- `delete-after-confirmation` 只是删除候选，不代表可以立即删除。
+- 删除候选必须说明被哪份新文档完整覆盖，或者为什么没有追溯价值。
+- 无法判断是否过期时，默认 `archive` 或 `keep-temporarily`。
+
 ## 1. 架构判断
 
 ### 1.1 `guidelines` 是否就是另一个项目中的 `spec`
@@ -540,9 +624,28 @@ docs/superpowers/specs/*.md
 
 如果一份 worklog 已经被更完整的 plan 覆盖，可以删除或归档，但必须先确认没有独立信息丢失。
 
-## 10. 第一阶段执行任务
+## 10. 分阶段执行计划
 
-### 任务 1：重命名 `guidelines` 为 `spec`
+本次重整必须分阶段执行和验证，不把目录重命名、历史迁移、删除判断和 `_meta` 固化混在同一批改动中。
+
+### 阶段 0：基线和执行记录
+
+- [ ] 读取 `docs/README.md` 和本计划。
+- [ ] 创建本次唯一任务方案 `docs/plans/active/YYYY-MM-DD-docs-restructure.md`。
+- [ ] 记录 `git status --short`。
+- [ ] 记录 `docs/guidelines/`、`docs/superpowers/`、`docs/worklogs/` 文件清单。
+- [ ] 建立 `docs/superpowers/` 和 `docs/worklogs/` 逐文件迁移清单。
+- [ ] 不移动、不删除历史文件。
+
+建议提交边界：
+
+```text
+docs: prepare documentation restructure plan
+```
+
+如果只是补齐本计划，本阶段可以只更新根目录计划文档，不创建任务方案。
+
+### 阶段 1：重命名 `guidelines` 为 `spec` 并修正入口规则
 
 - [ ] 执行目录重命名。
 - [ ] 全仓搜索 `docs/guidelines`、`guidelines/`、`开发规范` 是否需要改为 `docs/spec` 或 `规范文档`。
@@ -550,8 +653,15 @@ docs/superpowers/specs/*.md
 - [ ] 更新 `docs/documentation-system.md` 文档分层。
 - [ ] 更新 `docs/review/README.md` 审查分级。
 - [ ] 更新现有文档中的旧链接。
+- [ ] 确认根目录入口软链接仍指向 `docs/README.md`。
 
-### 任务 2：建立统一任务方案目录
+建议提交边界：
+
+```text
+docs: rename documentation guidelines to spec
+```
+
+### 阶段 2：建立统一任务方案目录
 
 - [ ] 创建 `docs/plans/README.md`。
 - [ ] 创建 `docs/plans/active/`。
@@ -560,44 +670,77 @@ docs/superpowers/specs/*.md
 - [ ] 在模板中写入任务方案必填字段。
 - [ ] 更新入口文档，说明新任务不再写入 `docs/worklogs/`。
 
-### 任务 3：建立模块实现地图规则
+建议提交边界：
+
+```text
+docs: add unified task plan system
+```
+
+### 阶段 3：建立模块实现地图规则
 
 - [ ] 在 `docs/spec/README.md` 中说明模块目录可以同时包含 `spec.md` 和 `impl.md`。
 - [ ] 创建或迁入 `docs/spec/examples/impl-template.md`。
 - [ ] 说明 `impl.md` 只描述当前实现，不定义规范和决策。
 - [ ] 暂不创建真实模块实现地图。
 
-### 任务 4：建立 `prompts` 目录
+### 阶段 4：建立 `prompts` 目录
 
 - [ ] 创建 `docs/prompts/README.md`。
 - [ ] 写明 Prompt Registry 使用规则。
 - [ ] 写明具体 Prompt 文档必填字段。
 - [ ] 明确第一阶段不创建具体 Prompt 文档。
 
-### 任务 5：归档 `superpowers`
+阶段 3 和阶段 4 可以合并为一个提交：
+
+```text
+docs: add spec implementation and prompt registry rules
+```
+
+### 阶段 5：归档 `superpowers`
 
 - [ ] 枚举 `docs/superpowers/` 下全部文件。
 - [ ] 为每个文件标注迁移目标：plans、spec、spec module impl、decisions、archive、delete。
 - [ ] 迁移前先更新引用。
-- [ ] 对需要删除的文件写明删除依据。
+- [ ] 对需要删除的文件写明删除依据，并等待用户确认。
 - [ ] 迁移完成后由用户手动删除空目录。
 
-### 任务 6：归档 `worklogs`
+建议提交边界：
+
+```text
+docs: migrate superpowers documentation
+```
+
+### 阶段 6：归档 `worklogs`
 
 - [ ] 枚举 `docs/worklogs/` 下全部文件。
 - [ ] 区分 active、done、archive、delete。
 - [ ] 将仍有价值的内容合并或迁移到 `docs/plans/`。
-- [ ] 删除或归档过期内容前，检查引用和独立信息。
+- [ ] 删除候选必须先检查引用和独立信息，并等待用户确认。
 - [ ] 迁移完成后由用户手动删除空目录。
 
-### 任务 7：创建 `_meta` 第一份文档
+建议提交边界：
+
+```text
+docs: migrate legacy worklogs to plans
+```
+
+### 阶段 7：创建 `_meta` 第一份文档并收口
 
 - [ ] 在所有目录重整完成后创建 `docs/_meta/directory-responsibilities.md`。
 - [ ] 记录每个目录职责、权威类型、写入规则和禁止事项。
 - [ ] 记录已退出目录和迁移完成日期。
 - [ ] 将该文档加入 `docs/README.md`。
+- [ ] 将本次任务方案从 `docs/plans/active/` 移动到 `docs/plans/done/`。
+
+建议提交边界：
+
+```text
+docs: finalize documentation directory governance
+```
 
 ## 11. 验证计划
+
+阶段 0 允许旧路径引用存在，因为这一步只是采集基线和建立执行记录。阶段 1 之后，活跃文档不应再把新任务路由到 `docs/guidelines/`；阶段 5 和阶段 6 之后，活跃文档不应再把新任务路由到 `docs/superpowers/` 或 `docs/worklogs/`。
 
 每个阶段至少运行：
 
@@ -610,6 +753,14 @@ rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob
 git diff --check
 git status --short
 ```
+
+结果判断：
+
+- 阶段 0：`rg "docs/guidelines|guidelines/" docs`、`rg "docs/superpowers|superpowers/" docs`、`rg "docs/worklogs|worklogs/" docs` 可以命中旧入口和历史文档，但必须记录为基线。
+- 阶段 1 后：活跃入口和规范文档中的 `docs/guidelines`、`guidelines/` 应清理完成；如果历史归档中保留旧路径，必须确认不会作为新任务入口。
+- 阶段 5 后：活跃入口不应再要求写入 `docs/superpowers/`；仅允许迁移清单、归档文档或历史说明中出现。
+- 阶段 6 后：活跃入口不应再要求写入 `docs/worklogs/`；仅允许迁移清单、归档文档或历史说明中出现。
+- 占位扫描不能出现新增的占位关键词或未收口表述；模板目录可以按命令排除。
 
 如果修改脚本或 Swift 代码，追加运行：
 
@@ -633,8 +784,12 @@ scripts/verify.sh
 - 旧路径引用已清理。
 - `docs/README.md` 能准确指导后续开发。
 
-## 13. 仍需用户确认的点
+## 13. 已确认执行决策
 
-1. `docs/worklogs/` 完成迁移后是否也由用户手动删除，和 `docs/superpowers/` 保持一致？
-2. 是否接受第一阶段保留原 spec 文件名中的 `guideline` 字样，第二阶段再改文件名？
-3. 是否需要新增 `docs/archive/`，还是过期历史内容直接删除？
+以下决策不再作为执行前开放问题处理：
+
+1. `docs/worklogs/` 完成迁移后也由用户手动删除，和 `docs/superpowers/` 保持一致。
+2. 第一阶段接受保留原文件名中的 `guideline` 字样，只先完成目录职责迁移和引用修正；是否进一步重命名文件，留到第二阶段单独评估。
+3. 如果存在历史参考价值但不应作为当前事实的内容，可以新增 `docs/archive/`。只有迁移清单证明无追溯价值、无引用、无独立决策且获得用户确认的文件，才可以删除。
+4. 本计划执行期间，不新增独立 `docs/implementation/`。
+5. Prompt 文档规则现在创建；真实代码内置 Prompt 以英文为准，文档中同时保存英文和中文版本。
