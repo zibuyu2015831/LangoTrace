@@ -4,6 +4,26 @@
 
 这些项目只作为产品结构、交互逻辑、数据模型和技术方案参考。商业闭源开发时，不应直接复制许可证不兼容项目的代码。
 
+## 0. 本地源码位置
+
+以下源码已克隆到本机 `/Users/zibuyu/code/openSource`，后续开发和调研可直接从本地路径打开。若后续需要引用、复制、改造代码或引入依赖，仍必须先按第 5 节重新检查仓库当前 `LICENSE` 和依赖许可证。
+
+| 项目 | GitHub 地址 | 本地源码位置 |
+|---|---|---|
+| Memex | https://github.com/memex-lab/memex | `/Users/zibuyu/code/openSource/memex` |
+| OpenKoto | https://github.com/hikariming/openkoto | `/Users/zibuyu/code/openSource/openkoto` |
+| EchoTalk | https://github.com/alisolphp/EchoTalk | `/Users/zibuyu/code/openSource/EchoTalk` |
+| VocabSieve | https://github.com/FreeLanguageTools/vocabsieve | `/Users/zibuyu/code/openSource/vocabsieve` |
+| Ulangi | https://github.com/subconcept-labs/ulangi | `/Users/zibuyu/code/openSource/ulangi` |
+| Dayflow | https://github.com/JerryZLiu/Dayflow | `/Users/zibuyu/code/openSource/Dayflow` |
+| Memos | https://github.com/usememos/memos | `/Users/zibuyu/code/openSource/memos` |
+| language-learning-prompts | https://github.com/aoilang/language-learning-prompts | `/Users/zibuyu/code/openSource/language-learning-prompts` |
+| Anki | https://github.com/ankitects/anki | `/Users/zibuyu/code/openSource/anki` |
+| LinguaCafe | https://github.com/simjanos-dev/LinguaCafe | `/Users/zibuyu/code/openSource/LinguaCafe` |
+| Lute v3 | https://github.com/LuteOrg/lute-v3 | `/Users/zibuyu/code/openSource/lute-v3` |
+| Readest | https://github.com/readest/readest | `/Users/zibuyu/code/openSource/readest` |
+| LibreLingo | https://github.com/kantord/LibreLingo | `/Users/zibuyu/code/openSource/LibreLingo` |
+
 ## 1. 优先研究结论
 
 第一批建议优先研究 5 个项目：
@@ -125,9 +145,9 @@
 | 多端同步 | Readest / LibreLingo / Anki | 同步数据边界、冲突处理、离线状态、复习历史一致性。 |
 | 长期记忆与向量化 | Memex / Dayflow | 个人数据组织、AI 总结、语义搜索、历史召回。 |
 
-## 4. 后续下载源码时的研究清单
+## 4. 后续阅读本地源码时的研究清单
 
-下载或阅读每个项目源码时，建议按以下问题记录：
+阅读每个项目源码时，建议按以下问题记录：
 
 - 许可证：项目使用 MIT、Apache、GPL、AGPL 还是其他许可证？是否适合商业闭源参考？
 - 技术栈：桌面端、移动端、Web、PWA、数据库、同步方案分别是什么？
@@ -213,7 +233,7 @@
 
 ## 8. 后续落地建议
 
-后续如果下载源码研究，建议不要只看功能列表，而要形成模块级调研笔记：
+后续研究本地源码时，建议不要只看功能列表，而要形成模块级调研笔记：
 
 - 每个项目单独建一份阅读记录。
 - 每份记录包含许可证、技术栈、核心数据模型、值得参考的交互、不能复用的部分。
