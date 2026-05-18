@@ -94,6 +94,23 @@ struct MacMainView: View {
             contentStore.ensureSeeded()
             selectedEntryID = selectedEntryID ?? contentStore.selectedEntry?.id
         }
+        .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.newEntry)) { _ in
+            isEntryEditorPresented = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.search)) { _ in
+            selectedSection = .entries
+            route = .unavailable("search")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.toggleSidebar)) { _ in
+            isSidebarVisible.toggle()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.toggleInspector)) { _ in
+            isInspectorVisible.toggle()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.showSettings)) { _ in
+            selectedSection = .settings
+            route = .overview
+        }
     }
 
     private var entries: [LearningEntry] {

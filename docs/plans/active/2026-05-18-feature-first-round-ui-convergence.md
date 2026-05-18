@@ -851,6 +851,31 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 - 本阶段不做真实 Search，不接入外部键盘 command menu；真实菜单命令和 macOS commands 留给任务 7。
 - iPad 多宽度截图验证、Stage Manager / Split View 手动矩阵和截图基线仍由任务 10、任务 14 收口。
 
+### 2026-05-18 阶段 7：macOS Settings scene and commands
+
+处理范围：
+
+- 完成任务 7 / P1-004 的第一轮实现。
+- `LangoTraceApp` 拆出 `mainWindowScene` 和 `rootContent`，并在 macOS 下增加独立 `Settings` scene。
+- 新增 `LangoTraceSettingsSceneView`，在 Settings window 中展示只读 capability boundary，避免把通用设置只埋在主 workspace sidebar。
+- 新增 `LangoTraceAppCommand` 通知 seam；App-level commands 通过 command bus 触发 Mac workspace 内部状态变化。
+- `LangoTraceCommands` 增加 New Entry、Settings、Search、Toggle Sidebar、Toggle Inspector，并绑定 `Cmd+N`、`Cmd+,`、`Cmd+F`、`Cmd+Opt+[`、`Cmd+Opt+]`。
+- `MacMainView` 监听 command notifications，复用现有 entry editor、search unavailable route、sidebar / inspector toggle 和 settings overview route。
+
+验证结果：
+
+- 首次 `xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build` 失败，原因是 `Settings {}` 放在 chained scene modifier 后导致 SceneBuilder 解析错误。
+- 第二次 build 失败，原因是 command post 使用 `.newEntry` shorthand，编译器解析为 `Notification.Name.newEntry`。
+- 修复后 `xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build` 通过。
+- `swift test --package-path Packages/LangoTraceUI` 通过，32 个测试通过。
+- `git diff --check` 通过。
+- `rg -n "\\.commands|CommandMenu|keyboardShortcut|Settings \\{|LangoTraceAppCommand|openSettings" LangoTraceApp Packages/LangoTraceUI/Sources/LangoTraceUI` 确认 app scene、commands、Settings scene 和 command bus 均存在。
+
+剩余边界：
+
+- 本阶段只建立 macOS 原生命令面；真实 Search、真实 Settings 配置写入和 Provider / Sync 配置仍保持 unavailable 或 read-only。
+- Sidebar 内容域重排和 footer icon 语义的更细视觉收敛仍由任务 8、任务 9 配合规范文档继续处理。
+
 ## 17. 完成标准
 
 本任务完成必须同时满足：
