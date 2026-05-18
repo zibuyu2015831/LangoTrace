@@ -314,6 +314,7 @@ PY
 - 2026-05-18：执行 `git diff --check`，无 whitespace 报错。
 - 2026-05-18：执行相对链接检查，结果为 `checked 92 markdown files; missing relative links: 0`。
 - 2026-05-18：执行 `git status --short`，仅显示本轮文档落地改动和方案从 active 到 done 的移动。
+- 2026-05-18：按用户要求做全面复查，补充 `docs/review/README.md` 中复杂 round 后续 `Superseded` / `Invalidated` 标注规则，并将常用占位词扫描命令与入口文档保持一致，排除 `plans/examples` 和 `spec/examples`。
 
 ## 16. 完成标准
 

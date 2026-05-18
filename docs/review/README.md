@@ -289,6 +289,8 @@ docs/review/rounds/YYYY-MM-DD-<topic>/
 Draft -> In Progress -> Waiting for Clarification -> Waiting for Approval -> Updating Docs -> Consistency Check -> Verified / Deferred
 ```
 
+若复杂 round 后续被新的 plan、review、commit 或长期文档覆盖，可在 `docs/review/INDEX.md` 中标注为 `Superseded`；若结论基于错误前提或已被确认推翻，应标注为 `Invalidated`，并把 `可作为依据` 改为 `No`。
+
 ## 10. 验收方式
 
 文档审查的最终验收不是文件都写完，而是新会话可用。
@@ -305,7 +307,7 @@ Draft -> In Progress -> Waiting for Clarification -> Waiting for Approval -> Upd
 
 ```bash
 find docs -maxdepth 3 -type f | sort
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
 git diff --check
 git status --short
 ```
