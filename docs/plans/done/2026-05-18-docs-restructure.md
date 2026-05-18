@@ -125,53 +125,53 @@ docs/guidelines/README.md
 ### 10.4 `docs/superpowers/` 文件清单
 
 ```text
-docs/archive/superpowers/plans/2026-05-17-language-space-persistence-startup-restore.md
-docs/archive/superpowers/plans/2026-05-17-mvp-ui-flow-and-design-system-implementation.md
-docs/archive/superpowers/plans/2026-05-17-settings-and-practice-state-closure.md
-docs/archive/superpowers/plans/2026-05-17-string-catalog-interface-language-settings.md
-docs/archive/superpowers/plans/2026-05-17-three-platform-page-closure.md
-docs/archive/superpowers/plans/README.md
-docs/spec/interface-localization/2026-05-17-string-catalog-interface-language-settings-design.md
-docs/spec/interface-localization/2026-05-18-interface-language-expansion-design.md
-docs/spec/ui-design/2026-05-18-premium-ui-principles-and-review-plan.md
-docs/archive/superpowers/specs/README.md
-docs/spec/ui-design/mvp-ui-flow-and-design-system.md
+docs/superpowers/plans/2026-05-17-language-space-persistence-startup-restore.md
+docs/superpowers/plans/2026-05-17-mvp-ui-flow-and-design-system-implementation.md
+docs/superpowers/plans/2026-05-17-settings-and-practice-state-closure.md
+docs/superpowers/plans/2026-05-17-string-catalog-interface-language-settings.md
+docs/superpowers/plans/2026-05-17-three-platform-page-closure.md
+docs/superpowers/plans/README.md
+docs/superpowers/specs/2026-05-17-string-catalog-interface-language-settings-design.md
+docs/superpowers/specs/2026-05-18-interface-language-expansion-design.md
+docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md
+docs/superpowers/specs/README.md
+docs/superpowers/specs/mvp-ui-flow-and-design-system.md
 ```
 
 ### 10.5 `docs/worklogs/` 文件清单
 
 ```text
-docs/plans/done/2026-05-17-bug-code-test-docs-review-fixes.md
-docs/plans/done/2026-05-17-bug-ios-letterboxed-launch-screen.md
-docs/plans/done/2026-05-17-bug-ipad-page-closure-and-warnings.md
-docs/plans/done/2026-05-17-chore-code-test-docs-review.md
-docs/plans/done/2026-05-17-chore-docs-code-alignment.md
-docs/plans/done/2026-05-17-chore-docs-review-mechanism.md
-docs/plans/done/2026-05-17-chore-interface-localization-spec.md
-docs/plans/done/2026-05-17-chore-swiftui-app-shell-initialization.md
-docs/plans/done/2026-05-17-feature-collapsible-side-panels.md
-docs/plans/done/2026-05-17-feature-interface-localization-foundation.md
-docs/plans/done/2026-05-17-feature-ios-ui-quality-pass.md
-docs/plans/done/2026-05-17-feature-ipad-sidebar-edge-gestures.md
-docs/plans/done/2026-05-17-feature-ipad-ui-quality-pass.md
-docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md
-docs/plans/done/2026-05-17-feature-onboarding-language-display.md
-docs/plans/done/2026-05-17-feature-platform-navigation-refinement.md
-docs/plans/done/2026-05-17-feature-privacy-status-icons.md
-docs/plans/done/2026-05-17-feature-product-shell-navigation.md
-docs/plans/done/2026-05-17-feature-settings-and-practice-state-closure.md
-docs/plans/done/2026-05-17-feature-string-catalog-interface-language-settings.md
-docs/plans/done/2026-05-17-feature-three-platform-page-closure.md
-docs/plans/done/2026-05-17-feature-ui-completeness-and-design-system-review.md
-docs/plans/done/2026-05-18-bug-interface-language-settings-detail-localization.md
-docs/plans/done/2026-05-18-chore-interface-language-expansion-plan.md
-docs/plans/done/2026-05-18-chore-premium-ui-principles-review-plan.md
-docs/plans/done/2026-05-18-feature-interface-premium-ui-convergence.md
-docs/plans/done/2026-05-18-feature-premium-ui-audit.md
-docs/plans/done/2026-05-18-feature-premium-ui-completion-sweep.md
-docs/plans/done/2026-05-18-feature-premium-ui-page-rollout.md
-docs/archive/worklogs/README.md
-docs/archive/worklogs/TEMPLATE.md
+docs/worklogs/2026-05-17-bug-code-test-docs-review-fixes.md
+docs/worklogs/2026-05-17-bug-ios-letterboxed-launch-screen.md
+docs/worklogs/2026-05-17-bug-ipad-page-closure-and-warnings.md
+docs/worklogs/2026-05-17-chore-code-test-docs-review.md
+docs/worklogs/2026-05-17-chore-docs-code-alignment.md
+docs/worklogs/2026-05-17-chore-docs-review-mechanism.md
+docs/worklogs/2026-05-17-chore-interface-localization-guideline.md
+docs/worklogs/2026-05-17-chore-swiftui-app-shell-initialization.md
+docs/worklogs/2026-05-17-feature-collapsible-side-panels.md
+docs/worklogs/2026-05-17-feature-interface-localization-foundation.md
+docs/worklogs/2026-05-17-feature-ios-ui-quality-pass.md
+docs/worklogs/2026-05-17-feature-ipad-sidebar-edge-gestures.md
+docs/worklogs/2026-05-17-feature-ipad-ui-quality-pass.md
+docs/worklogs/2026-05-17-feature-language-space-persistence-startup-restore.md
+docs/worklogs/2026-05-17-feature-onboarding-language-display.md
+docs/worklogs/2026-05-17-feature-platform-navigation-refinement.md
+docs/worklogs/2026-05-17-feature-privacy-status-icons.md
+docs/worklogs/2026-05-17-feature-product-shell-navigation.md
+docs/worklogs/2026-05-17-feature-settings-and-practice-state-closure.md
+docs/worklogs/2026-05-17-feature-string-catalog-interface-language-settings.md
+docs/worklogs/2026-05-17-feature-three-platform-page-closure.md
+docs/worklogs/2026-05-17-feature-ui-completeness-and-design-system-review.md
+docs/worklogs/2026-05-18-bug-interface-language-settings-detail-localization.md
+docs/worklogs/2026-05-18-chore-interface-language-expansion-plan.md
+docs/worklogs/2026-05-18-chore-premium-ui-principles-review-plan.md
+docs/worklogs/2026-05-18-feature-interface-premium-ui-convergence.md
+docs/worklogs/2026-05-18-feature-premium-ui-audit.md
+docs/worklogs/2026-05-18-feature-premium-ui-completion-sweep.md
+docs/worklogs/2026-05-18-feature-premium-ui-page-rollout.md
+docs/worklogs/README.md
+docs/worklogs/TEMPLATE.md
 ```
 
 ## 11. 迁移清单
@@ -182,53 +182,53 @@ docs/archive/worklogs/TEMPLATE.md
 
 | 源路径 | 当前用途 | 目标动作 | 目标路径 | 判断依据 | 已检查引用 | 包含确认或决策 | 需确认后删除 | 执行状态 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `docs/archive/superpowers/plans/2026-05-17-language-space-persistence-startup-restore.md` | 语言空间持久化与启动恢复计划，状态 Shelved | move-active | `docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md` | 未完成且仍对应当前优先级 | `rg` 命中入口和历史 worklog 引用 | 是 | 否 | pending |
-| `docs/archive/superpowers/plans/2026-05-17-mvp-ui-flow-and-design-system-implementation.md` | MVP UI 闭环实施计划 | move-done | `docs/plans/done/2026-05-17-feature-mvp-ui-flow-and-design-system-implementation.md` | 相关 UI worklog 已记录 Verified/Implemented，保留为历史任务方案 | `rg` 命中 UI worklog 和 spec 引用 | 是 | 否 | pending |
-| `docs/archive/superpowers/plans/2026-05-17-settings-and-practice-state-closure.md` | 设置与练习状态闭环计划，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-settings-and-practice-state-closure.md` | 已验证任务方案，有实施追溯价值 | `rg` 命中对应 worklog | 是 | 否 | pending |
-| `docs/archive/superpowers/plans/2026-05-17-string-catalog-interface-language-settings.md` | String Catalog 与界面语言设置计划 | move-done | `docs/plans/done/2026-05-17-feature-string-catalog-interface-language-settings.md` | 已实施且被审查轮次引用 | `rg` 命中 review 与 worklog | 是 | 否 | pending |
-| `docs/archive/superpowers/plans/2026-05-17-three-platform-page-closure.md` | 三端页面闭环计划，状态 Completed | move-done | `docs/plans/done/2026-05-17-feature-three-platform-page-closure.md` | 已完成且对应 worklog 引用 | `rg` 命中对应 worklog | 是 | 否 | pending |
-| `docs/archive/superpowers/plans/README.md` | 旧实施计划目录说明 | archive | `docs/archive/superpowers/plans/README.md` | 新 `docs/plans/README.md` 将替代其当前职责，旧说明保留为迁移证据 | `rg` 命中 worklogs README | 否 | 否 | pending |
-| `docs/spec/interface-localization/2026-05-17-string-catalog-interface-language-settings-design.md` | String Catalog 与界面语言设置规格草案 | move-spec | `docs/spec/interface-localization/2026-05-17-string-catalog-interface-language-settings-design.md` | 属于长期界面国际化设计规格，后续可与现有 spec 合并 | `rg` 命中 review 与扩展设计引用 | 是 | 否 | pending |
-| `docs/spec/interface-localization/2026-05-18-interface-language-expansion-design.md` | 主流界面语言扩展方案，状态 Implemented | move-spec | `docs/spec/interface-localization/2026-05-18-interface-language-expansion-design.md` | 属于界面语言扩展规范和实施依据 | `rg` 命中历史 worklog | 是 | 否 | pending |
-| `docs/spec/ui-design/2026-05-18-premium-ui-principles-and-review-plan.md` | 付费级 UI 原则和审查计划 | move-spec | `docs/spec/ui-design/2026-05-18-premium-ui-principles-and-review-plan.md` | 属于 UI 规范补充和审查方法，不应继续放在 superpowers | `rg` 命中多个 UI worklog | 是 | 否 | pending |
-| `docs/spec/ui-design/mvp-ui-flow-and-design-system.md` | MVP 页面闭环与设计系统规格 | move-spec | `docs/spec/ui-design/mvp-ui-flow-and-design-system.md` | 属于 UI 与页面闭环规格 | `rg` 命中 UI guideline 和 plan | 是 | 否 | pending |
-| `docs/archive/superpowers/specs/README.md` | 旧规格目录说明 | archive | `docs/archive/superpowers/specs/README.md` | 新 `docs/spec/README.md` 将替代其当前职责，旧说明保留为迁移证据 | `rg` 命中少量目录说明 | 否 | 否 | pending |
+| `docs/superpowers/plans/2026-05-17-language-space-persistence-startup-restore.md` | 语言空间持久化与启动恢复计划，状态 Shelved | move-active | `docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md` | 未完成且仍对应当前优先级 | `rg` 命中入口和历史 worklog 引用 | 是 | 否 | done |
+| `docs/superpowers/plans/2026-05-17-mvp-ui-flow-and-design-system-implementation.md` | MVP UI 闭环实施计划 | move-done | `docs/plans/done/2026-05-17-feature-mvp-ui-flow-and-design-system-implementation.md` | 相关 UI worklog 已记录 Verified/Implemented，保留为历史任务方案 | `rg` 命中 UI worklog 和 spec 引用 | 是 | 否 | done |
+| `docs/superpowers/plans/2026-05-17-settings-and-practice-state-closure.md` | 设置与练习状态闭环计划，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-settings-and-practice-state-closure.md` | 已验证任务方案，有实施追溯价值 | `rg` 命中对应 worklog | 是 | 否 | done |
+| `docs/superpowers/plans/2026-05-17-string-catalog-interface-language-settings.md` | String Catalog 与界面语言设置计划 | move-done | `docs/plans/done/2026-05-17-feature-string-catalog-interface-language-settings.md` | 已实施且被审查轮次引用 | `rg` 命中 review 与 worklog | 是 | 否 | done |
+| `docs/superpowers/plans/2026-05-17-three-platform-page-closure.md` | 三端页面闭环计划，状态 Completed | move-done | `docs/plans/done/2026-05-17-feature-three-platform-page-closure.md` | 已完成且对应 worklog 引用 | `rg` 命中对应 worklog | 是 | 否 | done |
+| `docs/superpowers/plans/README.md` | 旧实施计划目录说明 | archive | `docs/archive/superpowers/plans/README.md` | 新 `docs/plans/README.md` 将替代其当前职责，旧说明保留为迁移证据 | `rg` 命中 worklogs README | 否 | 否 | done |
+| `docs/superpowers/specs/2026-05-17-string-catalog-interface-language-settings-design.md` | String Catalog 与界面语言设置规格草案 | move-spec | `docs/spec/interface-localization/2026-05-17-string-catalog-interface-language-settings-design.md` | 属于长期界面国际化设计规格，后续可与现有 spec 合并 | `rg` 命中 review 与扩展设计引用 | 是 | 否 | done |
+| `docs/superpowers/specs/2026-05-18-interface-language-expansion-design.md` | 主流界面语言扩展方案，状态 Implemented | move-spec | `docs/spec/interface-localization/2026-05-18-interface-language-expansion-design.md` | 属于界面语言扩展规范和实施依据 | `rg` 命中历史 worklog | 是 | 否 | done |
+| `docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md` | 付费级 UI 原则和审查计划 | move-spec | `docs/spec/ui-design/2026-05-18-premium-ui-principles-and-review-plan.md` | 属于 UI 规范补充和审查方法，不应继续放在 superpowers | `rg` 命中多个 UI worklog | 是 | 否 | done |
+| `docs/superpowers/specs/mvp-ui-flow-and-design-system.md` | MVP 页面闭环与设计系统规格 | move-spec | `docs/spec/ui-design/mvp-ui-flow-and-design-system.md` | 属于 UI 与页面闭环规格 | `rg` 命中 UI guideline 和 plan | 是 | 否 | done |
+| `docs/superpowers/specs/README.md` | 旧规格目录说明 | archive | `docs/archive/superpowers/specs/README.md` | 新 `docs/spec/README.md` 将替代其当前职责，旧说明保留为迁移证据 | `rg` 命中少量目录说明 | 否 | 否 | done |
 
 ### 11.2 `docs/worklogs/`
 
 | 源路径 | 当前用途 | 目标动作 | 目标路径 | 判断依据 | 已检查引用 | 包含确认或决策 | 需确认后删除 | 执行状态 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `docs/plans/done/2026-05-17-bug-code-test-docs-review-fixes.md` | 代码/测试/文档审查修复记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-bug-code-test-docs-review-fixes.md` | 已验证 bug 修复记录 | `rg` 命中自身和相关 worklog | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-bug-ios-letterboxed-launch-screen.md` | iOS 首屏未占满修复，状态 Verified | move-done | `docs/plans/done/2026-05-17-bug-ios-letterboxed-launch-screen.md` | 已验证 bug 修复记录 | `rg` 命中相关 UI worklog | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-bug-ipad-page-closure-and-warnings.md` | iPad 页面闭环和 warning 修复，状态 Completed | move-done | `docs/plans/done/2026-05-17-bug-ipad-page-closure-and-warnings.md` | 已完成 bug 修复记录 | `rg` 命中历史记录 | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-chore-code-test-docs-review.md` | 代码/测试/文档审查记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-chore-code-test-docs-review.md` | 审查证据仍有追溯价值 | `rg` 命中修复 worklog | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-chore-docs-code-alignment.md` | 文档与代码一致性审查，状态 Verified | move-done | `docs/plans/done/2026-05-17-chore-docs-code-alignment.md` | 文档治理记录有追溯价值 | `rg` 命中历史记录 | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-chore-docs-review-mechanism.md` | 文档审查机制建立记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-chore-docs-review-mechanism.md` | 记录当前 review 机制来源 | `rg` 命中多个 review 说明 | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-chore-interface-localization-spec.md` | 界面国际化规范草案记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-chore-interface-localization-spec.md` | 已形成长期 spec，历史过程保留 | `rg` 命中 spec 引用 | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-chore-swiftui-app-shell-initialization.md` | SwiftUI App Shell 初始化记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-chore-swiftui-app-shell-initialization.md` | 重要工程初始化追溯 | `rg` 命中历史记录 | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-collapsible-side-panels.md` | iPad/Mac 可收起侧栏记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-collapsible-side-panels.md` | 已验证功能记录 | `rg` 命中后续导航 worklog | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-interface-localization-foundation.md` | 界面国际化基础落地，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-interface-localization-foundation.md` | 已验证功能记录 | `rg` 命中历史记录 | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-ios-ui-quality-pass.md` | iOS UI 质量优化，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-ios-ui-quality-pass.md` | 已验证功能记录 | `rg` 命中 UI 记录 | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-ipad-sidebar-edge-gestures.md` | iPad 边缘手势，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-ipad-sidebar-edge-gestures.md` | 已验证功能记录 | `rg` 命中相关 worklog | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-ipad-ui-quality-pass.md` | iPad UI 质量优化，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-ipad-ui-quality-pass.md` | 已验证功能记录 | `rg` 命中历史记录 | 是 | 否 | pending |
-| `docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md` | 语言空间持久化任务，状态 Shelved | move-active | `docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md` | 未完成且仍是当前优先级 | `rg` 命中 superpowers plan | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-onboarding-language-display.md` | 首次启动语言选择优化，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-onboarding-language-display.md` | 已验证功能记录 | `rg` 命中 UI spec | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-platform-navigation-refinement.md` | 平台导航优化，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-platform-navigation-refinement.md` | 已验证功能记录 | `rg` 命中相关 worklog | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-privacy-status-icons.md` | 隐私状态图标优化，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-privacy-status-icons.md` | 隐私边界说明有长期追溯价值 | `rg` 命中历史记录 | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-product-shell-navigation.md` | 产品壳导航，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-product-shell-navigation.md` | 核心启动/导航历史记录 | `rg` 命中多个后续 worklog | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-settings-and-practice-state-closure.md` | 设置与练习状态闭环，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-settings-and-practice-state-closure.md` | 已验证功能记录 | `rg` 命中 superpowers plan | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-string-catalog-interface-language-settings.md` | String Catalog 与界面语言设置闭环，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-string-catalog-interface-language-settings.md` | 已验证功能记录且被 review 引用 | `rg` 命中 review 和 superpowers | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-three-platform-page-closure.md` | 三端页面闭环，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-three-platform-page-closure.md` | 已验证功能记录 | `rg` 命中 superpowers plan | 是 | 否 | pending |
-| `docs/plans/done/2026-05-17-feature-ui-completeness-and-design-system-review.md` | 页面完整性与设计系统审查，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-ui-completeness-and-design-system-review.md` | UI 审查历史记录 | `rg` 命中 superpowers plan | 是 | 否 | pending |
-| `docs/plans/done/2026-05-18-bug-interface-language-settings-detail-localization.md` | 界面语言设置详情本地化 bug，状态 Verified | move-done | `docs/plans/done/2026-05-18-bug-interface-language-settings-detail-localization.md` | 已验证 bug 修复记录 | `rg` 命中历史记录 | 是 | 否 | pending |
-| `docs/plans/done/2026-05-18-chore-interface-language-expansion-plan.md` | 界面语言扩展方案与首批实现，状态 Implemented | move-done | `docs/plans/done/2026-05-18-chore-interface-language-expansion-plan.md` | 已实施计划记录 | `rg` 命中 superpowers spec | 是 | 否 | pending |
-| `docs/plans/done/2026-05-18-chore-premium-ui-principles-review-plan.md` | 付费级 UI 设计原则与审查计划，状态 Implemented | move-done | `docs/plans/done/2026-05-18-chore-premium-ui-principles-review-plan.md` | 已实施计划记录 | `rg` 命中 superpowers spec | 是 | 否 | pending |
-| `docs/plans/done/2026-05-18-feature-interface-premium-ui-convergence.md` | 付费级 UI 风格收敛，状态 Verified | move-done | `docs/plans/done/2026-05-18-feature-interface-premium-ui-convergence.md` | 已验证功能记录 | `rg` 命中后续 UI worklog | 是 | 否 | pending |
-| `docs/plans/done/2026-05-18-feature-premium-ui-audit.md` | 三端付费级 UI 全面审查，状态 Implemented | move-done | `docs/plans/done/2026-05-18-feature-premium-ui-audit.md` | 大型审查和修复证据 | `rg` 命中后续 UI worklog | 是 | 否 | pending |
-| `docs/plans/done/2026-05-18-feature-premium-ui-completion-sweep.md` | 付费级 UI 收敛扫尾，状态 Implemented | move-done | `docs/plans/done/2026-05-18-feature-premium-ui-completion-sweep.md` | 已实施功能记录 | `rg` 命中后续记录 | 是 | 否 | pending |
-| `docs/plans/done/2026-05-18-feature-premium-ui-page-rollout.md` | 付费级 UI 页面推广，状态 Implemented | move-done | `docs/plans/done/2026-05-18-feature-premium-ui-page-rollout.md` | 已实施功能记录 | `rg` 命中后续记录 | 是 | 否 | pending |
-| `docs/archive/worklogs/README.md` | 旧 worklog 目录规范 | archive | `docs/archive/worklogs/README.md` | 新 `docs/plans/README.md` 将替代；旧规范保留为迁移证据 | `rg` 命中入口和 review 历史 | 否 | 否 | pending |
-| `docs/archive/worklogs/TEMPLATE.md` | 旧 worklog 模板 | archive | `docs/archive/worklogs/TEMPLATE.md` | 新任务方案模板将替代；旧模板保留为迁移证据 | `rg` 命中占位扫描排除规则 | 否 | 否 | pending |
+| `docs/worklogs/2026-05-17-bug-code-test-docs-review-fixes.md` | 代码/测试/文档审查修复记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-bug-code-test-docs-review-fixes.md` | 已验证 bug 修复记录 | `rg` 命中自身和相关 worklog | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-bug-ios-letterboxed-launch-screen.md` | iOS 首屏未占满修复，状态 Verified | move-done | `docs/plans/done/2026-05-17-bug-ios-letterboxed-launch-screen.md` | 已验证 bug 修复记录 | `rg` 命中相关 UI worklog | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-bug-ipad-page-closure-and-warnings.md` | iPad 页面闭环和 warning 修复，状态 Completed | move-done | `docs/plans/done/2026-05-17-bug-ipad-page-closure-and-warnings.md` | 已完成 bug 修复记录 | `rg` 命中历史记录 | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-chore-code-test-docs-review.md` | 代码/测试/文档审查记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-chore-code-test-docs-review.md` | 审查证据仍有追溯价值 | `rg` 命中修复 worklog | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-chore-docs-code-alignment.md` | 文档与代码一致性审查，状态 Verified | move-done | `docs/plans/done/2026-05-17-chore-docs-code-alignment.md` | 文档治理记录有追溯价值 | `rg` 命中历史记录 | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-chore-docs-review-mechanism.md` | 文档审查机制建立记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-chore-docs-review-mechanism.md` | 记录当前 review 机制来源 | `rg` 命中多个 review 说明 | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-chore-interface-localization-guideline.md` | 界面国际化规范草案记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-chore-interface-localization-spec.md` | 已形成长期 spec，历史过程保留 | `rg` 命中 spec 引用 | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-chore-swiftui-app-shell-initialization.md` | SwiftUI App Shell 初始化记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-chore-swiftui-app-shell-initialization.md` | 重要工程初始化追溯 | `rg` 命中历史记录 | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-collapsible-side-panels.md` | iPad/Mac 可收起侧栏记录，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-collapsible-side-panels.md` | 已验证功能记录 | `rg` 命中后续导航 worklog | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-interface-localization-foundation.md` | 界面国际化基础落地，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-interface-localization-foundation.md` | 已验证功能记录 | `rg` 命中历史记录 | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-ios-ui-quality-pass.md` | iOS UI 质量优化，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-ios-ui-quality-pass.md` | 已验证功能记录 | `rg` 命中 UI 记录 | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-ipad-sidebar-edge-gestures.md` | iPad 边缘手势，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-ipad-sidebar-edge-gestures.md` | 已验证功能记录 | `rg` 命中相关 worklog | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-ipad-ui-quality-pass.md` | iPad UI 质量优化，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-ipad-ui-quality-pass.md` | 已验证功能记录 | `rg` 命中历史记录 | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-language-space-persistence-startup-restore.md` | 语言空间持久化任务，状态 Shelved | move-active | `docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md` | 未完成且仍是当前优先级 | `rg` 命中 superpowers plan | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-onboarding-language-display.md` | 首次启动语言选择优化，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-onboarding-language-display.md` | 已验证功能记录 | `rg` 命中 UI spec | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-platform-navigation-refinement.md` | 平台导航优化，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-platform-navigation-refinement.md` | 已验证功能记录 | `rg` 命中相关 worklog | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-privacy-status-icons.md` | 隐私状态图标优化，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-privacy-status-icons.md` | 隐私边界说明有长期追溯价值 | `rg` 命中历史记录 | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-product-shell-navigation.md` | 产品壳导航，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-product-shell-navigation.md` | 核心启动/导航历史记录 | `rg` 命中多个后续 worklog | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-settings-and-practice-state-closure.md` | 设置与练习状态闭环，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-settings-and-practice-state-closure.md` | 已验证功能记录 | `rg` 命中 superpowers plan | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-string-catalog-interface-language-settings.md` | String Catalog 与界面语言设置闭环，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-string-catalog-interface-language-settings.md` | 已验证功能记录且被 review 引用 | `rg` 命中 review 和 superpowers | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-three-platform-page-closure.md` | 三端页面闭环，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-three-platform-page-closure.md` | 已验证功能记录 | `rg` 命中 superpowers plan | 是 | 否 | done |
+| `docs/worklogs/2026-05-17-feature-ui-completeness-and-design-system-review.md` | 页面完整性与设计系统审查，状态 Verified | move-done | `docs/plans/done/2026-05-17-feature-ui-completeness-and-design-system-review.md` | UI 审查历史记录 | `rg` 命中 superpowers plan | 是 | 否 | done |
+| `docs/worklogs/2026-05-18-bug-interface-language-settings-detail-localization.md` | 界面语言设置详情本地化 bug，状态 Verified | move-done | `docs/plans/done/2026-05-18-bug-interface-language-settings-detail-localization.md` | 已验证 bug 修复记录 | `rg` 命中历史记录 | 是 | 否 | done |
+| `docs/worklogs/2026-05-18-chore-interface-language-expansion-plan.md` | 界面语言扩展方案与首批实现，状态 Implemented | move-done | `docs/plans/done/2026-05-18-chore-interface-language-expansion-plan.md` | 已实施计划记录 | `rg` 命中 superpowers spec | 是 | 否 | done |
+| `docs/worklogs/2026-05-18-chore-premium-ui-principles-review-plan.md` | 付费级 UI 设计原则与审查计划，状态 Implemented | move-done | `docs/plans/done/2026-05-18-chore-premium-ui-principles-review-plan.md` | 已实施计划记录 | `rg` 命中 superpowers spec | 是 | 否 | done |
+| `docs/worklogs/2026-05-18-feature-interface-premium-ui-convergence.md` | 付费级 UI 风格收敛，状态 Verified | move-done | `docs/plans/done/2026-05-18-feature-interface-premium-ui-convergence.md` | 已验证功能记录 | `rg` 命中后续 UI worklog | 是 | 否 | done |
+| `docs/worklogs/2026-05-18-feature-premium-ui-audit.md` | 三端付费级 UI 全面审查，状态 Implemented | move-done | `docs/plans/done/2026-05-18-feature-premium-ui-audit.md` | 大型审查和修复证据 | `rg` 命中后续 UI worklog | 是 | 否 | done |
+| `docs/worklogs/2026-05-18-feature-premium-ui-completion-sweep.md` | 付费级 UI 收敛扫尾，状态 Implemented | move-done | `docs/plans/done/2026-05-18-feature-premium-ui-completion-sweep.md` | 已实施功能记录 | `rg` 命中后续记录 | 是 | 否 | done |
+| `docs/worklogs/2026-05-18-feature-premium-ui-page-rollout.md` | 付费级 UI 页面推广，状态 Implemented | move-done | `docs/plans/done/2026-05-18-feature-premium-ui-page-rollout.md` | 已实施功能记录 | `rg` 命中后续记录 | 是 | 否 | done |
+| `docs/worklogs/README.md` | 旧 worklog 目录规范 | archive | `docs/archive/worklogs/README.md` | 新 `docs/plans/README.md` 将替代；旧规范保留为迁移证据 | `rg` 命中入口和 review 历史 | 否 | 否 | done |
+| `docs/worklogs/TEMPLATE.md` | 旧 worklog 模板 | archive | `docs/archive/worklogs/TEMPLATE.md` | 新任务方案模板将替代；旧模板保留为迁移证据 | `rg` 命中占位扫描排除规则 | 否 | 否 | done |
 
 ## 12. 实施方案
 
@@ -293,6 +293,7 @@ git status --short
 - 2026-05-18：阶段 5/6 将 `docs/superpowers/specs/` 中长期规格迁入 `docs/spec/`，将 `docs/superpowers/plans/` 中与历史任务重复的实施计划归档到 `docs/archive/superpowers/plans/`，将 `docs/worklogs/` 迁入 `docs/plans/active/`、`docs/plans/done/` 或 `docs/archive/worklogs/`。
 - 2026-05-18：提交阶段 5/6：`f359018 docs: migrate legacy worklogs and superpowers`。
 - 2026-05-18：阶段 7 创建 `docs/_meta/directory-responsibilities.md`，更新 `docs/README.md` 当前目录结构和已退出目录说明，并准备将本任务方案移入 `docs/plans/done/`。
+- 2026-05-18：完成后复查发现本方案迁移清单在移动后被路径替换影响，已恢复阶段 0 源路径、将迁移状态改为 `done`，并同步修正 `docs/plans/README.md`、当前 active 方案和长期 UI spec 中的旧 worklog 表述。用户已手动删除空目录 `docs/worklogs/`，复查时 `docs/superpowers/` 也已不存在。
 
 ## 17. 完成标准
 

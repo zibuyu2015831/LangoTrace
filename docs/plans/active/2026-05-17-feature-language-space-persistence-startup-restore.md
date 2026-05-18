@@ -1,4 +1,4 @@
-# 工作记录：语言空间持久化与启动恢复最小闭环
+# 任务方案：语言空间持久化与启动恢复最小闭环
 
 类型：feature
 
@@ -115,7 +115,7 @@
 - 语言空间闭环。
 - App 启动结构变化。
 
-因此执行时应新增 `docs/review/rounds/2026-05-17-language-space-startup-restore.md`，并更新 `docs/review/INDEX.md`。如果实现阶段发现只改纯模型而未触发启动结构变化，也应在 worklog 中说明审查范围，而不是省略记录。
+因此执行时应新增 `docs/review/rounds/2026-05-17-language-space-startup-restore.md`，并更新 `docs/review/INDEX.md`。如果实现阶段发现只改纯模型而未触发启动结构变化，也应在任务方案中说明审查范围，而不是省略记录。
 
 ## 6. 方案
 
@@ -163,7 +163,7 @@ swift test --package-path Packages/LangoTraceData
 
 ```bash
 find docs -maxdepth 3 -type f | sort
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
 git diff --check
 scripts/verify.sh
 git status --short
@@ -185,7 +185,7 @@ git status --short
 - `docs/spec/004-swiftui-architecture.md`：补充 AppSessionState 只能通过 repository 恢复和保存语言空间，Main 不得自行从 onboarding draft 生成 fallback 空间。
 - `docs/testing/README.md`：补充重启恢复手动验证。
 - `docs/review/INDEX.md` 和 `docs/review/rounds/2026-05-17-language-space-startup-restore.md`：记录专项审查。
-- 本 worklog：实现后记录实际改动、验证命令和剩余风险。
+- 本任务方案：实现后记录实际改动、验证命令和剩余风险。
 
 预计不需要更新：
 

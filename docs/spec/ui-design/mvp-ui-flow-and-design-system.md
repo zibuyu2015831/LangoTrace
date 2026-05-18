@@ -236,7 +236,7 @@ Token 落地顺序：
 
 ```bash
 find docs -maxdepth 3 -type f | sort
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
 git diff --check
 git status --short
 ```

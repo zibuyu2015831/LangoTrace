@@ -48,7 +48,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - 多端静态 HTML 原型。
 - 文档体系、初始模块边界和关键 ADR。
 - 第一批开发一致性规范。
-- 统一开发工作记录目录和模板。
+- 统一任务方案目录和模板。
 - SwiftUI Multiplatform App Shell。
 - XcodeGen `project.yml` 和生成的 `LangoTrace.xcodeproj`。
 - Core / UI / Data / AI / Speech / Sync 初始本地 Swift Package 边界。
