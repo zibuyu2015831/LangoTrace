@@ -9,9 +9,9 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/004-swiftui-architecture.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/004-swiftui-architecture.md`
 - `docs/testing/README.md`
 - `docs/superpowers/specs/mvp-ui-flow-and-design-system.md`
 - `docs/superpowers/plans/2026-05-17-settings-and-practice-state-closure.md`
@@ -98,9 +98,9 @@ git status --short
 本次影响：
 
 - `docs/README.md`：不改变当前阶段定位，暂不更新。
-- `docs/guidelines/002-navigation-and-routing.md`：已补充配置路由只读说明页边界。
-- `docs/guidelines/003-ui-design-system.md`：已补充能力状态和 mock 练习步骤规范。
-- `docs/guidelines/004-swiftui-architecture.md`：已补充 MVP 早期 mock 纯值状态边界。
+- `docs/spec/002-navigation-and-routing.md`：已补充配置路由只读说明页边界。
+- `docs/spec/003-ui-design-system.md`：已补充能力状态和 mock 练习步骤规范。
+- `docs/spec/004-swiftui-architecture.md`：已补充 MVP 早期 mock 纯值状态边界。
 - `docs/testing/README.md`：已补充第二阶段手动 UI 验证清单。
 - `docs/review/`：本次不接入真实数据库、AI Provider、Keychain、权限、同步或 StoreKit；若只推进 mock 状态闭环，按 worklog 记录影响检查，不触发专项审查。
 

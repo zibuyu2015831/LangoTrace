@@ -283,6 +283,8 @@ git status --short
 - 2026-05-18：阶段 0 开始，读取 `docs/README.md` 和 `docs-system-improvement-plan.md`。
 - 2026-05-18：采集当前 `git status --short`、`docs` 文件清单、旧路径引用和根入口软链接。
 - 2026-05-18：创建本任务方案并建立 `docs/superpowers/`、`docs/worklogs/` 迁移清单。
+- 2026-05-18：提交阶段 0：`50a30ee docs: prepare documentation restructure plan`。
+- 2026-05-18：阶段 1 执行 `docs/guidelines/` -> `docs/spec/` 目录重命名，批量更新旧路径引用，并同步更新 `docs/README.md`、`docs/documentation-system.md`、`docs/review/README.md`、`docs/review/INDEX.md` 等入口和治理文档。
 
 ## 17. 完成标准
 

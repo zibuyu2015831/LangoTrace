@@ -8,7 +8,7 @@
 
 关联文档：
 
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/superpowers/specs/2026-05-17-string-catalog-interface-language-settings-design.md`
 - `docs/superpowers/plans/2026-05-17-string-catalog-interface-language-settings.md`
 - `docs/testing/README.md`
@@ -123,8 +123,8 @@ rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob
 
 本阶段会影响：
 
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`：如果实现策略与草案有偏差，需要更新。
-- `docs/guidelines/003-ui-design-system.md`：如果形成新的长文案、截断或设置布局规则，需要更新。
+- `docs/spec/006-interface-localization-and-language-boundaries.md`：如果实现策略与草案有偏差，需要更新。
+- `docs/spec/003-ui-design-system.md`：如果形成新的长文案、截断或设置布局规则，需要更新。
 - `docs/testing/README.md`：需要补充三端双语言截图验证结果。
 - `docs/review/INDEX.md` 与 `docs/review/rounds/`：若更新验证脚本、启动结构或国际化边界，需要触发专项审查。
 

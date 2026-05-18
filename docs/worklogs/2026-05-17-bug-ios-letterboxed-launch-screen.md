@@ -9,8 +9,8 @@
 关联文档：
 
 - `docs/worklogs/2026-05-17-feature-product-shell-navigation.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/004-swiftui-architecture.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/004-swiftui-architecture.md`
 
 关联提交：
 

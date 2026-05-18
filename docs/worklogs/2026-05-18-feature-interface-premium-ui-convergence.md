@@ -9,8 +9,8 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md`
 - `docs/worklogs/2026-05-18-feature-premium-ui-audit.md`
 
@@ -108,7 +108,7 @@ rg -n '搜索记录、词句、相似生活片段|照片和语音当前为未接
 
 ## 9. 文档影响检查
 
-- `docs/guidelines/003-ui-design-system.md` 和 `docs/guidelines/006-interface-localization-and-language-boundaries.md` 已覆盖本轮原则，不需要修改 Accepted guideline。
+- `docs/spec/003-ui-design-system.md` 和 `docs/spec/006-interface-localization-and-language-boundaries.md` 已覆盖本轮原则，不需要修改 Accepted guideline。
 - 本轮不触发数据库、AI Provider、权限、同步、StoreKit、发布验证、ADR 冲突、XcodeGen、包边界或 App 启动结构专项审查。
 - 需要在本 worklog 中记录剩余边界，避免把样板收敛误写成全量本地化完成。
 

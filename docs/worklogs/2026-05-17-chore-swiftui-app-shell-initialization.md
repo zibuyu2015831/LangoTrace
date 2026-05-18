@@ -13,8 +13,8 @@
 - `docs/development/001-platform-development-sequence.md`
 - `docs/development-environment.md`
 - `docs/architecture/001-initial-module-boundaries.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/004-swiftui-architecture.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/004-swiftui-architecture.md`
 
 关联 ADR：
 

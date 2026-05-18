@@ -6,7 +6,7 @@
 
 关联文档：
 
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/worklogs/2026-05-17-feature-string-catalog-interface-language-settings.md`
 - `docs/superpowers/plans/2026-05-17-string-catalog-interface-language-settings.md`
 

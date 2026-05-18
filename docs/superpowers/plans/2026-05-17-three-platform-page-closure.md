@@ -33,9 +33,9 @@ This plan was re-reviewed from a systems architecture and Apple-platform interac
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSupportingViews.swift`: shared entry editor, entry detail, practice session, settings detail and unavailable capability views.
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/LearningContentComponents.swift`: shared timeline row, side item, request preview, capability row and practice controls.
 - `Packages/LangoTraceUI/Tests/LangoTraceUITests/PageClosureStateTests.swift`: route/filter helper tests added by this plan.
-- `docs/guidelines/002-navigation-and-routing.md`: page-closure routing rules.
-- `docs/guidelines/003-ui-design-system.md`: mock/unavailable and pre-visual-upgrade design rules.
-- `docs/guidelines/004-swiftui-architecture.md`: shared content versus platform shell boundaries.
+- `docs/spec/002-navigation-and-routing.md`: page-closure routing rules.
+- `docs/spec/003-ui-design-system.md`: mock/unavailable and pre-visual-upgrade design rules.
+- `docs/spec/004-swiftui-architecture.md`: shared content versus platform shell boundaries.
 - `docs/testing/README.md`: three-platform screenshot and manual smoke checklist.
 
 ## Task 1: Shared Page Content Inventory and Testable Helpers
@@ -506,9 +506,9 @@ Acceptance checks:
 **Files:**
 
 - Modify: `docs/worklogs/2026-05-17-feature-three-platform-page-closure.md`
-- Modify: `docs/guidelines/002-navigation-and-routing.md`
-- Modify: `docs/guidelines/003-ui-design-system.md`
-- Modify: `docs/guidelines/004-swiftui-architecture.md`
+- Modify: `docs/spec/002-navigation-and-routing.md`
+- Modify: `docs/spec/003-ui-design-system.md`
+- Modify: `docs/spec/004-swiftui-architecture.md`
 - Modify: `docs/testing/README.md`
 
 - [ ] Update navigation guidance.

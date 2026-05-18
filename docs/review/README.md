@@ -11,7 +11,7 @@
 - 准确性：当前实现事实必须与代码、工程配置、脚本和测试一致。
 - 完整性：关键用户路径、数据路径、权限路径、错误路径和验证方式不能缺席。
 - 可执行性：新会话读取入口和相关文档后，应能知道读什么、改什么、验证什么。
-- 决策一致性：产品主参考、技术路线、ADR、guidelines 和实际实现不能互相冲突。
+- 决策一致性：产品主参考、技术路线、ADR、spec 和实际实现不能互相冲突。
 
 ## 2. 文档分级
 
@@ -21,7 +21,7 @@
 | --- | --- | --- |
 | 当前事实源 | `docs/README.md`、`docs/development-environment.md`、`docs/project-initialization.md`、`docs/architecture/` | 必须与当前代码、脚本和工程结构匹配 |
 | 决策源 | `docs/decisions/`、`docs/product-main-reference.md`、`docs/technical-framework-roadmap.md` | 必须与核心产品、架构、隐私、付费和同步决策一致 |
-| 执行规则源 | `docs/guidelines/`、`docs/testing/`、`docs/release/` | 必须能指导后续实现和验证，允许包含尚未完全实现的规则 |
+| 执行规则源 | `docs/spec/`、`docs/testing/`、`docs/release/` | 必须能指导后续实现和验证，允许包含尚未完全实现的规则 |
 | 过程记录 | `docs/worklogs/`、`docs/research/`、`docs/superpowers/` | 保留历史过程，不要求持续改写为最新事实 |
 | 审查记录 | `docs/review/rounds/` | 记录某次审查的代码快照、范围、结论和剩余风险 |
 
@@ -35,7 +35,7 @@
 | --- | --- | --- |
 | 当前实现事实 | 当前代码、`project.yml`、脚本、测试 | 文档必须向实际实现对齐 |
 | 产品核心决策 | 产品主参考文档、ADR、用户明确确认 | 代码若冲突，不能直接改文档迁就代码，应触发复审 |
-| 架构和隐私决策 | ADR、技术路线、guidelines | 代码若偏离，需要记录为架构债、bug 或 ADR 复审 |
+| 架构和隐私决策 | ADR、技术路线、spec | 代码若偏离，需要记录为架构债、bug 或 ADR 复审 |
 | 未来计划 | roadmap、worklog、规格或计划文档 | 必须明确写成计划、候选、后续，不得伪装成已实现 |
 | 历史过程 | worklog、research、review round | 保留当时上下文，不强制改写为最新事实 |
 | 无法从代码判断的设计意图 | 用户澄清或新增决策记录 | 先记录问题，不凭空补入长期文档 |
@@ -54,7 +54,7 @@
 要求：
 
 - 写在对应 worklog 的“文档影响检查”章节中。
-- 明确本次变更是否影响 `docs/README.md`、主参考文档、架构文档、guidelines、testing 或 release 文档。
+- 明确本次变更是否影响 `docs/README.md`、主参考文档、架构文档、spec、testing 或 release 文档。
 - 若不更新文档，应写清理由。
 - 不创建 `docs/review/rounds/`，除非命中专项审查触发条件。
 
@@ -94,7 +94,7 @@ docs/review/rounds/YYYY-MM-DD-<topic>/README.md
 
 要求：
 
-- 检查入口文档、主参考文档、架构文档、guidelines、testing、release 是否仍然匹配实际实现。
+- 检查入口文档、主参考文档、架构文档、spec、testing、release 是否仍然匹配实际实现。
 - 抽样追踪关键能力从代码到文档的闭环。
 - 记录剩余风险，不追求一次性覆盖所有细节。
 

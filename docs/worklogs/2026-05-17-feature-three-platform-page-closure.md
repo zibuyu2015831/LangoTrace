@@ -11,9 +11,9 @@
 - `docs/README.md`
 - `docs/product-main-reference.md`
 - `docs/technical-framework-roadmap.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/004-swiftui-architecture.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/004-swiftui-architecture.md`
 - `docs/testing/README.md`
 - `docs/superpowers/plans/2026-05-17-three-platform-page-closure.md`
 
@@ -220,9 +220,9 @@ git status --short
 
 预计需要更新：
 
-- `docs/guidelines/002-navigation-and-routing.md`：补充三端页面闭环阶段的页面承载规则。
-- `docs/guidelines/003-ui-design-system.md`：补充页面闭环先于视觉优化的阶段边界。
-- `docs/guidelines/004-swiftui-architecture.md`：补充共享页面内容和平台外壳分离规则。
+- `docs/spec/002-navigation-and-routing.md`：补充三端页面闭环阶段的页面承载规则。
+- `docs/spec/003-ui-design-system.md`：补充页面闭环先于视觉优化的阶段边界。
+- `docs/spec/004-swiftui-architecture.md`：补充共享页面内容和平台外壳分离规则。
 - `docs/testing/README.md`：补充三端页面闭环截图验证清单。
 - 本 worklog：实现后记录实际改动、验证命令和剩余风险。
 

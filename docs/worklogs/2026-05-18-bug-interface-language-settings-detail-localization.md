@@ -9,7 +9,7 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/testing/README.md`
 - `docs/superpowers/plans/2026-05-17-string-catalog-interface-language-settings.md`
 

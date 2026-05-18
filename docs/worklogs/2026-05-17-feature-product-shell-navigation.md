@@ -13,9 +13,9 @@
 - `docs/project-initialization.md`
 - `docs/development/001-platform-development-sequence.md`
 - `docs/architecture/001-initial-module-boundaries.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/004-swiftui-architecture.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/004-swiftui-architecture.md`
 - `prototypes/langotrace-multi-device-prototype/README.md`
 
 关联 ADR：

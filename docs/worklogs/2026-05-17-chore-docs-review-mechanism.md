@@ -92,7 +92,7 @@ LangoTrace 的文档不是普通说明文件，而是后续 AI 辅助开发的�
 | --- | --- | --- |
 | 当前事实源 | `docs/README.md`、`docs/development-environment.md`、`docs/project-initialization.md`、`docs/architecture/` | 必须与当前代码、脚本和工程结构匹配 |
 | 决策源 | `docs/decisions/`、`docs/product-main-reference.md`、`docs/technical-framework-roadmap.md` | 必须与核心产品、架构、隐私、付费和同步决策一致 |
-| 执行规则源 | `docs/guidelines/`、`docs/testing/`、`docs/release/` | 必须能指导后续实现和验证，允许包含尚未完全实现的规则 |
+| 执行规则源 | `docs/spec/`、`docs/testing/`、`docs/release/` | 必须能指导后续实现和验证，允许包含尚未完全实现的规则 |
 | 过程记录 | `docs/worklogs/`、`docs/research/`、`docs/superpowers/` | 保留历史过程，不要求持续改写为最新事实 |
 | 审查记录 | `docs/review/rounds/` | 记录某次审查的代码快照、范围、结论和剩余风险 |
 

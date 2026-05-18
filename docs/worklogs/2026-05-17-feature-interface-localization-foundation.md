@@ -8,9 +8,9 @@
 
 关联文档：
 
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/004-swiftui-architecture.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/004-swiftui-architecture.md`
 - `docs/testing/README.md`
 - `project.yml`
 
@@ -100,7 +100,7 @@ git status --short
 ## 9. 文档影响检查
 
 - 影响 `docs/testing/README.md`：需要记录国际化基础测试覆盖。
-- 影响 `docs/guidelines/006-interface-localization-and-language-boundaries.md`：若实现与草案边界不同，需同步修订。
+- 影响 `docs/spec/006-interface-localization-and-language-boundaries.md`：若实现与草案边界不同，需同步修订。
 - 触发专项审查：本次更新 `scripts/verify.sh`，已创建 `docs/review/rounds/2026-05-17-interface-localization-foundation/README.md`。
 
 ## 10. 用户确认记录

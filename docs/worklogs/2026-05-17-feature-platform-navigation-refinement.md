@@ -10,8 +10,8 @@
 
 - `docs/README.md`
 - `docs/product-main-reference.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
 - `docs/worklogs/2026-05-17-feature-collapsible-side-panels.md`
 
 关联 ADR：
@@ -72,7 +72,7 @@
   - 为一级 Tab 根页面增加左右滑动切换 Tab 的增强手势。
   - 让底部 Tab 始终反映当前选中页面。
 - 文档：
-  - 如果实现后长期规则变化，需要同步 `docs/guidelines/002-navigation-and-routing.md` 和 `docs/guidelines/003-ui-design-system.md`。
+  - 如果实现后长期规则变化，需要同步 `docs/spec/002-navigation-and-routing.md` 和 `docs/spec/003-ui-design-system.md`。
   - 更新本 worklog 的实施记录和验证结果。
 
 ## 4. 不做什么

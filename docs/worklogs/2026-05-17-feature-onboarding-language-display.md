@@ -9,9 +9,9 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/004-swiftui-architecture.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/004-swiftui-architecture.md`
 
 关联 ADR：
 
@@ -72,7 +72,7 @@
   - 确认 Mac、iPad、iPhone 共享修改后都能正常显示。
 - 文档：
   - 更新本 worklog 的实施记录和验证结果。
-  - 如实现过程中确认语言模型会影响长期规范，则同步 `docs/guidelines/003-ui-design-system.md` 的国际化与语言显示规则。
+  - 如实现过程中确认语言模型会影响长期规范，则同步 `docs/spec/003-ui-design-system.md` 的国际化与语言显示规则。
 
 ## 4. 不做什么
 
@@ -402,7 +402,7 @@ UI 调整：
 - `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/LearningLanguageTests.swift`：新增语言模型测试。
 - `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/LaunchFlowTests.swift`：更新 onboarding draft 相关测试。
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/OnboardingView.swift`：去冗余、改 Picker 数据源和显示逻辑。
-- `docs/guidelines/003-ui-design-system.md`：如实现后确认语言显示规则进入长期规范，则补充“语言名称显示分层”。
+- `docs/spec/003-ui-design-system.md`：如实现后确认语言显示规则进入长期规范，则补充“语言名称显示分层”。
 
 ### 6.5 替代方案
 
@@ -521,7 +521,7 @@ xcrun simctl io booted screenshot /private/tmp/langotrace-onboarding-check.png
   - 折叠状态显示短标题，例如 `English`。
   - 展开菜单显示完整双语标题，例如 `English（英语）`、`日本語（日语）`。
 - 当母语变化导致目标语言相同时，系统自动调整到第一个可用目标语言，避免创建同语种语言空间。
-- 同步更新 `docs/guidelines/003-ui-design-system.md`，把语言显示分层、稳定 code、菜单短长标题和同语种过滤写入 UI 规范。
+- 同步更新 `docs/spec/003-ui-design-system.md`，把语言显示分层、稳定 code、菜单短长标题和同语种过滤写入 UI 规范。
 
 实施中发现并修正：
 

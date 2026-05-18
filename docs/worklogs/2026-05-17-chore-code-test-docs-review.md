@@ -10,8 +10,8 @@
 
 - `docs/README.md`
 - `docs/architecture/001-initial-module-boundaries.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/004-swiftui-architecture.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/004-swiftui-architecture.md`
 - `docs/testing/README.md`
 - `docs/technical-framework-roadmap.md`
 
@@ -155,7 +155,7 @@ PlatformMainView(languageSpace: languageSpace ?? onboardingDraft.makeLanguageSpa
 
 与文档的冲突：
 
-- `docs/guidelines/002-navigation-and-routing.md` 要求主流程必须携带或恢复语言空间上下文。
+- `docs/spec/002-navigation-and-routing.md` 要求主流程必须携带或恢复语言空间上下文。
 - 任何会创建主数据的路由，不能在缺少语言空间上下文时执行写入。
 
 当前风险：

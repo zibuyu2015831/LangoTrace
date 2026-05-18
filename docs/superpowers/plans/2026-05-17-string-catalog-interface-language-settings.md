@@ -566,8 +566,8 @@ Expected: PASS.
 
 - Modify: `docs/testing/README.md`
 - Create or update: `docs/review/rounds/2026-05-17-string-catalog-interface-language-settings/README.md`
-- Modify if implementation differs: `docs/guidelines/006-interface-localization-and-language-boundaries.md`
-- Modify if layout rules change: `docs/guidelines/003-ui-design-system.md`
+- Modify if implementation differs: `docs/spec/006-interface-localization-and-language-boundaries.md`
+- Modify if layout rules change: `docs/spec/003-ui-design-system.md`
 - Modify: `docs/worklogs/2026-05-17-feature-string-catalog-interface-language-settings.md`
 
 - [x] **Step 1: Update testing docs**

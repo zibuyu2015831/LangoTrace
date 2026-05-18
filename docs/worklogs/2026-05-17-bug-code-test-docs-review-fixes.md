@@ -10,8 +10,8 @@
 
 - `docs/README.md`
 - `docs/worklogs/2026-05-17-chore-code-test-docs-review.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/004-swiftui-architecture.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/004-swiftui-architecture.md`
 - `docs/testing/README.md`
 - `docs/worklogs/README.md`
 

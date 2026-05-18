@@ -9,10 +9,10 @@
 - `docs/README.md`
 - `docs/product-main-reference.md`
 - `docs/technical-framework-roadmap.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/004-swiftui-architecture.md`
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/004-swiftui-architecture.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/superpowers/specs/mvp-ui-flow-and-design-system.md`
 - `docs/worklogs/2026-05-18-chore-premium-ui-principles-review-plan.md`
 
@@ -255,9 +255,9 @@ LangoTrace 涉及 AI、隐私、同步、语言空间和学习状态，不能把
 
 - `AGENTS.md`
 - `docs/product-main-reference.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - 本规格文档
 
 根据代码范围继续读取：
@@ -331,7 +331,7 @@ LangoTrace 涉及 AI、隐私、同步、语言空间和学习状态，不能把
 - 一份 `docs/worklogs/YYYY-MM-DD-feature-premium-ui-audit.md` 或同主题 worklog。
 - 一份问题清单，按平台和严重度排序。
 - 一份优化方案，明确样板页面、设计系统改动、实施批次和验证方式。
-- 如发现 Accepted guideline 已经不足，应提出对 `docs/guidelines/003-ui-design-system.md` 的定向修改建议。
+- 如发现 Accepted guideline 已经不足，应提出对 `docs/spec/003-ui-design-system.md` 的定向修改建议。
 - 一份样板页面候选清单，说明为什么选它、覆盖哪些产品对象、能沉淀哪些 token 和组件。
 - 一份风险清单，列出可能误导真实能力、破坏隐私边界、过度重写或增加架构债务的方案。
 
@@ -457,11 +457,11 @@ LangoTrace 涉及 AI、隐私、同步、语言空间和学习状态，不能把
 
 ```text
 请先不要写代码。请阅读 AGENTS.md、docs/product-main-reference.md、
-docs/guidelines/002-navigation-and-routing.md、
-docs/guidelines/003-ui-design-system.md、
-docs/guidelines/004-swiftui-architecture.md、
-docs/guidelines/005-ai-provider-prompt-and-privacy.md、
-docs/guidelines/006-interface-localization-and-language-boundaries.md、
+docs/spec/002-navigation-and-routing.md、
+docs/spec/003-ui-design-system.md、
+docs/spec/004-swiftui-architecture.md、
+docs/spec/005-ai-provider-prompt-and-privacy.md、
+docs/spec/006-interface-localization-and-language-boundaries.md、
 docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md，
 再检查 Packages/LangoTraceUI/Sources/LangoTraceUI/ 和 LangoTraceApp/。
 

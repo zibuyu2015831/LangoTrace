@@ -9,7 +9,7 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/superpowers/specs/2026-05-18-interface-language-expansion-design.md`
 
 关联 ADR：
@@ -35,7 +35,7 @@
 ## 3. 范围
 
 - 新增界面语言扩展规格草案。
-- 更新 `docs/guidelines/006-interface-localization-and-language-boundaries.md` 的第一批语言范围和设置入口建议。
+- 更新 `docs/spec/006-interface-localization-and-language-boundaries.md` 的第一批语言范围和设置入口建议。
 - 扩展 Core 模型、String Catalog、App target 本地化声明和自动化测试。
 - 更新测试文档中的主流界面语言验证矩阵。
 
@@ -108,7 +108,7 @@ xcodegen generate
 
 ## 9. 文档影响检查
 
-- 影响 `docs/guidelines/006-interface-localization-and-language-boundaries.md`：需要把第一批语言范围从英文和简体中文扩展为主流语言候选清单。
+- 影响 `docs/spec/006-interface-localization-and-language-boundaries.md`：需要把第一批语言范围从英文和简体中文扩展为主流语言候选清单。
 - 影响 `docs/testing/README.md`：本次补充主流界面语言扩展验证清单；截图 QA 仍按常规回归、字体断行 smoke 和发布前完整矩阵分层执行。
 - 影响 release 文档：发布阶段需要同步 App Store 元数据、截图、权限文案和隐私文案。
 - 本次不改变核心 ADR；仍遵守界面语言、用户母语和目标学习语言三轴分离。
@@ -127,7 +127,7 @@ xcodegen generate
 ## 11. 实施记录
 
 - 创建 `docs/superpowers/specs/2026-05-18-interface-language-expansion-design.md`。
-- 更新 `docs/guidelines/006-interface-localization-and-language-boundaries.md` 中第一批语言范围和设置入口建议。
+- 更新 `docs/spec/006-interface-localization-and-language-boundaries.md` 中第一批语言范围和设置入口建议。
 - 架构与三端交互复查后，补充 String Catalog 放置边界、App 内显式语言设置与系统 per-app language 的关系、`System` 模式的 bundle localization 解析原则、iPhone / iPadOS / macOS 设置入口交互边界和 App target 本地化声明要求。
 - 对照 Apple Developer Localization、package localization 和 App Store localization 文档，确认 App 内 SwiftUI chrome、本地化 bundle、系统 per-app language 和 App Store metadata 是不同层级。
 - 采用 TDD 扩展 `InterfaceLanguagePreference`：新增 `es / ja / fr / de / ko / ru` 存储值、集中支持语言清单、系统语言 BCP 47 前缀解析和 `zh-Hant` 英文 fallback 边界。

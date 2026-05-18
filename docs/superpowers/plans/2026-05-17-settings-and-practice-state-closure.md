@@ -67,9 +67,9 @@
 
 - Modify: `docs/worklogs/2026-05-17-feature-settings-and-practice-state-closure.md`
 - Modify: `docs/testing/README.md`
-- Modify if needed: `docs/guidelines/002-navigation-and-routing.md`
-- Modify if needed: `docs/guidelines/003-ui-design-system.md`
-- Modify if needed: `docs/guidelines/004-swiftui-architecture.md`
+- Modify if needed: `docs/spec/002-navigation-and-routing.md`
+- Modify if needed: `docs/spec/003-ui-design-system.md`
+- Modify if needed: `docs/spec/004-swiftui-architecture.md`
 
 - [x] Update docs with the implemented routes, UI states and manual verification checklist.
 - [x] Run placeholder scan, whitespace check, focused tests and `scripts/verify.sh`.

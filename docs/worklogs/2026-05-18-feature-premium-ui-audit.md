@@ -10,11 +10,11 @@
 
 - `docs/README.md`
 - `docs/product-main-reference.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/004-swiftui-architecture.md`
-- `docs/guidelines/005-ai-provider-prompt-and-privacy.md`
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/004-swiftui-architecture.md`
+- `docs/spec/005-ai-provider-prompt-and-privacy.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md`
 - `docs/worklogs/2026-05-18-chore-premium-ui-principles-review-plan.md`
 
@@ -46,11 +46,11 @@
 
 - `AGENTS.md`，确认重要功能、UI 审查和架构判断需要进入 `docs/worklogs/`。
 - `docs/product-main-reference.md`，确认核心定位、学习闭环、语言空间、买断制和本地优先方向。
-- `docs/guidelines/002-navigation-and-routing.md`，确认 iPhone / iPad / macOS 导航、语言空间上下文、设置入口和 mock/unavailable 路由边界。
-- `docs/guidelines/003-ui-design-system.md`，确认设计气质、状态表达、组件方向、触控尺寸和本地化约束。
-- `docs/guidelines/004-swiftui-architecture.md`，确认平台外壳、共享内容视图、App-level / Feature-level / transient UI state 和 View 副作用边界。
-- `docs/guidelines/005-ai-provider-prompt-and-privacy.md`，确认 AI Provider、请求预览、隐私发送边界和日志边界。
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`，确认界面语言、母语、目标学习语言、Prompt 输出语言和内容语言分层。
+- `docs/spec/002-navigation-and-routing.md`，确认 iPhone / iPad / macOS 导航、语言空间上下文、设置入口和 mock/unavailable 路由边界。
+- `docs/spec/003-ui-design-system.md`，确认设计气质、状态表达、组件方向、触控尺寸和本地化约束。
+- `docs/spec/004-swiftui-architecture.md`，确认平台外壳、共享内容视图、App-level / Feature-level / transient UI state 和 View 副作用边界。
+- `docs/spec/005-ai-provider-prompt-and-privacy.md`，确认 AI Provider、请求预览、隐私发送边界和日志边界。
+- `docs/spec/006-interface-localization-and-language-boundaries.md`，确认界面语言、母语、目标学习语言、Prompt 输出语言和内容语言分层。
 - `docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md`，确认本轮审查维度、问题记录格式、严重度和分阶段优化结构。
 
 ### 2.2 代码目录
@@ -107,7 +107,7 @@
 - 代码证据：`PhoneMainView` 在整个 `TabView` 上使用 `.simultaneousGesture(tabSwipeGesture)`，`tabSwipeGesture` 为本地坐标 `DragGesture(minimumDistance: 24)`，结束后直接根据水平位移切换 Tab。
 - 涉及路径：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainView.swift`，`PhoneMainView.body`，`tabSwipeGesture`
 - 问题描述：iPhone 顶层已经有标准 Tab Bar，额外在整个 Tab 内容区域挂水平拖拽会与 `NavigationStack` 系统边缘返回、ScrollView 横向误触、TextEditor 选择和未来逐句卡片横向动作产生竞争。该手势没有限定起点、没有显式避开系统返回边缘，也没有作为可发现交互呈现。
-- 违反依据：`docs/guidelines/002-navigation-and-routing.md` 规定 iPhone 保持 Tab 和 `NavigationStack` 层级，不新增会干扰系统返回手势的全屏横向手势；付费级 UI 规格要求手势只是加速路径，不是唯一入口，并且不能阻断平台标准手势。
+- 违反依据：`docs/spec/002-navigation-and-routing.md` 规定 iPhone 保持 Tab 和 `NavigationStack` 层级，不新增会干扰系统返回手势的全屏横向手势；付费级 UI 规格要求手势只是加速路径，不是唯一入口，并且不能阻断平台标准手势。
 - 决策依据：这不是审美问题，而是平台交互风险。用户在 iPhone 上期待底部 Tab 和系统返回稳定；全屏横滑切 Tab 会让深层详情和编辑路径的返回心智变得不确定，尤其当后续加入 OCR 校对、句子滑动、录音控制或卡片操作时会放大冲突。
 - 优化方向：第一批样板实现中应删除全局横滑 Tab，或仅在明确的顶部 segmented / pager 区域使用可见、可测试的切换控件。Tab 切换保留系统 Tab Bar；若需要快捷切换，考虑系统键盘快捷键或明确按钮，不在全屏内容上抢手势。
 - 复查方法：代码检查确认 `PhoneMainView` 不再对整个 `TabView` 挂全屏水平 `DragGesture`；在 iPhone 模拟器验证 Tab、详情返回、sheet dismiss、TextEditor 输入和 ScrollView 滚动互不干扰；必要时增加 `PhoneRootTab` 纯函数测试覆盖手势 helper 删除或收敛后的逻辑。
@@ -121,7 +121,7 @@
 - 代码证据：`TodayView` 把 `HeroActionCard` 作为首页主区；`HeroActionCard` 内部并列 `写一句`、`拍照`、`听一句` 三个同等视觉权重 ActionChip，其中拍照和听一句当前进入 unavailable。
 - 涉及路径：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSections.swift`，`TodayView`；`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSupportingViews.swift`，`HeroActionCard`
 - 问题描述：产品文档明确首页主动作应围绕“今天记录一点生活”。当前三枚同权重入口让用户难以判断真正可用且最重要的动作，且其中两项是未接入能力，会让首页首屏过早暴露能力缺口。
-- 违反依据：`docs/product-main-reference.md` 第 7 节强调首页主动作应尽量围绕“今天记录一点生活”；`docs/guidelines/003-ui-design-system.md` 要求首页进入可用体验，未接入能力不能抢占主流程。
+- 违反依据：`docs/product-main-reference.md` 第 7 节强调首页主动作应尽量围绕“今天记录一点生活”；`docs/spec/003-ui-design-system.md` 要求首页进入可用体验，未接入能力不能抢占主流程。
 - 决策依据：用户购买感来自主路径清楚和反馈可信，不是入口数量。三入口并列会把未接入的照片和听力能力放到与文本记录同等地位，降低第一屏完成度。
 - 优化方向：样板页应把 `写一句` 做成唯一主 CTA；`拍照写作`、`听一句` 改为次级能力入口或渐进说明，使用 `CapabilityStatusBadge` 标明 Local Mock / 未接入，不与主按钮同权重。首页首屏优先展示当前语言空间、今日主动作、最近记录和下一次可执行练习。
 - 复查方法：iPhone 小屏截图确认首屏只有一个主 CTA；VoiceOver 顺序先读当前空间和主动作，再读次级能力；手动点击未接入能力确认进入统一 unavailable sheet 且不会触发权限。
@@ -135,7 +135,7 @@
 - 代码证据：`EntryDetailView` 使用 `HStack` 并排显示 `TextPanel(title: "母语记录")` 和 `TextPanel(title: "目标语言")`。
 - 涉及路径：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSupportingViews.swift`，`EntryDetailView`
 - 问题描述：双语对照是核心体验，但 iPhone 单列页面在较大 Dynamic Type、长句、德语/俄语等长本地化或小屏宽度下，并排文本会造成行长过短、阅读断裂和垂直高度膨胀。iPhone 上更适合上下分组、逐句对照或可切换视图。
-- 违反依据：`docs/guidelines/003-ui-design-system.md` 要求 iPhone 单列、一次聚焦一个任务；`docs/guidelines/006-interface-localization-and-language-boundaries.md` 要求不能按中文短标签和默认字号设计。
+- 违反依据：`docs/spec/003-ui-design-system.md` 要求 iPhone 单列、一次聚焦一个任务；`docs/spec/006-interface-localization-and-language-boundaries.md` 要求不能按中文短标签和默认字号设计。
 - 决策依据：这影响核心学习闭环的可读性，不是单纯布局偏好。用户需要读懂母语来源和目标语言表达，过窄双列会削弱学习价值。
 - 优化方向：iPhone 记录详情样板应使用垂直结构：原始记录摘要、目标语言 rendering、逐句 `SentencePairView`。如果需要左右对照，可在 iPad / macOS 或横向宽度才使用双列；iPhone 通过逐句卡片建立来源关系。
 - 复查方法：iPhone SE 宽度、默认字号和较大 Dynamic Type 截图；英文和简体中文界面切换；检查母语长段、目标语言长句不溢出、不被按钮遮挡。
@@ -165,7 +165,7 @@
 - 代码证据：`PadMainView` 使用左 `sidebar`、中 `writingDesk`、右 `learningPanel`；中间 `workspaceOverview` 内包含标题、双列 TextPanel、`AudioPanel` 和逐句列表，最大宽度为 820。
 - 涉及路径：`Packages/LangoTraceUI/Sources/LangoTraceUI/PadMainView.swift`，`PadMainView.body`；`Packages/LangoTraceUI/Sources/LangoTraceUI/PadMainSections.swift`，`workspaceOverview`
 - 问题描述：iPad 的目标是沉浸式学习工作台。当前左右面板、顶部搜索、新建按钮和中间多个同类面板的视觉语言接近，主记录和目标语言文本没有足够的层级差异，用户第一眼难以知道当前学习焦点是哪一条记录、哪一句目标语言、下一步练什么。
-- 违反依据：`docs/guidelines/003-ui-design-system.md` 要求 iPad 中间内容为主，右侧学习面板承载解释、词句、练习入口；付费级规格要求三栏不是为了复杂，而是减少上下文切换。
+- 违反依据：`docs/spec/003-ui-design-system.md` 要求 iPad 中间内容为主，右侧学习面板承载解释、词句、练习入口；付费级规格要求三栏不是为了复杂，而是减少上下文切换。
 - 决策依据：这影响核心体验，不是美观偏好。iPad 的付费价值应来自同时看到生活记录、目标表达、逐句学习和练习入口；如果所有区块都是同等面板，工作台像原型而非产品。
 - 优化方向：iPad 样板应把中间主区改成明确的 Entry 阅读和学习画布：顶部为记录标题和来源 metadata，中部为母语/目标语言对照，逐句区域有当前句焦点，右侧学习面板跟随当前句或当前任务。左右面板使用更低对比度，主区使用更稳定行长和阅读层级。
 - 复查方法：iPad Pro 默认宽度截图、左右面板分别收起截图、Stage Manager 中等宽度截图；检查第一眼主焦点、当前记录、当前句、练习入口是否可辨。
@@ -309,7 +309,7 @@
 - 代码证据：`LearningEntry.sourceTitle` 返回中文展示名；`createEntry` 写入“新的生活记录”“今天”“练习 1 组”；`settingsCapabilities` 写入中文 summary/detail/nextRequirement；`makeMockRendering` 写入中文 promptLabel 和 note。
 - 涉及路径：`Packages/LangoTraceData/Sources/LangoTraceData/LearningContentModels.swift`；`Packages/LangoTraceData/Sources/LangoTraceData/LearningContent.swift`
 - 问题描述：Data package 可以提供 mock 内容和稳定业务状态，但不应成为 App chrome 的中文文案来源。当前 UI 中部分设置能力已通过 String Catalog 本地化，但 Data 层仍输出大量用户可见中文。后续扩展英文和其他界面语言时，会出现 UI 语言、用户内容语言和 mock 数据说明混杂。
-- 违反依据：`docs/guidelines/006-interface-localization-and-language-boundaries.md` 强制要求 Data / Core 层可以提供稳定 kind、状态、业务语义和 mock 内容，但 UI chrome 必须由 UI 层 String Catalog 或等效本地化资源渲染。
+- 违反依据：`docs/spec/006-interface-localization-and-language-boundaries.md` 强制要求 Data / Core 层可以提供稳定 kind、状态、业务语义和 mock 内容，但 UI chrome 必须由 UI 层 String Catalog 或等效本地化资源渲染。
 - 决策依据：这不是翻译润色，而是架构边界问题。Data 层文案会让设置、状态、错误和 unavailable 难以本地化，也会混淆用户生成内容与界面 chrome。
 - 优化方向：把 `sourceTitle` 改为稳定 `EntrySource` kind，由 UI 层映射本地化标题；`SettingsCapability` 保留 kind/status/nextRequirementKey 或 stable semantic payload；mock 用户内容可以保持特定语言，但 UI 状态说明迁到 `Localizable.xcstrings`。
 - 复查方法：代码扫描 `Packages/LangoTraceData` 中用户可见中文；英文界面运行截图检查 chrome 不混入中文；Core/Data 单元测试验证 stable kind 而非展示字符串。
@@ -546,8 +546,8 @@
 
 ## 13. 文档影响检查
 
-- `docs/guidelines/003-ui-design-system.md`：本轮发现 token、状态和组件边界需要补强，但建议在第一阶段实现计划中定向更新，不在本轮直接修改 Accepted guideline。
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`：当前规范足够，问题来自代码未完全执行规范；不需要本轮修改。
+- `docs/spec/003-ui-design-system.md`：本轮发现 token、状态和组件边界需要补强，但建议在第一阶段实现计划中定向更新，不在本轮直接修改 Accepted guideline。
+- `docs/spec/006-interface-localization-and-language-boundaries.md`：当前规范足够，问题来自代码未完全执行规范；不需要本轮修改。
 - `docs/review/`：本轮是专项 UI 审查方案，不触发数据库、AI Provider、权限、同步、StoreKit、XcodeGen、包边界或 App 启动结构专项审查。
 - `docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md`：本轮审查结果符合该规格，不需要修改规格。
 

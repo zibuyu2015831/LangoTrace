@@ -9,10 +9,10 @@
 - `docs/worklogs/2026-05-17-feature-ui-completeness-and-design-system-review.md`
 - `docs/product-main-reference.md`
 - `docs/technical-framework-roadmap.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/004-swiftui-architecture.md`
-- `docs/guidelines/005-ai-provider-prompt-and-privacy.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/004-swiftui-architecture.md`
+- `docs/spec/005-ai-provider-prompt-and-privacy.md`
 
 ## 1. 目标
 
@@ -267,11 +267,11 @@ scripts/verify.sh
 后续实现如果产生新结论，按以下方式写回：
 
 - 页面地图或产品闭环变化：更新 `docs/product-main-reference.md`。
-- 路由、Sheet、Modal、Inspector 边界变化：更新 `docs/guidelines/002-navigation-and-routing.md`。
-- Token、组件、状态或视觉风格变化：更新 `docs/guidelines/003-ui-design-system.md`。
+- 路由、Sheet、Modal、Inspector 边界变化：更新 `docs/spec/002-navigation-and-routing.md`。
+- Token、组件、状态或视觉风格变化：更新 `docs/spec/003-ui-design-system.md`。
 - 模拟器截图或手动 UI 验证方式变化：更新 `docs/testing/README.md` 或新增 `docs/testing/` 下的专项清单。
-- SwiftUI 状态、Repository、Provider 或模块边界变化：更新 `docs/guidelines/004-swiftui-architecture.md` 或 `docs/architecture/`。
-- AI 请求、Prompt、隐私或 Provider 边界变化：更新 `docs/guidelines/005-ai-provider-prompt-and-privacy.md`。
+- SwiftUI 状态、Repository、Provider 或模块边界变化：更新 `docs/spec/004-swiftui-architecture.md` 或 `docs/architecture/`。
+- AI 请求、Prompt、隐私或 Provider 边界变化：更新 `docs/spec/005-ai-provider-prompt-and-privacy.md`。
 - 具体实施任务：创建 `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`。
 
 ## 10. 通过标准

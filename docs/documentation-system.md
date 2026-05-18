@@ -98,27 +98,28 @@ docs/development/002-first-launch-onboarding-plan.md
 docs/development/003-language-space-mvp-plan.md
 ```
 
-### 2.5 开发规范
+### 2.5 规范文档
 
-位置：`docs/guidelines/`
+位置：`docs/spec/`
 
 用途：
 
 - 记录后续开发必须遵守的导航、UI、SwiftUI 架构、AI Provider、隐私和测试等一致性规范。
 - 帮助后续 AI 会话保持实现风格一致，避免每个功能重新定义局部架构。
 - 标注哪些规则是强制的，哪些是默认推荐，哪些可以在开发过程中演进。
+- 后续模块可以在本目录下形成 `spec.md` 和 `impl.md`，让模块规范与当前实现地图保持同目录。
 
 第一批规范：
 
 ```text
-docs/guidelines/001-guideline-governance.md
-docs/guidelines/002-navigation-and-routing.md
-docs/guidelines/003-ui-design-system.md
-docs/guidelines/004-swiftui-architecture.md
-docs/guidelines/005-ai-provider-prompt-and-privacy.md
+docs/spec/001-guideline-governance.md
+docs/spec/002-navigation-and-routing.md
+docs/spec/003-ui-design-system.md
+docs/spec/004-swiftui-architecture.md
+docs/spec/005-ai-provider-prompt-and-privacy.md
 ```
 
-规范不是一成不变的教条。若开发中发现更优设计，可以更新对应 guideline；若影响产品核心模型、技术路线、数据边界、隐私边界或商业模式，应新增或更新 ADR。
+规范不是一成不变的教条。当前项目处于起步阶段，若开发中发现更优设计，可以更新对应 spec；若影响产品核心模型、技术路线、数据边界、隐私边界或商业模式，应新增或更新 ADR。
 
 ### 2.6 开发工作记录
 
@@ -297,7 +298,7 @@ docs/review/
 
 - 当前实现事实以代码、`project.yml`、脚本和测试为最高依据。
 - 产品核心决策以产品主参考文档、ADR 和用户明确确认为最高依据。
-- 架构和隐私决策以 ADR、技术路线和 guidelines 为最高依据。
+- 架构和隐私决策以 ADR、技术路线和 spec 为最高依据。
 - 未来计划以 roadmap、worklog、规格或计划文档为依据，必须明确写成计划、候选或后续。
 - worklog、research、review round 是过程记录，不强制改写为最新事实。
 
@@ -326,7 +327,7 @@ docs/review/
 
 ### 4.1.1 先规范，后代码
 
-涉及具体实现风格的开发任务，应先读取对应 `docs/guidelines/` 文档。
+涉及具体实现风格的开发任务，应先读取对应 `docs/spec/` 文档。
 
 例如：
 

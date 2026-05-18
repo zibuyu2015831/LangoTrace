@@ -9,8 +9,8 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md`
 - `docs/worklogs/2026-05-18-feature-premium-ui-audit.md`
 - `docs/worklogs/2026-05-18-feature-interface-premium-ui-convergence.md`

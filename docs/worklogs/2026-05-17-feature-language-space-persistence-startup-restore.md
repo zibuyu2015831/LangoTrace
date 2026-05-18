@@ -12,8 +12,8 @@
 - `docs/product-main-reference.md`
 - `docs/technical-framework-roadmap.md`
 - `docs/architecture/001-initial-module-boundaries.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/004-swiftui-architecture.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/004-swiftui-architecture.md`
 - `docs/testing/README.md`
 - `docs/review/README.md`
 - `docs/review/INDEX.md`
@@ -181,8 +181,8 @@ git status --short
 预计需要更新：
 
 - `docs/README.md`：将“内存语言空间 preview”与“首个语言空间轻量本地启动恢复”的状态拆清楚；实现完成后保留“正式语言空间数据模型、SQLite / GRDB Repository、迁移和多空间管理未完成”。
-- `docs/guidelines/002-navigation-and-routing.md`：补充启动恢复路由规则。
-- `docs/guidelines/004-swiftui-architecture.md`：补充 AppSessionState 只能通过 repository 恢复和保存语言空间，Main 不得自行从 onboarding draft 生成 fallback 空间。
+- `docs/spec/002-navigation-and-routing.md`：补充启动恢复路由规则。
+- `docs/spec/004-swiftui-architecture.md`：补充 AppSessionState 只能通过 repository 恢复和保存语言空间，Main 不得自行从 onboarding draft 生成 fallback 空间。
 - `docs/testing/README.md`：补充重启恢复手动验证。
 - `docs/review/INDEX.md` 和 `docs/review/rounds/2026-05-17-language-space-startup-restore.md`：记录专项审查。
 - 本 worklog：实现后记录实际改动、验证命令和剩余风险。

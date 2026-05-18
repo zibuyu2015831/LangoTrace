@@ -10,9 +10,9 @@
 
 - `docs/README.md`
 - `docs/product-main-reference.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md`
 - `docs/superpowers/specs/mvp-ui-flow-and-design-system.md`
 
@@ -63,7 +63,7 @@
 
 ## 5. 分析
 
-现有 `docs/guidelines/003-ui-design-system.md` 已经定义了“安静、清晰、温和、现代、长期可读、学习工具感、个人资料库感”的基本方向，也明确禁止营销首页、游戏化闯关、后台管理系统和 AI 聊天室风格。
+现有 `docs/spec/003-ui-design-system.md` 已经定义了“安静、清晰、温和、现代、长期可读、学习工具感、个人资料库感”的基本方向，也明确禁止营销首页、游戏化闯关、后台管理系统和 AI 聊天室风格。
 
 当前缺口不是没有 UI 规范，而是缺少一份专门面向“付费级感知质量”的中间层文档。它需要把产品愿景、Apple 三端平台差异、视觉系统、组件质量、状态表达和审查流程连接起来，让后续 UI 改进能先判断问题，再制定样板页面和实施计划。
 
@@ -102,8 +102,8 @@ git status --short
 
 - `docs/README.md`：不需要更新。项目当前状态和阅读路径没有变化。
 - `docs/product-main-reference.md`：不需要更新。产品定位和核心闭环没有变化。
-- `docs/guidelines/003-ui-design-system.md`：本次不直接修改 Accepted guideline；新增规格文档作为后续审查依据。
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`：不需要更新，但后续审查必须使用该文档检查本地化文案长度和语言边界。
+- `docs/spec/003-ui-design-system.md`：本次不直接修改 Accepted guideline；新增规格文档作为后续审查依据。
+- `docs/spec/006-interface-localization-and-language-boundaries.md`：不需要更新，但后续审查必须使用该文档检查本地化文案长度和语言边界。
 - `docs/review/`：本次不触发专项审查。没有改变数据库、AI Provider、权限、同步、StoreKit、XcodeGen、包边界、App 启动结构或 ADR。
 
 ## 10. 用户确认记录

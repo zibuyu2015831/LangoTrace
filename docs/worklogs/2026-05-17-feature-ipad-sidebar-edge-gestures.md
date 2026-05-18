@@ -9,9 +9,9 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/004-swiftui-architecture.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/004-swiftui-architecture.md`
 - `docs/worklogs/2026-05-17-feature-collapsible-side-panels.md`
 
 关联 ADR：

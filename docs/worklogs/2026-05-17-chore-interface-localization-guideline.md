@@ -8,9 +8,9 @@
 
 关联文档：
 
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
-- `docs/guidelines/README.md`
-- `docs/guidelines/003-ui-design-system.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/README.md`
+- `docs/spec/003-ui-design-system.md`
 - `docs/README.md`
 
 关联 ADR：
@@ -121,7 +121,7 @@ git status --short
 ## 9. 文档影响检查
 
 - 影响 `docs/README.md`：需要在原型和 UI 设计阅读路径中加入新的国际化规范。
-- 影响 guidelines：新增 `006`，并更新 `docs/guidelines/README.md`。
+- 影响 guidelines：新增 `006`，并更新 `docs/spec/README.md`。
 - 影响 UI 设计系统规范：需要加入后续页面设计必须读取国际化规范的交叉约束。
 - 不影响 architecture、testing、release：本次不进入实现、测试流程或发布语言清单。
 - 不触发专项审查：本次是规范草案，不改变数据库、AI Provider、权限、同步、StoreKit、验证脚本、包边界或 App 启动结构。
@@ -134,16 +134,16 @@ git status --short
 
 已创建：
 
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/worklogs/2026-05-17-chore-interface-localization-guideline.md`
 
 已更新：
 
-- `docs/guidelines/README.md`
-- `docs/guidelines/003-ui-design-system.md`
+- `docs/spec/README.md`
+- `docs/spec/003-ui-design-system.md`
 - `docs/README.md`
 
-架构与 iOS 交互复查后，继续补充 `docs/guidelines/006-interface-localization-and-language-boundaries.md`：
+架构与 iOS 交互复查后，继续补充 `docs/spec/006-interface-localization-and-language-boundaries.md`：
 
 - 增加 Apple 平台系统级 App 语言与 App 内语言偏好的关系。
 - 增加地区格式、用户内容语言、RTL、辅助功能朗读和 iOS 设置入口边界。

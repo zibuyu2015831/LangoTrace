@@ -11,8 +11,8 @@
 - `docs/README.md`
 - `docs/product-main-reference.md`
 - `docs/technical-framework-roadmap.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
 - `docs/superpowers/specs/mvp-ui-flow-and-design-system.md`
 
 关联 ADR：
@@ -55,7 +55,7 @@
 - 新增 `docs/superpowers/specs/mvp-ui-flow-and-design-system.md`，作为后续页面补全与设计系统升级规格。
 - 新增 `docs/superpowers/plans/2026-05-17-mvp-ui-flow-and-design-system-implementation.md`，记录第一批实施任务和验证。
 - 修改 `Packages/LangoTraceData`、`Packages/LangoTraceUI` 和 `LangoTraceApp`，落地第一批 in-memory 页面闭环。
-- 复查 `docs/guidelines/003-ui-design-system.md` 和 `docs/testing/README.md`，补齐设计系统落地和模拟器截图验证要求。
+- 复查 `docs/spec/003-ui-design-system.md` 和 `docs/testing/README.md`，补齐设计系统落地和模拟器截图验证要求。
 - 使用 iPhone / iPad 模拟器截图验证当前实现的视觉和页面状态，截图只作为本次审查证据，不作为新 UI 验收。
 
 ## 4. 不做什么
@@ -113,7 +113,7 @@
 
 ### 5.3 “没有沉淀为风格规范文档”：不完全成立
 
-仓库已有 `docs/guidelines/003-ui-design-system.md`，状态为 Accepted，内容覆盖：
+仓库已有 `docs/spec/003-ui-design-system.md`，状态为 Accepted，内容覆盖：
 
 - 视觉气质。
 - 三端信息密度。
@@ -204,7 +204,7 @@ xcrun simctl io <device> screenshot <path>
 - `docs/README.md`：本次不需要更新；项目当前状态仍是产品体验骨架阶段。
 - `docs/product-main-reference.md`：本次不需要更新；核心闭环和对象模型已覆盖审查依据。
 - `docs/technical-framework-roadmap.md`：本次不需要更新；Phase 0 当前进度已如实记录缺口。
-- `docs/guidelines/003-ui-design-system.md`：本次需要补充“可执行设计系统”边界，避免长期规范停留在原则层。
+- `docs/spec/003-ui-design-system.md`：本次需要补充“可执行设计系统”边界，避免长期规范停留在原则层。
 - `docs/testing/`：本次需要补充模拟器截图验证的最小要求，作为后续 UI 闭环和设计系统升级的验收入口。
 - `docs/review/`：本次不改变数据库、AI Provider、权限、同步、StoreKit、XcodeGen、包边界核心决策或 ADR；按 worklog 记录文档影响检查，不触发专项审查。
 

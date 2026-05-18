@@ -20,7 +20,7 @@
 
 | 日期 | 触发原因 | 触发的轮次 | 涉及文档 |
 | --- | --- | --- | --- |
-| 2026-05-17 | String Catalog、App shell locale 注入、设置入口和 package resources 变更 | `2026-05-17-string-catalog-interface-language-settings` | `docs/guidelines/006-interface-localization-and-language-boundaries.md`、`docs/testing/README.md`、`docs/superpowers/plans/2026-05-17-string-catalog-interface-language-settings.md` |
+| 2026-05-17 | String Catalog、App shell locale 注入、设置入口和 package resources 变更 | `2026-05-17-string-catalog-interface-language-settings` | `docs/spec/006-interface-localization-and-language-boundaries.md`、`docs/testing/README.md`、`docs/superpowers/plans/2026-05-17-string-catalog-interface-language-settings.md` |
 | 2026-05-17 | `scripts/verify.sh` 增加 Data package 测试 | `2026-05-17-interface-localization-foundation` | `scripts/verify.sh`、`docs/README.md`、`docs/testing/README.md` |
 
 ## 长期健康度追踪

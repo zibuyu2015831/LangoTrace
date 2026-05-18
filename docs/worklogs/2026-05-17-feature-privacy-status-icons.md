@@ -9,8 +9,8 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/guidelines/002-navigation-and-routing.md`
-- `docs/guidelines/003-ui-design-system.md`
+- `docs/spec/002-navigation-and-routing.md`
+- `docs/spec/003-ui-design-system.md`
 - `docs/worklogs/2026-05-17-feature-platform-navigation-refinement.md`
 
 关联 ADR：
@@ -64,8 +64,8 @@
   - 在 Sidebar 底部语言空间区域采用同样的 AI Provider / 同步状态图标结构。
   - 视觉密度比 iPad 更紧凑。
 - 文档：
-  - 同步 `docs/guidelines/002-navigation-and-routing.md`：移除 iPad 顶部全局条中的本地保存状态，改为 Sidebar 底部状态图标组。
-  - 同步 `docs/guidelines/003-ui-design-system.md`：移除“顶部全局条仍可保留本地优先 / 未配置 AI”的旧规则，改为 AI / 同步双状态图标规则。
+  - 同步 `docs/spec/002-navigation-and-routing.md`：移除 iPad 顶部全局条中的本地保存状态，改为 Sidebar 底部状态图标组。
+  - 同步 `docs/spec/003-ui-design-system.md`：移除“顶部全局条仍可保留本地优先 / 未配置 AI”的旧规则，改为 AI / 同步双状态图标规则。
   - 更新本 worklog 的实施记录和验证结果。
 
 ## 4. 不做什么
@@ -240,8 +240,8 @@ Sidebar 底部状态图标只解释当前配置状态，不承载完整请求预
 
 当前长期规范中仍存在与本方案冲突的旧表述，需要在实施时同步更新：
 
-- `docs/guidelines/002-navigation-and-routing.md` 中 iPad 顶部全局条不应再包含“本地保存状态”。
-- `docs/guidelines/003-ui-design-system.md` 中不应再建议顶部全局条保留“本地优先 / 未配置 AI”。
+- `docs/spec/002-navigation-and-routing.md` 中 iPad 顶部全局条不应再包含“本地保存状态”。
+- `docs/spec/003-ui-design-system.md` 中不应再建议顶部全局条保留“本地优先 / 未配置 AI”。
 - iPad / macOS Sidebar 底部应明确为语言空间、设置、AI 状态、同步状态的低频上下文区。
 
 ## 6. 方案
@@ -363,8 +363,8 @@ git diff --check
   - 状态图标可被键盘聚焦或至少具备明确辅助标签。
   - Sidebar 收起后状态图标隐藏，主区仍可读。
 - 文档：
-  - `docs/guidelines/002-navigation-and-routing.md` 不再要求 iPad 顶部显示本地保存状态。
-  - `docs/guidelines/003-ui-design-system.md` 不再要求顶部保留本地优先 / 未配置 AI 状态。
+  - `docs/spec/002-navigation-and-routing.md` 不再要求 iPad 顶部显示本地保存状态。
+  - `docs/spec/003-ui-design-system.md` 不再要求顶部保留本地优先 / 未配置 AI 状态。
 
 ## 9. 用户确认记录
 

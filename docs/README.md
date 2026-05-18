@@ -124,7 +124,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 12. 向量索引是本地可重建派生数据，默认不同步。
 13. 同步采用 Sync Engine + Adapter 思路，不绑定 CloudKit-only。
 14. Xcode 工程推荐通过 XcodeGen 生成，工程结构以 `project.yml` 为主要来源。
-15. 具体开发前应读取相关 `docs/guidelines/` 规范，避免导航、UI、SwiftUI 架构和 AI 请求路径发散。
+15. 具体开发前应读取相关 `docs/spec/` 规范，避免导航、UI、SwiftUI 架构和 AI 请求路径发散。
 16. 新功能、bug 修复、架构调整、数据/AI/隐私/同步/权限/付费相关任务，实现前必须先创建 `docs/worklogs/YYYY-MM-DD-<type>-<short-topic>.md` 并经用户确认。
 17. 高风险实现或阶段性完成后必须检查文档影响。数据库、AI Provider、权限、同步、StoreKit、发布验证、ADR 冲突、首次启动闭环、语言空间闭环、本地记录闭环、验证脚本、XcodeGen、包边界或 App 启动结构变化，应按 [文档审查机制](review/README.md) 触发专项审查或在 worklog 中说明跳过原因。
 
@@ -152,9 +152,9 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 - [产品主参考文档](product-main-reference.md) 的第 7、8、9 节
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 10 节
-- [UI 设计系统规范](guidelines/003-ui-design-system.md)
-- [导航与路由规范](guidelines/002-navigation-and-routing.md)
-- [界面国际化与语言边界规范](guidelines/006-interface-localization-and-language-boundaries.md)
+- [UI 设计系统规范](spec/003-ui-design-system.md)
+- [导航与路由规范](spec/002-navigation-and-routing.md)
+- [界面国际化与语言边界规范](spec/006-interface-localization-and-language-boundaries.md)
 - `prototypes/langotrace-multi-device-prototype/README.md`
 
 适用任务：
@@ -173,9 +173,9 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - [三端开发顺序方案](development/001-platform-development-sequence.md)
 - [开发环境记录](development-environment.md)
 - [初始模块边界](architecture/001-initial-module-boundaries.md)
-- [开发规范治理](guidelines/001-guideline-governance.md)
-- [SwiftUI 架构规范](guidelines/004-swiftui-architecture.md)
-- [导航与路由规范](guidelines/002-navigation-and-routing.md)
+- [开发规范治理](spec/001-guideline-governance.md)
+- [SwiftUI 架构规范](spec/004-swiftui-architecture.md)
+- [导航与路由规范](spec/002-navigation-and-routing.md)
 - [ADR-002：使用 SwiftUI Multiplatform](decisions/002-use-swiftui-multiplatform.md)
 - [ADR-003：使用 XcodeGen 管理 Xcode 工程生成](decisions/003-use-xcodegen-for-project-generation.md)
 
@@ -213,7 +213,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - [产品主参考文档](product-main-reference.md) 的第 9、10 节
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 7、8 节
 - [初始模块边界](architecture/001-initial-module-boundaries.md)
-- [AI Provider、Prompt 与隐私规范](guidelines/005-ai-provider-prompt-and-privacy.md)
+- [AI Provider、Prompt 与隐私规范](spec/005-ai-provider-prompt-and-privacy.md)
 - [ADR-005：坚持本地优先和用户自带 Provider](decisions/005-local-first-and-user-owned-providers.md)
 
 适用任务：
@@ -281,7 +281,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - 技术选型、平台策略、数据和同步路线：更新 [技术框架与开发路线参考](technical-framework-roadmap.md)。
 - 不可轻易反转的取舍：新增或更新 `docs/decisions/`。
 - 模块边界、数据流、Provider、Sync、StoreKit 架构：新增或更新 `docs/architecture/`。
-- 导航、UI、SwiftUI 架构、AI 请求路径等开发一致性约束：新增或更新 `docs/guidelines/`。
+- 导航、UI、SwiftUI 架构、AI 请求路径等开发一致性约束：新增或更新 `docs/spec/`。
 - 具体实施步骤：写入 `docs/development/` 或 `docs/superpowers/plans/`。
 - 大功能规格：写入 `docs/superpowers/specs/`。
 - 验证流程和手动测试：写入 `docs/testing/`。
@@ -305,7 +305,7 @@ docs/
   documentation-system.md
   architecture/
   decisions/
-  guidelines/
+  spec/
   worklogs/
   review/
     README.md
@@ -324,7 +324,7 @@ docs/
 
 - `architecture/`：工程架构、模块边界、数据模型、同步模型、AI Provider、长期记忆和安全边界。
 - `decisions/`：架构决策记录，采用 ADR 风格，记录重要取舍、背景、结论和复审条件。
-- `guidelines/`：开发一致性规范，记录导航、UI、SwiftUI 架构、AI Provider 和隐私等具体开发约束。
+- `spec/`：开发一致性规范，记录导航、UI、SwiftUI 架构、AI Provider 和隐私等具体开发约束。
 - `worklogs/`：开发工作记录，记录功能开发、bug 修复、重构、调研和工程杂项的背景、方案、用户确认、实施和验证结果。
 - `review/`：文档一致性治理机制、审查轮次索引、专项审查和里程碑轻量全审记录。
 - `development/`：阶段开发计划、工程任务拆分、初始化记录、里程碑状态和开发 runbook。

@@ -8,7 +8,7 @@
 
 - `docs/worklogs/2026-05-17-feature-ui-completeness-and-design-system-review.md`
 - `docs/superpowers/specs/mvp-ui-flow-and-design-system.md`
-- `docs/guidelines/003-ui-design-system.md`
+- `docs/spec/003-ui-design-system.md`
 - `docs/testing/README.md`
 
 ## 1. 目标

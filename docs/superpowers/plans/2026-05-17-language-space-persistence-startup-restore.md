@@ -795,8 +795,8 @@ Expected result: PASS.
 
 - Modify: `docs/worklogs/2026-05-17-feature-language-space-persistence-startup-restore.md`
 - Modify: `docs/README.md`
-- Modify: `docs/guidelines/002-navigation-and-routing.md`
-- Modify: `docs/guidelines/004-swiftui-architecture.md`
+- Modify: `docs/spec/002-navigation-and-routing.md`
+- Modify: `docs/spec/004-swiftui-architecture.md`
 - Modify: `docs/testing/README.md`
 - Modify: `docs/review/INDEX.md`
 - Create: `docs/review/rounds/2026-05-17-language-space-startup-restore.md`
@@ -929,6 +929,6 @@ Run:
 
 ```bash
 git status --short
-git add project.yml Packages/LangoTraceCore/Sources/LangoTraceCore/LanguageLevel.swift Packages/LangoTraceCore/Sources/LangoTraceCore/StoredLanguageSpace.swift Packages/LangoTraceCore/Tests/LangoTraceCoreTests/LaunchFlowTests.swift Packages/LangoTraceData/Sources/LangoTraceData/DataBoundary.swift Packages/LangoTraceData/Tests/LangoTraceDataTests/LanguageSpaceRepositoryTests.swift Packages/LangoTraceUI/Sources/LangoTraceUI/LangoTraceRootView.swift Packages/LangoTraceUI/Tests/LangoTraceUITests/LaunchViewTests.swift LangoTraceApp/AppEnvironment.swift LangoTraceApp/AppSessionState.swift LangoTraceApp/LangoTraceApp.swift LangoTraceAppTests/AppSessionStateTests.swift docs/README.md docs/guidelines/002-navigation-and-routing.md docs/guidelines/004-swiftui-architecture.md docs/testing/README.md docs/review/INDEX.md docs/review/rounds/2026-05-17-language-space-startup-restore.md docs/worklogs/2026-05-17-feature-language-space-persistence-startup-restore.md docs/superpowers/plans/2026-05-17-language-space-persistence-startup-restore.md
+git add project.yml Packages/LangoTraceCore/Sources/LangoTraceCore/LanguageLevel.swift Packages/LangoTraceCore/Sources/LangoTraceCore/StoredLanguageSpace.swift Packages/LangoTraceCore/Tests/LangoTraceCoreTests/LaunchFlowTests.swift Packages/LangoTraceData/Sources/LangoTraceData/DataBoundary.swift Packages/LangoTraceData/Tests/LangoTraceDataTests/LanguageSpaceRepositoryTests.swift Packages/LangoTraceUI/Sources/LangoTraceUI/LangoTraceRootView.swift Packages/LangoTraceUI/Tests/LangoTraceUITests/LaunchViewTests.swift LangoTraceApp/AppEnvironment.swift LangoTraceApp/AppSessionState.swift LangoTraceApp/LangoTraceApp.swift LangoTraceAppTests/AppSessionStateTests.swift docs/README.md docs/spec/002-navigation-and-routing.md docs/spec/004-swiftui-architecture.md docs/testing/README.md docs/review/INDEX.md docs/review/rounds/2026-05-17-language-space-startup-restore.md docs/worklogs/2026-05-17-feature-language-space-persistence-startup-restore.md docs/superpowers/plans/2026-05-17-language-space-persistence-startup-restore.md
 git commit -m "Persist language space startup state"
 ```

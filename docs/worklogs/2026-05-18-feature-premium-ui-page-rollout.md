@@ -9,8 +9,8 @@
 关联文档：
 
 - `docs/README.md`
-- `docs/guidelines/003-ui-design-system.md`
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/003-ui-design-system.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/superpowers/specs/2026-05-18-premium-ui-principles-and-review-plan.md`
 - `docs/worklogs/2026-05-18-feature-premium-ui-audit.md`
 - `docs/worklogs/2026-05-18-feature-interface-premium-ui-convergence.md`
@@ -69,8 +69,8 @@
 
 ## 6. 文档影响检查
 
-- `docs/guidelines/003-ui-design-system.md` 已要求 unavailable 页面包含当前边界、后续接入条件和不会发生的副作用；本轮是在代码层推广该约束。
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md` 已要求 UI chrome 由 UI 层 String Catalog 渲染；本轮不需要修改 Accepted guideline。
+- `docs/spec/003-ui-design-system.md` 已要求 unavailable 页面包含当前边界、后续接入条件和不会发生的副作用；本轮是在代码层推广该约束。
+- `docs/spec/006-interface-localization-and-language-boundaries.md` 已要求 UI chrome 由 UI 层 String Catalog 渲染；本轮不需要修改 Accepted guideline。
 - 本轮不触发数据库、AI Provider、权限、同步、StoreKit、发布验证、ADR 冲突、XcodeGen、包边界或 App 启动结构专项审查。
 
 ## 7. 用户确认记录

@@ -17,7 +17,7 @@
 - `scripts/verify.sh`
 - `docs/README.md` 中验证脚本展开说明
 - `docs/testing/README.md`
-- `docs/guidelines/006-interface-localization-and-language-boundaries.md`
+- `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/worklogs/2026-05-17-feature-interface-localization-foundation.md`
 
 ## 3. 相关源码、脚本和配置
