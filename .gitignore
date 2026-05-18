@@ -2,6 +2,7 @@
 .vscode/
 .idea/
 .claude/
+/AI-Coding-Context
 
 # macOS
 .DS_Store
