@@ -12,8 +12,8 @@ func seededRepositoryExposesEntriesForActiveSpace() {
     #expect(repository.memoryItems(for: "en").contains { $0.text == "in no hurry" })
 }
 
-@Test("Creating an entry stores it in the current space and creates mock rendering")
-func creatingEntryStoresItAndCreatesMockRendering() {
+@Test("Creating an entry stores it without generated learning material")
+func creatingEntryStoresItWithoutGeneratedLearningMaterial() {
     let repository = InMemoryLearningContentRepository(seedEntries: [])
 
     let entry = repository.createEntry(
@@ -25,9 +25,10 @@ func creatingEntryStoresItAndCreatesMockRendering() {
 
     #expect(repository.entries(for: "en").map(\.id) == [entry.id])
     #expect(repository.selectedEntry(for: "en")?.id == entry.id)
-    #expect(repository.rendering(for: entry.id)?.entryID == entry.id)
-    #expect(repository.rendering(for: entry.id)?.isMock == true)
-    #expect(repository.practiceItems(for: entry.id).count == 1)
+    #expect(repository.rendering(for: entry.id) == nil)
+    #expect(repository.practiceItems(for: entry.id).isEmpty)
+    #expect(repository.practiceSession(for: entry.id) == nil)
+    #expect(repository.memoryItems(for: "en").filter { $0.entryID == entry.id }.isEmpty)
 }
 
 @Test("Selecting a missing entry keeps the current selection unchanged")
@@ -132,8 +133,8 @@ func practiceSessionIsUnavailableWithoutRendering() {
     #expect(repository.practiceItems(for: entryWithoutRendering.id).isEmpty)
 }
 
-@Test("Created entries receive mock rendering and local-only practice session")
-func createdEntriesReceiveLocalOnlyPracticeSession() {
+@Test("Created entries receive local preview only after explicit generation")
+func createdEntriesReceiveLocalPreviewOnlyAfterExplicitGeneration() {
     let repository = InMemoryLearningContentRepository(seedEntries: [])
 
     let entry = repository.createEntry(
@@ -142,11 +143,17 @@ func createdEntriesReceiveLocalOnlyPracticeSession() {
         body: "晚饭后我绕着小区走了一圈。",
         source: .typedText
     )
+    #expect(repository.rendering(for: entry.id) == nil)
+
+    let generated = repository.generateLocalPreview(for: entry.id, spaceID: "en")
     let rendering = repository.rendering(for: entry.id)
     let session = repository.practiceSession(for: entry.id)
 
+    #expect(generated?.entryID == entry.id)
     #expect(rendering?.isMock == true)
     #expect(session?.targetText == rendering?.targetText)
     #expect(session?.providerLabel == "Local Mock")
     #expect(session?.isLocalOnly == true)
+    #expect(repository.practiceItems(for: entry.id).count == 1)
+    #expect(repository.memoryItems(for: "en").contains { $0.entryID == entry.id })
 }

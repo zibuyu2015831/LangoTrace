@@ -5660,6 +5660,40 @@
         }
       }
     },
+    "entry.rendering.localPreview.title": {
+      "comment": "Entry detail local preview generation row title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate Local Preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成本地预览"
+          }
+        }
+      }
+    },
+    "entry.rendering.localPreview.summary": {
+      "comment": "Entry detail local preview generation row summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creates sample learning material on device only. Real AI generation is not connected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在本机生成示例学习材料，真实 AI 生成尚未接入。"
+          }
+        }
+      }
+    },
     "entryCard.openDetail.label": {
       "comment": "Entry card accessibility label.",
       "localizations": {

@@ -78,6 +78,7 @@ struct PhoneMainView: View {
                             entry: entry,
                             rendering: rendering(for: entry),
                             practiceItems: contentStore.practiceItems(for: entry),
+                            onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
                             onPractice: { navigationPath.append(.practice(entry.id)) }
                         )
                     }

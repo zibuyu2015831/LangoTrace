@@ -172,6 +172,7 @@ struct PadWorkspaceContentView: View {
                 entry: entry,
                 rendering: contentStore.rendering(for: entry),
                 practiceItems: contentStore.practiceItems(for: entry),
+                onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
                 onPractice: { onRoute(.practice(entry.id)) }
             )
         } else {

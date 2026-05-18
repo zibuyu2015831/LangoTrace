@@ -52,6 +52,17 @@ final class LearningContentStore: ObservableObject {
         repository.rendering(for: entryID)
     }
 
+    @discardableResult
+    func generateLocalPreview(for entry: LearningEntry) -> LearningRendering? {
+        guard entry.spaceID == spaceID else {
+            return nil
+        }
+
+        let rendering = repository.generateLocalPreview(for: entry.id, spaceID: spaceID)
+        reload()
+        return rendering
+    }
+
     func practiceItems(for entry: LearningEntry) -> [PracticeItem] {
         repository.practiceItems(for: entry.id)
     }

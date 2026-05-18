@@ -64,6 +64,7 @@ struct MacWorkspaceContentView: View {
                     entry: selectedEntry,
                     rendering: selectedRendering,
                     practiceItems: contentStore.practiceItems(for: selectedEntry),
+                    onGenerateLocalPreview: { contentStore.generateLocalPreview(for: selectedEntry) },
                     onPractice: { onRoute(.practice(selectedEntry.id)) }
                 )
             } else {
@@ -171,6 +172,7 @@ struct MacWorkspaceContentView: View {
                 entry: entry,
                 rendering: contentStore.rendering(for: entry),
                 practiceItems: contentStore.practiceItems(for: entry),
+                onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
                 onPractice: { onRoute(.practice(entry.id)) }
             )
         } else {

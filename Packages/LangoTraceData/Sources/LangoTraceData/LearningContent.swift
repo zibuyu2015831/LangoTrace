@@ -7,6 +7,8 @@ public protocol LearningContentRepository: AnyObject {
     func selectEntry(id: String, spaceID: String)
     @discardableResult
     func createEntry(spaceID: String, title: String, body: String, source: EntrySource) -> LearningEntry
+    @discardableResult
+    func generateLocalPreview(for entryID: String, spaceID: String) -> LearningRendering?
     func rendering(for entryID: String) -> LearningRendering?
     func practiceItems(for entryID: String) -> [PracticeItem]
     func memoryItems(for spaceID: String) -> [MemoryItem]
@@ -104,7 +106,21 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
 
         entriesBySpace[spaceID, default: []].insert(entry, at: 0)
         selectedEntryIDs[spaceID] = entry.id
-        renderingsByEntryID[entry.id] = Self.makeMockRendering(for: entry)
+        return entry
+    }
+
+    @discardableResult
+    public func generateLocalPreview(for entryID: String, spaceID: String) -> LearningRendering? {
+        guard let entry = entries(for: spaceID).first(where: { $0.id == entryID }) else {
+            return nil
+        }
+
+        if let existingRendering = renderingsByEntryID[entry.id] {
+            return existingRendering
+        }
+
+        let rendering = Self.makeMockRendering(for: entry)
+        renderingsByEntryID[entry.id] = rendering
         practiceItemsByEntryID[entry.id] = [
             PracticeItem(
                 id: "\(entry.id)-practice-shadowing",
@@ -125,7 +141,7 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
             at: 0
         )
 
-        return entry
+        return rendering
     }
 
     public func rendering(for entryID: String) -> LearningRendering? {

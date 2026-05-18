@@ -66,6 +66,7 @@ struct EntryDetailView: View {
     let entry: LearningEntry
     let rendering: LearningRendering?
     let practiceItems: [PracticeItem]
+    let onGenerateLocalPreview: () -> Void
     let onPractice: () -> Void
 
     var body: some View {
@@ -90,13 +91,31 @@ struct EntryDetailView: View {
                     ForEach(Array(rendering.sentences.enumerated()), id: \.element.id) { index, sentence in
                         SentencePairView(index: index + 1, sentence: sentence, onPractice: onPractice)
                     }
+                } else {
+                    CapabilityStatusRow(
+                        localizedTitleKey: "entry.rendering.localPreview.title",
+                        localizedSummaryKey: "entry.rendering.localPreview.summary",
+                        status: .mockOnly,
+                        systemImage: "sparkles",
+                        action: onGenerateLocalPreview
+                    )
                 }
                 SectionHeader(
                     titleKey: "entryDetail.practiceEntry.title",
                     subtitleKey: "entryDetail.practiceEntry.subtitle"
                 )
-                ForEach(practiceItems) { item in
-                    CompactPanel(title: item.title, text: item.summary, systemImage: "waveform")
+                if practiceItems.isEmpty {
+                    CapabilityStatusRow(
+                        localizedTitleKey: "practice.noContent.title",
+                        localizedSummaryKey: "practice.noContent.summary",
+                        status: .unavailable,
+                        systemImage: "waveform",
+                        action: nil
+                    )
+                } else {
+                    ForEach(practiceItems) { item in
+                        CompactPanel(title: item.title, text: item.summary, systemImage: "waveform")
+                    }
                 }
             }
             .padding(20)

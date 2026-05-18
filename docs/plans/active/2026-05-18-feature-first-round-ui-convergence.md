@@ -802,6 +802,32 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 - 本阶段只收敛 iPhone 顶层 IA；iPad / macOS 的 footer、Settings scene、commands 和窄窗口行为留给任务 6、任务 7、任务 9 继续处理。
 - `PhoneRecordWorkspaceView` 仍使用当前 mock content store；Entry 创建后的真实对象边界、Entry detail / rendering / practice / memory 的能力声明由任务 5 收敛。
 
+### 2026-05-18 阶段 5：Entry rendering boundary
+
+处理范围：
+
+- 完成任务 5 / P1-003 的第一轮实现。
+- `LearningContentRepository` 增加显式 `generateLocalPreview(for:spaceID:)` seam；`InMemoryLearningContentRepository.createEntry` 只创建并选中新 Entry，不再自动生成 rendering、practice item 或 memory item。
+- `LearningContentStore` 暴露 `generateLocalPreview(for:)` 并在生成后 reload，保持三端 UI 从同一 store 读取更新后的 rendering / practice / memory。
+- `EntryDetailView` 在缺少 rendering 时显示本地预览生成行，说明只在设备上创建示例学习材料，真实 AI generation 尚未接入。
+- Entry detail 的 Practice 区在缺少 practice item 时显示 unavailable 状态，不再留下空 section；seed 数据仍可展示完整 local mock 闭环。
+- iPhone / iPad / macOS 所有 `EntryDetailView` call site 均接入同一个显式生成动作。
+
+验证结果：
+
+- TDD red：更新 Data 测试后，`swift test --package-path Packages/LangoTraceData --filter createdEntriesReceiveLocalPreviewOnlyAfterExplicitGeneration` 初次编译失败，原因是 repository 尚无 `generateLocalPreview`。
+- TDD red：更新 UI store 测试后，`swift test --package-path Packages/LangoTraceUI --filter LearningContentStoreTests` 初次编译失败，原因是 store 尚无 `generateLocalPreview(for:)`。
+- TDD green：上述两个测试分别通过。
+- `swift test --package-path Packages/LangoTraceData` 通过，10 个测试通过。
+- `swift test --package-path Packages/LangoTraceUI` 通过，29 个测试通过。
+- `ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI/Resources/Localizable.xcstrings")); puts "json ok"'` 通过。
+- `rg -n "creates mock rendering|Created entries receive mock|renderingsByEntryID\\[entry\\.id\\]|generateLocalPreview|entry\\.rendering\\.localPreview" Packages/LangoTraceData Packages/LangoTraceUI docs/plans/active/2026-05-18-feature-first-round-ui-convergence.md` 确认自动生成旧测试文案已移除，生成入口只剩显式 preview seam 和 UI 文案。
+
+剩余边界：
+
+- 本阶段仍只生成 local mock preview，不接入真实 AI Provider、Prompt Registry 渲染、请求预览确认流或外部请求日志。
+- Memory tab 仍展示 store 中已有 memory items；更完整的空态、筛选和向量索引状态由任务 8、任务 12、任务 13 继续收敛。
+
 ## 17. 完成标准
 
 本任务完成必须同时满足：

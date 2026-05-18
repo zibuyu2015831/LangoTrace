@@ -25,6 +25,14 @@ struct LearningContentStoreTests {
 
         #expect(store.entries.first?.id == created.id)
         #expect(store.selectedEntry?.id == created.id)
+        #expect(store.rendering(for: created) == nil)
+        #expect(store.practiceItems(for: created).isEmpty)
+        #expect(store.practiceSession(for: created) == nil)
+        #expect(!store.memoryItems.contains { $0.entryID == created.id })
+
+        let preview = store.generateLocalPreview(for: created)
+
+        #expect(preview?.entryID == created.id)
         #expect(store.rendering(for: created)?.entryID == created.id)
         #expect(store.practiceItems(for: created).count == 1)
         #expect(store.practiceSession(for: created)?.entryID == created.id)
