@@ -1,6 +1,20 @@
 import Foundation
 
-public final class InMemoryLearningContentRepository {
+public protocol LearningContentRepository: AnyObject {
+    func ensureSeeded(spaceID: String)
+    func entries(for spaceID: String) -> [LearningEntry]
+    func selectedEntry(for spaceID: String) -> LearningEntry?
+    func selectEntry(id: String, spaceID: String)
+    @discardableResult
+    func createEntry(spaceID: String, title: String, body: String, source: EntrySource) -> LearningEntry
+    func rendering(for entryID: String) -> LearningRendering?
+    func practiceItems(for entryID: String) -> [PracticeItem]
+    func memoryItems(for spaceID: String) -> [MemoryItem]
+    func settingsCapabilities(for spaceID: String) -> [SettingsCapability]
+    func practiceSession(for entryID: String) -> PracticeSessionState?
+}
+
+public final class InMemoryLearningContentRepository: LearningContentRepository {
     private var entriesBySpace: [String: [LearningEntry]]
     private var selectedEntryIDs: [String: String]
     private var renderingsByEntryID: [String: LearningRendering]

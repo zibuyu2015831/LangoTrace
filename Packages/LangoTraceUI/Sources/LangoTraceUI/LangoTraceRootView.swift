@@ -15,7 +15,7 @@ public enum LangoTraceAppPhase: Equatable, Sendable {
 public struct LangoTraceRootView: View {
     private let phase: LangoTraceAppPhase
     private let languageSpace: LanguageSpacePreview?
-    private let learningContentRepository: InMemoryLearningContentRepository
+    private let learningContentRepository: any LearningContentRepository
     private let interfaceLanguagePreference: InterfaceLanguagePreference
     @Binding private var onboardingDraft: OnboardingDraft
     private let onWelcomeFinished: () -> Void
@@ -25,7 +25,7 @@ public struct LangoTraceRootView: View {
     public init(
         phase: LangoTraceAppPhase,
         languageSpace: LanguageSpacePreview?,
-        learningContentRepository: InMemoryLearningContentRepository,
+        learningContentRepository: any LearningContentRepository,
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         onboardingDraft: Binding<OnboardingDraft>,
         onWelcomeFinished: @escaping () -> Void,
@@ -86,23 +86,40 @@ public struct LangoTraceRootView: View {
 
 private struct PlatformMainView: View {
     let languageSpace: LanguageSpacePreview
-    let learningContentRepository: InMemoryLearningContentRepository
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
+    @StateObject private var contentStore: LearningContentStore
+
+    init(
+        languageSpace: LanguageSpacePreview,
+        learningContentRepository: any LearningContentRepository,
+        interfaceLanguagePreference: InterfaceLanguagePreference,
+        onInterfaceLanguagePreferenceChange: @escaping (InterfaceLanguagePreference) -> Void
+    ) {
+        self.languageSpace = languageSpace
+        self.interfaceLanguagePreference = interfaceLanguagePreference
+        self.onInterfaceLanguagePreferenceChange = onInterfaceLanguagePreferenceChange
+        _contentStore = StateObject(
+            wrappedValue: LearningContentStore(
+                repository: learningContentRepository,
+                spaceID: languageSpace.id
+            )
+        )
+    }
 
     var body: some View {
         #if os(iOS)
             if UIDevice.current.userInterfaceIdiom == .pad {
                 PadMainView(
                     languageSpace: languageSpace,
-                    contentRepository: learningContentRepository,
+                    contentStore: contentStore,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
                 )
             } else {
                 PhoneMainView(
                     languageSpace: languageSpace,
-                    contentRepository: learningContentRepository,
+                    contentStore: contentStore,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
                 )
@@ -110,7 +127,7 @@ private struct PlatformMainView: View {
         #elseif os(macOS)
             MacMainView(
                 languageSpace: languageSpace,
-                contentRepository: learningContentRepository,
+                contentStore: contentStore,
                 interfaceLanguagePreference: interfaceLanguagePreference,
                 onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
             )

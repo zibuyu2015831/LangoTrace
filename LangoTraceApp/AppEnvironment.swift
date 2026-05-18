@@ -8,7 +8,7 @@ import SwiftUI
 
 struct AppEnvironment {
     let languageSpaceRepository: any LanguageSpaceRepository
-    let learningContentRepository: InMemoryLearningContentRepository
+    let learningContentRepository: any LearningContentRepository
     let aiProvider: any AIProvider
     let speechService: any SpeechService
     let syncService: any SyncService

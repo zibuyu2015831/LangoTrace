@@ -1,6 +1,6 @@
 # 任务方案：第一轮 UI 收敛与规范同步
 
-状态：Draft
+状态：In Progress
 类型：feature
 创建日期：2026-05-18
 最后更新日期：2026-05-18
@@ -34,6 +34,8 @@
 状态为 `Draft` 时不能开始实现。用户确认后记录确认时间、确认内容和范围边界。
 
 2026-05-18：根据 `docs/review/rounds/2026-05-18-comprehensive-ui-review/` 的审核结果，创建第一轮 UI 收敛优化方案。本方案先作为实现前确认文档，不修改 SwiftUI 代码、不更新长期规范、不移动上一轮审核方案状态。
+
+2026-05-18：用户要求完整阅读本文档和相关上下文文档，制定计划并开始实施，将方案完整落地；每一阶段都需要测试和 commit。本次实施范围按 `11.2 任务分解` 分阶段推进。
 
 ## 1. 需求或 bug 描述
 
@@ -699,7 +701,30 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 
 ## 16. 实施记录
 
-尚未开始实现。
+### 2026-05-18 阶段 1：Learning content seam
+
+处理范围：
+
+- 完成任务 1 / P1-008 的第一轮实现。
+- 在 `LangoTraceData` 定义 `LearningContentRepository` 协议，覆盖 UI 当前使用的 entries、selection、create、rendering、practice、memory、settings capabilities 和 practice session 能力。
+- 让 `InMemoryLearningContentRepository` conform 到协议，保持当前 mock 数据行为不变。
+- 在 `LangoTraceUI` 新增 `LearningContentStore`，由 MainActor store 统一 seed、select、create、刷新和派生内容读取。
+- `LangoTraceRootView` / `PhoneMainView` / `PadMainView` / `MacMainView` 以及 iPad / macOS 子视图改为依赖 store；`contentRevision` 从三端主 View 移除。
+- App bootstrap 仍在 `AppEnvironment` 创建 `InMemoryLearningContentRepository(seedEntries: [])`，这是本阶段保留的 composition root seam。
+
+验证结果：
+
+- TDD red：`swift test --package-path Packages/LangoTraceUI --filter LearningContentStoreTests` 初次失败，原因是 `LearningContentStore` 不存在。
+- TDD green：`swift test --package-path Packages/LangoTraceUI --filter LearningContentStoreTests` 通过，2 个 store seam 测试通过。
+- `swift test --package-path Packages/LangoTraceData` 通过，10 个测试通过。
+- `swift test --package-path Packages/LangoTraceUI` 通过，25 个测试通过。
+- `rg -n "contentRevision|contentRepository|InMemoryLearningContentRepository" Packages/LangoTraceUI/Sources LangoTraceApp` 只剩 `LangoTraceApp/AppEnvironment.swift` 的 bootstrap 创建。
+- `xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build` 通过。
+
+剩余边界：
+
+- 本阶段只建立最小替换 seam，不改变 `createEntry` 自动生成 mock closure 的旧行为；P1-003 留到任务 5 单独收敛。
+- App composition root 仍使用 in-memory repository，后续真实 repository 由数据持久化计划承接。
 
 ## 17. 完成标准
 

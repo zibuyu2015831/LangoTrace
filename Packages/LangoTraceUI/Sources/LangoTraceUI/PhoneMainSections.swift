@@ -97,7 +97,7 @@ struct EntriesView: View {
 struct PracticeView: View {
     let languageSpace: LanguageSpacePreview
     let entries: [LearningEntry]
-    let repository: InMemoryLearningContentRepository
+    let contentStore: LearningContentStore
     let onLanguageSpaceAction: () -> Void
     let onPractice: (LearningEntry) -> Void
 
@@ -118,7 +118,7 @@ struct PracticeView: View {
                 )
             } else {
                 ForEach(entries) { entry in
-                    let items = repository.practiceItems(for: entry.id)
+                    let items = contentStore.practiceItems(for: entry)
                     if items.isEmpty {
                         CapabilityStatusRow(
                             title: entry.title,

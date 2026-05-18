@@ -6,7 +6,7 @@ struct MacInspectorContent: View {
     let selectedSection: MacWorkspaceSection
     let entries: [LearningEntry]
     let settingsCapabilities: [SettingsCapability]
-    let contentRepository: InMemoryLearningContentRepository
+    let contentStore: LearningContentStore
 
     var body: some View {
         content
@@ -21,7 +21,7 @@ struct MacInspectorContent: View {
                     title: localizedString("mac.inspector.entryMetadata.title"),
                     text: "\(entry.displaySourceTitle) · \(entry.scene) · \(entry.practiceSummary)"
                 )
-                RequestPreviewCard(entry: entry, rendering: contentRepository.rendering(for: entry.id))
+                RequestPreviewCard(entry: entry, rendering: contentStore.rendering(for: entry))
                 memoryCandidates(for: entry)
                 LocalizedTextPanel(titleKey: "mac.inspector.privacy.title", textKey: "mac.inspector.privacy.body")
             } else {
@@ -58,9 +58,7 @@ struct MacInspectorContent: View {
     }
 
     private func memoryCandidates(for entry: LearningEntry) -> some View {
-        let candidates = contentRepository
-            .memoryItems(for: entry.spaceID)
-            .filter { $0.entryID == entry.id }
+        let candidates = contentStore.memoryItems(for: entry)
 
         return VStack(alignment: .leading, spacing: 10) {
             localizedText("mac.inspector.memoryCandidates")

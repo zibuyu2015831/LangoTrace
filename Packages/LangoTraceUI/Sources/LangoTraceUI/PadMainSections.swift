@@ -93,7 +93,7 @@ struct PadWorkspaceContentView: View {
     let selectedRendering: LearningRendering?
     let memoryItems: [MemoryItem]
     let settingsCapabilities: [SettingsCapability]
-    let contentRepository: InMemoryLearningContentRepository
+    let contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
     let onRoute: (PadWorkspaceRoute) -> Void
@@ -170,8 +170,8 @@ struct PadWorkspaceContentView: View {
             EntryDetailView(
                 languageSpace: languageSpace,
                 entry: entry,
-                rendering: contentRepository.rendering(for: entry.id),
-                practiceItems: contentRepository.practiceItems(for: entry.id),
+                rendering: contentStore.rendering(for: entry),
+                practiceItems: contentStore.practiceItems(for: entry),
                 onPractice: { onRoute(.practice(entry.id)) }
             )
         } else {
@@ -185,8 +185,8 @@ struct PadWorkspaceContentView: View {
         if let entry = entries.first(where: { $0.id == entryID }) {
             PracticeSessionView(
                 entry: entry,
-                rendering: contentRepository.rendering(for: entry.id),
-                session: contentRepository.practiceSession(for: entry.id)
+                rendering: contentStore.rendering(for: entry),
+                session: contentStore.practiceSession(for: entry)
             )
         } else {
             EmptyWorkspacePanel()
@@ -261,7 +261,7 @@ struct PadLearningPanelView: View {
     let selectedEntry: LearningEntry?
     let selectedRendering: LearningRendering?
     let memoryItems: [MemoryItem]
-    let contentRepository: InMemoryLearningContentRepository
+    let contentStore: LearningContentStore
     let onRoute: (PadWorkspaceRoute) -> Void
 
     var body: some View {
@@ -301,9 +301,9 @@ struct PadLearningPanelView: View {
             CapabilityStatusRow(
                 localizedTitleKey: "pad.practiceEntry.title",
                 summary: practiceSummary(for: entry),
-                status: contentRepository.practiceItems(for: entry.id).isEmpty ? .unavailable : .mockOnly,
+                status: contentStore.practiceItems(for: entry).isEmpty ? .unavailable : .mockOnly,
                 systemImage: "waveform",
-                action: contentRepository.practiceItems(for: entry.id).isEmpty ? nil : { onRoute(.practice(entry.id)) }
+                action: contentStore.practiceItems(for: entry).isEmpty ? nil : { onRoute(.practice(entry.id)) }
             )
             CapabilityStatusRow(
                 localizedTitleKey: "pad.spaceSettings.title",
@@ -329,7 +329,7 @@ struct PadLearningPanelView: View {
     }
 
     private func practiceSummary(for entry: LearningEntry) -> String {
-        let summaries = contentRepository.practiceItems(for: entry.id).map(\.summary)
+        let summaries = contentStore.practiceItems(for: entry).map(\.summary)
 
         guard !summaries.isEmpty else {
             return localizedString("pad.practice.empty.summary")

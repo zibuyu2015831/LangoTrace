@@ -4,7 +4,7 @@ import SwiftUI
 
 struct PadMainView: View {
     let languageSpace: LanguageSpacePreview
-    let contentRepository: InMemoryLearningContentRepository
+    @ObservedObject var contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
@@ -16,7 +16,6 @@ struct PadMainView: View {
     @State private var route: PadWorkspaceRoute = .workspace
     @State private var presentedSheet: PadSheet?
     @State private var activeFilter: PadFilter = .all
-    @State private var contentRevision = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -72,13 +71,11 @@ struct PadMainView: View {
             switch sheet {
             case .entryEditor:
                 EntryEditorView(languageSpace: languageSpace) { title, body in
-                    let entry = contentRepository.createEntry(
-                        spaceID: languageSpace.id,
+                    let entry = contentStore.createEntry(
                         title: title,
                         body: body,
                         source: .typedText
                     )
-                    contentRevision += 1
                     selectedEntryID = entry.id
                     route = .entryDetail(entry.id)
                     presentedSheet = nil
@@ -88,10 +85,9 @@ struct PadMainView: View {
             }
         }
         .onAppear {
-            contentRepository.ensureSeeded(spaceID: languageSpace.id)
-            selectedEntryID = selectedEntryID ?? contentRepository.selectedEntry(for: languageSpace.id)?.id
+            contentStore.ensureSeeded()
+            selectedEntryID = selectedEntryID ?? contentStore.selectedEntry?.id
             applyAdaptivePanelVisibility()
-            contentRevision += 1
         }
         .onChange(of: horizontalSizeClass) {
             applyAdaptivePanelVisibility()
@@ -99,13 +95,11 @@ struct PadMainView: View {
     }
 
     private var entries: [LearningEntry] {
-        _ = contentRevision
-        return contentRepository.entries(for: languageSpace.id)
+        contentStore.entries
     }
 
     private var memoryItems: [MemoryItem] {
-        _ = contentRevision
-        return contentRepository.memoryItems(for: languageSpace.id)
+        contentStore.memoryItems
     }
 
     private var filteredEntries: [LearningEntry] {
@@ -119,7 +113,7 @@ struct PadMainView: View {
             }
         }
 
-        return contentRepository.selectedEntry(for: languageSpace.id)
+        return contentStore.selectedEntry
     }
 
     private var selectedRendering: LearningRendering? {
@@ -127,11 +121,11 @@ struct PadMainView: View {
             return nil
         }
 
-        return contentRepository.rendering(for: selectedEntry.id)
+        return contentStore.rendering(for: selectedEntry)
     }
 
     private var settingsCapabilities: [SettingsCapability] {
-        contentRepository.settingsCapabilities(for: languageSpace.id)
+        contentStore.settingsCapabilities
     }
 
     private var panelAnimation: Animation? {
@@ -216,7 +210,7 @@ struct PadMainView: View {
             selectedRendering: selectedRendering,
             memoryItems: memoryItems,
             settingsCapabilities: settingsCapabilities,
-            contentRepository: contentRepository,
+            contentStore: contentStore,
             interfaceLanguagePreference: interfaceLanguagePreference,
             onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
             onRoute: { route = $0 }
@@ -228,14 +222,14 @@ struct PadMainView: View {
             selectedEntry: selectedEntry,
             selectedRendering: selectedRendering,
             memoryItems: memoryItems,
-            contentRepository: contentRepository,
+            contentStore: contentStore,
             onRoute: { route = $0 }
         )
     }
 
     private func selectEntry(_ entry: LearningEntry) {
         selectedEntryID = entry.id
-        contentRepository.selectEntry(id: entry.id, spaceID: languageSpace.id)
+        contentStore.selectEntry(entry)
         route = .entryDetail(entry.id)
     }
 

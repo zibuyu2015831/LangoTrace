@@ -4,7 +4,7 @@ import SwiftUI
 
 struct MacMainView: View {
     let languageSpace: LanguageSpacePreview
-    let contentRepository: InMemoryLearningContentRepository
+    @ObservedObject var contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
@@ -15,7 +15,6 @@ struct MacMainView: View {
     @State private var selectedEntryID: String?
     @State private var route: MacWorkspaceRoute = .overview
     @State private var isEntryEditorPresented = false
-    @State private var contentRevision = 0
 
     var body: some View {
         HStack(spacing: 0) {
@@ -80,13 +79,11 @@ struct MacMainView: View {
         .animation(panelAnimation, value: isInspectorVisible)
         .sheet(isPresented: $isEntryEditorPresented) {
             EntryEditorView(languageSpace: languageSpace) { title, body in
-                let entry = contentRepository.createEntry(
-                    spaceID: languageSpace.id,
+                let entry = contentStore.createEntry(
                     title: title,
                     body: body,
                     source: .typedText
                 )
-                contentRevision += 1
                 selectedEntryID = entry.id
                 selectedSection = .entries
                 route = .entryDetail(entry.id)
@@ -94,20 +91,17 @@ struct MacMainView: View {
             }
         }
         .onAppear {
-            contentRepository.ensureSeeded(spaceID: languageSpace.id)
-            selectedEntryID = selectedEntryID ?? contentRepository.selectedEntry(for: languageSpace.id)?.id
-            contentRevision += 1
+            contentStore.ensureSeeded()
+            selectedEntryID = selectedEntryID ?? contentStore.selectedEntry?.id
         }
     }
 
     private var entries: [LearningEntry] {
-        _ = contentRevision
-        return contentRepository.entries(for: languageSpace.id)
+        contentStore.entries
     }
 
     private var memoryItems: [MemoryItem] {
-        _ = contentRevision
-        return contentRepository.memoryItems(for: languageSpace.id)
+        contentStore.memoryItems
     }
 
     private var selectedEntry: LearningEntry? {
@@ -115,7 +109,7 @@ struct MacMainView: View {
             return entry
         }
 
-        return contentRepository.selectedEntry(for: languageSpace.id)
+        return contentStore.selectedEntry
     }
 
     private var selectedRendering: LearningRendering? {
@@ -123,11 +117,11 @@ struct MacMainView: View {
             return nil
         }
 
-        return contentRepository.rendering(for: selectedEntry.id)
+        return contentStore.rendering(for: selectedEntry)
     }
 
     private var settingsCapabilities: [SettingsCapability] {
-        contentRepository.settingsCapabilities(for: languageSpace.id)
+        contentStore.settingsCapabilities
     }
 
     private var minimumWindowWidth: CGFloat {
@@ -152,7 +146,7 @@ struct MacMainView: View {
 
     private func showEntry(_ entry: LearningEntry) {
         selectedEntryID = entry.id
-        contentRepository.selectEntry(id: entry.id, spaceID: languageSpace.id)
+        contentStore.selectEntry(entry)
         route = .entryDetail(entry.id)
     }
 
@@ -220,7 +214,7 @@ struct MacMainView: View {
                     selectedRendering: selectedRendering,
                     memoryItems: memoryItems,
                     settingsCapabilities: settingsCapabilities,
-                    contentRepository: contentRepository,
+                    contentStore: contentStore,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
                     onShowEntry: showEntry,
@@ -256,7 +250,7 @@ struct MacMainView: View {
                     selectedSection: selectedSection,
                     entries: entries,
                     settingsCapabilities: settingsCapabilities,
-                    contentRepository: contentRepository
+                    contentStore: contentStore
                 )
                 Spacer()
             }

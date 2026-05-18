@@ -12,7 +12,7 @@ struct MacWorkspaceContentView: View {
     let selectedRendering: LearningRendering?
     let memoryItems: [MemoryItem]
     let settingsCapabilities: [SettingsCapability]
-    let contentRepository: InMemoryLearningContentRepository
+    let contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
     let onShowEntry: (LearningEntry) -> Void
@@ -63,7 +63,7 @@ struct MacWorkspaceContentView: View {
                     languageSpace: languageSpace,
                     entry: selectedEntry,
                     rendering: selectedRendering,
-                    practiceItems: contentRepository.practiceItems(for: selectedEntry.id),
+                    practiceItems: contentStore.practiceItems(for: selectedEntry),
                     onPractice: { onRoute(.practice(selectedEntry.id)) }
                 )
             } else {
@@ -110,7 +110,7 @@ struct MacWorkspaceContentView: View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader(titleKey: "mac.practice.section.title", subtitleKey: "mac.practice.section.subtitle")
             ForEach(entries) { entry in
-                let items = contentRepository.practiceItems(for: entry.id)
+                let items = contentStore.practiceItems(for: entry)
                 if items.isEmpty {
                     CapabilityStatusRow(
                         title: entry.title,
@@ -169,8 +169,8 @@ struct MacWorkspaceContentView: View {
             EntryDetailView(
                 languageSpace: languageSpace,
                 entry: entry,
-                rendering: contentRepository.rendering(for: entry.id),
-                practiceItems: contentRepository.practiceItems(for: entry.id),
+                rendering: contentStore.rendering(for: entry),
+                practiceItems: contentStore.practiceItems(for: entry),
                 onPractice: { onRoute(.practice(entry.id)) }
             )
         } else {
@@ -187,8 +187,8 @@ struct MacWorkspaceContentView: View {
         if let entry = entries.first(where: { $0.id == entryID }) {
             PracticeSessionView(
                 entry: entry,
-                rendering: contentRepository.rendering(for: entry.id),
-                session: contentRepository.practiceSession(for: entry.id)
+                rendering: contentStore.rendering(for: entry),
+                session: contentStore.practiceSession(for: entry)
             )
         } else {
             LocalizedCompactPanel(

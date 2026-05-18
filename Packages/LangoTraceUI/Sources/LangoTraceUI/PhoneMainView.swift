@@ -4,14 +4,13 @@ import SwiftUI
 
 struct PhoneMainView: View {
     let languageSpace: LanguageSpacePreview
-    let contentRepository: InMemoryLearningContentRepository
+    @ObservedObject var contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
     @State private var selectedTab: PhoneRootTab = .today
     @State private var navigationPath: [PhoneRoute] = []
     @State private var presentedSheet: PhoneSheet?
-    @State private var contentRevision = 0
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -54,7 +53,7 @@ struct PhoneMainView: View {
                 PracticeView(
                     languageSpace: languageSpace,
                     entries: entries,
-                    repository: contentRepository,
+                    contentStore: contentStore,
                     onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
                     onPractice: { entry in navigationPath.append(.practice(entry.id)) }
                 )
@@ -69,7 +68,7 @@ struct PhoneMainView: View {
 
                 MemoryView(
                     languageSpace: languageSpace,
-                    memoryItems: contentRepository.memoryItems(for: languageSpace.id),
+                    memoryItems: contentStore.memoryItems,
                     onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) }
                 )
                 .tabItem {
@@ -83,7 +82,7 @@ struct PhoneMainView: View {
 
                 SettingsView(
                     languageSpace: languageSpace,
-                    capabilities: contentRepository.settingsCapabilities(for: languageSpace.id),
+                    capabilities: contentStore.settingsCapabilities,
                     onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
                     onSelectCapability: { kind in navigationPath.append(.settings(kind)) }
                 )
@@ -105,7 +104,7 @@ struct PhoneMainView: View {
                             languageSpace: languageSpace,
                             entry: entry,
                             rendering: rendering(for: entry),
-                            practiceItems: contentRepository.practiceItems(for: entry.id),
+                            practiceItems: contentStore.practiceItems(for: entry),
                             onPractice: { navigationPath.append(.practice(entry.id)) }
                         )
                     }
@@ -114,7 +113,7 @@ struct PhoneMainView: View {
                         PracticeSessionView(
                             entry: entry,
                             rendering: rendering(for: entry),
-                            session: contentRepository.practiceSession(for: entry.id)
+                            session: contentStore.practiceSession(for: entry)
                         )
                     }
                 case let .settings(kind):
@@ -132,13 +131,11 @@ struct PhoneMainView: View {
                 switch sheet {
                 case .entryEditor:
                     EntryEditorView(languageSpace: languageSpace) { title, body in
-                        let entry = contentRepository.createEntry(
-                            spaceID: languageSpace.id,
+                        let entry = contentStore.createEntry(
                             title: title,
                             body: body,
                             source: .typedText
                         )
-                        contentRevision += 1
                         presentedSheet = nil
                         navigationPath.append(.entryDetail(entry.id))
                     }
@@ -148,33 +145,29 @@ struct PhoneMainView: View {
                 }
             }
             .onAppear {
-                contentRepository.ensureSeeded(spaceID: languageSpace.id)
-                contentRevision += 1
+                contentStore.ensureSeeded()
             }
         }
     }
 
     private var entries: [LearningEntry] {
-        _ = contentRevision
-        return contentRepository.entries(for: languageSpace.id)
+        contentStore.entries
     }
 
     private func entry(id: String) -> LearningEntry? {
-        entries.first { $0.id == id }
+        contentStore.entry(id: id)
     }
 
     private func rendering(for entry: LearningEntry) -> LearningRendering? {
-        contentRepository.rendering(for: entry.id)
+        contentStore.rendering(for: entry)
     }
 
     private func capability(kind: SettingsCapability.Kind) -> SettingsCapability? {
-        contentRepository
-            .settingsCapabilities(for: languageSpace.id)
-            .first { $0.kind == kind }
+        contentStore.capability(kind: kind)
     }
 
     private func showEntryDetail(_ entry: LearningEntry) {
-        contentRepository.selectEntry(id: entry.id, spaceID: languageSpace.id)
+        contentStore.selectEntry(entry)
         navigationPath.append(.entryDetail(entry.id))
     }
 }
