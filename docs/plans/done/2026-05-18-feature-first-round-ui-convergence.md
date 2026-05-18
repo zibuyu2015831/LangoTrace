@@ -950,6 +950,30 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 - 未执行截图矩阵或真机手动验证；本轮以 package tests、iOS/iPad/macOS build、状态扫描和文档同步作为自动化收口依据。
 - 真实 AI Provider、TTS/Speech/OCR、同步、StoreKit、语言空间持久化、语言空间删除、完整深色模式和高对比验证均未在本轮实现。
 
+### 2026-05-18 阶段 11：Post-closeout code audit and simulator smoke verification
+
+处理范围：
+
+- 对前序提交后的代码状态执行严格复查：统一验证脚本、面向迁移风险的 `rg` 扫描、构建产物资源检查和模拟器主界面烟测。
+- 复查发现 `MacMainView` 仍有 `INSPECTOR` 硬编码标题，已改为 `mac.inspector.title` 并补入 String Catalog。
+- iPhone 17 模拟器首轮烟测发现 Swift Package String Catalog 安装到 App 后只保留编译后的 `.lproj/Localizable.strings`，`LocalizedChromeCatalog` 原先只读取源码态 `.xcstrings`，导致运行态显示 `welcome.*` / `common.*` key。
+- `LocalizedChromeCatalog` 已改为源码态 `.xcstrings` 优先，运行态 fallback 到 `Bundle.module` 编译后 `.lproj` 资源，并保留 `zh-Hans` / language-code / English fallback 顺序。
+
+验证结果：
+
+- `scripts/verify.sh` 通过：XcodeGen、Core / Data / UI package tests、iPhone 17 build、iPad Pro 13-inch (M5) build、macOS arm64 build、SwiftLint、SwiftFormat 和文档占位扫描均完成。
+- SwiftLint 仍只有既有 3 个 warning：`PremiumUIBehaviorTests.swift` line length / type body length、`LearningContentComponents.swift` file length。
+- 运行态资源检查确认 iOS Debug app bundle 包含 `LangoTraceUI_LangoTraceUI.bundle/*/*.lproj/Localizable.strings`，并能解析 `welcome.headline`、`common.continue`、`mac.inspector.title`。
+- iPhone 17 模拟器已关机重启，重新安装并启动 `com.zibuyu.LangoTrace`。
+- 首屏截图：`/private/tmp/langotrace-ui-review/iphone17-launch-after-localization-fix.png`，未再显示 localization key。
+- 通过 Welcome -> Onboarding -> 创建语言空间进入主界面；主记录页截图：`/private/tmp/langotrace-ui-review/iphone17-main-after-localization-fix.png`。
+- 练习页截图：`/private/tmp/langotrace-ui-review/iphone17-practice-after-localization-fix.png`。
+
+剩余边界：
+
+- 本轮模拟器烟测覆盖 iPhone 17 的首屏、onboarding、主记录页和练习页；未扩展为完整 iPad / macOS 截图矩阵。
+- 真实数据、AI、TTS/Speech/OCR、同步、StoreKit、语言空间持久化和语言空间删除仍按既有后续方案处理。
+
 ## 17. 完成标准
 
 本任务完成必须同时满足：

@@ -57,26 +57,78 @@ private struct LocalizedChromeCatalog {
     }
 
     func localizedString(for key: String, preferredLanguageCodes: [String]) -> String {
-        guard let localizations = strings[key] else {
-            return key
+        let languageCandidates = languageCandidates(for: preferredLanguageCodes)
+
+        if let localizations = strings[key] {
+            for identifier in languageCandidates {
+                if let exact = localizations[identifier] {
+                    return exact
+                }
+
+                let languageCode = identifier.split(separator: "-").first.map(String.init)
+                if languageCode == "zh", let simplifiedChinese = localizations["zh-Hans"] {
+                    return simplifiedChinese
+                }
+
+                if let languageCode, let languageMatch = localizations[languageCode] {
+                    return languageMatch
+                }
+            }
+
+            return localizations["en"] ?? localizations["zh-Hans"] ?? key
+        }
+
+        if let compiledValue = compiledLocalizedString(for: key, languageCandidates: languageCandidates) {
+            return compiledValue
+        }
+
+        return key
+    }
+
+    private func compiledLocalizedString(for key: String, languageCandidates: [String]) -> String? {
+        for identifier in languageCandidates {
+            guard
+                let path = Bundle.module.path(forResource: identifier, ofType: "lproj"),
+                let bundle = Bundle(path: path)
+            else {
+                continue
+            }
+
+            let value = bundle.localizedString(forKey: key, value: nil, table: nil)
+            if value != key {
+                return value
+            }
+        }
+
+        let fallback = Bundle.module.localizedString(forKey: key, value: nil, table: nil)
+        return fallback == key ? nil : fallback
+    }
+
+    private func languageCandidates(for preferredLanguageCodes: [String]) -> [String] {
+        var candidates: [String] = []
+
+        func append(_ identifier: String) {
+            guard !candidates.contains(identifier) else {
+                return
+            }
+            candidates.append(identifier)
         }
 
         for identifier in preferredLanguageCodes {
-            if let exact = localizations[identifier] {
-                return exact
-            }
+            let normalized = identifier.replacingOccurrences(of: "_", with: "-")
+            append(normalized)
 
-            let languageCode = identifier.split(separator: "-").first.map(String.init)
-            if languageCode == "zh", let simplifiedChinese = localizations["zh-Hans"] {
-                return simplifiedChinese
-            }
-
-            if let languageCode, let languageMatch = localizations[languageCode] {
-                return languageMatch
+            if let languageCode = normalized.split(separator: "-").first.map(String.init) {
+                if languageCode == "zh" {
+                    append("zh-Hans")
+                }
+                append(languageCode)
             }
         }
 
-        return localizations["en"] ?? localizations["zh-Hans"] ?? key
+        append("en")
+        append("zh-Hans")
+        return candidates
     }
 }
 
