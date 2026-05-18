@@ -18,18 +18,24 @@ struct MacInspectorContent: View {
         case let .entryDetail(entryID):
             if let entry = entries.first(where: { $0.id == entryID }) {
                 TextPanel(
-                    title: "记录元数据",
+                    title: localizedString("mac.inspector.entryMetadata.title"),
                     text: "\(entry.displaySourceTitle) · \(entry.scene) · \(entry.practiceSummary)"
                 )
                 RequestPreviewCard(entry: entry, rendering: contentRepository.rendering(for: entry.id))
                 memoryCandidates(for: entry)
-                TextPanel(title: "隐私边界", text: "当前详情只读取内存 mock 内容，不访问网络、Keychain 或真实数据库。")
+                LocalizedTextPanel(titleKey: "mac.inspector.privacy.title", textKey: "mac.inspector.privacy.body")
             } else {
-                TextPanel(title: "没有记录", text: "请选择记录库中的记录。")
+                LocalizedTextPanel(titleKey: "mac.inspector.noEntry.title", textKey: "mac.inspector.noEntry.body")
             }
         case .practice:
-            TextPanel(title: "练习状态", text: "当前只切换本地 mock 练习步骤，不播放音频、不录音、不保存结果。")
-            TextPanel(title: "后续能力", text: "语音播放、录音、评分和听写结果需要 Speech / TTS 模块接入。")
+            LocalizedTextPanel(
+                titleKey: "mac.inspector.practiceStatus.title",
+                textKey: "mac.inspector.practiceStatus.body"
+            )
+            LocalizedTextPanel(
+                titleKey: "mac.inspector.nextCapability.title",
+                textKey: "mac.inspector.nextCapability.body"
+            )
         case let .settings(kind):
             if let capability = settingsCapabilities.first(where: { $0.kind == kind }) {
                 LocalizedTextPanel(
@@ -78,17 +84,17 @@ struct MacInspectorContent: View {
     private var overviewInspector: some View {
         switch selectedSection {
         case .today:
-            TextPanel(title: "本地优先", text: "今日工作台使用内存 mock 内容，用于验证 Mac 页面闭环。")
+            LocalizedTextPanel(titleKey: "mac.inspector.today.title", textKey: "mac.inspector.today.body")
         case .entries:
-            TextPanel(title: "记录库", text: "选择一条记录后，Inspector 会显示请求预览和隐私边界。")
+            LocalizedTextPanel(titleKey: "mac.inspector.entries.title", textKey: "mac.inspector.entries.body")
         case .practice:
-            TextPanel(title: "练习", text: "练习会话为 Local Mock，不接入真实音频和录音。")
+            LocalizedTextPanel(titleKey: "mac.inspector.practice.title", textKey: "mac.inspector.practice.body")
         case .memory:
-            TextPanel(title: "记忆", text: "向量索引是本地可重建派生数据，当前未接入。")
+            LocalizedTextPanel(titleKey: "mac.inspector.memory.title", textKey: "mac.inspector.memory.body")
         case .importExport:
-            TextPanel(title: "导入导出", text: "导入导出需要真实数据库、附件目录和文件安全边界后再实现。")
+            LocalizedTextPanel(titleKey: "mac.inspector.importExport.title", textKey: "mac.inspector.importExport.body")
         case .settings:
-            TextPanel(title: "设置", text: "设置页展示能力边界，不保存 API Key、同步配置或导出文件。")
+            LocalizedTextPanel(titleKey: "mac.inspector.settings.title", textKey: "mac.inspector.settings.body")
         }
     }
 }

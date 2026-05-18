@@ -38,12 +38,20 @@ struct MacMainView: View {
                 Button {
                     isSidebarVisible.toggle()
                 } label: {
-                    Label(isSidebarVisible ? "隐藏侧边栏" : "显示侧边栏", systemImage: "sidebar.left")
+                    Label {
+                        localizedText(isSidebarVisible ? "mac.sidebar.hide" : "mac.sidebar.show")
+                    } icon: {
+                        Image(systemName: "sidebar.left")
+                    }
                 }
                 Button {
                     isInspectorVisible.toggle()
                 } label: {
-                    Label(isInspectorVisible ? "隐藏检查器" : "显示检查器", systemImage: "sidebar.right")
+                    Label {
+                        localizedText(isInspectorVisible ? "mac.inspector.hide" : "mac.inspector.show")
+                    } icon: {
+                        Image(systemName: "sidebar.right")
+                    }
                 }
             }
             ToolbarItemGroup(placement: .primaryAction) {
@@ -153,6 +161,10 @@ struct MacMainView: View {
         route = action.route
     }
 
+    private func selectionAccessibilityValue(for section: MacWorkspaceSection) -> Text {
+        localizedText(selectedSection == section ? "accessibility.selected" : "accessibility.unselected")
+    }
+
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text(ProductIdentity.displayName)
@@ -164,7 +176,7 @@ struct MacMainView: View {
                         selectSection(section)
                     } label: {
                         SideItem(
-                            title: section.title,
+                            title: localizedString(section.titleKey),
                             subtitle: section.subtitle(
                                 entriesCount: entries.count,
                                 memoryCount: memoryItems.count
@@ -173,8 +185,8 @@ struct MacMainView: View {
                         )
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(section.title)
-                    .accessibilityValue(selectedSection == section ? "当前选中" : "未选中")
+                    .accessibilityLabel(localizedText(section.titleKey))
+                    .accessibilityValue(selectionAccessibilityValue(for: section))
                 }
             }
 
@@ -224,9 +236,9 @@ struct MacMainView: View {
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 8) {
-                Text(selectedSection.title)
+                localizedText(selectedSection.titleKey)
                     .font(.largeTitle.weight(.semibold))
-                Text(selectedSection.description)
+                localizedText(selectedSection.descriptionKey)
                     .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
             }
             Spacer()

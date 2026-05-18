@@ -6,16 +6,16 @@ enum PadFilter: String, CaseIterable, Equatable {
     case needsPractice
     case memorized
 
-    var title: String {
+    var titleKey: String {
         switch self {
         case .all:
-            "全部记录"
+            "pad.filter.all"
         case .photoWriting:
-            "照片写作"
+            "entrySource.photoWriting"
         case .needsPractice:
-            "待练习"
+            "pad.filter.needsPractice"
         case .memorized:
-            "已入记忆"
+            "pad.filter.memorized"
         }
     }
 
@@ -26,7 +26,7 @@ enum PadFilter: String, CaseIterable, Equatable {
         case .photoWriting:
             entry.source == .photoWriting
         case .needsPractice:
-            entry.practiceSummary.contains("待") || entry.practiceSummary.contains("练习")
+            !memoryItems.contains { $0.entryID == entry.id }
         case .memorized:
             memoryItems.contains { $0.entryID == entry.id }
         }
@@ -43,22 +43,22 @@ enum PadWorkspaceRoute: Equatable {
     case importExport
     case languageSpaceUnavailable
 
-    var navigationTitle: String {
+    var navigationTitleKey: String {
         switch self {
         case .workspace:
-            "工作台"
+            "pad.route.workspace"
         case .entryDetail:
-            "记录详情"
+            "entryDetail.title"
         case .practice:
-            "练习"
+            "tab.practice"
         case .settingsList, .settings:
-            "设置"
+            "tab.settings"
         case .memory:
-            "记忆"
+            "tab.memory"
         case .importExport:
-            "导入导出"
+            "mac.section.importExport"
         case .languageSpaceUnavailable:
-            "语言空间"
+            "settings.languageSpace.title"
         }
     }
 }

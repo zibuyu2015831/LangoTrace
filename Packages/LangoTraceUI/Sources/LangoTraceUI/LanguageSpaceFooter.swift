@@ -33,7 +33,9 @@ struct LanguageSpaceFooter: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("当前语言空间，\(languageSpace.displayContext)")
+                .accessibilityLabel(
+                    localizedString("languageSpace.current.accessibilityLabel", languageSpace.displayContext)
+                )
 
                 HStack(spacing: isCompact ? 4 : 6) {
                     PrivacyStatusIconButton(
@@ -78,7 +80,7 @@ struct LanguageSpaceFooter: View {
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("设置")
+                .accessibilityLabel(localizedText("tab.settings"))
             }
         }
         .padding(.top, isCompact ? 10 : 12)
@@ -239,7 +241,7 @@ private struct PrivacyStatusTipView: View {
                         .frame(width: 24, height: 24)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("关闭状态说明")
+                .accessibilityLabel(localizedText("privacyStatus.close"))
             }
             Text(popover.value)
                 .font(.subheadline.weight(.semibold))

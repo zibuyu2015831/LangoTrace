@@ -8,54 +8,54 @@ enum MacWorkspaceSection: CaseIterable, Hashable {
     case importExport
     case settings
 
-    var title: String {
+    var titleKey: String {
         switch self {
         case .today:
-            "今日"
+            "tab.today"
         case .entries:
-            "记录库"
+            "mac.section.entries"
         case .practice:
-            "练习"
+            "tab.practice"
         case .memory:
-            "词句记忆"
+            "mac.section.memory"
         case .importExport:
-            "导入导出"
+            "mac.section.importExport"
         case .settings:
-            "设置"
+            "tab.settings"
         }
     }
 
-    var description: String {
+    var descriptionKey: String {
         switch self {
         case .today:
-            "继续整理今天的生活记录和学习材料。当前为 Mac Local Mock 工作台。"
+            "mac.section.today.description"
         case .entries:
-            "浏览、选择和进入记录详情。真实搜索与批量管理后续接入。"
+            "mac.section.entries.description"
         case .practice:
-            "从已有生活记录进入本地 mock 练习会话。"
+            "mac.section.practice.description"
         case .memory:
-            "查看来自生活上下文的词句记忆和向量索引边界。"
+            "mac.section.memory.description"
         case .importExport:
-            "预留批量导入、导出和附件整理位置，当前不可用。"
+            "mac.section.importExport.description"
         case .settings:
-            "查看语言空间、AI、同步、本地数据和隐私边界。"
+            "mac.section.settings.description"
         }
     }
 
     func subtitle(entriesCount: Int, memoryCount: Int) -> String {
         switch self {
         case .today:
-            "继续当前记录"
+            localizedString("mac.section.today.subtitle")
         case .entries:
-            "\(entriesCount) 条生活片段"
+            localizedString("mac.section.entries.subtitle", entriesCount)
         case .practice:
-            "Local Mock 会话"
+            localizedString("mac.section.practice.subtitle")
         case .memory:
-            "\(memoryCount) 条词句"
+            localizedString("mac.section.memory.subtitle", memoryCount)
         case .importExport:
-            "未接入文件能力"
+            localizedString("mac.section.importExport.subtitle")
         case .settings:
-            "只读能力边界"
+            localizedString("mac.section.settings.subtitle")
         }
     }
 }

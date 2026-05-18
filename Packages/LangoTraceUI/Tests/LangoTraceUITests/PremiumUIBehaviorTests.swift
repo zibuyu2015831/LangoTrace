@@ -13,8 +13,9 @@ struct PremiumUIBehaviorTests {
         )
 
         #expect(!copy.body.contains("即将发送"))
-        #expect(copy.body.contains("当前不会发送"))
-        #expect(copy.body.contains("真实接入后"))
+        #expect(copy.body.contains("雨天咖啡馆"))
+        #expect(copy.body.contains("自然表达"))
+        #expect(copy.body != RequestPreviewCopy.externalRequest(entryTitle: "雨天咖啡馆", promptLabel: "自然表达").body)
     }
 
     @Test("External request previews are reserved for explicit provider requests")
@@ -24,8 +25,9 @@ struct PremiumUIBehaviorTests {
             promptLabel: "自然表达"
         )
 
-        #expect(copy.body.contains("将发送"))
-        #expect(!copy.body.contains("当前不会发送"))
+        #expect(copy.body.contains("雨天咖啡馆"))
+        #expect(copy.body.contains("自然表达"))
+        #expect(copy.body != RequestPreviewCopy.localMock(entryTitle: "雨天咖啡馆", promptLabel: "自然表达").body)
     }
 
     @Test("iPad compact width protects the main column by hiding the learning panel")
@@ -141,6 +143,25 @@ struct PremiumUIBehaviorTests {
             for snippet in forbiddenSnippets {
                 #expect(!source.contains(snippet))
             }
+        }
+    }
+
+    @Test("LangoTraceUI Swift chrome contains no hard-coded Han characters")
+    func langoTraceUISwiftChromeContainsNoHardCodedHanCharacters() throws {
+        let sourcesRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources")
+            .appendingPathComponent("LangoTraceUI")
+        let sourceFiles = FileManager.default
+            .enumerator(at: sourcesRoot, includingPropertiesForKeys: nil)?
+            .compactMap { $0 as? URL }
+            .filter { $0.pathExtension == "swift" } ?? []
+
+        for sourceFile in sourceFiles {
+            let source = try String(contentsOf: sourceFile, encoding: .utf8)
+            #expect(source.range(of: #"\p{script=Han}"#, options: .regularExpression) == nil)
         }
     }
 

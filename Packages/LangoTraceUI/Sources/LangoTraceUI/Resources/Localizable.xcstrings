@@ -5054,6 +5054,2505 @@
           }
         }
       }
+    },
+    "accessibility.selected": {
+      "comment": "Accessibility value for selected UI item.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前选中"
+          }
+        }
+      }
+    },
+    "accessibility.unselected": {
+      "comment": "Accessibility value for unselected UI item.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选中"
+          }
+        }
+      }
+    },
+    "accessibility.selectedCount": {
+      "comment": "Accessibility value for selected filter count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected, %@ items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前选中，%@ 项"
+          }
+        }
+      }
+    },
+    "accessibility.unselectedCount": {
+      "comment": "Accessibility value for unselected filter count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not selected, %@ items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选中，%@ 项"
+          }
+        }
+      }
+    },
+    "accessibility.visible": {
+      "comment": "Accessibility value for visible panel.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visible"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可见"
+          }
+        }
+      }
+    },
+    "accessibility.hidden": {
+      "comment": "Accessibility value for hidden panel.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidden"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏"
+          }
+        }
+      }
+    },
+    "common.newEntry.short": {
+      "comment": "Short new entry button label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建"
+          }
+        }
+      }
+    },
+    "entrySource.typedText": {
+      "comment": "Entry source title for typed text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typed Text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文本输入"
+          }
+        }
+      }
+    },
+    "entrySource.targetLanguageWriting": {
+      "comment": "Entry source title for target language writing.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target-language Writing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标语写作"
+          }
+        }
+      }
+    },
+    "practiceStep.prepare": {
+      "comment": "Practice step title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备"
+          }
+        }
+      }
+    },
+    "practiceStep.shadow": {
+      "comment": "Practice step title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟读"
+          }
+        }
+      }
+    },
+    "practiceStep.compare": {
+      "comment": "Practice step title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compare"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对照"
+          }
+        }
+      }
+    },
+    "practiceStep.completed": {
+      "comment": "Practice step title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
+          }
+        }
+      }
+    },
+    "practiceStep.prepareMaterial": {
+      "comment": "Practice step panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare Material"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备材料"
+          }
+        }
+      }
+    },
+    "practiceStep.prepare.body": {
+      "comment": "Practice step body copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the source entry and target-language version before starting."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先阅读生活记录和目标语言版本，再开始练习。"
+          }
+        }
+      }
+    },
+    "practiceStep.compare.body": {
+      "comment": "Practice step compare body copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compare your recall with the target-language version and mark the phrases to review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对照回忆内容和目标语言版本，标出需要复习的词句。"
+          }
+        }
+      }
+    },
+    "practiceStep.completed.body": {
+      "comment": "Practice step completed body copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This mock session is complete. Real scoring and recording are not connected yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地 mock 练习已完成，真实评分和录音尚未接入。"
+          }
+        }
+      }
+    },
+    "entry.nativeRecord.title": {
+      "comment": "Native language entry panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native Record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "母语记录"
+          }
+        }
+      }
+    },
+    "entry.targetLanguage.title": {
+      "comment": "Target language entry panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target Language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标语言"
+          }
+        }
+      }
+    },
+    "entry.rendering.pending": {
+      "comment": "Fallback text before rendering exists.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for generation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待生成"
+          }
+        }
+      }
+    },
+    "entryCard.openDetail.label": {
+      "comment": "Entry card accessibility label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open detail for %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开 %@ 的详情"
+          }
+        }
+      }
+    },
+    "phone.today.status": {
+      "comment": "Phone Today page status.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today starts from one life entry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天从一条生活记录开始。"
+          }
+        }
+      }
+    },
+    "phone.today.recent.title": {
+      "comment": "Recent entries section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent Life Entries"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近的生活记录"
+          }
+        }
+      }
+    },
+    "phone.today.recent.subtitle": {
+      "comment": "Recent entries section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one entry to inspect its mock learning material."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一条记录查看本地 mock 学习材料。"
+          }
+        }
+      }
+    },
+    "phone.entries.status": {
+      "comment": "Phone entries page status.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local mock entries only. SQLite is not connected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前仅为本地 mock 记录，SQLite 尚未接入。"
+          }
+        }
+      }
+    },
+    "phone.entries.continue.title": {
+      "comment": "Entries section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue From Entries"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从记录继续"
+          }
+        }
+      }
+    },
+    "phone.entries.continue.subtitle": {
+      "comment": "Entries section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review source, target-language text, request preview, and practice entry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看原文、目标语文本、请求预览和练习入口。"
+          }
+        }
+      }
+    },
+    "phone.practice.status": {
+      "comment": "Phone practice page status.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice %@ from life entries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从生活记录练习 %@。"
+          }
+        }
+      }
+    },
+    "phone.practice.fromLife.title": {
+      "comment": "Practice section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice From Life"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从生活进入练习"
+          }
+        }
+      }
+    },
+    "phone.practice.fromLife.subtitle": {
+      "comment": "Practice section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mock sessions only. Audio, recording, and scoring are unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前仅为 mock 会话，音频、录音和评分尚未接入。"
+          }
+        }
+      }
+    },
+    "phone.practice.empty.title": {
+      "comment": "Empty practice panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Practice Content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有练习内容"
+          }
+        }
+      }
+    },
+    "phone.practice.empty.body": {
+      "comment": "Empty practice panel body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create or select an entry with mock learning material first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先创建或选择带有 mock 学习材料的记录。"
+          }
+        }
+      }
+    },
+    "practice.empty.summary": {
+      "comment": "Empty practice row summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No mock rendering is available for this entry yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条记录还没有 mock rendering。"
+          }
+        }
+      }
+    },
+    "phone.memory.status": {
+      "comment": "Phone memory page status.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory items are local mock extracts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记忆项为本地 mock 提取结果。"
+          }
+        }
+      }
+    },
+    "phone.memory.personal.title": {
+      "comment": "Memory section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal Phrases"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人词句"
+          }
+        }
+      }
+    },
+    "phone.memory.personal.subtitle": {
+      "comment": "Memory section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collected from life-entry context. Vector search is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自生活记录上下文；向量搜索尚未接入。"
+          }
+        }
+      }
+    },
+    "memory.vectorIndex.title": {
+      "comment": "Vector index panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vector Index"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向量索引"
+          }
+        }
+      }
+    },
+    "memory.vectorIndex.body": {
+      "comment": "Vector index panel body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The vector index is a rebuildable local derived data set and is not connected in this build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向量索引是可重建的本地派生数据，当前尚未接入。"
+          }
+        }
+      }
+    },
+    "phone.settings.status": {
+      "comment": "Phone settings page status.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only capability boundaries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读能力边界说明。"
+          }
+        }
+      }
+    },
+    "phone.settings.currentSpace.title": {
+      "comment": "Settings section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current Space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前空间"
+          }
+        }
+      }
+    },
+    "phone.settings.currentSpace.subtitle": {
+      "comment": "Settings section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI, sync, local data, and privacy boundaries are visible but not configurable yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI、同步、本地数据和隐私边界可查看，尚不能真实配置。"
+          }
+        }
+      }
+    },
+    "languageSpace.switcher.label": {
+      "comment": "Language switcher accessibility label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language space switcher"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言空间切换"
+          }
+        }
+      }
+    },
+    "languageSpace.switcher.hint": {
+      "comment": "Language switcher accessibility hint.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language switching is unavailable in this build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本尚未接入语言空间切换。"
+          }
+        }
+      }
+    },
+    "languageSpace.current.accessibilityLabel": {
+      "comment": "Current language space accessibility label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current language space, %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前语言空间，%@"
+          }
+        }
+      }
+    },
+    "entryDetail.sentences.title": {
+      "comment": "Entry detail sentence list title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentence Practice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "逐句练习"
+          }
+        }
+      }
+    },
+    "entryDetail.sentences.subtitle": {
+      "comment": "Entry detail sentence list subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move from a real-life entry into listening, reading, shadowing, and back translation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从真实记录进入听、读、跟读和回译。"
+          }
+        }
+      }
+    },
+    "entryDetail.practiceEntry.title": {
+      "comment": "Entry detail practice entry section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice Entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入练习"
+          }
+        }
+      }
+    },
+    "entryDetail.practiceEntry.subtitle": {
+      "comment": "Entry detail practice entry section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mock practice is local and does not play audio or record voice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地 mock 练习不会播放音频或录音。"
+          }
+        }
+      }
+    },
+    "practice.shadowing.title": {
+      "comment": "Practice view section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟读练习"
+          }
+        }
+      }
+    },
+    "practice.noContent.title": {
+      "comment": "No practice content title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Practice Content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有练习内容"
+          }
+        }
+      }
+    },
+    "practice.noContent.summary": {
+      "comment": "No practice content summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This entry does not have mock practice content yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条记录还没有 mock 练习内容。"
+          }
+        }
+      }
+    },
+    "practice.sourceBoundary": {
+      "comment": "Practice source boundary copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source: %@. This mock session stays local."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源：%@。本地 mock 会话不会离开设备。"
+          }
+        }
+      }
+    },
+    "ipad.timeline.hide": {
+      "comment": "iPad toolbar button label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Timeline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏时间线"
+          }
+        }
+      }
+    },
+    "ipad.timeline.show": {
+      "comment": "iPad toolbar button label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Timeline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示时间线"
+          }
+        }
+      }
+    },
+    "ipad.learningPanel.hide": {
+      "comment": "iPad toolbar button label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Learning Panel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏学习面板"
+          }
+        }
+      }
+    },
+    "ipad.learningPanel.show": {
+      "comment": "iPad toolbar button label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Learning Panel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示学习面板"
+          }
+        }
+      }
+    },
+    "pad.sidebar.timeline": {
+      "comment": "iPad sidebar section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timeline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间线"
+          }
+        }
+      }
+    },
+    "pad.sidebar.filters": {
+      "comment": "iPad sidebar section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "筛选"
+          }
+        }
+      }
+    },
+    "pad.sidebar.pages": {
+      "comment": "iPad sidebar section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "页面"
+          }
+        }
+      }
+    },
+    "pad.filter.all": {
+      "comment": "iPad filter title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部"
+          }
+        }
+      }
+    },
+    "pad.filter.needsPractice": {
+      "comment": "iPad filter title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs Practice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待练习"
+          }
+        }
+      }
+    },
+    "pad.filter.memorized": {
+      "comment": "iPad filter title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memorized"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记忆"
+          }
+        }
+      }
+    },
+    "pad.sentences.title": {
+      "comment": "iPad sentence section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentence Practice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "逐句练习"
+          }
+        }
+      }
+    },
+    "pad.sentences.subtitle": {
+      "comment": "iPad sentence section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move from a real-life entry into listening, reading, shadowing, and back translation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从真实记录进入听、读、跟读和回译。"
+          }
+        }
+      }
+    },
+    "pad.settings.section.title": {
+      "comment": "iPad settings section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
+          }
+        }
+      }
+    },
+    "pad.settings.section.subtitle": {
+      "comment": "iPad settings section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only capability boundaries. Real settings are not saved yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前只读说明能力边界，不保存真实配置。"
+          }
+        }
+      }
+    },
+    "pad.memory.section.title": {
+      "comment": "iPad memory section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记忆"
+          }
+        }
+      }
+    },
+    "pad.memory.section.subtitle": {
+      "comment": "iPad memory section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phrases, similar snippets, and long-term traces."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "词句、相似片段和长期轨迹。"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.title": {
+      "comment": "iPad learning panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learning Panel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "学习面板"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.subtitle": {
+      "comment": "iPad learning panel subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generated around the current entry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "围绕当前记录生成。"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.empty.title": {
+      "comment": "iPad learning panel empty title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有记录"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.empty.body": {
+      "comment": "iPad learning panel empty body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After the first life entry is created, this panel shows request previews, phrase extraction, and practice entry points."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建第一条生活记录后，这里会展示请求预览、词句提取和练习入口。"
+          }
+        }
+      }
+    },
+    "pad.currentSentence.title": {
+      "comment": "iPad current sentence title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current Sentence Notes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前句讲解"
+          }
+        }
+      }
+    },
+    "pad.currentSentence.pending": {
+      "comment": "iPad current sentence pending text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentence notes appear after generation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待生成后显示句子讲解。"
+          }
+        }
+      }
+    },
+    "pad.memoryExtraction.title": {
+      "comment": "iPad memory extraction title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phrase Extraction"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "词句提取"
+          }
+        }
+      }
+    },
+    "pad.practiceEntry.title": {
+      "comment": "iPad practice entry title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Practice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入练习"
+          }
+        }
+      }
+    },
+    "pad.spaceSettings.title": {
+      "comment": "iPad space settings title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间设置"
+          }
+        }
+      }
+    },
+    "pad.spaceSettings.summary": {
+      "comment": "iPad space settings summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View read-only AI, sync, local data, and privacy boundaries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看 AI、同步、本地数据和隐私边界的只读说明。"
+          }
+        }
+      }
+    },
+    "pad.memory.empty.summary": {
+      "comment": "iPad memory empty summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This entry has no extracted phrases yet. No AI call or vector index write occurs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条记录还没有提取词句。当前不会调用 AI，也不会写入向量索引。"
+          }
+        }
+      }
+    },
+    "pad.practice.empty.summary": {
+      "comment": "iPad practice empty summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This entry has no practice content yet. No external request is triggered before real generation is connected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条记录还没有可练习内容。真实生成能力接入前不会触发外部请求。"
+          }
+        }
+      }
+    },
+    "mac.sidebar.hide": {
+      "comment": "Mac toolbar label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Sidebar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏侧边栏"
+          }
+        }
+      }
+    },
+    "mac.sidebar.show": {
+      "comment": "Mac toolbar label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Sidebar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示侧边栏"
+          }
+        }
+      }
+    },
+    "mac.inspector.hide": {
+      "comment": "Mac toolbar label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Inspector"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏检查器"
+          }
+        }
+      }
+    },
+    "mac.inspector.show": {
+      "comment": "Mac toolbar label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Inspector"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示检查器"
+          }
+        }
+      }
+    },
+    "mac.section.today.description": {
+      "comment": "Mac section description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture one life moment and review its mock learning material."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录一个生活片段，并查看本地 mock 学习材料。"
+          }
+        }
+      }
+    },
+    "mac.section.entries.description": {
+      "comment": "Mac section description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse local mock entries and inspect request boundaries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浏览本地 mock 记录并检查请求边界。"
+          }
+        }
+      }
+    },
+    "mac.section.practice.description": {
+      "comment": "Mac section description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use life entries for shadowing, dictation, and back-translation practice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用生活记录进行跟读、听写和回译练习。"
+          }
+        }
+      }
+    },
+    "mac.section.memory.description": {
+      "comment": "Mac section description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review personal phrases extracted from life-entry context."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看从生活记录上下文提取的个人词句。"
+          }
+        }
+      }
+    },
+    "mac.section.importExport.description": {
+      "comment": "Mac section description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import and export remain unavailable until local storage is connected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地存储接入后再开放导入导出。"
+          }
+        }
+      }
+    },
+    "mac.section.settings.description": {
+      "comment": "Mac section description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read AI, sync, local data, and privacy boundaries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看 AI、同步、本地数据和隐私边界。"
+          }
+        }
+      }
+    },
+    "mac.section.today.subtitle": {
+      "comment": "Mac section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前空间"
+          }
+        }
+      }
+    },
+    "mac.section.entries.subtitle": {
+      "comment": "Mac entries section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d entries"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 条记录"
+          }
+        }
+      }
+    },
+    "mac.section.practice.subtitle": {
+      "comment": "Mac practice section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mock sessions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地 mock 会话"
+          }
+        }
+      }
+    },
+    "mac.section.memory.subtitle": {
+      "comment": "Mac memory section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d memory items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 个记忆项"
+          }
+        }
+      }
+    },
+    "mac.section.importExport.subtitle": {
+      "comment": "Mac import export section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未接入"
+          }
+        }
+      }
+    },
+    "mac.section.settings.subtitle": {
+      "comment": "Mac settings section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读"
+          }
+        }
+      }
+    },
+    "mac.today.empty.title": {
+      "comment": "Mac today empty title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Entries Yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有记录"
+          }
+        }
+      }
+    },
+    "mac.today.empty.body": {
+      "comment": "Mac today empty body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After the first life entry is created, request preview and learning material appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建第一条生活记录后，这里会显示请求预览和学习材料。"
+          }
+        }
+      }
+    },
+    "mac.searchFilter.title": {
+      "comment": "Mac search filter title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search and Filter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索与筛选"
+          }
+        }
+      }
+    },
+    "mac.searchFilter.summary": {
+      "comment": "Mac search filter summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQLite FTS5 and the local vector index are not connected yet. No real database query is made."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后续接 SQLite FTS5 与本地向量索引；当前不会查询真实数据库。"
+          }
+        }
+      }
+    },
+    "mac.bulkImport.title": {
+      "comment": "Mac bulk import title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bulk Import"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批量导入"
+          }
+        }
+      }
+    },
+    "mac.bulkImport.summary": {
+      "comment": "Mac bulk import summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown, image, and audio import require local data storage and attachment handling first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拖入 Markdown、图片或音频前，需要先完成本地数据层和附件存储。"
+          }
+        }
+      }
+    },
+    "mac.entries.library.title": {
+      "comment": "Mac entries section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry Library"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录库"
+          }
+        }
+      }
+    },
+    "mac.entries.library.subtitle": {
+      "comment": "Mac entries section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current list is Local Mock. SQLite and FTS are not connected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前为 Local Mock 列表，后续接 SQLite / FTS。"
+          }
+        }
+      }
+    },
+    "mac.practice.section.title": {
+      "comment": "Mac practice section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习"
+          }
+        }
+      }
+    },
+    "mac.practice.section.subtitle": {
+      "comment": "Mac practice section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move from life entries into reading, shadowing, dictation, and back translation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从生活记录进入听读、跟读、听写和回译。"
+          }
+        }
+      }
+    },
+    "mac.practice.noRendering.summary": {
+      "comment": "Mac no rendering summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This entry has no mock rendering yet, so practice is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条记录还没有 mock rendering，暂不能进入练习。"
+          }
+        }
+      }
+    },
+    "mac.memory.section.title": {
+      "comment": "Mac memory section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phrase Memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "词句记忆"
+          }
+        }
+      }
+    },
+    "mac.memory.section.subtitle": {
+      "comment": "Mac memory section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory items come from life-entry context. Vector indexing is not connected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记忆项来自生活记录上下文，向量索引仍为未接入。"
+          }
+        }
+      }
+    },
+    "mac.settings.section.title": {
+      "comment": "Mac settings section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
+          }
+        }
+      }
+    },
+    "mac.settings.section.subtitle": {
+      "comment": "Mac settings section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only capability boundaries. Real settings are not saved yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前只读说明能力边界，不保存真实配置。"
+          }
+        }
+      }
+    },
+    "mac.entryMissing.title": {
+      "comment": "Mac missing entry title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry Not Found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录不存在"
+          }
+        }
+      }
+    },
+    "mac.entryMissing.body": {
+      "comment": "Mac missing entry body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose another life entry from the library."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择记录库中的其他生活记录。"
+          }
+        }
+      }
+    },
+    "mac.practiceUnavailable.title": {
+      "comment": "Mac practice unavailable title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice Unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习不可用"
+          }
+        }
+      }
+    },
+    "mac.practiceUnavailable.body": {
+      "comment": "Mac practice unavailable body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an existing entry before entering practice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择一条已有记录后再进入练习。"
+          }
+        }
+      }
+    },
+    "mac.settingMissing.title": {
+      "comment": "Mac missing setting title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setting Not Found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置项不存在"
+          }
+        }
+      }
+    },
+    "mac.settingMissing.body": {
+      "comment": "Mac missing setting body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a setting item from the sidebar."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择侧边栏中的设置项。"
+          }
+        }
+      }
+    },
+    "mac.inspector.entryMetadata.title": {
+      "comment": "Mac inspector metadata title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry Metadata"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录元数据"
+          }
+        }
+      }
+    },
+    "mac.inspector.privacy.title": {
+      "comment": "Mac inspector privacy title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy Boundary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私边界"
+          }
+        }
+      }
+    },
+    "mac.inspector.privacy.body": {
+      "comment": "Mac inspector privacy body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This detail view reads in-memory mock content only. It does not access the network, Keychain, or a real database."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前详情只读取内存 mock 内容，不访问网络、Keychain 或真实数据库。"
+          }
+        }
+      }
+    },
+    "mac.inspector.noEntry.title": {
+      "comment": "Mac inspector no entry title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有记录"
+          }
+        }
+      }
+    },
+    "mac.inspector.noEntry.body": {
+      "comment": "Mac inspector no entry body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an entry from the library."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择记录库中的记录。"
+          }
+        }
+      }
+    },
+    "mac.inspector.practiceStatus.title": {
+      "comment": "Mac inspector practice status title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice Status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习状态"
+          }
+        }
+      }
+    },
+    "mac.inspector.practiceStatus.body": {
+      "comment": "Mac inspector practice status body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current mock practice only switches local steps. It does not play audio, record voice, or save results."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前只切换本地 mock 练习步骤，不播放音频、不录音、不保存结果。"
+          }
+        }
+      }
+    },
+    "mac.inspector.nextCapability.title": {
+      "comment": "Mac inspector next capability title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next Capability"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后续能力"
+          }
+        }
+      }
+    },
+    "mac.inspector.nextCapability.body": {
+      "comment": "Mac inspector next capability body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech playback, recording, scoring, and dictation results require Speech and TTS modules."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音播放、录音、评分和听写结果需要 Speech / TTS 模块接入。"
+          }
+        }
+      }
+    },
+    "mac.inspector.today.title": {
+      "comment": "Mac inspector today title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local First"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地优先"
+          }
+        }
+      }
+    },
+    "mac.inspector.today.body": {
+      "comment": "Mac inspector today body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today uses in-memory mock content to verify the Mac page flow."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日工作台使用内存 mock 内容，用于验证 Mac 页面闭环。"
+          }
+        }
+      }
+    },
+    "mac.inspector.entries.title": {
+      "comment": "Mac inspector entries title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry Library"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录库"
+          }
+        }
+      }
+    },
+    "mac.inspector.entries.body": {
+      "comment": "Mac inspector entries body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After you choose an entry, Inspector shows request preview and privacy boundaries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一条记录后，Inspector 会显示请求预览和隐私边界。"
+          }
+        }
+      }
+    },
+    "mac.inspector.practice.title": {
+      "comment": "Mac inspector practice title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习"
+          }
+        }
+      }
+    },
+    "mac.inspector.practice.body": {
+      "comment": "Mac inspector practice body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice sessions are Local Mock and do not use real audio or recording."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习会话为 Local Mock，不接入真实音频和录音。"
+          }
+        }
+      }
+    },
+    "mac.inspector.memory.title": {
+      "comment": "Mac inspector memory title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记忆"
+          }
+        }
+      }
+    },
+    "mac.inspector.memory.body": {
+      "comment": "Mac inspector memory body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The vector index is rebuildable local derived data and is not connected yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向量索引是本地可重建派生数据，当前未接入。"
+          }
+        }
+      }
+    },
+    "mac.inspector.importExport.title": {
+      "comment": "Mac inspector import export title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import and Export"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入导出"
+          }
+        }
+      }
+    },
+    "mac.inspector.importExport.body": {
+      "comment": "Mac inspector import export body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import and export require the real database, attachment directory, and file safety boundary first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入导出需要真实数据库、附件目录和文件安全边界后再实现。"
+          }
+        }
+      }
+    },
+    "mac.inspector.settings.title": {
+      "comment": "Mac inspector settings title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
+          }
+        }
+      }
+    },
+    "mac.inspector.settings.body": {
+      "comment": "Mac inspector settings body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The settings page explains capability boundaries and does not save API keys, sync configuration, or export files."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置页展示能力边界，不保存 API Key、同步配置或导出文件。"
+          }
+        }
+      }
+    },
+    "privacyStatus.close": {
+      "comment": "Close button accessibility label for privacy status popover.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close status description"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭状态说明"
+          }
+        }
+      }
+    },
+    "requestPreview.promptFallback": {
+      "comment": "Fallback prompt label for request preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generation intent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成意图"
+          }
+        }
+      }
+    },
+    "requestPreview.localMock.body": {
+      "comment": "Local mock request preview body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When real integration is connected, LangoTrace will ask for confirmation before sending: %@, selected text snippets, Prompt %@. Current build sends no external request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实接入后会请求确认：%@、选中的正文片段、Prompt %@。当前不会发送外部请求。"
+          }
+        }
+      }
+    },
+    "requestPreview.external.body": {
+      "comment": "External request preview body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Will send: %@, selected text snippets, Prompt %@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将发送：%@、选中的正文片段、Prompt %@。"
+          }
+        }
+      }
+    },
+    "onboarding.level.accessibilityHint": {
+      "comment": "Onboarding level picker accessibility hint.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the current %@ level"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择当前 %@ 水平"
+          }
+        }
+      }
+    },
+    "onboarding.createSpace.accessibilityHint": {
+      "comment": "Onboarding create button accessibility hint.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a %@ learning space and enter the main app"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建 %@ 学习空间并进入主体页面"
+          }
+        }
+      }
+    },
+    "mac.section.entries": {
+      "comment": "Mac entries section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entries"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录库"
+          }
+        }
+      }
+    },
+    "mac.section.memory": {
+      "comment": "Mac memory section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记忆"
+          }
+        }
+      }
+    },
+    "mac.section.importExport": {
+      "comment": "Mac import export section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import / Export"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入导出"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

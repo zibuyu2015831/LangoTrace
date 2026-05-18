@@ -14,9 +14,9 @@ struct TodayView: View {
 
     var body: some View {
         PhonePage(
-            title: "今日",
+            titleKey: "tab.today",
             languageSpace: languageSpace,
-            statusText: "本地优先 · 未配置 AI",
+            statusTextKey: "phone.today.status",
             onLanguageSpaceAction: onLanguageSpaceAction
         ) {
             HeroActionCard(
@@ -25,7 +25,7 @@ struct TodayView: View {
                 onPhotoWriting: onPhotoWriting,
                 onListenOne: onListenOne
             )
-            SectionHeader(title: "最近记录", subtitle: "生活内容会成为之后的听读和跟读材料")
+            SectionHeader(titleKey: "phone.today.recent.title", subtitleKey: "phone.today.recent.subtitle")
             if entries.isEmpty {
                 EmptyEntryPanel(onNewEntry: onNewEntry)
             } else {
@@ -51,16 +51,20 @@ struct EntriesView: View {
 
     var body: some View {
         PhonePage(
-            title: "记录",
+            titleKey: "tab.entries",
             languageSpace: languageSpace,
-            statusText: "日记 · 照片 · 目标语言写作",
+            statusTextKey: "phone.entries.status",
             onLanguageSpaceAction: onLanguageSpaceAction
         ) {
             HStack {
-                SectionHeader(title: "继续记录", subtitle: "每条记录都归入当前语言空间")
+                SectionHeader(titleKey: "phone.entries.continue.title", subtitleKey: "phone.entries.continue.subtitle")
                 Spacer()
                 Button(action: onNewEntry) {
-                    Label("新建", systemImage: "plus")
+                    Label {
+                        localizedText("common.newEntry.short")
+                    } icon: {
+                        Image(systemName: "plus")
+                    }
                 }
                 .buttonStyle(.borderedProminent)
             }
@@ -99,21 +103,26 @@ struct PracticeView: View {
 
     var body: some View {
         PhonePage(
-            title: "练习",
+            titleKey: "tab.practice",
             languageSpace: languageSpace,
-            statusText: "\(languageSpace.targetLanguage) 听说读写",
+            statusTextKey: "phone.practice.status",
+            statusArgument: languageSpace.targetLanguage,
             onLanguageSpaceAction: onLanguageSpaceAction
         ) {
-            SectionHeader(title: "从生活记录练起", subtitle: "练习入口与原始记录保持关联")
+            SectionHeader(titleKey: "phone.practice.fromLife.title", subtitleKey: "phone.practice.fromLife.subtitle")
             if entries.isEmpty {
-                CompactPanel(title: "暂无练习", text: "先创建生活记录，再生成本地 mock 练习。", systemImage: "waveform")
+                LocalizedCompactPanel(
+                    titleKey: "phone.practice.empty.title",
+                    textKey: "phone.practice.empty.body",
+                    systemImage: "waveform"
+                )
             } else {
                 ForEach(entries) { entry in
                     let items = repository.practiceItems(for: entry.id)
                     if items.isEmpty {
                         CapabilityStatusRow(
                             title: entry.title,
-                            summary: "还没有可练习内容",
+                            localizedSummaryKey: "practice.empty.summary",
                             status: .unavailable,
                             systemImage: "waveform",
                             action: nil
@@ -155,16 +164,20 @@ struct MemoryView: View {
 
     var body: some View {
         PhonePage(
-            title: "记忆",
+            titleKey: "tab.memory",
             languageSpace: languageSpace,
-            statusText: "词句、相似片段和长期轨迹",
+            statusTextKey: "phone.memory.status",
             onLanguageSpaceAction: onLanguageSpaceAction
         ) {
-            SectionHeader(title: "个人语言记忆", subtitle: "不是孤立单词，而是来自生活上下文的表达")
+            SectionHeader(titleKey: "phone.memory.personal.title", subtitleKey: "phone.memory.personal.subtitle")
             ForEach(memoryItems) { item in
                 CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
             }
-            CompactPanel(title: "向量索引", text: "本地可重建 · 默认不同步", systemImage: "square.stack.3d.up")
+            LocalizedCompactPanel(
+                titleKey: "memory.vectorIndex.title",
+                textKey: "memory.vectorIndex.body",
+                systemImage: "square.stack.3d.up"
+            )
         }
     }
 }
@@ -177,12 +190,15 @@ struct SettingsView: View {
 
     var body: some View {
         PhonePage(
-            title: "设置",
+            titleKey: "tab.settings",
             languageSpace: languageSpace,
-            statusText: "隐私、同步和 AI 请求由用户掌控",
+            statusTextKey: "phone.settings.status",
             onLanguageSpaceAction: onLanguageSpaceAction
         ) {
-            SectionHeader(title: "当前空间", subtitle: "配置不抢占记录和学习主流程")
+            SectionHeader(
+                titleKey: "phone.settings.currentSpace.title",
+                subtitleKey: "phone.settings.currentSpace.subtitle"
+            )
             ForEach(capabilities) { capability in
                 CapabilityStatusRow(
                     localizedTitleKey: capability.kind.localizedTitleKey,
@@ -197,9 +213,10 @@ struct SettingsView: View {
 }
 
 struct PhonePage<Content: View>: View {
-    let title: String
+    let titleKey: String
     let languageSpace: LanguageSpacePreview
-    let statusText: String
+    let statusTextKey: String
+    var statusArgument: String?
     let onLanguageSpaceAction: () -> Void
     @ViewBuilder let content: Content
 
@@ -212,16 +229,24 @@ struct PhonePage<Content: View>: View {
             .padding(20)
             .padding(.bottom, 92)
         }
-        .navigationTitle(title)
+        .navigationTitle(localizedText(titleKey))
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button(action: onLanguageSpaceAction) {
                     Image(systemName: "chevron.down.circle")
                 }
-                .accessibilityLabel("切换语言空间")
-                .accessibilityHint("后续版本将支持多语言空间切换")
+                .accessibilityLabel(localizedText("languageSpace.switcher.label"))
+                .accessibilityHint(localizedText("languageSpace.switcher.hint"))
             }
         }
         .langoPageBackground()
+    }
+
+    private var statusText: String {
+        if let statusArgument {
+            return localizedString(statusTextKey, statusArgument)
+        }
+
+        return localizedString(statusTextKey)
     }
 }

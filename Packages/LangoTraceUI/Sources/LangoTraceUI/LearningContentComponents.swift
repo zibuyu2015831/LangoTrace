@@ -38,7 +38,7 @@ struct EntryTimelineRow: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(entry.title)，\(entry.displaySourceTitle)，\(entry.practiceSummary)")
-        .accessibilityValue(isSelected ? "当前选中" : "未选中")
+        .accessibilityValue(localizedText(isSelected ? "accessibility.selected" : "accessibility.unselected"))
     }
 }
 
@@ -198,6 +198,22 @@ struct CapabilityStatusRow: View {
     ) {
         title = localizedTitleKey
         self.localizedTitleKey = localizedTitleKey
+        summary = localizedSummaryKey
+        self.localizedSummaryKey = localizedSummaryKey
+        self.status = status
+        self.systemImage = systemImage
+        self.action = action
+    }
+
+    init(
+        title: String,
+        localizedSummaryKey: String,
+        status: CapabilityStatus,
+        systemImage: String,
+        action: (() -> Void)?
+    ) {
+        self.title = title
+        localizedTitleKey = nil
         summary = localizedSummaryKey
         self.localizedSummaryKey = localizedSummaryKey
         self.status = status

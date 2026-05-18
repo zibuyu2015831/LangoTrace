@@ -107,7 +107,9 @@ struct OnboardingView: View {
                 .pickerStyle(.segmented)
                 .labelsHidden()
                 .accessibilityLabel(localizedText("onboarding.level.title"))
-                .accessibilityHint("选择当前 \(draft.resolvedTargetLanguage.zhHansName) 水平")
+                .accessibilityHint(
+                    localizedString("onboarding.level.accessibilityHint", draft.resolvedTargetLanguage.nativeName)
+                )
             }
         }
         .langoPanel(padding: 18)
@@ -151,7 +153,9 @@ struct OnboardingView: View {
             .buttonBorderShape(.roundedRectangle(radius: 16))
             .controlSize(.large)
             .tint(LangoTraceDesign.ColorToken.deepTeal)
-            .accessibilityHint("创建 \(draft.resolvedTargetLanguage.zhHansName) 学习空间并进入主体页面")
+            .accessibilityHint(
+                localizedString("onboarding.createSpace.accessibilityHint", draft.resolvedTargetLanguage.nativeName)
+            )
         }
         .padding(.horizontal, 24)
         .padding(.top, 12)

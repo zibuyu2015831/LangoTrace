@@ -24,16 +24,16 @@ struct RequestPreviewCopy: Equatable {
     let body: String
 
     static func localMock(entryTitle: String, promptLabel: String?) -> RequestPreviewCopy {
-        let prompt = promptLabel ?? "生成意图"
+        let prompt = promptLabel ?? localizedString("requestPreview.promptFallback")
         return RequestPreviewCopy(
-            body: "真实接入后会请求确认：\(entryTitle)、选中的正文片段、Prompt \(prompt)。当前不会发送外部请求。"
+            body: localizedString("requestPreview.localMock.body", entryTitle, prompt)
         )
     }
 
     static func externalRequest(entryTitle: String, promptLabel: String?) -> RequestPreviewCopy {
-        let prompt = promptLabel ?? "生成意图"
+        let prompt = promptLabel ?? localizedString("requestPreview.promptFallback")
         return RequestPreviewCopy(
-            body: "将发送：\(entryTitle)、选中的正文片段、Prompt \(prompt)。"
+            body: localizedString("requestPreview.external.body", entryTitle, prompt)
         )
     }
 }

@@ -55,6 +55,34 @@ struct CompactPanel: View {
     }
 }
 
+struct LocalizedCompactPanel: View {
+    let titleKey: String
+    let textKey: String
+    let systemImage: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.headline)
+                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                .frame(width: 34, height: 34)
+                .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
+                .clipShape(Circle())
+            VStack(alignment: .leading, spacing: 6) {
+                localizedText(titleKey)
+                    .font(.headline)
+                localizedText(textKey)
+                    .font(.callout)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .langoPanel(padding: 16)
+    }
+}
+
 struct InlineStatusLabel: View {
     let text: String
     let localizedTextKey: String?

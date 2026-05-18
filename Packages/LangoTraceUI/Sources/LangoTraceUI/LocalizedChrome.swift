@@ -1,9 +1,80 @@
+import Foundation
 import LangoTraceCore
 import LangoTraceData
 import SwiftUI
 
 func localizedText(_ key: String) -> Text {
-    Text(LocalizedStringKey(key), bundle: .module)
+    Text(localizedString(key))
+}
+
+func localizedString(_ key: String) -> String {
+    LocalizedChromeCatalog.shared.localizedString(for: key)
+}
+
+func localizedString(_ key: String, _ arguments: CVarArg...) -> String {
+    String(format: localizedString(key), arguments: arguments)
+}
+
+private struct LocalizedChromeCatalog {
+    static let shared = LocalizedChromeCatalog()
+
+    private let strings: [String: [String: String]]
+
+    private init() {
+        guard
+            let url = Bundle.module.url(forResource: "Localizable", withExtension: "xcstrings"),
+            let data = try? Data(contentsOf: url),
+            let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let rawStrings = root["strings"] as? [String: Any]
+        else {
+            strings = [:]
+            return
+        }
+
+        strings = rawStrings.reduce(into: [String: [String: String]]()) { result, element in
+            guard
+                let entry = element.value as? [String: Any],
+                let localizations = entry["localizations"] as? [String: Any]
+            else {
+                return
+            }
+
+            result[element.key] = localizations.reduce(into: [String: String]()) { values, localization in
+                guard
+                    let localizationEntry = localization.value as? [String: Any],
+                    let unit = localizationEntry["stringUnit"] as? [String: Any],
+                    let value = unit["value"] as? String
+                else {
+                    return
+                }
+
+                values[localization.key] = value
+            }
+        }
+    }
+
+    func localizedString(for key: String) -> String {
+        guard let localizations = strings[key] else {
+            return key
+        }
+
+        for identifier in Locale.preferredLanguages {
+            if let exact = localizations[identifier] {
+                return exact
+            }
+
+            let languageCode = identifier.split(separator: "-").first.map(String.init)
+            if languageCode == "zh", let simplifiedChinese = localizations["zh-Hans"] {
+                return simplifiedChinese
+            }
+
+            if let languageCode, let languageMatch = localizations[languageCode] {
+                return languageMatch
+            }
+        }
+
+        return localizations["en"] ?? localizations["zh-Hans"] ?? key
+    }
 }
 
 func interfaceLanguagePreferenceTitleKey(for preference: InterfaceLanguagePreference) -> String {
@@ -103,35 +174,39 @@ extension SettingsCapability.Kind {
 }
 
 extension EntrySource {
-    var displayTitle: String {
+    var localizedTitleKey: String {
         switch self {
         case .typedText:
-            "文字记录"
+            "entrySource.typedText"
         case .photoWriting:
-            "照片写作"
+            "entrySource.photoWriting"
         case .targetLanguageWriting:
-            "目标语言写作"
+            "entrySource.targetLanguageWriting"
         }
     }
 }
 
 extension LearningEntry {
     var displaySourceTitle: String {
-        source.displayTitle
+        localizedString(source.localizedTitleKey)
     }
 }
 
 extension PracticeSessionStep {
-    var displayTitle: String {
+    var localizedTitleKey: String {
         switch self {
         case .prepare:
-            "准备"
+            "practiceStep.prepare"
         case .shadow:
-            "跟读"
+            "practiceStep.shadow"
         case .compare:
-            "对照"
+            "practiceStep.compare"
         case .completed:
-            "完成"
+            "practiceStep.completed"
         }
+    }
+
+    var displayTitle: String {
+        localizedString(localizedTitleKey)
     }
 }

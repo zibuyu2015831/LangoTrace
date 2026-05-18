@@ -1,21 +1,21 @@
 import SwiftUI
 
 struct SidebarSectionTitle: View {
-    let title: String
+    let titleKey: String
 
-    init(_ title: String) {
-        self.title = title
+    init(_ titleKey: String) {
+        self.titleKey = titleKey
     }
 
     var body: some View {
-        Text(title)
+        localizedText(titleKey)
             .font(.caption.weight(.bold))
             .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
     }
 }
 
 struct FilterPill: View {
-    let title: String
+    let titleKey: String
     let count: String
     let active: Bool
     let action: () -> Void
@@ -23,7 +23,7 @@ struct FilterPill: View {
     var body: some View {
         Button(action: action) {
             HStack {
-                Text(title)
+                localizedText(titleKey)
                 Spacer()
                 Text(count)
                     .font(.caption.weight(.semibold))
@@ -39,42 +39,50 @@ struct FilterPill: View {
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(title)
-        .accessibilityValue(active ? "当前选中，\(count) 条" : "未选中，\(count) 条")
+        .accessibilityLabel(localizedText(titleKey))
+        .accessibilityValue(
+            active
+                ? localizedString("accessibility.selectedCount", count)
+                : localizedString("accessibility.unselectedCount", count)
+        )
     }
 }
 
 struct PadRouteButton: View {
-    let title: String
+    let titleKey: String
     let systemImage: String
     let active: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Label(title, systemImage: systemImage)
-                .font(.callout.weight(.medium))
-                .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
-                .padding(.horizontal, 12)
-                .foregroundStyle(active ? LangoTraceDesign.ColorToken.whiteInk : LangoTraceDesign.ColorToken.ink)
-                .background(active ? LangoTraceDesign.ColorToken.deepTeal : LangoTraceDesign.ColorToken.elevatedPaper)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            Label {
+                localizedText(titleKey)
+            } icon: {
+                Image(systemName: systemImage)
+            }
+            .font(.callout.weight(.medium))
+            .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
+            .padding(.horizontal, 12)
+            .foregroundStyle(active ? LangoTraceDesign.ColorToken.whiteInk : LangoTraceDesign.ColorToken.ink)
+            .background(active ? LangoTraceDesign.ColorToken.deepTeal : LangoTraceDesign.ColorToken.elevatedPaper)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(title)
-        .accessibilityValue(active ? "当前选中" : "未选中")
+        .accessibilityLabel(localizedText(titleKey))
+        .accessibilityValue(localizedText(active ? "accessibility.selected" : "accessibility.unselected"))
     }
 }
 
 struct SectionCaption: View {
-    let title: String
-    let subtitle: String
+    let titleKey: String
+    let subtitleKey: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title)
+            localizedText(titleKey)
                 .font(.headline)
-            Text(subtitle)
+            localizedText(subtitleKey)
                 .font(.footnote)
                 .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
         }

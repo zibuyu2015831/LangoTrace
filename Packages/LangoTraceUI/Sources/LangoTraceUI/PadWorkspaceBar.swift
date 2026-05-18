@@ -13,7 +13,7 @@ struct PadWorkspaceBar: View {
             LangoPanelToggleButton(
                 systemImage: "sidebar.left",
                 isActive: isTimelineVisible,
-                accessibilityLabel: isTimelineVisible ? "隐藏时间线" : "显示时间线",
+                accessibilityLabelKey: isTimelineVisible ? "ipad.timeline.hide" : "ipad.timeline.show",
                 action: onToggleTimeline
             )
 
@@ -45,7 +45,7 @@ struct PadWorkspaceBar: View {
             LangoPanelToggleButton(
                 systemImage: "sidebar.right",
                 isActive: isLearningPanelVisible,
-                accessibilityLabel: isLearningPanelVisible ? "隐藏学习面板" : "显示学习面板",
+                accessibilityLabelKey: isLearningPanelVisible ? "ipad.learningPanel.hide" : "ipad.learningPanel.show",
                 action: onToggleLearningPanel
             )
 

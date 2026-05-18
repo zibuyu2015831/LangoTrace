@@ -74,16 +74,25 @@ struct EntryDetailView: View {
                     targetLanguage: languageSpace.targetLanguage,
                     rendering: rendering
                 )
-                TextPanel(title: "母语记录", text: entry.body)
-                TextPanel(title: "目标语言", text: rendering?.targetText ?? "等待生成")
+                TextPanel(title: localizedString("entry.nativeRecord.title"), text: entry.body)
+                TextPanel(
+                    title: localizedString("entry.targetLanguage.title"),
+                    text: rendering?.targetText ?? localizedString("entry.rendering.pending")
+                )
                 if let rendering {
                     RequestPreviewCard(entry: entry, rendering: rendering)
-                    SectionHeader(title: "逐句练习", subtitle: "Local Mock 生成，可先验证页面闭环")
+                    SectionHeader(
+                        titleKey: "entryDetail.sentences.title",
+                        subtitleKey: "entryDetail.sentences.subtitle"
+                    )
                     ForEach(Array(rendering.sentences.enumerated()), id: \.element.id) { index, sentence in
                         SentencePairView(index: index + 1, sentence: sentence, onPractice: onPractice)
                     }
                 }
-                SectionHeader(title: "练习入口", subtitle: "当前先保留本地 mock 会话")
+                SectionHeader(
+                    titleKey: "entryDetail.practiceEntry.title",
+                    subtitleKey: "entryDetail.practiceEntry.subtitle"
+                )
                 ForEach(practiceItems) { item in
                     CompactPanel(title: item.title, text: item.summary, systemImage: "waveform")
                 }
@@ -105,7 +114,7 @@ struct PracticeSessionView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                SectionHeader(title: "跟读练习", subtitle: entry.title)
+                SectionHeader(titleKey: "practice.shadowing.title", subtitle: entry.title)
                 if let session {
                     PracticeControlBar(
                         steps: session.steps,
@@ -121,8 +130,8 @@ struct PracticeSessionView: View {
                     RequestPreviewCard(entry: entry, rendering: rendering)
                 } else {
                     CapabilityStatusRow(
-                        title: "暂无可练习内容",
-                        summary: "这条记录还没有 mock rendering。真实生成能力接入前不会触发外部 AI 请求。",
+                        localizedTitleKey: "practice.noContent.title",
+                        localizedSummaryKey: "practice.noContent.summary",
                         status: .unavailable,
                         systemImage: "waveform",
                         action: nil
@@ -143,13 +152,17 @@ private struct PracticeStepPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Label(labelTitle, systemImage: labelIcon)
-                .font(.headline)
+            Label {
+                localizedText(labelTitleKey)
+            } icon: {
+                Image(systemName: labelIcon)
+            }
+            .font(.headline)
             Text(mainText)
                 .font(.title3.weight(.semibold))
                 .lineSpacing(5)
                 .fixedSize(horizontal: false, vertical: true)
-            Text("来源：\(providerLabel)。当前只切换本地练习状态，不播放音频、不录音、不保存结果。")
+            Text(localizedString("practice.sourceBoundary", providerLabel))
                 .font(.callout)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -157,16 +170,16 @@ private struct PracticeStepPanel: View {
         .langoPanel()
     }
 
-    private var labelTitle: String {
+    private var labelTitleKey: String {
         switch step {
         case .prepare:
-            "准备材料"
+            "practiceStep.prepareMaterial"
         case .shadow:
-            "跟读"
+            "practiceStep.shadow"
         case .compare:
-            "对照"
+            "practiceStep.compare"
         case .completed:
-            "完成"
+            "practiceStep.completed"
         }
     }
 
@@ -186,13 +199,13 @@ private struct PracticeStepPanel: View {
     private var mainText: String {
         switch step {
         case .prepare:
-            "先快速读一遍目标语言文本，确认这一轮只使用本地 mock 内容。"
+            localizedString("practiceStep.prepare.body")
         case .shadow:
             targetText
         case .compare:
-            "对照原记录，找出你最想记住的一句表达。"
+            localizedString("practiceStep.compare.body")
         case .completed:
-            "本轮 mock 练习已完成。真实评分、录音和听写结果会在语音能力接入后设计。"
+            localizedString("practiceStep.completed.body")
         }
     }
 }
@@ -306,7 +319,7 @@ struct EntryCard: View {
             .langoPanel()
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(entry.title)，打开记录详情")
+        .accessibilityLabel(localizedString("entryCard.openDetail.label", entry.title))
     }
 }
 
@@ -338,17 +351,26 @@ struct EmptyEntryPanel: View {
 }
 
 struct SectionHeader: View {
-    let title: String
-    let subtitle: String
+    let titleKey: String
+    var subtitleKey: String?
+    var subtitle: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title)
+            localizedText(titleKey)
                 .font(.headline)
-            Text(subtitle)
+            subtitleText
                 .font(.footnote)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
         }
         .padding(.top, 4)
+    }
+
+    private var subtitleText: Text {
+        if let subtitleKey {
+            localizedText(subtitleKey)
+        } else {
+            Text(subtitle ?? "")
+        }
     }
 }

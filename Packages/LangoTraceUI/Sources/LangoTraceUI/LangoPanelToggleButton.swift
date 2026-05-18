@@ -3,7 +3,7 @@ import SwiftUI
 struct LangoPanelToggleButton: View {
     let systemImage: String
     let isActive: Bool
-    let accessibilityLabel: String
+    let accessibilityLabelKey: String
     let action: () -> Void
 
     var body: some View {
@@ -28,8 +28,8 @@ struct LangoPanelToggleButton: View {
                 }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityValue(isActive ? "当前已显示" : "当前已隐藏")
+        .accessibilityLabel(localizedText(accessibilityLabelKey))
+        .accessibilityValue(localizedText(isActive ? "accessibility.visible" : "accessibility.hidden"))
     }
 
     private var strokeColor: Color {

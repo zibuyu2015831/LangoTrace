@@ -16,7 +16,7 @@ struct PadSidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            SidebarSectionTitle("时间线")
+            SidebarSectionTitle("pad.sidebar.timeline")
             VStack(spacing: 10) {
                 ForEach(filteredEntries) { entry in
                     EntryTimelineRow(
@@ -29,12 +29,12 @@ struct PadSidebarView: View {
                 }
             }
 
-            SidebarSectionTitle("筛选")
+            SidebarSectionTitle("pad.sidebar.filters")
                 .padding(.top, 4)
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(PadFilter.allCases, id: \.self) { filter in
                     FilterPill(
-                        title: filter.title,
+                        titleKey: filter.titleKey,
                         count: "\(entries.count { filter.includes(entry: $0, memoryItems: memoryItems) })",
                         active: activeFilter == filter
                     ) {
@@ -43,16 +43,20 @@ struct PadSidebarView: View {
                 }
             }
 
-            SidebarSectionTitle("页面")
+            SidebarSectionTitle("pad.sidebar.pages")
                 .padding(.top, 4)
             VStack(alignment: .leading, spacing: 8) {
-                PadRouteButton(title: "记忆", systemImage: "archivebox", active: route == .memory) {
+                PadRouteButton(titleKey: "tab.memory", systemImage: "archivebox", active: route == .memory) {
                     onRoute(.memory)
                 }
-                PadRouteButton(title: "导入导出", systemImage: "tray.and.arrow.down", active: route == .importExport) {
+                PadRouteButton(
+                    titleKey: "mac.section.importExport",
+                    systemImage: "tray.and.arrow.down",
+                    active: route == .importExport
+                ) {
                     onRoute(.importExport)
                 }
-                PadRouteButton(title: "设置", systemImage: "gearshape", active: route == .settingsList) {
+                PadRouteButton(titleKey: "tab.settings", systemImage: "gearshape", active: route == .settingsList) {
                     onRoute(.settingsList)
                 }
             }
@@ -129,8 +133,11 @@ struct PadWorkspaceContentView: View {
                         rendering: selectedRendering
                     )
                     HStack(alignment: .top, spacing: 14) {
-                        TextPanel(title: "母语记录", text: selectedEntry.body)
-                        TextPanel(title: "目标语言", text: selectedRendering?.targetText ?? "等待生成")
+                        TextPanel(title: localizedString("entry.nativeRecord.title"), text: selectedEntry.body)
+                        TextPanel(
+                            title: localizedString("entry.targetLanguage.title"),
+                            text: selectedRendering?.targetText ?? localizedString("entry.rendering.pending")
+                        )
                     }
                     AudioPanel()
                     sentenceList(for: selectedEntry)
@@ -146,7 +153,7 @@ struct PadWorkspaceContentView: View {
 
     private func sentenceList(for entry: LearningEntry) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionCaption(title: "逐句练习", subtitle: "从真实记录进入听、读、跟读和回译")
+            SectionCaption(titleKey: "pad.sentences.title", subtitleKey: "pad.sentences.subtitle")
             ForEach(Array((selectedRendering?.sentences ?? []).enumerated()), id: \.element.id) { index, sentence in
                 SentencePairView(
                     index: index + 1,
@@ -205,7 +212,7 @@ struct PadWorkspaceContentView: View {
     private var settingsList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                SectionCaption(title: "设置", subtitle: "当前只读说明能力边界，不保存真实配置。")
+                SectionCaption(titleKey: "pad.settings.section.title", subtitleKey: "pad.settings.section.subtitle")
                 ForEach(settingsCapabilities) { capability in
                     CapabilityStatusRow(
                         localizedTitleKey: capability.kind.localizedTitleKey,
@@ -224,7 +231,7 @@ struct PadWorkspaceContentView: View {
     private var memoryPage: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                SectionCaption(title: "记忆", subtitle: "词句、相似片段和长期轨迹。")
+                SectionCaption(titleKey: "pad.memory.section.title", subtitleKey: "pad.memory.section.subtitle")
                 ForEach(memoryItems) { item in
                     CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
                 }
@@ -260,11 +267,14 @@ struct PadLearningPanelView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                SectionCaption(title: "学习面板", subtitle: "围绕当前记录生成")
+                SectionCaption(titleKey: "pad.learningPanel.title", subtitleKey: "pad.learningPanel.subtitle")
                 if let selectedEntry {
                     selectedEntryContent(selectedEntry)
                 } else {
-                    TextPanel(title: "没有记录", text: "创建第一条生活记录后，这里会展示请求预览、词句提取和练习入口。")
+                    LocalizedTextPanel(
+                        titleKey: "pad.learningPanel.empty.title",
+                        textKey: "pad.learningPanel.empty.body"
+                    )
                 }
             }
             .padding(22)
@@ -281,23 +291,23 @@ struct PadLearningPanelView: View {
     private func selectedEntryContent(_ entry: LearningEntry) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             TextPanel(
-                title: "当前句讲解",
-                text: selectedRendering?.sentences.first?.note ?? "等待生成后显示句子讲解。"
+                title: localizedString("pad.currentSentence.title"),
+                text: selectedRendering?.sentences.first?.note ?? localizedString("pad.currentSentence.pending")
             )
             TextPanel(
-                title: "词句提取",
+                title: localizedString("pad.memoryExtraction.title"),
                 text: memorySummary(for: entry)
             )
             CapabilityStatusRow(
-                title: "进入练习",
+                localizedTitleKey: "pad.practiceEntry.title",
                 summary: practiceSummary(for: entry),
                 status: contentRepository.practiceItems(for: entry.id).isEmpty ? .unavailable : .mockOnly,
                 systemImage: "waveform",
                 action: contentRepository.practiceItems(for: entry.id).isEmpty ? nil : { onRoute(.practice(entry.id)) }
             )
             CapabilityStatusRow(
-                title: "空间设置",
-                summary: "查看 AI、同步、本地数据和隐私边界的只读说明。",
+                localizedTitleKey: "pad.spaceSettings.title",
+                localizedSummaryKey: "pad.spaceSettings.summary",
                 status: .mockOnly,
                 systemImage: "gearshape",
                 action: { onRoute(.settingsList) }
@@ -312,7 +322,7 @@ struct PadLearningPanelView: View {
             .map(\.text)
 
         guard !extracted.isEmpty else {
-            return "这条记录还没有提取词句。当前不会调用 AI，也不会写入向量索引。"
+            return localizedString("pad.memory.empty.summary")
         }
 
         return extracted.joined(separator: ", ")
@@ -322,7 +332,7 @@ struct PadLearningPanelView: View {
         let summaries = contentRepository.practiceItems(for: entry.id).map(\.summary)
 
         guard !summaries.isEmpty else {
-            return "这条记录还没有可练习内容。真实生成能力接入前不会触发外部请求。"
+            return localizedString("pad.practice.empty.summary")
         }
 
         return summaries.joined(separator: " · ")

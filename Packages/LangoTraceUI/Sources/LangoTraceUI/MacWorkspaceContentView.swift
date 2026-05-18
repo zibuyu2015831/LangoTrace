@@ -67,19 +67,23 @@ struct MacWorkspaceContentView: View {
                     onPractice: { onRoute(.practice(selectedEntry.id)) }
                 )
             } else {
-                CompactPanel(title: "还没有记录", text: "创建第一条生活记录后，这里会显示请求预览和学习材料。", systemImage: "square.and.pencil")
+                LocalizedCompactPanel(
+                    titleKey: "mac.today.empty.title",
+                    textKey: "mac.today.empty.body",
+                    systemImage: "square.and.pencil"
+                )
             }
             HStack(alignment: .top, spacing: 14) {
                 CapabilityStatusRow(
-                    title: "搜索与筛选",
-                    summary: "后续接 SQLite FTS5 与本地向量索引；当前不会查询真实数据库。",
+                    localizedTitleKey: "mac.searchFilter.title",
+                    localizedSummaryKey: "mac.searchFilter.summary",
                     status: .unavailable,
                     systemImage: "magnifyingglass",
                     action: { onRoute(.unavailable("search")) }
                 )
                 CapabilityStatusRow(
-                    title: "批量导入",
-                    summary: "拖入 Markdown、图片或音频前，需要先完成本地数据层和附件存储。",
+                    localizedTitleKey: "mac.bulkImport.title",
+                    localizedSummaryKey: "mac.bulkImport.summary",
                     status: .unavailable,
                     systemImage: "tray.and.arrow.down",
                     action: { onRoute(.unavailable("import-export")) }
@@ -90,7 +94,7 @@ struct MacWorkspaceContentView: View {
 
     private var entriesContent: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(title: "记录库", subtitle: "当前为 Local Mock 列表，后续接 SQLite / FTS。")
+            SectionHeader(titleKey: "mac.entries.library.title", subtitleKey: "mac.entries.library.subtitle")
             ForEach(entries) { entry in
                 EntryTimelineRow(
                     entry: entry,
@@ -104,13 +108,13 @@ struct MacWorkspaceContentView: View {
 
     private var practiceContent: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(title: "练习", subtitle: "从生活记录进入听读、跟读、听写和回译。")
+            SectionHeader(titleKey: "mac.practice.section.title", subtitleKey: "mac.practice.section.subtitle")
             ForEach(entries) { entry in
                 let items = contentRepository.practiceItems(for: entry.id)
                 if items.isEmpty {
                     CapabilityStatusRow(
                         title: entry.title,
-                        summary: "这条记录还没有 mock rendering，暂不能进入练习。",
+                        localizedSummaryKey: "mac.practice.noRendering.summary",
                         status: .unavailable,
                         systemImage: "waveform",
                         action: nil
@@ -136,7 +140,7 @@ struct MacWorkspaceContentView: View {
 
     private var memoryContent: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(title: "词句记忆", subtitle: "记忆项来自生活记录上下文，向量索引仍为未接入。")
+            SectionHeader(titleKey: "mac.memory.section.title", subtitleKey: "mac.memory.section.subtitle")
             ForEach(memoryItems) { item in
                 CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
             }
@@ -146,7 +150,7 @@ struct MacWorkspaceContentView: View {
 
     private var settingsContent: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(title: "设置", subtitle: "当前只读说明能力边界，不保存真实配置。")
+            SectionHeader(titleKey: "mac.settings.section.title", subtitleKey: "mac.settings.section.subtitle")
             ForEach(settingsCapabilities) { capability in
                 CapabilityStatusRow(
                     localizedTitleKey: capability.kind.localizedTitleKey,
@@ -170,7 +174,11 @@ struct MacWorkspaceContentView: View {
                 onPractice: { onRoute(.practice(entry.id)) }
             )
         } else {
-            CompactPanel(title: "记录不存在", text: "请选择记录库中的其他生活记录。", systemImage: "exclamationmark.circle")
+            LocalizedCompactPanel(
+                titleKey: "mac.entryMissing.title",
+                textKey: "mac.entryMissing.body",
+                systemImage: "exclamationmark.circle"
+            )
         }
     }
 
@@ -183,7 +191,11 @@ struct MacWorkspaceContentView: View {
                 session: contentRepository.practiceSession(for: entry.id)
             )
         } else {
-            CompactPanel(title: "练习不可用", text: "请选择一条已有记录后再进入练习。", systemImage: "waveform")
+            LocalizedCompactPanel(
+                titleKey: "mac.practiceUnavailable.title",
+                textKey: "mac.practiceUnavailable.body",
+                systemImage: "waveform"
+            )
         }
     }
 
@@ -197,7 +209,11 @@ struct MacWorkspaceContentView: View {
                 onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
             )
         } else {
-            CompactPanel(title: "设置项不存在", text: "请选择侧边栏中的设置项。", systemImage: "gearshape")
+            LocalizedCompactPanel(
+                titleKey: "mac.settingMissing.title",
+                textKey: "mac.settingMissing.body",
+                systemImage: "gearshape"
+            )
         }
     }
 
