@@ -32,6 +32,8 @@
 - Welcome / Onboarding / Main 启动路由。
 - 内存语言空间 preview；当前还不是可持久化 Space。
 - iPhone `今日 / 记录 / 练习 / 记忆 / 设置` 五个 Tab。
+- 本地内存学习内容 repository，可创建 mock Entry，并生成 mock Rendering、Practice 和 Memory。
+- iPhone 记录创建 sheet、Entry 保存后详情导航、Entry detail 和 mock practice session。
 - iPad 三栏工作台、时间线和学习面板收起/展开。
 - macOS Sidebar / 主区 / Inspector 工作台骨架。
 - `LanguageSpaceFooter`、隐私状态图标、面板切换按钮和基础设计 token。
@@ -39,7 +41,7 @@
 当前缺口：
 
 - `LangoTraceData` 的 `LanguageSpaceRepository` 仍是空协议，没有 Entry / Rendering / Practice / Memory repository。
-- 没有真实 Entry 创建、编辑、保存和详情路由。
+- 现有 Entry 创建、编辑、保存和详情路由仍是内存 mock，不具备真实持久化、启动恢复、编辑后保存到长期 repository 或附件关联。
 - 没有 Rendering 请求预览、生成结果、失败状态和重试路径。
 - 没有真实 TTS、播放、跟读、听写、回译和练习结果。
 - 没有 Memory 提取、收藏、复习队列和回到原始上下文。

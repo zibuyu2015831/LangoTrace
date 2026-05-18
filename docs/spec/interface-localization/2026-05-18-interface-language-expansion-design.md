@@ -1,6 +1,6 @@
-# 主流界面语言扩展方案草案
+# 主流界面语言扩展方案
 
-状态：Implemented
+状态：Partially Implemented
 
 日期：2026-05-18
 
@@ -86,13 +86,19 @@ App 内语言设置和系统 per-app language 必须并存但分层：
 
 ### 4.1 Core 模型
 
-`InterfaceLanguagePreference` 当前硬编码三项：
+`InterfaceLanguagePreference` 当前已经包含第一批偏好值：
 
 - `system`
 - `en`
 - `zh-Hans`
+- `es`
+- `ja`
+- `fr`
+- `de`
+- `ko`
+- `ru`
 
-扩展后应避免继续在多个 `switch` 中手写散落逻辑。推荐引入稳定的支持语言定义，例如：
+当前实现已经把 Core 偏好值和 App target `CFBundleLocalizations` 扩展到 8 种界面语言；但 `LangoTraceUI` 的 String Catalog 仍未完成所有 key 的 8 语言覆盖，因此不能称为完整实现。后续扩展应避免在多个 `switch` 中手写散落逻辑。推荐继续维护稳定的支持语言定义，例如：
 
 - code：`en`、`zh-Hans`、`es`、`ja`、`fr`、`de`、`ko`、`ru`
 - native display name：`English`、`简体中文`、`Español`、`日本語`、`Français`、`Deutsch`、`한국어`、`Русский`
@@ -113,7 +119,7 @@ App 内语言设置和系统 per-app language 必须并存但分层：
 
 ### 4.2 UI String Catalog
 
-`LangoTraceUI` 的 `Localizable.xcstrings` 需要为 8 种语言补齐 App chrome。新增语言不得只补设置页选项名称；如果用户可以选择该语言，核心导航、设置、隐私说明和主要状态都必须具备同等质量翻译。
+`LangoTraceUI` 的 `Localizable.xcstrings` 需要为 8 种语言补齐 App chrome。当前已有 catalog 和部分语言条目，但复审检查显示仍存在大量 key 未覆盖新增 6 种语言。新增语言不得只补设置页选项名称；如果用户可以选择该语言，核心导航、设置、隐私说明和主要状态都必须具备同等质量翻译。
 
 关键要求：
 
@@ -135,7 +141,7 @@ CFBundleLocalizations = en, zh-Hans, es, ja, fr, de, ko, ru
 
 权限 purpose strings、InfoPlist 展示字段、StoreKit、文件选择器、分享面板和第三方 SDK UI 不由 `LangoTraceUI` package catalog 自动覆盖，发布阶段必须单独检查。
 
-当前 `project.yml` 已为 iOS 和 macOS target 声明 `en / zh-Hans`。多语言扩展实现时必须把 `CFBundleLocalizations` 的 8 语言清单写回 `project.yml`，不能只改生成后的 `.xcodeproj` 或 InfoPlist 产物，否则 XcodeGen 重新生成会丢失配置。
+当前 `project.yml` 已为 iOS 和 macOS target 声明 `en / zh-Hans / es / ja / fr / de / ko / ru`。后续修改必须继续写回 `project.yml`，不能只改生成后的 `.xcodeproj` 或 InfoPlist 产物，否则 XcodeGen 重新生成会丢失配置。
 
 ### 4.4 设置入口
 
@@ -219,6 +225,14 @@ CFBundleLocalizations = en, zh-Hans, es, ja, fr, de, ko, ru
 - App target 配置检查：`project.yml` 中 iOS 和 macOS target 的 `CFBundleLocalizations` 包含 8 种语言，且 XcodeGen 后仍保留。
 - Bundle 解析检查：`System` 模式使用 bundle localization 结果解析支持语言，显式语言模式使用 App 内偏好覆盖 SwiftUI chrome。
 - `scripts/verify.sh` 通过。
+
+复审时使用的 String Catalog 覆盖检查口径：
+
+```bash
+jq '[.strings | to_entries[] | select(([.value.localizations["es"], .value.localizations["ja"], .value.localizations["fr"], .value.localizations["de"], .value.localizations["ko"], .value.localizations["ru"]] | any(. == null)))] | length' Packages/LangoTraceUI/Sources/LangoTraceUI/Resources/Localizable.xcstrings
+```
+
+该命令只用于发现新增 6 种语言是否有缺口；发布前还需要人工审校、截图和权限 / StoreKit / App Store 文案检查。
 
 ### 7.2 截图和手动验证
 

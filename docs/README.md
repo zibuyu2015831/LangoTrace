@@ -194,6 +194,8 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - [任务方案文档规范](plans/README.md)
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2、5、6、9 节
 - [文档体系规范](_meta/documentation-system.md) 的第 4 节
+- [数据存储、迁移、导出与附件规范](spec/007-data-storage-migration-export-and-attachments.md)
+- [learning-content 实现地图](spec/learning-content/impl.md)
 - [ADR-005：坚持本地优先和用户自带 Provider](decisions/005-local-first-and-user-owned-providers.md)
 
 适用任务：
@@ -214,6 +216,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 7、8 节
 - [初始模块边界](architecture/001-initial-module-boundaries.md)
 - [AI Provider、Prompt 与隐私规范](spec/005-ai-provider-prompt-and-privacy.md)
+- [权限、本地隐私与诊断日志规范](spec/008-permissions-local-privacy-and-diagnostics.md)
 - [ADR-005：坚持本地优先和用户自带 Provider](decisions/005-local-first-and-user-owned-providers.md)
 
 适用任务：
@@ -229,6 +232,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 
 - [文档体系规范](_meta/documentation-system.md) 的第 2.7、2.8、4.3 节
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2.8 节
+- [测试与验证入口规范](spec/009-testing-and-verification.md)
 - [测试文档目录](testing/README.md)
 - [发布文档目录](release/README.md)
 

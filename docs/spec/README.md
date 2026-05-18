@@ -39,6 +39,15 @@
 - [004：SwiftUI 架构规范](004-swiftui-architecture.md)
 - [005：AI Provider、Prompt 与隐私规范](005-ai-provider-prompt-and-privacy.md)
 - [006：界面国际化与语言边界规范](006-interface-localization-and-language-boundaries.md)
+- [007：数据存储、迁移、导出与附件规范](007-data-storage-migration-export-and-attachments.md)
+- [008：权限、本地隐私与诊断日志规范](008-permissions-local-privacy-and-diagnostics.md)
+- [009：测试与验证入口规范](009-testing-and-verification.md)
+
+当前模块实现地图：
+
+- [interface-localization 实现地图](interface-localization/impl.md)
+- [navigation 实现地图](navigation/impl.md)
+- [learning-content 实现地图](learning-content/impl.md)
 
 ## 3. 模块化 spec 与实现地图
 
@@ -60,11 +69,7 @@ docs/spec/<module>/
 后续建议补充：
 
 - 领域模型规范。
-- 数据存储、迁移与导出规范。
-- 权限、本地隐私和加密规范。
 - 错误、空状态和加载状态规范。
-- 测试与验证规范。
-- 日志和诊断规范。
 - 可访问性规范。
 
 ## 4. AI 开发使用方式
