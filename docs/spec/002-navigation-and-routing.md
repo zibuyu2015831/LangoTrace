@@ -21,7 +21,7 @@
 - 首次启动不要求用户选择数据目录。
 - 面向用户不使用 Project 作为核心概念。
 - 一级导航不使用“我的”。
-- iPhone 一级入口使用 `今日 / 记录 / 练习 / 记忆 / 设置`。
+- iPhone 一级入口使用 `记录 / 练习 / 记忆` 三个主目的地；设置通过 toolbar gear、语言空间摘要或二级配置 route 稳定可达，不作为底部 Tab 与主学习流程并列。
 - “单词”不作为一级入口，词、短语和句子统一归入“记忆”。
 - 每条记录、练习、词句记忆和 AI 生成内容都必须能回到所属语言空间。
 - 设置入口必须稳定可达，但不应抢占记录和学习主流程。
@@ -39,8 +39,7 @@
 2. 选择目标语言。
 3. 完成水平自评。
 4. 确认并创建第一个语言空间。
-5. 选择是否现在配置 AI Provider。
-6. 进入“今天记录一点生活”。
+5. 进入“记录一点生活”。
 
 AI Provider、同步、词典、导出和目录选择不应成为首次启动门槛。
 
@@ -49,8 +48,9 @@ AI Provider、同步、词典、导出和目录选择不应成为首次启动门
 推荐导航：
 
 ```text
-底部 Tab：今日 / 记录 / 练习 / 记忆 / 设置
+底部 Tab：记录 / 练习 / 记忆
 顶部轻量上下文：英语 · B1
+Toolbar：设置 gear、必要的记录动作或语言空间摘要入口
 ```
 
 定位：
@@ -95,12 +95,14 @@ Sidebar 底部：当前语言空间 / 设置 / AI Provider 状态 / 同步状态
 - Prompt 管理。
 - 同步和 Provider 高级配置。
 
+macOS 应提供原生 `Settings` scene，并通过菜单命令或 `Cmd+,` 打开通用设置。New Entry、Search、Toggle Sidebar、Toggle Inspector 等高频工作台动作应有菜单或快捷键镜像；真实搜索未接入时，搜索命令只能打开明确的 unavailable / local mock 状态，不能伪装成已完成搜索能力。
+
 ### 4.5 路由类型
 
 推荐把路由分为四类：
 
 - 启动状态路由：首次启动、缺少语言空间、正常进入 App。
-- 主流程路由：今日、记录、练习、记忆和记录详情。
+- 主流程路由：记录、练习、记忆和记录详情。
 - 配置路由：设置、AI Provider、同步、导入导出、购买恢复。
 - 临时任务路由：请求预览、权限解释、OCR 校对、听写结果、同步冲突处理。
 
@@ -140,11 +142,12 @@ iPad 和 macOS 的左右辅助面板属于主工作区的可召回上下文，�
 推荐边界：
 
 - iPhone 可以在页面顶部显示轻量语言空间上下文，例如 `英语 · B1`，并在设置页提供完整配置入口。
+- iPhone 的语言空间入口第一阶段应展示当前 Space summary：空间名称、母语到目标语言、水平、本地优先边界和后续 lifecycle 能力说明。它不是 Project 管理入口，也不能成为 unavailable 死路。
 - iPad 默认把当前语言空间、AI Provider 状态、同步状态和设置入口放在左侧 Sidebar 底部；AI、同步、设置三个图标应在语言空间标题行右侧同组呈现，顶部全局条优先服务当前任务。
 - macOS 默认把当前语言空间、AI Provider 状态、同步状态和设置入口放在 Sidebar 底部；AI、同步、设置三个图标应在语言空间标题行右侧同组呈现，主区顶部或 Toolbar 优先服务工作台操作。
 - iPad 和 macOS 的 Sidebar 收起时，语言空间和设置入口可以跟随隐藏；稳定可达由 Sidebar 显示按钮保证。
 - 当前阶段不要求语言空间和设置入口始终占据顶部。
-- 后续如果实现 macOS `Settings...`、`Cmd+,`、菜单栏 View Commands 或 Command Palette，应单独确认与 Sidebar 底部入口的关系。
+- macOS `Settings...` / `Cmd+,` 是通用偏好入口；Sidebar 底部 gear 是当前工作台中的低频配置入口；AI / Sync 图标表达能力状态或配置详情，不应与 gear 表现成三个等价设置按钮。
 
 ### 4.9 页面闭环阶段路由边界
 
@@ -152,11 +155,11 @@ iPad 和 macOS 的左右辅助面板属于主工作区的可召回上下文，�
 
 推荐边界：
 
-- iPhone 保持 `今日 / 记录 / 练习 / 记忆 / 设置` Tab 和 `NavigationStack` 层级，短说明使用 sheet，不新增会干扰系统返回手势的全屏横向手势。
+- iPhone 保持 `记录 / 练习 / 记忆` 三个主 Tab。记录 Tab 合并原“今日”和“记录”的职责，首屏主动作是记录生活，次级内容是最近记录、当前 Entry 状态和必要的本地能力边界。短说明使用 sheet，不新增会干扰系统返回手势的全屏横向手势。
 - iPad 不使用放大的 iPhone Tab；regular width 保持工作台三栏，详情、练习和设置优先由中间主区或右侧学习面板承载。
 - iPad 在 compact width、Split View、Slide Over 或 Stage Manager 窄窗口下，优先保证主内容可读，时间线和学习面板可以自动或手动收起。
 - macOS 不使用移动端 Tab；使用 Sidebar selection、主工作区和 Inspector 承载页面状态。
-- macOS 的菜单栏、Command Palette、多窗口和快捷键属于后续 Mac 设计优化阶段；页面闭环阶段可以记录入口候选，但不能把未接线命令写成已完成能力。
+- macOS 的 Settings scene、菜单命令和关键快捷键属于当前页面闭环后的基础桌面外壳；Command Palette、多窗口和批量管理仍属于后续 Mac 工作台阶段。任何未接入真实能力的命令必须打开明确 unavailable / local mock 状态。
 - route、section、filter、sheet 和面板展开状态属于 transient UI state，不进入语言空间模型、数据库、同步 manifest 或启动恢复。
 - 任何 Local Mock 或 unavailable 页面都必须说明当前边界、后续接入条件和不会发生的副作用。
 
@@ -202,3 +205,4 @@ iPad 和 macOS 的左右辅助面板属于主工作区的可召回上下文，�
 - 2026-05-17：将 AI Provider、同步和设置三个图标并入语言空间标题行右侧。原因：三者均为当前空间的低频配置入口，同组呈现能降低底部工具区高度并保持页面简洁。影响范围：iPad、macOS Sidebar 底部工具区。是否需要 ADR：否。
 - 2026-05-17：补充配置路由只读说明页边界。原因：设置与练习状态闭环阶段新增 iPhone 设置二级路由，但真实 Keychain、网络、数据库和同步引擎尚未接入，需要防止 mock 页面被误读为真实配置能力。影响范围：iPhone 设置路由和后续配置页实现。是否需要 ADR：否。
 - 2026-05-17：补充三端页面闭环阶段路由边界。原因：新增 iPad 和 macOS 页面补全计划需要明确空 action、窄窗口、Mac command surface 和 transient UI state 的边界。影响范围：iPhone、iPad、macOS 页面闭环和后续设计优化。是否需要 ADR：否。
+- 2026-05-18：同步第一轮 UI 收敛后的导航事实。原因：iPhone 顶层已从五 Tab 收敛为记录、练习、记忆三主目的地，设置降级为稳定可达的配置入口；macOS 已具备 Settings scene 和基础 commands；语言空间入口第一阶段应呈现 Space summary 而不是 unavailable 死路。影响范围：iPhone IA、iPad / macOS 底部工具区语义、macOS 命令面和后续语言空间生命周期方案。是否需要 ADR：否，未改变语言空间作为核心上下文的 ADR。

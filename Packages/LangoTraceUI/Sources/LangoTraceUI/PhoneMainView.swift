@@ -22,7 +22,7 @@ struct PhoneMainView: View {
                     onNewEntry: { presentedSheet = .entryEditor },
                     onPhotoWriting: { presentedSheet = .unavailable(.photoWriting) },
                     onListenOne: { presentedSheet = .unavailable(.listenOne) },
-                    onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
+                    onLanguageSpaceAction: { presentedSheet = .languageSpaceSummary },
                     onSettingsAction: { navigationPath.append(.settingsList) },
                     onSelectEntry: showEntryDetail
                 )
@@ -39,7 +39,7 @@ struct PhoneMainView: View {
                     languageSpace: languageSpace,
                     entries: entries,
                     contentStore: contentStore,
-                    onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
+                    onLanguageSpaceAction: { presentedSheet = .languageSpaceSummary },
                     onSettingsAction: { navigationPath.append(.settingsList) },
                     onPractice: { entry in navigationPath.append(.practice(entry.id)) }
                 )
@@ -55,7 +55,7 @@ struct PhoneMainView: View {
                 MemoryView(
                     languageSpace: languageSpace,
                     memoryItems: contentStore.memoryItems,
-                    onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
+                    onLanguageSpaceAction: { presentedSheet = .languageSpaceSummary },
                     onSettingsAction: { navigationPath.append(.settingsList) }
                 )
                 .tabItem {
@@ -103,7 +103,7 @@ struct PhoneMainView: View {
                     SettingsView(
                         languageSpace: languageSpace,
                         capabilities: contentStore.settingsCapabilities,
-                        onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
+                        onLanguageSpaceAction: { presentedSheet = .languageSpaceSummary },
                         onSettingsAction: nil,
                         onSelectCapability: { kind in navigationPath.append(.settings(kind)) }
                     )
@@ -126,6 +126,20 @@ struct PhoneMainView: View {
                         presentedSheet = nil
                     }
                         .presentationDetents([.medium, .large])
+                case .languageSpaceSummary:
+                    NavigationStack {
+                        LanguageSpaceSummaryView(languageSpace: languageSpace)
+                            .toolbar {
+                                ToolbarItem(placement: .confirmationAction) {
+                                    Button {
+                                        presentedSheet = nil
+                                    } label: {
+                                        localizedText("common.close")
+                                    }
+                                }
+                            }
+                    }
+                    .presentationDetents([.medium, .large])
                 }
             }
             .onAppear {
@@ -166,6 +180,7 @@ private enum PhoneRoute: Hashable {
 private enum PhoneSheet: Identifiable {
     case entryEditor
     case unavailable(PhoneUnavailableAction)
+    case languageSpaceSummary
 
     var id: String {
         switch self {
@@ -173,6 +188,8 @@ private enum PhoneSheet: Identifiable {
             "entry-editor"
         case let .unavailable(action):
             "unavailable-\(action.rawValue)"
+        case .languageSpaceSummary:
+            "language-space-summary"
         }
     }
 }

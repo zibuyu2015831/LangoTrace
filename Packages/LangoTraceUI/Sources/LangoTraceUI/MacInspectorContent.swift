@@ -52,6 +52,15 @@ struct MacInspectorContent: View {
                 titleKey: "capabilityStatus.unavailable",
                 textKey: "mac.inspector.unavailable.body"
             )
+        case .languageSpaceSummary:
+            LocalizedTextPanel(
+                titleKey: "settings.languageSpace.title",
+                textKey: "settings.languageSpace.detail"
+            )
+            LocalizedTextPanel(
+                titleKey: settingsNextRequirementTitleKey,
+                textKey: "settings.languageSpace.nextRequirement"
+            )
         case .overview:
             overviewInspector
         }

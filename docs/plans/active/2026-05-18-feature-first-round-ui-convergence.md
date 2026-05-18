@@ -903,6 +903,33 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 - 本阶段不声称完整视觉系统完成；high contrast fallback、permission denied 真实流程、sync conflict 真实流程和 loading/error pattern 的可视化样板仍需后续接入真实功能时补齐。
 - `langoPanel` 使用边界、主路径工程术语清理和样板页截图仍由任务 10、任务 12、任务 13、任务 14 收口。
 
+### 2026-05-18 阶段 9：Spec sync and language space lifecycle boundary
+
+处理范围：
+
+- 完成任务 9，并补齐任务 11 的第一轮边界：语言空间入口不再打开 `.languageSpace` unavailable 死路，而是进入只读 `LanguageSpaceSummaryView`。
+- iPhone 的语言空间入口改为 sheet summary；iPad footer route 改为 `.languageSpaceSummary`；macOS footer route 改为 `.languageSpaceSummary`，workspace 和 inspector 均展示当前空间边界。
+- 新建 `docs/plans/active/2026-05-18-feature-language-space-lifecycle-and-deletion.md`，明确添加、切换、删除、最后空间回退、导出前置、级联、撤销和同步 tombstone 由独立方案承接。
+- 同步 `docs/spec/002-navigation-and-routing.md`：iPhone 三主 Tab、设置入口降级、Space summary 语义、macOS Settings scene / commands。
+- 同步 `docs/spec/003-ui-design-system.md`：状态矩阵、token 映射、action hierarchy、empty / unavailable / loading / error 和卡片使用边界。
+- 同步 `docs/spec/004-swiftui-architecture.md`：`LearningContentRepository` / `LearningContentStore` seam、`contentRevision` 退出、Entry 保存与 local preview 生成分离。
+- 同步 `docs/spec/006-interface-localization-and-language-boundaries.md`：显式 interface-language resolver、UI display projection、iPhone 设置入口和 macOS Settings scene 边界。
+- 同步 `docs/spec/ui-design/mvp-ui-flow-and-design-system.md`：三端页面地图、Rendering 显性状态、Memory 三层模型。
+- 更新 `docs/review/INDEX.md`，把全面 UI 审查的后续覆盖记录指向本轮第一轮收敛方案和已同步 spec。
+
+验证结果：
+
+- `swift test --package-path Packages/LangoTraceUI` 初次失败，原因是 `MacInspectorContent` 未覆盖新增 `.languageSpaceSummary` route。
+- 修复后 `swift test --package-path Packages/LangoTraceUI` 通过，34 个测试通过。
+- `rg -n "languageSwitcher|languageSpaceUnavailable|unavailable\\(\"language-space\"|MacUnavailableContent\\(kind: \"language-space\"|UnavailableCapabilityView\\(content: \\.languageSpace" Packages/LangoTraceUI/Sources Packages/LangoTraceUI/Tests` 无命中。
+- `rg -n "LanguageSpaceSummaryView" Packages/LangoTraceUI/Sources Packages/LangoTraceUI/Tests` 确认 iPhone、iPad、macOS 三端都有入口。
+
+剩余边界：
+
+- 本阶段没有实现真实语言空间添加、切换、删除、持久化、导出或同步 tombstone。
+- `docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md` 仍承接单空间启动恢复；新 lifecycle 方案承接多空间和删除。
+- 完整截图矩阵、high contrast / dark mode 和真实权限 / 同步 / AI 错误样板仍由后续验证或真实功能接入阶段处理。
+
 ## 17. 完成标准
 
 本任务完成必须同时满足：

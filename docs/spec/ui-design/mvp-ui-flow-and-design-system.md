@@ -31,22 +31,23 @@
 
 - Welcome / Onboarding / Main 启动路由。
 - 内存语言空间 preview；当前还不是可持久化 Space。
-- iPhone `今日 / 记录 / 练习 / 记忆 / 设置` 五个 Tab。
-- 本地内存学习内容 repository，可创建 mock Entry，并生成 mock Rendering、Practice 和 Memory。
-- iPhone 记录创建 sheet、Entry 保存后详情导航、Entry detail 和 mock practice session。
-- iPad 三栏工作台、时间线和学习面板收起/展开。
-- macOS Sidebar / 主区 / Inspector 工作台骨架。
-- `LanguageSpaceFooter`、隐私状态图标、面板切换按钮和基础设计 token。
+- iPhone `记录 / 练习 / 记忆` 三个主 Tab；设置通过 toolbar gear 或配置 route 稳定可达。
+- 本地内存学习内容 repository 已通过 `LearningContentRepository` 和 `LearningContentStore` 暴露给 UI；View 不直接依赖 concrete repository。
+- Entry 保存只创建原始记录；Rendering local preview 必须由用户显式触发，不再在 `createEntry` 后自动生成 Practice 和 Memory。
+- iPhone 记录创建 sheet、Entry 保存后详情导航、Entry detail、本地预览入口、mock practice session 和 Memory 三层摘要。
+- iPad 三栏工作台、响应式宽度布局、时间线和学习面板收起/展开、Settings / Search / New Entry 稳定入口、基础 pointer / keyboard / context menu。
+- macOS Sidebar / 主区 / Inspector 工作台骨架、Settings scene、菜单 commands 和关键快捷键。
+- `LanguageSpaceFooter`、能力状态图标、面板切换按钮、状态矩阵和基础设计 token。
 
 当前缺口：
 
-- `LangoTraceData` 的 `LanguageSpaceRepository` 仍是空协议，没有 Entry / Rendering / Practice / Memory repository。
+- `LangoTraceData` 的 `LanguageSpaceRepository` 仍由独立语言空间持久化方案承接；语言空间添加、切换、删除和最后空间回退尚未实现。
 - 现有 Entry 创建、编辑、保存和详情路由仍是内存 mock，不具备真实持久化、启动恢复、编辑后保存到长期 repository 或附件关联。
 - 没有 Rendering 请求预览、生成结果、失败状态和重试路径。
 - 没有真实 TTS、播放、跟读、听写、回译和练习结果。
 - 没有 Memory 提取、收藏、复习队列和回到原始上下文。
 - 没有 SQLite / GRDB Repository、附件存储和启动恢复。
-- 设计系统缺少完整 token、组件状态、页面模式、空/错/加载状态和深色模式映射；当前 `LangoTraceDesign.ColorToken` 是固定浅色 token。
+- 设计系统已有第一轮 token 和状态矩阵，但仍缺少完整深色模式、高对比、截图矩阵和真实错误 / 权限 / 同步流程样板。
 
 ## 3. 产品对象边界
 
@@ -65,24 +66,25 @@
 - `Entry`、`Rendering`、`Practice`、`Memory` 有轻量模型或可测试的 preview model。
 - Repository 至少支持当前语言空间内的列表、选择、创建和保存。
 - Mock Rendering 明确标记为本地 mock，不触发网络请求。
+- 用户新建 Entry 后不会自动创建 Rendering、Practice 或 Memory；本地预览是显式动作。
 - Request Preview 可以先确认 mock 请求，但 UI 必须清楚表达真实 Provider 未配置时不会发送内容。
 
 ## 4. MVP 页面地图
 
 ### 4.1 iPhone
 
-iPhone 保持五个一级 Tab：
+iPhone 保持三个主 Tab：
 
-- 今日：主入口，承载“今天记录一点生活”、最近记录、今日练习和隐私/AI 状态轻提示。
-- 记录：Entry 列表、创建入口、照片写作入口、目标语言写作入口。
+- 记录：主入口，承载“记录一点生活”、最近记录、当前 Entry 状态、本地预览入口和必要的隐私 / AI 边界轻提示。
 - 练习：按当前语言空间聚合跟读、听写、回译和写作检查。
-- 记忆：词句、整句表达、错误模式、相似生活片段和复习入口。
-- 设置：语言空间、AI Provider、同步、本地数据、隐私和导出入口。
+- 记忆：内容记忆、语言记忆、学习记忆三层摘要，后续扩展为词句、整句表达、错误模式、相似生活片段和复习入口。
+
+设置不作为底部 Tab，与语言空间、AI Provider、同步、本地数据、隐私和导出相关的配置通过 toolbar gear、语言空间摘要或二级 route 进入。
 
 必须补齐的子页面：
 
 - `EntryEditorView`：创建或编辑生活记录。
-- `EntryDetailView`：展示母语记录、目标语言 Rendering、句子对照和练习入口。
+- `EntryDetailView`：展示母语记录、目标语言 Rendering 状态、本地预览入口、句子对照和练习入口；缺少 Rendering 时必须显示明确状态。
 - `RequestPreviewView`：展示即将发送与不会发送的内容；真实 Provider 未配置时只能执行 mock 生成或提示配置，不得暗示已经发送到外部服务。
 - `PracticeSessionView`：承载跟读、听写或回译中的一种练习会话。
 - `MemoryItemDetailView`：展示词句来源、例句、原始 Entry 和复习状态。
@@ -113,13 +115,15 @@ macOS 第一阶段不追求完整深度工作台，但必须保持可信的基�
 - Toolbar 或主区顶部：Sidebar 切换、Inspector 切换、新建记录、搜索入口。
 - 主区：Entry 详情、搜索结果或记录库。
 - Inspector：请求预览、词句提取、元数据、练习状态。
+- Settings scene：承载通用设置和能力边界说明，通过菜单或 `Cmd+,` 打开。
+- Commands：New Entry、Search、Toggle Sidebar、Toggle Inspector、Settings 等基础桌面命令；未接入真实搜索时必须打开 unavailable / local mock 说明。
 
 第一阶段不实现：
 
 - 多窗口文档系统。
 - Command Palette。
 - 批量导入导出。
-- 完整菜单栏命令体系。
+- 完整菜单栏命令体系和批量资料库管理。
 - 大规模资料库管理。
 
 这些能力保留在 macOS 后续工作台规格中。
@@ -187,6 +191,17 @@ Token 落地顺序：
 - 不用颜色作为唯一状态表达。
 - 支持浅色和深色设计预留。
 
+### 5.4 状态矩阵和 action hierarchy
+
+第一轮实现后的状态 kind 包括 `ready`、`localPreview`、`unavailable`、`warning`、`error`、`permissionDenied`、`syncConflict` 和 `loading`。状态组件必须同时使用标题、说明、图标、tone 和可访问信息表达，不把颜色作为唯一状态。
+
+Action hierarchy：
+
+- Primary：创建 Entry、生成本地预览、继续练习。
+- Secondary：筛选、查看设置详情、切换面板、查看不可用说明。
+- Tertiary：播放、收藏、更多、AI / Sync / gear 状态图标。
+- Destructive：删除语言空间、删除 Entry、清空数据；必须有确认、导出或可恢复方案，本规格当前不实现真实语言空间删除。
+
 ## 6. 状态设计
 
 必须设计并实现的状态：
@@ -201,6 +216,13 @@ Token 落地顺序：
 - 同步未启用：表达为正常状态，不使用错误视觉。
 - 同步冲突：必须进入用户确认或可恢复路径。
 - 向量索引未建立：表达为可重建派生数据，不影响原始记录。
+- 本地预览：表达为可替换的本地示例，不触发真实 AI、TTS、同步或外部请求。
+
+Memory 页面第一轮至少表达三层：
+
+- 内容记忆：从生活记录回到原始上下文。
+- 语言记忆：沉淀词、短语、句子和自然表达。
+- 学习记忆：记录练习进度、错误模式和后续复习线索。
 
 ## 7. 首批实施建议
 
@@ -213,14 +235,14 @@ Token 落地顺序：
 
 2. 最小模型和内存 repository：
    - 为 `Entry`、`Rendering`、`Practice`、`Memory` 增加第一版 preview model 或测试模型。
-   - 增加当前语言空间内的 in-memory repository，支持列表、选择、创建、保存和 mock rendering。
+   - 增加当前语言空间内的 in-memory repository，支持列表、选择、创建、保存和显式 local preview rendering。
    - 继续保持 SQLite / GRDB 为后续阶段，不在本批次引入真实数据库迁移。
 
 3. iPhone 记录闭环：
    - 让“写一句”进入 `EntryEditorView`。
    - 保存到内存 repository。
    - 进入 `EntryDetailView`。
-   - 用 Mock Rendering 展示双语对照和句子练习入口。
+   - 保存后先进入原始 Entry 详情，再由用户显式生成 local preview，展示双语对照和句子练习入口。
 
 4. iPad 详情工作台：
    - 时间线选择驱动中栏 Entry。
@@ -253,7 +275,7 @@ scripts/verify.sh
 
 手动验证至少覆盖：
 
-- iPhone：onboarding、五个 Tab、记录创建、记录详情、请求预览、练习入口、设置入口。
+- iPhone：onboarding、三个 Tab、记录创建、记录详情、本地预览、练习入口、设置入口。
 - iPad：面板展开/收起、时间线选择、Entry 详情、学习面板、请求预览。
 - macOS：窗口最小尺寸、Sidebar/Inspector 切换、新建记录入口不会造成假写入。
 - Accessibility：主要图标按钮有可读 label，面板状态有 value，Reduce Motion 生效。
@@ -280,9 +302,13 @@ scripts/verify.sh
 
 本规格对应的 MVP UI 通过标准：
 
-- 用户能在 iPhone 完成从创建 Entry 到看到 Mock Rendering 和进入练习入口的闭环。
+- 用户能在 iPhone 完成从创建 Entry 到显式生成 local preview Rendering 并进入练习入口的闭环。
 - iPad 能用时间线选择 Entry，并在中栏与右栏展示不同学习上下文。
 - 所有主页面都有明确 empty / unavailable / request preview 状态。
 - AI Provider 未配置时，页面不会暗示已经能自动生成内容或自动发送数据。
 - 新组件使用稳定 token，不在页面中继续扩散临时颜色、圆角和状态样式。
 - 文档、代码和测试对当前实现阶段的表述一致。
+
+## 11. 变更记录
+
+- 2026-05-18：同步第一轮 UI 收敛后的页面地图和状态边界。原因：iPhone 已收敛为记录、练习、记忆三主 Tab；Entry 保存与 local preview 生成已分离；iPad / macOS 已补基础响应式和命令入口；Memory 已出现内容、语言、学习三层表达。影响范围：MVP 页面地图、状态矩阵、设计系统后续实施顺序和手动验证清单。

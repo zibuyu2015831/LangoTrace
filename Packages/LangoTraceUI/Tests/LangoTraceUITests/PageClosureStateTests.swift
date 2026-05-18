@@ -23,7 +23,7 @@ struct PageClosureStateTests {
 
     @Test("Pad footer actions route to visible pages")
     func padFooterActionsRouteToVisiblePages() {
-        #expect(PadFooterAction.languageSpace.route == .languageSpaceUnavailable)
+        #expect(PadFooterAction.languageSpace.route == .languageSpaceSummary)
         #expect(PadFooterAction.aiProvider.route == .settings(SettingsCapability.Kind.aiProvider))
         #expect(PadFooterAction.sync.route == .settings(SettingsCapability.Kind.sync))
         #expect(PadFooterAction.settings.route == .settingsList)
@@ -34,13 +34,13 @@ struct PageClosureStateTests {
         #expect(PadWorkspaceRoute.settingsList.navigationTitleKey == "tab.settings")
         #expect(PadWorkspaceRoute.memory.navigationTitleKey == "tab.memory")
         #expect(PadWorkspaceRoute.importExport.navigationTitleKey == "mac.section.importExport")
-        #expect(PadWorkspaceRoute.languageSpaceUnavailable.navigationTitleKey == "settings.languageSpace.title")
+        #expect(PadWorkspaceRoute.languageSpaceSummary.navigationTitleKey == "settings.languageSpace.title")
     }
 
     @Test("Mac footer actions route to visible workspace content")
     func macFooterActionsRouteToVisibleWorkspaceContent() {
         #expect(MacFooterAction.languageSpace.section == .settings)
-        #expect(MacFooterAction.languageSpace.route == .unavailable("language-space"))
+        #expect(MacFooterAction.languageSpace.route == .languageSpaceSummary)
         #expect(MacFooterAction.aiProvider.section == .settings)
         #expect(MacFooterAction.aiProvider.route == .settings(SettingsCapability.Kind.aiProvider))
         #expect(MacFooterAction.sync.section == .settings)

@@ -48,6 +48,8 @@
 
 `System` 模式应以 Apple bundle localization 结果为准，优先使用 `Bundle.main.preferredLocalizations` 或等效结果与语迹支持语言清单求交集。显式语言模式通过 SwiftUI `locale` 环境和 UI 层本地化封装影响自有 chrome，不改变 `Bundle.main.preferredLocalizations`。
 
+当前 UI 实现应使用显式 interface-language resolver：`System` 从 `Bundle.main.preferredLocalizations` 解析到受支持语言，显式偏好直接解析为对应 language code，并通过 SwiftUI environment 影响语迹自有 chrome。测试必须覆盖系统语言与 App 内显式语言不一致时，Tab、Settings、toolbar、unavailable 和状态组件使用显式偏好显示。
+
 ## 3. 语言概念边界
 
 ### 3.1 App 界面语言
@@ -59,6 +61,7 @@ App 界面语言用于显示导航、按钮、设置、空状态、错误状态�
 - `Today`
 - `Entries`
 - `Practice`
+- `Memory`
 - `Settings`
 - `AI Provider not configured`
 
@@ -122,6 +125,7 @@ Provider / Prompt 输出语言必须由请求构建层显式传入，不得从�
 - iPhone、iPad、macOS 三端必须共享同一套界面语言偏好语义，但可使用各自平台合适的设置呈现方式。
 - 页面设计不得依赖固定中文短标签；按钮、segmented control、tab、sidebar row 和 toolbar item 需要为长文本、截断、换行或图标辅助预留策略。
 - Data / Core 层可以提供稳定 kind、状态、业务语义和 mock 内容，但不得把中文或英文展示说明当成可切换 App chrome 的唯一来源；设置能力说明、状态摘要、错误说明和不可用说明等 UI chrome 必须由 UI 层 String Catalog 或等效本地化资源渲染。
+- Core 层不得提供 `ChineseUI` 这类面向单一界面语言的展示 helper。语言 code、母语和目标语言模型可以留在 Core；折叠值、自称名、辅助名和菜单项组合属于 UI 层 language display projection。
 - AI 请求预览、隐私说明、权限说明和不可用能力说明必须使用当前界面语言展示，同时清楚说明会发送哪些目标语言或母语内容。
 - App Store、TestFlight、权限提示和截图文案进入发布阶段时，必须与支持的界面语言清单保持一致。
 - iOS / iPadOS / macOS 的系统级 App 语言设置与语迹 App 内界面语言偏好必须在设计中明确关系；不得假设 App 内一个 Picker 就能覆盖所有系统 UI、权限弹窗、StoreKit sheet 或第三方 Provider 错误。
@@ -221,7 +225,6 @@ Deutsch
 | 记录 | Entry | 记录 |
 | 记忆 | Memory | 记忆 |
 | 练习 | Practice | 练习 |
-| 今日 | Today | 今日 |
 | 目标语言 | Target Language | 目标语言 |
 | 母语 | Native Language | 母语 |
 | 界面语言 | Interface Language | 界面语言 |
@@ -243,7 +246,7 @@ Deutsch
 - 不使用缩小字体作为主要适配手段。
 - 不使用负字距或过窄按钮来容纳翻译文本。
 - 不把说明性长文案塞进按钮、Tab 或紧凑 toolbar。
-- iPhone 顶层 Tab 仍应保持 3 到 5 个清晰入口；本地化后若标签过长，应优先优化术语或使用系统 Tab 行为，不应新增汉堡菜单。
+- iPhone 顶层 Tab 仍应保持 3 到 5 个清晰入口；当前主结构为 `Entry / Practice / Memory` 三个目的地。本地化后若标签过长，应优先优化术语或使用系统 Tab 行为，不应新增汉堡菜单。
 - iPhone 主操作需要在动态字体和较长翻译下保持 44pt 以上触控目标，不能因文案变长而压缩可点击区域。
 - 重要说明允许进入正文、footnote 或详情页，不应为了把所有语义塞进按钮而破坏可扫读性。
 - RTL 未来支持时，时间线、Inspector、Sidebar 等平台结构需要重新评估视觉方向；当前阶段至少不能在通用组件里硬编码与语义无关的左/右边距。
@@ -252,7 +255,7 @@ Deutsch
 
 iPhone 上界面语言设置应尽量遵守系统心智：
 
-- 设置入口放在 `设置` Tab 内，不应放进首次启动主路径阻断语言空间创建。
+- 设置入口通过 toolbar gear、语言空间摘要或配置 route 稳定可达，不作为底部 Tab 与记录、练习、记忆并列；也不应放进首次启动主路径阻断语言空间创建。
 - 首次启动仍应优先询问母语、目标语言和水平自评；界面语言可以默认跟随系统，不作为创建第一个语言空间的必填问题。
 - 若系统语言不受支持并回退英文，onboarding 可以在后续版本提供轻量入口让用户切换到已支持语言，但不应让用户误以为这是目标学习语言选择。
 - 切换界面语言属于低频设置，不应占用今日记录、练习或记忆的主操作位置。
@@ -271,7 +274,7 @@ iPad 上界面语言设置应适配多窗口和多尺寸：
 
 Mac 上界面语言设置应符合桌面偏好设置心智：
 
-- 长期应接入 SwiftUI `Settings` scene，并让 `Cmd+,` 打开设置。
+- 应接入 SwiftUI `Settings` scene，并让 `Cmd+,` 打开设置。
 - 当前 workspace 内 Settings 可以保留为产品内入口，但不应成为 Mac 上唯一偏好入口。
 - 语言选择控件必须支持键盘导航、VoiceOver、窗口缩放和较长本地化文案。
 - 菜单栏、系统 Settings scene、App target InfoPlist、App Intents 和后续本地通知等不属于 `LangoTraceUI` package catalog 自动覆盖范围。
@@ -282,6 +285,8 @@ Mac 上界面语言设置应符合桌面偏好设置心智：
 
 - 单元测试：界面语言偏好不会改变语言空间目标语言。
 - 单元测试：语言 code 和展示名分离。
+- 单元测试：显式界面语言偏好覆盖语迹自有 chrome，`System` 仍跟随 bundle preferred localizations 的解析结果。
+- 单元测试：Core 语言模型不暴露单一中文 UI helper，UI display projection 负责菜单项和折叠值。
 - 静态扫描：新增 UI 文件中明显硬编码文案需要人工确认是否应进入本地化资源。
 - SwiftUI Preview 或截图：英文与简体中文至少覆盖 Welcome、Onboarding、iPhone Tab、iPad workspace、macOS workspace 和 Settings。
 - 手动测试：切换界面语言后，当前语言空间和学习内容不被修改。
@@ -337,3 +342,4 @@ AI 在设计、改进或实现任何页面前，如果任务涉及可见文案�
 - 2026-05-17：创建界面国际化与语言边界规范草案。原因：语迹愿景是适配任意语言学习，后续页面设计和改进必须区分 App 界面语言、用户母语和目标学习语言。影响范围：产品设计、SwiftUI 文案资源、设置入口、三端布局、测试验证。是否需要 ADR：否，当前属于既有多语言学习定位下的开发规范细化。
 - 2026-05-17：补充系统级 App 语言、App 内语言偏好、地区格式、RTL、辅助功能朗读、权限隐私文案和本地化测试边界。原因：架构与 iOS 交互复查发现原草案容易低估 Apple per-app language、系统 UI、locale / region 和长文本 / RTL 的边界。影响范围：iPhone 设置体验、SwiftUI 资源策略、AI 请求预览、发布本地化和测试验证。是否需要 ADR：否，仍属于开发规范细化；若未来决定把界面语言偏好纳入同步或语言空间主数据，需要重新评估 ADR。
 - 2026-05-18：将规范状态升级为 Accepted。原因：入口文档、Core 语言偏好模型、App target 本地化声明和设置体验已经按本文档边界推进，本文档应作为后续可见文案、界面语言设置和三端本地化的生效规范。影响范围：`docs/spec/README.md`、界面国际化实现和后续测试。是否需要 ADR：否，未改变核心产品或架构决策。
+- 2026-05-18：同步显式 interface-language resolver 和 UI display projection 边界。原因：第一轮 UI 收敛已让显式界面语言偏好驱动 package-owned SwiftUI chrome，并将语言展示组合从 Core 单一中文 helper 移到 UI 层；iPhone 设置入口也已从底部 Tab 调整为低频配置入口。影响范围：界面语言解析、Tab / Settings / toolbar / unavailable 文案测试、语言展示 helper 和三端设置入口。是否需要 ADR：否。

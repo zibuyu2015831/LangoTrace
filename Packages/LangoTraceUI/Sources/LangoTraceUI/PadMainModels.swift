@@ -41,7 +41,7 @@ enum PadWorkspaceRoute: Equatable {
     case settings(SettingsCapability.Kind)
     case memory
     case importExport
-    case languageSpaceUnavailable
+    case languageSpaceSummary
 
     var navigationTitleKey: String {
         switch self {
@@ -57,7 +57,7 @@ enum PadWorkspaceRoute: Equatable {
             "tab.memory"
         case .importExport:
             "mac.section.importExport"
-        case .languageSpaceUnavailable:
+        case .languageSpaceSummary:
             "settings.languageSpace.title"
         }
     }
@@ -72,7 +72,7 @@ enum PadFooterAction {
     var route: PadWorkspaceRoute {
         switch self {
         case .languageSpace:
-            .languageSpaceUnavailable
+            .languageSpaceSummary
         case .aiProvider:
             .settings(.aiProvider)
         case .sync:

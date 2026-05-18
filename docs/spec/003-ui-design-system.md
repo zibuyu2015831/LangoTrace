@@ -115,6 +115,21 @@ macOS：
 - 同步冲突。
 - 向量索引未建立或可重建。
 
+第一轮能力状态矩阵采用以下语义，不把颜色作为唯一信息：
+
+| 状态 | 使用场景 | 必须表达 |
+| --- | --- | --- |
+| `ready` | 已可在本地或已配置能力中继续操作 | 标题、可执行动作和下一步 |
+| `localPreview` | 本地示例、Mock Rendering、预览数据 | 本地生成、不会外发、可替换为真实流程 |
+| `unavailable` | 功能尚未接入 | 当前边界、后续接入条件、不会发生的副作用 |
+| `warning` | 配置不完整或需要用户注意 | 影响范围和可恢复动作 |
+| `error` | 操作失败 | 原因、重试或退出路径、不丢失本地内容 |
+| `permissionDenied` | 权限被拒绝 | 权限用途、系统设置入口或替代路径 |
+| `syncConflict` | 同步冲突 | 冲突对象、用户选择和可恢复策略 |
+| `loading` | 正在处理 | 正在做什么、是否可取消、完成后状态 |
+
+`CapabilityStatusBadge` / `CapabilityStatusRow` 等状态组件必须同时使用文案、图标、tone 和布局表达状态。`warning`、`error`、`permissionDenied`、`syncConflict` 不能只换成红色或黄色；`localPreview` 不能写成“已生成”或“已连接”这类真实能力文案。
+
 ### 4.5 可访问性底线
 
 MVP 早期也应遵守：
@@ -188,6 +203,28 @@ iPad 和 macOS 上，语言空间和设置入口默认属于 Sidebar 底部工�
 - 间距：页面边距、组件间距、列表间距、控件内边距。
 - 形状：按钮、输入框、卡片、badge、sheet。
 
+当前 token 映射的最低边界：
+
+- 页面背景、面板、弱面板和边框使用 surface / border token，不在页面中直接散落 RGB。
+- 状态色通过 semantic token 进入组件，例如 warning、danger、info、success / local；页面只选择状态 kind，不直接决定具体颜色。
+- 危险色、错误色和弱危险背景必须放在 token 定义或经说明的状态组件中。
+- 深色模式、高对比和 reduce transparency 在没有截图或辅助功能验证前只作为预留，不写成已完成能力。
+
+Action hierarchy：
+
+- Primary action：创建 Entry、生成本地预览、继续练习等主路径动作；每个主区域同时只保留少量主动作。
+- Secondary action：筛选、查看详情、打开设置说明、切换面板。
+- Tertiary / icon action：播放、收藏、更多、设置 gear、AI / Sync 状态图标；必须有 accessibility label / value / hint 或 tooltip。
+- Destructive action：删除语言空间、删除 Entry、清空本地数据等必须有确认、可恢复或导出前置方案；本轮不实现真实语言空间删除。
+
+Empty / unavailable / loading / error 模式：
+
+- Empty state 应提供与当前页面匹配的下一步动作，例如创建第一条记录或清除筛选。
+- Unavailable state 应说明未接入能力和不会发生的副作用，不用长篇营销说明替代反馈。
+- Loading state 应说明正在处理的对象，避免裸 `ProgressView`。
+- Error state 应保留用户输入或本地记录，并提供重试、返回或查看详情路径。
+- Local preview state 应明确是本地示例，不触发真实 AI、TTS、同步或外部请求。
+
 ### 4.10 可执行设计系统边界
 
 从 MVP UI 闭环开始，设计系统不能只停留在视觉关键词，应逐步变成 SwiftUI 可复用入口。
@@ -202,6 +239,8 @@ iPad 和 macOS 上，语言空间和设置入口默认属于 Sidebar 底部工�
 - 练习会话即使处于 mock 阶段，也应呈现可理解的步骤状态，例如准备、跟读、对照和完成；这些步骤不能暗示真实音频、录音、评分或持久化已经发生。
 - 深色模式在没有完整 token 映射和截图验证前，只能写成预留或待实现能力，不能写成已完成能力。
 - 视觉升级必须服务记录、学习和记忆路径，不用装饰性背景、重复卡片或营销式 hero 掩盖交互缺口。
+- `langoPanel` 或等价面板不能作为所有 section 的默认外壳。卡片只用于重复 item、modal / sheet 内容、工具面板或确实需要框定的局部；页面 section 优先使用无框布局、分组标题、列表和平台原生容器。
+- Memory UI 至少区分内容记忆、语言记忆和学习记忆三层：内容记忆回到原始生活记录，语言记忆沉淀词句表达，学习记忆记录练习进度和错误模式。三层可以先是本地预览，但不能混成单一“单词列表”。
 
 设计系统规格入口：
 
@@ -270,3 +309,4 @@ AI 在创建或修改 UI 前应先确认：
 - 2026-05-17：补充可执行设计系统边界。原因：页面完整性与设计系统审查确认当前规范仍偏原则，需要明确 token、组件状态、mock 能力和深色模式边界。影响范围：MVP UI 闭环、核心 SwiftUI 组件和视觉验证。是否需要 ADR：否。
 - 2026-05-17：补充能力状态和 mock 练习步骤规范。原因：设置与练习状态闭环新增 `CapabilityStatusRow` 和 `PracticeControlBar`，需要把 ready、Local Mock、未接入和本地练习步骤沉淀为可复用 UI 约束。影响范围：设置、练习、请求预览和后续不可用状态设计。是否需要 ADR：否。
 - 2026-05-17：补充页面闭环先于整体视觉升级规则。原因：新增三端页面补全计划把 iPad 和 macOS 页面完整性置于视觉升级之前，需要明确 mock/unavailable、一致状态、窄窗口和 Mac 桌面交互底线。影响范围：三端页面闭环、设计优化准备和截图验证。是否需要 ADR：否。
+- 2026-05-18：同步第一轮 UI 收敛的状态矩阵和设计系统底座。原因：实现已新增 ready、local preview、unavailable、warning、error、permission denied、sync conflict、loading 等状态 kind，并把 Memory 首轮拆为内容记忆、语言记忆、学习记忆三层；规范需要明确 token、action hierarchy、empty / unavailable / loading / error 和卡片使用边界。影响范围：`LangoTraceDesign`、能力状态组件、三端主路径和后续视觉验证。是否需要 ADR：否。

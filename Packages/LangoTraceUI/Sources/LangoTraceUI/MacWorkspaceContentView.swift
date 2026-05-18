@@ -33,6 +33,8 @@ struct MacWorkspaceContentView: View {
             practice(entryID: entryID)
         case let .settings(kind):
             settingDetail(kind: kind)
+        case .languageSpaceSummary:
+            LanguageSpaceSummaryView(languageSpace: languageSpace)
         case let .unavailable(kind):
             macUnavailableView(kind: kind)
         }

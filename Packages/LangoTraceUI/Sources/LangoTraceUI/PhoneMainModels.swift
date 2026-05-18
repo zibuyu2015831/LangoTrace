@@ -1,7 +1,6 @@
 enum PhoneUnavailableAction: String {
     case photoWriting
     case listenOne
-    case languageSwitcher
 
     var content: UnavailableCapabilityContent {
         switch self {
@@ -9,8 +8,6 @@ enum PhoneUnavailableAction: String {
             .photoWriting
         case .listenOne:
             .listenOne
-        case .languageSwitcher:
-            .languageSpace
         }
     }
 }

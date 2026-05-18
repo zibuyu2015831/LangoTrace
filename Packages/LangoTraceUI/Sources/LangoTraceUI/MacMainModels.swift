@@ -65,6 +65,7 @@ enum MacWorkspaceRoute: Equatable {
     case entryDetail(String)
     case practice(String)
     case settings(SettingsCapability.Kind)
+    case languageSpaceSummary
     case unavailable(String)
 }
 
@@ -81,7 +82,7 @@ enum MacFooterAction {
     var route: MacWorkspaceRoute {
         switch self {
         case .languageSpace:
-            .unavailable("language-space")
+            .languageSpaceSummary
         case .aiProvider:
             .settings(.aiProvider)
         case .sync:
@@ -97,8 +98,6 @@ struct MacUnavailableContent {
 
     init(kind: String) {
         switch kind {
-        case "language-space":
-            content = .languageSpace
         case "import-export":
             content = .importExport
         case "search":

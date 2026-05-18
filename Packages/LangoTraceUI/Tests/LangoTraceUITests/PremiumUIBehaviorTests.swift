@@ -155,10 +155,8 @@ struct PremiumUIBehaviorTests {
     func unavailableCapabilityContentUsesStableLocalizationKeys() {
         #expect(PhoneUnavailableAction.photoWriting.content == .photoWriting)
         #expect(PhoneUnavailableAction.listenOne.content == .listenOne)
-        #expect(PhoneUnavailableAction.languageSwitcher.content == .languageSpace)
         #expect(MacUnavailableContent(kind: "search").content == .search)
         #expect(MacUnavailableContent(kind: "import-export").content == .importExport)
-        #expect(MacUnavailableContent(kind: "language-space").content == .languageSpace)
         #expect(MacUnavailableContent(kind: "unknown").content == .generic)
     }
 

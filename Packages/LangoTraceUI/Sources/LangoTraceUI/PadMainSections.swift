@@ -115,8 +115,8 @@ struct PadWorkspaceContentView: View {
                 memoryPage
             case .importExport:
                 importExportPage
-            case .languageSpaceUnavailable:
-                languageSpaceUnavailablePage
+            case .languageSpaceSummary:
+                languageSpaceSummaryPage
             }
         }
         .frame(maxWidth: .infinity)
@@ -251,11 +251,9 @@ struct PadWorkspaceContentView: View {
         }
     }
 
-    private var languageSpaceUnavailablePage: some View {
-        ScrollView {
-            UnavailableCapabilityView(content: .languageSpace)
-                .frame(maxWidth: 820, alignment: .leading)
-        }
+    private var languageSpaceSummaryPage: some View {
+        LanguageSpaceSummaryView(languageSpace: languageSpace)
+            .frame(maxWidth: 820, alignment: .leading)
     }
 }
 

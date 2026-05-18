@@ -103,6 +103,8 @@ View 不直接创建真实 Provider、Repository 或 KeychainStore。预览、�
 
 MVP 早期允许在 Data package 中提供无副作用的 preview / mock 纯值状态，例如设置能力状态和练习会话步骤。此类模型只能表达 UI 可见状态和后续真实接入边界，不能读取 Keychain、访问网络、写入数据库或直接启动系统权限流程。
 
+面向学习内容的 UI 应通过 `LearningContentRepository` 协议和 MainActor feature store 访问 Entry、Rendering、Practice、Memory、设置能力和练习会话状态。View 不直接依赖 concrete `InMemoryLearningContentRepository`，也不直接 mutate repository 后用手写 revision 强制刷新。
+
 ### 4.6 错误与加载
 
 涉及存储、AI、TTS、OCR、Speech、Sync 的能力必须暴露：
@@ -124,11 +126,23 @@ UI 可以简化展示，但底层状态不能丢失。
 - 共享内容视图负责呈现记录详情、练习会话、设置能力详情、请求预览和 unavailable 状态。
 - iPhone 外壳负责 Tab、NavigationStack、sheet 和 iPhone 顶部语言空间上下文。
 - iPad 外壳负责三栏工作台、timeline selection、filter、route、sheet、左右面板展开状态和窄窗口降级。
-- macOS 外壳负责 Sidebar section、route、toolbar 区域、Inspector、窗口尺寸和 repository 注入。
-- `MacMainView` 必须从 App Shell 接收 `InMemoryLearningContentRepository` 或后续真实 repository 协议，不能在 View 内重新创建内容仓库。
+- macOS 外壳负责 Sidebar section、route、toolbar 区域、Inspector、窗口尺寸、Settings scene、commands 和 feature store 注入。
+- `MacMainView`、`PadMainView` 和 `PhoneMainView` 必须从 App Shell 或上层 root 接收 `LearningContentStore` / repository 协议 seam，不能在 View 内重新创建内容仓库。
 - route、section、filter、sheet、selected entry 和面板展开状态属于 transient UI state；除非另有 worklog 和 ADR/规范支撑，不进入 `LanguageSpacePreview`、数据库、同步 manifest 或启动恢复。
 - 筛选、route 推导和 selected entry fallback 如可表达为纯函数或小型 helper，应优先这样做，以便通过 Swift package 单元测试覆盖。
-- `contentRevision` 这类手动刷新触发器只可作为早期内存 repository 的临时 UI 状态；真实数据层接入前不得扩展成跨页面事件总线。
+- `contentRevision` 这类手动刷新触发器已经退出三端主 View。后续不得恢复为跨页面事件总线；如果真实 repository 需要异步刷新，应通过 store 状态、observation、async result 或明确 use case 输出表达。
+
+### 4.8 Entry / Rendering / Practice / Memory 生成边界
+
+Entry 保存只创建用户原始记录，不应自动补齐完整 Rendering、Practice 和 Memory 闭环。
+
+推荐边界：
+
+- Seed 数据可以携带本地示例 Rendering、Practice 和 Memory，用于展示产品闭环。
+- 用户新建 Entry 默认只显示原始记录、Rendering 状态区和显式本地预览入口。
+- 本地预览通过 repository / store 的显式方法触发，并清楚标记为 local preview，不触发真实 AI、TTS、同步或外部请求。
+- Practice 和 Memory 可以从已有 Rendering 或 seed 数据展示；缺少 Rendering 时应显示 unavailable / next action，而不是默默生成假数据。
+- 真实 AI Provider、Prompt 渲染、请求日志和失败重试接入前，不得把保存 Entry 描述成已经生成学习材料。
 
 ## 5. 可演进部分
 
@@ -172,3 +186,4 @@ AI 在写 SwiftUI 代码前应先回答：
 - 2026-05-17：补充 App Environment、状态边界、异步任务和错误加载状态要求。原因：避免早期 SwiftUI 代码形成全局状态和副作用债务。影响范围：App Shell、UI、服务调用。是否需要 ADR：否。
 - 2026-05-17：补充 MVP 早期 mock 纯值状态边界。原因：设置与练习状态闭环需要 Data package 暴露可测试状态模型，但仍不能引入真实 Keychain、网络、数据库或权限副作用。影响范围：Data、UI 和 App Shell 状态装配。是否需要 ADR：否。
 - 2026-05-17：补充页面闭环阶段的共享内容与平台外壳规则。原因：新增三端页面补全计划需要复用记录、练习和设置内容，同时保持 iPhone、iPad、macOS 的原生导航和状态边界。影响范围：LangoTraceUI、App Shell repository 注入、页面 route 和测试设计。是否需要 ADR：否。
+- 2026-05-18：同步第一轮 UI 收敛后的 Data seam 和生成边界。原因：`LearningContentRepository` 与 `LearningContentStore` 已成为三端 UI 的学习内容访问 seam，`contentRevision` 已退出主 View；Entry 保存也已与本地预览生成分离。影响范围：Data/UI package 边界、三端主 View、Entry detail、后续真实 repository 接入。是否需要 ADR：否，仍符合既有模块边界决策。
