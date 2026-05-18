@@ -161,16 +161,12 @@ func settingsCapabilityDetailLocalizationKeys(
 extension PhoneRootTab {
     var localizedTitleKey: String {
         switch self {
-        case .today:
-            "tab.today"
         case .entries:
             "tab.entries"
         case .practice:
             "tab.practice"
         case .memory:
             "tab.memory"
-        case .settings:
-            "tab.settings"
         }
     }
 }

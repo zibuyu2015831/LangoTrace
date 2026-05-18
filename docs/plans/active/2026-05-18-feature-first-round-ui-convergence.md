@@ -778,6 +778,30 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 - 本阶段只覆盖 package-owned SwiftUI chrome；InfoPlist、权限弹窗、StoreKit、文件选择器、系统 per-app language 和 Provider 输出仍按 `spec/006` 的分层边界处理。
 - UI 内语言切换不会改变语言空间、学习内容或 Provider 输出。
 
+### 2026-05-18 阶段 4：iPhone IA convergence
+
+处理范围：
+
+- 完成任务 4 / P1-001 的第一轮实现。
+- `PhoneRootTab` 从 `今日 / 记录 / 练习 / 记忆 / 设置` 收敛为 `记录 / 练习 / 记忆` 三个主目的地，删除 `.today` 和 `.settings` 的顶层 tab 假设。
+- iPhone 默认进入 `记录`，由新的 `PhoneRecordWorkspaceView` 合并记录生活主动作、最近记录和全部记录入口，避免 `今日` 与 `记录` 两个顶层目的地表达同一任务。
+- 设置从底部 Tab 降级为 toolbar gear 入口，经 `PhoneRoute.settingsList` 推入设置列表；设置页自身不再重复显示设置入口。
+- 更新 `PhoneTabNavigationTests` 和 `LocalizedChrome.PhoneRootTab` 映射，避免旧五 Tab 结构继续作为代码事实。
+
+验证结果：
+
+- TDD red：先将 `PhoneTabNavigationTests` 改为三主目的地预期，`swift test --package-path Packages/LangoTraceCore --filter PhoneTabNavigationTests` 初次失败，原因是旧 `PhoneRootTab.allCases` 仍包含 `.today` / `.settings`。
+- TDD green：同一测试通过，随后 `swift test --package-path Packages/LangoTraceCore` 通过，26 个测试通过。
+- `swift test --package-path Packages/LangoTraceUI` 通过，29 个测试通过。
+- `rg -n "PhoneRootTab\\.(today|settings)|case (today|settings)|tab\\.today" Packages/LangoTraceCore/Sources Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainView.swift Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSections.swift` 只剩设置导航 route，不再存在 `PhoneRootTab.today` / `.settings`。
+- `git diff --check` 通过。
+- `xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build` 通过。
+
+剩余边界：
+
+- 本阶段只收敛 iPhone 顶层 IA；iPad / macOS 的 footer、Settings scene、commands 和窄窗口行为留给任务 6、任务 7、任务 9 继续处理。
+- `PhoneRecordWorkspaceView` 仍使用当前 mock content store；Entry 创建后的真实对象边界、Entry detail / rendering / practice / memory 的能力声明由任务 5 收敛。
+
 ## 17. 完成标准
 
 本任务完成必须同时满足：

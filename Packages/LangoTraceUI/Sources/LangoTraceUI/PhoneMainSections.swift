@@ -2,7 +2,7 @@ import LangoTraceCore
 import LangoTraceData
 import SwiftUI
 
-struct TodayView: View {
+struct PhoneRecordWorkspaceView: View {
     let languageSpace: LanguageSpacePreview
     let entries: [LearningEntry]
     let renderingForEntry: (LearningEntry) -> LearningRendering?
@@ -10,14 +10,16 @@ struct TodayView: View {
     let onPhotoWriting: () -> Void
     let onListenOne: () -> Void
     let onLanguageSpaceAction: () -> Void
+    var onSettingsAction: (() -> Void)?
     let onSelectEntry: (LearningEntry) -> Void
 
     var body: some View {
         PhonePage(
-            titleKey: "tab.today",
+            titleKey: "tab.entries",
             languageSpace: languageSpace,
-            statusTextKey: "phone.today.status",
-            onLanguageSpaceAction: onLanguageSpaceAction
+            statusTextKey: "phone.entries.status",
+            onLanguageSpaceAction: onLanguageSpaceAction,
+            onSettingsAction: onSettingsAction
         ) {
             HeroActionCard(
                 languageSpace: languageSpace,
@@ -29,7 +31,7 @@ struct TodayView: View {
             if entries.isEmpty {
                 EmptyEntryPanel(onNewEntry: onNewEntry)
             } else {
-                ForEach(entries.prefix(2)) { entry in
+                ForEach(entries) { entry in
                     EntryCard(
                         entry: entry,
                         targetLanguage: languageSpace.targetLanguage,
@@ -42,63 +44,12 @@ struct TodayView: View {
     }
 }
 
-struct EntriesView: View {
-    let languageSpace: LanguageSpacePreview
-    let entries: [LearningEntry]
-    let onNewEntry: () -> Void
-    let onLanguageSpaceAction: () -> Void
-    let onSelectEntry: (LearningEntry) -> Void
-
-    var body: some View {
-        PhonePage(
-            titleKey: "tab.entries",
-            languageSpace: languageSpace,
-            statusTextKey: "phone.entries.status",
-            onLanguageSpaceAction: onLanguageSpaceAction
-        ) {
-            HStack {
-                SectionHeader(titleKey: "phone.entries.continue.title", subtitleKey: "phone.entries.continue.subtitle")
-                Spacer()
-                Button(action: onNewEntry) {
-                    Label {
-                        localizedText("common.newEntry.short")
-                    } icon: {
-                        Image(systemName: "plus")
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-            }
-
-            ForEach(entries) { entry in
-                Button {
-                    onSelectEntry(entry)
-                } label: {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(entry.title)
-                                .font(.headline)
-                            Text("\(entry.displaySourceTitle) · \(languageSpace.targetLanguage) · \(entry.scene)")
-                                .font(.footnote)
-                                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.bold))
-                            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                    }
-                    .langoPanel(padding: 16)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-}
-
 struct PracticeView: View {
     let languageSpace: LanguageSpacePreview
     let entries: [LearningEntry]
     let contentStore: LearningContentStore
     let onLanguageSpaceAction: () -> Void
+    var onSettingsAction: (() -> Void)?
     let onPractice: (LearningEntry) -> Void
 
     var body: some View {
@@ -107,7 +58,8 @@ struct PracticeView: View {
             languageSpace: languageSpace,
             statusTextKey: "phone.practice.status",
             statusArgument: languageSpace.targetLanguage,
-            onLanguageSpaceAction: onLanguageSpaceAction
+            onLanguageSpaceAction: onLanguageSpaceAction,
+            onSettingsAction: onSettingsAction
         ) {
             SectionHeader(titleKey: "phone.practice.fromLife.title", subtitleKey: "phone.practice.fromLife.subtitle")
             if entries.isEmpty {
@@ -161,13 +113,15 @@ struct MemoryView: View {
     let languageSpace: LanguageSpacePreview
     let memoryItems: [MemoryItem]
     let onLanguageSpaceAction: () -> Void
+    var onSettingsAction: (() -> Void)?
 
     var body: some View {
         PhonePage(
             titleKey: "tab.memory",
             languageSpace: languageSpace,
             statusTextKey: "phone.memory.status",
-            onLanguageSpaceAction: onLanguageSpaceAction
+            onLanguageSpaceAction: onLanguageSpaceAction,
+            onSettingsAction: onSettingsAction
         ) {
             SectionHeader(titleKey: "phone.memory.personal.title", subtitleKey: "phone.memory.personal.subtitle")
             ForEach(memoryItems) { item in
@@ -186,6 +140,7 @@ struct SettingsView: View {
     let languageSpace: LanguageSpacePreview
     let capabilities: [SettingsCapability]
     let onLanguageSpaceAction: () -> Void
+    let onSettingsAction: (() -> Void)?
     let onSelectCapability: (SettingsCapability.Kind) -> Void
 
     var body: some View {
@@ -193,7 +148,8 @@ struct SettingsView: View {
             titleKey: "tab.settings",
             languageSpace: languageSpace,
             statusTextKey: "phone.settings.status",
-            onLanguageSpaceAction: onLanguageSpaceAction
+            onLanguageSpaceAction: onLanguageSpaceAction,
+            onSettingsAction: onSettingsAction
         ) {
             SectionHeader(
                 titleKey: "phone.settings.currentSpace.title",
@@ -218,6 +174,7 @@ struct PhonePage<Content: View>: View {
     let statusTextKey: String
     var statusArgument: String?
     let onLanguageSpaceAction: () -> Void
+    var onSettingsAction: (() -> Void)?
     @ViewBuilder let content: Content
 
     var body: some View {
@@ -231,6 +188,14 @@ struct PhonePage<Content: View>: View {
         }
         .navigationTitle(localizedText(titleKey))
         .toolbar {
+            ToolbarItem(placement: .automatic) {
+                if let onSettingsAction {
+                    Button(action: onSettingsAction) {
+                        Image(systemName: "gearshape")
+                    }
+                    .accessibilityLabel(localizedText("tab.settings"))
+                }
+            }
             ToolbarItem(placement: .automatic) {
                 Button(action: onLanguageSpaceAction) {
                     Image(systemName: "chevron.down.circle")

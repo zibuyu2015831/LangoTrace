@@ -8,14 +8,14 @@ struct PhoneMainView: View {
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
-    @State private var selectedTab: PhoneRootTab = .today
+    @State private var selectedTab: PhoneRootTab = .entries
     @State private var navigationPath: [PhoneRoute] = []
     @State private var presentedSheet: PhoneSheet?
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             TabView(selection: $selectedTab) {
-                TodayView(
+                PhoneRecordWorkspaceView(
                     languageSpace: languageSpace,
                     entries: entries,
                     renderingForEntry: rendering(for:),
@@ -23,22 +23,7 @@ struct PhoneMainView: View {
                     onPhotoWriting: { presentedSheet = .unavailable(.photoWriting) },
                     onListenOne: { presentedSheet = .unavailable(.listenOne) },
                     onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
-                    onSelectEntry: showEntryDetail
-                )
-                .tabItem {
-                    Label {
-                        localizedText(PhoneRootTab.today.localizedTitleKey)
-                    } icon: {
-                        Image(systemName: "sun.max")
-                    }
-                }
-                .tag(PhoneRootTab.today)
-
-                EntriesView(
-                    languageSpace: languageSpace,
-                    entries: entries,
-                    onNewEntry: { presentedSheet = .entryEditor },
-                    onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
+                    onSettingsAction: { navigationPath.append(.settingsList) },
                     onSelectEntry: showEntryDetail
                 )
                 .tabItem {
@@ -55,6 +40,7 @@ struct PhoneMainView: View {
                     entries: entries,
                     contentStore: contentStore,
                     onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
+                    onSettingsAction: { navigationPath.append(.settingsList) },
                     onPractice: { entry in navigationPath.append(.practice(entry.id)) }
                 )
                 .tabItem {
@@ -69,7 +55,8 @@ struct PhoneMainView: View {
                 MemoryView(
                     languageSpace: languageSpace,
                     memoryItems: contentStore.memoryItems,
-                    onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) }
+                    onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
+                    onSettingsAction: { navigationPath.append(.settingsList) }
                 )
                 .tabItem {
                     Label {
@@ -80,20 +67,6 @@ struct PhoneMainView: View {
                 }
                 .tag(PhoneRootTab.memory)
 
-                SettingsView(
-                    languageSpace: languageSpace,
-                    capabilities: contentStore.settingsCapabilities,
-                    onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
-                    onSelectCapability: { kind in navigationPath.append(.settings(kind)) }
-                )
-                .tabItem {
-                    Label {
-                        localizedText(PhoneRootTab.settings.localizedTitleKey)
-                    } icon: {
-                        Image(systemName: "gearshape")
-                    }
-                }
-                .tag(PhoneRootTab.settings)
             }
             .phoneTabBarBackground()
             .navigationDestination(for: PhoneRoute.self) { route in
@@ -125,6 +98,14 @@ struct PhoneMainView: View {
                             onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
                         )
                     }
+                case .settingsList:
+                    SettingsView(
+                        languageSpace: languageSpace,
+                        capabilities: contentStore.settingsCapabilities,
+                        onLanguageSpaceAction: { presentedSheet = .unavailable(.languageSwitcher) },
+                        onSettingsAction: nil,
+                        onSelectCapability: { kind in navigationPath.append(.settings(kind)) }
+                    )
                 }
             }
             .sheet(item: $presentedSheet) { sheet in
@@ -178,6 +159,7 @@ private enum PhoneRoute: Hashable {
     case entryDetail(String)
     case practice(String)
     case settings(SettingsCapability.Kind)
+    case settingsList
 }
 
 private enum PhoneSheet: Identifiable {
