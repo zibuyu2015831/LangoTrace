@@ -11,11 +11,24 @@
 
 ## 轮次索引
 
-| 轮次 ID | 类型 | 启动时间 | 完成时间 | 状态 | 链接 |
-| --- | --- | --- | --- | --- | --- |
-| `2026-05-18-development-doc-system-audit` | 专项审查 | 2026-05-18 | 2026-05-18 | Verified | [README](rounds/2026-05-18-development-doc-system-audit/README.md) |
-| `2026-05-17-string-catalog-interface-language-settings` | 专项审查 | 2026-05-17 | 2026-05-17 | Verified | [README](rounds/2026-05-17-string-catalog-interface-language-settings/README.md) |
-| `2026-05-17-interface-localization-foundation` | 专项审查 | 2026-05-17 | 2026-05-17 | Verified | [README](rounds/2026-05-17-interface-localization-foundation/README.md) |
+| 轮次 ID | 类型 | 启动时间 | 完成时间 | 状态 | 当前事实源 | 后续覆盖记录 | 可作为依据 | 链接 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `2026-05-18-development-doc-system-audit` | 专项审查 | 2026-05-18 | 2026-05-18 | Verified | `docs/README.md`、`docs/spec/`、`docs/review/README.md` | `docs/plans/done/2026-05-18-docs-development-system-audit.md` | Historical Only | [README](rounds/2026-05-18-development-doc-system-audit/README.md) |
+| `2026-05-17-string-catalog-interface-language-settings` | 专项审查 | 2026-05-17 | 2026-05-17 | Verified | `docs/spec/006-interface-localization-and-language-boundaries.md`、`docs/spec/interface-localization/impl.md` | `docs/plans/done/2026-05-17-feature-string-catalog-interface-language-settings.md` | Historical Only | [README](rounds/2026-05-17-string-catalog-interface-language-settings/README.md) |
+| `2026-05-17-interface-localization-foundation` | 专项审查 | 2026-05-17 | 2026-05-17 | Verified | `scripts/verify.sh`、`docs/testing/README.md`、`docs/spec/009-testing-and-verification.md` | `docs/plans/done/2026-05-17-feature-interface-localization-foundation.md` | Historical Only | [README](rounds/2026-05-17-interface-localization-foundation/README.md) |
+
+状态含义：
+
+- `Verified`：该轮在当时快照下已完成并验证；保留为审计记录，不自动成为当前事实源。
+- `Deferred`：该轮仍有延后项；读取时必须查看延后项和当前事实源。
+- `Superseded`：该轮的问题或建议已被后续 plan、review、commit 或长期文档覆盖；仍可作为历史证据。
+- `Invalidated`：该轮结论基于错误前提或已被后续确认推翻；仅作为历史过程记录，不再作为依据。
+
+`可作为依据` 字段取值：
+
+- `Yes`：当前仍可直接作为事实或决策依据。
+- `Historical Only`：只能作为审计记录、代码快照和决策回溯材料；当前事实以 `当前事实源` 为准。
+- `No`：结论已失效，保留原始记录但不得作为依据。
 
 ## 重审触发日志
 
