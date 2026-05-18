@@ -91,6 +91,40 @@ struct SideItem: View {
     }
 }
 
+struct MemoryLayerSummaryView: View {
+    let memoryItems: [MemoryItem]
+
+    private var contentMemoryCount: Int {
+        Set(memoryItems.map(\.entryID)).count
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            CapabilityStatusRow(
+                title: localizedString("memory.layer.content.title"),
+                summary: localizedString("memory.layer.content.summary", contentMemoryCount),
+                status: memoryItems.isEmpty ? .unavailable : .mockOnly,
+                systemImage: "doc.text",
+                action: nil
+            )
+            CapabilityStatusRow(
+                title: localizedString("memory.layer.language.title"),
+                summary: localizedString("memory.layer.language.summary", memoryItems.count),
+                status: memoryItems.isEmpty ? .unavailable : .mockOnly,
+                systemImage: "text.book.closed",
+                action: nil
+            )
+            CapabilityStatusRow(
+                localizedTitleKey: "memory.layer.study.title",
+                localizedSummaryKey: "memory.layer.study.summary",
+                status: .unavailable,
+                systemImage: "calendar.badge.clock",
+                action: nil
+            )
+        }
+    }
+}
+
 struct SentencePairView: View {
     let index: Int
     let sentence: RenderingSentence
@@ -335,6 +369,12 @@ struct CapabilityStatusRow: View {
             LangoTraceDesign.ColorToken.stateLocalMock
         case .unavailable:
             LangoTraceDesign.ColorToken.stateUnavailable
+        case .warning:
+            LangoTraceDesign.ColorToken.stateWarning
+        case .error:
+            LangoTraceDesign.ColorToken.stateError
+        case .info:
+            LangoTraceDesign.ColorToken.accent
         }
     }
 }

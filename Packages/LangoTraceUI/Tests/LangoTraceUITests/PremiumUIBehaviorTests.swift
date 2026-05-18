@@ -122,6 +122,28 @@ struct PremiumUIBehaviorTests {
         #expect(CapabilityStatus.unavailable.visualTone == .unavailable)
     }
 
+    @Test("Status matrix uses text icon and tone for every supported state")
+    func statusMatrixUsesTextIconAndToneForEverySupportedState() {
+        for status in LangoTraceStatusKind.allCases {
+            #expect(!status.titleKey.isEmpty)
+            #expect(!status.summaryKey.isEmpty)
+            #expect(!status.systemImage.isEmpty)
+        }
+
+        #expect(LangoTraceStatusKind.permissionDenied.visualTone == .warning)
+        #expect(LangoTraceStatusKind.syncConflict.visualTone == .error)
+        #expect(LangoTraceStatusKind.loading.visualTone == .info)
+    }
+
+    @Test("Memory pages use the shared three-layer memory summary")
+    func memoryPagesUseSharedThreeLayerMemorySummary() throws {
+        for file in ["PhoneMainSections.swift", "PadMainSections.swift", "MacWorkspaceContentView.swift"] {
+            let source = try String(contentsOf: sourceFileURL(named: file), encoding: .utf8)
+
+            #expect(source.contains("MemoryLayerSummaryView("))
+        }
+    }
+
     @Test("Entry header status distinguishes missing, mock, and ready renderings")
     func entryHeaderStatusDistinguishesRenderingAvailability() {
         #expect(EntryRenderingStatus.status(for: nil) == .unavailable)

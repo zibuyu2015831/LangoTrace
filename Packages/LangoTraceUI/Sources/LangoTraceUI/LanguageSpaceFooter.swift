@@ -191,7 +191,7 @@ private struct PrivacyStatusIconButton: View {
         case .warning:
             LangoTraceDesign.ColorToken.gold
         case .error:
-            Color(red: 0.670, green: 0.180, blue: 0.125)
+            LangoTraceDesign.ColorToken.stateError
         }
     }
 
@@ -204,7 +204,7 @@ private struct PrivacyStatusIconButton: View {
         case .warning:
             LangoTraceDesign.ColorToken.paleGold
         case .error:
-            Color(red: 0.985, green: 0.900, blue: 0.860)
+            LangoTraceDesign.ColorToken.dangerMuted
         }
     }
 
@@ -217,7 +217,7 @@ private struct PrivacyStatusIconButton: View {
         case .warning:
             LangoTraceDesign.ColorToken.gold.opacity(0.36)
         case .error:
-            Color(red: 0.670, green: 0.180, blue: 0.125).opacity(0.30)
+            LangoTraceDesign.ColorToken.stateError.opacity(0.30)
         }
     }
 }

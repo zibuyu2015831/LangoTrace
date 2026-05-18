@@ -233,6 +233,7 @@ struct PadWorkspaceContentView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 SectionCaption(titleKey: "pad.memory.section.title", subtitleKey: "pad.memory.section.subtitle")
+                MemoryLayerSummaryView(memoryItems: memoryItems)
                 ForEach(memoryItems) { item in
                     CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
                 }

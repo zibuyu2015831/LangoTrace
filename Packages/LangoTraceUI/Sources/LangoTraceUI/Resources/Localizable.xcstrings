@@ -5966,6 +5966,108 @@
         }
       }
     },
+    "memory.layer.content.title": {
+      "comment": "Memory layer title for source life records.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Content Memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容记忆"
+          }
+        }
+      }
+    },
+    "memory.layer.content.summary": {
+      "comment": "Memory layer summary for source life records.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d life entries have local memory extracts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 条生活记录带有本地记忆提取。"
+          }
+        }
+      }
+    },
+    "memory.layer.language.title": {
+      "comment": "Memory layer title for language items.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language Memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言记忆"
+          }
+        }
+      }
+    },
+    "memory.layer.language.summary": {
+      "comment": "Memory layer summary for language items.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d phrases are shown as local preview items."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 个词句以本地预览形式显示。"
+          }
+        }
+      }
+    },
+    "memory.layer.study.title": {
+      "comment": "Memory layer title for study scheduling.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Study Memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "学习记忆"
+          }
+        }
+      }
+    },
+    "memory.layer.study.summary": {
+      "comment": "Memory layer summary for study scheduling.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review scheduling is not connected in this build."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复习排程当前尚未接入。"
+          }
+        }
+      }
+    },
     "memory.vectorIndex.title": {
       "comment": "Vector index panel title.",
       "localizations": {

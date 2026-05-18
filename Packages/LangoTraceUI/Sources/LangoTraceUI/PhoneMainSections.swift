@@ -124,6 +124,7 @@ struct MemoryView: View {
             onSettingsAction: onSettingsAction
         ) {
             SectionHeader(titleKey: "phone.memory.personal.title", subtitleKey: "phone.memory.personal.subtitle")
+            MemoryLayerSummaryView(memoryItems: memoryItems)
             ForEach(memoryItems) { item in
                 CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
             }

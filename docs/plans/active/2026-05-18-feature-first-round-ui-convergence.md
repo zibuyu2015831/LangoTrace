@@ -876,6 +876,33 @@ ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI
 - 本阶段只建立 macOS 原生命令面；真实 Search、真实 Settings 配置写入和 Provider / Sync 配置仍保持 unavailable 或 read-only。
 - Sidebar 内容域重排和 footer icon 语义的更细视觉收敛仍由任务 8、任务 9 配合规范文档继续处理。
 
+### 2026-05-18 阶段 8：Status matrix and Memory layers
+
+处理范围：
+
+- 完成任务 8 / P1-006 的第一轮底座实现，并覆盖任务 13 中 Memory 三层模型的首轮表达。
+- `CapabilityStatusTone` 从 ready / local mock / unavailable 扩展到 warning / error / info，状态视觉不再只靠三种能力状态。
+- 新增 UI-only `LangoTraceStatusKind`，统一 ready、local preview、unavailable、warning、error、permission denied、sync conflict、loading 的 title key、summary key、icon 和 tone。
+- 新增 `MemoryLayerSummaryView`，在 iPhone / iPad / macOS Memory 页面统一展示内容记忆、语言记忆、学习记忆三层；学习记忆明确为未接入。
+- 补充 Memory layer 的 String Catalog 文案。
+- 将 `LanguageSpaceFooter` 中剩余 raw status RGB 移回 `LangoTraceDesign.ColorToken`，使 `Color(red:)` 扫描集中在 token 定义文件。
+
+验证结果：
+
+- TDD red：`swift test --package-path Packages/LangoTraceUI --filter statusMatrixUsesTextIconAndToneForEverySupportedState` 初次失败，原因是缺少 `LangoTraceStatusKind`。
+- TDD green：同一测试通过。
+- TDD red：`swift test --package-path Packages/LangoTraceUI --filter memoryPagesUseSharedThreeLayerMemorySummary` 初次失败，三端 Memory 页面都没有共享 Memory layer summary。
+- TDD green：同一测试通过。
+- `ruby -rjson -e 'JSON.parse(File.read("Packages/LangoTraceUI/Sources/LangoTraceUI/Resources/Localizable.xcstrings")); puts "json ok"'` 通过。
+- `swift test --package-path Packages/LangoTraceUI` 通过，34 个测试通过。
+- `xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build` 通过。
+- `rg -n "Color\\(red:" Packages/LangoTraceUI/Sources/LangoTraceUI` 只剩 `LangoTraceDesign.swift` 的 token 定义。
+
+剩余边界：
+
+- 本阶段不声称完整视觉系统完成；high contrast fallback、permission denied 真实流程、sync conflict 真实流程和 loading/error pattern 的可视化样板仍需后续接入真实功能时补齐。
+- `langoPanel` 使用边界、主路径工程术语清理和样板页截图仍由任务 10、任务 12、任务 13、任务 14 收口。
+
 ## 17. 完成标准
 
 本任务完成必须同时满足：

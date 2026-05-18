@@ -24,6 +24,7 @@ enum LangoTraceDesign {
         static let accentStrong = deepTeal
         static let warning = gold
         static let danger = Color(red: 0.680, green: 0.155, blue: 0.130)
+        static let dangerMuted = Color(red: 0.985, green: 0.900, blue: 0.860)
         static let privacyLocal = deepTeal
         static let privacyExternal = gold
         static let surfaceCanvas = surfaceBase

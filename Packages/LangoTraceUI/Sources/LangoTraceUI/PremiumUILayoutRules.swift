@@ -5,6 +5,9 @@ enum CapabilityStatusTone: String, Equatable {
     case ready
     case localMock
     case unavailable
+    case warning
+    case error
+    case info
 }
 
 extension CapabilityStatus {
@@ -16,6 +19,63 @@ extension CapabilityStatus {
             .localMock
         case .unavailable:
             .unavailable
+        }
+    }
+}
+
+enum LangoTraceStatusKind: String, CaseIterable, Equatable {
+    case ready
+    case localPreview
+    case unavailable
+    case warning
+    case error
+    case permissionDenied
+    case syncConflict
+    case loading
+
+    var titleKey: String {
+        "status.\(rawValue).title"
+    }
+
+    var summaryKey: String {
+        "status.\(rawValue).summary"
+    }
+
+    var systemImage: String {
+        switch self {
+        case .ready:
+            "checkmark.circle"
+        case .localPreview:
+            "sparkles"
+        case .unavailable:
+            "lock"
+        case .warning:
+            "exclamationmark.triangle"
+        case .error:
+            "xmark.octagon"
+        case .permissionDenied:
+            "hand.raised"
+        case .syncConflict:
+            "arrow.triangle.branch"
+        case .loading:
+            "clock"
+        }
+    }
+
+    var visualTone: CapabilityStatusTone {
+        switch self {
+        case .ready:
+            .ready
+        case .localPreview:
+            .localMock
+        case .unavailable:
+            .unavailable
+        case .warning, .permissionDenied:
+            .warning
+        case .error, .syncConflict:
+            .error
+        case .loading:
+            .info
         }
     }
 }

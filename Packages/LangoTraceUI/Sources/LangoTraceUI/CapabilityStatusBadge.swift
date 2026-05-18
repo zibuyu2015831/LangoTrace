@@ -22,6 +22,12 @@ struct CapabilityStatusBadge: View {
             LangoTraceDesign.ColorToken.stateLocalMock
         case .unavailable:
             LangoTraceDesign.ColorToken.stateUnavailable
+        case .warning:
+            LangoTraceDesign.ColorToken.stateWarning
+        case .error:
+            LangoTraceDesign.ColorToken.stateError
+        case .info:
+            LangoTraceDesign.ColorToken.accent
         }
     }
 }

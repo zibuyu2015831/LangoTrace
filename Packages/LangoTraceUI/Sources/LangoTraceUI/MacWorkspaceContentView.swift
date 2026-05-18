@@ -142,6 +142,7 @@ struct MacWorkspaceContentView: View {
     private var memoryContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader(titleKey: "mac.memory.section.title", subtitleKey: "mac.memory.section.subtitle")
+            MemoryLayerSummaryView(memoryItems: memoryItems)
             ForEach(memoryItems) { item in
                 CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
             }
