@@ -54,7 +54,7 @@ func defaultSettingsCapabilitiesAreReadOnly() {
         .sync,
         .localData,
         .privacy,
-        .export,
+        .importExport,
     ])
     #expect(capabilities.first { $0.kind == .aiProvider }?.status == .mockOnly)
     #expect(capabilities.first { $0.kind == .sync }?.status == .unavailable)
@@ -73,7 +73,7 @@ func defaultSettingsCapabilitiesExposeCompleteDetailPages() {
     #expect(capabilities.filter(\.detail.isEmpty).isEmpty)
     #expect(capabilities.filter(\.nextRequirement.isEmpty).isEmpty)
     #expect(capabilities.first { $0.kind == .privacy }?.status == .ready)
-    #expect(capabilities.first { $0.kind == .export }?.status == .unavailable)
+    #expect(capabilities.first { $0.kind == .importExport }?.status == .unavailable)
 }
 
 @Test("Data capability and status models do not expose Chinese UI chrome")

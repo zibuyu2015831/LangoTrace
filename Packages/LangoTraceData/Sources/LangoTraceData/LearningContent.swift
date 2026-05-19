@@ -229,11 +229,11 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
                 nextRequirement: "settings.privacy.nextRequirement"
             ),
             SettingsCapability(
-                kind: .export,
+                kind: .importExport,
                 status: .unavailable,
-                summary: "settings.export.summary",
-                detail: "settings.export.detail",
-                nextRequirement: "settings.export.nextRequirement"
+                summary: "settings.importExport.summary",
+                detail: "settings.importExport.detail",
+                nextRequirement: "settings.importExport.nextRequirement"
             ),
         ]
     }

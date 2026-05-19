@@ -274,8 +274,8 @@ extension SettingsCapability.Kind {
             "settings.localData.title"
         case .privacy:
             "settings.privacy.title"
-        case .export:
-            "settings.export.title"
+        case .importExport:
+            "settings.importExport.title"
         }
     }
 }

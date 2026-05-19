@@ -16,7 +16,7 @@ public struct SettingsCapability: Equatable, Identifiable, Sendable {
         case sync
         case localData
         case privacy
-        case export
+        case importExport
 
         public var title: String {
             rawValue
@@ -36,8 +36,8 @@ public struct SettingsCapability: Equatable, Identifiable, Sendable {
                 "externaldrive"
             case .privacy:
                 "lock"
-            case .export:
-                "square.and.arrow.up"
+            case .importExport:
+                "tray.and.arrow.down"
             }
         }
     }

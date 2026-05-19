@@ -38,6 +38,8 @@ struct LearningContentStoreTests {
         #expect(store.practiceSession(for: created)?.entryID == created.id)
         #expect(store.memoryItems.contains { $0.entryID == created.id })
         #expect(store.settingsCapabilities.map(\.kind).contains(.interfaceLanguage))
+        #expect(store.settingsCapabilities.map(\.kind).contains(.importExport))
+        #expect(!store.settingsCapabilities.map(\.kind.title).contains("export"))
 
         let photoEntry = store.createMockPhotoWritingEntry()
 

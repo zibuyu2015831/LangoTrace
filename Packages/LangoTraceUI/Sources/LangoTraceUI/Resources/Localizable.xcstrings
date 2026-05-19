@@ -2138,214 +2138,214 @@
         }
       }
     },
-    "settings.export.detail": {
-      "comment": "Export settings detail body.",
+    "settings.importExport.detail": {
+      "comment": "Import export settings detail body.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
+            "value": "Import and export should cover life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable. This page does not open file panels, read import files, or write export packages."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地资料库模型稳定后，导出应覆盖生活记录、学习材料、附件和隐私安全的元数据。"
+            "value": "本地资料库模型稳定后，导入导出应覆盖生活记录、学习材料、附件和隐私安全的元数据；当前不会打开文件面板、读取导入文件或写入导出包。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
+            "value": "Import and export should cover life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable. This page does not open file panels, read import files, or write export packages."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
+            "value": "Import and export should cover life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable. This page does not open file panels, read import files, or write export packages."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
+            "value": "Import and export should cover life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable. This page does not open file panels, read import files, or write export packages."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
+            "value": "Import and export should cover life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable. This page does not open file panels, read import files, or write export packages."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
+            "value": "Import and export should cover life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable. This page does not open file panels, read import files, or write export packages."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export should include life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable."
+            "value": "Import and export should cover life entries, learning material, attachments, and privacy-safe metadata after the local library model is stable. This page does not open file panels, read import files, or write export packages."
           }
         }
       }
     },
-    "settings.export.nextRequirement": {
-      "comment": "Export settings next requirement.",
+    "settings.importExport.nextRequirement": {
+      "comment": "Import export settings next requirement.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After the data layer is stable, design Markdown, JSON, and attachment export."
+            "value": "Finalize the local library model, attachment handling, file access rules, and Markdown, JSON, and attachment import/export formats."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在数据层稳定后设计 Markdown、JSON 和附件导出。"
+            "value": "完成本地资料库模型、附件处理、文件访问规则，以及 Markdown、JSON 和附件导入导出格式设计。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cuando la capa de datos sea estable, diseñar exportación Markdown, JSON y adjuntos."
+            "value": "Finalize the local library model, attachment handling, file access rules, and Markdown, JSON, and attachment import/export formats."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "データ層が安定した後、Markdown、JSON、添付ファイルのエクスポートを設計します。"
+            "value": "Finalize the local library model, attachment handling, file access rules, and Markdown, JSON, and attachment import/export formats."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Une fois la couche de données stable, concevoir l’export Markdown, JSON et pièces jointes."
+            "value": "Finalize the local library model, attachment handling, file access rules, and Markdown, JSON, and attachment import/export formats."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nach Stabilisierung der Datenschicht Markdown-, JSON- und Anhangsexport entwerfen."
+            "value": "Finalize the local library model, attachment handling, file access rules, and Markdown, JSON, and attachment import/export formats."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "데이터 계층이 안정된 뒤 Markdown, JSON, 첨부 파일 내보내기를 설계합니다."
+            "value": "Finalize the local library model, attachment handling, file access rules, and Markdown, JSON, and attachment import/export formats."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "После стабилизации слоя данных спроектировать экспорт Markdown, JSON и вложений."
+            "value": "Finalize the local library model, attachment handling, file access rules, and Markdown, JSON, and attachment import/export formats."
           }
         }
       }
     },
-    "settings.export.summary": {
-      "comment": "Export settings summary.",
+    "settings.importExport.summary": {
+      "comment": "Import export settings summary.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export will cover your local library after the data model is stable."
+            "value": "Import and export will be designed around the local library and attachments after the data model is stable."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "数据模型稳定后，导出将覆盖本地资料库。"
+            "value": "数据模型稳定后，导入导出将围绕本地资料库和附件目录设计。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export will cover your local library after the data model is stable."
+            "value": "Import and export will be designed around the local library and attachments after the data model is stable."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export will cover your local library after the data model is stable."
+            "value": "Import and export will be designed around the local library and attachments after the data model is stable."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export will cover your local library after the data model is stable."
+            "value": "Import and export will be designed around the local library and attachments after the data model is stable."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export will cover your local library after the data model is stable."
+            "value": "Import and export will be designed around the local library and attachments after the data model is stable."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export will cover your local library after the data model is stable."
+            "value": "Import and export will be designed around the local library and attachments after the data model is stable."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export will cover your local library after the data model is stable."
+            "value": "Import and export will be designed around the local library and attachments after the data model is stable."
           }
         }
       }
     },
-    "settings.export.title": {
-      "comment": "Settings row title for export.",
+    "settings.importExport.title": {
+      "comment": "Settings row title for import export.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export"
+            "value": "Import / Export"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导出"
+            "value": "导入导出"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exportar"
+            "value": "Import / Export"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "エクスポート"
+            "value": "Import / Export"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exporter"
+            "value": "Import / Export"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export"
+            "value": "Import / Export"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "내보내기"
+            "value": "Import / Export"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Экспорт"
+            "value": "Import / Export"
           }
         }
       }
