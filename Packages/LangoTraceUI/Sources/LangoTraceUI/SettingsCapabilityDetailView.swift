@@ -16,6 +16,8 @@ struct SettingsCapabilityDetailView: View {
                 header
                 if capability.kind == .aiProvider {
                     aiProviderSettingsContainer
+                } else if capability.kind == .sync {
+                    syncSettingsContainer
                 } else {
                     CapabilityStatusRow(
                         localizedTitleKey: capability.kind.localizedTitleKey,
@@ -28,7 +30,7 @@ struct SettingsCapabilityDetailView: View {
                 if capability.kind == .interfaceLanguage {
                     interfaceLanguagePicker
                 }
-                if capability.kind != .aiProvider {
+                if capability.kind != .aiProvider, capability.kind != .sync {
                     LocalizedTextPanel(
                         titleKey: settingsCurrentBoundaryTitleKey,
                         textKey: localizationKeys.detail
@@ -66,7 +68,20 @@ struct SettingsCapabilityDetailView: View {
             .frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)
     }
 
+    private var syncSettingsContainer: some View {
+        SyncSettingsView(languageSpace: languageSpace)
+            .frame(maxWidth: syncSettingsContentMaxWidth, alignment: .leading)
+    }
+
     private var aiProviderSettingsContentMaxWidth: CGFloat {
+        #if os(macOS)
+            860
+        #else
+            820
+        #endif
+    }
+
+    private var syncSettingsContentMaxWidth: CGFloat {
         #if os(macOS)
             860
         #else

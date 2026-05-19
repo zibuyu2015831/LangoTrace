@@ -12321,6 +12321,685 @@
           }
         }
       }
+    },
+    "syncSettings.badge.advanced": {
+      "comment": "Badge for advanced sync options.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高级"
+          }
+        }
+      }
+    },
+    "syncSettings.badge.recommended": {
+      "comment": "Badge for recommended sync options.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推荐"
+          }
+        }
+      }
+    },
+    "syncSettings.future.body": {
+      "comment": "Future sync option boundary copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WebDAV, local folder sync, and an official hosted sync service remain future adapter paths. This page does not treat sync as backup or export."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WebDAV、本地文件夹同步和官方托管同步服务仍是后续 Adapter 路径。本页不会把同步等同于备份或导出。"
+          }
+        }
+      }
+    },
+    "syncSettings.future.title": {
+      "comment": "Future sync option boundary title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Future paths"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后续路径"
+          }
+        }
+      }
+    },
+    "syncSettings.iCloudPreview.body": {
+      "comment": "iCloud preview body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This path is designed for iPhone, iPad, and Mac. The technical candidate is a CloudKit private database adapter behind the Sync Engine."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一路径面向 iPhone、iPad 和 Mac。技术候选是 Sync Engine 后方的 CloudKit private database Adapter。"
+          }
+        }
+      }
+    },
+    "syncSettings.iCloudPreview.boundary.body": {
+      "comment": "iCloud preview current boundary body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current preview does not check Apple Account status, create a CloudKit container, write records, or upload content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前预览不会检查 Apple Account 状态，不会创建 CloudKit container，不会写入记录，也不会上传内容。"
+          }
+        }
+      }
+    },
+    "syncSettings.iCloudPreview.boundary.title": {
+      "comment": "iCloud preview current boundary title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview boundary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览边界"
+          }
+        }
+      }
+    },
+    "syncSettings.iCloudPreview.checklist.body": {
+      "comment": "iCloud future implementation checklist body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Real sync still needs iCloud capability, a CloudKit container, a private record zone, background behavior, quota handling, retry policy, and conflict recovery."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实同步仍需要 iCloud capability、CloudKit container、private record zone、后台行为、配额处理、重试策略和冲突恢复。"
+          }
+        }
+      }
+    },
+    "syncSettings.iCloudPreview.checklist.title": {
+      "comment": "iCloud future implementation checklist title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before real sync"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实接入前"
+          }
+        }
+      }
+    },
+    "syncSettings.iCloudPreview.close": {
+      "comment": "Close button for iCloud preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to sync settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回同步设置"
+          }
+        }
+      }
+    },
+    "syncSettings.iCloudPreview.navigationTitle": {
+      "comment": "Navigation title for iCloud sync preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Sync"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud 同步"
+          }
+        }
+      }
+    },
+    "syncSettings.iCloudPreview.title": {
+      "comment": "iCloud preview title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple device sync"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple 设备同步"
+          }
+        }
+      }
+    },
+    "syncSettings.method.iCloud.action": {
+      "comment": "Action button for iCloud sync preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview iCloud sync"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览 iCloud 同步"
+          }
+        }
+      }
+    },
+    "syncSettings.method.iCloud.summary": {
+      "comment": "Summary for iCloud sync method.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Best for iPhone, iPad, and Mac. Uses your Apple Account and iCloud storage after the CloudKit adapter is implemented."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适合 iPhone、iPad 和 Mac。CloudKit Adapter 接入后将使用你的 Apple Account 和 iCloud 存储。"
+          }
+        }
+      }
+    },
+    "syncSettings.method.iCloud.title": {
+      "comment": "Title for iCloud sync method.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Sync"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud 同步"
+          }
+        }
+      }
+    },
+    "syncSettings.method.s3.action": {
+      "comment": "Action button for S3 sync draft.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure object storage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置对象存储"
+          }
+        }
+      }
+    },
+    "syncSettings.method.s3.summary": {
+      "comment": "Summary for S3-compatible sync method.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For AWS S3, Cloudflare R2, MinIO, or a custom S3-compatible endpoint. This is an advanced local draft only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适合 AWS S3、Cloudflare R2、MinIO 或自定义 S3-compatible endpoint。当前只是高级本机草稿。"
+          }
+        }
+      }
+    },
+    "syncSettings.method.s3.title": {
+      "comment": "Title for S3-compatible sync method.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S3-compatible object storage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S3 兼容对象存储"
+          }
+        }
+      }
+    },
+    "syncSettings.methods.title": {
+      "comment": "Title for sync methods section.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync method"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同步方式"
+          }
+        }
+      }
+    },
+    "syncSettings.mockBoundary.body": {
+      "comment": "Mock sync UI boundary body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a real-grade settings preview. It does not connect to iCloud, S3, R2, WebDAV, a database, or secure credential storage, and it does not upload content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是同步设置的真实级预览。当前不会连接 iCloud、S3、R2、WebDAV、数据库或安全凭证存储，也不会上传内容。"
+          }
+        }
+      }
+    },
+    "syncSettings.mockBoundary.title": {
+      "comment": "Mock sync UI boundary title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No cloud action yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前不连接云端"
+          }
+        }
+      }
+    },
+    "syncSettings.s3.accessKey.title": {
+      "comment": "S3 access key field label.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Access Key ID" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Access Key ID" } }
+      }
+    },
+    "syncSettings.s3.bucket.title": {
+      "comment": "S3 bucket field label.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Bucket" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Bucket" } }
+      }
+    },
+    "syncSettings.s3.close": {
+      "comment": "Close button for object storage draft.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Back to sync settings" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "返回同步设置" } }
+      }
+    },
+    "syncSettings.s3.connection.title": {
+      "comment": "S3 connection section title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Connection draft" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "连接草稿" } }
+      }
+    },
+    "syncSettings.s3.endpoint.title": {
+      "comment": "S3 endpoint field label.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Endpoint" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Endpoint" } }
+      }
+    },
+    "syncSettings.s3.header.body": {
+      "comment": "Object storage draft header body.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Create a local preview for AWS S3, Cloudflare R2, MinIO, or a custom endpoint. Credentials are not saved or tested in this version." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "为 AWS S3、Cloudflare R2、MinIO 或自定义 endpoint 创建本机预览。本版本不会保存或测试凭证。" } }
+      }
+    },
+    "syncSettings.s3.header.title": {
+      "comment": "Object storage draft header title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Object storage draft" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "对象存储草稿" } }
+      }
+    },
+    "syncSettings.s3.https.title": {
+      "comment": "S3 HTTPS toggle label.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Require HTTPS" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "要求 HTTPS" } }
+      }
+    },
+    "syncSettings.s3.navigationTitle": {
+      "comment": "Navigation title for object storage sync draft.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Object Storage" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "对象存储" } }
+      }
+    },
+    "syncSettings.s3.pathPrefix.title": {
+      "comment": "S3 path prefix field label.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Path Prefix" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Path Prefix" } }
+      }
+    },
+    "syncSettings.s3.pathStyle.title": {
+      "comment": "S3 path-style access toggle label.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Path-style access" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Path-style access" } }
+      }
+    },
+    "syncSettings.s3.provider.picker": {
+      "comment": "Accessibility label for S3 provider picker.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Object storage provider" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "对象存储 Provider" } }
+      }
+    },
+    "syncSettings.s3.provider.title": {
+      "comment": "S3 provider section title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Provider" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Provider" } }
+      }
+    },
+    "syncSettings.s3.region.title": {
+      "comment": "S3 region field label.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Region" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Region" } }
+      }
+    },
+    "syncSettings.s3.secretKey.hide": {
+      "comment": "Hide secret access key button.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Hide Secret Access Key" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "隐藏 Secret Access Key" } }
+      }
+    },
+    "syncSettings.s3.secretKey.placeholder": {
+      "comment": "Secret access key placeholder.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Local draft only" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "仅本机草稿" } }
+      }
+    },
+    "syncSettings.s3.secretKey.show": {
+      "comment": "Show secret access key button.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Show Secret Access Key" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "显示 Secret Access Key" } }
+      }
+    },
+    "syncSettings.s3.secretKey.title": {
+      "comment": "Secret access key field label.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Secret Access Key" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Secret Access Key" } }
+      }
+    },
+    "syncSettings.s3.security.body": {
+      "comment": "Object storage security boundary body.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Use a dedicated bucket or prefix and least-privilege credentials. The current draft does not save secrets, write secure storage, test the connection, or upload life records." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请使用专用 bucket 或 prefix，并配置最小权限凭证。当前草稿不会保存密钥、写入安全存储、测试连接或上传生活记录。" } }
+      }
+    },
+    "syncSettings.s3.security.title": {
+      "comment": "Object storage security boundary title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Credential boundary" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "凭证边界" } }
+      }
+    },
+    "syncSettings.s3.validation.complete": {
+      "comment": "Complete local object storage draft state.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Draft fields complete" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "草稿字段完整" } }
+      }
+    },
+    "syncSettings.s3.validation.missing": {
+      "comment": "Missing object storage draft fields state.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Required fields missing" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "必填字段缺失" } }
+      }
+    },
+    "syncSettings.scope.aiGeneratedContent.summary": {
+      "comment": "AI generated content sync scope summary.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Generated study material can be included when sync is implemented." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "真实同步接入后，AI 生成的学习材料可进入同步范围。" } }
+      }
+    },
+    "syncSettings.scope.aiGeneratedContent.title": {
+      "comment": "AI generated content sync scope title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "AI generated content" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "AI 生成内容" } }
+      }
+    },
+    "syncSettings.scope.audioAttachments.summary": {
+      "comment": "Audio attachment sync scope summary.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Audio can contain sensitive life context and consume more cloud storage." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "音频可能包含更敏感的生活语境，也会占用更多云端空间。" } }
+      }
+    },
+    "syncSettings.scope.audioAttachments.title": {
+      "comment": "Audio attachment sync scope title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Audio attachments" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "音频附件" } }
+      }
+    },
+    "syncSettings.scope.credentials.summary": {
+      "comment": "Credential sync scope summary.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "AI keys, object storage secrets, and recovery keys never enter sync data." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "AI Key、对象存储密钥和恢复密钥永不进入同步数据。" } }
+      }
+    },
+    "syncSettings.scope.credentials.title": {
+      "comment": "Credential sync scope title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Keys and credentials" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "密钥与凭证" } }
+      }
+    },
+    "syncSettings.scope.learningProgress.summary": {
+      "comment": "Learning progress sync scope summary.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Learning material, practice history, and progress are stable sync candidates." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "学习材料、练习历史和进度属于稳定同步候选。" } }
+      }
+    },
+    "syncSettings.scope.learningProgress.title": {
+      "comment": "Learning progress sync scope title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Learning material and progress" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "学习材料和进度" } }
+      }
+    },
+    "syncSettings.scope.lifeEntries.summary": {
+      "comment": "Life entries sync scope summary.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Your written life records are the primary sync data after you enable a real adapter." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "真实 Adapter 启用后，你写下的生活记录会是主要同步数据。" } }
+      }
+    },
+    "syncSettings.scope.lifeEntries.title": {
+      "comment": "Life entries sync scope title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Life records" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "生活记录" } }
+      }
+    },
+    "syncSettings.scope.photoAttachments.summary": {
+      "comment": "Photo attachment sync scope summary.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Photos are optional because they can be private and large." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "照片可能更私密且体积更大，因此默认不进入同步。" } }
+      }
+    },
+    "syncSettings.scope.photoAttachments.title": {
+      "comment": "Photo attachment sync scope title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Photo attachments" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "照片附件" } }
+      }
+    },
+    "syncSettings.scope.promptPresets.summary": {
+      "comment": "Prompt preset sync scope summary.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Non-sensitive preset settings can follow your devices; provider secrets do not." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "非敏感 Prompt Preset 设置可以跟随设备，Provider 密钥不会同步。" } }
+      }
+    },
+    "syncSettings.scope.promptPresets.title": {
+      "comment": "Prompt preset sync scope title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Prompt Presets" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Prompt Preset" } }
+      }
+    },
+    "syncSettings.scope.state.included": {
+      "comment": "Included sync scope state.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Included" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可同步" } }
+      }
+    },
+    "syncSettings.scope.state.localOnly": {
+      "comment": "Local-only credential scope state.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Local only" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "仅本机" } }
+      }
+    },
+    "syncSettings.scope.state.localRebuild": {
+      "comment": "Local rebuild sync scope state.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Rebuild locally" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "本地重建" } }
+      }
+    },
+    "syncSettings.scope.state.offByDefault": {
+      "comment": "Off by default sync scope state.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Default off" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "默认关闭" } }
+      }
+    },
+    "syncSettings.scope.title": {
+      "comment": "Sync scope section title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Sync scope" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "同步范围" } }
+      }
+    },
+    "syncSettings.scope.vectorIndex.summary": {
+      "comment": "Vector index sync scope summary.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Vector indexes are derived data and should be rebuilt on each device." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "向量索引是派生数据，应在每台设备本地重建。" } }
+      }
+    },
+    "syncSettings.scope.vectorIndex.title": {
+      "comment": "Vector index sync scope title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Vector index" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "向量索引" } }
+      }
+    },
+    "syncSettings.status.previewOnly": {
+      "comment": "Preview-only sync state label.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Preview only" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "仅预览" } }
+      }
+    },
+    "syncSettings.status.summary": {
+      "comment": "Sync status summary.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Data stays on this device. Enabling real sync later will only include the content you choose, and conflicts will preserve versions instead of silently overwriting them." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "数据仍保存在这台设备。后续真实启用同步时，只会同步你选择的内容；发生冲突时会优先保留版本，而不是静默覆盖。" } }
+      }
+    },
+    "syncSettings.status.title": {
+      "comment": "Sync status card title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Data stays local" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "数据保留在本机" } }
+      }
     }
   },
   "version": "1.0"
