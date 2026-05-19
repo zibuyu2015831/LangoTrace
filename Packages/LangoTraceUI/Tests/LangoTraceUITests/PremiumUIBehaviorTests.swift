@@ -229,7 +229,10 @@ struct PremiumUIBehaviorTests {
             contentsOf: sourceFileURL(named: "LearningContentComponents.swift"),
             encoding: .utf8
         )
-        let welcomeView = try String(contentsOf: sourceFileURL(named: "WelcomeView.swift"), encoding: .utf8)
+        let welcomeView = try [
+            String(contentsOf: sourceFileURL(named: "WelcomeView.swift"), encoding: .utf8),
+            String(contentsOf: sourceFileURL(named: "WelcomeView+Layout.swift"), encoding: .utf8),
+        ].joined(separator: "\n")
         let phoneSupportingViews = try String(
             contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
             encoding: .utf8
