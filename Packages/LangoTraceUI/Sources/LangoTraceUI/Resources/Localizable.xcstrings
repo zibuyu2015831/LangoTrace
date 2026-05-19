@@ -5962,49 +5962,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Learn from the life you already live."
+            "value": "Take photos and jot notes. LangoTrace turns them into expressions and practice."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "拍照、写日记、记录声音，语迹会帮你整理成单词、表达和练习。"
+            "value": "拍照、随笔，\n语迹会帮你整理成表达和练习"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aprende de la vida que ya vives."
+            "value": "Haz fotos y toma notas. LangoTrace las convierte en expresiones y práctica."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "すでにある日常から学びます。"
+            "value": "写真とメモを、LangoTrace が表現と練習に整理します。"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apprenez à partir de la vie que vous vivez déjà."
+            "value": "Prenez des photos et notez vos pensées. LangoTrace en fait des expressions et des exercices."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lerne aus dem Leben, das du bereits lebst."
+            "value": "Fotografiere und notiere Gedanken. LangoTrace macht daraus Ausdrücke und Übungen."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이미 살아가는 일상에서 배우세요."
+            "value": "사진과 짧은 글을 LangoTrace가 표현과 연습으로 정리합니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Учитесь на жизни, которой уже живете."
+            "value": "Снимайте фото и делайте заметки. LangoTrace превращает их в выражения и практику."
           }
         }
       }
@@ -8763,6 +8763,1861 @@
           "stringUnit": {
             "state": "translated",
             "value": "导入导出"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.pageAccessibilityValue": {
+      "comment": "Welcome preview carousel page accessibility value. First argument is current page, second is total pages.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Example %d of %d"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "示例 %d，共 %d"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ejemplo %d de %d"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d/%d 件目の例"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exemple %d sur %d"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beispiel %d von %d"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "예시 %d/%d"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пример %d из %d"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.cafe.scene": {
+      "comment": "Welcome preview cafe example scene title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coffee shop order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "咖啡店点单"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedido en cafe"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カフェで注文"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commande au cafe"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestellung im Cafe"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "카페 주문"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заказ в кафе"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.cafe.note": {
+      "comment": "Welcome preview cafe example source note.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I ordered an oat latte at the cafe today."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天在咖啡店点了一杯燕麦拿铁。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy pedi un latte con leche de avena en la cafeteria."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日はカフェでオーツミルクラテを注文しました。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J ai commande un latte au lait d avoine au cafe aujourd hui."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich habe heute im Cafe einen Hafermilch-Latte bestellt."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 카페에서 오트 라테를 주문했습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сегодня я заказал овсяный латте в кафе."
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.cafe.vocabulary": {
+      "comment": "Welcome preview cafe example vocabulary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latte · oat milk · receipt · to go"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latte · oat milk · receipt · to go"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latte · oat milk · receipt · to go"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latte · oat milk · receipt · to go"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latte · oat milk · receipt · to go"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latte · oat milk · receipt · to go"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latte · oat milk · receipt · to go"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latte · oat milk · receipt · to go"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.cafe.expression": {
+      "comment": "Welcome preview cafe example target expression.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can I get this to go?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can I get this to go?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can I get this to go?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can I get this to go?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can I get this to go?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can I get this to go?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can I get this to go?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can I get this to go?"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.cafe.practice": {
+      "comment": "Welcome preview cafe example practice summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing · Save · Review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing · 收藏 · 复习"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing · Guardar · Repasar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing · 保存 · 復習"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing · Enregistrer · Revoir"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing · Speichern · Wiederholen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing · 저장 · 복습"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing · Сохранить · Повторить"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.commute.scene": {
+      "comment": "Welcome preview commute example scene title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subway commute"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通勤路上"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trayecto en metro"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地下鉄通勤"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trajet en metro"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pendeln mit der Bahn"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지하철 출근길"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поездка в метро"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.commute.note": {
+      "comment": "Welcome preview commute example source note.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The train was delayed, so I reviewed directions and platform signs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地铁晚点了，我顺手记下了换乘和站台提示。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El tren se retraso, asi que repase indicaciones y carteles del anden."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "電車が遅れたので、乗り換え案内とホーム表示を見直しました。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le train avait du retard, alors j ai revu les indications et les panneaux du quai."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Bahn hatte Verspaetung, also habe ich Wegweiser und Gleisangaben wiederholt."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "열차가 지연되어 환승 안내와 승강장 표지를 다시 봤습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поезд задержался, и я повторил указатели и таблички на платформе."
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.commute.vocabulary": {
+      "comment": "Welcome preview commute example vocabulary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "delay · platform · transfer · direction"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "delay · platform · transfer · direction"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "delay · platform · transfer · direction"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "delay · platform · transfer · direction"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "delay · platform · transfer · direction"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "delay · platform · transfer · direction"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "delay · platform · transfer · direction"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "delay · platform · transfer · direction"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.commute.expression": {
+      "comment": "Welcome preview commute example target expression.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which platform does this train leave from?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which platform does this train leave from?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which platform does this train leave from?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which platform does this train leave from?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which platform does this train leave from?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which platform does this train leave from?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which platform does this train leave from?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which platform does this train leave from?"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.commute.practice": {
+      "comment": "Welcome preview commute example practice summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen · Repeat · Pin words"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "听读 · 跟读 · 固定词汇"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escuchar · Repetir · Fijar palabras"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "聞く · まねる · 単語を固定"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ecouter · Repeter · Epingler des mots"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoeren · Nachsprechen · Woerter merken"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "듣기 · 따라 말하기 · 단어 고정"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слушать · Повторять · Закрепить слова"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.meeting.scene": {
+      "comment": "Welcome preview meeting example scene title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team meeting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工作会议"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reunion de equipo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チーム会議"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reunion d equipe"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teammeeting"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "팀 회의"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Командная встреча"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.meeting.note": {
+      "comment": "Welcome preview meeting example source note.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I needed to clarify the deadline and ask who owns the next step."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开会时我想确认截止时间，也想问下一步由谁负责。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesitaba aclarar el plazo y preguntar quien se encarga del siguiente paso."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "締め切りを確認し、次の担当者を聞く必要がありました。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je devais clarifier l echeance et demander qui prend la suite."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich musste die Frist klaeren und fragen, wer den naechsten Schritt uebernimmt."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "회의에서 마감일을 확인하고 다음 단계를 누가 맡는지 물어봐야 했습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мне нужно было уточнить срок и спросить, кто отвечает за следующий шаг."
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.meeting.vocabulary": {
+      "comment": "Welcome preview meeting example vocabulary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "deadline · owner · clarify · next step"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "deadline · owner · clarify · next step"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "deadline · owner · clarify · next step"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "deadline · owner · clarify · next step"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "deadline · owner · clarify · next step"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "deadline · owner · clarify · next step"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "deadline · owner · clarify · next step"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "deadline · owner · clarify · next step"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.meeting.expression": {
+      "comment": "Welcome preview meeting example target expression.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could we clarify the next step?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could we clarify the next step?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could we clarify the next step?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could we clarify the next step?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could we clarify the next step?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could we clarify the next step?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could we clarify the next step?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could we clarify the next step?"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.meeting.practice": {
+      "comment": "Welcome preview meeting example practice summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rewrite · Shadow · Save phrase"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改写 · 跟读 · 收藏句型"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reescribir · Shadowing · Guardar frase"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "書き換え · Shadowing · 表現を保存"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reformuler · Shadowing · Garder la phrase"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umschreiben · Shadowing · Satz speichern"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다시 쓰기 · Shadowing · 문장 저장"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перефразировать · Shadowing · Сохранить фразу"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.sourceNoteTitle": {
+      "comment": "Welcome preview source note section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的随笔"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mi nota"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私のメモ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ma note"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meine Notiz"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 메모"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Моя заметка"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.rewrittenTextTitle": {
+      "comment": "Welcome preview rewritten text section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rewrite"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改写"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reescritura"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "書き換え"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reformulation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umschreibung"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다시 쓰기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переписано"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.audioCueTitle": {
+      "comment": "Welcome preview audio cue section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voiceover"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配音"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voz"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音声"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voix"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertonung"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "음성"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Озвучка"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.shadowingCueTitle": {
+      "comment": "Welcome preview shadowing cue section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟读"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "シャドーイング"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "섀도잉"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шэдоуинг"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.meeting.level": {
+      "comment": "Welcome preview meeting example learner level.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced · Meeting expression"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高阶 · 会议表达"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avanzado · Expresion de reunion"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上級 · 会議表現"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avance · Expression de reunion"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortgeschritten · Meeting-Ausdruck"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "고급 · 회의 표현"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продвинутый · Фраза для встречи"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.meeting.sourceNote": {
+      "comment": "Welcome preview meeting example source note.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In today’s meeting, I wanted to confirm the deadline and ask who owns the next step."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天开会时，我想确认截止时间，也想问下一步由谁负责。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En la reunión de hoy quería confirmar la fecha límite y preguntar quién se encarga del siguiente paso."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日の会議で、締め切りを確認し、次の担当者を聞きたいと思いました。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pendant la réunion d’aujourd’hui, je voulais confirmer l’échéance et demander qui prend la suite."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im heutigen Meeting wollte ich die Frist bestätigen und fragen, wer den nächsten Schritt übernimmt."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 회의에서 마감일을 확인하고 다음 단계를 누가 맡는지 묻고 싶었습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На сегодняшней встрече я хотел уточнить срок и спросить, кто отвечает за следующий шаг."
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.meeting.rewrittenText": {
+      "comment": "Welcome preview meeting example rewritten target text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In today’s meeting, I wanted to confirm the deadline and clarify who would own the next step."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In today’s meeting, I wanted to confirm the deadline and clarify who would own the next step."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In today’s meeting, I wanted to confirm the deadline and clarify who would own the next step."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In today’s meeting, I wanted to confirm the deadline and clarify who would own the next step."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In today’s meeting, I wanted to confirm the deadline and clarify who would own the next step."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In today’s meeting, I wanted to confirm the deadline and clarify who would own the next step."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In today’s meeting, I wanted to confirm the deadline and clarify who would own the next step."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In today’s meeting, I wanted to confirm the deadline and clarify who would own the next step."
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.meeting.audioCue": {
+      "comment": "Welcome preview meeting example audio cue.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting voiceover · Stress confirm / clarify / own"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会议语气配音 · 强调 confirm / clarify / own"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voz de reunion · Enfatiza confirm / clarify / own"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会議口調の音声 · confirm / clarify / own を強調"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voix de reunion · Accent sur confirm / clarify / own"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting-Stimme · confirm / clarify / own betonen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "회의 톤 음성 · confirm / clarify / own 강조"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Деловая озвучка · Акцент на confirm / clarify / own"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.meeting.shadowingCue": {
+      "comment": "Welcome preview meeting example shadowing cue.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadow by thought group · Swap deadline / next step"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按意群跟读 · 替换 deadline / next step 复述"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repite por grupos de sentido · Cambia deadline / next step"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "意味のまとまりでシャドーイング · deadline / next step を置換"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing par groupes de sens · Remplacer deadline / next step"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Sinneinheiten shadowen · deadline / next step tauschen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "의미 단위로 섀도잉 · deadline / next step 바꿔 말하기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шэдоуинг по смысловым группам · Замени deadline / next step"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.cafe.level": {
+      "comment": "Welcome preview cafe example learner level.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginner · Ordering phrase"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入门 · 点单短句"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicial · Frase para pedir"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入門 · 注文フレーズ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debutant · Phrase de commande"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstieg · Bestellsatz"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입문 · 주문 짧은 문장"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начальный · Фраза для заказа"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.cafe.sourceNote": {
+      "comment": "Welcome preview cafe example source note.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I took a photo of my coffee and wanted to learn a polite takeaway phrase."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我拍下咖啡，想学会礼貌地说外带。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tome una foto de mi cafe y queria aprender una frase educada para llevar."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コーヒーの写真を撮り、丁寧に持ち帰りを頼む表現を学びたいと思いました。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J ai pris une photo de mon cafe et je voulais apprendre une formule polie a emporter."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich habe meinen Kaffee fotografiert und wollte eine höfliche Formulierung zum Mitnehmen lernen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "커피 사진을 찍고 정중하게 포장을 요청하는 표현을 배우고 싶었습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Я сфотографировал кофе и хотел выучить вежливую фразу для заказа с собой."
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.cafe.rewrittenText": {
+      "comment": "Welcome preview cafe example rewritten target text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could I get this coffee to go, please?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could I get this coffee to go, please?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could I get this coffee to go, please?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could I get this coffee to go, please?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could I get this coffee to go, please?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could I get this coffee to go, please?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could I get this coffee to go, please?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could I get this coffee to go, please?"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.cafe.audioCue": {
+      "comment": "Welcome preview cafe example audio cue.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slow voiceover · Stress Could I / to go"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "慢速配音 · 重读 Could I / to go"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voz lenta · Enfatiza Could I / to go"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ゆっくり音声 · Could I / to go を強調"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voix lente · Accent sur Could I / to go"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langsame Stimme · Could I / to go betonen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "느린 음성 · Could I / to go 강조"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Медленная озвучка · Акцент на Could I / to go"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.cafe.shadowingCue": {
+      "comment": "Welcome preview cafe example shadowing cue.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadow the short sentence · Swap in tea / sandwich"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先跟读短句 · 换成 tea / sandwich 复用"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repite la frase corta · Cambia a tea / sandwich"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "短文を先にシャドーイング · tea / sandwich に置換"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing de la phrase courte · Remplacer par tea / sandwich"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurzen Satz shadowen · tea / sandwich einsetzen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "짧은 문장 먼저 섀도잉 · tea / sandwich 로 바꾸기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шэдоуинг короткой фразы · Замени на tea / sandwich"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.commute.level": {
+      "comment": "Welcome preview commute example learner level.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intermediate · Commute explanation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进阶 · 通勤说明"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intermedio · Explicacion de trayecto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中級 · 通勤の説明"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intermediaire · Explication de trajet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mittelstufe · Pendel-Erklaerung"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "중급 · 통근 설명"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Средний · Объяснение поездки"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.commute.sourceNote": {
+      "comment": "Welcome preview commute example source note.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The train was delayed, so I noted the platform sign and wondered if I needed to change platforms."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地铁晚点了，我记下站台提示，想问是不是要换站台。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El tren se retraso, asi que anote el anden y queria preguntar si debia cambiar de plataforma."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "電車が遅れたので、ホーム表示をメモし、ホームを変えるべきか聞きたいと思いました。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le train avait du retard, alors j ai note le quai et je voulais demander s il fallait changer de quai."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Bahn hatte Verspaetung, also notierte ich den Bahnsteig und wollte fragen, ob ich wechseln muss."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "열차가 지연되어 승강장 안내를 적고 플랫폼을 바꿔야 하는지 묻고 싶었습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поезд задержался, я отметил платформу и хотел спросить, нужно ли менять платформу."
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.commute.rewrittenText": {
+      "comment": "Welcome preview commute example rewritten target text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The train is delayed, so I should check whether I need to change platforms."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The train is delayed, so I should check whether I need to change platforms."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The train is delayed, so I should check whether I need to change platforms."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The train is delayed, so I should check whether I need to change platforms."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The train is delayed, so I should check whether I need to change platforms."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The train is delayed, so I should check whether I need to change platforms."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The train is delayed, so I should check whether I need to change platforms."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The train is delayed, so I should check whether I need to change platforms."
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.commute.audioCue": {
+      "comment": "Welcome preview commute example audio cue.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear voiceover · Notice delayed and change platforms"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清晰配音 · 注意 delayed 和 change platforms"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voz clara · Nota delayed y change platforms"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明瞭な音声 · delayed と change platforms に注目"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voix claire · Reperer delayed et change platforms"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klare Stimme · delayed und change platforms beachten"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "또렷한 음성 · delayed 와 change platforms 확인"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Четкая озвучка · Обрати внимание на delayed и change platforms"
+          }
+        }
+      }
+    },
+    "welcome.tracePreview.examples.commute.shadowingCue": {
+      "comment": "Welcome preview commute example shadowing cue.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadow in two parts · Swap train / platform"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分两段跟读 · 替换 train / platform 复述"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repite en dos partes · Cambia train / platform"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2つに分けてシャドーイング · train / platform を置換"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing en deux parties · Remplacer train / platform"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In zwei Teilen shadowen · train / platform tauschen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "두 부분으로 섀도잉 · train / platform 바꿔 말하기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шэдоуинг в две части · Замени train / platform"
           }
         }
       }
