@@ -3,11 +3,38 @@ import SwiftUI
 
 struct SyncSettingsView: View {
     let languageSpace: LanguageSpacePreview
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var draft = SyncSettingsDraft()
     @State private var showsICloudPreview = false
     @State private var showsS3Draft = false
 
     var body: some View {
+        syncSettingsContent
+            .sheet(isPresented: $showsICloudPreview) {
+                NavigationStack {
+                    ICloudSyncPreviewView()
+                }
+            }
+            .sheet(isPresented: $showsS3Draft) {
+                NavigationStack {
+                    S3SyncDraftView()
+                }
+            }
+    }
+
+    @ViewBuilder
+    private var syncSettingsContent: some View {
+        if horizontalSizeClass == .compact {
+            stackedContent
+        } else {
+            ViewThatFits(in: .horizontal) {
+                regularColumnsContent
+                stackedContent
+            }
+        }
+    }
+
+    private var stackedContent: some View {
         VStack(alignment: .leading, spacing: 18) {
             syncStatusCard
             methodCards
@@ -15,16 +42,23 @@ struct SyncSettingsView: View {
             mockBoundaryCard
             futureOptionsCard
         }
-        .sheet(isPresented: $showsICloudPreview) {
-            NavigationStack {
-                ICloudSyncPreviewView()
+    }
+
+    private var regularColumnsContent: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            syncStatusCard
+            methodCardsGrid
+            HStack(alignment: .top, spacing: 18) {
+                scopeCard
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                VStack(alignment: .leading, spacing: 18) {
+                    mockBoundaryCard
+                    futureOptionsCard
+                }
+                .frame(maxWidth: 340, alignment: .topLeading)
             }
         }
-        .sheet(isPresented: $showsS3Draft) {
-            NavigationStack {
-                S3SyncDraftView()
-            }
-        }
+        .frame(minWidth: 760, alignment: .leading)
     }
 
     private var syncStatusCard: some View {
@@ -67,6 +101,25 @@ struct SyncSettingsView: View {
                     case .s3Compatible:
                         showsS3Draft = true
                     }
+                }
+            }
+        }
+    }
+
+    private var methodCardsGrid: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            AIProviderSectionTitle("syncSettings.methods.title")
+            HStack(alignment: .top, spacing: 14) {
+                ForEach(draft.methods) { method in
+                    SyncMethodCard(option: method) {
+                        switch method.kind {
+                        case .iCloud:
+                            showsICloudPreview = true
+                        case .s3Compatible:
+                            showsS3Draft = true
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
             }
         }
@@ -243,6 +296,8 @@ private struct ICloudSyncPreviewView: View {
                 .tint(LangoTraceDesign.ColorToken.accent)
             }
             .padding(20)
+            .frame(maxWidth: 640, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
         .navigationTitle(localizedString("syncSettings.iCloudPreview.navigationTitle"))
         .langoInlineModalTitle()

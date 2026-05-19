@@ -86,7 +86,7 @@ struct PadMainView: View {
                         source: .typedText
                     )
                     selectedEntryID = entry.id
-                    route = .entryDetail(entry.id)
+                    setRoute(.entryDetail(entry.id))
                     presentedSheet = nil
                 }
             case .unavailableSearch:
@@ -192,8 +192,9 @@ struct PadMainView: View {
     }
 
     private func applyAdaptivePanelVisibility(workspaceWidth: CGFloat? = nil) {
-        let preferred = PadAdaptivePanelLayout.visibility(
-            forWidth: workspaceWidth,
+        let preferred = PadSettingsFocusPolicy.visibilityAfterResize(
+            route: route,
+            workspaceWidth: workspaceWidth,
             horizontalSizeClass: horizontalSizeClass,
             current: PadPanelVisibility(timeline: isTimelineVisible, learningPanel: isLearningPanelVisible)
         )
@@ -213,7 +214,7 @@ struct PadMainView: View {
             route: route,
             onSelectEntry: selectEntry,
             onSelectFilter: selectFilter,
-            onRoute: { route = $0 }
+            onRoute: setRoute
         )
     }
 
@@ -229,7 +230,7 @@ struct PadMainView: View {
             contentStore: contentStore,
             interfaceLanguagePreference: interfaceLanguagePreference,
             onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
-            onRoute: { route = $0 }
+            onRoute: setRoute
         )
     }
 
@@ -240,18 +241,26 @@ struct PadMainView: View {
             selectedRendering: selectedRendering,
             memoryItems: memoryItems,
             contentStore: contentStore,
-            onRoute: { route = $0 }
+            onRoute: setRoute
         )
     }
 
     private func selectEntry(_ entry: LearningEntry) {
         selectedEntryID = entry.id
         contentStore.selectEntry(entry)
-        route = .entryDetail(entry.id)
+        setRoute(.entryDetail(entry.id))
     }
 
     private func selectFilter(_ filter: PadFilter) {
         activeFilter = filter
-        route = .workspace
+        setRoute(.workspace)
+    }
+
+    private func setRoute(_ newRoute: PadWorkspaceRoute) {
+        let currentVisibility = PadPanelVisibility(timeline: isTimelineVisible, learningPanel: isLearningPanelVisible)
+        route = newRoute
+        let focusedVisibility = PadSettingsFocusPolicy.visibility(whenEntering: newRoute, current: currentVisibility)
+        isTimelineVisible = focusedVisibility.timeline
+        isLearningPanelVisible = focusedVisibility.learningPanel
     }
 }

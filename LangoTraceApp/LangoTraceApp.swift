@@ -24,9 +24,17 @@ struct LangoTraceApp: App {
 
         #if os(macOS)
             Settings {
-                LangoTraceSettingsSceneView(capabilities: settingsCapabilities)
-                    .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
-                    .environment(\.appEnvironment, environment)
+                LangoTraceSettingsSceneView(
+                    capabilities: settingsCapabilities,
+                    languageSpace: session.currentLanguageSpace,
+                    interfaceLanguagePreference: interfaceLanguagePreference,
+                    onInterfaceLanguagePreferenceChange: { preference in
+                        interfaceLanguagePreferenceStore.preference = preference
+                        interfaceLanguagePreference = preference
+                    }
+                )
+                .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
+                .environment(\.appEnvironment, environment)
             }
         #endif
     }

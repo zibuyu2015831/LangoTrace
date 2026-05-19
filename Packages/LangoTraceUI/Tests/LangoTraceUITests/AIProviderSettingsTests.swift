@@ -192,7 +192,8 @@ struct AIProviderSettingsTests {
         #expect(!detailSource.contains("PadAIProviderSettingsView"))
         #expect(!detailSource.contains("MacAIProviderSettingsView"))
         #expect(!settingsSceneSource.contains("AIProviderSettingsView"))
-        #expect(settingsSceneSource.contains("action: nil"))
+        #expect(settingsSceneSource.contains("SettingsCapabilityDetailView("))
+        #expect(settingsSceneSource.contains("action: { selectedCapabilityKind = capability.kind }"))
     }
 
     @Test("Text input modifier is a single chained iOS expression")

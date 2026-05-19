@@ -4,6 +4,30 @@ import Testing
 
 @Suite("Sync settings")
 struct SyncSettingsTests {
+    @Test("Sync settings layout switches from stacked to columns by available width")
+    func syncSettingsLayoutSwitchesFromStackedToColumnsByAvailableWidth() {
+        #expect(SyncSettingsLayoutMode.resolve(
+            availableWidth: 520,
+            horizontalSizeClass: .regular
+        ) == .stacked)
+        #expect(SyncSettingsLayoutMode.resolve(
+            availableWidth: 900,
+            horizontalSizeClass: .regular
+        ) == .regularColumns)
+        #expect(SyncSettingsLayoutMode.resolve(
+            availableWidth: 980,
+            horizontalSizeClass: nil
+        ) == .regularColumns)
+    }
+
+    @Test("iPad compact size class keeps sync settings stacked even with large reported width")
+    func iPadCompactSizeClassKeepsSyncSettingsStacked() {
+        #expect(SyncSettingsLayoutMode.resolve(
+            availableWidth: 980,
+            horizontalSizeClass: .compact
+        ) == .stacked)
+    }
+
     @Test("Draft defaults keep iCloud recommended and object storage advanced")
     func draftDefaultsKeepICloudRecommendedAndObjectStorageAdvanced() {
         let draft = SyncSettingsDraft()
@@ -93,6 +117,38 @@ struct SyncSettingsTests {
         #expect(detailSource.contains("capability.kind == .sync"))
         #expect(detailSource.contains("SyncSettingsView"))
         #expect(!detailSource.contains("SyncUnavailableCapabilityView"))
+    }
+
+    @Test("Settings detail can be embedded without creating nested scroll views")
+    func settingsDetailCanBeEmbeddedWithoutCreatingNestedScrollViews() throws {
+        let detailSource = try String(
+            contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"),
+            encoding: .utf8
+        )
+        let macWorkspaceSource = try String(
+            contentsOf: sourceFileURL(named: "MacWorkspaceContentView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(detailSource.contains("SettingsCapabilityDetailPresentation"))
+        #expect(detailSource.contains("embeddedInExistingScroll"))
+        #expect(detailSource.contains("standaloneScrollable"))
+        #expect(macWorkspaceSource.contains("presentation: .embeddedInExistingScroll"))
+    }
+
+    @Test("macOS Settings scene exposes sync detail only when a language space exists")
+    func macOSSettingsSceneExposesSyncDetailOnlyWhenLanguageSpaceExists() throws {
+        let settingsSceneSource = try String(
+            contentsOf: sourceFileURL(named: "LangoTraceSettingsSceneView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(settingsSceneSource.contains("languageSpace: LanguageSpacePreview?"))
+        #expect(settingsSceneSource.contains("selectedCapabilityKind"))
+        #expect(settingsSceneSource.contains("SettingsCapabilityDetailView("))
+        #expect(settingsSceneSource.contains("if let languageSpace"))
+        #expect(!settingsSceneSource.contains("\"bootstrap\""))
+        #expect(!settingsSceneSource.contains("action: nil"))
     }
 
     @Test("Sync settings source avoids real sync side effects")

@@ -15,6 +15,8 @@ struct S3SyncDraftView: View {
                 actionSection
             }
             .padding(20)
+            .frame(maxWidth: 640, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
         .navigationTitle(localizedString("syncSettings.s3.navigationTitle"))
         .langoInlineS3ModalTitle()

@@ -2,54 +2,85 @@ import LangoTraceCore
 import LangoTraceData
 import SwiftUI
 
+enum SettingsCapabilityDetailPresentation: Equatable {
+    case standaloneScrollable
+    case embeddedInExistingScroll
+}
+
 struct SettingsCapabilityDetailView: View {
     let languageSpace: LanguageSpacePreview
     let capability: SettingsCapability
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
+    let presentation: SettingsCapabilityDetailPresentation
+
+    init(
+        languageSpace: LanguageSpacePreview,
+        capability: SettingsCapability,
+        interfaceLanguagePreference: InterfaceLanguagePreference,
+        presentation: SettingsCapabilityDetailPresentation = .standaloneScrollable,
+        onInterfaceLanguagePreferenceChange: @escaping (InterfaceLanguagePreference) -> Void
+    ) {
+        self.languageSpace = languageSpace
+        self.capability = capability
+        self.interfaceLanguagePreference = interfaceLanguagePreference
+        self.presentation = presentation
+        self.onInterfaceLanguagePreferenceChange = onInterfaceLanguagePreferenceChange
+    }
 
     var body: some View {
-        let localizationKeys = settingsCapabilityDetailLocalizationKeys(for: capability.kind)
-
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                header
-                if capability.kind == .aiProvider {
-                    aiProviderSettingsContainer
-                } else if capability.kind == .sync {
-                    syncSettingsContainer
-                } else {
-                    CapabilityStatusRow(
-                        localizedTitleKey: capability.kind.localizedTitleKey,
-                        localizedSummaryKey: localizationKeys.summary,
-                        status: capability.status,
-                        systemImage: capability.kind.systemImage,
-                        action: nil
-                    )
+        Group {
+            switch presentation {
+            case .standaloneScrollable:
+                ScrollView {
+                    detailContent
                 }
-                if capability.kind == .interfaceLanguage {
-                    interfaceLanguagePicker
-                }
-                if capability.kind != .aiProvider, capability.kind != .sync {
-                    LocalizedTextPanel(
-                        titleKey: settingsCurrentBoundaryTitleKey,
-                        textKey: localizationKeys.detail
-                    )
-                    LocalizedTextPanel(
-                        titleKey: settingsNextRequirementTitleKey,
-                        textKey: localizationKeys.nextRequirement
-                    )
-                    LocalizedTextPanel(
-                        titleKey: settingsNoSideEffectsTitleKey,
-                        textKey: settingsNoSideEffectsBodyKey
-                    )
-                }
+            case .embeddedInExistingScroll:
+                detailContent
             }
-            .padding(20)
         }
         .navigationTitle(localizedText(capability.kind.localizedTitleKey))
         .langoInlineNavigationTitle()
         .langoPageBackground()
+    }
+
+    private var detailContent: some View {
+        let localizationKeys = settingsCapabilityDetailLocalizationKeys(for: capability.kind)
+
+        return VStack(alignment: .leading, spacing: 18) {
+            header
+            if capability.kind == .aiProvider {
+                aiProviderSettingsContainer
+            } else if capability.kind == .sync {
+                syncSettingsContainer
+            } else {
+                CapabilityStatusRow(
+                    localizedTitleKey: capability.kind.localizedTitleKey,
+                    localizedSummaryKey: localizationKeys.summary,
+                    status: capability.status,
+                    systemImage: capability.kind.systemImage,
+                    action: nil
+                )
+            }
+            if capability.kind == .interfaceLanguage {
+                interfaceLanguagePicker
+            }
+            if capability.kind != .aiProvider, capability.kind != .sync {
+                LocalizedTextPanel(
+                    titleKey: settingsCurrentBoundaryTitleKey,
+                    textKey: localizationKeys.detail
+                )
+                LocalizedTextPanel(
+                    titleKey: settingsNextRequirementTitleKey,
+                    textKey: localizationKeys.nextRequirement
+                )
+                LocalizedTextPanel(
+                    titleKey: settingsNoSideEffectsTitleKey,
+                    textKey: settingsNoSideEffectsBodyKey
+                )
+            }
+        }
+        .padding(20)
     }
 
     private var header: some View {

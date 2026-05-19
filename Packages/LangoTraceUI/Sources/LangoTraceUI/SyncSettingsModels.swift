@@ -1,4 +1,21 @@
 import Foundation
+import SwiftUI
+
+enum SyncSettingsLayoutMode: Equatable {
+    case stacked
+    case regularColumns
+
+    static func resolve(
+        availableWidth: CGFloat,
+        horizontalSizeClass: UserInterfaceSizeClass?
+    ) -> SyncSettingsLayoutMode {
+        if horizontalSizeClass == .compact {
+            return .stacked
+        }
+
+        return availableWidth >= 760 ? .regularColumns : .stacked
+    }
+}
 
 enum SyncSettingsStatus: Equatable {
     case previewOnly

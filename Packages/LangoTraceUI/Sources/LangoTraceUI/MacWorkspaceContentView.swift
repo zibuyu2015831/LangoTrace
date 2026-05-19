@@ -211,6 +211,7 @@ struct MacWorkspaceContentView: View {
                 languageSpace: languageSpace,
                 capability: capability,
                 interfaceLanguagePreference: interfaceLanguagePreference,
+                presentation: .embeddedInExistingScroll,
                 onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
             )
         } else {

@@ -153,6 +153,52 @@ enum PadAdaptivePanelLayout {
     }
 }
 
+enum PadSettingsFocusPolicy {
+    static func visibility(
+        whenEntering route: PadWorkspaceRoute,
+        current: PadPanelVisibility
+    ) -> PadPanelVisibility {
+        guard route.isSettingsDetail else {
+            return current
+        }
+
+        return PadPanelVisibility(timeline: current.timeline, learningPanel: false)
+    }
+
+    static func visibilityAfterResize(
+        route: PadWorkspaceRoute,
+        workspaceWidth: CGFloat?,
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        current: PadPanelVisibility
+    ) -> PadPanelVisibility {
+        let adaptive = PadAdaptivePanelLayout.visibility(
+            forWidth: workspaceWidth,
+            horizontalSizeClass: horizontalSizeClass,
+            current: current
+        )
+
+        guard route.isSettingsDetail,
+              horizontalSizeClass != .compact,
+              PadWorkspaceWidthClass.classify(width: workspaceWidth ?? 980) == .threeColumn
+        else {
+            return adaptive
+        }
+
+        return current
+    }
+}
+
+private extension PadWorkspaceRoute {
+    var isSettingsDetail: Bool {
+        switch self {
+        case .settings:
+            true
+        case .workspace, .entryDetail, .practice, .settingsList, .memory, .importExport, .languageSpaceSummary:
+            false
+        }
+    }
+}
+
 enum MacWindowLayout {
     static func minimumWidth(sidebarVisible: Bool, inspectorVisible: Bool) -> CGFloat {
         switch (sidebarVisible, inspectorVisible) {
