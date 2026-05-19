@@ -54,6 +54,7 @@ iPhone 的顶层结构是 `记录 / 练习 / 记忆` 三个 Tab，设置通过�
 | iPhone 设置列表 | 查看语言空间、AI、同步、隐私、导出、界面语言等能力边界 | 顶部 gear | Implemented | `SettingsView` in `PhoneMainSections.swift` | 设置项多数为只读边界说明；界面语言可切换 preference | 设置不能成为一级 Tab；文案要面向用户而非工程排期 |
 | 设置详情 | 查看单项能力的当前状态、下一步和副作用边界 | 设置列表 row | Implemented / Unavailable | `SettingsCapabilityDetailView.swift` | 除界面语言外，不保存真实 provider、sync、export 配置 | 后续真实 Keychain、同步、导出接入后逐项复查 |
 | 语言空间摘要 sheet | 查看当前空间、母语到目标语言、水平和本地优先边界 | 顶部语言空间胶囊或设置入口 | Implemented | `LanguageSpaceSummaryView.swift` | 不支持多空间切换、删除或持久化恢复 | 后续语言空间 lifecycle 落地后更新入口和状态 |
+| iPhone 页面 chrome | 为记录、练习、记忆、设置提供顶部语言空间和设置入口 | 三个 Tab 和设置列表内部 | Implemented | `PhonePage`、`PhoneContextHeader.swift` | 语言空间入口打开摘要；设置入口进入设置列表 | 所有主 Tab 都应保留当前语言空间可见性，gear 不应变成底部 Tab |
 | Unavailable sheet | 搜索等未接入能力的临时承载 | `PhoneSheet.unavailable` 或共享组件调用 | Unavailable | `UnavailableCapabilityView.swift`、`PhoneMainView.swift` | 只解释边界，不执行真实副作用 | 不应用于主学习高频体验；能 mock 的能力优先做真实级 local mock |
 
 ## 4. iPad 页面清单
@@ -69,6 +70,7 @@ iPad 的顶层结构是工作台：顶部工具条、左侧时间线 / 筛选、
 | 左侧页面入口 | 进入记忆、导入导出、设置 | 左侧面板 | Implemented / Unavailable | `PadSidebarView`、`PadWorkspaceRoute` | 导入导出为 unavailable；设置为只读能力页 | 不把低频配置放到顶部挤压工作台 |
 | iPad 语言空间底部区 | 显示当前空间、AI、同步、设置入口 | 左侧面板底部 | Implemented | `LanguageSpaceFooter.swift` | AI / Sync 为状态说明，不自动发送或同步 | 图标不能只靠颜色表达状态 |
 | 工作台概览 / 写作主区 | 展示当前记录、双语正文、音频面板和句子列表 | 默认 route `.workspace` | Local Mock | `PadWorkspaceContentView.workspaceOverview` | `AudioPanel` 是本地 mock UI；句子来自 rendering | 中央主区是视觉焦点；避免卡片套卡片 |
+| iPad 空工作台状态 | 没有选中记录时给出安静的主区占位 | 默认 route 且无 selected entry，或目标 entry 缺失 | Implemented | `EmptyWorkspacePanel` in `PadSidebarControls.swift` | 不创建记录、不生成内容 | 不能显示裸文本或错误式空状态；后续真实空数据需保留创建入口 |
 | 记录详情 | 在主区完整查看单条记录 | 时间线选择或 route `.entryDetail` | Implemented / Local Mock | `EntryDetailView` reused in `PadWorkspaceContentView` | 与 iPhone 共享详情组件 | 共享组件改动需同时复查 iPhone 和 iPad |
 | 听一句预览 | 从句子列表打开本地听读预览 | 句子 `听` | Local Mock | `SentencePairView`、`LocalListeningPreviewView.swift` | 不触发真实 TTS 或录音 | sheet 尺寸和 iPad 阅读宽度需单独检查 |
 | 练习详情 | 在主区进行步骤式练习 | 句子 `练` 或学习面板练习入口 | Local Mock | `PracticeSessionView`、`PracticeControlBar.swift` | 本地 step 状态；无真实语音服务 | 后续语音能力不能直接塞入小 sheet |
@@ -78,6 +80,7 @@ iPad 的顶层结构是工作台：顶部工具条、左侧时间线 / 筛选、
 | 导入导出页 | 说明导入导出尚未接入 | 左侧 `导入导出` | Unavailable | `PadWorkspaceContentView.importExportPage`、`UnavailableCapabilityView` | 不打开文件、不读写导出包 | 后续真实文件访问需权限和存储方案 |
 | 语言空间摘要页 | 查看当前语言空间摘要 | 底部语言空间入口 | Implemented | `PadWorkspaceContentView.languageSpaceSummaryPage`、`LanguageSpaceSummaryView.swift` | 不支持多空间 lifecycle | 后续多空间选择不应破坏当前 workspace context |
 | 右侧学习面板 | 展示当前句子、记忆提取、练习入口、空间设置、请求预览 | 右侧面板 | Local Mock | `PadLearningPanelView` | `RequestPreviewCard` 是本地 / 显式请求边界展示；不发送数据 | iPad 可以保留请求预览上下文，但视觉占比要克制 |
+| 右侧学习面板空状态 | 未选中记录时说明学习面板等待内容 | 右侧学习面板无 selected entry | Implemented | `PadLearningPanelView`、`LocalizedTextPanel` | 只展示说明，不触发生成或练习 | 空状态应低干扰，不能要求用户先配置工程能力 |
 | 搜索 unavailable sheet | 表达搜索尚未接入 | 顶部搜索 | Unavailable | `PadSheet.unavailableSearch`、`UnavailableCapabilityView(.search)` | 不执行真实搜索或索引查询 | 后续搜索接入时需定义跨空间范围 |
 | 新建记录 sheet | 创建文本记录 | 顶部新建 | Implemented | `EntryEditorView` reused by `PadMainView` | 内存 repository；不持久化 | 后续 iPad 可考虑平台专属编辑体验 |
 
@@ -102,11 +105,12 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 | Settings detail route | 查看单项能力详情 | Settings row、Sidebar footer AI / Sync | Implemented / Unavailable | `SettingsCapabilityDetailView.swift` | 无真实密钥、同步、导出配置写入 | Keychain / Sync / StoreKit 接入时逐项复查 |
 | Language Space summary route | 查看当前语言空间摘要 | Sidebar footer 语言空间 | Implemented | `LanguageSpaceSummaryView.swift` | 不支持多空间创建、切换、删除 | 多窗口 / 多语言空间设计前必须更新 |
 | Search unavailable route | 表达搜索尚未接入 | Toolbar search、菜单 search | Unavailable | `MacUnavailableContent("search")`、`UnavailableCapabilityView` | 不查询 FTS、向量索引或外部服务 | 后续搜索需要 Command Palette / 全局搜索边界 |
+| Missing route fallback | 当前 route 指向缺失 entry、practice 或 setting 时给出可读反馈 | 深层 route 找不到对象 | Implemented | `MacWorkspaceContentView.entryDetail`、`practice`、`settingDetail`、`LocalizedCompactPanel` | 不自动恢复、创建或删除数据 | 后续真实持久化后需要明确 missing object 恢复策略 |
 | Inspector Overview | 根据当前 section 展示上下文说明 | 右侧 Inspector，route `.overview` | Implemented | `MacInspectorContent.overviewInspector` | 说明性上下文，不写入数据 | Inspector 文字不能替代主区可用性 |
 | Inspector Entry | 展示 entry metadata、请求预览、记忆候选、隐私边界 | route `.entryDetail` | Local Mock | `MacInspectorContent`、`RequestPreviewCard` | Request preview 仍是本地 / 显式请求边界展示 | macOS 可承载请求预览，但必须避免暗示自动发送 |
 | Inspector Practice | 展示练习状态和后续能力说明 | route `.practice` | Local Mock | `MacInspectorContent` | 不录音、不评分 | 真实练习接入后更新状态来源 |
 | Inspector Settings | 展示设置说明和下一步 | route `.settings` | Implemented / Unavailable | `MacInspectorContent` | 读取 setting capability 文案 | 避免三块式工程说明过重 |
-| macOS Settings scene | 系统级设置窗口 | App Settings / `Cmd+,` | Implemented | `LangoTraceApp.swift` Settings scene、`LangoTraceSettingsSceneView.swift` | 读取 `SettingsCapability.defaultCapabilities`，不依赖当前 window route | 原生 Settings 和工作台 Settings section 需要保持语义一致 |
+| macOS Settings scene | 系统级设置窗口，展示能力状态列表 | App Settings / `Cmd+,` | Implemented | `LangoTraceApp.swift` Settings scene、`LangoTraceSettingsSceneView.swift` | 读取当前环境的 settings capabilities；列表 row 当前为只读 `action: nil`，不打开详情、不保存真实配置 | 原生 Settings 和工作台 Settings section 需要保持语义一致；后续真实偏好写入要单独设计 |
 | macOS Commands | 菜单触发 New Entry、Search、Toggle Sidebar、Toggle Inspector、Settings | 菜单栏 / 快捷键 | Implemented / Unavailable | `LangoTraceApp.swift`、`LangoTraceAppCommand.swift` | Search 打开 unavailable，不执行真实搜索 | 菜单项必须有可见结果，不能空 action |
 
 ## 6. 共享页面与组件清单
@@ -126,8 +130,27 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 | `MemoryLayerSummaryView` | iPad / macOS | Local Mock / Unavailable mix | `LearningContentComponents.swift` | 记忆摘要和向量索引边界 |
 | `LanguageSpaceFooter` | iPad / macOS | Implemented | `LanguageSpaceFooter.swift` | Sidebar 底部空间、AI、同步、设置入口 |
 | `CapabilityStatusRow` | iPhone / iPad / macOS | Implemented | `LearningContentComponents.swift` | 能力状态、设置列表、unavailable / local mock 入口 |
+| `PhonePage` / `PhoneContextHeader` | iPhone | Implemented | `PhoneMainSections.swift`、`PhoneContextHeader.swift` | iPhone 主 Tab 的页面外壳、语言空间入口和设置入口 |
+| `EntryTimelineRow` | iPad / macOS | Implemented | `LearningContentComponents.swift` | iPad 时间线、macOS entries library 的记录选择行 |
+| `AudioPanel` | iPad | Local Mock | `ContentUtilityComponents.swift` | iPad 工作台概览中的本地音频视觉占位，不播放真实音频 |
+| `EmptyWorkspacePanel` / `LocalizedCompactPanel` / `LocalizedTextPanel` | iPad / macOS | Implemented | `PadSidebarControls.swift`、`ContentUtilityComponents.swift`、`LocalizedTextPanel.swift` | 空状态、缺失对象状态和说明型面板 |
+| `LangoTraceSettingsSceneView` | macOS | Implemented | `LangoTraceSettingsSceneView.swift` | 原生 Settings scene 的只读能力列表 |
 
-## 7. 当前不应出现的页面表现
+## 7. 页面覆盖自检
+
+截至 2026-05-19，本文档已按以下代码事实逐项覆盖：
+
+- Root phase：`LangoTraceAppPhase.welcome`、`onboarding`、`main`。
+- iPhone route：`PhoneRoute.entryDetail`、`practice`、`settings`、`settingsList`。
+- iPhone sheet：`PhoneSheet.entryEditor`、`photoWritingPreview`、`unavailable`、`languageSpaceSummary`。
+- iPad route：`PadWorkspaceRoute.workspace`、`entryDetail`、`practice`、`settingsList`、`settings`、`memory`、`importExport`、`languageSpaceSummary`。
+- iPad sheet：`PadSheet.entryEditor`、`unavailableSearch`。
+- macOS section：`MacWorkspaceSection.today`、`entries`、`practice`、`memory`、`importExport`、`settings`。
+- macOS route：`MacWorkspaceRoute.overview`、`entryDetail`、`practice`、`settings`、`languageSpaceSummary`、`unavailable`。
+- macOS command：`newEntry`、`search`、`toggleSidebar`、`toggleInspector`、`showSettings`。
+- macOS scene：main `WindowGroup` 和原生 `Settings` scene。
+
+## 8. 当前不应出现的页面表现
 
 以下表现如果重新出现，应视为 UI 质量或文档一致性问题：
 
@@ -141,7 +164,7 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 - macOS 菜单命令或 toolbar 按钮出现空 action。
 - 设置页把真实密钥、同步、导出或外部请求能力伪装成已接入。
 
-## 8. 维护规则
+## 9. 维护规则
 
 新增或修改页面时，开发计划必须回答：
 
@@ -162,6 +185,7 @@ rg "规划中|待配置|当前页面只展示入口边界|不播放真实 TTS|on
 
 如果页面清单和代码不一致，以代码为当前事实，并在同一任务中修正文档或明确记录偏差。
 
-## 9. 变更记录
+## 10. 变更记录
 
 - 2026-05-19：创建第一版三端页面清单。依据当前 SwiftUI 代码记录 Root、iPhone、iPad、macOS、共享组件、unavailable / local mock 页面和维护规则。
+- 2026-05-19：补充页面覆盖自检、iPhone 页面 chrome、iPad 空状态、macOS missing route fallback、macOS Settings scene 只读边界和共享承载组件。原因：复查 SwiftUI `View` / `Route` / `Sheet` / `Settings` 后，需要把非主 route 但会影响页面完整性的承载层写清楚。
