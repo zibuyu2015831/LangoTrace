@@ -153,6 +153,14 @@ Provider 配置页可以在真实网络和 Keychain 接入前先提供真实级 
 - API Key 输入在未接入 Keychain 前只能作为页面级安全配置草稿；UI 可以展示“保存配置”和加密保存意图，但不得在代码、测试或文档中把当前 mock 状态描述成真实 Keychain 已接入。面向用户的主路径应避免展示开发标记式说明。
 - 非敏感配置和敏感凭证必须分层。Provider、Base URL、模型名属于普通表单配置；请求格式、认证方式和自定义请求头等技术信息应默认收起或进入高级配置，不应挤占首屏主路径。API Key、外部服务 token、自定义请求头中的密钥属于敏感凭证。
 - 真实接入后，敏感凭证必须加密保存到本机安全存储；后续 AI 请求从 Provider 配置读取凭证，不允许用户每次请求前重新暴露或预览密钥。
+- Provider 配置页应按模型用途表达 endpoint：文本模型、语音生成模型、向量模型是不同能力边界，不使用“高级模型”统称。
+- Provider 和 API Key 属于高频填写项。Provider 应使用一行设置项展示当前选择；API Key 输入必须有明确字段名，并提供显示/隐藏按钮，默认隐藏。面向普通中文用户的主路径文案应使用 `API Key`，避免使用“凭证”等偏工程术语。
+- 模型 endpoint 与敏感凭证必须分离。多个 endpoint 可以引用同一份凭证，例如同一 Provider 的文本、语音和向量 endpoint 共用同一个 API Key，但它们的 Base URL、adapter、请求格式和模型名仍应独立配置。
+- 当不同能力选择不同 Provider 时，默认使用独立凭证，避免跨 Provider 误用 API Key。只有用户明确选择共享凭证时，才允许 endpoint 引用文本模型凭证。
+- 图片理解是文本模型 endpoint 的能力开关。默认关闭，只有用户显式启用后，后续照片或图片理解请求才可使用该能力。
+- iPhone、iPad 和 macOS 的 Provider 设置页应共享同一字段语义和表单组件。平台差异只允许体现在承载宽度、导航位置、输入密度和窗口行为上；不得为 iPad 或 macOS 复制一套字段模型，避免重新出现旧术语、旧能力分组或未标注 API Key 输入。
+- iPad / macOS 工作台中的 Provider 设置详情应使用合理最大内容宽度保持阅读栏；该宽度是视觉承载约束，不得写入 Provider 配置模型、Repository、同步协议或安全存储模型。
+- macOS 原生 Settings scene 和工作台 Settings section 是两个入口层。当前原生 Settings scene 只展示能力状态列表，不承载 Provider 写入表单；后续若要在原生 Settings scene 支持 Provider 配置，必须复用同一配置模块并单独审查写入边界。
 - “测试请求”按钮必须走明确状态机。mock 阶段不得发起网络请求；真实阶段必须经过 Provider 层，不允许 SwiftUI View 直接创建具体服务请求。
 - 真实测试请求只能发送合成检测内容，不得发送生活记录、照片、音频、历史记忆、目标语言正文或 Prompt Preset 内容。
 - Provider preset 不能默认声明所有能力都可用。Chat、Embedding、TTS、图片理解、语音识别和自定义请求头需要分别表达支持状态。
@@ -204,3 +212,6 @@ AI 在实现任何 AI 能力前应先确认：
 - 2026-05-17：补充同意级别、结构化输出校验、输出保存边界和失败处理分类。原因：降低 AI 请求隐私、可靠性和数据覆盖风险。影响范围：AI Provider、Prompt、UI 请求预览、数据保存。是否需要 ADR：否。
 - 2026-05-19：补充 Provider 配置页边界。原因：AI Provider 设置页开始从静态说明改为真实级 mock 配置页，需要把安全配置草稿、保存配置、测试请求、能力矩阵和聚合 provider 提示沉淀为长期约束。影响范围：AI Provider 设置、隐私文案、后续 Keychain 和真实请求测试。是否需要 ADR：否。
 - 2026-05-19：补充 Provider 配置页信息降噪规则。原因：iOS 页面需要真实设置表单质感，Provider 风险说明、请求格式、认证方式和 mock 边界不应全部暴露在主路径。影响范围：AI Provider 设置 UI、后续高级配置入口。是否需要 ADR：否。
+- 2026-05-19：补充多模型 endpoint 与凭证引用规则。原因：同一 Provider 可能共用 API Key 但使用不同 endpoint/model，三类能力也可能使用不同 Provider。影响范围：AI Provider 设置 UI、后续 Keychain item 引用、TTS 和向量化配置。是否需要 ADR：否。
+- 2026-05-19：补充 Provider 和 API Key 表单可用性规则。原因：API Key 输入需要明确字段名和可见性控制，中文主路径应避免“凭证”等偏工程术语。影响范围：AI Provider 设置 UI、本地化文案、后续安全存储表单。是否需要 ADR：否。
+- 2026-05-19：补充三端 Provider 设置页共享与大屏承载规则。原因：iPad / macOS 工作台详情需要保持与 iPhone 相同字段语义，同时避免把 iPhone 表单横向拉满大屏。影响范围：AI Provider 设置 UI、SettingsCapabilityDetailView、macOS Settings scene 边界。是否需要 ADR：否。

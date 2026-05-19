@@ -176,6 +176,10 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
     }
 
     var defaultChatModel: String {
+        defaultTextModel
+    }
+
+    var defaultTextModel: String {
         switch self {
         case .openAI:
             "gpt-5.2"
@@ -220,6 +224,10 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
     }
 
     var defaultTTSModel: String {
+        defaultSpeechModel
+    }
+
+    var defaultSpeechModel: String {
         switch self {
         case .openAI:
             "gpt-4o-mini-tts"
@@ -280,6 +288,15 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
             )
         default:
             .openAICompatibleText
+        }
+    }
+
+    var requiresAPIKey: Bool {
+        switch self {
+        case .ollamaLocal:
+            false
+        default:
+            true
         }
     }
 

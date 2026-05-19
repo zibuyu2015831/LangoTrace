@@ -31,15 +31,51 @@ struct AIProviderSettingsTests {
     func draftModelValidatesTestReadinessWithoutPersistingCredentials() {
         var draft = AIProviderDraftConfiguration(provider: .openAI)
 
-        #expect(draft.apiKeyStorage == .encryptedStoragePending)
+        #expect(draft.text.endpoint.independentCredential.apiKeyStorage == .encryptedStoragePending)
         #expect(draft.testReadiness == .missingRequiredFields)
         #expect(draft.saveState == .idle)
 
-        draft.apiKeyDraft = "sk-local-draft"
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
         #expect(draft.testReadiness == .readyForMockRequest)
 
         draft.saveMockConfiguration()
         #expect(draft.saveState == .mockSavedSecurely)
+    }
+
+    @Test("Draft model separates text speech and embedding endpoints from credentials")
+    func draftModelSeparatesEndpointsFromCredentials() {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+
+        #expect(draft.text.textGenerationEnabled)
+        #expect(!draft.text.imageUnderstandingEnabled)
+        #expect(!draft.speech.isEnabled)
+        #expect(!draft.embedding.isEnabled)
+        #expect(draft.speech.endpoint.credentialReference == .textModelCredential)
+        #expect(draft.embedding.endpoint.credentialReference == .textModelCredential)
+
+        draft.text.endpoint.independentCredential.apiKeyDraft = "shared-key"
+        draft.speech.isEnabled = true
+        draft.speech.endpoint.model = "gpt-4o-mini-tts"
+        #expect(draft.testReadiness == .readyForMockRequest)
+
+        draft.embedding.isEnabled = true
+        draft.embedding.endpoint.credentialReference = .independent
+        draft.embedding.endpoint.independentCredential.apiKeyDraft = ""
+        #expect(draft.testReadiness == .missingRequiredFields)
+
+        draft.embedding.endpoint.independentCredential.apiKeyDraft = "embedding-key"
+        #expect(draft.testReadiness == .readyForMockRequest)
+    }
+
+    @Test("Changing optional model provider defaults to independent credential")
+    func changingOptionalModelProviderDefaultsToIndependentCredential() {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+
+        draft.speech.endpoint.credentialReference = .textModelCredential
+        draft.speech.updateProvider(.mistral, shareTextCredentialWhenSameProvider: false)
+
+        #expect(draft.speech.endpoint.provider == .mistral)
+        #expect(draft.speech.endpoint.credentialReference == .independent)
     }
 
     @Test("Provider capabilities are not flattened across all providers")
@@ -82,9 +118,74 @@ struct AIProviderSettingsTests {
         #expect(!source.contains("AIProviderReadonlyMetadataRow"))
     }
 
+    @Test("Settings source uses model-purpose sections instead of advanced models")
+    func settingsSourceUsesModelPurposeSectionsInsteadOfAdvancedModels() throws {
+        let viewSource = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+        let componentSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
+            encoding: .utf8
+        )
+        let source = viewSource + componentSource
+
+        #expect(!source.contains("showsAdvancedModels"))
+        #expect(!source.contains("aiProviderSettings.advancedModels.title"))
+        #expect(source.contains("aiProviderSettings.textModel.title"))
+        #expect(source.contains("aiProviderSettings.speechModel.title"))
+        #expect(source.contains("aiProviderSettings.embeddingModelGroup.title"))
+        #expect(source.contains("aiProviderSettings.apiKey.useText"))
+        #expect(source.contains("aiProviderSettings.apiKey.useIndependent"))
+        #expect(!source.contains("aiProviderSettings.credential.useText"))
+        #expect(!source.contains("aiProviderSettings.credential.useIndependent"))
+    }
+
+    @Test("Settings source uses concise provider row and visible API key control")
+    func settingsSourceUsesConciseProviderRowAndVisibleAPIKeyControl() throws {
+        let viewSource = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+        let componentSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
+            encoding: .utf8
+        )
+        let source = viewSource + componentSource
+
+        #expect(source.contains("AIProviderRowPicker"))
+        #expect(source.contains("AIProviderAPIKeyField"))
+        #expect(source.contains("aiProviderSettings.apiKey.title"))
+        #expect(source.contains("eye.slash"))
+        #expect(source.contains("eye"))
+        #expect(source.contains("accessibilityLabel(localizedText(visibilityLabelKey))"))
+    }
+
+    @Test("Settings detail constrains shared AI provider form on large platforms")
+    func settingsDetailConstrainsSharedAIProviderFormOnLargePlatforms() throws {
+        let detailSource = try String(
+            contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"),
+            encoding: .utf8
+        )
+        let settingsSceneSource = try String(
+            contentsOf: sourceFileURL(named: "LangoTraceSettingsSceneView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(detailSource.contains("AIProviderSettingsView()"))
+        #expect(detailSource.contains("aiProviderSettingsContainer"))
+        #expect(detailSource.contains("aiProviderSettingsContentMaxWidth"))
+        #expect(detailSource.contains(".frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)"))
+        #expect(detailSource.contains("#if os(macOS)"))
+        #expect(detailSource.contains("860"))
+        #expect(detailSource.contains("820"))
+
+        #expect(!detailSource.contains("PadAIProviderSettingsView"))
+        #expect(!detailSource.contains("MacAIProviderSettingsView"))
+        #expect(!settingsSceneSource.contains("AIProviderSettingsView"))
+        #expect(settingsSceneSource.contains("action: nil"))
+    }
+
     @Test("Text input modifier is a single chained iOS expression")
     func textInputModifierIsSingleChainedIOSExpression() throws {
-        let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+        let source = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
+            encoding: .utf8
+        )
         let chainedInputModifiers = "textInputAutocapitalization(.never)\n" +
             "                .keyboardType(keyboardHint.keyboardType)\n" +
             "                .autocorrectionDisabled()"

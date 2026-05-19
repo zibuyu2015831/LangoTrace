@@ -2,129 +2,58 @@ import SwiftUI
 
 struct AIProviderSettingsView: View {
     @State private var draft = AIProviderDraftConfiguration(provider: .openAI)
-    @State private var showsAdvancedModels = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            providerSection
-            connectionSection
-            credentialsSection
-            modelSection
+            textModelSection
+            optionalModelSection(
+                titleKey: "aiProviderSettings.speechModel.title",
+                enabledKey: "aiProviderSettings.speechModel.enable",
+                modelTitleKey: "aiProviderSettings.speechModel.modelTitle",
+                configuration: speechBinding
+            )
+            optionalModelSection(
+                titleKey: "aiProviderSettings.embeddingModelGroup.title",
+                enabledKey: "aiProviderSettings.embeddingModelGroup.enable",
+                modelTitleKey: "aiProviderSettings.embeddingModelGroup.modelTitle",
+                configuration: embeddingBinding
+            )
             actionSection
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var providerSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            AIProviderSectionTitle("aiProviderSettings.provider.title")
-            Picker(selection: providerBinding) {
-                ForEach(AIProviderPreset.allCases) { provider in
-                    Text(provider.displayName).tag(provider)
-                }
-            } label: {
-                localizedText("aiProviderSettings.provider.picker")
-            }
-            .pickerStyle(.menu)
-            .tint(LangoTraceDesign.ColorToken.accent)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
-        }
-        .langoPanel()
-    }
-
-    private var connectionSection: some View {
+    private var textModelSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            AIProviderSectionTitle("aiProviderSettings.connection.title")
-            AIProviderSettingsTextField(
-                titleKey: "aiProviderSettings.baseURL.title",
-                text: $draft.baseURL,
-                keyboardHint: .url
+            AIProviderSectionTitle("aiProviderSettings.textModel.title")
+            AIProviderEndpointFields(
+                provider: textProviderBinding,
+                baseURL: textBaseURLBinding,
+                model: textModelBinding,
+                modelTitleKey: "aiProviderSettings.textModel.modelTitle"
+            )
+            AIProviderAPIKeyField(text: textAPIKeyBinding)
+            AIProviderCapabilityBoundaryView(
+                supportsImageUnderstanding: draft.text.endpoint.provider.capabilities.imageUnderstanding,
+                imageUnderstandingEnabled: imageUnderstandingBinding
             )
         }
         .langoPanel()
     }
 
-    private var credentialsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            AIProviderSectionTitle("aiProviderSettings.credentials.title")
-            SecureField(
-                localizedString("aiProviderSettings.apiKey.placeholder"),
-                text: $draft.apiKeyDraft
-            )
-            .langoProviderTextInput(keyboardHint: .plain)
-            .font(.body.monospaced())
-            .padding(12)
-            .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
-            .background(LangoTraceDesign.ColorToken.surfaceMuted)
-            .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
-        }
-        .langoPanel()
-    }
-
-    private var modelSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            AIProviderSectionTitle("aiProviderSettings.models.title")
-            AIProviderSettingsTextField(
-                titleKey: "aiProviderSettings.chatModel.title",
-                text: $draft.chatModel,
-                keyboardHint: .plain
-            )
-            DisclosureGroup(isExpanded: $showsAdvancedModels) {
-                VStack(alignment: .leading, spacing: 12) {
-                    if draft.capabilities.embedding {
-                        AIProviderSettingsTextField(
-                            titleKey: "aiProviderSettings.embeddingModel.title",
-                            text: $draft.embeddingModel,
-                            keyboardHint: .plain
-                        )
-                    }
-                    if draft.capabilities.tts {
-                        AIProviderSettingsTextField(
-                            titleKey: "aiProviderSettings.ttsModel.title",
-                            text: $draft.ttsModel,
-                            keyboardHint: .plain
-                        )
-                    }
-                    capabilitySummary
-                }
-                .padding(.top, 10)
-            } label: {
-                localizedText("aiProviderSettings.advancedModels.title")
-                    .font(.callout.weight(.semibold))
-            }
-        }
-        .langoPanel()
-    }
-
-    private var capabilitySummary: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            localizedText("aiProviderSettings.capabilities.title")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 118), spacing: 8)],
-                alignment: .leading,
-                spacing: 8
-            ) {
-                AIProviderCapabilityChip(
-                    titleKey: "aiProviderSettings.capability.chat",
-                    isEnabled: draft.capabilities.chat
-                )
-                AIProviderCapabilityChip(
-                    titleKey: "aiProviderSettings.capability.embedding",
-                    isEnabled: draft.capabilities.embedding
-                )
-                AIProviderCapabilityChip(
-                    titleKey: "aiProviderSettings.capability.tts",
-                    isEnabled: draft.capabilities.tts
-                )
-                AIProviderCapabilityChip(
-                    titleKey: "aiProviderSettings.capability.image",
-                    isEnabled: draft.capabilities.imageUnderstanding
-                )
-            }
-        }
+    private func optionalModelSection(
+        titleKey: String,
+        enabledKey: String,
+        modelTitleKey: String,
+        configuration: Binding<AIOptionalModelDraftConfiguration>
+    ) -> some View {
+        AIProviderOptionalModelSection(
+            titleKey: titleKey,
+            enabledKey: enabledKey,
+            modelTitleKey: modelTitleKey,
+            textProvider: draft.text.endpoint.provider,
+            configuration: configuration
+        )
     }
 
     private var actionSection: some View {
@@ -190,7 +119,7 @@ struct AIProviderSettingsView: View {
 }
 
 private extension AIProviderSettingsView {
-    private var statusTitleKey: String {
+    var statusTitleKey: String {
         if draft.testReadiness == .missingRequiredFields {
             return "aiProviderSettings.saveState.missingRequiredFields"
         }
@@ -202,7 +131,7 @@ private extension AIProviderSettingsView {
         return "aiProviderSettings.saveState.idle"
     }
 
-    private var statusIconName: String {
+    var statusIconName: String {
         if draft.saveState == .mockSavedSecurely {
             return "checkmark.circle"
         }
@@ -214,7 +143,7 @@ private extension AIProviderSettingsView {
         return "lock.circle"
     }
 
-    private var statusTone: Color {
+    var statusTone: Color {
         if draft.testReadiness == .missingRequiredFields {
             return LangoTraceDesign.ColorToken.warning
         }
@@ -222,90 +151,55 @@ private extension AIProviderSettingsView {
         return LangoTraceDesign.ColorToken.accent
     }
 
-    private var providerBinding: Binding<AIProviderPreset> {
+    var textProviderBinding: Binding<AIProviderPreset> {
         Binding(
-            get: { draft.provider },
-            set: { draft.provider = $0 }
+            get: { draft.text.endpoint.provider },
+            set: { draft.text.updateProvider($0) }
         )
     }
-}
 
-private struct AIProviderSectionTitle: View {
-    let key: String
-
-    init(_ key: String) {
-        self.key = key
+    var textBaseURLBinding: Binding<String> {
+        Binding(
+            get: { draft.text.endpoint.baseURL },
+            set: { draft.text.endpoint.baseURL = $0 }
+        )
     }
 
-    var body: some View {
-        localizedText(key)
-            .font(.caption.weight(.bold))
-            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+    var textModelBinding: Binding<String> {
+        Binding(
+            get: { draft.text.endpoint.model },
+            set: { draft.text.endpoint.model = $0 }
+        )
     }
-}
 
-private struct AIProviderSettingsTextField: View {
-    let titleKey: String
-    @Binding var text: String
-    let keyboardHint: AIProviderKeyboardHint
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            localizedText(titleKey)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            TextField("", text: $text)
-                .langoProviderTextInput(keyboardHint: keyboardHint)
-                .font(.body.monospaced())
-                .padding(12)
-                .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
-                .background(LangoTraceDesign.ColorToken.surfaceMuted)
-                .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
-        }
+    var textAPIKeyBinding: Binding<String> {
+        Binding(
+            get: { draft.text.endpoint.independentCredential.apiKeyDraft },
+            set: { draft.text.endpoint.independentCredential.apiKeyDraft = $0 }
+        )
     }
-}
 
-private struct AIProviderCapabilityChip: View {
-    let titleKey: String
-    let isEnabled: Bool
-
-    var body: some View {
-        Label {
-            localizedText(titleKey)
-        } icon: {
-            Image(systemName: isEnabled ? "checkmark.circle.fill" : "minus.circle")
-        }
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(isEnabled ? LangoTraceDesign.ColorToken.accent : LangoTraceDesign.ColorToken.textSecondary)
-        .frame(minHeight: 32)
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func langoProviderTextInput(keyboardHint: AIProviderKeyboardHint) -> some View {
-        #if os(iOS)
-            textInputAutocapitalization(.never)
-                .keyboardType(keyboardHint.keyboardType)
-                .autocorrectionDisabled()
-        #else
-            self
-        #endif
-    }
-}
-
-private enum AIProviderKeyboardHint {
-    case plain
-    case url
-
-    #if os(iOS)
-        var keyboardType: UIKeyboardType {
-            switch self {
-            case .plain:
-                .default
-            case .url:
-                .URL
+    var imageUnderstandingBinding: Binding<Bool> {
+        Binding(
+            get: { draft.text.imageUnderstandingEnabled },
+            set: {
+                draft.text.imageUnderstandingEnabled = $0 &&
+                    draft.text.endpoint.provider.capabilities.imageUnderstanding
             }
-        }
-    #endif
+        )
+    }
+
+    var speechBinding: Binding<AIOptionalModelDraftConfiguration> {
+        Binding(
+            get: { draft.speech },
+            set: { draft.speech = $0 }
+        )
+    }
+
+    var embeddingBinding: Binding<AIOptionalModelDraftConfiguration> {
+        Binding(
+            get: { draft.embedding },
+            set: { draft.embedding = $0 }
+        )
+    }
 }

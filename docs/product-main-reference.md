@@ -1165,6 +1165,8 @@ AI、Embedding、TTS 和同步应视为不同能力，分别配置，分别授�
 - 高级用户：可以配置 provider、模型、preset 和请求格式。
 - 专家用户：可以调试 prompt、查看请求预览和导入导出配置。
 
+Provider 配置页应把“文本模型、语音生成模型、向量模型”视为三类能力 endpoint。三类 endpoint 可以使用不同 Provider、Base URL、模型和凭证；也可以在同一 Provider 账号体系下引用同一份凭证。共享凭证只共享 API Key 或 token，不共享 Base URL、请求格式、adapter 或模型名。图片理解属于文本模型 endpoint 的能力开关，默认关闭，用户显式开启后才用于图片相关 AI 请求。
+
 ## 24. 同步、加密与冲突处理原则
 
 用户自定义对象存储是语迹的重要高级卖点，但同步方案必须提前定义边界。

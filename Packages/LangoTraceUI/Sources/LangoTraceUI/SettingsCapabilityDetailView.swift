@@ -15,7 +15,7 @@ struct SettingsCapabilityDetailView: View {
             VStack(alignment: .leading, spacing: 18) {
                 header
                 if capability.kind == .aiProvider {
-                    AIProviderSettingsView()
+                    aiProviderSettingsContainer
                 } else {
                     CapabilityStatusRow(
                         localizedTitleKey: capability.kind.localizedTitleKey,
@@ -59,6 +59,19 @@ struct SettingsCapabilityDetailView: View {
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
         }
         .padding(.top, 4)
+    }
+
+    private var aiProviderSettingsContainer: some View {
+        AIProviderSettingsView()
+            .frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)
+    }
+
+    private var aiProviderSettingsContentMaxWidth: CGFloat {
+        #if os(macOS)
+            860
+        #else
+            820
+        #endif
     }
 
     private var interfaceLanguagePicker: some View {

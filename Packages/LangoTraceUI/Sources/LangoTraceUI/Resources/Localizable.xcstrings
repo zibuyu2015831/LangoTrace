@@ -11064,6 +11064,91 @@
         }
       }
     },
+    "aiProviderSettings.apiKey.hide": {
+      "comment": "Accessibility label for hiding the visible AI provider API key.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide API Key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏 API Key"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.show": {
+      "comment": "Accessibility label for showing the hidden AI provider API key.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show API Key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示 API Key"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.title": {
+      "comment": "Label for an AI provider API key field or API key choice.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API Key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API Key"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.useIndependent": {
+      "comment": "Picker option for using an independent API key for an optional model endpoint.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Independent API Key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用独立 API Key"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.useText": {
+      "comment": "Picker option for reusing the text model API key for an optional model endpoint.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use text model API Key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用文本模型 API Key"
+          }
+        }
+      }
+    },
     "aiProviderSettings.authHeader.title": {
       "comment": "Label for AI provider authentication header style.",
       "localizations": {
@@ -11183,6 +11268,40 @@
         }
       }
     },
+    "aiProviderSettings.capability.enabled": {
+      "comment": "Status label for an enabled AI provider capability.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已开启"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.capability.unsupported": {
+      "comment": "Short note for an AI provider capability that is unsupported by the selected provider.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not supported by the selected provider"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前 Provider 不支持"
+          }
+        }
+      }
+    },
     "aiProviderSettings.chatModel.title": {
       "comment": "Label for AI provider chat model field.",
       "localizations": {
@@ -11196,6 +11315,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "文本模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.credential.title": {
+      "comment": "Picker title for choosing whether an optional model uses shared or independent credentials.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credential"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "凭证"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.credential.useIndependent": {
+      "comment": "Picker option for using an independent credential for an optional model endpoint.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Independent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "独立凭证"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.credential.useText": {
+      "comment": "Picker option for reusing the text model credential for an optional model endpoint.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use text credential"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用文本凭证"
           }
         }
       }
@@ -11253,6 +11423,57 @@
     },
     "aiProviderSettings.embeddingModel.title": {
       "comment": "Label for optional embedding model field.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embedding model"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向量模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.embeddingModelGroup.enable": {
+      "comment": "Toggle title for enabling the embedding model endpoint.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable embedding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用向量模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.embeddingModelGroup.modelTitle": {
+      "comment": "Field label for the embedding model in the grouped endpoint section.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embedding model"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向量模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.embeddingModelGroup.title": {
+      "comment": "Section title for embedding model endpoint configuration.",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -11512,13 +11733,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add API key, base URL, and chat model before saving"
+            "value": "Complete the enabled model configurations before saving"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请先补齐 API Key、Base URL 和文本模型，再保存配置"
+            "value": "请先补齐已启用的模型配置，再保存"
           }
         }
       }
@@ -11591,6 +11812,91 @@
         }
       }
     },
+    "aiProviderSettings.speechModel.enable": {
+      "comment": "Toggle title for enabling the speech generation model endpoint.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable speech generation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用语音生成"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.speechModel.modelTitle": {
+      "comment": "Field label for the speech generation model.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech model"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.speechModel.title": {
+      "comment": "Section title for speech generation model endpoint configuration.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech generation model"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音生成模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.textModel.modelTitle": {
+      "comment": "Field label for the text generation model.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text model"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文本模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.textModel.title": {
+      "comment": "Section title for text model endpoint configuration.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text model"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文本模型"
+          }
+        }
+      }
+    },
     "aiProviderSettings.testState.idle": {
       "comment": "Idle state for AI provider test request.",
       "localizations": {
@@ -11614,13 +11920,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add API key, base URL, and chat model first"
+            "value": "Complete the enabled model configurations first"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请先补齐 API Key、Base URL 和文本模型"
+            "value": "请先补齐已启用的模型配置"
           }
         }
       }
