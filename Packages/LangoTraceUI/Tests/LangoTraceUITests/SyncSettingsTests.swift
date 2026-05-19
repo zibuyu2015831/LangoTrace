@@ -89,6 +89,16 @@ struct SyncSettingsTests {
         #expect(source.contains("item.kind.isUserToggleableDraft"))
     }
 
+    @Test("Sync attachment toggles use switch style on macOS")
+    func syncAttachmentTogglesUseSwitchStyleOnMacOS() throws {
+        let source = try String(
+            contentsOf: sourceFileURL(named: "SyncSettingsView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(source.contains(".toggleStyle(.switch)"))
+    }
+
     @Test("Object storage draft validates required fields without saving credentials")
     func objectStorageDraftValidatesRequiredFieldsWithoutSavingCredentials() {
         var draft = S3SyncDraft()

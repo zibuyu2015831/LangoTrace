@@ -93,6 +93,9 @@ struct PageClosureStateTests {
         #expect(SettingsCapability.Kind.languageSpace.localizedTitleKey == "settings.languageSpace.title")
         #expect(SettingsCapability.Kind.interfaceLanguage.localizedTitleKey == "settings.interfaceLanguage.title")
         #expect(SettingsCapability.Kind.aiProvider.localizedTitleKey == "settings.aiProvider.title")
+        #expect(SettingsCapability.Kind.importExport.localizedTitleKey == "settings.importExport.title")
+        #expect(SettingsCapability.Kind.allCases.contains(.importExport))
+        #expect(!SettingsCapability.Kind.allCases.map(\.rawValue).contains("export"))
         #expect(CapabilityStatus.ready.localizedTitleKey == "capabilityStatus.ready")
         #expect(CapabilityStatus.mockOnly.localizedTitleKey == "capabilityStatus.mockOnly")
         #expect(CapabilityStatus.unavailable.localizedTitleKey == "capabilityStatus.unavailable")
@@ -107,6 +110,26 @@ struct PageClosureStateTests {
         #expect(source.contains("ForEach(capabilities)"))
         #expect(!source.contains("\"phone.settings.currentSpace.title\""))
         #expect(!source.contains("\"phone.settings.currentSpace.subtitle\""))
+    }
+
+    @Test("Onboarding bottom action stays constrained on wide Mac and iPad windows")
+    func onboardingBottomActionStaysConstrainedOnWideMacAndIPadWindows() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "OnboardingView.swift"), encoding: .utf8)
+
+        #expect(source.contains("private let onboardingContentMaxWidth: CGFloat = 680"))
+        #expect(source.contains("private let onboardingBottomActionMaxWidth: CGFloat = 520"))
+        #expect(source.contains(".frame(maxWidth: onboardingBottomActionMaxWidth)"))
+        #expect(source.contains(".frame(maxWidth: .infinity, alignment: .center)"))
+    }
+
+    @Test("Onboarding uses inline wide layout on iPad instead of pinned bottom action")
+    func onboardingUsesInlineWideLayoutOnIPadInsteadOfPinnedBottomAction() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "OnboardingView.swift"), encoding: .utf8)
+
+        #expect(source.contains("usesInlineWideOnboardingLayout(in: size)"))
+        #expect(source.contains("inlineCreateButton"))
+        #expect(source.contains("onboardingWideTopPadding(in: size)"))
+        #expect(source.contains("compactOnboardingContentWithBottomAction"))
     }
 
     @Test("Interface language option keys are stable")
@@ -219,6 +242,19 @@ struct PageClosureStateTests {
         #expect(settingsNextRequirementTitleKey == "settings.detail.nextRequirement")
         #expect(settingsNoSideEffectsTitleKey == "settings.detail.noSideEffects")
         #expect(settingsNoSideEffectsBodyKey == "settings.detail.noSideEffects.body")
+    }
+
+    @Test("Import export setting resources are present and export-only keys are removed")
+    func importExportSettingResourcesArePresentAndExportOnlyKeysAreRemoved() throws {
+        let catalogURL = try #require(localizableCatalogURL())
+        let data = try Data(contentsOf: catalogURL)
+        let root = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let strings = try #require(root["strings"] as? [String: Any])
+
+        for suffix in ["title", "summary", "detail", "nextRequirement"] {
+            #expect(strings["settings.importExport.\(suffix)"] != nil)
+            #expect(strings["settings.export.\(suffix)"] == nil)
+        }
     }
 
     private func localizableCatalogURL() -> URL? {

@@ -5,25 +5,77 @@ struct OnboardingView: View {
     @Binding var draft: OnboardingDraft
     let onCreateLanguageSpace: () -> Void
 
+    private let onboardingContentMaxWidth: CGFloat = 680
+    private let onboardingBottomActionMaxWidth: CGFloat = 520
+
     var body: some View {
-        ZStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 26) {
-                    header
-                    languageForm
-                    privacyNote
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 36)
-                .padding(.bottom, 116)
-                .frame(maxWidth: 680, alignment: .leading)
+        GeometryReader { proxy in
+            let size = proxy.size
+
+            if usesInlineWideOnboardingLayout(in: size) {
+                wideOnboardingContent(size: size)
+            } else {
+                compactOnboardingContentWithBottomAction
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .langoPageBackground()
+    }
+
+    private func usesInlineWideOnboardingLayout(in size: CGSize) -> Bool {
+        #if os(iOS)
+            size.width >= 760 && size.height >= 720
+        #else
+            size.width >= 760 && size.height >= 620
+        #endif
+    }
+
+    private var compactOnboardingContentWithBottomAction: some View {
+        ZStack {
+            ScrollView {
+                onboardingFormContent
+                    .padding(.horizontal, 24)
+                    .padding(.top, 36)
+                    .padding(.bottom, 116)
+                    .frame(maxWidth: onboardingContentMaxWidth, alignment: .leading)
+            }
+        }
         .safeAreaInset(edge: .bottom) {
             createButton
         }
-        .langoPageBackground()
+    }
+
+    private func wideOnboardingContent(size: CGSize) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 26) {
+                onboardingFormContent
+                inlineCreateButton
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, onboardingWideTopPadding(in: size))
+            .padding(.bottom, 64)
+            .frame(maxWidth: onboardingContentMaxWidth, minHeight: size.height, alignment: .topLeading)
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private var onboardingFormContent: some View {
+        VStack(alignment: .leading, spacing: 26) {
+            header
+            languageForm
+            privacyNote
+        }
+    }
+
+    private func onboardingWideTopPadding(in size: CGSize) -> CGFloat {
+        if size.height >= 1180 {
+            78
+        } else if size.height >= 900 {
+            64
+        } else {
+            44
+        }
     }
 
     private var header: some View {
@@ -133,7 +185,7 @@ struct OnboardingView: View {
         .langoPanel(padding: 16)
     }
 
-    private var createButton: some View {
+    private var createButtonContent: some View {
         VStack(spacing: 8) {
             Text(createSummary)
                 .font(.footnote.weight(.semibold))
@@ -157,10 +209,22 @@ struct OnboardingView: View {
                 localizedString("onboarding.createSpace.accessibilityHint", draft.resolvedTargetLanguage.nativeName)
             )
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 12)
-        .padding(.bottom, 10)
-        .background(.regularMaterial)
+        .frame(maxWidth: onboardingBottomActionMaxWidth)
+    }
+
+    private var createButton: some View {
+        createButtonContent
+            .padding(.horizontal, 24)
+            .padding(.top, 12)
+            .padding(.bottom, 10)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .background(.regularMaterial)
+    }
+
+    private var inlineCreateButton: some View {
+        createButtonContent
+            .padding(.top, 18)
+            .frame(maxWidth: .infinity, alignment: .center)
     }
 
     private var createSummary: String {

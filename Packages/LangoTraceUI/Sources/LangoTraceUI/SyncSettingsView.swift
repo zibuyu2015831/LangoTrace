@@ -236,6 +236,7 @@ private struct SyncScopeRow: View {
                     localizedText(item.state.titleKey)
                 }
                 .labelsHidden()
+                .toggleStyle(.switch)
                 .tint(LangoTraceDesign.ColorToken.accent)
                 .accessibilityLabel(localizedString(item.titleKey))
                 .accessibilityValue(localizedString(item.state.titleKey))
