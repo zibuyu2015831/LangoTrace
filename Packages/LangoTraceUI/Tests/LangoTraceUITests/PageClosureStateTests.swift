@@ -37,6 +37,45 @@ struct PageClosureStateTests {
         #expect(PadWorkspaceRoute.languageSpaceSummary.navigationTitleKey == "settings.languageSpace.title")
     }
 
+    @Test("Pad learning panel switches content by workspace route")
+    func padLearningPanelSwitchesContentByWorkspaceRoute() throws {
+        let mainSource = try String(contentsOf: sourceFileURL(named: "PadMainView.swift"), encoding: .utf8)
+        let sectionsSource = try String(contentsOf: sourceFileURL(named: "PadMainSections.swift"), encoding: .utf8)
+        let learningPanelSource = try String(
+            contentsOf: sourceFileURL(named: "PadLearningPanelView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(mainSource.contains("route: route"))
+        #expect(mainSource.contains("PadLearningPanelView"))
+        #expect(sectionsSource.contains("PadWorkspaceContentView"))
+        #expect(learningPanelSource.contains("let route: PadWorkspaceRoute"))
+        #expect(learningPanelSource.contains("switch route"))
+        #expect(learningPanelSource.contains("case .workspace, .entryDetail, .practice"))
+        #expect(learningPanelSource.contains("case .settingsList, .settings"))
+        #expect(learningPanelSource.contains("settingsContextContent"))
+        #expect(learningPanelSource.contains("case .memory"))
+        #expect(learningPanelSource.contains("case .importExport"))
+        #expect(learningPanelSource.contains("case .languageSpaceSummary"))
+        #expect(learningPanelSource.contains("entryLearningContent"))
+        #expect(learningPanelSource.contains("RequestPreviewCard(entry: entry, rendering: selectedRendering)"))
+    }
+
+    @Test("Pad learning panel keeps content away from trailing edge")
+    func padLearningPanelKeepsContentAwayFromTrailingEdge() throws {
+        let mainSource = try String(contentsOf: sourceFileURL(named: "PadMainView.swift"), encoding: .utf8)
+        let learningPanelSource = try String(
+            contentsOf: sourceFileURL(named: "PadLearningPanelView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(mainSource.contains("private let learningPanelTrailingInset: CGFloat = 24"))
+        #expect(mainSource.contains(".padding(.trailing, learningPanelTrailingInset)"))
+        #expect(learningPanelSource.contains("private let contentPadding"))
+        #expect(learningPanelSource.contains("trailing: 32"))
+        #expect(learningPanelSource.contains("EdgeInsets("))
+    }
+
     @Test("Mac footer actions route to visible workspace content")
     func macFooterActionsRouteToVisibleWorkspaceContent() {
         #expect(MacFooterAction.languageSpace.section == .settings)

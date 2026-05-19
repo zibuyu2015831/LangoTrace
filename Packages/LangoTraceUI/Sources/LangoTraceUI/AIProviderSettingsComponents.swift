@@ -118,20 +118,39 @@ struct AIProviderRowPicker: View {
             localizedText("aiProviderSettings.provider.title")
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            Spacer(minLength: 12)
-            Picker(selection: $provider) {
+
+            Menu {
                 ForEach(AIProviderPreset.allCases) { provider in
-                    Text(provider.displayName).tag(provider)
+                    Button {
+                        self.provider = provider
+                    } label: {
+                        Text(provider.displayName)
+                    }
                 }
             } label: {
-                localizedText("aiProviderSettings.provider.picker")
+                selectedProviderLabel
             }
-            .pickerStyle(.menu)
             .tint(LangoTraceDesign.ColorToken.accent)
-            .labelsHidden()
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .accessibilityLabel(localizedText("aiProviderSettings.provider.picker"))
+            .accessibilityValue(Text(provider.displayName))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+    }
+
+    private var selectedProviderLabel: some View {
+        HStack(spacing: 4) {
+            Text(provider.displayName)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
+                .truncationMode(.tail)
+            Image(systemName: "chevron.up.chevron.down")
+                .font(.caption.weight(.semibold))
+        }
+        .font(.callout)
+        .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+        .frame(maxWidth: .infinity, alignment: .trailing)
     }
 }
 

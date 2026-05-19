@@ -65,7 +65,7 @@ iPad 的顶层结构是工作台：顶部工具条、左侧时间线 / 筛选、
 | 页面 | 用户目的 | 入口 | 当前状态 | 主要代码路径 | 能力边界 | 审查关注点 |
 | --- | --- | --- | --- | --- | --- | --- |
 | iPad Main Workspace | 承载三栏工作台和可收起面板 | Root 进入 iPad main | Shell | `PadMainView.swift` | 使用本地 seed；面板展开状态是 transient UI state | Split View、Stage Manager 和窄宽度下主内容优先 |
-| 顶部工作台工具条 | 切换左右面板、搜索、设置、新建记录 | iPad main 顶部 | Implemented / Unavailable | `PadWorkspaceBar.swift` | 搜索打开 unavailable；新建打开编辑 sheet | 图标按钮需保持 44pt 触控和动态辅助标签 |
+| 顶部工作台工具条 | 切换左右面板、搜索、新建记录 | iPad main 顶部 | Implemented / Unavailable | `PadWorkspaceBar.swift` | 搜索打开 unavailable；新建打开编辑 sheet；设置入口不在顶部重复出现 | 图标按钮需保持 44pt 触控和动态辅助标签，右侧面板切换位于顶部最右侧 |
 | 左侧时间线 | 浏览记录并选择当前 entry | 左侧面板 | Implemented | `PadSidebarView`、`EntryTimelineRow` | 使用本地 entries | 收起后不留空白；选择 entry 后主区进入详情 |
 | 左侧筛选 | 按全部、照片写作、待练习、已记忆筛选 | 左侧面板 | Local Mock | `PadFilter` in `PadMainModels.swift`、`FilterPill` | 基于本地 mock 数据和 memory items 推导 | 筛选语义后续要随真实数据模型复查 |
 | 左侧页面入口 | 进入记忆、导入导出、设置 | 左侧面板 | Implemented / Unavailable | `PadSidebarView`、`PadWorkspaceRoute` | 导入导出为 unavailable；设置为只读能力页 | 不把低频配置放到顶部挤压工作台 |
@@ -75,12 +75,12 @@ iPad 的顶层结构是工作台：顶部工具条、左侧时间线 / 筛选、
 | 记录详情 | 在主区完整查看单条记录 | 时间线选择或 route `.entryDetail` | Implemented / Local Mock | `EntryDetailView` reused in `PadWorkspaceContentView` | 与 iPhone 共享详情组件 | 共享组件改动需同时复查 iPhone 和 iPad |
 | 听一句预览 | 从句子列表打开本地听读预览 | 句子 `听` | Local Mock | `SentencePairView`、`LocalListeningPreviewView.swift` | 不触发真实 TTS 或录音 | sheet 尺寸和 iPad 阅读宽度需单独检查 |
 | 练习详情 | 在主区进行步骤式练习 | 句子 `练` 或学习面板练习入口 | Local Mock | `PracticeSessionView`、`PracticeControlBar.swift` | 本地 step 状态；无真实语音服务 | 后续语音能力不能直接塞入小 sheet |
-| 设置列表 | 在主区查看能力列表 | 顶部 gear、左侧设置、底部设置 | Implemented | `PadWorkspaceContentView.settingsList` | 多数设置为只读说明，界面语言可切换 | iPad 设置应服务当前空间，不变成后台管理 |
+| 设置列表 | 在主区查看能力列表 | 左侧设置、底部设置 | Implemented | `PadWorkspaceContentView.settingsList` | 多数设置为只读说明，界面语言可切换 | iPad 设置应服务当前空间，不变成后台管理；顶部工具条不重复放置设置齿轮 |
 | 设置详情 | 查看单项能力边界 | 设置列表 row、底部 AI / Sync | Implemented / Unavailable | `SettingsCapabilityDetailView.swift` | 无真实 provider key、sync、export 写入；AI Provider 详情共享 iOS 表单，并在 iPad 大屏中限制内容宽度 | 与 iPhone 设置详情共享，改动需三端复查 |
 | 记忆页 | 查看记忆摘要、记忆项和向量索引边界 | 左侧 `记忆` | Local Mock / Unavailable | `PadWorkspaceContentView.memoryPage`、`MemoryLayerSummaryView` | 向量索引为 unavailable；memory items 来自本地 mock | iPad 可展示较多结构，但不能压过学习主线 |
 | 导入导出页 | 说明导入导出尚未接入 | 左侧 `导入导出` | Unavailable | `PadWorkspaceContentView.importExportPage`、`UnavailableCapabilityView` | 不打开文件、不读写导出包 | 后续真实文件访问需权限和存储方案 |
 | 语言空间摘要页 | 查看当前语言空间摘要 | 底部语言空间入口 | Implemented | `PadWorkspaceContentView.languageSpaceSummaryPage`、`LanguageSpaceSummaryView.swift` | 不支持多空间 lifecycle | 后续多空间选择不应破坏当前 workspace context |
-| 右侧学习面板 | 展示当前句子、记忆提取、练习入口、空间设置、请求预览 | 右侧面板 | Local Mock | `PadLearningPanelView` | `RequestPreviewCard` 是本地 / 显式请求边界展示；不发送数据 | iPad 可以保留请求预览上下文，但视觉占比要克制 |
+| 右侧学习面板 | 随当前 route 展示上下文；记录 / 练习 route 展示当前句子、记忆提取、练习入口、空间设置、请求预览 | 右侧面板 | Local Mock | `PadMainView.learningPanel`、`PadLearningPanelView` | `RequestPreviewCard` 只出现在 entry 学习上下文；设置、记忆、导入导出和语言空间 route 显示对应低干扰上下文，不发送数据 | 右侧内容必须匹配主区 route，不能在设置页继续展示当前记录学习内容；右侧面板容器需保留外侧 gutter，内容块需保留额外 trailing inset，避免贴近屏幕边缘 |
 | 右侧学习面板空状态 | 未选中记录时说明学习面板等待内容 | 右侧学习面板无 selected entry | Implemented | `PadLearningPanelView`、`LocalizedTextPanel` | 只展示说明，不触发生成或练习 | 空状态应低干扰，不能要求用户先配置工程能力 |
 | 搜索 unavailable sheet | 表达搜索尚未接入 | 顶部搜索 | Unavailable | `PadSheet.unavailableSearch`、`UnavailableCapabilityView(.search)` | 不执行真实搜索或索引查询 | 后续搜索接入时需定义跨空间范围 |
 | 新建记录 sheet | 创建文本记录 | 顶部新建 | Implemented | `EntryEditorView` reused by `PadMainView` | 内存 repository；不持久化 | 后续 iPad 可考虑平台专属编辑体验 |
@@ -192,3 +192,5 @@ rg "规划中|待配置|当前页面只展示入口边界|不播放真实 TTS|on
 - 2026-05-19：创建第一版三端页面清单。依据当前 SwiftUI 代码记录 Root、iPhone、iPad、macOS、共享组件、unavailable / local mock 页面和维护规则。
 - 2026-05-19：补充页面覆盖自检、iPhone 页面 chrome、iPad 空状态、macOS missing route fallback、macOS Settings scene 只读边界和共享承载组件。原因：复查 SwiftUI `View` / `Route` / `Sheet` / `Settings` 后，需要把非主 route 但会影响页面完整性的承载层写清楚。
 - 2026-05-19：补充 iPad / macOS AI Provider 设置页一致性记录。原因：工作台内 AI Provider 详情页三端共享同一表单，iPad / macOS 只通过平台最大宽度控制大屏阅读栏，原生 macOS Settings scene 仍保持只读能力列表。
+- 2026-05-19：补充 iPad 右侧学习面板 route-aware 边界。原因：设置、记忆、导入导出和语言空间 route 不应继续展示 entry 学习内容或请求预览。
+- 2026-05-19：补充 iPad 顶部工具栏去重和右侧学习面板留白边界。原因：设置入口已由左侧和底部区域稳定承载，右侧面板容器和内容块都需要避免贴近设备边缘。

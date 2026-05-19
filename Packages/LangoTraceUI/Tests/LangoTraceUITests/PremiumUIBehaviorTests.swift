@@ -81,15 +81,19 @@ struct PremiumUIBehaviorTests {
         let source = try String(contentsOf: sourceFileURL(named: "PadWorkspaceBar.swift"), encoding: .utf8)
 
         for expected in [
-            "onSettings",
             ".keyboardShortcut(\"n\"",
             ".keyboardShortcut(\"f\"",
-            ".keyboardShortcut(\",\"",
             ".keyboardShortcut(\"[\"",
             ".keyboardShortcut(\"]\"",
+            "systemImage: \"sidebar.right\"",
+            "Button(action: onNewEntry)",
         ] {
             #expect(source.contains(expected))
         }
+
+        #expect(!source.contains("onSettings"))
+        #expect(!source.contains(".keyboardShortcut(\",\""))
+        #expect(!source.contains("Image(systemName: \"gearshape\")"))
     }
 
     @Test("iPad timeline and filter controls expose pointer focus and context affordances")

@@ -155,6 +155,21 @@ struct AIProviderSettingsTests {
         #expect(source.contains("accessibilityLabel(localizedText(visibilityLabelKey))"))
     }
 
+    @Test("Provider row keeps long names on one line")
+    func providerRowKeepsLongNamesOnOneLine() throws {
+        let source = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
+            encoding: .utf8
+        )
+
+        #expect(source.contains("selectedProviderLabel"))
+        #expect(source.contains("Text(provider.displayName)"))
+        #expect(source.contains("lineLimit(1)"))
+        #expect(source.contains("minimumScaleFactor(0.82)"))
+        #expect(source.contains("truncationMode(.tail)"))
+        #expect(source.contains(".frame(maxWidth: .infinity, alignment: .trailing)"))
+    }
+
     @Test("Settings detail constrains shared AI provider form on large platforms")
     func settingsDetailConstrainsSharedAIProviderFormOnLargePlatforms() throws {
         let detailSource = try String(

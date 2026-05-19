@@ -17,6 +17,8 @@ struct PadMainView: View {
     @State private var presentedSheet: PadSheet?
     @State private var activeFilter: PadFilter = .all
 
+    private let learningPanelTrailingInset: CGFloat = 24
+
     var body: some View {
         VStack(spacing: 0) {
             PadWorkspaceBar(
@@ -25,7 +27,6 @@ struct PadMainView: View {
                 onToggleTimeline: { isTimelineVisible.toggle() },
                 onToggleLearningPanel: { isLearningPanelVisible.toggle() },
                 onSearch: { presentedSheet = .unavailableSearch },
-                onSettings: { route = .settingsList },
                 onNewEntry: { presentedSheet = .entryEditor }
             )
             Divider()
@@ -41,11 +42,12 @@ struct PadMainView: View {
                     if isLearningPanelVisible {
                         Divider()
                         learningPanel
+                            .padding(.trailing, learningPanelTrailingInset)
                             .transition(panelTransition(edge: .trailing))
                             .simultaneousGesture(
                                 panelGesture(
                                     workspaceWidth: proxy.size.width,
-                                    startXOffset: max(0, proxy.size.width - 360)
+                                    startXOffset: learningPanelGestureStartX(workspaceWidth: proxy.size.width)
                                 )
                             )
                     }
@@ -152,6 +154,10 @@ struct PadMainView: View {
             .gesture(panelGesture(workspaceWidth: workspaceWidth, startXOffset: startXOffset))
     }
 
+    private func learningPanelGestureStartX(workspaceWidth: CGFloat) -> CGFloat {
+        max(0, workspaceWidth - 360 - learningPanelTrailingInset)
+    }
+
     private func panelGesture(workspaceWidth: CGFloat, startXOffset: CGFloat = 0) -> some Gesture {
         DragGesture(minimumDistance: 20, coordinateSpace: .local)
             .onEnded { value in
@@ -229,6 +235,7 @@ struct PadMainView: View {
 
     private var learningPanel: some View {
         PadLearningPanelView(
+            route: route,
             selectedEntry: selectedEntry,
             selectedRendering: selectedRendering,
             memoryItems: memoryItems,

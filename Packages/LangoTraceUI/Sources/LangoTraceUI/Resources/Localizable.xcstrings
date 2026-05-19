@@ -7883,6 +7883,312 @@
         }
       }
     },
+    "pad.learningPanel.settings.title": {
+      "comment": "iPad settings context panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings Context"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置上下文"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.settings.subtitle": {
+      "comment": "iPad settings context panel subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focused on configuration for this language space."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "围绕当前语言空间的配置。"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.settings.aiProvider.summary": {
+      "comment": "iPad settings context summary for AI provider.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure models and secure provider access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置模型和安全访问信息。"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.settings.sync.summary": {
+      "comment": "iPad settings context summary for sync.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review sync status and boundaries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看同步状态和边界。"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.settings.privacy.title": {
+      "comment": "iPad settings context privacy title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy Boundary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私边界"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.settings.privacy.body": {
+      "comment": "iPad settings context privacy body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening settings does not send entries, photos, audio, or provider secrets."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开设置不会发送记录、照片、音频或 Provider 密钥。"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.memory.title": {
+      "comment": "iPad memory context panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory Context"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记忆上下文"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.memory.subtitle": {
+      "comment": "iPad memory context panel subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review what life entries have produced."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看生活记录沉淀的内容。"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.memory.panel.title": {
+      "comment": "iPad memory context card title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Life-based Memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生活记忆"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.memory.panel.body": {
+      "comment": "iPad memory context card body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phrases and patterns stay tied to the entries that created them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "词句和表达模式会保留与来源记录的关系。"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.importExport.title": {
+      "comment": "iPad import export context panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import and Export"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入导出"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.importExport.subtitle": {
+      "comment": "iPad import export context panel subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data movement stays explicit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据迁移保持显式。"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.importExport.panel.title": {
+      "comment": "iPad import export context card title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Background Transfer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会后台迁移"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.importExport.panel.body": {
+      "comment": "iPad import export context card body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page does not read files, export archives, or modify saved entries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页不会读取文件、导出归档或修改已保存记录。"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.languageSpace.title": {
+      "comment": "iPad language space context panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language Space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言空间"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.languageSpace.subtitle": {
+      "comment": "iPad language space context panel subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current learning direction and level."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前学习方向和水平。"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.languageSpace.panel.title": {
+      "comment": "iPad language space context card title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space Boundary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间边界"
+          }
+        }
+      }
+    },
+    "pad.learningPanel.languageSpace.panel.body": {
+      "comment": "iPad language space context card body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A language space defines the target language for entries, practice, and memory."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言空间定义记录、练习和记忆使用的目标语言。"
+          }
+        }
+      }
+    },
     "pad.currentSentence.title": {
       "comment": "iPad current sentence title.",
       "localizations": {
