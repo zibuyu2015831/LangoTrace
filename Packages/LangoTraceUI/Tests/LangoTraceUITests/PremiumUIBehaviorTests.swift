@@ -154,7 +154,6 @@ struct PremiumUIBehaviorTests {
     @Test("Unavailable capability content uses stable localization keys")
     func unavailableCapabilityContentUsesStableLocalizationKeys() {
         #expect(PhoneUnavailableAction.photoWriting.content == .photoWriting)
-        #expect(PhoneUnavailableAction.listenOne.content == .listenOne)
         #expect(MacUnavailableContent(kind: "search").content == .search)
         #expect(MacUnavailableContent(kind: "import-export").content == .importExport)
         #expect(MacUnavailableContent(kind: "unknown").content == .generic)
@@ -243,7 +242,8 @@ struct PremiumUIBehaviorTests {
         )
 
         #expect(!learningContentComponents.contains("Button {}"))
-        #expect(learningContentComponents.contains("onListen"))
+        #expect(learningContentComponents.contains("LocalListeningPreviewView"))
+        #expect(!learningContentComponents.contains("UnavailableCapabilityView(content: ." + "listenOne)"))
         #expect(!welcomeView.contains(".task {"))
         #expect(welcomeView.contains("Button(action: onFinished)"))
         #expect(phoneSupportingViews.contains(

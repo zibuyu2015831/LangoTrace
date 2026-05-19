@@ -5117,7 +5117,7 @@
       }
     },
     "practice.listen.hint": {
-      "comment": "Accessibility hint for unavailable local mock listening.",
+      "comment": "Accessibility hint for sentence listening practice.",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5129,6 +5129,176 @@
           "stringUnit": {
             "state": "translated",
             "value": "打开这句话的听力说明。"
+          }
+        }
+      }
+    },
+    "listeningPreview.title": {
+      "comment": "Sentence listening preview sheet title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen to This Sentence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "听一句"
+          }
+        }
+      }
+    },
+    "listeningPreview.target.title": {
+      "comment": "Listening preview target sentence title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target sentence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标句"
+          }
+        }
+      }
+    },
+    "listeningPreview.translation.title": {
+      "comment": "Listening preview translation section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meaning"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "意思"
+          }
+        }
+      }
+    },
+    "listeningPreview.focus.title": {
+      "comment": "Listening preview focus section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen for"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "听力重点"
+          }
+        }
+      }
+    },
+    "listeningPreview.focus.body": {
+      "comment": "Listening preview focus section body. Placeholder is the sentence note.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        }
+      }
+    },
+    "listeningPreview.routine.title": {
+      "comment": "Listening preview practice routine title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice flow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习方式"
+          }
+        }
+      }
+    },
+    "listeningPreview.routine.body": {
+      "comment": "Listening preview practice routine body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen once for meaning, read once with the rhythm, then repeat it from memory."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先听意思，再跟着节奏读一遍，最后遮住原句复述。"
+          }
+        }
+      }
+    },
+    "listeningPreview.localBoundary": {
+      "comment": "Listening preview local boundary note.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This practice stays on this device and does not record your voice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次练习只在本机进行，不会录音。"
+          }
+        }
+      }
+    },
+    "listeningPreview.action.play": {
+      "comment": "Listening preview play action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play Example"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "播放示例"
+          }
+        }
+      }
+    },
+    "listeningPreview.action.pause": {
+      "comment": "Listening preview pause action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停"
           }
         }
       }
@@ -5282,57 +5452,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "语言空间切换规划中"
-          }
-        }
-      }
-    },
-    "unavailable.listenOne.nextRequirement": {
-      "comment": "Listen-one unavailable next requirement.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connect TTS, playback controls, practice session state, and a cancellable speech service boundary."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "接入 TTS、播放控制、练习会话状态和可取消的语音服务边界。"
-          }
-        }
-      }
-    },
-    "unavailable.listenOne.summary": {
-      "comment": "Listen-one unavailable summary.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This route only shows the entry boundary. It does not play real TTS, record audio, or save practice results."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前页面只展示入口边界，不播放真实 TTS、不录音、不保存练习结果。"
-          }
-        }
-      }
-    },
-    "unavailable.listenOne.title": {
-      "comment": "Listen-one unavailable title.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Listening Planned"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "听力播放规划中"
           }
         }
       }

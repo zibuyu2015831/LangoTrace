@@ -77,13 +77,6 @@ extension UnavailableCapabilityContent {
         systemImage: "camera"
     )
 
-    static let listenOne = UnavailableCapabilityContent(
-        titleKey: "unavailable.listenOne.title",
-        summaryKey: "unavailable.listenOne.summary",
-        nextRequirementKey: "unavailable.listenOne.nextRequirement",
-        systemImage: "play"
-    )
-
     static let languageSpace = UnavailableCapabilityContent(
         titleKey: "unavailable.languageSpace.title",
         summaryKey: "unavailable.languageSpace.summary",

@@ -50,6 +50,24 @@ struct PhoneIOSConvergenceTests {
         #expect(!supportingViews.contains("entryDetail.practiceEntry.subtitle"))
     }
 
+    @Test("iPhone sentence listening uses local preview instead of development unavailable copy")
+    func iPhoneSentenceListeningUsesLocalPreviewInsteadOfDevelopmentUnavailableCopy() throws {
+        let components = try String(
+            contentsOf: sourceFileURL(named: "LearningContentComponents.swift"),
+            encoding: .utf8
+        )
+        let localizations = try String(
+            contentsOf: sourceFileURL(named: "Resources/Localizable.xcstrings"),
+            encoding: .utf8
+        )
+
+        #expect(components.contains("LocalListeningPreviewView"))
+        #expect(!components.contains("UnavailableCapabilityView(content: ." + "listenOne)"))
+        #expect(!components.contains("isListen" + "UnavailablePresented"))
+        #expect(!localizations.contains("听力播放" + "规划中"))
+        #expect(!localizations.contains("当前页面只展示" + "入口边界"))
+    }
+
     private func sourceFileURL(named fileName: String) -> URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

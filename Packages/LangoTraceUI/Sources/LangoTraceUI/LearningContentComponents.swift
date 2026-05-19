@@ -103,9 +103,8 @@ struct MemoryLayerSummaryView: View {
 struct SentencePairView: View {
     let index: Int
     let sentence: RenderingSentence
-    var onListen: (() -> Void)?
     let onPractice: () -> Void
-    @State private var isListenUnavailablePresented = false
+    @State private var isListeningPreviewPresented = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
@@ -128,11 +127,7 @@ struct SentencePairView: View {
             Spacer()
             HStack(spacing: 8) {
                 Button {
-                    if let onListen {
-                        onListen()
-                    } else {
-                        isListenUnavailablePresented = true
-                    }
+                    isListeningPreviewPresented = true
                 } label: {
                     localizedText("common.listen")
                 }
@@ -145,9 +140,9 @@ struct SentencePairView: View {
             }
         }
         .langoPanel()
-        .sheet(isPresented: $isListenUnavailablePresented) {
-            UnavailableCapabilityView(content: .listenOne) {
-                isListenUnavailablePresented = false
+        .sheet(isPresented: $isListeningPreviewPresented) {
+            LocalListeningPreviewView(sentence: sentence) {
+                isListeningPreviewPresented = false
             }
             .presentationDetents([.medium, .large])
         }

@@ -165,6 +165,7 @@ LangoTrace 的文档体系是工程控制面，承载产品北极星、隐私边
 
 - [产品主参考文档](product-main-reference.md) 的第 7、8、9 节
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 10 节
+- [三端页面清单](platform-page-inventory.md)
 - [UI 设计系统规范](spec/003-ui-design-system.md)
 - [导航与路由规范](spec/002-navigation-and-routing.md)
 - [界面国际化与语言边界规范](spec/006-interface-localization-and-language-boundaries.md)
@@ -335,6 +336,7 @@ docs/
     documentation-system.md
   archive/
   product-main-reference.md
+  platform-page-inventory.md
   technical-framework-roadmap.md
   architecture/
   decisions/
@@ -366,6 +368,7 @@ docs/
 ## 8. 目录职责
 
 - `architecture/`：工程架构、模块边界、数据模型、同步模型、AI Provider、长期记忆和安全边界。
+- `platform-page-inventory.md`：三端页面清单和当前页面事实源，记录 iPhone、iPad、macOS 页面、入口、实现状态、能力边界、代码路径和审查关注点。
 - `_meta/`：文档体系自身规则，记录目录职责、权威类型、写入规则和退出目录。
 - `archive/`：历史参考和已退出目录内容，不作为新任务入口。
 - `decisions/`：架构决策记录，采用 ADR 风格，记录重要取舍、背景、结论和复审条件；不维护 implementation 文档或阶段执行细节。
