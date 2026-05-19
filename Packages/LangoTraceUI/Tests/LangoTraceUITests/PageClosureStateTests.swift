@@ -90,11 +90,23 @@ struct PageClosureStateTests {
 
     @Test("Settings capability chrome uses UI localization keys")
     func settingsCapabilityChromeUsesUILocalizationKeys() {
+        #expect(SettingsCapability.Kind.languageSpace.localizedTitleKey == "settings.languageSpace.title")
         #expect(SettingsCapability.Kind.interfaceLanguage.localizedTitleKey == "settings.interfaceLanguage.title")
         #expect(SettingsCapability.Kind.aiProvider.localizedTitleKey == "settings.aiProvider.title")
         #expect(CapabilityStatus.ready.localizedTitleKey == "capabilityStatus.ready")
         #expect(CapabilityStatus.mockOnly.localizedTitleKey == "capabilityStatus.mockOnly")
         #expect(CapabilityStatus.unavailable.localizedTitleKey == "capabilityStatus.unavailable")
+    }
+
+    @Test("iPhone settings list omits duplicate current-space explainer")
+    func phoneSettingsListOmitsDuplicateCurrentSpaceExplainer() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "PhoneMainSections.swift"), encoding: .utf8)
+
+        #expect(source.contains("struct SettingsView: View"))
+        #expect(source.contains("PhonePage("))
+        #expect(source.contains("ForEach(capabilities)"))
+        #expect(!source.contains("\"phone.settings.currentSpace.title\""))
+        #expect(!source.contains("\"phone.settings.currentSpace.subtitle\""))
     }
 
     @Test("Interface language option keys are stable")

@@ -152,10 +152,6 @@ struct SettingsView: View {
             onLanguageSpaceAction: onLanguageSpaceAction,
             onSettingsAction: onSettingsAction
         ) {
-            SectionHeader(
-                titleKey: "phone.settings.currentSpace.title",
-                subtitleKey: "phone.settings.currentSpace.subtitle"
-            )
             ForEach(capabilities) { capability in
                 CapabilityStatusRow(
                     localizedTitleKey: capability.kind.localizedTitleKey,
