@@ -225,7 +225,21 @@ Empty / unavailable / loading / error 模式：
 - Error state 应保留用户输入或本地记录，并提供重试、返回或查看详情路径。
 - Local preview state 应明确是本地示例，不触发真实 AI、TTS、同步或外部请求。
 
-### 4.10 可执行设计系统边界
+### 4.10 Welcome 与首次解释体验
+
+Welcome 是首次打开 App 的产品解释入口，不是营销 landing page，也不是真实学习闭环已经完成的证明。它应在短时间内说明“生活记录如何变成表达和练习”，并保持三端同一语义、不同平台承载。
+
+设计要求：
+
+- Welcome 首屏应优先展示产品闭环，而不是功能清单。示例卡片应表达 source note、rewrite、voiceover cue、shadowing cue 的学习路径，避免退回单词表、表达列表和练习入口堆叠。
+- Welcome 静态示例必须标记为本地解释用内容，不触发真实 AI、TTS、录音、语音转文本、同步、持久化或权限请求。
+- iPhone、iPad、macOS 可以使用不同布局、尺寸和 CTA 位置，但副标题、能力承诺和示例语义应共享；只有明确平台体验理由时才新增平台专用文案。
+- Welcome 示例可以为了说明语言学习关系使用双语 demo，但不得让用户误以为界面语言就是目标学习语言，或默认已经创建某个语言空间。
+- Page indicator 属于示例 carousel，应贴近卡片或对应内容，不应漂到页面中下部变成独立装饰。
+- Mac 和 iPad 宽屏应充分利用空间，让标题、CTA 和示例卡片形成同等级主视觉；iPhone 应优先保证主标题、说明、示例和底部 CTA 在动态字体下仍可读可点。
+- Welcome 文案不得过早承诺未接入的输入能力，例如录音输入、语音转文本、真实 TTS 播放或照片 OCR；若只是在示例中说明未来学习输出或练习方向，应使用不误导的 cue。
+
+### 4.11 可执行设计系统边界
 
 从 MVP UI 闭环开始，设计系统不能只停留在视觉关键词，应逐步变成 SwiftUI 可复用入口。
 
@@ -246,7 +260,7 @@ Empty / unavailable / loading / error 模式：
 
 - `docs/spec/ui-design/mvp-ui-flow-and-design-system.md`
 
-### 4.11 页面闭环先于整体视觉升级
+### 4.12 页面闭环先于整体视觉升级
 
 三端页面补全阶段应先确保用户路径完整、平台外壳正确、状态清楚，再进入整体视觉优化。这个阶段不追求最终高级视觉，但必须避免产生新的设计债务。
 
@@ -310,3 +324,4 @@ AI 在创建或修改 UI 前应先确认：
 - 2026-05-17：补充能力状态和 mock 练习步骤规范。原因：设置与练习状态闭环新增 `CapabilityStatusRow` 和 `PracticeControlBar`，需要把 ready、Local Mock、未接入和本地练习步骤沉淀为可复用 UI 约束。影响范围：设置、练习、请求预览和后续不可用状态设计。是否需要 ADR：否。
 - 2026-05-17：补充页面闭环先于整体视觉升级规则。原因：新增三端页面补全计划把 iPad 和 macOS 页面完整性置于视觉升级之前，需要明确 mock/unavailable、一致状态、窄窗口和 Mac 桌面交互底线。影响范围：三端页面闭环、设计优化准备和截图验证。是否需要 ADR：否。
 - 2026-05-18：同步第一轮 UI 收敛的状态矩阵和设计系统底座。原因：实现已新增 ready、local preview、unavailable、warning、error、permission denied、sync conflict、loading 等状态 kind，并把 Memory 首轮拆为内容记忆、语言记忆、学习记忆三层；规范需要明确 token、action hierarchy、empty / unavailable / loading / error 和卡片使用边界。影响范围：`LangoTraceDesign`、能力状态组件、三端主路径和后续视觉验证。是否需要 ADR：否。
+- 2026-05-19：补充 Welcome 与首次解释体验规则。原因：最近多轮 Welcome 优化已形成三端共享语义、静态双语示例、无真实 AI / TTS / 录音承诺和平台化布局承载的稳定约束，需要沉淀到 UI 设计系统。影响范围：Welcome、首次启动、静态示例卡片、三端响应式布局和后续首屏文案。是否需要 ADR：否。

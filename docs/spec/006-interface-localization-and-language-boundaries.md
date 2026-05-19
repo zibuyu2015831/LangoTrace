@@ -111,6 +111,19 @@ Provider / Prompt 输出语言必须由请求构建层显式传入，不得从�
 
 后续如果提供“重新生成为另一种讲解语言”，应作为显式 AI 动作，而不是界面语言设置的副作用。
 
+### 3.7 静态演示内容语言
+
+Welcome、空状态和教学型示例中的静态演示内容既不是 App chrome，也不是真实用户保存内容。它可以为了说明产品闭环而按界面语言选择一组受控示例，但必须明确自身是本地静态 demo。
+
+Welcome 示例的语言边界：
+
+- Section 标题、按钮、说明、badge 和导航等 chrome 继续使用当前界面语言。
+- 示例中的 source note 表达用户熟悉语言里的生活线索，rewrite 表达目标学习语言中的可练习表达。
+- 当前 Welcome 示例约定：简体中文界面使用中文 source note 到英文 rewrite；英文及其他第一批界面语言使用对应界面语言 source note 到中文 rewrite。
+- 该约定只服务首次解释产品闭环，不代表真实默认目标语言、onboarding 默认值、语言空间目标语言或已保存用户内容。
+- 切换界面语言不得重写真实 Entry、Rendering、Practice 或 Memory。只有静态演示内容可以通过 String Catalog 或明确 demo 数据模型维护多语言版本。
+- 后续如果 Welcome 示例改为根据 onboarding 选择动态生成，必须先把“界面语言、用户母语、目标学习语言”三轴输入建模清楚，不能从界面语言反推目标语言。
+
 ## 4. 强制规则
 
 - 后续新增或改进页面时，必须考虑文案在英文、简体中文和更长语言中的长度差异。
@@ -134,6 +147,7 @@ Provider / Prompt 输出语言必须由请求构建层显式传入，不得从�
 - 新页面必须使用 leading / trailing、语义对齐和系统布局能力，避免把 left / right 写成不可翻转的业务含义；确有平台导航含义时，应在设计中说明。
 - 即使第一阶段只支持英文和简体中文，也不得在组件结构上阻断未来从右到左语言、较长翻译文本或非拉丁文字。
 - 混合语言内容需要考虑辅助功能朗读。后续显示目标语言句子、母语解释或发音内容时，应评估是否需要为可访问文本提供语言上下文，避免 VoiceOver 用错误语言朗读。
+- 静态演示内容不得被真实学习内容规则误读，也不得反过来污染真实用户内容。Welcome demo 可以为了说明学习关系而跨语言展示，但真实 Entry、Rendering、Practice 和 Memory 必须保留内容自身语言，除非用户显式触发转换或生成。
 
 ## 5. 默认推荐
 
@@ -290,6 +304,7 @@ Mac 上界面语言设置应符合桌面偏好设置心智：
 - 静态扫描：新增 UI 文件中明显硬编码文案需要人工确认是否应进入本地化资源。
 - SwiftUI Preview 或截图：英文与简体中文至少覆盖 Welcome、Onboarding、iPhone Tab、iPad workspace、macOS workspace 和 Settings。
 - 手动测试：切换界面语言后，当前语言空间和学习内容不被修改。
+- 单元测试或静态测试：Welcome 等静态演示内容在第一批界面语言下保持清晰的 source note 到目标语言 rewrite 关系，且不把该 demo 规则扩散到真实 Entry / Rendering 数据。
 - Xcode Test Plan 或等效脚本：覆盖不同 App language、region、Dynamic Type 和至少一个 RTL 方向的布局 smoke。
 - 截图检查：确认没有裁切、截断、重叠、Tab 标签不可读、按钮文字挤压或 VoiceOver label 仍为旧语言。
 - 权限 purpose strings、隐私说明、请求预览和 unavailable 页面需要纳入本地化检查，因为这些文案直接影响用户信任。
@@ -343,3 +358,4 @@ AI 在设计、改进或实现任何页面前，如果任务涉及可见文案�
 - 2026-05-17：补充系统级 App 语言、App 内语言偏好、地区格式、RTL、辅助功能朗读、权限隐私文案和本地化测试边界。原因：架构与 iOS 交互复查发现原草案容易低估 Apple per-app language、系统 UI、locale / region 和长文本 / RTL 的边界。影响范围：iPhone 设置体验、SwiftUI 资源策略、AI 请求预览、发布本地化和测试验证。是否需要 ADR：否，仍属于开发规范细化；若未来决定把界面语言偏好纳入同步或语言空间主数据，需要重新评估 ADR。
 - 2026-05-18：将规范状态升级为 Accepted。原因：入口文档、Core 语言偏好模型、App target 本地化声明和设置体验已经按本文档边界推进，本文档应作为后续可见文案、界面语言设置和三端本地化的生效规范。影响范围：`docs/spec/README.md`、界面国际化实现和后续测试。是否需要 ADR：否，未改变核心产品或架构决策。
 - 2026-05-18：同步显式 interface-language resolver 和 UI display projection 边界。原因：第一轮 UI 收敛已让显式界面语言偏好驱动 package-owned SwiftUI chrome，并将语言展示组合从 Core 单一中文 helper 移到 UI 层；iPhone 设置入口也已从底部 Tab 调整为低频配置入口。影响范围：界面语言解析、Tab / Settings / toolbar / unavailable 文案测试、语言展示 helper 和三端设置入口。是否需要 ADR：否。
+- 2026-05-19：补充静态演示内容语言边界。原因：Welcome 示例已采用受控双语 demo 来解释“生活线索 -> 目标语言表达”闭环，需要区分静态示例、App chrome、真实用户内容和语言空间目标语言。影响范围：Welcome、空状态、教学示例、本地化测试和后续 demo 数据模型。是否需要 ADR：否。

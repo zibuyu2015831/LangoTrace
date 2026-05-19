@@ -67,7 +67,20 @@ Sync -> Core
 - 每几个 `Text` 就拆一个无意义组件。
 - 一个页面文件同时承担路由、业务、网络、存储和布局。
 
-### 4.3 平台适配
+### 4.3 大型页面文件治理
+
+多端 SwiftUI 页面在早期迭代中容易同时承载平台分支、尺寸策略、叶子组件和回归测试。SwiftLint 的 file length、type body length 或 function body length warning 应视为职责膨胀信号，优先拆分，而不是压制规则或把 warning 当成普通噪音。
+
+治理规则：
+
+- 页面主文件保留入口结构、核心 `body` 和少量组合逻辑；尺寸计算、平台 layout helper、局部 reusable component 应按职责移入同目录 extension 或独立组件文件。
+- iPhone、iPad、macOS 的尺寸策略可以共享命名和测试，但大型平台差异不应长期塞在同一个 `body` 分支中。
+- 叶子组件一旦被多个页面、多个布局分支或测试直接关心，应成为独立文件，例如 capsule label、status badge、preview card section。
+- 测试文件也应按行为拆分：内容语义、布局尺寸、本地化覆盖和源码组织可以分别测试。一个 optimization test 文件不应长期承担所有回归职责。
+- Source organization 测试可以用于防止已经拆出的布局 helper 或叶子组件被重新塞回巨型页面文件，但测试内容应保持结构性，不依赖无意义行号。
+- 如果一个文件因为真实平台差异临时超长，任务方案必须记录原因、后续拆分点和验证方式；不应在没有解释的情况下新增 `swiftlint:disable file_length`。
+
+### 4.4 平台适配
 
 推荐：
 
@@ -76,7 +89,7 @@ Sync -> Core
 - 小型差异可以使用环境值和条件布局。
 - 大型差异应拆成明确的平台 View。
 
-### 4.4 App Environment
+### 4.5 App Environment
 
 推荐在 App Shell 中维护轻量 App Environment，用于装配依赖：
 
@@ -91,7 +104,7 @@ AppEnvironment
 
 View 不直接创建真实 Provider、Repository 或 KeychainStore。预览、测试和早期 Demo 使用 Mock 或 InMemory 实现。
 
-### 4.5 状态边界
+### 4.6 状态边界
 
 推荐区分：
 
@@ -105,7 +118,7 @@ MVP 早期允许在 Data package 中提供无副作用的 preview / mock 纯值�
 
 面向学习内容的 UI 应通过 `LearningContentRepository` 协议和 MainActor feature store 访问 Entry、Rendering、Practice、Memory、设置能力和练习会话状态。View 不直接依赖 concrete `InMemoryLearningContentRepository`，也不直接 mutate repository 后用手写 revision 强制刷新。
 
-### 4.6 错误与加载
+### 4.7 错误与加载
 
 涉及存储、AI、TTS、OCR、Speech、Sync 的能力必须暴露：
 
@@ -117,7 +130,7 @@ MVP 早期允许在 Data package 中提供无副作用的 preview / mock 纯值�
 
 UI 可以简化展示，但底层状态不能丢失。
 
-### 4.7 页面闭环阶段的共享内容与平台外壳
+### 4.8 页面闭环阶段的共享内容与平台外壳
 
 三端页面闭环阶段应明确区分共享内容视图和平台外壳，避免为了复用而牺牲 iPad 和 macOS 的原生形态。
 
@@ -132,7 +145,7 @@ UI 可以简化展示，但底层状态不能丢失。
 - 筛选、route 推导和 selected entry fallback 如可表达为纯函数或小型 helper，应优先这样做，以便通过 Swift package 单元测试覆盖。
 - `contentRevision` 这类手动刷新触发器已经退出三端主 View。后续不得恢复为跨页面事件总线；如果真实 repository 需要异步刷新，应通过 store 状态、observation、async result 或明确 use case 输出表达。
 
-### 4.8 Entry / Rendering / Practice / Memory 生成边界
+### 4.9 Entry / Rendering / Practice / Memory 生成边界
 
 Entry 保存只创建用户原始记录，不应自动补齐完整 Rendering、Practice 和 Memory 闭环。
 
@@ -187,3 +200,4 @@ AI 在写 SwiftUI 代码前应先回答：
 - 2026-05-17：补充 MVP 早期 mock 纯值状态边界。原因：设置与练习状态闭环需要 Data package 暴露可测试状态模型，但仍不能引入真实 Keychain、网络、数据库或权限副作用。影响范围：Data、UI 和 App Shell 状态装配。是否需要 ADR：否。
 - 2026-05-17：补充页面闭环阶段的共享内容与平台外壳规则。原因：新增三端页面补全计划需要复用记录、练习和设置内容，同时保持 iPhone、iPad、macOS 的原生导航和状态边界。影响范围：LangoTraceUI、App Shell repository 注入、页面 route 和测试设计。是否需要 ADR：否。
 - 2026-05-18：同步第一轮 UI 收敛后的 Data seam 和生成边界。原因：`LearningContentRepository` 与 `LearningContentStore` 已成为三端 UI 的学习内容访问 seam，`contentRevision` 已退出主 View；Entry 保存也已与本地预览生成分离。影响范围：Data/UI package 边界、三端主 View、Entry detail、后续真实 repository 接入。是否需要 ADR：否，仍符合既有模块边界决策。
+- 2026-05-19：补充大型页面文件治理规则。原因：Welcome 三端优化后将布局 helper、叶子组件和回归测试按职责拆分，并用源码组织测试防止 SwiftLint 长度 warning 复发；该经验应成为后续 SwiftUI 页面迭代规则。影响范围：LangoTraceUI 页面文件、平台布局 helper、叶子组件和 UI package 测试组织。是否需要 ADR：否。
