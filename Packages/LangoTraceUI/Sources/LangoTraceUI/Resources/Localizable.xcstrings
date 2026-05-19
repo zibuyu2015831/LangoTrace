@@ -11029,6 +11029,686 @@
           }
         }
       }
+    },
+    "aiProviderSettings.advancedModels.title": {
+      "comment": "Disclosure title for advanced AI provider model fields.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced models"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高级模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.placeholder": {
+      "comment": "Placeholder for the transient AI provider API key field.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste API key for this local draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "粘贴本地草稿使用的 API Key"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.authHeader.title": {
+      "comment": "Label for AI provider authentication header style.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auth"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "认证方式"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.baseURL.title": {
+      "comment": "Label for AI provider base URL field.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base URL"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base URL"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.capabilities.title": {
+      "comment": "Title for AI provider capability chips.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capability boundary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "能力边界"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.capability.chat": {
+      "comment": "Capability chip for chat generation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文本生成"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.capability.embedding": {
+      "comment": "Capability chip for embeddings.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embedding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向量化"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.capability.image": {
+      "comment": "Capability chip for image understanding.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片理解"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.capability.tts": {
+      "comment": "Capability chip for text to speech.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TTS"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音合成"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.chatModel.title": {
+      "comment": "Label for AI provider chat model field.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat model"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文本模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.connection.title": {
+      "comment": "Section title for AI provider connection fields.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接信息"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.credentials.boundary": {
+      "comment": "Privacy boundary for sensitive API key input.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved API keys are encrypted locally and kept separate from ordinary settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存后的 API Key 会在本机加密，并与普通设置分开。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.credentials.title": {
+      "comment": "Section title for AI provider credentials.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credentials"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "凭证"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.embeddingModel.title": {
+      "comment": "Label for optional embedding model field.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embedding model"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向量模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.header.body": {
+      "comment": "Header body for AI provider settings.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare the secure provider profile that later AI requests will read from."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先整理安全 Provider 配置，后续 AI 请求会从这里读取。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.header.title": {
+      "comment": "Header title for AI provider settings.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.models.title": {
+      "comment": "Section title for AI provider model fields.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Models"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.privacy.body": {
+      "comment": "Privacy explanation for AI provider settings.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving provider information will not send life entries. Content is sent only when you explicitly start an AI action; this UI pass does not write Keychain data yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存 Provider 信息不会发送生活记录。只有你主动触发 AI 动作时才会发送选中内容；本轮 UI 还不写入钥匙串。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.privacy.title": {
+      "comment": "Privacy section title for AI provider settings.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.provider.picker": {
+      "comment": "Picker label for choosing an AI provider.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.provider.title": {
+      "comment": "Section title for choosing an AI provider.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.providerRisk.direct": {
+      "comment": "Provider risk note for direct provider presets.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This preset describes the provider endpoint only. Real requests stay disabled until provider execution is wired."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此预设只描述服务端点。真实请求会在 Provider 执行链路接入后才启用。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.providerRisk.local": {
+      "comment": "Provider risk note for local model presets.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local model access depends on the device and network address. iPhone cannot use your Mac localhost directly."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地模型访问取决于设备和网络地址。iPhone 不能直接访问 Mac 的 localhost。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.providerRisk.routed": {
+      "comment": "Provider risk note for routed or aggregator providers.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requests may be routed by this service. Model availability, billing, and data handling follow the provider account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求可能由该服务路由。模型可用性、费用和数据处理以服务商账号为准。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.requestFormat.title": {
+      "comment": "Label for AI provider request format.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request format"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求格式"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.save.boundary": {
+      "comment": "Boundary copy for mock secure save action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved credentials stay encrypted on this device and are used by future AI requests."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存后的凭证会加密留在本机，并供后续 AI 请求使用。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.save.button": {
+      "comment": "Primary button title for saving AI provider configuration.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存配置"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.saveState.idle": {
+      "comment": "Idle state for AI provider save action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to save securely"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可保存为安全配置"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.saveState.missingRequiredFields": {
+      "comment": "Missing fields state for AI provider save action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add API key, base URL, and chat model before saving"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先补齐 API Key、Base URL 和文本模型，再保存配置"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.saveState.mockSavedSecurely": {
+      "comment": "Mock saved state for AI provider save action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration is ready for encrypted storage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置已准备加密保存"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.status.secureDraft": {
+      "comment": "Status badge for AI provider settings secure draft.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secure draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全配置草稿"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.testRequest.boundary": {
+      "comment": "Boundary copy for mock AI provider test request.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This build does not send a network request. Later, the test will send only synthetic provider-check text through the Provider layer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本不会发起网络请求。后续测试只会通过 Provider 层发送合成检测文本。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.testRequest.button": {
+      "comment": "Button title for testing AI provider configuration.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试请求"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.testState.idle": {
+      "comment": "Idle state for AI provider test request.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to check locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可进行本地检测"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.testState.missingRequiredFields": {
+      "comment": "Missing fields state for AI provider test request.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add API key, base URL, and chat model first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先补齐 API Key、Base URL 和文本模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.testState.mockFailed": {
+      "comment": "Mock failed state for AI provider test request.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local check failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地检测未通过"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.testState.mockSucceeded": {
+      "comment": "Mock succeeded state for AI provider test request.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local draft looks complete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地草稿信息完整"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.testState.mockTesting": {
+      "comment": "Mock testing state for AI provider test request.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking local fields"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查本地字段"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.testState.realTestingUnavailable": {
+      "comment": "Unavailable real test state for AI provider test request.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Real provider test is not connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实 Provider 测试尚未接入"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.ttsModel.title": {
+      "comment": "Label for optional TTS model field.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TTS model"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音模型"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

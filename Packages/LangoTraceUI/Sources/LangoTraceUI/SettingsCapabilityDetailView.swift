@@ -14,28 +14,34 @@ struct SettingsCapabilityDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 header
-                CapabilityStatusRow(
-                    localizedTitleKey: capability.kind.localizedTitleKey,
-                    localizedSummaryKey: localizationKeys.summary,
-                    status: capability.status,
-                    systemImage: capability.kind.systemImage,
-                    action: nil
-                )
+                if capability.kind == .aiProvider {
+                    AIProviderSettingsView()
+                } else {
+                    CapabilityStatusRow(
+                        localizedTitleKey: capability.kind.localizedTitleKey,
+                        localizedSummaryKey: localizationKeys.summary,
+                        status: capability.status,
+                        systemImage: capability.kind.systemImage,
+                        action: nil
+                    )
+                }
                 if capability.kind == .interfaceLanguage {
                     interfaceLanguagePicker
                 }
-                LocalizedTextPanel(
-                    titleKey: settingsCurrentBoundaryTitleKey,
-                    textKey: localizationKeys.detail
-                )
-                LocalizedTextPanel(
-                    titleKey: settingsNextRequirementTitleKey,
-                    textKey: localizationKeys.nextRequirement
-                )
-                LocalizedTextPanel(
-                    titleKey: settingsNoSideEffectsTitleKey,
-                    textKey: settingsNoSideEffectsBodyKey
-                )
+                if capability.kind != .aiProvider {
+                    LocalizedTextPanel(
+                        titleKey: settingsCurrentBoundaryTitleKey,
+                        textKey: localizationKeys.detail
+                    )
+                    LocalizedTextPanel(
+                        titleKey: settingsNextRequirementTitleKey,
+                        textKey: localizationKeys.nextRequirement
+                    )
+                    LocalizedTextPanel(
+                        titleKey: settingsNoSideEffectsTitleKey,
+                        textKey: settingsNoSideEffectsBodyKey
+                    )
+                }
             }
             .padding(20)
         }
