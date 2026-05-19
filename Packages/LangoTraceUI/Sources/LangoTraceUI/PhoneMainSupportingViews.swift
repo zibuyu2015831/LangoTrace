@@ -87,11 +87,7 @@ struct EntryDetailView: View {
                     text: rendering?.targetText ?? localizedString("entry.rendering.pending")
                 )
                 if let rendering {
-                    RequestPreviewCard(entry: entry, rendering: rendering)
-                    SectionHeader(
-                        titleKey: "entryDetail.sentences.title",
-                        subtitleKey: "entryDetail.sentences.subtitle"
-                    )
+                    SectionHeader(titleKey: "entryDetail.sentences.title")
                     ForEach(Array(rendering.sentences.enumerated()), id: \.element.id) { index, sentence in
                         SentencePairView(index: index + 1, sentence: sentence, onPractice: onPractice)
                     }
@@ -104,10 +100,6 @@ struct EntryDetailView: View {
                         action: onGenerateLocalPreview
                     )
                 }
-                SectionHeader(
-                    titleKey: "entryDetail.practiceEntry.title",
-                    subtitleKey: "entryDetail.practiceEntry.subtitle"
-                )
                 if practiceItems.isEmpty {
                     CapabilityStatusRow(
                         localizedTitleKey: "practice.noContent.title",
@@ -117,6 +109,7 @@ struct EntryDetailView: View {
                         action: nil
                     )
                 } else {
+                    SectionHeader(titleKey: "entryDetail.practiceEntry.title")
                     ForEach(practiceItems) { item in
                         CompactPanel(title: item.title, text: item.summary, systemImage: "waveform")
                     }
@@ -152,7 +145,6 @@ struct PracticeSessionView: View {
                         targetText: session.targetText,
                         providerLabel: session.providerLabel
                     )
-                    RequestPreviewCard(entry: entry, rendering: rendering)
                 } else {
                     CapabilityStatusRow(
                         localizedTitleKey: "practice.noContent.title",
@@ -239,7 +231,6 @@ struct HeroActionCard: View {
     let languageSpace: LanguageSpacePreview
     let onNewEntry: () -> Void
     let onPhotoWriting: () -> Void
-    let onListenOne: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -263,10 +254,7 @@ struct HeroActionCard: View {
             }
             .buttonStyle(.borderedProminent)
 
-            HStack(spacing: 10) {
-                SecondaryActionChip(titleKey: "entrySource.photoWriting", systemImage: "camera", action: onPhotoWriting)
-                SecondaryActionChip(titleKey: "common.listen", systemImage: "play", action: onListenOne)
-            }
+            SecondaryActionChip(titleKey: "photoWriting.startWithPhoto", systemImage: "camera", action: onPhotoWriting)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .langoPanel(padding: 20)

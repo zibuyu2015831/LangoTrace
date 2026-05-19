@@ -8,7 +8,6 @@ struct PhoneRecordWorkspaceView: View {
     let renderingForEntry: (LearningEntry) -> LearningRendering?
     let onNewEntry: () -> Void
     let onPhotoWriting: () -> Void
-    let onListenOne: () -> Void
     let onLanguageSpaceAction: () -> Void
     var onSettingsAction: (() -> Void)?
     let onSelectEntry: (LearningEntry) -> Void
@@ -23,8 +22,7 @@ struct PhoneRecordWorkspaceView: View {
             HeroActionCard(
                 languageSpace: languageSpace,
                 onNewEntry: onNewEntry,
-                onPhotoWriting: onPhotoWriting,
-                onListenOne: onListenOne
+                onPhotoWriting: onPhotoWriting
             )
             SectionHeader(titleKey: "phone.today.recent.title")
             if entries.isEmpty {
@@ -66,22 +64,23 @@ struct PracticeView: View {
                     systemImage: "waveform"
                 )
             } else {
+                if let firstPracticeEntry {
+                    PracticeContinuePanel(entry: firstPracticeEntry, action: { onPractice(firstPracticeEntry) })
+                }
                 ForEach(entries) { entry in
                     let items = contentStore.practiceItems(for: entry)
                     if items.isEmpty {
-                        CapabilityStatusRow(
+                        PracticeTaskRow(
                             title: entry.title,
-                            localizedSummaryKey: "practice.empty.summary",
-                            status: .unavailable,
-                            systemImage: "waveform",
+                            summary: localizedString("practice.empty.summary"),
+                            systemImage: "text.badge.plus",
                             action: nil
                         )
                     } else {
                         ForEach(items) { item in
-                            CapabilityStatusRow(
+                            PracticeTaskRow(
                                 title: item.title,
                                 summary: "\(entry.title) · \(item.summary)",
-                                status: .mockOnly,
                                 systemImage: icon(for: item.kind),
                                 action: { onPractice(entry) }
                             )
@@ -90,6 +89,10 @@ struct PracticeView: View {
                 }
             }
         }
+    }
+
+    private var firstPracticeEntry: LearningEntry? {
+        entries.first { !contentStore.practiceItems(for: $0).isEmpty }
     }
 
     private func icon(for kind: PracticeItem.Kind) -> String {
@@ -119,16 +122,18 @@ struct MemoryView: View {
             onLanguageSpaceAction: onLanguageSpaceAction,
             onSettingsAction: onSettingsAction
         ) {
-            SectionHeader(titleKey: "phone.memory.personal.title")
-            MemoryLayerSummaryView(memoryItems: memoryItems)
-            ForEach(memoryItems) { item in
-                CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
+            SectionHeader(titleKey: "phone.memory.personal.title", subtitleKey: "phone.memory.personal.subtitle")
+            if memoryItems.isEmpty {
+                LocalizedCompactPanel(
+                    titleKey: "memory.empty.title",
+                    textKey: "memory.empty.body",
+                    systemImage: "bookmark"
+                )
+            } else {
+                ForEach(memoryItems) { item in
+                    CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
+                }
             }
-            LocalizedCompactPanel(
-                titleKey: "memory.vectorIndex.title",
-                textKey: "memory.vectorIndex.body",
-                systemImage: "square.stack.3d.up"
-            )
         }
     }
 }

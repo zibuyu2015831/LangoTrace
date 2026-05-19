@@ -4708,6 +4708,227 @@
         }
       }
     },
+    "photoWriting.startWithPhoto": {
+      "comment": "Hero secondary action for starting a photo-writing mock flow.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start with a Photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用照片开始"
+          }
+        }
+      }
+    },
+    "photoWriting.preview.title": {
+      "comment": "Photo writing preview title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn this moment into a sentence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把这个瞬间变成一句话"
+          }
+        }
+      }
+    },
+    "photoWriting.preview.summary": {
+      "comment": "Photo writing preview summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a local mock preview for design review. It shows the future photo-writing flow without opening Photos, using AI, or sending data."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是用于设计评审的本地模拟预览。它展示未来照片写作流程，不打开照片、不调用 AI，也不发送数据。"
+          }
+        }
+      }
+    },
+    "photoWriting.topic.title": {
+      "comment": "Photo writing topic suggestion title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggested angle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建议角度"
+          }
+        }
+      }
+    },
+    "photoWriting.topic.body": {
+      "comment": "Photo writing topic suggestion body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write about a slow morning by the window: the light on the table, breakfast, and the feeling of starting the day gently."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写一个窗边慢早餐：桌上的光、早餐的细节，以及今天想慢一点开始的感觉。"
+          }
+        }
+      }
+    },
+    "photoWriting.nativeDraft.title": {
+      "comment": "Photo writing native draft panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native Draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "母语草稿"
+          }
+        }
+      }
+    },
+    "photoWriting.nativeDraft.body": {
+      "comment": "Photo writing native draft panel body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I had breakfast by the window this morning. Sunlight was on the table, and I suddenly felt like I could start the day slowly."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "早上在窗边吃早餐，阳光照在桌子上。我突然觉得今天可以慢一点开始。"
+          }
+        }
+      }
+    },
+    "photoWriting.targetExample.title": {
+      "comment": "Photo writing target example panel title with target language argument.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Example"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 示例"
+          }
+        }
+      }
+    },
+    "photoWriting.targetExample.body": {
+      "comment": "Photo writing target example panel body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I had breakfast by the window this morning, with sunlight falling across the table. It made me feel like I could start the day a little more slowly."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I had breakfast by the window this morning, with sunlight falling across the table. It made me feel like I could start the day a little more slowly."
+          }
+        }
+      }
+    },
+    "photoWriting.localPreview.notice": {
+      "comment": "Photo writing local-only notice.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local preview only. The final feature will request photo and provider confirmation before using external services."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅本地预览。正式能力会在使用照片或外部 Provider 前请求确认。"
+          }
+        }
+      }
+    },
+    "photoWriting.createEntry": {
+      "comment": "Photo writing create entry button.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成记录"
+          }
+        }
+      }
+    },
+    "photoWriting.mockPhoto.caption": {
+      "comment": "Caption inside the mock photo placeholder.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window breakfast"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "窗边早餐"
+          }
+        }
+      }
+    },
+    "photoWriting.mockPhoto.accessibilityLabel": {
+      "comment": "Accessibility label for the mock photo placeholder.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mock photo preview, breakfast by a sunny window"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟照片预览，阳光窗边的早餐"
+          }
+        }
+      }
+    },
     "hero.secondaryUnavailable": {
       "comment": "Inline status explaining secondary hero actions are not connected yet.",
       "localizations": {
@@ -6693,6 +6914,40 @@
         }
       }
     },
+    "practice.continue.title": {
+      "comment": "Practice page primary continuation title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue Listening"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续听 / 跟读"
+          }
+        }
+      }
+    },
+    "practice.continue.accessibilityLabel": {
+      "comment": "Practice continuation accessibility label with entry title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue practice for %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续练习%@"
+          }
+        }
+      }
+    },
     "practice.empty.summary": {
       "comment": "Empty practice row summary.",
       "localizations": {
@@ -6893,6 +7148,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "开启搜索后，本地记忆索引会从生活记录重新构建。"
+          }
+        }
+      }
+    },
+    "memory.empty.title": {
+      "comment": "Empty memory panel title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved phrases yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有词句"
+          }
+        }
+      }
+    },
+    "memory.empty.body": {
+      "comment": "Empty memory panel body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create learning material from a life entry, and useful expressions will appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从生活记录生成学习材料后，有用表达会出现在这里。"
           }
         }
       }

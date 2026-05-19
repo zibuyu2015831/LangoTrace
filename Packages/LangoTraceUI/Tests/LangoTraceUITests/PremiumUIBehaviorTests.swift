@@ -135,9 +135,9 @@ struct PremiumUIBehaviorTests {
         #expect(LangoTraceStatusKind.loading.visualTone == .info)
     }
 
-    @Test("Memory pages use the shared three-layer memory summary")
-    func memoryPagesUseSharedThreeLayerMemorySummary() throws {
-        for file in ["PhoneMainSections.swift", "PadMainSections.swift", "MacWorkspaceContentView.swift"] {
+    @Test("iPad and Mac memory pages use the shared three-layer memory summary")
+    func iPadAndMacMemoryPagesUseSharedThreeLayerMemorySummary() throws {
+        for file in ["PadMainSections.swift", "MacWorkspaceContentView.swift"] {
             let source = try String(contentsOf: sourceFileURL(named: file), encoding: .utf8)
 
             #expect(source.contains("MemoryLayerSummaryView("))

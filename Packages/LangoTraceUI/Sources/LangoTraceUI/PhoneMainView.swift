@@ -20,8 +20,7 @@ struct PhoneMainView: View {
                     entries: entries,
                     renderingForEntry: rendering(for:),
                     onNewEntry: { presentedSheet = .entryEditor },
-                    onPhotoWriting: { presentedSheet = .unavailable(.photoWriting) },
-                    onListenOne: { presentedSheet = .unavailable(.listenOne) },
+                    onPhotoWriting: { presentedSheet = .photoWritingPreview },
                     onLanguageSpaceAction: { presentedSheet = .languageSpaceSummary },
                     onSettingsAction: { navigationPath.append(.settingsList) },
                     onSelectEntry: showEntryDetail
@@ -120,6 +119,14 @@ struct PhoneMainView: View {
                         presentedSheet = nil
                         navigationPath.append(.entryDetail(entry.id))
                     }
+                case .photoWritingPreview:
+                    PhotoWritingPreviewView(languageSpace: languageSpace) {
+                        let entry = contentStore.createMockPhotoWritingEntry()
+                        presentedSheet = nil
+                        navigationPath.append(.entryDetail(entry.id))
+                    } onDismiss: {
+                        presentedSheet = nil
+                    }
                 case let .unavailable(action):
                     UnavailableCapabilityView(content: action.content) {
                         presentedSheet = nil
@@ -178,6 +185,7 @@ private enum PhoneRoute: Hashable {
 
 private enum PhoneSheet: Identifiable {
     case entryEditor
+    case photoWritingPreview
     case unavailable(PhoneUnavailableAction)
     case languageSpaceSummary
 
@@ -185,6 +193,8 @@ private enum PhoneSheet: Identifiable {
         switch self {
         case .entryEditor:
             "entry-editor"
+        case .photoWritingPreview:
+            "photo-writing-preview"
         case let .unavailable(action):
             "unavailable-\(action.rawValue)"
         case .languageSpaceSummary:

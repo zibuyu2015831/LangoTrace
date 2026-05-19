@@ -19,10 +19,6 @@ struct EntryDetailHeader: View {
             Text("\(entry.displaySourceTitle) · \(targetLanguage) · \(entry.scene)")
                 .font(.footnote.weight(.medium))
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            localizedText("entryDetail.header.boundary")
-                .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)

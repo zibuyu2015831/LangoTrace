@@ -157,3 +157,22 @@ func createdEntriesReceiveLocalPreviewOnlyAfterExplicitGeneration() {
     #expect(repository.practiceItems(for: entry.id).count == 1)
     #expect(repository.memoryItems(for: "en").contains { $0.entryID == entry.id })
 }
+
+@Test("Mock photo writing creates complete local learning material")
+func mockPhotoWritingCreatesCompleteLocalLearningMaterial() {
+    let repository = InMemoryLearningContentRepository(seedEntries: [])
+
+    let entry = repository.createMockPhotoWritingEntry(spaceID: "en")
+    let rendering = repository.rendering(for: entry.id)
+    let practiceItems = repository.practiceItems(for: entry.id)
+
+    #expect(repository.entries(for: "en").first?.id == entry.id)
+    #expect(repository.selectedEntry(for: "en")?.id == entry.id)
+    #expect(entry.source == .photoWriting)
+    #expect(rendering?.isMock == true)
+    #expect(rendering?.sentences.count == 2)
+    #expect(practiceItems.map(\.kind).contains(.listening))
+    #expect(practiceItems.map(\.kind).contains(.shadowing))
+    #expect(repository.practiceSession(for: entry.id)?.isLocalOnly == true)
+    #expect(repository.memoryItems(for: "en").contains { $0.entryID == entry.id })
+}

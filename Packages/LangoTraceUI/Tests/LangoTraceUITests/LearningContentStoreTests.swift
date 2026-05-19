@@ -38,6 +38,15 @@ struct LearningContentStoreTests {
         #expect(store.practiceSession(for: created)?.entryID == created.id)
         #expect(store.memoryItems.contains { $0.entryID == created.id })
         #expect(store.settingsCapabilities.map(\.kind).contains(.interfaceLanguage))
+
+        let photoEntry = store.createMockPhotoWritingEntry()
+
+        #expect(store.entries.first?.id == photoEntry.id)
+        #expect(photoEntry.source == .photoWriting)
+        #expect(store.rendering(for: photoEntry)?.isMock == true)
+        #expect(store.practiceItems(for: photoEntry).map(\.kind).contains(.listening))
+        #expect(store.practiceSession(for: photoEntry)?.isLocalOnly == true)
+        #expect(store.memoryItems.contains { $0.entryID == photoEntry.id })
     }
 
     @Test("Store selection ignores entries outside the active space")
