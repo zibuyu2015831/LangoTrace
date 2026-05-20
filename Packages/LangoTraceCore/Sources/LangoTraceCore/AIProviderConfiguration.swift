@@ -314,6 +314,30 @@ public struct AIProviderValidationEvent: Equatable, Sendable {
     public var modelName: String?
     public var durationMilliseconds: Int?
     public var createdAt: Date
+
+    public init(
+        id: AIProviderValidationEventID,
+        profileID: AIProviderProfileID,
+        endpointID: AIProviderEndpointID?,
+        eventType: AIProviderValidationEventType,
+        status: AIProviderValidationStatus,
+        errorCategory: AIProviderValidationErrorCategory?,
+        providerPresetID: String,
+        modelName: String?,
+        durationMilliseconds: Int?,
+        createdAt: Date
+    ) {
+        self.id = id
+        self.profileID = profileID
+        self.endpointID = endpointID
+        self.eventType = eventType
+        self.status = status
+        self.errorCategory = errorCategory
+        self.providerPresetID = providerPresetID
+        self.modelName = modelName
+        self.durationMilliseconds = durationMilliseconds
+        self.createdAt = createdAt
+    }
 }
 
 public protocol AIProviderConfigurationRepository: Sendable {

@@ -61,6 +61,110 @@ private extension AppDatabase {
                 table.column("updated_at", .double).notNull()
             }
         }
+        migrator.registerMigration("v2_create_ai_provider_configuration") { db in
+            try db.create(table: "ai_provider_profiles") { table in
+                table.column("id", .text).primaryKey()
+                table.column("display_name", .text).notNull()
+                table.column("is_default", .boolean).notNull()
+                table.column("status", .text).notNull()
+                table.column("created_at", .double).notNull()
+                table.column("updated_at", .double).notNull()
+                table.column("last_validated_at", .double)
+                table.column("last_validation_status", .text)
+                table.column("deleted_at", .double)
+            }
+            try db.execute(sql: """
+            CREATE UNIQUE INDEX idx_ai_provider_profiles_active_default
+            ON ai_provider_profiles(is_default)
+            WHERE is_default = 1 AND deleted_at IS NULL
+            """)
+
+            try db.create(table: "ai_provider_credentials") { table in
+                table.column("id", .text).primaryKey()
+                table.column("profile_id", .text).notNull()
+                    .references("ai_provider_profiles", onDelete: .cascade)
+                table.column("provider_preset_id", .text).notNull()
+                table.column("kind", .text).notNull()
+                table.column("label", .text).notNull()
+                table.column("keychain_service", .text).notNull()
+                table.column("keychain_account", .text).notNull()
+                table.column("keychain_access_group", .text)
+                table.column("keychain_synchronizable", .boolean).notNull()
+                table.column("keychain_accessibility", .text).notNull()
+                table.column("secret_presence", .text).notNull()
+                table.column("cleanup_state", .text).notNull()
+                table.column("created_at", .double).notNull()
+                table.column("updated_at", .double).notNull()
+                table.column("last_resolved_at", .double)
+                table.column("deleted_at", .double)
+            }
+            try db.create(
+                index: "idx_ai_provider_credentials_keychain_reference",
+                on: "ai_provider_credentials",
+                columns: ["keychain_service", "keychain_account"],
+                unique: true
+            )
+
+            try db.create(table: "ai_provider_endpoints") { table in
+                table.column("id", .text).primaryKey()
+                table.column("profile_id", .text).notNull()
+                    .references("ai_provider_profiles", onDelete: .cascade)
+                table.column("purpose", .text).notNull()
+                table.column("is_enabled", .boolean).notNull()
+                table.column("provider_preset_id", .text).notNull()
+                table.column("adapter_kind", .text).notNull()
+                table.column("base_url", .text).notNull()
+                table.column("model_name", .text).notNull()
+                table.column("credential_id", .text)
+                    .references("ai_provider_credentials", onDelete: .restrict)
+                table.column("supports_image_input", .boolean).notNull()
+                table.column("image_input_enabled", .boolean).notNull()
+                table.column("request_timeout_seconds", .double)
+                table.column("created_at", .double).notNull()
+                table.column("updated_at", .double).notNull()
+                table.column("deleted_at", .double)
+            }
+            try db.execute(sql: """
+            CREATE UNIQUE INDEX idx_ai_provider_endpoints_active_purpose
+            ON ai_provider_endpoints(profile_id, purpose)
+            WHERE deleted_at IS NULL
+            """)
+
+            try db.create(table: "ai_provider_custom_headers") { table in
+                table.column("id", .text).primaryKey()
+                table.column("endpoint_id", .text).notNull()
+                    .references("ai_provider_endpoints", onDelete: .cascade)
+                table.column("header_name", .text).notNull()
+                table.column("header_name_normalized", .text).notNull()
+                table.column("value_kind", .text).notNull()
+                table.column("plain_value", .text)
+                table.column("credential_id", .text)
+                    .references("ai_provider_credentials", onDelete: .restrict)
+                table.column("created_at", .double).notNull()
+                table.column("updated_at", .double).notNull()
+            }
+            try db.create(
+                index: "idx_ai_provider_custom_headers_name",
+                on: "ai_provider_custom_headers",
+                columns: ["endpoint_id", "header_name_normalized"],
+                unique: true
+            )
+
+            try db.create(table: "ai_provider_validation_events") { table in
+                table.column("id", .text).primaryKey()
+                table.column("profile_id", .text).notNull()
+                    .references("ai_provider_profiles", onDelete: .cascade)
+                table.column("endpoint_id", .text)
+                    .references("ai_provider_endpoints", onDelete: .setNull)
+                table.column("event_type", .text).notNull()
+                table.column("status", .text).notNull()
+                table.column("error_category", .text)
+                table.column("provider_preset_id", .text).notNull()
+                table.column("model_name", .text)
+                table.column("duration_ms", .integer)
+                table.column("created_at", .double).notNull()
+            }
+        }
         try migrator.migrate(databaseQueue)
     }
 

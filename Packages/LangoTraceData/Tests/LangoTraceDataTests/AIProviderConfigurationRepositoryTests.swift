@@ -1,0 +1,164 @@
+import Foundation
+import GRDB
+import LangoTraceCore
+@testable import LangoTraceData
+import Testing
+
+@Test("AI provider repository saves and loads non secret default profile")
+func aiProviderRepositorySavesAndLoadsNonSecretDefaultProfile() async throws {
+    let database = try AppDatabase.inMemory()
+    let repository = GRDBAIProviderConfigurationRepository(database: database)
+    let profile = try defaultProfile()
+
+    try await repository.saveProfile(profile)
+
+    let loaded = try await repository.loadDefaultProfile()
+    let loadedPurposes = loaded?.endpoints.map(\.purpose)
+    #expect(loaded?.id == "profile-1")
+    #expect(loadedPurposes == [.textGeneration])
+    #expect(loaded?.credentials.first?.keychainAccount == "ai-provider-credential:credential-1:api_key")
+
+    let credentialColumns = try await database.databaseQueue.read { db in
+        try Row.fetchAll(db, sql: "PRAGMA table_info(ai_provider_credentials)")
+            .map { $0["name"] as String }
+    }
+    #expect(!credentialColumns.contains("api_key_plaintext"))
+    #expect(!credentialColumns.contains("api_key_ciphertext"))
+    #expect(!credentialColumns.contains("secret_hash"))
+    #expect(!credentialColumns.contains("secret_last_four"))
+}
+
+@Test("AI provider repository updates credential presence and records non secret validation events")
+func aiProviderRepositoryUpdatesCredentialPresenceAndRecordsValidationEvents() async throws {
+    let database = try AppDatabase.inMemory()
+    let repository = GRDBAIProviderConfigurationRepository(database: database)
+    let profile = try defaultProfile()
+    try await repository.saveProfile(profile)
+
+    try await repository.markCredentialState(.missing, credentialID: "credential-1")
+    let loaded = try await repository.loadDefaultProfile()
+    #expect(loaded?.credentials.first?.secretPresence == .missing)
+
+    try await repository.recordValidationEvent(
+        AIProviderValidationEvent(
+            id: "event-1",
+            profileID: "profile-1",
+            endpointID: "endpoint-1",
+            eventType: .credentialValidation,
+            status: .failed,
+            errorCategory: .missingCredential,
+            providerPresetID: "openai",
+            modelName: "gpt-5.2",
+            durationMilliseconds: 12,
+            createdAt: Date(timeIntervalSince1970: 120)
+        )
+    )
+
+    let storedEvent = try database.databaseQueue.read { db in
+        try Row.fetchOne(db, sql: "SELECT * FROM ai_provider_validation_events WHERE id = ?", arguments: ["event-1"])
+    }
+    #expect(storedEvent?["error_category"] as String? == "missing_credential")
+    #expect(storedEvent?["duration_ms"] as Int? == 12)
+}
+
+@Test("AI provider migration enforces active default purpose and Keychain uniqueness")
+func aiProviderMigrationEnforcesActiveDefaultPurposeAndKeychainUniqueness() async throws {
+    let database = try AppDatabase.inMemory()
+    let repository = GRDBAIProviderConfigurationRepository(database: database)
+    let profile = try defaultProfile()
+
+    try await repository.saveProfile(profile)
+
+    #expect(throws: DatabaseError.self) {
+        try database.databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                INSERT INTO ai_provider_profiles (
+                    id, display_name, is_default, status, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                arguments: ["profile-2", "Second", 1, "configured", 200, 200]
+            )
+        }
+    }
+
+    #expect(throws: DatabaseError.self) {
+        try database.databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                INSERT INTO ai_provider_endpoints (
+                    id, profile_id, purpose, is_enabled, provider_preset_id,
+                    adapter_kind, base_url, model_name, credential_id,
+                    supports_image_input, image_input_enabled, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                arguments: [
+                    "endpoint-2", "profile-1", "text_generation", 1, "openai",
+                    "openai_responses", "https://api.openai.com/v1", "gpt-5.2",
+                    "credential-1", 1, 0, 200, 200,
+                ]
+            )
+        }
+    }
+
+    #expect(throws: DatabaseError.self) {
+        try database.databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                INSERT INTO ai_provider_credentials (
+                    id, profile_id, provider_preset_id, kind, label,
+                    keychain_service, keychain_account, keychain_synchronizable,
+                    keychain_accessibility, secret_presence, cleanup_state,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                arguments: [
+                    "credential-2", "profile-1", "openai", "api_key", "Duplicate",
+                    "com.langotrace.ai-provider", "ai-provider-credential:credential-1:api_key",
+                    0, "when_unlocked_this_device_only", "present", "active", 200, 200,
+                ]
+            )
+        }
+    }
+}
+
+private func defaultProfile() throws -> AIProviderConfigurationProfile {
+    let now = Date(timeIntervalSince1970: 100)
+    let endpoint = try AIProviderEndpointConfiguration(
+        input: AIProviderEndpointInput(
+            id: "endpoint-1",
+            profileID: "profile-1",
+            purpose: .textGeneration,
+            isEnabled: true,
+            providerPresetID: "openai",
+            adapterKind: .openAIResponses,
+            baseURL: "https://api.openai.com/v1",
+            modelName: "gpt-5.2",
+            credentialID: "credential-1",
+            supportsImageInput: true,
+            imageInputEnabled: false
+        ),
+        createdAt: now,
+        updatedAt: now
+    )
+    let credential = AIProviderCredentialMetadata(
+        id: "credential-1",
+        profileID: "profile-1",
+        providerPresetID: "openai",
+        kind: .apiKey,
+        label: "OpenAI API Key",
+        secretPresence: .present,
+        createdAt: now,
+        updatedAt: now
+    )
+    return AIProviderConfigurationProfile(
+        id: "profile-1",
+        displayName: "Default AI Provider",
+        isDefault: true,
+        status: .configured,
+        createdAt: now,
+        updatedAt: now,
+        endpoints: [endpoint],
+        credentials: [credential]
+    )
+}
