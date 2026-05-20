@@ -51,6 +51,12 @@ public enum DiagnosticEventName: String, Codable, Sendable {
     case aiProviderConfigurationCleanupStarted = "ai_provider_configuration.cleanup_started"
     case aiProviderConfigurationCleanupSucceeded = "ai_provider_configuration.cleanup_succeeded"
     case aiProviderConfigurationCleanupFailed = "ai_provider_configuration.cleanup_failed"
+    case aiProviderConfigurationProbeStarted = "ai_provider_configuration.probe_started"
+    case aiProviderConfigurationProbeSucceeded = "ai_provider_configuration.probe_succeeded"
+    case aiProviderConfigurationProbePartial = "ai_provider_configuration.probe_partial"
+    case aiProviderConfigurationProbeFailed = "ai_provider_configuration.probe_failed"
+    case aiProviderConfigurationProbeUnsupported = "ai_provider_configuration.probe_unsupported"
+    case aiProviderConfigurationProbeCancelled = "ai_provider_configuration.probe_cancelled"
 }
 
 public enum DiagnosticDomain: String, Codable, Sendable {
@@ -84,6 +90,9 @@ public enum DiagnosticAttribute: Equatable, Sendable {
     case durationMilliseconds(Int)
     case errorCategory(String)
     case failurePhase(String)
+    case adapterKind(AIProviderAdapterKind)
+    case probeCapability(AIProviderProbeCapability)
+    case probeCapabilityStatus(AIProviderProbeCapabilityStatus)
     case platform(String)
     case appVersion(String)
     case diagnosticsMode(String)
@@ -108,6 +117,12 @@ public enum DiagnosticAttribute: Equatable, Sendable {
             "error_category"
         case .failurePhase:
             "failure_phase"
+        case .adapterKind:
+            "adapter_kind"
+        case .probeCapability:
+            "probe_capability"
+        case .probeCapabilityStatus:
+            "probe_capability_status"
         case .platform:
             "platform"
         case .appVersion:

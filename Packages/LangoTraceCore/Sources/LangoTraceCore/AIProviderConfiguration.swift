@@ -88,6 +88,89 @@ public enum AIProviderValidationErrorCategory: String, Codable, CaseIterable, Se
     case invalidEmbeddingResponse = "invalid_embedding_response"
 }
 
+public enum AIProviderProbeSource: String, Codable, Sendable {
+    case draft
+    case savedProfile = "saved_profile"
+}
+
+public enum AIProviderProbeCapability: String, Codable, CaseIterable, Sendable {
+    case textReply = "text_reply"
+    case structuredJSON = "structured_json"
+    case imageUnderstanding = "image_understanding"
+    case speechSynthesis = "speech_synthesis"
+    case embedding
+}
+
+public enum AIProviderProbeCapabilityStatus: String, Codable, Sendable {
+    case notConfigured = "not_configured"
+    case notEnabled = "not_enabled"
+    case testing
+    case succeeded
+    case failed
+    case unsupported
+    case notRun = "not_run"
+}
+
+public struct AIProviderConfigurationProbeDescriptor: Equatable, Sendable {
+    public var source: AIProviderProbeSource
+    public var requestedCapabilities: [AIProviderProbeCapability]
+    public var operationID: DiagnosticOperationID
+
+    public init(
+        source: AIProviderProbeSource,
+        requestedCapabilities: [AIProviderProbeCapability],
+        operationID: DiagnosticOperationID
+    ) {
+        self.source = source
+        self.requestedCapabilities = requestedCapabilities
+        self.operationID = operationID
+    }
+}
+
+public struct AIProviderProbeCapabilityResult: Equatable, Sendable {
+    public var capability: AIProviderProbeCapability
+    public var status: AIProviderProbeCapabilityStatus
+    public var errorCategory: AIProviderValidationErrorCategory?
+    public var durationMilliseconds: Int?
+
+    public init(
+        capability: AIProviderProbeCapability,
+        status: AIProviderProbeCapabilityStatus,
+        errorCategory: AIProviderValidationErrorCategory?,
+        durationMilliseconds: Int?
+    ) {
+        self.capability = capability
+        self.status = status
+        self.errorCategory = errorCategory
+        self.durationMilliseconds = durationMilliseconds
+    }
+}
+
+public struct AIProviderConfigurationProbeResult: Equatable, Sendable {
+    public var source: AIProviderProbeSource
+    public var overallStatus: AIProviderValidationStatus
+    public var providerPresetID: String
+    public var modelName: String
+    public var capabilities: [AIProviderProbeCapabilityResult]
+    public var persistedValidationEventID: AIProviderValidationEventID?
+
+    public init(
+        source: AIProviderProbeSource,
+        overallStatus: AIProviderValidationStatus,
+        providerPresetID: String,
+        modelName: String,
+        capabilities: [AIProviderProbeCapabilityResult],
+        persistedValidationEventID: AIProviderValidationEventID?
+    ) {
+        self.source = source
+        self.overallStatus = overallStatus
+        self.providerPresetID = providerPresetID
+        self.modelName = modelName
+        self.capabilities = capabilities
+        self.persistedValidationEventID = persistedValidationEventID
+    }
+}
+
 public struct AIProviderConfigurationProfile: Equatable, Sendable {
     public var id: AIProviderProfileID
     public var displayName: String
