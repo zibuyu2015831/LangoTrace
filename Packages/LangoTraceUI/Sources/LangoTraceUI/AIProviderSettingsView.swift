@@ -4,6 +4,9 @@ import SwiftUI
 
 struct AIProviderSettingsView: View {
     @Environment(\.aiProviderSettingsActions) private var actions
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
     @State private var draft = AIProviderDraftConfiguration(provider: .openAI)
     @State private var transientSaveStatusClearTask: Task<Void, Never>?
     @State private var transientTestStatusClearTask: Task<Void, Never>?
@@ -42,10 +45,16 @@ struct AIProviderSettingsView: View {
                 onRetry: validateConfiguration,
                 onClose: { isProbeResultPresented = false }
             )
-            #if os(iOS)
-                .presentationDetents([.medium, .large])
-            #endif
+            .aiProviderProbePresentationDetents(compactWidth: isCompactWidth)
         }
+    }
+
+    private var isCompactWidth: Bool {
+        #if os(iOS)
+        horizontalSizeClass == .compact
+        #else
+        false
+        #endif
     }
 
     private var textModelSection: some View {
@@ -132,6 +141,21 @@ struct AIProviderSettingsView: View {
         .padding(.vertical, 10)
         .background(LangoTraceDesign.ColorToken.surfaceMuted)
         .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func aiProviderProbePresentationDetents(compactWidth: Bool) -> some View {
+        #if os(iOS)
+        if compactWidth {
+            presentationDetents([.medium, .large])
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
     }
 }
 

@@ -147,6 +147,8 @@ struct AIProviderSettingsTests {
         #expect(source.contains("makeTextProbeDraftSnapshot"))
         #expect(source.contains("AIProviderProbeResultPanelContent"))
         #expect(source.contains(".sheet(isPresented: $isProbeResultPresented)"))
+        #expect(source.contains("aiProviderProbePresentationDetents(compactWidth: isCompactWidth)"))
+        #expect(source.contains("horizontalSizeClass == .compact"))
         #expect(!source.contains("actions.validateDefaultProfileCredentials"))
         #expect(!source.contains("URLSession"))
         #expect(!source.contains("dataTask"))
