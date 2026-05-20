@@ -89,12 +89,11 @@ public struct AIProviderConfigurationProbeService: Sendable {
             ]
         )
 
-        let result: AIProviderConfigurationProbeResult
-        switch endpoint.adapterKind {
+        let result: AIProviderConfigurationProbeResult = switch endpoint.adapterKind {
         case .openAICompatibleChat, .openAIResponses:
-            result = await runTextProbes(source: source, endpoint: endpoint, secret: plaintextSecret)
+            await runTextProbes(source: source, endpoint: endpoint, secret: plaintextSecret)
         case .anthropicMessages, .geminiGenerateContent:
-            result = unsupportedResult(source: source, endpoint: endpoint)
+            unsupportedResult(source: source, endpoint: endpoint)
         }
 
         await recordCompletion(result, endpoint: endpoint, operationID: operationID)
@@ -411,7 +410,7 @@ private extension AIProviderConfigurationProbeService {
     }
 
     func durationMilliseconds(since start: Date) -> Int {
-        max(0, Int(clock().timeIntervalSince(start) * 1_000))
+        max(0, Int(clock().timeIntervalSince(start) * 1000))
     }
 
     func recordCompletion(
@@ -422,8 +421,9 @@ private extension AIProviderConfigurationProbeService {
         let name: DiagnosticEventName
         let outcome: DiagnosticOutcome
         let level: DiagnosticLevel
-        if result.capabilities.contains(where: { $0.status == .unsupported }) &&
-            !result.capabilities.contains(where: { $0.status == .succeeded }) {
+        if result.capabilities.contains(where: { $0.status == .unsupported }),
+           !result.capabilities.contains(where: { $0.status == .succeeded })
+        {
             name = .aiProviderConfigurationProbeUnsupported
             outcome = .failed
             level = .warning

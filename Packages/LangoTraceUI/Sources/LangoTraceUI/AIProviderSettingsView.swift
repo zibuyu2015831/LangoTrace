@@ -5,7 +5,7 @@ import SwiftUI
 struct AIProviderSettingsView: View {
     @Environment(\.aiProviderSettingsActions) private var actions
     #if os(iOS)
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+        @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
     @State private var draft = AIProviderDraftConfiguration(provider: .openAI)
     @State private var transientSaveStatusClearTask: Task<Void, Never>?
@@ -51,9 +51,9 @@ struct AIProviderSettingsView: View {
 
     private var isCompactWidth: Bool {
         #if os(iOS)
-        horizontalSizeClass == .compact
+            horizontalSizeClass == .compact
         #else
-        false
+            false
         #endif
     }
 
@@ -148,13 +148,13 @@ private extension View {
     @ViewBuilder
     func aiProviderProbePresentationDetents(compactWidth: Bool) -> some View {
         #if os(iOS)
-        if compactWidth {
-            presentationDetents([.medium, .large])
-        } else {
-            self
-        }
+            if compactWidth {
+                presentationDetents([.medium, .large])
+            } else {
+                self
+            }
         #else
-        self
+            self
         #endif
     }
 }
@@ -402,8 +402,9 @@ private extension AIProviderSettingsView {
         if result.overallStatus == .succeeded {
             return .succeeded(result)
         }
-        if result.capabilities.contains(where: { $0.status == .unsupported }) &&
-            !result.capabilities.contains(where: { $0.status == .succeeded }) {
+        if result.capabilities.contains(where: { $0.status == .unsupported }),
+           !result.capabilities.contains(where: { $0.status == .succeeded })
+        {
             return .unsupportedProvider(result)
         }
         if result.capabilities.contains(where: { $0.status == .succeeded }) {

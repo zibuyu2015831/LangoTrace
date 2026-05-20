@@ -1,5 +1,5 @@
-import SwiftUI
 import LangoTraceCore
+import SwiftUI
 
 struct AIProviderProbeResultPanelContent: View {
     let result: AIProviderConfigurationProbeResult?

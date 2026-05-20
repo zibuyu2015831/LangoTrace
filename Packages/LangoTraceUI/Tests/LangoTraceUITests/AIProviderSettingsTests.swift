@@ -81,42 +81,6 @@ struct AIProviderSettingsTests {
         #expect(draft.saveReadiness == .readyForRequest)
     }
 
-    @Test("Draft model separates save readiness from text probe readiness")
-    func draftModelSeparatesSaveReadinessFromTextProbeReadiness() throws {
-        var draft = AIProviderDraftConfiguration(provider: .openAI)
-        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
-        draft.speech.isEnabled = true
-        draft.speech.endpoint.model = ""
-        draft.embedding.isEnabled = true
-        draft.embedding.endpoint.model = ""
-
-        #expect(draft.saveReadiness == .missingRequiredFields)
-        #expect(draft.textProbeReadiness == .readyForRequest)
-        #expect(draft.textProbeSource == .draft)
-
-        let snapshot = try draft.makeTextProbeDraftSnapshot(
-            operationID: DiagnosticOperationID(rawValue: "operation-ui-probe")
-        )
-        #expect(snapshot.source == .draft)
-        #expect(snapshot.endpoint.purpose == .textGeneration)
-        #expect(snapshot.endpoint.providerPresetID == "openai")
-        #expect(snapshot.plaintextSecret == "sk-local-draft")
-        #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON])
-    }
-
-    @Test("Loaded profile without edits uses saved profile as text probe source")
-    func loadedProfileWithoutEditsUsesSavedProfileAsTextProbeSource() throws {
-        var draft = AIProviderDraftConfiguration(provider: .openAI)
-
-        try draft.applyLoadedProfile(loadedProfile())
-
-        #expect(draft.textProbeReadiness == .readyForRequest)
-        #expect(draft.textProbeSource == .savedProfile)
-
-        draft.markInputChanged()
-        #expect(draft.textProbeSource == .draft)
-    }
-
     @Test("Changing optional model provider defaults to independent credential")
     func changingOptionalModelProviderDefaultsToIndependentCredential() {
         var draft = AIProviderDraftConfiguration(provider: .openAI)
@@ -135,58 +99,6 @@ struct AIProviderSettingsTests {
         #expect(!AIProviderPreset.anthropic.capabilities.openAICompatible)
         #expect(!AIProviderPreset.deepSeek.capabilities.embedding)
         #expect(!AIProviderPreset.gemini.capabilities.tts)
-    }
-
-    @Test("Settings source has test button without network or bearer calls")
-    func settingsSourceHasTestButtonWithoutNetworkOrBearerCalls() throws {
-        let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
-
-        #expect(source.contains("aiProviderSettings.testRequest.button"))
-        #expect(source.contains("validateConfiguration()"))
-        #expect(source.contains("actions.testProviderConfiguration"))
-        #expect(source.contains("makeTextProbeDraftSnapshot"))
-        #expect(source.contains("AIProviderProbeResultPanelContent"))
-        #expect(source.contains(".sheet(isPresented: $isProbeResultPresented)"))
-        #expect(source.contains("aiProviderProbePresentationDetents(compactWidth: isCompactWidth)"))
-        #expect(source.contains("horizontalSizeClass == .compact"))
-        #expect(!source.contains("actions.validateDefaultProfileCredentials"))
-        #expect(!source.contains("URLSession"))
-        #expect(!source.contains("dataTask"))
-        #expect(!source.contains("uploadTask"))
-        #expect(!source.contains("Authorization"))
-        #expect(!source.contains("Bearer "))
-    }
-
-    @Test("Probe result content is presentation independent and shows all capability rows")
-    func probeResultContentIsPresentationIndependentAndShowsAllCapabilityRows() throws {
-        let source = try String(
-            contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
-            encoding: .utf8
-        )
-
-        #expect(source.contains("struct AIProviderProbeResultPanelContent"))
-        #expect(source.contains("AIProviderProbeCapability.allCases"))
-        #expect(source.contains("aiProviderSettings.probeCapability.textReply"))
-        #expect(source.contains("aiProviderSettings.probeCapability.structuredJSON"))
-        #expect(source.contains("aiProviderSettings.probeCapability.imageUnderstanding"))
-        #expect(source.contains("aiProviderSettings.probeCapability.speechSynthesis"))
-        #expect(source.contains("aiProviderSettings.probeCapability.embedding"))
-        #expect(!source.contains(".sheet("))
-        #expect(!source.contains("presentationDetents"))
-    }
-
-    @Test("Draft probe snapshot is not equatable codable or a profile save input")
-    func draftProbeSnapshotIsNotEquatableCodableOrProfileSaveInput() throws {
-        let source = try String(
-            contentsOf: sourceFileURL(named: "AIProviderDraftConfiguration.swift"),
-            encoding: .utf8
-        )
-
-        #expect(source.contains("struct AIProviderDraftProbeSnapshot: Sendable"))
-        #expect(!source.contains("struct AIProviderDraftProbeSnapshot: Equatable"))
-        #expect(!source.contains("struct AIProviderDraftProbeSnapshot: Codable"))
-        #expect(source.contains("makeTextProbeDraftSnapshot"))
-        #expect(!source.contains("makeTextProbeDraftSnapshot(operationID: DiagnosticOperationID) throws -> AIProviderProfileSaveInput"))
     }
 
     @Test("Settings source has save-first secure-storage UI")

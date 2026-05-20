@@ -13,7 +13,7 @@ func openAICompatibleChatProbeBuildsRequestsAndMapsSuccess() async throws {
     let service = AIProviderConfigurationProbeService(
         httpClient: httpClient,
         diagnosticLogger: logger,
-        clock: { Date(timeIntervalSince1970: 1_000) }
+        clock: { Date(timeIntervalSince1970: 1000) }
     )
 
     let result = try await service.probeDraftConfiguration(
