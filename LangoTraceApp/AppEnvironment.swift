@@ -109,7 +109,8 @@ private func makeDiagnosticLogger(
     }
 
     if environment["LANGOTRACE_DIAGNOSTIC_STORE"] == "1",
-       let repository = try? GRDBDiagnosticEventRepository(database: databaseFactory.database()) {
+       let repository = try? GRDBDiagnosticEventRepository(database: databaseFactory.database())
+    {
         loggers.append(RepositoryDiagnosticLogger(repository: repository))
     }
 

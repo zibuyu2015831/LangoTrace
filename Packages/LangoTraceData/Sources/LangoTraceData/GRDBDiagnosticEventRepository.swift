@@ -25,7 +25,7 @@ public struct GRDBDiagnosticEventRepository: DiagnosticEventRepository, @uncheck
                     event.level.rawValue,
                     event.outcome?.rawValue,
                     operationID(in: event.attributes)?.rawValue,
-                    try attributesJSON(from: event.attributes),
+                    attributesJSON(from: event.attributes),
                     event.createdAt.timeIntervalSince1970,
                 ]
             )
@@ -81,13 +81,13 @@ public struct GRDBDiagnosticEventRepository: DiagnosticEventRepository, @uncheck
 
 private extension GRDBDiagnosticEventRepository {
     func event(from row: Row) throws -> DiagnosticEvent {
-        DiagnosticEvent(
+        try DiagnosticEvent(
             id: row["id"],
             name: DiagnosticEventName(rawValue: row["name"] as String) ?? .aiProviderSettingsSaveFailed,
             domain: DiagnosticDomain(rawValue: row["domain"] as String) ?? .appLifecycle,
             level: DiagnosticLevel(rawValue: row["level"] as String) ?? .info,
             outcome: (row["outcome"] as String?).flatMap(DiagnosticOutcome.init(rawValue:)),
-            attributes: try attributes(from: row["attributes_json"]),
+            attributes: attributes(from: row["attributes_json"]),
             createdAt: Date(timeIntervalSince1970: row["created_at"])
         )
     }
