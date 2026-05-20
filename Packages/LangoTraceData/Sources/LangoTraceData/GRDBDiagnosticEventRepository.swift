@@ -154,6 +154,12 @@ private extension GRDBDiagnosticEventRepository {
             .errorCategory(value)
         case "failure_phase":
             .failurePhase(value)
+        case "adapter_kind":
+            AIProviderAdapterKind(rawValue: value).map(DiagnosticAttribute.adapterKind)
+        case "probe_capability":
+            AIProviderProbeCapability(rawValue: value).map(DiagnosticAttribute.probeCapability)
+        case "probe_capability_status":
+            AIProviderProbeCapabilityStatus(rawValue: value).map(DiagnosticAttribute.probeCapabilityStatus)
         case "platform":
             .platform(value)
         case "app_version":
@@ -184,6 +190,12 @@ private extension GRDBDiagnosticEventRepository {
              let .appVersion(value),
              let .diagnosticsMode(value):
             value
+        case let .adapterKind(value):
+            value.rawValue
+        case let .probeCapability(value):
+            value.rawValue
+        case let .probeCapabilityStatus(value):
+            value.rawValue
         }
     }
 

@@ -61,6 +61,39 @@ func aiProviderRepositoryUpdatesCredentialPresenceAndRecordsValidationEvents() a
     #expect(storedEvent?["duration_ms"] as Int? == 12)
 }
 
+@Test("AI provider repository records synthetic validation outcome and updates profile summary")
+func aiProviderRepositoryRecordsSyntheticValidationOutcomeAndUpdatesProfileSummary() async throws {
+    let database = try AppDatabase.inMemory()
+    let repository = GRDBAIProviderConfigurationRepository(database: database)
+    let profile = try defaultProfile()
+    try await repository.saveProfile(profile)
+
+    try await repository.recordValidationOutcome(
+        AIProviderValidationEvent(
+            id: "event-synthetic-1",
+            profileID: "profile-1",
+            endpointID: "endpoint-1",
+            eventType: .syntheticTest,
+            status: .failed,
+            errorCategory: .invalidResponse,
+            providerPresetID: "openai",
+            modelName: "gpt-5.2",
+            durationMilliseconds: 44,
+            createdAt: Date(timeIntervalSince1970: 180)
+        )
+    )
+
+    let loaded = try await repository.loadDefaultProfile()
+    #expect(loaded?.lastValidatedAt == Date(timeIntervalSince1970: 180))
+    #expect(loaded?.lastValidationStatus == .failed)
+
+    let storedEvent = try database.databaseQueue.read { db in
+        try Row.fetchOne(db, sql: "SELECT * FROM ai_provider_validation_events WHERE id = ?", arguments: ["event-synthetic-1"])
+    }
+    #expect(storedEvent?["event_type"] as String? == "synthetic_test")
+    #expect(storedEvent?["error_category"] as String? == "invalid_response")
+}
+
 @Test("AI provider migration enforces active default purpose and Keychain uniqueness")
 func aiProviderMigrationEnforcesActiveDefaultPurposeAndKeychainUniqueness() async throws {
     let database = try AppDatabase.inMemory()

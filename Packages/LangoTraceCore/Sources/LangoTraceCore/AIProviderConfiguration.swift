@@ -510,6 +510,13 @@ public protocol AIProviderConfigurationRepository: Sendable {
         credentialID: AIProviderCredentialID
     ) async throws
     func recordValidationEvent(_ event: AIProviderValidationEvent) async throws
+    func recordValidationOutcome(_ event: AIProviderValidationEvent) async throws
+}
+
+public extension AIProviderConfigurationRepository {
+    func recordValidationOutcome(_ event: AIProviderValidationEvent) async throws {
+        try await recordValidationEvent(event)
+    }
 }
 
 private extension AIProviderEndpointInput {

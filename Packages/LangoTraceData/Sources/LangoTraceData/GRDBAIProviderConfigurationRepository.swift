@@ -88,24 +88,24 @@ public struct GRDBAIProviderConfigurationRepository: AIProviderConfigurationRepo
 
     public func recordValidationEvent(_ event: AIProviderValidationEvent) async throws {
         try await databaseQueue.write { db in
+            try insert(event, db: db)
+        }
+    }
+
+    public func recordValidationOutcome(_ event: AIProviderValidationEvent) async throws {
+        try await databaseQueue.write { db in
+            try insert(event, db: db)
             try db.execute(
                 sql: """
-                INSERT INTO ai_provider_validation_events (
-                    id, profile_id, endpoint_id, event_type, status, error_category,
-                    provider_preset_id, model_name, duration_ms, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                UPDATE ai_provider_profiles
+                SET last_validated_at = ?, last_validation_status = ?, updated_at = ?
+                WHERE id = ? AND deleted_at IS NULL
                 """,
                 arguments: [
-                    event.id,
-                    event.profileID,
-                    event.endpointID,
-                    event.eventType.rawValue,
-                    event.status.rawValue,
-                    event.errorCategory?.rawValue,
-                    event.providerPresetID,
-                    event.modelName,
-                    event.durationMilliseconds,
                     event.createdAt.timeIntervalSince1970,
+                    event.status.rawValue,
+                    event.createdAt.timeIntervalSince1970,
+                    event.profileID,
                 ]
             )
         }
@@ -113,6 +113,29 @@ public struct GRDBAIProviderConfigurationRepository: AIProviderConfigurationRepo
 }
 
 private extension GRDBAIProviderConfigurationRepository {
+    func insert(_ event: AIProviderValidationEvent, db: Database) throws {
+        try db.execute(
+            sql: """
+            INSERT INTO ai_provider_validation_events (
+                id, profile_id, endpoint_id, event_type, status, error_category,
+                provider_preset_id, model_name, duration_ms, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            arguments: [
+                event.id,
+                event.profileID,
+                event.endpointID,
+                event.eventType.rawValue,
+                event.status.rawValue,
+                event.errorCategory?.rawValue,
+                event.providerPresetID,
+                event.modelName,
+                event.durationMilliseconds,
+                event.createdAt.timeIntervalSince1970,
+            ]
+        )
+    }
+
     func upsert(_ profile: AIProviderConfigurationProfile, db: Database) throws {
         try db.execute(
             sql: """

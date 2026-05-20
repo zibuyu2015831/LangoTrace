@@ -184,6 +184,79 @@ func configurationServiceRecordsMissingKeychainCredentialsAsNonSecretValidationE
     #expect(await repository.recordedValidationEvents.first?.errorCategory == .missingCredential)
 }
 
+@Test("Configuration service tests saved text endpoint through Keychain and records synthetic outcome")
+func configurationServiceTestsSavedTextEndpointThroughKeychainAndRecordsSyntheticOutcome() async throws {
+    let repository = try StubAIProviderConfigurationRepository(profile: savedProfile())
+    let store = TrackingAIProviderCredentialStore()
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"OK"}]}]}"#),
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"{\"ok\":true}"}]}]}"#),
+    ])
+    let probeService = AIProviderConfigurationProbeService(httpClient: httpClient)
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: probeService,
+        clock: { Date(timeIntervalSince1970: 220) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let result = try await service.testDefaultTextEndpoint(
+        operationID: DiagnosticOperationID(rawValue: "operation-saved-probe")
+    )
+
+    #expect(result.source == .savedProfile)
+    #expect(result.overallStatus == .succeeded)
+    #expect(result.persistedValidationEventID == "id-1")
+    #expect(await store.resolvedAccounts == ["ai-provider-credential:credential-1:api_key"])
+    #expect(await repository.recordedValidationOutcomes.first?.eventType == .syntheticTest)
+    #expect(await repository.recordedValidationOutcomes.first?.status == .succeeded)
+    #expect(await repository.recordedValidationOutcomes.first?.createdAt == Date(timeIntervalSince1970: 220))
+}
+
+@Test("Configuration service draft text endpoint probe does not write Keychain or validation event")
+func configurationServiceDraftTextEndpointProbeDoesNotWriteKeychainOrValidationEvent() async throws {
+    let repository = StubAIProviderConfigurationRepository(profile: nil)
+    let store = TrackingAIProviderCredentialStore()
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"choices":[{"message":{"content":"OK"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"{\"ok\":true}"}}]}"#),
+    ])
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: AIProviderConfigurationProbeService(httpClient: httpClient)
+    )
+
+    let result = try await service.testDraftTextEndpoint(
+        AIProviderConfigurationProbeDraftInput(
+            endpoint: AIProviderEndpointInput(
+                id: "draft-endpoint",
+                profileID: "draft-profile",
+                purpose: .textGeneration,
+                isEnabled: true,
+                providerPresetID: "custom-openai-compatible",
+                adapterKind: .openAICompatibleChat,
+                baseURL: "https://api.example.com/v1",
+                modelName: "model",
+                credentialID: "draft-credential",
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+            plaintextSecret: "draft-secret",
+            operationID: DiagnosticOperationID(rawValue: "operation-draft-probe")
+        )
+    )
+
+    #expect(result.source == .draft)
+    #expect(result.overallStatus == .succeeded)
+    #expect(result.persistedValidationEventID == nil)
+    #expect(await store.upsertedAccounts.isEmpty)
+    #expect(await store.resolvedAccounts.isEmpty)
+    #expect(await repository.recordedValidationEvents.isEmpty)
+    #expect(await repository.recordedValidationOutcomes.isEmpty)
+}
+
 private struct StubAIProviderConfigurationRepository: AIProviderConfigurationRepository {
     var profile: AIProviderConfigurationProfile?
     var saveError: (any Error)?
@@ -228,12 +301,23 @@ private struct StubAIProviderConfigurationRepository: AIProviderConfigurationRep
             await storage.recordedValidationEvents
         }
     }
+
+    func recordValidationOutcome(_ event: AIProviderValidationEvent) async throws {
+        await storage.appendValidationOutcome(event)
+    }
+
+    var recordedValidationOutcomes: [AIProviderValidationEvent] {
+        get async {
+            await storage.recordedValidationOutcomes
+        }
+    }
 }
 
 private actor RepositoryStorage {
     var savedProfile: AIProviderConfigurationProfile?
     var markedCredentialStates: [AIProviderSecretPresence] = []
     var recordedValidationEvents: [AIProviderValidationEvent] = []
+    var recordedValidationOutcomes: [AIProviderValidationEvent] = []
 
     func setSavedProfile(_ profile: AIProviderConfigurationProfile) {
         savedProfile = profile
@@ -245,6 +329,35 @@ private actor RepositoryStorage {
 
     func appendValidationEvent(_ event: AIProviderValidationEvent) {
         recordedValidationEvents.append(event)
+    }
+
+    func appendValidationOutcome(_ event: AIProviderValidationEvent) {
+        recordedValidationOutcomes.append(event)
+    }
+}
+
+private actor CapturingProbeHTTPClient: AIProviderProbeHTTPClient {
+    private var responses: [Response]
+
+    init(responses: [Response]) {
+        self.responses = responses
+    }
+
+    func send(_: URLRequest) async throws -> AIProviderProbeHTTPResponse {
+        guard !responses.isEmpty else {
+            throw AIProviderProbeHTTPClientError.transportUnavailable
+        }
+        let response = responses.removeFirst()
+        return AIProviderProbeHTTPResponse(statusCode: response.statusCode, body: response.body)
+    }
+
+    struct Response {
+        var statusCode: Int
+        var body: Data
+
+        static func json(_ value: String) -> Response {
+            Response(statusCode: 200, body: Data(value.utf8))
+        }
     }
 }
 

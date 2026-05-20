@@ -17,6 +17,22 @@ public struct AIProviderConfigurationProbeDraftInput {
     }
 }
 
+public struct AIProviderConfigurationProbeSavedInput {
+    public var endpoint: AIProviderEndpointInput
+    public var plaintextSecret: String?
+    public var operationID: DiagnosticOperationID
+
+    public init(
+        endpoint: AIProviderEndpointInput,
+        plaintextSecret: String?,
+        operationID: DiagnosticOperationID
+    ) {
+        self.endpoint = endpoint
+        self.plaintextSecret = plaintextSecret
+        self.operationID = operationID
+    }
+}
+
 public struct AIProviderConfigurationProbeService: Sendable {
     private let httpClient: any AIProviderProbeHTTPClient
     private let diagnosticLogger: any DiagnosticLogging
@@ -35,12 +51,37 @@ public struct AIProviderConfigurationProbeService: Sendable {
     public func probeDraftConfiguration(
         _ input: AIProviderConfigurationProbeDraftInput
     ) async throws -> AIProviderConfigurationProbeResult {
-        let endpoint = try input.endpoint.normalized()
+        try await probeConfiguration(
+            source: .draft,
+            endpoint: input.endpoint,
+            plaintextSecret: input.plaintextSecret,
+            operationID: input.operationID
+        )
+    }
+
+    public func probeSavedConfiguration(
+        _ input: AIProviderConfigurationProbeSavedInput
+    ) async throws -> AIProviderConfigurationProbeResult {
+        try await probeConfiguration(
+            source: .savedProfile,
+            endpoint: input.endpoint,
+            plaintextSecret: input.plaintextSecret,
+            operationID: input.operationID
+        )
+    }
+
+    private func probeConfiguration(
+        source: AIProviderProbeSource,
+        endpoint inputEndpoint: AIProviderEndpointInput,
+        plaintextSecret: String?,
+        operationID: DiagnosticOperationID
+    ) async throws -> AIProviderConfigurationProbeResult {
+        let endpoint = try inputEndpoint.normalized()
         await record(
             .aiProviderConfigurationProbeStarted,
             outcome: .started,
             level: .info,
-            operationID: input.operationID,
+            operationID: operationID,
             endpoint: endpoint,
             attributes: [
                 .probeCapability(.textReply),
@@ -51,12 +92,12 @@ public struct AIProviderConfigurationProbeService: Sendable {
         let result: AIProviderConfigurationProbeResult
         switch endpoint.adapterKind {
         case .openAICompatibleChat, .openAIResponses:
-            result = await runTextProbes(endpoint: endpoint, secret: input.plaintextSecret)
+            result = await runTextProbes(source: source, endpoint: endpoint, secret: plaintextSecret)
         case .anthropicMessages, .geminiGenerateContent:
-            result = unsupportedResult(endpoint: endpoint)
+            result = unsupportedResult(source: source, endpoint: endpoint)
         }
 
-        await recordCompletion(result, endpoint: endpoint, operationID: input.operationID)
+        await recordCompletion(result, endpoint: endpoint, operationID: operationID)
         return result
     }
 }
@@ -86,11 +127,13 @@ private extension AIProviderConfigurationProbeService {
     }
 
     func runTextProbes(
+        source: AIProviderProbeSource,
         endpoint: AIProviderEndpointInput,
         secret: String?
     ) async -> AIProviderConfigurationProbeResult {
         if endpointRequiresCredential(endpoint), secret?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
             return result(
+                source: source,
                 endpoint: endpoint,
                 textStatus: .failed,
                 textError: .missingCredential,
@@ -102,6 +145,7 @@ private extension AIProviderConfigurationProbeService {
         let textResult = await runProbe(.textReply, endpoint: endpoint, secret: secret)
         guard textResult.status == .succeeded else {
             return result(
+                source: source,
                 endpoint: endpoint,
                 textStatus: textResult.status,
                 textError: textResult.errorCategory,
@@ -113,6 +157,7 @@ private extension AIProviderConfigurationProbeService {
 
         let jsonResult = await runProbe(.structuredJSON, endpoint: endpoint, secret: secret)
         return result(
+            source: source,
             endpoint: endpoint,
             textStatus: textResult.status,
             textError: textResult.errorCategory,
@@ -282,6 +327,7 @@ private extension AIProviderConfigurationProbeService {
     }
 
     func result(
+        source: AIProviderProbeSource,
         endpoint: AIProviderEndpointInput,
         textStatus: AIProviderProbeCapabilityStatus,
         textError: AIProviderValidationErrorCategory?,
@@ -292,7 +338,7 @@ private extension AIProviderConfigurationProbeService {
     ) -> AIProviderConfigurationProbeResult {
         let overallStatus: AIProviderValidationStatus = textStatus == .succeeded && jsonStatus == .succeeded ? .succeeded : .failed
         return AIProviderConfigurationProbeResult(
-            source: .draft,
+            source: source,
             overallStatus: overallStatus,
             providerPresetID: endpoint.providerPresetID,
             modelName: endpoint.modelName,
@@ -332,9 +378,9 @@ private extension AIProviderConfigurationProbeService {
         )
     }
 
-    func unsupportedResult(endpoint: AIProviderEndpointInput) -> AIProviderConfigurationProbeResult {
+    func unsupportedResult(source: AIProviderProbeSource, endpoint: AIProviderEndpointInput) -> AIProviderConfigurationProbeResult {
         AIProviderConfigurationProbeResult(
-            source: .draft,
+            source: source,
             overallStatus: .failed,
             providerPresetID: endpoint.providerPresetID,
             modelName: endpoint.modelName,

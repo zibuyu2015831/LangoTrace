@@ -4,6 +4,7 @@ import LangoTraceCore
 public struct AIProviderConfigurationService: Sendable {
     private let repository: any AIProviderConfigurationRepository
     private let credentialStore: (any AIProviderCredentialStore)?
+    private let configurationProbeService: AIProviderConfigurationProbeService?
     private let diagnosticLogger: any DiagnosticLogging
     private let clock: @Sendable () -> Date
     private let idGenerator: @Sendable () -> String
@@ -11,6 +12,7 @@ public struct AIProviderConfigurationService: Sendable {
     public init(repository: any AIProviderConfigurationRepository) {
         self.repository = repository
         credentialStore = nil
+        configurationProbeService = nil
         diagnosticLogger = DisabledDiagnosticLogger()
         clock = Date.init
         idGenerator = { UUID().uuidString }
@@ -19,12 +21,14 @@ public struct AIProviderConfigurationService: Sendable {
     public init(
         repository: any AIProviderConfigurationRepository,
         credentialStore: any AIProviderCredentialStore,
+        configurationProbeService: AIProviderConfigurationProbeService? = nil,
         diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
     ) {
         self.repository = repository
         self.credentialStore = credentialStore
+        self.configurationProbeService = configurationProbeService
         self.diagnosticLogger = diagnosticLogger
         self.clock = clock
         self.idGenerator = idGenerator
@@ -149,6 +153,85 @@ public struct AIProviderConfigurationService: Sendable {
 
         return didFail ? .failed : .succeeded
     }
+
+    public func testDraftTextEndpoint(
+        _ input: AIProviderConfigurationProbeDraftInput
+    ) async throws -> AIProviderConfigurationProbeResult {
+        guard let configurationProbeService else {
+            throw AIProviderConfigurationError.unsupportedCapabilityForProvider
+        }
+        return try await configurationProbeService.probeDraftConfiguration(input)
+    }
+
+    public func testDefaultTextEndpoint(
+        operationID: DiagnosticOperationID = DiagnosticOperationID(rawValue: UUID().uuidString)
+    ) async throws -> AIProviderConfigurationProbeResult {
+        guard let credentialStore else {
+            throw AIProviderConfigurationError.keychainWriteFailed
+        }
+        guard let configurationProbeService else {
+            throw AIProviderConfigurationError.unsupportedCapabilityForProvider
+        }
+        guard let profile = try await repository.loadDefaultProfile(),
+              let endpoint = profile.endpoints.first(where: { $0.purpose == .textGeneration && $0.isEnabled })
+        else {
+            throw AIProviderConfigurationError.missingRequiredEndpointField
+        }
+
+        let credentialsByID = Dictionary(uniqueKeysWithValues: profile.credentials.map { ($0.id, $0) })
+        let resolvedSecret: String?
+        if endpoint.providerPresetID == "ollama-local" {
+            resolvedSecret = nil
+        } else {
+            guard let credentialID = endpoint.credentialID,
+                  let credential = credentialsByID[credentialID]
+            else {
+                resolvedSecret = nil
+                let result = missingSavedCredentialResult(endpoint: endpoint)
+                return try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
+            }
+            let secret = try await credentialStore.resolveSecret(
+                for: AIProviderCredentialKeychainReference(metadata: credential)
+            )
+            resolvedSecret = secret.value
+        }
+
+        let result = try await configurationProbeService.probeSavedConfiguration(
+            AIProviderConfigurationProbeSavedInput(
+                endpoint: AIProviderEndpointInput(
+                    id: endpoint.id,
+                    profileID: endpoint.profileID,
+                    purpose: endpoint.purpose,
+                    isEnabled: endpoint.isEnabled,
+                    providerPresetID: endpoint.providerPresetID,
+                    adapterKind: endpoint.adapterKind,
+                    baseURL: endpoint.baseURL,
+                    modelName: endpoint.modelName,
+                    credentialID: endpoint.credentialID,
+                    supportsImageInput: endpoint.supportsImageInput,
+                    imageInputEnabled: endpoint.imageInputEnabled,
+                    requestTimeoutSeconds: endpoint.requestTimeoutSeconds
+                ),
+                plaintextSecret: resolvedSecret,
+                operationID: operationID
+            )
+        )
+        return try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
+    }
+}
+
+private extension AIProviderConfigurationProbeResult {
+    var firstFailureCategory: AIProviderValidationErrorCategory? {
+        capabilities.first { $0.errorCategory != nil }?.errorCategory
+    }
+
+    var totalDurationMilliseconds: Int? {
+        let durations = capabilities.compactMap(\.durationMilliseconds)
+        guard !durations.isEmpty else {
+            return nil
+        }
+        return durations.reduce(0, +)
+    }
 }
 
 private extension AIProviderConfigurationService {
@@ -156,6 +239,47 @@ private extension AIProviderConfigurationService {
         var status: AIProviderValidationStatus
         var secretPresence: AIProviderSecretPresence
         var errorCategory: AIProviderValidationErrorCategory?
+    }
+
+    func persistSyntheticProbeResult(
+        _ result: AIProviderConfigurationProbeResult,
+        profileID: AIProviderProfileID,
+        endpointID: AIProviderEndpointID
+    ) async throws -> AIProviderConfigurationProbeResult {
+        let eventID = idGenerator()
+        let event = AIProviderValidationEvent(
+            id: eventID,
+            profileID: profileID,
+            endpointID: endpointID,
+            eventType: .syntheticTest,
+            status: result.overallStatus,
+            errorCategory: result.firstFailureCategory,
+            providerPresetID: result.providerPresetID,
+            modelName: result.modelName,
+            durationMilliseconds: result.totalDurationMilliseconds,
+            createdAt: clock()
+        )
+        try await repository.recordValidationOutcome(event)
+        var persisted = result
+        persisted.persistedValidationEventID = eventID
+        return persisted
+    }
+
+    func missingSavedCredentialResult(endpoint: AIProviderEndpointConfiguration) -> AIProviderConfigurationProbeResult {
+        AIProviderConfigurationProbeResult(
+            source: .savedProfile,
+            overallStatus: .failed,
+            providerPresetID: endpoint.providerPresetID,
+            modelName: endpoint.modelName,
+            capabilities: [
+                .init(capability: .textReply, status: .failed, errorCategory: .missingCredential, durationMilliseconds: nil),
+                .init(capability: .structuredJSON, status: .notRun, errorCategory: nil, durationMilliseconds: nil),
+                .init(capability: .imageUnderstanding, status: .unsupported, errorCategory: .unsupportedEndpointPurpose, durationMilliseconds: nil),
+                .init(capability: .speechSynthesis, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+                .init(capability: .embedding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+            ],
+            persistedValidationEventID: nil
+        )
     }
 
     func makeProfile(
