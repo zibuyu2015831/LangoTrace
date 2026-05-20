@@ -4,7 +4,7 @@
 日期：2026-05-20
 代码快照：e3c976f77e721cd5a3e10c62e5d4986f6b1cf580
 状态：Verified
-当前事实源：`docs/plans/active/2026-05-20-feature-diagnostics-and-ai-provider-save-feedback.md`
+当前事实源：`docs/plans/done/2026-05-20-feature-diagnostics-and-ai-provider-save-feedback.md`
 后续覆盖记录：none
 可作为依据：Yes
 

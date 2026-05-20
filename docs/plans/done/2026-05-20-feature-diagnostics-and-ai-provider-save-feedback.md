@@ -1,6 +1,6 @@
 # 任务方案：AI Provider 保存反馈与本地诊断日志基础设施
 
-状态：In Progress
+状态：Done
 类型：feature
 创建日期：2026-05-20
 最后更新日期：2026-05-20
@@ -660,6 +660,8 @@ rg -n "ProcessInfo|processInfo\\.environment|LANGOTRACE_" Packages/LangoTraceCor
 - 2026-05-20：阶段 4 已提交 `de541b2`。落地 UI saving / saved / failed 状态、按钮内 `ProgressView`、独立本地化文案、App Shell logger 装配和 iOS build 验证。
 - 2026-05-20：阶段 4 复查补丁已提交 `e3c976f`。补齐 `save_input_invalid` 事件边界：输入无效先回到 missing required fields 并记录独立诊断，不污染真实保存失败路径。
 - 2026-05-20：阶段 5 更新长期规范和验证脚本。已更新 UI 操作反馈、SwiftUI 异步保存边界、AI Provider 保存诊断、权限与诊断日志隐私边界、测试验证入口、模块边界和 `scripts/verify.sh` 的 AI package 覆盖。
+- 2026-05-20：验证修复已提交 `6cc1ab0` 和 `3188d6a`。前者拆分 AI Provider 保存 workflow，消除 SwiftLint serious；后者按 SwiftFormat 规则格式化诊断基础设施文件。
+- 2026-05-20：最终收口验证通过并移入 `docs/plans/done/`。完整 `scripts/verify.sh` 退出码 0；SwiftLint 剩余 19 个非阻断 warning，0 serious。
 
 ## 16. 完成标准
 
@@ -691,3 +693,18 @@ rg -n "ProcessInfo|processInfo\\.environment|LANGOTRACE_" Packages/LangoTraceCor
 - 即使记录服务层阶段事件，后续真实 Provider 请求、同步和导出链路仍需要分别接入自己的 phase 和错误分类。
 - 环境变量开关只适合开发和自动化测试，不能替代产品期 App 内诊断设置。
 - 诊断日志字段白名单需要在后续真实 AI 请求、OCR、Speech、同步和导出接入时持续复查。
+
+## 18. 最终验证记录
+
+- `swift test --package-path Packages/LangoTraceCore`：通过，39 tests。
+- `swift test --package-path Packages/LangoTraceData`：通过，26 tests。
+- `swift test --package-path Packages/LangoTraceAI`：通过，12 tests。
+- `swift test --package-path Packages/LangoTraceUI`：通过，137 tests。
+- `xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build`：通过。
+- `xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build`：通过。
+- `xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build`：通过。
+- `swiftlint --no-cache`：通过，19 warnings，0 serious。
+- `swiftformat --lint . --cache ignore`：通过，0 files require formatting。
+- 文档占位扫描：无命中。
+- 敏感字段扫描：命中均为规范禁止项、UI 草稿字段、测试用假 secret 或模型定义；未发现诊断 logger / event 写入 API Key、Bearer、完整请求头、完整请求体或 Keychain account。
+- 环境变量边界扫描：`ProcessInfo.processInfo.environment` 与 `LANGOTRACE_*` 读取只存在于 `LangoTraceApp/AppEnvironment.swift`。
