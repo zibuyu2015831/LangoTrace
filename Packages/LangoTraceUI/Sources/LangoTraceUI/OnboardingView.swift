@@ -103,12 +103,12 @@ private extension OnboardingView {
 
     private func padLandscapeOnboardingContent(size: CGSize) -> some View {
         ScrollView {
-            HStack(spacing: 0) {
+            HStack(alignment: .top, spacing: padLandscapeColumnSpacing(in: size)) {
                 padLandscapeLeftPane(size: size)
-                padLandscapeDivider
                 padLandscapeRightPane(size: size)
             }
             .frame(minHeight: size.height, alignment: .top)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
         .scrollIndicators(.hidden)
     }
@@ -116,35 +116,30 @@ private extension OnboardingView {
     private func padLandscapeLeftPane(size: CGSize) -> some View {
         VStack(alignment: .leading, spacing: 42) {
             header
+                .padding(.leading, size.width >= 1260 ? 44 : 32)
             padOnboardingValueList
+                .padding(.leading, size.width >= 1260 ? 44 : 32)
+                .padding(.top, size.height >= 900 ? 28 : 20)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: 430, maxHeight: .infinity, alignment: .topLeading)
         .padding(.leading, padLandscapeHorizontalPadding(in: size))
-        .padding(.trailing, 52)
+        .padding(.trailing, 36)
         .padding(.top, padLandscapeTopPadding(in: size))
         .padding(.bottom, 76)
-        .frame(width: size.width * 0.4, alignment: .topLeading)
-    }
-
-    private var padLandscapeDivider: some View {
-        Rectangle()
-            .fill(LangoTraceDesign.ColorToken.hairline.opacity(0.45))
-            .frame(width: 1)
-            .padding(.vertical, 48)
-            .accessibilityHidden(true)
+        .frame(width: size.width * 0.36, alignment: .topLeading)
     }
 
     private func padLandscapeRightPane(size: CGSize) -> some View {
         VStack(alignment: .center, spacing: 26) {
             languageForm(levelVisibleRows: padLevelSelectorApproxVisibleRows)
-                .frame(maxWidth: 700)
-            inlineCreateButton
+                .frame(maxWidth: 760)
+            inlineCreateButton(maxWidth: 640)
         }
-        .padding(.horizontal, 48)
+        .padding(.horizontal, padLandscapeRightHorizontalPadding(in: size))
         .padding(.top, padLandscapeTopPadding(in: size))
         .padding(.bottom, 54)
-        .frame(width: size.width * 0.6, alignment: .top)
+        .frame(width: size.width * 0.58, alignment: .top)
         .frame(minHeight: size.height, alignment: .top)
     }
 
@@ -156,35 +151,27 @@ private extension OnboardingView {
     }
 
     private func onboardingWideTopPadding(in size: CGSize) -> CGFloat {
-        if size.height >= 1180 {
-            78
-        } else if size.height >= 900 {
-            64
-        } else {
-            44
-        }
+        size.height >= 1180 ? 78 : (size.height >= 900 ? 64 : 44)
     }
 
     private func padPortraitTopPadding(in size: CGSize) -> CGFloat {
-        if size.height >= 1180 {
-            118
-        } else if size.height >= 1020 {
-            88
-        } else {
-            72
-        }
+        size.height >= 1180 ? 118 : (size.height >= 1020 ? 88 : 72)
     }
 
     private func padLandscapeTopPadding(in size: CGSize) -> CGFloat {
-        if size.height >= 900 {
-            104
-        } else {
-            72
-        }
+        size.height >= 900 ? 156 : 118
     }
 
     private func padLandscapeHorizontalPadding(in size: CGSize) -> CGFloat {
         size.width >= 1260 ? 96 : 80
+    }
+
+    private func padLandscapeColumnSpacing(in size: CGSize) -> CGFloat {
+        size.width >= 1260 ? 56 : 40
+    }
+
+    private func padLandscapeRightHorizontalPadding(in size: CGSize) -> CGFloat {
+        size.width >= 1260 ? 48 : 36
     }
 
     private var header: some View {
@@ -336,6 +323,10 @@ private extension OnboardingView {
     }
 
     private var createButtonContent: some View {
+        createButtonContent(maxWidth: onboardingBottomActionMaxWidth)
+    }
+
+    private func createButtonContent(maxWidth: CGFloat) -> some View {
         VStack(spacing: 8) {
             Text(createSummary)
                 .font(.footnote.weight(.semibold))
@@ -360,7 +351,7 @@ private extension OnboardingView {
             )
             localStorageFootnote
         }
-        .frame(maxWidth: onboardingBottomActionMaxWidth)
+        .frame(maxWidth: maxWidth)
     }
 
     private var localStorageFootnote: some View {
@@ -387,7 +378,11 @@ private extension OnboardingView {
     }
 
     private var inlineCreateButton: some View {
-        createButtonContent
+        inlineCreateButton(maxWidth: onboardingBottomActionMaxWidth)
+    }
+
+    private func inlineCreateButton(maxWidth: CGFloat) -> some View {
+        createButtonContent(maxWidth: maxWidth)
             .padding(.top, 18)
             .frame(maxWidth: .infinity, alignment: .center)
     }

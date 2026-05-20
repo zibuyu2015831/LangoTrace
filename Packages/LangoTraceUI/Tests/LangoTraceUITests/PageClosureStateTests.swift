@@ -118,7 +118,8 @@ struct PageClosureStateTests {
 
         #expect(source.contains("private let onboardingContentMaxWidth: CGFloat = 680"))
         #expect(source.contains("private let onboardingBottomActionMaxWidth: CGFloat = 520"))
-        #expect(source.contains(".frame(maxWidth: onboardingBottomActionMaxWidth)"))
+        #expect(source.contains("createButtonContent(maxWidth: onboardingBottomActionMaxWidth)"))
+        #expect(source.contains(".frame(maxWidth: maxWidth)"))
         #expect(source.contains(".frame(maxWidth: .infinity, alignment: .center)"))
     }
 

@@ -173,6 +173,29 @@ struct OnboardingLevelSelectorTests {
         #expect(!combinedSource.contains("onboarding.value.growth"))
     }
 
+    @Test("iPad landscape onboarding uses whitespace separation and lowered content")
+    func padLandscapeOnboardingUsesWhitespaceSeparationAndLoweredContent() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "OnboardingView.swift"), encoding: .utf8)
+
+        #expect(source.contains("HStack(alignment: .top, spacing: padLandscapeColumnSpacing(in: size))"))
+        #expect(source.contains("padLandscapeColumnSpacing(in size: CGSize)"))
+        #expect(source.contains("padLandscapeRightHorizontalPadding(in size: CGSize)"))
+        #expect(source.contains(".frame(width: size.width * 0.36"))
+        #expect(source.contains(".frame(width: size.width * 0.58"))
+        #expect(source.contains(".frame(maxWidth: 760)"))
+        #expect(source.contains("inlineCreateButton(maxWidth: 640)"))
+        #expect(source.contains("header\n                .padding(.leading, size.width >= 1260 ? 44 : 32)"))
+        #expect(source.contains(".padding(.leading, size.width >= 1260 ? 44 : 32)"))
+        #expect(source.contains(".padding(.top, size.height >= 900 ? 28 : 20)"))
+        #expect(source.contains("156"))
+        #expect(source.contains("118"))
+        #expect(source.contains("44"))
+        #expect(source.contains("28"))
+        #expect(!source.contains("padLandscapeDivider"))
+        #expect(!source.contains("Rectangle()"))
+        #expect(!source.contains(".frame(width: 1)"))
+    }
+
     @Test("iPad onboarding value copy covers all declared interface languages")
     func padOnboardingValueCopyCoversAllDeclaredInterfaceLanguages() throws {
         let catalog = try LocalizableCatalog.load(from: sourceFileURL(named: "Resources/Localizable.xcstrings"))
