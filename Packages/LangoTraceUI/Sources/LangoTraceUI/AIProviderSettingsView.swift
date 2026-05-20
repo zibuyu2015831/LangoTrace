@@ -6,6 +6,9 @@ struct AIProviderSettingsView: View {
     @Environment(\.aiProviderSettingsActions) private var actions
     @State private var draft = AIProviderDraftConfiguration(provider: .openAI)
     @State private var transientSaveStatusClearTask: Task<Void, Never>?
+    @State private var transientTestStatusClearTask: Task<Void, Never>?
+    @State private var isProbeResultPresented = false
+    @State private var latestProbeResult: AIProviderConfigurationProbeResult?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -30,6 +33,18 @@ struct AIProviderSettingsView: View {
         }
         .onDisappear {
             transientSaveStatusClearTask?.cancel()
+            transientTestStatusClearTask?.cancel()
+        }
+        .sheet(isPresented: $isProbeResultPresented) {
+            AIProviderProbeResultPanelContent(
+                result: latestProbeResult,
+                isTesting: isTesting,
+                onRetry: validateConfiguration,
+                onClose: { isProbeResultPresented = false }
+            )
+            #if os(iOS)
+                .presentationDetents([.medium, .large])
+            #endif
         }
     }
 
@@ -80,7 +95,7 @@ struct AIProviderSettingsView: View {
                 .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(draft.testReadiness == .missingRequiredFields)
+            .disabled(draft.saveReadiness == .missingRequiredFields)
 
             Button {
                 validateConfiguration()
@@ -94,7 +109,7 @@ struct AIProviderSettingsView: View {
                 .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
             }
             .buttonStyle(.bordered)
-            .disabled(draft.testReadiness == .missingRequiredFields)
+            .disabled(draft.textProbeReadiness == .missingRequiredFields || isTesting)
 
             if let statusTitleKey {
                 statusPanel(titleKey: statusTitleKey)
@@ -197,22 +212,44 @@ private extension AIProviderSettingsView {
             guard !isSaving else {
                 return
             }
-            guard draft.testReadiness == .readyForMockRequest else {
+            guard draft.textProbeReadiness == .readyForRequest else {
                 draft.testState = .missingRequiredFields
                 return
             }
-            draft.testState = .mockTesting
+            cancelTransientTestStatusClear()
+            let operationID = actions.operationIDGenerator()
+            let source = draft.textProbeSource == .savedProfile
+                ? AIProviderProbeSource.savedProfile
+                : AIProviderProbeSource.draft
+            let snapshot: AIProviderDraftProbeSnapshot?
             do {
-                let status = try await actions.validateDefaultProfileCredentials()
-                draft.testState = status == .succeeded ? .mockSucceeded : .mockFailed
+                snapshot = source == .draft ? try draft.makeTextProbeDraftSnapshot(operationID: operationID) : nil
             } catch {
-                draft.testState = .mockFailed
+                draft.testState = .missingRequiredFields
+                return
             }
+            draft.testState = .testing
+            latestProbeResult = nil
+            isProbeResultPresented = true
+            do {
+                let result = try await actions.testProviderConfiguration(source, snapshot, operationID)
+                latestProbeResult = result
+                draft.testState = testState(for: result)
+            } catch {
+                draft.testState = .failed(nil, nil)
+            }
+            scheduleTransientTestStatusClear()
         }
     }
 
     var statusTitleKey: String? {
-        switch draft.saveState {
+        switch draft.testState {
+        case .idle:
+            break
+        case .missingRequiredFields, .testing, .succeeded, .partial, .failed, .unsupportedProvider:
+            return draft.testState.titleKey
+        }
+        return switch draft.saveState {
         case .unsavedChanges, .saved, .failed:
             draft.saveState.titleKey
         case .idle, .missingRequiredFields, .saving:
@@ -221,7 +258,19 @@ private extension AIProviderSettingsView {
     }
 
     var statusIconName: String {
-        switch draft.saveState {
+        switch draft.testState {
+        case .testing:
+            return "clock.arrow.circlepath"
+        case .succeeded:
+            return "checkmark.circle"
+        case .partial:
+            return "exclamationmark.circle"
+        case .missingRequiredFields, .failed, .unsupportedProvider:
+            return "exclamationmark.triangle"
+        case .idle:
+            break
+        }
+        return switch draft.saveState {
         case .unsavedChanges:
             "exclamationmark.circle"
         case .saved:
@@ -234,7 +283,19 @@ private extension AIProviderSettingsView {
     }
 
     var statusTone: Color {
-        switch draft.saveState {
+        switch draft.testState {
+        case .testing:
+            return LangoTraceDesign.ColorToken.accent
+        case .succeeded:
+            return LangoTraceDesign.ColorToken.stateReady
+        case .partial, .unsupportedProvider:
+            return LangoTraceDesign.ColorToken.warning
+        case .missingRequiredFields, .failed:
+            return LangoTraceDesign.ColorToken.danger
+        case .idle:
+            break
+        }
+        return switch draft.saveState {
         case .unsavedChanges:
             LangoTraceDesign.ColorToken.warning
         case .saved:
@@ -248,6 +309,10 @@ private extension AIProviderSettingsView {
 
     var isSaving: Bool {
         draft.saveState == .saving
+    }
+
+    var isTesting: Bool {
+        draft.testState == .testing
     }
 
     @discardableResult
@@ -285,9 +350,42 @@ private extension AIProviderSettingsView {
         }
     }
 
+    func scheduleTransientTestStatusClear() {
+        transientTestStatusClearTask?.cancel()
+        transientTestStatusClearTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(3))
+            switch draft.testState {
+            case .succeeded, .partial, .failed, .unsupportedProvider, .missingRequiredFields:
+                draft.testState = .idle
+            case .idle, .testing:
+                break
+            }
+            transientTestStatusClearTask = nil
+        }
+    }
+
     func cancelTransientSaveStatusClear() {
         transientSaveStatusClearTask?.cancel()
         transientSaveStatusClearTask = nil
+    }
+
+    func cancelTransientTestStatusClear() {
+        transientTestStatusClearTask?.cancel()
+        transientTestStatusClearTask = nil
+    }
+
+    func testState(for result: AIProviderConfigurationProbeResult) -> AIProviderTestState {
+        if result.overallStatus == .succeeded {
+            return .succeeded(result)
+        }
+        if result.capabilities.contains(where: { $0.status == .unsupported }) &&
+            !result.capabilities.contains(where: { $0.status == .succeeded }) {
+            return .unsupportedProvider(result)
+        }
+        if result.capabilities.contains(where: { $0.status == .succeeded }) {
+            return .partial(result)
+        }
+        return .failed(result.capabilities.first { $0.errorCategory != nil }?.errorCategory, result)
     }
 
     var textProviderBinding: Binding<AIProviderPreset> {

@@ -1,4 +1,195 @@
 import SwiftUI
+import LangoTraceCore
+
+struct AIProviderProbeResultPanelContent: View {
+    let result: AIProviderConfigurationProbeResult?
+    let isTesting: Bool
+    let onRetry: () -> Void
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 12) {
+                Image(systemName: iconName)
+                    .foregroundStyle(tone)
+                    .frame(width: 28, height: 28)
+                localizedText(titleKey)
+                    .font(.headline)
+                Spacer(minLength: 0)
+                Button(action: onClose) {
+                    Image(systemName: "xmark")
+                        .frame(width: LangoTraceDesign.Density.minimumTouchTarget, height: LangoTraceDesign.Density.minimumTouchTarget)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(localizedText("aiProviderSettings.probeResult.close"))
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(AIProviderProbeCapability.allCases, id: \.rawValue) { capability in
+                    AIProviderProbeCapabilityRow(
+                        capability: capability,
+                        result: result?.capabilities.first { $0.capability == capability },
+                        isTesting: isTesting && (capability == .textReply || capability == .structuredJSON)
+                    )
+                }
+            }
+
+            Button(action: onRetry) {
+                Label {
+                    localizedText("aiProviderSettings.probeResult.retry")
+                } icon: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isTesting)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var titleKey: String {
+        if isTesting {
+            return "aiProviderSettings.testState.testing"
+        }
+        guard let result else {
+            return "aiProviderSettings.probeResult.title"
+        }
+        if result.overallStatus == .succeeded {
+            return "aiProviderSettings.testState.succeeded"
+        }
+        if result.capabilities.contains(where: { $0.status == .succeeded }) {
+            return "aiProviderSettings.testState.partial"
+        }
+        if result.capabilities.contains(where: { $0.status == .unsupported }) {
+            return "aiProviderSettings.testState.unsupportedProvider"
+        }
+        return "aiProviderSettings.testState.failed"
+    }
+
+    private var iconName: String {
+        if isTesting {
+            return "clock.arrow.circlepath"
+        }
+        guard let result else {
+            return "checkmark.seal"
+        }
+        if result.overallStatus == .succeeded {
+            return "checkmark.circle"
+        }
+        if result.capabilities.contains(where: { $0.status == .succeeded }) {
+            return "exclamationmark.circle"
+        }
+        return "exclamationmark.triangle"
+    }
+
+    private var tone: Color {
+        if isTesting {
+            return LangoTraceDesign.ColorToken.accent
+        }
+        guard let result else {
+            return LangoTraceDesign.ColorToken.textSecondary
+        }
+        if result.overallStatus == .succeeded {
+            return LangoTraceDesign.ColorToken.stateReady
+        }
+        if result.capabilities.contains(where: { $0.status == .succeeded }) {
+            return LangoTraceDesign.ColorToken.warning
+        }
+        return LangoTraceDesign.ColorToken.danger
+    }
+}
+
+private struct AIProviderProbeCapabilityRow: View {
+    let capability: AIProviderProbeCapability
+    let result: AIProviderProbeCapabilityResult?
+    let isTesting: Bool
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: iconName)
+                .foregroundStyle(tone)
+                .frame(width: 24, height: 24)
+            localizedText(titleKey)
+                .font(.callout.weight(.semibold))
+            Spacer(minLength: 0)
+            localizedText(statusKey)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+        }
+        .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+    }
+
+    private var titleKey: String {
+        switch capability {
+        case .textReply:
+            "aiProviderSettings.probeCapability.textReply"
+        case .structuredJSON:
+            "aiProviderSettings.probeCapability.structuredJSON"
+        case .imageUnderstanding:
+            "aiProviderSettings.probeCapability.imageUnderstanding"
+        case .speechSynthesis:
+            "aiProviderSettings.probeCapability.speechSynthesis"
+        case .embedding:
+            "aiProviderSettings.probeCapability.embedding"
+        }
+    }
+
+    private var statusKey: String {
+        if isTesting {
+            return "aiProviderSettings.probeCapabilityStatus.testing"
+        }
+        return switch result?.status ?? .notRun {
+        case .notConfigured:
+            "aiProviderSettings.probeCapabilityStatus.notConfigured"
+        case .notEnabled:
+            "aiProviderSettings.probeCapabilityStatus.notEnabled"
+        case .testing:
+            "aiProviderSettings.probeCapabilityStatus.testing"
+        case .succeeded:
+            "aiProviderSettings.probeCapabilityStatus.succeeded"
+        case .failed:
+            "aiProviderSettings.probeCapabilityStatus.failed"
+        case .unsupported:
+            "aiProviderSettings.probeCapabilityStatus.unsupported"
+        case .notRun:
+            "aiProviderSettings.probeCapabilityStatus.notRun"
+        }
+    }
+
+    private var iconName: String {
+        if isTesting {
+            return "clock"
+        }
+        return switch result?.status ?? .notRun {
+        case .succeeded:
+            "checkmark.circle.fill"
+        case .failed:
+            "exclamationmark.triangle.fill"
+        case .unsupported, .notEnabled, .notConfigured, .notRun:
+            "minus.circle"
+        case .testing:
+            "clock"
+        }
+    }
+
+    private var tone: Color {
+        if isTesting {
+            return LangoTraceDesign.ColorToken.accent
+        }
+        return switch result?.status ?? .notRun {
+        case .succeeded:
+            LangoTraceDesign.ColorToken.stateReady
+        case .failed:
+            LangoTraceDesign.ColorToken.danger
+        case .unsupported:
+            LangoTraceDesign.ColorToken.warning
+        case .notConfigured, .notEnabled, .notRun, .testing:
+            LangoTraceDesign.ColorToken.textSecondary
+        }
+    }
+}
 
 struct AIProviderOptionalModelSection: View {
     let titleKey: String

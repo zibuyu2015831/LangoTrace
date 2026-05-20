@@ -12662,57 +12662,6 @@
         }
       }
     },
-    "aiProviderSettings.testState.mockFailed": {
-      "comment": "Mock failed state for AI provider test request.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Local check failed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本地检测未通过"
-          }
-        }
-      }
-    },
-    "aiProviderSettings.testState.mockSucceeded": {
-      "comment": "Mock succeeded state for AI provider test request.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Local draft looks complete"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本地草稿信息完整"
-          }
-        }
-      }
-    },
-    "aiProviderSettings.testState.mockTesting": {
-      "comment": "Mock testing state for AI provider test request.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Checking local fields"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在检查本地字段"
-          }
-        }
-      }
-    },
     "aiProviderSettings.testState.realTestingUnavailable": {
       "comment": "Unavailable real test state for AI provider test request.",
       "localizations": {
@@ -12728,6 +12677,146 @@
             "value": "真实 Provider 测试尚未接入"
           }
         }
+      }
+    },
+    "aiProviderSettings.testState.testing": {
+      "comment": "Testing state for AI provider synthetic request.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Testing request" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在测试" } }
+      }
+    },
+    "aiProviderSettings.testState.succeeded": {
+      "comment": "Succeeded state for AI provider synthetic request.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Test succeeded" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试成功" } }
+      }
+    },
+    "aiProviderSettings.testState.partial": {
+      "comment": "Partial state for AI provider synthetic request.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Partially available" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "部分可用" } }
+      }
+    },
+    "aiProviderSettings.testState.failed": {
+      "comment": "Failed state for AI provider synthetic request.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Test failed" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试失败" } }
+      }
+    },
+    "aiProviderSettings.testState.unsupportedProvider": {
+      "comment": "Unsupported provider state for first-phase AI provider synthetic request.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Provider test not supported yet" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前 Provider 暂不支持测试" } }
+      }
+    },
+    "aiProviderSettings.probeResult.title": {
+      "comment": "Title for AI provider probe result panel.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Test request" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试请求" } }
+      }
+    },
+    "aiProviderSettings.probeResult.retry": {
+      "comment": "Retry button title for AI provider probe result panel.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Test again" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重新测试" } }
+      }
+    },
+    "aiProviderSettings.probeResult.close": {
+      "comment": "Close button accessibility title for AI provider probe result panel.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Close" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "关闭" } }
+      }
+    },
+    "aiProviderSettings.probeCapability.textReply": {
+      "comment": "Capability row title for text reply probe.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Text reply" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "文本回复" } }
+      }
+    },
+    "aiProviderSettings.probeCapability.structuredJSON": {
+      "comment": "Capability row title for structured JSON probe.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "JSON output" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "JSON 输出" } }
+      }
+    },
+    "aiProviderSettings.probeCapability.imageUnderstanding": {
+      "comment": "Capability row title for image understanding probe.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Image understanding" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "图片理解" } }
+      }
+    },
+    "aiProviderSettings.probeCapability.speechSynthesis": {
+      "comment": "Capability row title for speech synthesis probe.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Speech generation" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语音生成" } }
+      }
+    },
+    "aiProviderSettings.probeCapability.embedding": {
+      "comment": "Capability row title for embedding probe.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Embedding" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "向量化" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityStatus.notConfigured": {
+      "comment": "Capability status for not configured.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Not configured" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未配置" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityStatus.notEnabled": {
+      "comment": "Capability status for not enabled.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Not enabled" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未启用" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityStatus.testing": {
+      "comment": "Capability status for testing.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Testing" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试中" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityStatus.succeeded": {
+      "comment": "Capability status for succeeded.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Available" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可用" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityStatus.failed": {
+      "comment": "Capability status for failed.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Issue" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "异常" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityStatus.unsupported": {
+      "comment": "Capability status for unsupported.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Not supported yet" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂不支持测试" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityStatus.notRun": {
+      "comment": "Capability status for not run.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Not run" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未测试" } }
       }
     },
     "aiProviderSettings.ttsModel.title": {

@@ -28,16 +28,16 @@ struct AIProviderSettingsTests {
         #expect(AIProviderPreset.deepSeek.defaultChatModel != "deepseek-reasoner")
     }
 
-    @Test("Draft model validates test readiness without persisting credentials")
-    func draftModelValidatesTestReadinessWithoutPersistingCredentials() {
+    @Test("Draft model validates save readiness without persisting credentials")
+    func draftModelValidatesSaveReadinessWithoutPersistingCredentials() {
         var draft = AIProviderDraftConfiguration(provider: .openAI)
 
         #expect(draft.text.endpoint.independentCredential.apiKeyStorage == .encryptedStoragePending)
-        #expect(draft.testReadiness == .missingRequiredFields)
+        #expect(draft.saveReadiness == .missingRequiredFields)
         #expect(draft.saveState == .idle)
 
         draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
-        #expect(draft.testReadiness == .readyForMockRequest)
+        #expect(draft.saveReadiness == .readyForRequest)
 
         draft.saveMockConfiguration()
         #expect(draft.saveState == .saved)
@@ -70,15 +70,51 @@ struct AIProviderSettingsTests {
         draft.text.endpoint.independentCredential.apiKeyDraft = "shared-key"
         draft.speech.isEnabled = true
         draft.speech.endpoint.model = "gpt-4o-mini-tts"
-        #expect(draft.testReadiness == .readyForMockRequest)
+        #expect(draft.saveReadiness == .readyForRequest)
 
         draft.embedding.isEnabled = true
         draft.embedding.endpoint.credentialReference = .independent
         draft.embedding.endpoint.independentCredential.apiKeyDraft = ""
-        #expect(draft.testReadiness == .missingRequiredFields)
+        #expect(draft.saveReadiness == .missingRequiredFields)
 
         draft.embedding.endpoint.independentCredential.apiKeyDraft = "embedding-key"
-        #expect(draft.testReadiness == .readyForMockRequest)
+        #expect(draft.saveReadiness == .readyForRequest)
+    }
+
+    @Test("Draft model separates save readiness from text probe readiness")
+    func draftModelSeparatesSaveReadinessFromTextProbeReadiness() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
+        draft.speech.isEnabled = true
+        draft.speech.endpoint.model = ""
+        draft.embedding.isEnabled = true
+        draft.embedding.endpoint.model = ""
+
+        #expect(draft.saveReadiness == .missingRequiredFields)
+        #expect(draft.textProbeReadiness == .readyForRequest)
+        #expect(draft.textProbeSource == .draft)
+
+        let snapshot = try draft.makeTextProbeDraftSnapshot(
+            operationID: DiagnosticOperationID(rawValue: "operation-ui-probe")
+        )
+        #expect(snapshot.source == .draft)
+        #expect(snapshot.endpoint.purpose == .textGeneration)
+        #expect(snapshot.endpoint.providerPresetID == "openai")
+        #expect(snapshot.plaintextSecret == "sk-local-draft")
+        #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON])
+    }
+
+    @Test("Loaded profile without edits uses saved profile as text probe source")
+    func loadedProfileWithoutEditsUsesSavedProfileAsTextProbeSource() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+
+        try draft.applyLoadedProfile(loadedProfile())
+
+        #expect(draft.textProbeReadiness == .readyForRequest)
+        #expect(draft.textProbeSource == .savedProfile)
+
+        draft.markInputChanged()
+        #expect(draft.textProbeSource == .draft)
     }
 
     @Test("Changing optional model provider defaults to independent credential")
@@ -107,12 +143,48 @@ struct AIProviderSettingsTests {
 
         #expect(source.contains("aiProviderSettings.testRequest.button"))
         #expect(source.contains("validateConfiguration()"))
-        #expect(source.contains("actions.validateDefaultProfileCredentials"))
+        #expect(source.contains("actions.testProviderConfiguration"))
+        #expect(source.contains("makeTextProbeDraftSnapshot"))
+        #expect(source.contains("AIProviderProbeResultPanelContent"))
+        #expect(source.contains(".sheet(isPresented: $isProbeResultPresented)"))
+        #expect(!source.contains("actions.validateDefaultProfileCredentials"))
         #expect(!source.contains("URLSession"))
         #expect(!source.contains("dataTask"))
         #expect(!source.contains("uploadTask"))
         #expect(!source.contains("Authorization"))
         #expect(!source.contains("Bearer "))
+    }
+
+    @Test("Probe result content is presentation independent and shows all capability rows")
+    func probeResultContentIsPresentationIndependentAndShowsAllCapabilityRows() throws {
+        let source = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
+            encoding: .utf8
+        )
+
+        #expect(source.contains("struct AIProviderProbeResultPanelContent"))
+        #expect(source.contains("AIProviderProbeCapability.allCases"))
+        #expect(source.contains("aiProviderSettings.probeCapability.textReply"))
+        #expect(source.contains("aiProviderSettings.probeCapability.structuredJSON"))
+        #expect(source.contains("aiProviderSettings.probeCapability.imageUnderstanding"))
+        #expect(source.contains("aiProviderSettings.probeCapability.speechSynthesis"))
+        #expect(source.contains("aiProviderSettings.probeCapability.embedding"))
+        #expect(!source.contains(".sheet("))
+        #expect(!source.contains("presentationDetents"))
+    }
+
+    @Test("Draft probe snapshot is not equatable codable or a profile save input")
+    func draftProbeSnapshotIsNotEquatableCodableOrProfileSaveInput() throws {
+        let source = try String(
+            contentsOf: sourceFileURL(named: "AIProviderDraftConfiguration.swift"),
+            encoding: .utf8
+        )
+
+        #expect(source.contains("struct AIProviderDraftProbeSnapshot: Sendable"))
+        #expect(!source.contains("struct AIProviderDraftProbeSnapshot: Equatable"))
+        #expect(!source.contains("struct AIProviderDraftProbeSnapshot: Codable"))
+        #expect(source.contains("makeTextProbeDraftSnapshot"))
+        #expect(!source.contains("makeTextProbeDraftSnapshot(operationID: DiagnosticOperationID) throws -> AIProviderProfileSaveInput"))
     }
 
     @Test("Settings source has save-first secure-storage UI")
@@ -585,7 +657,7 @@ struct AIProviderLoadedSecretRepairTests {
         )
 
         #expect(draft.text.endpoint.independentCredential.apiKeyDraft == "sk-saved")
-        #expect(draft.testReadiness == .readyForMockRequest)
+        #expect(draft.saveReadiness == .readyForRequest)
         #expect(draft.saveState == .idle)
     }
 

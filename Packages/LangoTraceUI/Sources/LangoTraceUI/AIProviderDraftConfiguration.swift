@@ -13,7 +13,20 @@ enum AIProviderCredentialReference: Equatable {
 
 enum AIProviderTestReadiness: Equatable {
     case missingRequiredFields
-    case readyForMockRequest
+    case readyForRequest
+}
+
+public struct AIProviderDraftProbeSnapshot: Sendable {
+    public var source: AIProviderProbeSource
+    public var endpoint: AIProviderEndpointInput
+    public var plaintextSecret: String?
+    public var requestedCapabilities: [AIProviderProbeCapability]
+    public var operationID: DiagnosticOperationID
+}
+
+enum AIProviderTextProbeSource: Equatable {
+    case draft
+    case savedProfile
 }
 
 enum AIProviderSaveState: Equatable {
@@ -89,10 +102,11 @@ struct AIProviderSaveFailureDisplay: Equatable {
 enum AIProviderTestState: Equatable {
     case idle
     case missingRequiredFields
-    case mockTesting
-    case mockSucceeded
-    case mockFailed
-    case realTestingUnavailable
+    case testing
+    case succeeded(AIProviderConfigurationProbeResult)
+    case partial(AIProviderConfigurationProbeResult)
+    case failed(AIProviderValidationErrorCategory?, AIProviderConfigurationProbeResult?)
+    case unsupportedProvider(AIProviderConfigurationProbeResult?)
 
     var titleKey: String {
         switch self {
@@ -100,14 +114,16 @@ enum AIProviderTestState: Equatable {
             "aiProviderSettings.testState.idle"
         case .missingRequiredFields:
             "aiProviderSettings.testState.missingRequiredFields"
-        case .mockTesting:
-            "aiProviderSettings.testState.mockTesting"
-        case .mockSucceeded:
-            "aiProviderSettings.testState.mockSucceeded"
-        case .mockFailed:
-            "aiProviderSettings.testState.mockFailed"
-        case .realTestingUnavailable:
-            "aiProviderSettings.testState.realTestingUnavailable"
+        case .testing:
+            "aiProviderSettings.testState.testing"
+        case .succeeded:
+            "aiProviderSettings.testState.succeeded"
+        case .partial:
+            "aiProviderSettings.testState.partial"
+        case .failed:
+            "aiProviderSettings.testState.failed"
+        case .unsupportedProvider:
+            "aiProviderSettings.testState.unsupportedProvider"
         }
     }
 }
@@ -281,26 +297,47 @@ struct AIProviderDraftConfiguration: Equatable {
         hasPersistedConfiguration = false
     }
 
-    var testReadiness: AIProviderTestReadiness {
+    var saveReadiness: AIProviderTestReadiness {
         let textCredential = text.endpoint.independentCredential
         let allEnabledConfigurationsComplete = text.isComplete &&
             speech.isComplete(textCredential: textCredential) &&
             embedding.isComplete(textCredential: textCredential)
 
-        return allEnabledConfigurationsComplete ? .readyForMockRequest : .missingRequiredFields
+        return allEnabledConfigurationsComplete ? .readyForRequest : .missingRequiredFields
+    }
+
+    var textProbeReadiness: AIProviderTestReadiness {
+        guard text.endpoint.hasBaseURLAndModel else {
+            return .missingRequiredFields
+        }
+        if textProbeSource == .savedProfile {
+            return .readyForRequest
+        }
+        return text.endpoint.independentCredential.isComplete ? .readyForRequest : .missingRequiredFields
+    }
+
+    var textProbeSource: AIProviderTextProbeSource {
+        if hasPersistedConfiguration, saveState != .unsavedChanges {
+            return .savedProfile
+        }
+        return .draft
+    }
+
+    var testReadiness: AIProviderTestReadiness {
+        saveReadiness
     }
 
     mutating func runMockTest() {
-        guard testReadiness == .readyForMockRequest else {
+        guard textProbeReadiness == .readyForRequest else {
             testState = .missingRequiredFields
             return
         }
 
-        testState = .mockSucceeded
+        testState = .testing
     }
 
     mutating func saveMockConfiguration() {
-        guard testReadiness == .readyForMockRequest else {
+        guard saveReadiness == .readyForRequest else {
             saveState = .missingRequiredFields
             return
         }
@@ -310,7 +347,7 @@ struct AIProviderDraftConfiguration: Equatable {
     }
 
     func makeProfileSaveInput() throws -> AIProviderProfileSaveInput {
-        guard testReadiness == .readyForMockRequest else {
+        guard saveReadiness == .readyForRequest else {
             throw AIProviderConfigurationError.missingRequiredEndpointField
         }
 
@@ -349,6 +386,34 @@ struct AIProviderDraftConfiguration: Equatable {
             profileID: profileID,
             displayName: "Default AI Provider",
             endpoints: endpoints
+        )
+    }
+
+    func makeTextProbeDraftSnapshot(operationID: DiagnosticOperationID) throws -> AIProviderDraftProbeSnapshot {
+        guard textProbeReadiness == .readyForRequest else {
+            throw AIProviderConfigurationError.missingRequiredEndpointField
+        }
+        let endpoint = try AIProviderEndpointInput(
+            id: text.endpoint.id ?? "draft-text-endpoint",
+            profileID: profileID ?? "draft-profile",
+            purpose: .textGeneration,
+            isEnabled: true,
+            providerPresetID: text.endpoint.provider.id,
+            adapterKind: text.endpoint.provider.coreAdapterKind,
+            baseURL: text.endpoint.baseURL,
+            modelName: text.endpoint.model,
+            credentialID: text.endpoint.credentialID ?? "draft-text-credential",
+            supportsImageInput: text.endpoint.provider.capabilities.imageUnderstanding,
+            imageInputEnabled: text.imageUnderstandingEnabled && text.endpoint.provider.capabilities.imageUnderstanding
+        ).normalized()
+        return AIProviderDraftProbeSnapshot(
+            source: .draft,
+            endpoint: endpoint,
+            plaintextSecret: text.endpoint.independentCredential.requiresAPIKey
+                ? text.endpoint.independentCredential.apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                : nil,
+            requestedCapabilities: [.textReply, .structuredJSON],
+            operationID: operationID
         )
     }
 
@@ -412,6 +477,7 @@ struct AIProviderDraftConfiguration: Equatable {
         case .missingRequiredFields, .unsavedChanges, .saving:
             break
         }
+        testState = .idle
     }
 
     @discardableResult
