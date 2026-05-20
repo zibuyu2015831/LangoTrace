@@ -1,6 +1,6 @@
 # 任务方案：AI Provider 配置存储与安全凭证架构设计
 
-状态：Draft
+状态：Verified
 类型：feature
 创建日期：2026-05-20
 最后更新日期：2026-05-20
@@ -10,36 +10,37 @@
 - 2026-05-20：用户确认当前只需要完成 AI Provider 功能的架构设计、存储字段设计和设计方案；等并行的语言空间数据基础设施开发完成后，本方案才进入实施。
 - 2026-05-20：用户强调相关信息比较敏感，方案必须考虑加密和解密问题。
 - 2026-05-20：用户确认 API Key 等密钥在配置页输入后必须加密保存；后续 AI 能力应能实时读取并调用，不应要求用户每次重复输入或确认密钥。
-- 状态为 `Draft` 时不能开始实现。用户确认本方案后，需补充确认记录再进入编码。
+- 2026-05-20：用户要求基于系统架构师复查结果采取最优推荐方案，更新完善方案文档。
+- 2026-05-20：用户要求执行实施计划并按阶段检查、测试和 commit；本任务已进入实现并完成验证。
 
 ## 0. 实施者快速上下文
 
 如果另一个 AI 只拿到本文件，应先理解以下边界：
 
 - 本方案不是 UI 视觉任务，而是 AI Provider 配置、非敏感数据库字段、敏感凭证安全存储、Keychain 解密读取和 Data/AI/Core 模块边界设计。
-- 当前 AI Provider 设置页已经是“真实级 mock 表单”：UI 有 Provider、Base URL、模型名、API Key、文本/语音/向量模型和测试请求按钮，但保存与测试仍是页面级 mock。
-- 语言空间数据基础设施已经完成，但它的当前实现把数据库打开、migration 和 repository 写在 `GRDBLanguageSpaceRepository` 内；这对 AI Provider 后续落库不是最佳长期结构。
-- 本方案要求 AI Provider 实施前先新增独立 `AppDatabase`，把数据库生命周期、migration、文件保护和测试数据库初始化从语言空间 repository 中抽出来。
+- 当前 AI Provider 设置页已经接入真实本地保存：非敏感配置进入 SQLite / GRDB，API Key 进入 Keychain，设置页加载不会回填明文。
+- 语言空间和 AI Provider 现在共用 `AppDatabase` 统一打开数据库、注册 migration、配置文件保护和初始化测试数据库。
+- 本方案已经按第 11.9 节拆成阶段性 commit 落地；后续读取时应以第 15 节实施记录和第 17 节剩余风险判断当前边界。
 - 敏感值不进入 SQLite。SQLite 只保存 Provider profile、endpoint、credential metadata、Keychain item 引用和测试结果摘要；API Key、Bearer token、自定义敏感 header、对象存储密钥和加密密钥必须进入 Keychain 或等价安全存储。
-- 设置页加载已保存配置时不得解密、不得回填 API Key 明文。用户保存密钥后，后续测试请求或真实 AI 请求由服务层自动从 Keychain 读取，不再要求用户重复输入或确认密钥。
+- 设置页加载已保存配置时不得解密、不得回填 API Key 明文。用户保存密钥后，本地配置验证由服务层自动从 Keychain 读取；未来真实 AI 请求也必须沿用该服务层边界。
 - 第一版 Provider profile 是 App 级默认配置，不绑定 `language_space_id`。语言空间只影响目标语言、Prompt 和请求内容。
 
 推荐阅读顺序：
 
 1. 先读本文件第 2、6、11.1、11.6.1、11.6.2、11.8、11.9 节，理解当前代码事实和架构前置。
 2. 再读第 11.3 和 11.4 节，理解表字段和 Keychain 规则。
-3. 实施前复读 `docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md` 和 `docs/architecture/001-initial-module-boundaries.md`。
-4. 如果进入编码，第一步必须处理 `AppDatabase`，不是直接创建 AI Provider 表或 Keychain store。
+3. 继续实现真实 Provider 合成探测、请求预览、Prompt Preset 执行或运行期凭证缓存前，复读 `docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md` 和 `docs/architecture/001-initial-module-boundaries.md`。
+4. 若要扩展数据库 schema，必须继续通过 `AppDatabase` 注册 migration，不得让新的 repository 自行打开同一 SQLite 文件。
 
 ## 1. 需求描述
 
-当前 AI Provider 设置页已经具备真实级表单形态，能表达文本模型、语音生成模型、向量模型、Provider、Base URL、模型名、API Key、图片理解能力开关、保存配置和测试请求。但这些信息仍停留在 SwiftUI 页面级草稿中，不写入数据库，不写入 Keychain，也不形成后续真实 Provider 请求可复用的配置源。
+当前 AI Provider 设置页已经具备真实级表单形态，能表达文本模型、语音生成模型、向量模型、Provider、Base URL、模型名、API Key、图片理解能力开关、保存配置和测试请求。本任务把这些信息从页面级 mock 推进到真实本地配置源：非敏感配置持久化到 SQLite / GRDB，敏感凭证写入 Keychain，测试按钮完成本地配置完整性和 Keychain 可读性验证。
 
-本任务只形成设计方案，目标是明确 AI Provider 配置如何拆分为非敏感配置、敏感凭证、Keychain 加密存储、解密读取、endpoint 与凭证引用关系、数据库字段、Repository 边界、错误状态和实施顺序。语言空间数据基础设施已完成；AI Provider 实施前还必须先把当前语言空间 repository 内聚的数据库生命周期抽象为独立 `AppDatabase`。
+本任务目标是明确并落地 AI Provider 配置如何拆分为非敏感配置、敏感凭证、Keychain 安全存储、解密读取、endpoint 与凭证引用关系、数据库字段、Repository 边界、错误状态和实施顺序。真实外部 Provider 合成探测、Prompt Preset 执行、请求预览、请求日志和真实 AI 生成仍不属于本次完成范围。
 
 ## 2. 现状描述
 
-代码现状：
+实施前代码现状：
 
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsView.swift` 通过 `@State private var draft = AIProviderDraftConfiguration(provider: .openAI)` 保存页面草稿。
 - `AIProviderDraftConfiguration` 已经区分文本模型、语音生成模型、向量模型、能力启用状态和凭证引用模式，但这些类型仍是 UI package 内部草稿模型。
@@ -59,6 +60,16 @@
 - `docs/decisions/005-local-first-and-user-owned-providers.md` 已决定第一版坚持本地优先和用户自带 Provider，API Key、对象存储密钥和加密密钥默认不同步。
 - `docs/plans/done/2026-05-20-feature-language-space-data-infrastructure.md` 已完成 SQLite / GRDB 语言空间数据基础设施；本方案后续实施应复用既有数据库文件位置和 Data 层 repository 装配方向，但还需要在实施前把当前语言空间 repository 内聚的 migration / `DatabaseQueue` 抽象为独立 `AppDatabase`。
 
+实现后代码事实：
+
+- `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift` 是数据库生命周期、migration 和测试数据库初始化入口，语言空间 repository 和 AI Provider repository 共用它提供的 `DatabaseQueue`。
+- `Packages/LangoTraceCore/Sources/LangoTraceCore/AIProviderConfiguration.swift` 定义 Provider profile、endpoint、credential metadata、validation event、保存输入、错误类型和 `AIProviderConfigurationRepository` 协议。
+- `Packages/LangoTraceAI/Sources/LangoTraceAI/KeychainAIProviderCredentialStore.swift` 使用 Keychain Generic Password 保存 API Key，Keychain account 由稳定 `credential_id + kind` 生成，默认不同步。
+- `Packages/LangoTraceAI/Sources/LangoTraceAI/AIProviderConfigurationService.swift` 执行“先写 Keychain、再写 SQLite、失败补偿删除”的保存流程，并提供不发网络的 `validateDefaultProfileCredentials()`，用于配置完整性和 Keychain 可读性验证。
+- `Packages/LangoTraceData/Sources/LangoTraceData/GRDBAIProviderConfigurationRepository.swift` 保存非敏感 Provider profile、endpoint、credential metadata 和 validation event；数据库字段不包含 API Key 明文、密文、hash 或尾号。
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsView.swift` 通过 `AIProviderSettingsActions` 加载、保存和验证配置；SwiftUI View 不直接访问 SQLite、Keychain、`URLSession` 或 Provider SDK。
+- `LangoTraceApp/AppEnvironment.swift` 装配共享 `AppDatabase`、`GRDBAIProviderConfigurationRepository`、`KeychainAIProviderCredentialStore` 和 `AIProviderConfigurationService`，并注入给三端共享设置页。
+
 ## 3. 目标
 
 本方案被实现后必须达到：
@@ -77,7 +88,7 @@
 
 ## 4. 范围
 
-本任务覆盖设计：
+本任务覆盖并已落地：
 
 - AI Provider 配置的模块归属和依赖方向。
 - Provider profile、endpoint、credential、custom header、validation state 的存储模型。
@@ -86,13 +97,12 @@
 - UI 草稿模型到持久化模型的映射。
 - Repository、KeychainStore、CredentialResolver 和 ProviderConfigurationService 的职责。
 - 与语言空间、同步、导出、请求日志、Prompt Preset、TTS 和向量化的边界。
-- 后续实施顺序、复查方法和验证命令。
+- 实施顺序、复查方法、验证命令和专项文档影响检查。
 
 ## 5. 不做什么
 
 本方案不实现：
 
-- 不写代码，不修改 Swift 文件，不修改数据库迁移。
 - 不发真实 OpenAI、Anthropic、Gemini、DeepSeek、Ollama 或其他 Provider 请求。
 - 不实现 Prompt Preset 渲染、结构化输出解析、AI 生成内容保存或请求日志。
 - 不实现真实 TTS、OCR、Speech、Embedding 或图片理解请求。
@@ -102,6 +112,7 @@
 - 不做自定义数据库加密、SQLCipher、用户自设主密码或导出包加密。
 - 不把 AI Provider 配置做成语言空间私有配置。第一版使用 App 级默认 Provider profile；语言空间只影响目标语言、Prompt 和请求内容。
 - 不在 macOS 原生 Settings scene 新增第二套可写 AI Provider 表单；真实写入入口复用现有工作台内设置详情。
+- 不提供凭证轮换、删除 profile、cleanup retry 的完整 UI；本次只实现新增保存、加载、不发网络的本地验证和数据库失败补偿删除。
 
 ## 6. 证据与决策依据
 
@@ -157,24 +168,29 @@
 
 ## 7. 涉及的代码文件路径
 
-本方案阶段不修改代码。预计后续实施会涉及：
+本任务实际修改或新增：
 
 - `Packages/LangoTraceCore/Sources/LangoTraceCore/AIProviderConfiguration.swift`
-- `Packages/LangoTraceCore/Sources/LangoTraceCore/AIProviderConfigurationRepository.swift`
 - `Packages/LangoTraceAI/Sources/LangoTraceAI/AIProviderCredentialStore.swift`
 - `Packages/LangoTraceAI/Sources/LangoTraceAI/KeychainAIProviderCredentialStore.swift`
-- `Packages/LangoTraceAI/Sources/LangoTraceAI/AIProviderCredentialResolver.swift`
 - `Packages/LangoTraceAI/Sources/LangoTraceAI/AIProviderConfigurationService.swift`
-- `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift`，作为当前 `GRDBLanguageSpaceRepository` 内部 `DatabaseQueue` / migration 的抽取目标。
+- `Packages/LangoTraceAI/Package.swift`
+- `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift`
 - `Packages/LangoTraceData/Sources/LangoTraceData/GRDBLanguageSpaceRepository.swift`
 - `Packages/LangoTraceData/Sources/LangoTraceData/LanguageSpaceDatabaseLocation.swift`
-- `Packages/LangoTraceData/Sources/LangoTraceData/AIProviderConfigurationStore.swift`
+- `Packages/LangoTraceData/Sources/LangoTraceData/GRDBAIProviderConfigurationRepository.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderDraftConfiguration.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsActions.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsView.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsModels.swift`
 - `LangoTraceApp/AppEnvironment.swift`
-- `Packages/LangoTraceAI/Tests/LangoTraceAITests/AIProviderConfigurationTests.swift`
-- `Packages/LangoTraceData/Tests/LangoTraceDataTests/AIProviderConfigurationStoreTests.swift`
+- `LangoTraceApp/LangoTraceApp.swift`
+- `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/AIProviderConfigurationTests.swift`
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/AIProviderConfigurationServiceTests.swift`
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/AIProviderCredentialStoreTests.swift`
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/KeychainAIProviderCredentialStoreTests.swift`
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/AppDatabaseTests.swift`
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/AIProviderConfigurationRepositoryTests.swift`
 - `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProviderSettingsTests.swift`
 
 ## 8. 参考的代码文件路径
@@ -195,21 +211,19 @@
 
 ## 9. 涉及的文档路径
 
-本方案新增：
+本方案归档路径：
 
-- `docs/plans/active/2026-05-20-feature-ai-provider-configuration-storage.md`
+- `docs/plans/done/2026-05-20-feature-ai-provider-configuration-storage.md`
 
-后续实施时预计检查或更新：
+实施完成后已检查或更新：
 
 - `docs/spec/005-ai-provider-prompt-and-privacy.md`
 - `docs/spec/008-permissions-local-privacy-and-diagnostics.md`
-- `docs/spec/004-swiftui-architecture.md`
 - `docs/architecture/001-initial-module-boundaries.md`
-- `docs/technical-framework-roadmap.md`
 - `docs/platform-page-inventory.md`
 - `docs/testing/README.md`
 - `docs/review/INDEX.md`
-- `docs/review/rounds/2026-05-20-ai-provider-configuration-storage.md`
+- `docs/review/rounds/2026-05-20-ai-provider-configuration-storage/README.md`
 
 ## 10. bug 分析
 
@@ -782,16 +796,16 @@ AI Provider 存储实施时不得：
 - 把 KeychainStore 放进 Data package 形成 Data -> Security 平台耦合；更合适的是 AI package 或独立 platform service 由 App Shell 装配。
 - 把 Provider profile 绑定到 `language_space_id`。
 
-### 11.9 实施阶段拆分建议
+### 11.9 实施阶段拆分与落地状态
 
-后续实施建议拆成六个小任务：
+本任务按六个阶段拆分，其中前五项已经落地，第六项明确延期：
 
-1. Data 基础设施整理：新增 `AppDatabase`，从 `GRDBLanguageSpaceRepository` 中抽出数据库打开、文件保护、统一 `DatabaseQueue` 和 migrator，保持现有语言空间行为和测试通过。
-2. Core 配置模型、repository 协议和错误类型；AI package 增加配置服务、credential resolver、Keychain store 协议和测试 target。
-3. Keychain credential store 与单元测试，使用测试替身覆盖写入、读取、缺失、删除和轮换。
-4. SQLite / GRDB 非敏感配置 repository 与迁移，复用 `AppDatabase`。
-5. UI 保存 / 加载 / 状态展示接入；测试请求至少完成配置完整性测试和 Keychain 可读性检查。
-6. 可选子任务：Provider 合成探测。仅在最小 Provider client 边界已经稳定时实现文本模型真实探测；语音生成和向量模型按 11.3.7 的合成策略逐项接入。
+1. Done：Data 基础设施整理。新增 `AppDatabase`，从 `GRDBLanguageSpaceRepository` 中抽出数据库打开、文件保护、统一 `DatabaseQueue` 和 migrator，保持现有语言空间行为和测试通过。提交：`f32b314 data: introduce shared app database`。
+2. Done：Core 配置模型、repository 协议和错误类型；AI package 增加配置服务、credential resolver、Keychain store 协议和测试 target。提交：`e16af60 core: add AI provider configuration models`。
+3. Done：Keychain credential store 与单元测试，覆盖写入、读取、缺失、更新和删除。提交：`7c1f9c4 ai: add Keychain credential store`。
+4. Done：SQLite / GRDB 非敏感配置 repository 与迁移，复用 `AppDatabase`。提交：`3c0cac9 data: persist AI provider configuration metadata`。
+5. Done：UI 保存 / 加载 / 状态展示接入；测试请求完成配置完整性测试和 Keychain 可读性检查，不发网络。提交：`36e2e0f app: wire AI provider settings persistence`。
+6. Deferred：Provider 合成探测。最小 Provider client、请求预览、日志和错误分类尚未稳定，本次不发送真实外部请求；后续必须另开任务，并按 11.3.7 的合成策略逐项接入。
 
 Prompt Preset 执行、真实 AI 生成内容保存、请求预览、请求日志、TTS 播放和向量索引构建应另开任务。
 
@@ -841,7 +855,7 @@ Prompt Preset 执行、真实 AI 生成内容保存、请求预览、请求日�
 
 ## 13. 验证命令
 
-本方案阶段需要运行：
+文档阶段需要运行：
 
 ```bash
 git diff --check
@@ -854,17 +868,17 @@ git status --short
 scripts/verify.sh
 ```
 
-如果只完成本方案文档且不改代码，可不运行 `scripts/verify.sh`，但必须说明原因。
+本任务已修改代码，因此最终收口必须运行 `scripts/verify.sh`。
 
 ## 14. 文档影响检查
 
-本方案只新增 active plan，不改变长期规范。实施完成后必须检查：
+本任务改变 AI Provider、Keychain、数据库 schema、App Shell 装配和设置页当前事实，已触发专项文档影响检查。检查结论：
 
-- `docs/spec/005-ai-provider-prompt-and-privacy.md` 是否需要补充 Keychain item 引用、解密读取和 credential missing 状态。
-- `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 是否需要补充 Keychain 恢复缺失、ThisDeviceOnly 和日志分类。
-- `docs/architecture/001-initial-module-boundaries.md` 是否需要更新 AI / Data / App Shell 边界快照。
-- `docs/platform-page-inventory.md` 是否需要把 AI Provider 设置页从 Local Mock 更新为真实配置保存。
-- 是否需要新增 `docs/review/rounds/2026-05-20-ai-provider-configuration-storage.md` 做专项文档影响检查。
+- `docs/spec/005-ai-provider-prompt-and-privacy.md` 已补充真实本地配置保存、Keychain 引用、加载不解密、本地验证不发网络和真实合成探测延期边界。
+- `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 已补充 Keychain `ThisDeviceOnly`、默认不同步、数据库恢复后密钥缺失和日志禁止记录 Keychain 引用完整值。
+- `docs/architecture/001-initial-module-boundaries.md` 已更新 App Shell、Core、Data、AI、UI 当前代码快照。
+- `docs/platform-page-inventory.md` 已把 AI Provider 设置页从 Local Mock 更新为真实本地配置保存 / 本地验证。
+- 已新增 `docs/review/rounds/2026-05-20-ai-provider-configuration-storage/README.md` 做 AI Provider / Keychain / 数据库 schema 专项文档影响检查，并更新 `docs/review/INDEX.md`。
 
 不需要新增 ADR，因为本方案不改变本地优先、用户自带 Provider、敏感凭证进入 Keychain、密钥默认不同步这些核心决策。
 
@@ -874,12 +888,20 @@ scripts/verify.sh
 - 2026-05-20：语言空间数据基础设施完成后进行代码现状复审；补充独立 `AppDatabase`、统一 migration、Core/Data/AI 依赖方向和 AI package 测试 target 前置要求；未修改代码。
 - 2026-05-20：再次复读语言空间 repository、AppEnvironment、Package 依赖和数据规范后确认，独立 `AppDatabase` 是更优且应前置的 Data 基础设施设计；当前 repository 自建数据库的实现可以在早期阶段直接推翻重构，无需为开发期临时 API 做兼容。
 - 2026-05-20：根据系统架构复查补充 Keychain / SQLite 非原子提交补偿策略、迁移级唯一/外键约束、URL 安全边界、`secret_presence` 最近观测语义、UI 明文草稿生命周期和后续验证项；未修改代码。
+- 2026-05-20：完成阶段 1，提交 `f32b314 data: introduce shared app database`。验证：`swift test --package-path Packages/LangoTraceData`、`swiftformat --lint`、`git diff --check`。
+- 2026-05-20：完成阶段 2，提交 `e16af60 core: add AI provider configuration models`。验证：`swift test --package-path Packages/LangoTraceCore`、`swift test --package-path Packages/LangoTraceAI`、`swiftformat --lint`、`git diff --check`。
+- 2026-05-20：完成阶段 3，提交 `7c1f9c4 ai: add Keychain credential store`。验证：`swift test --package-path Packages/LangoTraceAI`、`swiftformat --lint`、`git diff --check`。
+- 2026-05-20：完成阶段 4，提交 `3c0cac9 data: persist AI provider configuration metadata`。验证：`swift test --package-path Packages/LangoTraceCore`、`swift test --package-path Packages/LangoTraceData`、`swiftformat --lint`、`git diff --check`。
+- 2026-05-20：完成阶段 5，提交 `36e2e0f app: wire AI provider settings persistence`。验证：`swift test --package-path Packages/LangoTraceCore`、`swift test --package-path Packages/LangoTraceAI`、`swift test --package-path Packages/LangoTraceData`、`swift test --package-path Packages/LangoTraceUI`、`xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build`、`swiftformat --lint`、`git diff --check`。
+- 2026-05-20：完整 `scripts/verify.sh` 首次在 SwiftLint 阶段发现 `AppDatabase.migrate` 函数体过长；拆分 migration helper 后提交 `5283f74 data: split app database migrations`，并通过 `swift test --package-path Packages/LangoTraceData`、`swiftformat` 和 `git diff --check`。
+- 2026-05-20：执行文档影响检查，更新 AI Provider、权限隐私、模块边界、页面清单和 review 索引；真实 Provider 合成探测、请求预览、请求日志、Prompt Preset 执行、运行期凭证缓存、凭证轮换 UI 和 cleanup retry 延后到后续任务。
+- 2026-05-20：重跑 `scripts/verify.sh` 通过，退出码 0；SwiftLint 仍报告 6 个非阻断 warning，未阻止验证通过。
 
 ## 16. 完成标准
 
-本方案可以进入实施前必须满足：
+本方案实施前置条件已满足：
 
-- 用户确认本 Draft 的范围、字段设计、Keychain 访问策略和与语言空间数据基础设施的依赖边界。
+- 用户确认本方案的范围、字段设计、Keychain 访问策略和与语言空间数据基础设施的依赖边界。
 - 语言空间数据基础设施任务已经完成；在 AI Provider 实施前，必须把当前 `GRDBLanguageSpaceRepository` 内部的 `DatabaseQueue` / migration 抽象为独立 `AppDatabase`，或把该抽取列为 AI Provider 实施的第一个子任务。
 - Core / Data / AI 协议归属已经确认：平台无关配置模型和 repository 协议归 Core，Data 实现 GRDB repository，AI 消费 Core 协议并处理凭证解析和 Provider 边界。
 - 方案明确不包含完整真实 AI 生成请求；Provider 合成探测若纳入实施，只能作为可选子任务发送固定合成检测内容。
@@ -888,20 +910,20 @@ scripts/verify.sh
 - 方案明确 Keychain 与 SQLite 的非原子保存、替换、删除和补偿清理规则。
 - 方案明确云端 Provider endpoint 的 URL 安全边界，以及 UI 明文 API Key 草稿的清理规则。
 
-本任务最终可移入 `docs/plans/done/` 的条件：
+本任务最终可移入 `docs/plans/done/` 的条件与状态：
 
-- 对应实现完成并通过 `scripts/verify.sh`。
-- AI Provider 设置页能保存和加载非敏感配置。
-- API Key 能写入、读取、删除 Keychain，并有缺失和不可访问状态。
-- 数据库和日志扫描确认没有敏感凭证。
-- 文档影响检查完成。
+- Done：对应实现完成，并在收口前运行 `scripts/verify.sh`。
+- Done：AI Provider 设置页能保存和加载非敏感配置。
+- Done：API Key 能写入、读取、更新和删除 Keychain；本地验证能识别缺失和不可访问状态。
+- Done：数据库测试确认不包含 API Key 明文、密文、hash 或尾号字段；UI 源码扫描确认不直接使用 `URLSession`、`Authorization` 或 `Bearer`。
+- Done：文档影响检查完成。
 
 ## 17. 剩余风险
 
-- Keychain 在 iOS、iPadOS 和 macOS 上的 accessibility 行为存在平台差异，实施时需要用平台测试替身和真机 / 本机验证补齐。
+- Keychain 在 iOS、iPadOS 和 macOS 上的 accessibility 行为存在平台差异；本次已覆盖 macOS 本机 Keychain 单元测试，但后续 iOS / iPadOS 真机或模拟器行为仍需随真实 AI 请求任务继续验证。
 - ThisDeviceOnly 会导致设备迁移或备份恢复后密钥缺失，这是符合默认不同步原则的安全取舍，但 UI 必须解释清楚。
 - Swift 内存中无法完全保证明文 secret 清零，实施时只能通过缩短生命周期、避免日志和避免持久引用降低风险。
 - 未来如果用户要求 Provider 配置跨设备同步，需要单独设计端到端加密、用户确认、密钥迁移和恢复策略，不能复用本方案的默认不同步路径直接扩展。
 - 未来如果接入自定义请求头，header 名称本身也可能暴露服务结构；高级配置页需要额外审查展示和日志边界。
-- Keychain item 清理失败会留下本机安全存储残留。实施时必须支持非敏感 `cleanup_state` 和重试清理，但不得为了清理便利把 Keychain account 全量字符串暴露给 UI 或日志。
+- Keychain item 清理失败会留下本机安全存储残留。本次对“新建 Keychain 成功但数据库失败”的补偿删除做了错误分类，schema 也保留 `cleanup_state`，但旧凭证清理失败标记、cleanup retry 和对应 UI 尚未落地，必须另开任务补齐。
 - 自定义 OpenAI-compatible Provider 可能指向代理、内网或聚合服务。第一版应保守限制 URL；如后续放开局域网 HTTP 或自签证书，需要单独审查请求预览、风险提示和诊断日志。

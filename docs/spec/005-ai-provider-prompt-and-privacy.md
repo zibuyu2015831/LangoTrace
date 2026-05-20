@@ -148,11 +148,13 @@ UI 可用简洁文案展示，但服务层应保留可诊断错误类型。
 
 ### 4.7 Provider 配置页边界
 
-Provider 配置页可以在真实网络和 Keychain 接入前先提供真实级 mock 表单，用于验证信息架构和视觉设计，但必须遵守以下边界：
+Provider 配置页已经从真实级 mock 表单进入本地配置保存阶段：非敏感 Provider profile、endpoint、credential metadata 和 validation event 进入 SQLite / GRDB，API Key 写入 Keychain。真实外部 Provider 请求、Prompt Preset 执行、请求预览和请求日志仍未接入。后续实现必须遵守以下边界：
 
-- API Key 输入在未接入 Keychain 前只能作为页面级安全配置草稿；UI 可以展示“保存配置”和加密保存意图，但不得在代码、测试或文档中把当前 mock 状态描述成真实 Keychain 已接入。面向用户的主路径应避免展示开发标记式说明。
+- API Key 输入只能作为当前页面的短生命周期明文草稿；保存成功后必须清空 SwiftUI 草稿，不得在加载已保存配置时解密或回填明文。
 - 非敏感配置和敏感凭证必须分层。Provider、Base URL、模型名属于普通表单配置；请求格式、认证方式和自定义请求头等技术信息应默认收起或进入高级配置，不应挤占首屏主路径。API Key、外部服务 token、自定义请求头中的密钥属于敏感凭证。
-- 真实接入后，敏感凭证必须加密保存到本机安全存储；后续 AI 请求从 Provider 配置读取凭证，不允许用户每次请求前重新暴露或预览密钥。
+- 敏感凭证必须保存到本机 Keychain 或等价安全存储。SQLite 只能保存 credential metadata、Keychain service / account 引用、最近观测到的 secret presence 和非敏感验证事件；不得保存明文、可解密密文、hash、尾号或完整请求头值。
+- 已保存配置的后续本地验证和未来真实 AI 请求必须由服务层通过 Keychain 引用解析密钥；不得要求用户每次请求前重新输入、暴露或预览密钥。
+- Keychain item 默认不跨设备同步；数据库恢复到新设备但 Keychain 缺失时，应进入 `credential_missing` 或等价可恢复状态，引导用户重新输入密钥。
 - Provider 配置页应按模型用途表达 endpoint：文本模型、语音生成模型、向量模型是不同能力边界，不使用“高级模型”统称。
 - Provider 和 API Key 属于高频填写项。Provider 应使用一行设置项展示当前选择；API Key 输入必须有明确字段名，并提供显示/隐藏按钮，默认隐藏。面向普通中文用户的主路径文案应使用 `API Key`，避免使用“凭证”等偏工程术语。
 - 模型 endpoint 与敏感凭证必须分离。多个 endpoint 可以引用同一份凭证，例如同一 Provider 的文本、语音和向量 endpoint 共用同一个 API Key，但它们的 Base URL、adapter、请求格式和模型名仍应独立配置。
@@ -161,8 +163,9 @@ Provider 配置页可以在真实网络和 Keychain 接入前先提供真实级 
 - iPhone、iPad 和 macOS 的 Provider 设置页应共享同一字段语义和表单组件。平台差异只允许体现在承载宽度、导航位置、输入密度和窗口行为上；不得为 iPad 或 macOS 复制一套字段模型，避免重新出现旧术语、旧能力分组或未标注 API Key 输入。
 - iPad / macOS 工作台中的 Provider 设置详情应使用合理最大内容宽度保持阅读栏；该宽度是视觉承载约束，不得写入 Provider 配置模型、Repository、同步协议或安全存储模型。
 - macOS 原生 Settings scene 和工作台 Settings section 是两个入口层。当前原生 Settings scene 只展示能力状态列表，不承载 Provider 写入表单；后续若要在原生 Settings scene 支持 Provider 配置，必须复用同一配置模块并单独审查写入边界。
-- “测试请求”按钮必须走明确状态机。mock 阶段不得发起网络请求；真实阶段必须经过 Provider 层，不允许 SwiftUI View 直接创建具体服务请求。
+- “测试请求”按钮必须走明确状态机。当前阶段只做本地配置完整性和 Keychain 可读性检查，不发起网络请求；真实阶段必须经过 Provider 层，不允许 SwiftUI View 直接创建具体服务请求。
 - 真实测试请求只能发送合成检测内容，不得发送生活记录、照片、音频、历史记忆、目标语言正文或 Prompt Preset 内容。
+- 本地配置验证可以记录 `credential_validation` 类型的非敏感 validation event，包括 provider、model、endpoint purpose、状态、错误分类和时间；不得记录请求体、响应体、API Key、完整 Keychain account、完整请求头或用户内容。
 - Provider preset 不能默认声明所有能力都可用。Chat、Embedding、TTS、图片理解、语音识别和自定义请求头需要分别表达支持状态。
 - 聚合服务或兼容层的路由提示应只在用户选择该类 Provider 或进入高级信息时出现，避免把所有 Provider 的技术风险说明长期展示在普通设置主路径。
 
@@ -215,3 +218,4 @@ AI 在实现任何 AI 能力前应先确认：
 - 2026-05-19：补充多模型 endpoint 与凭证引用规则。原因：同一 Provider 可能共用 API Key 但使用不同 endpoint/model，三类能力也可能使用不同 Provider。影响范围：AI Provider 设置 UI、后续 Keychain item 引用、TTS 和向量化配置。是否需要 ADR：否。
 - 2026-05-19：补充 Provider 和 API Key 表单可用性规则。原因：API Key 输入需要明确字段名和可见性控制，中文主路径应避免“凭证”等偏工程术语。影响范围：AI Provider 设置 UI、本地化文案、后续安全存储表单。是否需要 ADR：否。
 - 2026-05-19：补充三端 Provider 设置页共享与大屏承载规则。原因：iPad / macOS 工作台详情需要保持与 iPhone 相同字段语义，同时避免把 iPhone 表单横向拉满大屏。影响范围：AI Provider 设置 UI、SettingsCapabilityDetailView、macOS Settings scene 边界。是否需要 ADR：否。
+- 2026-05-20：更新 Provider 配置页从 mock 到本地配置保存阶段的事实边界。原因：AI Provider profile、endpoint、credential metadata、Keychain 保存和本地 credential validation 已落地，真实外部 Provider 合成探测仍未接入。影响范围：AI Provider 设置、Keychain、Data repository、validation event、后续真实 AI 请求。是否需要 ADR：否，沿用 ADR-005。

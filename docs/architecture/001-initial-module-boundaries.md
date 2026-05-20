@@ -70,7 +70,7 @@
 - FTS 索引。
 - 附件元数据。
 
-第一阶段可以从协议和内存实现起步；语言空间持久化已进入真实 SQLite / GRDB 基础设施，其余 Entry、附件、AI、Speech 和 Sync 仍按各自任务分阶段落地。
+第一阶段可以从协议和内存实现起步；语言空间持久化和 AI Provider 配置元数据已进入真实 SQLite / GRDB 基础设施，其余 Entry、附件、Speech 和 Sync 仍按各自任务分阶段落地。
 
 基础设施建设边界：
 
@@ -83,12 +83,13 @@
 职责：
 
 - AI Provider 协议。
-- OpenAI-compatible 配置模型。
+- Provider configuration service。
+- Keychain credential store 和 credential resolver。
 - Prompt Preset。
 - 请求预览和请求元数据。
 - 图片理解、文本转换、写作检测和改写的接口。
 
-第一阶段不发送真实请求。
+当前已落地 AI Provider 配置保存、Keychain 凭证存储和本地 credential validation；仍不发送真实外部 Provider 请求。
 
 ### 2.6 Speech
 
@@ -163,7 +164,8 @@ Sync -> Core
 
 当前职责：
 
-- 通过 `AppEnvironment.bootstrap()` 装配真实语言空间 SQLite / GRDB repository，以及 AI / Speech / Sync 的 disabled 实现。
+- 通过 `AppEnvironment.bootstrap()` 装配共享 `AppDatabase`、真实语言空间 SQLite / GRDB repository、AI Provider 配置 repository、Keychain credential store、AI Provider 设置页 actions，以及 AI / Speech / Sync 的 disabled 实现。
+- App Shell 负责装配 Data 和 AI package 的实现，但不直接持有 SQL、Keychain query 或 Provider SDK 调用细节。
 - 通过 `AppSessionState` 管理 `welcome`、`onboarding`、`main` 三段启动状态。
 - 使用 `LaunchRoute` 判断缺少语言空间时应回到 onboarding。
 - 通过 `AppSessionState` 恢复、创建、切换、重命名和删除当前语言空间；缺少 active 语言空间时回到 onboarding。
@@ -184,6 +186,11 @@ Sync -> Core
 - `UpdateLanguageSpaceInput`
 - `LanguageSpaceDeletionResult`
 - `LanguageSpaceError`
+- `AIProviderConfigurationProfile`
+- `AIProviderEndpointConfiguration`
+- `AIProviderCredentialMetadata`
+- `AIProviderValidationEvent`
+- `AIProviderConfigurationRepository`
 - `PrivacyStatusSeverity`
 - `AIProviderStatus`
 - `SyncProviderStatus`
@@ -200,6 +207,7 @@ Sync -> Core
 - 学习语言展示和目标语言过滤。
 - 手机 Tab 顺序。
 - 隐私状态标签和图标。
+- AI Provider endpoint URL 安全校验、credential metadata、保存输入和 Keychain reference 字段。
 
 ### 5.3 UI
 
@@ -218,7 +226,7 @@ Sync -> Core
 - `PadPanelGestureAction`
 - `LangoTraceDesign`
 
-当前 UI 能展示三端产品骨架，其中 iPhone 设置页已接入语言空间管理页；Entry、练习、记忆和 AI 相关页面内容仍是 Mock。UI 不应直接接入 SQLite、Keychain、网络、对象存储或具体 AI Provider，语言空间管理页通过 App 层 action closures 修改状态。
+当前 UI 能展示三端产品骨架，其中 iPhone 设置页已接入语言空间管理页，AI Provider 设置页已接入真实本地配置保存和本地 credential validation；Entry、练习、记忆和真实 AI 请求内容仍是 Mock。UI 不应直接接入 SQLite、Keychain、网络、对象存储或具体 AI Provider，语言空间管理页和 AI Provider 设置页都通过 App 层 action closures 修改状态。
 
 当前测试覆盖：
 
@@ -230,10 +238,12 @@ Sync -> Core
 当前状态：
 
 - `LangoTraceData` 已包含 `LanguageSpaceRepository`、`EmptyLanguageSpaceRepository`、`GRDBLanguageSpaceRepository`、`LanguageSpaceDatabaseLocation` 和内存学习内容 repository。
+- `LangoTraceData` 已包含 `AppDatabase`，统一负责 SQLite / GRDB 数据库打开、文件保护、migration 注册和测试数据库初始化。
 - 语言空间 repository 已使用 SQLite / GRDB 持久化 `language_spaces` 与 `app_state.current_language_space_id`，支持 active list、读取、当前空间、创建、更新、选择、软删除和同名检测。
+- AI Provider configuration repository 已使用同一 `AppDatabase` 持久化非敏感 Provider profile、endpoint、credential metadata 和 validation event；数据库不保存 API Key 明文、密文、hash 或尾号。
 - Entry / Rendering / Practice / Memory 仍使用内存学习内容 repository，不代表本地记录闭环已持久化。
-- `LangoTraceAI` 只有 `AIProvider` 和 `DisabledAIProvider`。
+- `LangoTraceAI` 已包含 `AIProviderConfigurationService`、`AIProviderCredentialStore`、`AIProviderCredentialResolver`、`KeychainAIProviderCredentialStore`、`AIProvider` 和 `DisabledAIProvider`。
 - `LangoTraceSpeech` 只有 `SpeechService` 和 `DisabledSpeechService`。
 - `LangoTraceSync` 只有 `SyncService` 和 `DisabledSyncService`。
 
-这些类型中只有语言空间已进入真实本地数据库基础设施；其他 Data 主数据、AI、语音和同步仍表示模块边界和装配位置。后续接入具体能力时，应在对应模块内扩展协议、状态和测试，而不是从 UI 直接调用平台 API 或外部服务。
+这些类型中语言空间和 AI Provider 配置已进入真实本地数据库基础设施；AI 仍未发送真实外部请求，Speech 和 Sync 仍表示模块边界和装配位置。后续接入具体能力时，应在对应模块内扩展协议、状态和测试，而不是从 UI 直接调用平台 API 或外部服务。
