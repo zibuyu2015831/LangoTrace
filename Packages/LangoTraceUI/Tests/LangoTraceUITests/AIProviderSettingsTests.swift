@@ -126,11 +126,24 @@ struct AIProviderSettingsTests {
 
         #expect(source.contains("aiProviderSettings.save.button"))
         #expect(source.contains("aiProviderSettings.save.boundary"))
-        #expect(source.contains("ProgressView"))
+        #expect(!source.contains("ProgressView"))
+        #expect(!source.contains("saveButtonTitleKey"))
+        #expect(source.contains("guard !isSaving else"))
         #expect(source.contains("operationID"))
         #expect(source.contains("aiProviderSettings.saveState.failed"))
         #expect(source.contains("saveConfiguration()"))
         #expect(source.contains("actions.saveDefaultProfile"))
+    }
+
+    @Test("Save boundary copy is short enough for compact iPhone status panel")
+    func saveBoundaryCopyIsShortEnoughForCompactPhoneStatusPanel() throws {
+        let source = try String(
+            contentsOf: sourceFileURL(named: "Resources/Localizable.xcstrings"),
+            encoding: .utf8
+        )
+
+        #expect(source.contains("\"value\": \"数据会加密存储\""))
+        #expect(!source.contains("保存后的凭证会加密留在本机，并供后续 AI 请求使用。"))
     }
 
     @Test("Settings source records invalid save input separately from save failure")

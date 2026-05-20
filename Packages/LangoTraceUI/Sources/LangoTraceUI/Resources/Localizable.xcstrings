@@ -12379,13 +12379,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved credentials stay encrypted on this device and are used by future AI requests."
+            "value": "Data is encrypted at rest."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存后的凭证会加密留在本机，并供后续 AI 请求使用。"
+            "value": "数据会加密存储"
           }
         }
       }

@@ -68,19 +68,15 @@ struct AIProviderSettingsView: View {
                 saveConfiguration()
             } label: {
                 Label {
-                    localizedText(saveButtonTitleKey)
+                    localizedText("aiProviderSettings.save.button")
                 } icon: {
-                    if isSaving {
-                        ProgressView()
-                    } else {
-                        Image(systemName: "lock.shield")
-                    }
+                    Image(systemName: "lock.shield")
                 }
                 .font(.callout.weight(.semibold))
                 .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(draft.testReadiness == .missingRequiredFields || isSaving)
+            .disabled(draft.testReadiness == .missingRequiredFields)
 
             Button {
                 validateConfiguration()
@@ -94,7 +90,7 @@ struct AIProviderSettingsView: View {
                 .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
             }
             .buttonStyle(.bordered)
-            .disabled(draft.testReadiness == .missingRequiredFields || isSaving)
+            .disabled(draft.testReadiness == .missingRequiredFields)
 
             statusPanel
         }
@@ -139,6 +135,9 @@ private extension AIProviderSettingsView {
 
     func saveConfiguration() {
         Task { @MainActor in
+            guard !isSaving else {
+                return
+            }
             let operationID = actions.operationIDGenerator()
             await recordSaveEvent(
                 .aiProviderSettingsSaveTapped,
@@ -195,6 +194,9 @@ private extension AIProviderSettingsView {
 
     func validateConfiguration() {
         Task { @MainActor in
+            guard !isSaving else {
+                return
+            }
             guard draft.testReadiness == .readyForMockRequest else {
                 draft.testState = .missingRequiredFields
                 return
@@ -260,10 +262,6 @@ private extension AIProviderSettingsView {
         }
 
         return LangoTraceDesign.ColorToken.accent
-    }
-
-    var saveButtonTitleKey: String {
-        isSaving ? "aiProviderSettings.saveState.saving" : "aiProviderSettings.save.button"
     }
 
     var isSaving: Bool {

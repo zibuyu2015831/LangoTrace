@@ -1,6 +1,6 @@
 # 任务方案：iOS 模拟器 AI Provider 保存失败
 
-状态：Implemented
+状态：Done
 类型：bug
 创建日期：2026-05-20
 最后更新日期：2026-05-20
@@ -9,6 +9,7 @@
 
 - 2026-05-20：用户在 iOS 端测试 AI Provider 保存配置时看到“配置保存失败”，要求阅读日志排查。当前先完成根因排查和方案记录；实施修复前需要用户确认。
 - 2026-05-20：用户确认立即修复，并要求重新构建、重启本地模拟器。
+- 2026-05-20：用户复测后截图显示“配置已保存到本机安全存储”，并提出保存按钮瞬态变化太快，希望去除按钮保存中状态，仅保留底部状态提示；底部说明文案改为“数据会加密存储”。
 
 ## 1. 需求或 bug 描述
 
@@ -69,6 +70,8 @@ TeamIdentifier=not set
 2. 不引入正式发布签名或强依赖某个开发者团队。
 3. 保存失败排查能力应能显示非敏感 Keychain 错误阶段；后续可进一步补充 OSStatus 分类，但本轮优先修复根因。
 4. 修复后在 iPhone 17 模拟器上重新构建、安装、启动，并验证保存不再失败。
+5. 保存按钮在本地快速保存期间保持稳定，不在按钮内快速切换“正在保存...”或进度图标；保存中、成功、失败仍由底部状态面板表达。
+6. 底部安全说明文案保持短句，使用“数据会加密存储”。
 
 ## 7. 范围
 
@@ -79,6 +82,9 @@ TeamIdentifier=not set
 可能修改：
 
 - `docs/spec/009-testing-and-verification.md`：如果最终确认需要把“需要 Keychain 的模拟器验证不得关闭 signing”沉淀为长期验证规则。
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsView.swift`：保存按钮视觉反馈策略。
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/Resources/Localizable.xcstrings`：底部安全说明文案。
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProviderSettingsTests.swift`：保存按钮与文案回归测试。
 - 本任务方案自身。
 
 ## 8. 不做什么
@@ -87,6 +93,7 @@ TeamIdentifier=not set
 - 不把 Keychain 失败改成静默成功。
 - 不在 UI 或日志中输出 API Key、完整 Keychain account 或请求头。
 - 不接入真实 Provider 网络测试。
+- 不删除底部保存中、成功、失败状态；只取消按钮内部的瞬态状态切换。
 
 ## 9. 实施方案
 
@@ -110,6 +117,7 @@ TeamIdentifier=not set
 - iOS 模拟器构建日志应出现 `Entitlements-Simulated.plist`、`__entitlements` 注入或 `Sign to Run Locally` 本地签名步骤；`codesign -d --entitlements - <LangoTrace.app>` 在模拟器产物上不一定稳定打印 simulated entitlement payload，不作为唯一判断依据。
 - 保存后 SQLite 中应出现 `ai_provider_profiles`、`ai_provider_credentials`、`ai_provider_endpoints`。
 - UI 应显示保存成功。
+- 保存按钮文案和图标在保存期间保持为“保存配置”和 `lock.shield`；重复点击通过 `guard !isSaving` 防抖，不依赖按钮禁用造成视觉闪烁。
 
 ## 11. 验证命令
 
@@ -143,6 +151,8 @@ sqlite3 '<app container>/Library/Application Support/LangoTrace/LangoTrace.sqlit
 - 2026-05-20：已移除 `project.yml` 全局 `CODE_SIGNING_ALLOWED: NO`，重新运行 `xcodegen generate`。修复后 `xcodebuild -showBuildSettings` 显示 `CODE_SIGNING_ALLOWED = YES`；iOS 模拟器构建日志出现 `Entitlements-Simulated.plist`、`__entitlements` 注入和 `CodeSign ... Signing Identity: "Sign to Run Locally"`。
 - 2026-05-20：修复后 `Entitlements-Simulated.plist` 包含 `application-identifier = FAKETEAMID.com.zibuyu.LangoTrace`；`codesign -dvv` 显示 bundle identifier 已恢复为 `com.zibuyu.LangoTrace`。`codesign -d --entitlements -` 未稳定打印 simulated entitlement payload，因此后续以 build settings、simulated entitlement plist 和构建签名日志作为模拟器签名复查依据。
 - 2026-05-20：已重新构建 `LangoTrace-iOS`、关闭并重启 `iPhone 17` 模拟器、安装新构建并启动 `com.zibuyu.LangoTrace`。
+- 2026-05-20：用户复测截图显示底部状态为“配置已保存到本机安全存储”。同一 App 容器 SQLite 复查结果为 `ai_provider_profiles = 1`、`ai_provider_credentials = 1`、`ai_provider_endpoints = 1`、`diagnostic_events = 0`，确认已越过此前 Keychain 失败导致 metadata 全为 0 的断点。
+- 2026-05-20：按用户反馈调整保存按钮交互：保存按钮不再在快速本地保存期间切换为 `ProgressView` 或“正在保存...”，也不再因 `isSaving` 进入禁用样式；重复触发由 `guard !isSaving` 阻断。底部说明文案改为“数据会加密存储”。
 
 ## 14. 完成标准
 
