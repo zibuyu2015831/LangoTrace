@@ -4,12 +4,14 @@ import LangoTraceCore
 public struct AIProviderConfigurationService: Sendable {
     private let repository: any AIProviderConfigurationRepository
     private let credentialStore: (any AIProviderCredentialStore)?
+    private let diagnosticLogger: any DiagnosticLogging
     private let clock: @Sendable () -> Date
     private let idGenerator: @Sendable () -> String
 
     public init(repository: any AIProviderConfigurationRepository) {
         self.repository = repository
         credentialStore = nil
+        diagnosticLogger = DisabledDiagnosticLogger()
         clock = Date.init
         idGenerator = { UUID().uuidString }
     }
@@ -17,11 +19,13 @@ public struct AIProviderConfigurationService: Sendable {
     public init(
         repository: any AIProviderConfigurationRepository,
         credentialStore: any AIProviderCredentialStore,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
     ) {
         self.repository = repository
         self.credentialStore = credentialStore
+        self.diagnosticLogger = diagnosticLogger
         self.clock = clock
         self.idGenerator = idGenerator
     }
@@ -37,10 +41,16 @@ public struct AIProviderConfigurationService: Sendable {
     }
 
     public func saveDefaultProfile(
-        _ input: AIProviderProfileSaveInput
+        _ input: AIProviderProfileSaveInput,
+        operationID: DiagnosticOperationID? = nil
     ) async throws -> AIProviderConfigurationProfile {
+        let operationID = operationID ?? DiagnosticOperationID(rawValue: UUID().uuidString)
         guard let credentialStore else {
-            throw AIProviderConfigurationError.keychainWriteFailed
+            throw AIProviderConfigurationSaveFailure(
+                operationID: operationID,
+                phase: .keychainWrite,
+                category: .keychainWriteFailed
+            )
         }
 
         let now = clock()
@@ -59,6 +69,7 @@ public struct AIProviderConfigurationService: Sendable {
                     credentialsByPurpose: credentialsByPurpose,
                     credentials: &credentials,
                     createdReferences: &createdReferences,
+                    operationID: operationID,
                     credentialStore: credentialStore
                 )
                 let endpoint = try AIProviderEndpointConfiguration(
@@ -96,14 +107,84 @@ public struct AIProviderConfigurationService: Sendable {
                 endpoints: endpoints,
                 credentials: credentials
             )
-            try await repository.saveProfile(profile)
+            await record(
+                .aiProviderConfigurationDatabaseWriteStarted,
+                domain: .dataStorage,
+                level: .debug,
+                outcome: .started,
+                operationID: operationID
+            )
+            do {
+                try await repository.saveProfile(profile)
+            } catch {
+                await record(
+                    .aiProviderConfigurationDatabaseWriteFailed,
+                    domain: .dataStorage,
+                    level: .error,
+                    outcome: .failed,
+                    operationID: operationID,
+                    attributes: [
+                        .failurePhase(AIProviderConfigurationSavePhase.databaseWrite.rawValue),
+                        .errorCategory(AIProviderConfigurationSaveFailureCategory.databaseWriteFailed.rawValue),
+                    ]
+                )
+                let cleanupFailure = await cleanupCreatedSecrets(
+                    createdReferences,
+                    operationID: operationID,
+                    credentialStore: credentialStore
+                )
+                throw AIProviderConfigurationSaveFailure(
+                    operationID: operationID,
+                    phase: .databaseWrite,
+                    category: .databaseWriteFailed,
+                    cleanupFailure: cleanupFailure
+                )
+            }
+            await record(
+                .aiProviderConfigurationDatabaseWriteSucceeded,
+                domain: .dataStorage,
+                level: .debug,
+                outcome: .succeeded,
+                operationID: operationID
+            )
             return profile
+        } catch let failure as AIProviderConfigurationSaveFailure {
+            if failure.phase == .databaseWrite {
+                throw failure
+            }
+            let cleanupFailure = await cleanupCreatedSecrets(
+                createdReferences,
+                operationID: operationID,
+                credentialStore: credentialStore
+            )
+            if cleanupFailure == nil || failure.cleanupFailure != nil {
+                throw failure
+            }
+            throw AIProviderConfigurationSaveFailure(
+                operationID: failure.operationID,
+                phase: failure.phase,
+                category: failure.category,
+                cleanupFailure: cleanupFailure
+            )
         } catch let error as AIProviderConfigurationError {
-            try await cleanupCreatedSecrets(createdReferences, credentialStore: credentialStore)
-            throw error
+            let cleanupFailure = await cleanupCreatedSecrets(
+                createdReferences,
+                operationID: operationID,
+                credentialStore: credentialStore
+            )
+            throw saveFailure(from: error, operationID: operationID, cleanupFailure: cleanupFailure)
         } catch {
-            try await cleanupCreatedSecrets(createdReferences, credentialStore: credentialStore)
-            throw AIProviderConfigurationError.databaseWriteFailed
+            let cleanupFailure = await cleanupCreatedSecrets(
+                createdReferences,
+                operationID: operationID,
+                credentialStore: credentialStore
+            )
+            throw AIProviderConfigurationSaveFailure(
+                operationID: operationID,
+                phase: .unknown,
+                category: .unknown,
+                cleanupFailure: cleanupFailure
+            )
         }
     }
 
@@ -212,6 +293,7 @@ private extension AIProviderConfigurationService {
         credentialsByPurpose: [AIProviderEndpointPurpose: AIProviderCredentialID],
         credentials: inout [AIProviderCredentialMetadata],
         createdReferences: inout [AIProviderCredentialKeychainReference],
+        operationID: DiagnosticOperationID,
         credentialStore: any AIProviderCredentialStore
     ) async throws -> AIProviderCredentialID? {
         switch endpointInput.credentialMode {
@@ -238,14 +320,43 @@ private extension AIProviderConfigurationService {
                 updatedAt: date
             )
             let reference = AIProviderCredentialKeychainReference(metadata: metadata)
+            await record(
+                .aiProviderConfigurationKeychainWriteStarted,
+                domain: .aiProviderSettings,
+                level: .debug,
+                outcome: .started,
+                operationID: operationID
+            )
             do {
                 try await credentialStore.upsertSecret(
                     AIProviderSecretInput(value: secret),
                     for: reference
                 )
             } catch {
-                throw AIProviderConfigurationError.keychainWriteFailed
+                await record(
+                    .aiProviderConfigurationKeychainWriteFailed,
+                    domain: .aiProviderSettings,
+                    level: .error,
+                    outcome: .failed,
+                    operationID: operationID,
+                    attributes: [
+                        .failurePhase(AIProviderConfigurationSavePhase.keychainWrite.rawValue),
+                        .errorCategory(AIProviderConfigurationSaveFailureCategory.keychainWriteFailed.rawValue),
+                    ]
+                )
+                throw AIProviderConfigurationSaveFailure(
+                    operationID: operationID,
+                    phase: .keychainWrite,
+                    category: .keychainWriteFailed
+                )
             }
+            await record(
+                .aiProviderConfigurationKeychainWriteSucceeded,
+                domain: .aiProviderSettings,
+                level: .debug,
+                outcome: .succeeded,
+                operationID: operationID
+            )
             createdReferences.append(reference)
             credentials.append(metadata)
             return credentialID
@@ -254,14 +365,117 @@ private extension AIProviderConfigurationService {
 
     func cleanupCreatedSecrets(
         _ references: [AIProviderCredentialKeychainReference],
+        operationID: DiagnosticOperationID,
         credentialStore: any AIProviderCredentialStore
-    ) async throws {
+    ) async -> AIProviderConfigurationSaveFailureCategory? {
+        guard !references.isEmpty else {
+            return nil
+        }
+
+        await record(
+            .aiProviderConfigurationCleanupStarted,
+            domain: .aiProviderSettings,
+            level: .debug,
+            outcome: .started,
+            operationID: operationID
+        )
         for reference in references {
             do {
                 try await credentialStore.deleteSecret(for: reference)
             } catch {
-                throw AIProviderConfigurationError.orphanedCredentialCleanupFailed
+                await record(
+                    .aiProviderConfigurationCleanupFailed,
+                    domain: .aiProviderSettings,
+                    level: .error,
+                    outcome: .failed,
+                    operationID: operationID,
+                    attributes: [
+                        .failurePhase(AIProviderConfigurationSavePhase.credentialCleanup.rawValue),
+                        .errorCategory(AIProviderConfigurationSaveFailureCategory.credentialCleanupFailed.rawValue),
+                    ]
+                )
+                return .credentialCleanupFailed
             }
+        }
+        await record(
+            .aiProviderConfigurationCleanupSucceeded,
+            domain: .aiProviderSettings,
+            level: .debug,
+            outcome: .succeeded,
+            operationID: operationID
+        )
+        return nil
+    }
+
+    func record(
+        _ name: DiagnosticEventName,
+        domain: DiagnosticDomain,
+        level: DiagnosticLevel,
+        outcome: DiagnosticOutcome,
+        operationID: DiagnosticOperationID,
+        attributes: [DiagnosticAttribute] = []
+    ) async {
+        await diagnosticLogger.record(
+            DiagnosticEvent(
+                id: UUID().uuidString,
+                name: name,
+                domain: domain,
+                level: level,
+                outcome: outcome,
+                attributes: [.operationID(operationID)] + attributes,
+                createdAt: clock()
+            )
+        )
+    }
+
+    func saveFailure(
+        from error: AIProviderConfigurationError,
+        operationID: DiagnosticOperationID,
+        cleanupFailure: AIProviderConfigurationSaveFailureCategory?
+    ) -> AIProviderConfigurationSaveFailure {
+        switch error {
+        case .missingRequiredEndpointField:
+            AIProviderConfigurationSaveFailure(
+                operationID: operationID,
+                phase: .inputValidation,
+                category: .missingRequiredEndpointField,
+                cleanupFailure: cleanupFailure
+            )
+        case .invalidBaseURL, .unsupportedCapabilityForProvider:
+            AIProviderConfigurationSaveFailure(
+                operationID: operationID,
+                phase: .inputValidation,
+                category: .invalidBaseURL,
+                cleanupFailure: cleanupFailure
+            )
+        case .missingRequiredAPIKey:
+            AIProviderConfigurationSaveFailure(
+                operationID: operationID,
+                phase: .inputValidation,
+                category: .missingRequiredAPIKey,
+                cleanupFailure: cleanupFailure
+            )
+        case .keychainWriteFailed:
+            AIProviderConfigurationSaveFailure(
+                operationID: operationID,
+                phase: .keychainWrite,
+                category: .keychainWriteFailed,
+                cleanupFailure: cleanupFailure
+            )
+        case .databaseWriteFailed:
+            AIProviderConfigurationSaveFailure(
+                operationID: operationID,
+                phase: .databaseWrite,
+                category: .databaseWriteFailed,
+                cleanupFailure: cleanupFailure
+            )
+        case .orphanedCredentialCleanupFailed:
+            AIProviderConfigurationSaveFailure(
+                operationID: operationID,
+                phase: .credentialCleanup,
+                category: .credentialCleanupFailed,
+                cleanupFailure: cleanupFailure
+            )
         }
     }
 }

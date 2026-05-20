@@ -59,12 +59,69 @@ func configurationServiceSavesSecretsBeforeMetadataAndCleansUpWhenDatabaseFails(
         idGenerator: IncrementingIDGenerator().next
     )
 
-    await #expect(throws: AIProviderConfigurationError.databaseWriteFailed) {
-        try await service.saveDefaultProfile(saveInput())
+    await #expect(throws: AIProviderConfigurationSaveFailure.self) {
+        try await service.saveDefaultProfile(
+            saveInput(),
+            operationID: DiagnosticOperationID(rawValue: "operation-1")
+        )
     }
 
     #expect(await store.upsertedAccounts == ["ai-provider-credential:id-2:api_key"])
     #expect(await store.deletedAccounts == ["ai-provider-credential:id-2:api_key"])
+}
+
+@Test("Configuration service preserves database failure when cleanup also fails")
+func configurationServicePreservesDatabaseFailureWhenCleanupAlsoFails() async throws {
+    let repository = StubAIProviderConfigurationRepository(
+        profile: nil,
+        saveError: AIProviderConfigurationError.databaseWriteFailed
+    )
+    let store = TrackingAIProviderCredentialStore(deleteError: AIProviderCredentialStoreError.credentialInaccessible)
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        clock: { Date(timeIntervalSince1970: 100) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    do {
+        _ = try await service.saveDefaultProfile(
+            saveInput(),
+            operationID: DiagnosticOperationID(rawValue: "operation-cleanup")
+        )
+        Issue.record("Expected save to fail")
+    } catch let failure as AIProviderConfigurationSaveFailure {
+        #expect(failure.operationID?.rawValue == "operation-cleanup")
+        #expect(failure.phase == .databaseWrite)
+        #expect(failure.category == .databaseWriteFailed)
+        #expect(failure.cleanupFailure == .credentialCleanupFailed)
+    }
+}
+
+@Test("Configuration service records save phase diagnostics with operation id")
+func configurationServiceRecordsSavePhaseDiagnosticsWithOperationID() async throws {
+    let repository = StubAIProviderConfigurationRepository(profile: nil)
+    let store = TrackingAIProviderCredentialStore()
+    let logger = InMemoryDiagnosticLogger()
+    let operationID = DiagnosticOperationID(rawValue: "operation-log")
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        diagnosticLogger: logger,
+        clock: { Date(timeIntervalSince1970: 100) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    _ = try await service.saveDefaultProfile(saveInput(), operationID: operationID)
+
+    let events = await logger.events()
+    #expect(events.map(\.name) == [
+        .aiProviderConfigurationKeychainWriteStarted,
+        .aiProviderConfigurationKeychainWriteSucceeded,
+        .aiProviderConfigurationDatabaseWriteStarted,
+        .aiProviderConfigurationDatabaseWriteSucceeded,
+    ])
+    #expect(events.allSatisfy { $0.attributes.contains(.operationID(operationID)) })
 }
 
 @Test("Configuration service saves profile with generated credential metadata")
@@ -196,9 +253,11 @@ private actor TrackingAIProviderCredentialStore: AIProviderCredentialStore {
     private(set) var deletedAccounts: [String] = []
     private(set) var resolvedAccounts: [String] = []
     private let resolveError: (any Error)?
+    private let deleteError: (any Error)?
 
-    init(resolveError: (any Error)? = nil) {
+    init(resolveError: (any Error)? = nil, deleteError: (any Error)? = nil) {
         self.resolveError = resolveError
+        self.deleteError = deleteError
     }
 
     func upsertSecret(
@@ -222,6 +281,9 @@ private actor TrackingAIProviderCredentialStore: AIProviderCredentialStore {
 
     func deleteSecret(for reference: AIProviderCredentialKeychainReference) async throws {
         deletedAccounts.append(reference.account)
+        if let deleteError {
+            throw deleteError
+        }
     }
 }
 
