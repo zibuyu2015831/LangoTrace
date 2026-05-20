@@ -53,99 +53,19 @@ public struct AIProviderConfigurationService: Sendable {
             )
         }
 
-        let now = clock()
-        var credentialsByPurpose: [AIProviderEndpointPurpose: AIProviderCredentialID] = [:]
-        var credentials: [AIProviderCredentialMetadata] = []
-        var endpoints: [AIProviderEndpointConfiguration] = []
         var createdReferences: [AIProviderCredentialKeychainReference] = []
-        let profileID = input.profileID ?? idGenerator()
-
         do {
-            for endpointInput in input.endpoints {
-                let credentialID = try await credentialID(
-                    for: endpointInput,
-                    profileID: profileID,
-                    at: now,
-                    credentialsByPurpose: credentialsByPurpose,
-                    credentials: &credentials,
-                    createdReferences: &createdReferences,
-                    operationID: operationID,
-                    credentialStore: credentialStore
-                )
-                let endpoint = try AIProviderEndpointConfiguration(
-                    input: AIProviderEndpointInput(
-                        id: endpointInput.id ?? idGenerator(),
-                        profileID: profileID,
-                        purpose: endpointInput.purpose,
-                        isEnabled: endpointInput.isEnabled,
-                        providerPresetID: endpointInput.providerPresetID,
-                        adapterKind: endpointInput.adapterKind,
-                        baseURL: endpointInput.baseURL,
-                        modelName: endpointInput.modelName,
-                        credentialID: credentialID,
-                        supportsImageInput: endpointInput.supportsImageInput,
-                        imageInputEnabled: endpointInput.imageInputEnabled,
-                        requestTimeoutSeconds: endpointInput.requestTimeoutSeconds
-                    ),
-                    createdAt: now,
-                    updatedAt: now
-                )
-                endpoints.append(endpoint)
-                if let credentialID {
-                    credentialsByPurpose[endpointInput.purpose] = credentialID
-                }
-            }
-
-            let profile = AIProviderConfigurationProfile(
-                id: profileID,
-                displayName: input.displayName,
-                isDefault: true,
-                status: .configured,
-                createdAt: now,
-                updatedAt: now,
-                lastValidationStatus: .notRun,
-                endpoints: endpoints,
-                credentials: credentials
+            let profile = try await makeProfile(
+                from: input,
+                operationID: operationID,
+                credentialStore: credentialStore,
+                createdReferences: &createdReferences
             )
-            await record(
-                .aiProviderConfigurationDatabaseWriteStarted,
-                domain: .dataStorage,
-                level: .debug,
-                outcome: .started,
-                operationID: operationID
-            )
-            do {
-                try await repository.saveProfile(profile)
-            } catch {
-                await record(
-                    .aiProviderConfigurationDatabaseWriteFailed,
-                    domain: .dataStorage,
-                    level: .error,
-                    outcome: .failed,
-                    operationID: operationID,
-                    attributes: [
-                        .failurePhase(AIProviderConfigurationSavePhase.databaseWrite.rawValue),
-                        .errorCategory(AIProviderConfigurationSaveFailureCategory.databaseWriteFailed.rawValue),
-                    ]
-                )
-                let cleanupFailure = await cleanupCreatedSecrets(
-                    createdReferences,
-                    operationID: operationID,
-                    credentialStore: credentialStore
-                )
-                throw AIProviderConfigurationSaveFailure(
-                    operationID: operationID,
-                    phase: .databaseWrite,
-                    category: .databaseWriteFailed,
-                    cleanupFailure: cleanupFailure
-                )
-            }
-            await record(
-                .aiProviderConfigurationDatabaseWriteSucceeded,
-                domain: .dataStorage,
-                level: .debug,
-                outcome: .succeeded,
-                operationID: operationID
+            try await saveProfile(
+                profile,
+                operationID: operationID,
+                createdReferences: createdReferences,
+                credentialStore: credentialStore
             )
             return profile
         } catch let failure as AIProviderConfigurationSaveFailure {
@@ -236,6 +156,118 @@ private extension AIProviderConfigurationService {
         var status: AIProviderValidationStatus
         var secretPresence: AIProviderSecretPresence
         var errorCategory: AIProviderValidationErrorCategory?
+    }
+
+    func makeProfile(
+        from input: AIProviderProfileSaveInput,
+        operationID: DiagnosticOperationID,
+        credentialStore: any AIProviderCredentialStore,
+        createdReferences: inout [AIProviderCredentialKeychainReference]
+    ) async throws -> AIProviderConfigurationProfile {
+        let now = clock()
+        let profileID = input.profileID ?? idGenerator()
+        var credentialsByPurpose: [AIProviderEndpointPurpose: AIProviderCredentialID] = [:]
+        var credentials: [AIProviderCredentialMetadata] = []
+        var endpoints: [AIProviderEndpointConfiguration] = []
+
+        for endpointInput in input.endpoints {
+            let credentialID = try await credentialID(
+                for: endpointInput,
+                profileID: profileID,
+                at: now,
+                credentialsByPurpose: credentialsByPurpose,
+                credentials: &credentials,
+                createdReferences: &createdReferences,
+                operationID: operationID,
+                credentialStore: credentialStore
+            )
+            let endpoint = try endpointConfiguration(
+                from: endpointInput,
+                profileID: profileID,
+                credentialID: credentialID,
+                createdAt: now
+            )
+            endpoints.append(endpoint)
+            if let credentialID {
+                credentialsByPurpose[endpointInput.purpose] = credentialID
+            }
+        }
+
+        return AIProviderConfigurationProfile(
+            id: profileID,
+            displayName: input.displayName,
+            isDefault: true,
+            status: .configured,
+            createdAt: now,
+            updatedAt: now,
+            lastValidationStatus: .notRun,
+            endpoints: endpoints,
+            credentials: credentials
+        )
+    }
+
+    func endpointConfiguration(
+        from endpointInput: AIProviderEndpointSaveInput,
+        profileID: AIProviderProfileID,
+        credentialID: AIProviderCredentialID?,
+        createdAt: Date
+    ) throws -> AIProviderEndpointConfiguration {
+        try AIProviderEndpointConfiguration(
+            input: AIProviderEndpointInput(
+                id: endpointInput.id ?? idGenerator(),
+                profileID: profileID,
+                purpose: endpointInput.purpose,
+                isEnabled: endpointInput.isEnabled,
+                providerPresetID: endpointInput.providerPresetID,
+                adapterKind: endpointInput.adapterKind,
+                baseURL: endpointInput.baseURL,
+                modelName: endpointInput.modelName,
+                credentialID: credentialID,
+                supportsImageInput: endpointInput.supportsImageInput,
+                imageInputEnabled: endpointInput.imageInputEnabled,
+                requestTimeoutSeconds: endpointInput.requestTimeoutSeconds
+            ),
+            createdAt: createdAt,
+            updatedAt: createdAt
+        )
+    }
+
+    func saveProfile(
+        _ profile: AIProviderConfigurationProfile,
+        operationID: DiagnosticOperationID,
+        createdReferences: [AIProviderCredentialKeychainReference],
+        credentialStore: any AIProviderCredentialStore
+    ) async throws {
+        await record(
+            .aiProviderConfigurationDatabaseWriteStarted,
+            domain: .dataStorage,
+            level: .debug,
+            outcome: .started,
+            operationID: operationID
+        )
+        do {
+            try await repository.saveProfile(profile)
+        } catch {
+            await recordDatabaseWriteFailure(operationID)
+            let cleanupFailure = await cleanupCreatedSecrets(
+                createdReferences,
+                operationID: operationID,
+                credentialStore: credentialStore
+            )
+            throw AIProviderConfigurationSaveFailure(
+                operationID: operationID,
+                phase: .databaseWrite,
+                category: .databaseWriteFailed,
+                cleanupFailure: cleanupFailure
+            )
+        }
+        await record(
+            .aiProviderConfigurationDatabaseWriteSucceeded,
+            domain: .dataStorage,
+            level: .debug,
+            outcome: .succeeded,
+            operationID: operationID
+        )
     }
 
     func validateCredential(
@@ -405,6 +437,20 @@ private extension AIProviderConfigurationService {
             operationID: operationID
         )
         return nil
+    }
+
+    func recordDatabaseWriteFailure(_ operationID: DiagnosticOperationID) async {
+        await record(
+            .aiProviderConfigurationDatabaseWriteFailed,
+            domain: .dataStorage,
+            level: .error,
+            outcome: .failed,
+            operationID: operationID,
+            attributes: [
+                .failurePhase(AIProviderConfigurationSavePhase.databaseWrite.rawValue),
+                .errorCategory(AIProviderConfigurationSaveFailureCategory.databaseWriteFailed.rawValue),
+            ]
+        )
     }
 
     func record(
