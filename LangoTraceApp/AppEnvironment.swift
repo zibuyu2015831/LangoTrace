@@ -58,6 +58,28 @@ struct AppEnvironment {
                     )
                     return try await service.validateDefaultProfileCredentials()
                 },
+                testProviderConfiguration: { source, snapshot, operationID in
+                    let service = try makeAIProviderConfigurationService(
+                        databaseFactory: databaseFactory,
+                        credentialStore: credentialStore,
+                        diagnosticLogger: diagnosticLogger
+                    )
+                    switch source {
+                    case .draft:
+                        guard let snapshot else {
+                            throw AIProviderConfigurationError.missingRequiredEndpointField
+                        }
+                        return try await service.testDraftTextEndpoint(
+                            AIProviderConfigurationProbeDraftInput(
+                                endpoint: snapshot.endpoint,
+                                plaintextSecret: snapshot.plaintextSecret,
+                                operationID: operationID
+                            )
+                        )
+                    case .savedProfile:
+                        return try await service.testDefaultTextEndpoint(operationID: operationID)
+                    }
+                },
                 recordDiagnosticEvent: { event in
                     await diagnosticLogger.record(event)
                 }
@@ -96,6 +118,10 @@ private func makeAIProviderConfigurationService(
     try AIProviderConfigurationService(
         repository: GRDBAIProviderConfigurationRepository(database: databaseFactory.database()),
         credentialStore: credentialStore,
+        configurationProbeService: AIProviderConfigurationProbeService(
+            httpClient: URLSessionAIProviderProbeHTTPClient(),
+            diagnosticLogger: diagnosticLogger
+        ),
         diagnosticLogger: diagnosticLogger
     )
 }
