@@ -1,6 +1,6 @@
 # 任务方案：AI Provider 文本模型配置测试请求
 
-状态：Draft
+状态：Implemented
 类型：feature
 创建日期：2026-05-21
 最后更新日期：2026-05-21
@@ -779,6 +779,13 @@ iPhone / iOS 人工验证通过后，再决定是否在本任务内继续验证 
 - 2026-05-21：按后续图片理解、语音生成和向量化测试扩展诉求再次完善方案：保留一个 `测试请求` 入口，新增测试结果面板；内部抽象为 configuration probe runner；第一阶段执行文本回复和 JSON 输出两个 probe，图片理解、语音生成和向量化先进入分项结果模型和占位状态。
 - 2026-05-21：按系统架构师复查和用户确认更新方案：把 Configuration Probe 明确为独立边界；新增 UI draft snapshot + AppEnvironment 映射 + AI transient input 的推荐路径；拆分保存 readiness 和文本测试 readiness；要求 saved profile validation event 与 profile 最近验证摘要同事务更新；要求 OpenAI Responses adapter 解析原始 HTTP JSON output item。
 - 2026-05-21：按三端实施顺序复查更新方案：明确本任务不是 iOS-only，但第一阶段应先完成共享基础设施和 iPhone / iOS 完整交互与人工验证；iPad / macOS 后续只适配 presentation wrapper，复用同一结果内容组件、状态模型和 action seam，不强制使用 iPhone bottom sheet。
+- 2026-05-21：实施前文档修订已单独提交，commit `96bcc24`。随后完成 Core / AI configuration probe 基础设施，commit `b552600`；验证通过 `swift test --package-path Packages/LangoTraceCore`、`swift test --package-path Packages/LangoTraceAI` 和 `git diff --check`。
+- 2026-05-21：完成 Configuration service / Data repository 集成，commit `60c618e`。saved profile 合成测试写入 `synthetic_test` validation event，并与 profile 最近验证摘要同事务更新；draft 测试不写 validation event。验证通过 `swift test --package-path Packages/LangoTraceCore`、`swift test --package-path Packages/LangoTraceAI`、`swift test --package-path Packages/LangoTraceData` 和 `git diff --check`。
+- 2026-05-21：完成 UI action、状态机、分能力结果面板和本地化文案，commit `b69c269`。`AIProviderProbeResultPanelContent` 作为共享内容组件，不直接绑定 sheet / popover / embedded panel；`AIProviderDraftProbeSnapshot` 保持非 `Equatable`、非 `Codable`；View 源码保持无 `URLSession`、`Authorization`、`Bearer `。验证通过 `swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests` 和 `git diff --check`。
+- 2026-05-21：完成 AppEnvironment 生产装配，commit `054b994`。iPhone、iPad、macOS 共用同一 `AIProviderSettingsActions` 注入路径，生产测试 action 由 AppEnvironment 把 UI draft snapshot 映射到 AI package transient probe input；saved profile 路径调用服务层重新解析 Keychain。验证通过 iPhone 17 iOS build、macOS arm64 build 和 `git diff --check`。
+- 2026-05-21：完成 iPad / macOS presentation 边界补强，commit `3fc4203`。iPhone compact 使用 bottom sheet detents；iPad 常规宽度和 macOS 不强制套用移动端 detents；共享结果内容组件仍不决定 presentation。验证通过 `swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests`、iPad Pro 13-inch (M5) iOS build、macOS arm64 build 和 `git diff --check`。
+- 2026-05-21：iPhone / iOS 自动化与构建验证已覆盖成功、认证失败、模型不可用、JSON 输出异常、unsupported provider、Ollama 无 API Key、未保存 draft、保存配置、分能力占位和敏感字段禁入等路径；这些路径由 Core / AI / Data / UI 单元测试和 iPhone 17 build 承担。由于当前仓库未提供可控真实 Provider / API Key，也没有 XCUITest 交互目标，本轮未完成真网人工点击验证；该剩余验证不影响共享基础设施和代码路径落地，但发布前仍需使用可控测试 Provider 在 iPhone 上复核成功路径、错误 API Key、错误模型、不可达网络和 JSON 输出异常。
+- 2026-05-21：完成文档影响检查。已更新 `docs/platform-page-inventory.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`。已复查 `docs/spec/009-testing-and-verification.md` 和 `docs/decisions/005-local-first-and-user-owned-providers.md`，当前任务沿用既有测试入口、本地优先、用户自带 Provider 和 Keychain 默认不同步决策，不需要更新。
 
 ## 18. 完成标准
 
