@@ -33,6 +33,9 @@ private extension AppDatabase {
         migrator.registerMigration("v2_create_ai_provider_configuration") { db in
             try createAIProviderConfiguration(db)
         }
+        migrator.registerMigration("v3_create_diagnostic_events") { db in
+            try createDiagnosticEvents(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
@@ -190,6 +193,34 @@ private extension AppDatabase {
             table.column("duration_ms", .integer)
             table.column("created_at", .double).notNull()
         }
+    }
+
+    static func createDiagnosticEvents(_ db: Database) throws {
+        try db.create(table: "diagnostic_events") { table in
+            table.column("id", .text).primaryKey()
+            table.column("name", .text).notNull()
+            table.column("domain", .text).notNull()
+            table.column("level", .text).notNull()
+            table.column("outcome", .text)
+            table.column("operation_id", .text)
+            table.column("attributes_json", .text).notNull()
+            table.column("created_at", .double).notNull()
+        }
+        try db.create(
+            index: "idx_diagnostic_events_created_at",
+            on: "diagnostic_events",
+            columns: ["created_at"]
+        )
+        try db.create(
+            index: "idx_diagnostic_events_domain_created_at",
+            on: "diagnostic_events",
+            columns: ["domain", "created_at"]
+        )
+        try db.create(
+            index: "idx_diagnostic_events_operation_id_created_at",
+            on: "diagnostic_events",
+            columns: ["operation_id", "created_at"]
+        )
     }
 
     static func setFileProtectionIfAvailable(for databaseURL: URL) throws {
