@@ -36,6 +36,12 @@ struct AppEnvironment {
                     )
                     return try await service.loadDefaultProfile()
                 },
+                resolveCredentialSecret: { credential in
+                    let secret = try await credentialStore.resolveSecret(
+                        for: AIProviderCredentialKeychainReference(metadata: credential)
+                    )
+                    return secret.value
+                },
                 saveDefaultProfile: { input, operationID in
                     let service = try makeAIProviderConfigurationService(
                         databaseFactory: databaseFactory,

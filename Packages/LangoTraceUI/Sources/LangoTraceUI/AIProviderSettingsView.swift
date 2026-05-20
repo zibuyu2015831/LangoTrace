@@ -5,6 +5,7 @@ import SwiftUI
 struct AIProviderSettingsView: View {
     @Environment(\.aiProviderSettingsActions) private var actions
     @State private var draft = AIProviderDraftConfiguration(provider: .openAI)
+    @State private var transientSaveStatusClearTask: Task<Void, Never>?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -26,6 +27,9 @@ struct AIProviderSettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .task {
             await loadSavedConfiguration()
+        }
+        .onDisappear {
+            transientSaveStatusClearTask?.cancel()
         }
     }
 
@@ -100,17 +104,17 @@ struct AIProviderSettingsView: View {
     }
 
     private func statusPanel(titleKey: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .center, spacing: 10) {
             Image(systemName: statusIconName)
                 .foregroundStyle(statusTone)
                 .frame(width: 28, height: 28)
-            VStack(alignment: .leading, spacing: 5) {
-                localizedText(titleKey)
-                    .font(.callout.weight(.semibold))
-            }
+            localizedText(titleKey)
+                .font(.callout.weight(.semibold))
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
+        .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
         .background(LangoTraceDesign.ColorToken.surfaceMuted)
         .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
     }
@@ -122,7 +126,8 @@ private extension AIProviderSettingsView {
         guard let profile = try? await actions.loadDefaultProfile() else {
             return
         }
-        draft.applyLoadedProfile(profile)
+        let secretsByCredentialID = await resolvedSecretsByCredentialID(for: profile)
+        draft.applyLoadedProfile(profile, resolvedSecretsByCredentialID: secretsByCredentialID)
     }
 
     func saveConfiguration() {
@@ -140,6 +145,7 @@ private extension AIProviderSettingsView {
             do {
                 input = try draft.makeProfileSaveInput()
             } catch {
+                cancelTransientSaveStatusClear()
                 let failure = AIProviderSaveFailureDisplay(error: error)
                 draft.saveState = .missingRequiredFields
                 await recordSaveEvent(
@@ -168,6 +174,7 @@ private extension AIProviderSettingsView {
                     outcome: .succeeded,
                     operationID: operationID
                 )
+                scheduleTransientSaveStatusClear()
             } catch {
                 let failure = AIProviderSaveFailureDisplay(error: error)
                 draft.saveState = .failed(failure)
@@ -180,6 +187,7 @@ private extension AIProviderSettingsView {
                         .errorCategory(failure.category.rawValue),
                     ]
                 )
+                scheduleTransientSaveStatusClear()
             }
         }
     }
@@ -242,12 +250,54 @@ private extension AIProviderSettingsView {
         draft.saveState == .saving
     }
 
+    @discardableResult
+    func markDraftInputChanged<Value: Equatable>(from oldValue: Value, to newValue: Value) -> Bool {
+        if draft.markInputChanged(from: oldValue, to: newValue) {
+            cancelTransientSaveStatusClear()
+            return true
+        }
+        return false
+    }
+
+    func resolvedSecretsByCredentialID(
+        for profile: AIProviderConfigurationProfile
+    ) async -> [AIProviderCredentialID: String] {
+        var secretsByCredentialID: [AIProviderCredentialID: String] = [:]
+        for credential in profile.credentials {
+            if let secret = try? await actions.resolveCredentialSecret(credential) {
+                secretsByCredentialID[credential.id] = secret
+            }
+        }
+        return secretsByCredentialID
+    }
+
+    func scheduleTransientSaveStatusClear() {
+        transientSaveStatusClearTask?.cancel()
+        transientSaveStatusClearTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2.2))
+            switch draft.saveState {
+            case .saved, .failed:
+                draft.saveState = .idle
+            case .idle, .missingRequiredFields, .unsavedChanges, .saving:
+                break
+            }
+            transientSaveStatusClearTask = nil
+        }
+    }
+
+    func cancelTransientSaveStatusClear() {
+        transientSaveStatusClearTask?.cancel()
+        transientSaveStatusClearTask = nil
+    }
+
     var textProviderBinding: Binding<AIProviderPreset> {
         Binding(
             get: { draft.text.endpoint.provider },
-            set: {
-                draft.markInputChanged()
-                draft.text.updateProvider($0)
+            set: { newValue in
+                guard markDraftInputChanged(from: draft.text.endpoint.provider, to: newValue) else {
+                    return
+                }
+                draft.text.updateProvider(newValue)
             }
         )
     }
@@ -255,9 +305,11 @@ private extension AIProviderSettingsView {
     var textBaseURLBinding: Binding<String> {
         Binding(
             get: { draft.text.endpoint.baseURL },
-            set: {
-                draft.markInputChanged()
-                draft.text.endpoint.baseURL = $0
+            set: { newValue in
+                guard markDraftInputChanged(from: draft.text.endpoint.baseURL, to: newValue) else {
+                    return
+                }
+                draft.text.endpoint.baseURL = newValue
             }
         )
     }
@@ -265,9 +317,11 @@ private extension AIProviderSettingsView {
     var textModelBinding: Binding<String> {
         Binding(
             get: { draft.text.endpoint.model },
-            set: {
-                draft.markInputChanged()
-                draft.text.endpoint.model = $0
+            set: { newValue in
+                guard markDraftInputChanged(from: draft.text.endpoint.model, to: newValue) else {
+                    return
+                }
+                draft.text.endpoint.model = newValue
             }
         )
     }
@@ -275,9 +329,14 @@ private extension AIProviderSettingsView {
     var textAPIKeyBinding: Binding<String> {
         Binding(
             get: { draft.text.endpoint.independentCredential.apiKeyDraft },
-            set: {
-                draft.markInputChanged()
-                draft.text.endpoint.independentCredential.apiKeyDraft = $0
+            set: { newValue in
+                guard markDraftInputChanged(
+                    from: draft.text.endpoint.independentCredential.apiKeyDraft,
+                    to: newValue
+                ) else {
+                    return
+                }
+                draft.text.endpoint.independentCredential.apiKeyDraft = newValue
             }
         )
     }
@@ -285,10 +344,13 @@ private extension AIProviderSettingsView {
     var imageUnderstandingBinding: Binding<Bool> {
         Binding(
             get: { draft.text.imageUnderstandingEnabled },
-            set: {
-                draft.markInputChanged()
-                draft.text.imageUnderstandingEnabled = $0 &&
+            set: { newValue in
+                let acceptedValue = newValue &&
                     draft.text.endpoint.provider.capabilities.imageUnderstanding
+                guard markDraftInputChanged(from: draft.text.imageUnderstandingEnabled, to: acceptedValue) else {
+                    return
+                }
+                draft.text.imageUnderstandingEnabled = acceptedValue
             }
         )
     }
@@ -296,9 +358,11 @@ private extension AIProviderSettingsView {
     var speechBinding: Binding<AIOptionalModelDraftConfiguration> {
         Binding(
             get: { draft.speech },
-            set: {
-                draft.markInputChanged()
-                draft.speech = $0
+            set: { newValue in
+                guard markDraftInputChanged(from: draft.speech, to: newValue) else {
+                    return
+                }
+                draft.speech = newValue
             }
         )
     }
@@ -306,9 +370,11 @@ private extension AIProviderSettingsView {
     var embeddingBinding: Binding<AIOptionalModelDraftConfiguration> {
         Binding(
             get: { draft.embedding },
-            set: {
-                draft.markInputChanged()
-                draft.embedding = $0
+            set: { newValue in
+                guard markDraftInputChanged(from: draft.embedding, to: newValue) else {
+                    return
+                }
+                draft.embedding = newValue
             }
         )
     }

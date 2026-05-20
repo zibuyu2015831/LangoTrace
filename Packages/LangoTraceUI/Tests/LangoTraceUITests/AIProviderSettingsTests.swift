@@ -407,3 +407,185 @@ struct AIProviderSettingsTests {
         )
     }
 }
+
+@Suite("AI provider settings save status repair")
+struct AIProviderSettingsSaveStatusRepairTests {
+    @Test("Loaded profile save input preserves profile and endpoint identities")
+    func loadedProfileSaveInputPreservesProfileAndEndpointIdentities() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        try draft.applyLoadedProfile(loadedProfile())
+
+        draft.text.endpoint.independentCredential.apiKeyDraft = "replacement-key"
+        let input = try draft.makeProfileSaveInput()
+
+        #expect(input.profileID == "profile-1")
+        #expect(input.endpoints.first { $0.purpose == .textGeneration }?.id == "text-endpoint")
+        #expect(input.endpoints.first { $0.purpose == .tts }?.id == "speech-endpoint")
+    }
+
+    @Test("Status panel is vertically centered and transient success or failure is scheduled")
+    func statusPanelIsCenteredAndTransientResultIsScheduled() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+
+        #expect(source.contains("HStack(alignment: .center"))
+        #expect(!source.contains("HStack(alignment: .top"))
+        #expect(source.contains("scheduleTransientSaveStatusClear()"))
+        #expect(source.contains("try? await Task.sleep"))
+        #expect(source.contains("transientSaveStatusClearTask?.cancel()"))
+    }
+
+    private func sourceFileURL(named fileName: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources")
+            .appendingPathComponent("LangoTraceUI")
+            .appendingPathComponent(fileName)
+    }
+
+    private func loadedProfile() throws -> AIProviderConfigurationProfile {
+        let now = Date(timeIntervalSince1970: 100)
+        let text = try AIProviderEndpointConfiguration(
+            input: AIProviderEndpointInput(
+                id: "text-endpoint",
+                profileID: "profile-1",
+                purpose: .textGeneration,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-5.2",
+                credentialID: "credential-1",
+                supportsImageInput: true,
+                imageInputEnabled: false
+            ),
+            createdAt: now,
+            updatedAt: now
+        )
+        let speech = try AIProviderEndpointConfiguration(
+            input: AIProviderEndpointInput(
+                id: "speech-endpoint",
+                profileID: "profile-1",
+                purpose: .tts,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-4o-mini-tts",
+                credentialID: "credential-1",
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+            createdAt: now,
+            updatedAt: now
+        )
+        return AIProviderConfigurationProfile(
+            id: "profile-1",
+            displayName: "Default AI Provider",
+            isDefault: true,
+            status: .configured,
+            createdAt: now,
+            updatedAt: now,
+            endpoints: [text, speech]
+        )
+    }
+}
+
+@Suite("AI provider settings loaded secret and focus repair")
+struct AIProviderLoadedSecretRepairTests {
+    @Test("Loaded profile restores resolved API key without marking unsaved")
+    func loadedProfileRestoresResolvedAPIKeyWithoutMarkingUnsaved() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+
+        try draft.applyLoadedProfile(
+            loadedProfile(),
+            resolvedSecretsByCredentialID: ["credential-1": "sk-saved"]
+        )
+
+        #expect(draft.text.endpoint.independentCredential.apiKeyDraft == "sk-saved")
+        #expect(draft.testReadiness == .readyForMockRequest)
+        #expect(draft.saveState == .idle)
+    }
+
+    @Test("Unchanged field write does not mark loaded configuration unsaved")
+    func unchangedFieldWriteDoesNotMarkLoadedConfigurationUnsaved() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        try draft.applyLoadedProfile(
+            loadedProfile(),
+            resolvedSecretsByCredentialID: ["credential-1": "sk-saved"]
+        )
+
+        draft.markInputChanged(
+            from: draft.text.endpoint.independentCredential.apiKeyDraft,
+            to: "sk-saved"
+        )
+        #expect(draft.saveState == .idle)
+
+        draft.markInputChanged(
+            from: draft.text.endpoint.independentCredential.apiKeyDraft,
+            to: "sk-updated"
+        )
+        #expect(draft.saveState == .unsavedChanges)
+    }
+
+    @Test("Settings actions expose a non logging credential resolver")
+    func settingsActionsExposeNonLoggingCredentialResolver() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsActions.swift"), encoding: .utf8)
+
+        #expect(source.contains("resolveCredentialSecret"))
+        #expect(!source.contains("print("))
+        #expect(!source.contains("debugPrint("))
+    }
+
+    private func sourceFileURL(named fileName: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources")
+            .appendingPathComponent("LangoTraceUI")
+            .appendingPathComponent(fileName)
+    }
+
+    private func loadedProfile() throws -> AIProviderConfigurationProfile {
+        let now = Date(timeIntervalSince1970: 100)
+        let text = try AIProviderEndpointConfiguration(
+            input: AIProviderEndpointInput(
+                id: "text-endpoint",
+                profileID: "profile-1",
+                purpose: .textGeneration,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-5.2",
+                credentialID: "credential-1",
+                supportsImageInput: true,
+                imageInputEnabled: false
+            ),
+            createdAt: now,
+            updatedAt: now
+        )
+        let credential = AIProviderCredentialMetadata(
+            id: "credential-1",
+            profileID: "profile-1",
+            providerPresetID: "openai",
+            kind: .apiKey,
+            label: "OpenAI API Key",
+            secretPresence: .present,
+            createdAt: now,
+            updatedAt: now
+        )
+        return AIProviderConfigurationProfile(
+            id: "profile-1",
+            displayName: "Default AI Provider",
+            isDefault: true,
+            status: .configured,
+            createdAt: now,
+            updatedAt: now,
+            endpoints: [text],
+            credentials: [credential]
+        )
+    }
+}

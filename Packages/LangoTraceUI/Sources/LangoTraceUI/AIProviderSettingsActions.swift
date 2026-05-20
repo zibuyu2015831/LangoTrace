@@ -4,6 +4,7 @@ import SwiftUI
 
 public struct AIProviderSettingsActions: Sendable {
     public var loadDefaultProfile: @Sendable () async throws -> AIProviderConfigurationProfile?
+    public var resolveCredentialSecret: @Sendable (AIProviderCredentialMetadata) async throws -> String?
     public var saveDefaultProfile: @Sendable (AIProviderProfileSaveInput, DiagnosticOperationID) async throws
         -> AIProviderConfigurationProfile
     public var validateDefaultProfileCredentials: @Sendable () async throws -> AIProviderValidationStatus
@@ -12,6 +13,9 @@ public struct AIProviderSettingsActions: Sendable {
 
     public init(
         loadDefaultProfile: @escaping @Sendable () async throws -> AIProviderConfigurationProfile? = { nil },
+        resolveCredentialSecret: @escaping @Sendable (
+            AIProviderCredentialMetadata
+        ) async throws -> String? = { _ in nil },
         saveDefaultProfile: @escaping @Sendable (AIProviderProfileSaveInput, DiagnosticOperationID) async throws
             -> AIProviderConfigurationProfile = { _, operationID in
                 throw AIProviderConfigurationSaveFailure(
@@ -29,6 +33,7 @@ public struct AIProviderSettingsActions: Sendable {
         }
     ) {
         self.loadDefaultProfile = loadDefaultProfile
+        self.resolveCredentialSecret = resolveCredentialSecret
         self.saveDefaultProfile = saveDefaultProfile
         self.validateDefaultProfileCredentials = validateDefaultProfileCredentials
         self.recordDiagnosticEvent = recordDiagnosticEvent

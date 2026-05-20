@@ -150,7 +150,7 @@ UI 可用简洁文案展示，但服务层应保留可诊断错误类型。
 
 Provider 配置页已经从真实级 mock 表单进入本地配置保存阶段：非敏感 Provider profile、endpoint、credential metadata 和 validation event 进入 SQLite / GRDB，API Key 写入 Keychain。真实外部 Provider 请求、Prompt Preset 执行、请求预览和请求日志仍未接入。后续实现必须遵守以下边界：
 
-- API Key 输入只能作为当前页面的短生命周期明文草稿；保存成功后必须清空 SwiftUI 草稿，不得在加载已保存配置时解密或回填明文。
+- API Key 输入只能作为当前页面的短生命周期明文草稿。保存成功后应清空本次新输入草稿；用户主动再次打开 Provider 配置页时，可以通过服务边界从 Keychain 解析已保存密钥并回填到输入框，默认仍以隐藏态展示。该回填只允许存在于当前 UI draft，不得写入 SQLite、诊断日志、同步目录、请求预览或测试输出。
 - 非敏感配置和敏感凭证必须分层。Provider、Base URL、模型名属于普通表单配置；请求格式、认证方式和自定义请求头等技术信息应默认收起或进入高级配置，不应挤占首屏主路径。API Key、外部服务 token、自定义请求头中的密钥属于敏感凭证。
 - 敏感凭证必须保存到本机 Keychain 或等价安全存储。SQLite 只能保存 credential metadata、Keychain service / account 引用、最近观测到的 secret presence 和非敏感验证事件；不得保存明文、可解密密文、hash、尾号或完整请求头值。
 - 已保存配置的后续本地验证和未来真实 AI 请求必须由服务层通过 Keychain 引用解析密钥；不得要求用户每次请求前重新输入、暴露或预览密钥。
@@ -228,3 +228,4 @@ AI 在实现任何 AI 能力前应先确认：
 - 2026-05-19：补充三端 Provider 设置页共享与大屏承载规则。原因：iPad / macOS 工作台详情需要保持与 iPhone 相同字段语义，同时避免把 iPhone 表单横向拉满大屏。影响范围：AI Provider 设置 UI、SettingsCapabilityDetailView、macOS Settings scene 边界。是否需要 ADR：否。
 - 2026-05-20：更新 Provider 配置页从 mock 到本地配置保存阶段的事实边界。原因：AI Provider profile、endpoint、credential metadata、Keychain 保存和本地 credential validation 已落地，真实外部 Provider 合成探测仍未接入。影响范围：AI Provider 设置、Keychain、Data repository、validation event、后续真实 AI 请求。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-20：补充 Provider 配置保存诊断规则。原因：保存链路已经跨 UI、AI service、Keychain、SQLite 和补偿清理，需要稳定 operation id、阶段分类、非敏感日志字段和默认关闭边界。影响范围：AI Provider 设置、诊断日志、Data repository、Testing 和 App Shell 装配。是否需要 ADR：否，沿用 ADR-005。
+- 2026-05-20：调整已保存 API Key 回显边界。原因：用户完成配置后再次进入配置页，需要能查看和编辑当前本机保存的 API Key；回显仅允许通过服务边界解析 Keychain 并进入短生命周期 UI draft，默认隐藏，不进入数据库、日志、同步或请求预览。影响范围：AI Provider 设置 UI、Keychain resolver action、SwiftUI draft 状态。是否需要 ADR：否，仍符合 ADR-005 的本地优先和用户自带 Provider 边界。

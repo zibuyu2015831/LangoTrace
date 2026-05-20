@@ -137,6 +137,8 @@ struct AIProviderCredentialDraftConfiguration: Equatable {
 }
 
 struct AIProviderEndpointDraftConfiguration: Equatable {
+    var id: AIProviderEndpointID?
+    var credentialID: AIProviderCredentialID?
     var provider: AIProviderPreset
     var baseURL: String
     var model: String
@@ -148,6 +150,8 @@ struct AIProviderEndpointDraftConfiguration: Equatable {
         model: String,
         credentialReference: AIProviderCredentialReference = .independent
     ) {
+        id = nil
+        credentialID = nil
         self.provider = provider
         baseURL = provider.defaultBaseURL
         self.model = model
@@ -259,6 +263,7 @@ struct AIOptionalModelDraftConfiguration: Equatable {
 }
 
 struct AIProviderDraftConfiguration: Equatable {
+    var profileID: AIProviderProfileID?
     var text: AITextModelDraftConfiguration
     var speech: AIOptionalModelDraftConfiguration
     var embedding: AIOptionalModelDraftConfiguration
@@ -267,6 +272,7 @@ struct AIProviderDraftConfiguration: Equatable {
     private var hasPersistedConfiguration: Bool
 
     init(provider: AIProviderPreset) {
+        profileID = nil
         text = AITextModelDraftConfiguration(provider: provider)
         speech = AIOptionalModelDraftConfiguration(provider: provider, purpose: .speech)
         embedding = AIOptionalModelDraftConfiguration(provider: provider, purpose: .embedding)
@@ -340,19 +346,26 @@ struct AIProviderDraftConfiguration: Equatable {
         }
 
         return AIProviderProfileSaveInput(
+            profileID: profileID,
             displayName: "Default AI Provider",
             endpoints: endpoints
         )
     }
 
-    mutating func applySavedProfile(_: AIProviderConfigurationProfile) {
+    mutating func applySavedProfile(_ profile: AIProviderConfigurationProfile) {
+        profileID = profile.id
+        applyEndpointIdentities(from: profile)
         clearPlaintextSecrets()
         hasPersistedConfiguration = true
         saveState = .saved
         testState = .idle
     }
 
-    mutating func applyLoadedProfile(_ profile: AIProviderConfigurationProfile) {
+    mutating func applyLoadedProfile(
+        _ profile: AIProviderConfigurationProfile,
+        resolvedSecretsByCredentialID: [AIProviderCredentialID: String] = [:]
+    ) {
+        profileID = profile.id
         let textEndpoint = profile.endpoints.first { $0.purpose == .textGeneration }
         let speechEndpoint = profile.endpoints.first { $0.purpose == .tts }
         let embeddingEndpoint = profile.endpoints.first { $0.purpose == .embedding }
@@ -380,9 +393,16 @@ struct AIProviderDraftConfiguration: Equatable {
         }
 
         clearPlaintextSecrets()
+        applyResolvedSecrets(resolvedSecretsByCredentialID)
         hasPersistedConfiguration = profile.status == .configured
         saveState = .idle
         testState = .idle
+    }
+
+    mutating func applyEndpointIdentities(from profile: AIProviderConfigurationProfile) {
+        text.endpoint.id = profile.endpoints.first { $0.purpose == .textGeneration }?.id
+        speech.endpoint.id = profile.endpoints.first { $0.purpose == .tts }?.id
+        embedding.endpoint.id = profile.endpoints.first { $0.purpose == .embedding }?.id
     }
 
     mutating func markInputChanged() {
@@ -394,10 +414,41 @@ struct AIProviderDraftConfiguration: Equatable {
         }
     }
 
+    @discardableResult
+    mutating func markInputChanged<Value: Equatable>(from oldValue: Value, to newValue: Value) -> Bool {
+        guard oldValue != newValue else {
+            return false
+        }
+        markInputChanged()
+        return true
+    }
+
     mutating func clearPlaintextSecrets() {
         text.endpoint.independentCredential.apiKeyDraft = ""
         speech.endpoint.independentCredential.apiKeyDraft = ""
         embedding.endpoint.independentCredential.apiKeyDraft = ""
+    }
+
+    mutating func applyResolvedSecrets(_ secretsByCredentialID: [AIProviderCredentialID: String]) {
+        if let credentialID = text.endpoint.credentialID,
+           let secret = secretsByCredentialID[credentialID]
+        {
+            text.endpoint.independentCredential.apiKeyDraft = secret
+        }
+
+        if speech.endpoint.credentialReference == .independent,
+           let credentialID = speech.endpoint.credentialID,
+           let secret = secretsByCredentialID[credentialID]
+        {
+            speech.endpoint.independentCredential.apiKeyDraft = secret
+        }
+
+        if embedding.endpoint.credentialReference == .independent,
+           let credentialID = embedding.endpoint.credentialID,
+           let secret = secretsByCredentialID[credentialID]
+        {
+            embedding.endpoint.independentCredential.apiKeyDraft = secret
+        }
     }
 }
 
@@ -406,6 +457,8 @@ private extension AIProviderEndpointDraftConfiguration {
         endpoint: AIProviderEndpointConfiguration,
         sharedCredentialID: AIProviderCredentialID? = nil
     ) {
+        id = endpoint.id
+        credentialID = endpoint.credentialID
         if let provider = AIProviderPreset.allCases.first(where: { $0.id == endpoint.providerPresetID }) {
             self.provider = provider
             independentCredential.updateProvider(provider)
@@ -426,6 +479,7 @@ private extension AIProviderEndpointDraftConfiguration {
         imageInputEnabled: Bool
     ) throws -> AIProviderEndpointSaveInput {
         AIProviderEndpointSaveInput(
+            id: id,
             purpose: purpose,
             isEnabled: isEnabled,
             providerPresetID: provider.id,
