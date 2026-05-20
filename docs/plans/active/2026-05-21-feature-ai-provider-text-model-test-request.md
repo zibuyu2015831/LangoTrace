@@ -786,6 +786,7 @@ iPhone / iOS 人工验证通过后，再决定是否在本任务内继续验证 
 - 2026-05-21：完成 iPad / macOS presentation 边界补强，commit `3fc4203`。iPhone compact 使用 bottom sheet detents；iPad 常规宽度和 macOS 不强制套用移动端 detents；共享结果内容组件仍不决定 presentation。验证通过 `swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests`、iPad Pro 13-inch (M5) iOS build、macOS arm64 build 和 `git diff --check`。
 - 2026-05-21：iPhone / iOS 自动化与构建验证已覆盖成功、认证失败、模型不可用、JSON 输出异常、unsupported provider、Ollama 无 API Key、未保存 draft、保存配置、分能力占位和敏感字段禁入等路径；这些路径由 Core / AI / Data / UI 单元测试和 iPhone 17 build 承担。由于当前仓库未提供可控真实 Provider / API Key，也没有 XCUITest 交互目标，本轮未完成真网人工点击验证；该剩余验证不影响共享基础设施和代码路径落地，但发布前仍需使用可控测试 Provider 在 iPhone 上复核成功路径、错误 API Key、错误模型、不可达网络和 JSON 输出异常。
 - 2026-05-21：完成文档影响检查。已更新 `docs/platform-page-inventory.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`。已复查 `docs/spec/009-testing-and-verification.md` 和 `docs/decisions/005-local-first-and-user-owned-providers.md`，当前任务沿用既有测试入口、本地优先、用户自带 Provider 和 Keychain 默认不同步决策，不需要更新。
+- 2026-05-21：最终统一验证时发现 `AIProviderSettingsTests` 超过 SwiftLint `type_body_length` serious 阈值，已拆出 `AIProviderSettingsProbeTests` 并运行 SwiftFormat，commit `e690f3e`。最终 `scripts/verify.sh` 通过；SwiftLint 仍报告若干既有 warning，但 0 serious。
 
 ## 18. 完成标准
 
