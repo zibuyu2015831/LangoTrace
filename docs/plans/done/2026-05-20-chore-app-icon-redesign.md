@@ -104,6 +104,7 @@ find LangoTraceApp/Resources/Assets.xcassets/AppIcon.appiconset -maxdepth 1 -nam
 - 2026-05-20：运行 `git diff --check`，通过，无输出。
 - 2026-05-20：提交前运行 `scripts/verify.sh`，首次因 `scripts/generate-app-icon.swift` 函数长度和行长触发 SwiftLint 失败；已将绘制逻辑拆成背景、折射光、折面种子和语言字根 helper 后重跑。
 - 2026-05-20：再次运行 `scripts/verify.sh`，通过；覆盖 XcodeGen、Core/Data/UI package tests、iPhone 17 build、iPad Pro 13-inch (M5) build、macOS arm64 build、SwiftLint、SwiftFormat lint 和文档占位扫描。
+- 2026-05-20：模拟器主屏检查发现 iPhone 图标方向与视觉预期上下相反，且 iPad 模拟器尚未安装新构建；已在生成脚本中统一翻转输出坐标并重新生成 AppIcon，后续重新安装 iPhone 与 iPad 模拟器验证。
 
 ## 完成标准
 

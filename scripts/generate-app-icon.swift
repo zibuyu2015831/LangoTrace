@@ -284,6 +284,9 @@ func renderIcon(size: Int) -> CGImage {
     let scale = CGFloat(size) / 1024.0
     let rect = CGRect(x: 0, y: 0, width: size, height: size)
 
+    context.translateBy(x: 0, y: CGFloat(size))
+    context.scaleBy(x: 1, y: -1)
+
     drawBackground(in: context, rect: rect, scale: scale)
     drawGlint(in: context, scale: scale)
     drawSeed(in: context, scale: scale)
