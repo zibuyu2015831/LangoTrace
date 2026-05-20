@@ -35,6 +35,7 @@
 - 涉及 UI 的任务不能只靠编译通过；需要按 `docs/testing/README.md` 做三端页面、截图或手动验证。
 - 涉及隐私、权限、AI 请求、日志、导出或同步的任务必须检查敏感数据不会出现在日志、导出包或未经确认的外部请求中。
 - 涉及 AI Provider 保存、Keychain、诊断日志或请求边界的任务，必须至少运行 Core、Data、AI、UI 中受影响 package 的测试，并执行敏感字段扫描；收尾再运行 `scripts/verify.sh`。
+- 涉及 iOS / iPadOS Keychain 的模拟器验证不得使用完全禁用 code signing 的构建产物。验证前应确认 iOS target 的 `CODE_SIGNING_ALLOWED` 不是 `NO`，并检查构建日志中有模拟器 entitlement 注入或本地签名步骤。
 - 验证结果应写回任务方案、审查 round 或对应测试记录，不只留在聊天中。
 
 ## 5. AI 开发提示
@@ -50,3 +51,4 @@
 
 - 2026-05-18：创建测试与验证入口规范。原因：spec 深审确认测试文档已经存在，但 `docs/spec/` 缺少统一入口和对 `docs/testing/README.md` 的明确委托关系。影响范围：所有任务方案、审查 round、验证记录和完成门禁。是否需要 ADR：否。
 - 2026-05-20：补充 AI package 与诊断隐私验证门禁。原因：AI Provider 配置保存链路已经跨 Core/Data/AI/UI，统一验证脚本必须覆盖 `Packages/LangoTraceAI`，隐私敏感任务也需要敏感字段扫描。影响范围：`scripts/verify.sh`、任务方案验证记录、AI Provider、诊断日志和后续权限 / 请求任务。是否需要 ADR：否。
+- 2026-05-20：补充 iOS / iPadOS Keychain 模拟器签名验证规则。原因：AI Provider 保存失败排查确认完全禁用 code signing 的模拟器产物无法可靠验证 Keychain 写入。影响范围：`project.yml`、XcodeGen、AI Provider 保存验证和后续权限 / Keychain 任务。是否需要 ADR：否。
