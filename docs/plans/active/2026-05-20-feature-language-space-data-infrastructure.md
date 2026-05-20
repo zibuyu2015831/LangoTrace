@@ -11,6 +11,7 @@
 - 2026-05-20：用户确认直接引入 SQLite / GRDB 作为真实持久化实现。
 - 2026-05-20：用户确认允许同一目标语言创建多个语言空间；允许同名空间，但 UI 创建或重命名时应提示“已有同名空间”。
 - 2026-05-20：用户要求第一版即实现删除功能，并先完成 iOS 端设置页中的“语言空间”管理页面设计与实现。
+- 2026-05-20：用户确认产品设计上应鼓励一门学习语言使用一个空间，但架构设计必须允许同一学习语言存在多个空间，便于后续导入恢复、高级用户拆分、同步冲突和扩展场景。
 - 状态为 `Draft` 时不能开始实现。用户确认本方案后，需补充确认记录再进入编码。
 
 ## 1. 需求描述
@@ -22,6 +23,7 @@
 - 使用 SQLite / GRDB 持久化语言空间。
 - 多语言空间模型。
 - 同一目标语言可以有多个空间。
+- 产品默认鼓励“一门学习语言一个空间”，工作、生活、旅行等内容继续作为标签、场景或 Prompt 模式处理；同目标语言多空间属于架构允许和高级/扩展能力，不作为普通用户默认分类心智。
 - 同名空间允许存在，但创建或重命名时提示用户已有同名空间。
 - 当前语言空间的显式选择和冷启动恢复。
 - 新增、切换、重命名、删除语言空间。
@@ -110,6 +112,7 @@
 
 - 直接引入 SQLite / GRDB，不使用 UserDefaults 作为持久化过渡。
 - 允许同一目标语言多个空间。原因：语迹的空间是学习上下文，不是语言 code 配置；用户可能需要“英语 - 日常”“英语 - 工作”“英语 - 旅行”等多个上下文。
+- 产品体验仍鼓励一门学习语言一个空间。原因：语迹的主心智是“我的英语 / 我的日语”的长期学习档案，工作、生活、旅行等应优先作为标签、场景或 Prompt 模式。Data 层允许同目标语言多空间，是为了高级用户主动拆分长期档案、导入恢复后的重复对象、测试/沙盒空间、未来同步冲突保守保留和其他扩展需求，不应反向驱动普通 UI 鼓励按场景建空间。
 - 允许同名空间。原因：同名不应成为数据层约束；UI 负责提示，用户保留最终决定权。
 - 使用稳定唯一 ID 作为空间主键，`target_language_code` 和 `display_name` 都只是属性。
 - 第一版删除采用软删除语义：用户点击“删除”后，该空间从 active 列表和当前空间候选中移除，数据库记录保留 `deleted_at`。原因：后续 Entry、附件、导出、同步 tombstone 和恢复窗口都需要删除状态边界；当前没有真实 Entry 表，不应先形成不可逆硬删除习惯。
@@ -210,8 +213,11 @@
 - `createLanguageSpace + selectCurrentLanguageSpace`、`selectCurrentLanguageSpace + lastOpenedAt`、`deleteLanguageSpace + fallback current` 必须在同一数据库事务中完成，避免 App 被杀或写入失败后出现“空间已创建但当前空间未更新”等半状态。
 - App 启动恢复不应在 SwiftUI 主线程同步阻塞。推荐 `AppSessionState` 增加恢复中的状态，启动后以 `Task` 调用 repository，恢复成功后再进入 welcome / onboarding / main 的现有路由；数据库失败时进入可恢复错误状态，而不是静默创建默认空间。
 - `app_state.current_language_space_id` 可以不做强外键，但 repository 必须在读取时把 missing、deleted 和损坏引用统一归一为可解释 fallback，并把修复后的 current 写回 `app_state`。
+- `current_language_space_id` 的语义是本设备最近/当前工作上下文，不是 Language Space 主数据字段。首版可保存在主数据库的 `app_state` 表中以便本机或设备备份恢复体验，但未来同步默认不跨设备同步它；如果后续同步或多窗口需要更强边界，应迁移或扩展为 `local_app_state` / `device_state`。
 - 同名提示需要按规范化后的 display name 判断，例如 trim 后比较；是否大小写折叠需要结合当前语言显示规则，首版推荐对 Latin 名称做 case-insensitive 检测，对 CJK 名称按原文检测。
+- 时间字段必须统一为 UTC Unix epoch seconds，repository 通过可注入 clock / date provider 生成 `created_at`、`updated_at`、`last_opened_at` 和 `deleted_at`，测试中使用固定时间，避免最近使用 fallback 和事务测试不稳定。
 - 软删除只是第一版 UI 语义；Data 层必须把 deleted 空间排除出 active 查询、当前空间候选、同名提示候选和普通设置列表，同时保留未来恢复、导出和同步 tombstone 的扩展点。
+- 用户可见删除文案不得承诺“物理彻底删除所有数据”。首版语义应表达为从空间列表移除、当前版本没有恢复入口，以及删除当前/最后空间后的路由影响；真实 Entry、附件、导出、同步和隐私彻底删除需要后续单独设计。
 
 ### 11.1 数据模型
 
@@ -262,10 +268,12 @@ UpdateLanguageSpaceInput
 - 语言 code 复用 `OnboardingDraft.normalized()` 当前规则，保存前必须归一到支持的 `LearningLanguage` code。
 - `displayName` 保存前 trim 首尾空白；trim 后为空时，使用目标语言默认空间名。
 - `displayNameNormalized` 首版规则：
+  - 先执行 Unicode NFC normalization，保证组合字符存储和比较稳定。
   - trim 首尾空白。
   - 合并连续空白为单个空格。
   - Latin 字符使用 locale-insensitive lowercase。
   - CJK、Kana、Hangul 和其他字符保持原文。
+  - 首版不做 NFKC、全角/半角合并、繁简转换、假名折叠或语义近似匹配，避免误伤用户命名。
 - 同名提示基于 `displayNameNormalized`；保存时不阻断同名。
 
 ### 11.2 SQLite / GRDB schema
@@ -312,7 +320,9 @@ value = language_spaces.id
 
 说明：
 
+- `app_state` 首版保存本设备本地状态，不是语言空间主数据表；`current_language_space_id` 默认不作为未来跨设备同步对象。
 - `app_state` 不使用外键强约束，避免当前空间指向已删除或损坏记录时数据库直接失败；repository 启动恢复时处理 fallback。
+- 如果实现阶段命名为 `local_app_state` 或 `device_state`，语义优于 `app_state`，但必须保持首版只记录本地 current state，不混入同步状态、Provider 密钥或用户主内容。
 - 后续 Entry 表必须通过 `space_id` 归属 `language_spaces.id`。
 - 后续同步 tombstone 可复用 `deleted_at` 或扩展独立 sync metadata。
 - 不对 `target_language_code`、`display_name` 或 `display_name_normalized` 建唯一索引。
@@ -413,22 +423,30 @@ LanguageSpaceError
 
 ### 11.4 App 启动和状态机
 
+分层边界：
+
+- Data 层只提供 `LanguageSpaceRepository`、SQLite / GRDB schema、migration、事务和错误映射，不直接管理 SwiftUI 路由。
+- App 层的 `AppSessionState` 是语言空间会话真源，负责启动恢复、创建、选择、重命名、删除 fallback、错误态和根路由更新。
+- UI 层 `LanguageSpaceManagementView` 不直接持有 GRDB queue、SQL record 或数据库生命周期；推荐接收当前列表、当前空间、loading/error 状态和 `onAdd` / `onRename` / `onSelect` / `onDelete` / `onRetry` 等 action closures。若 UI package 需要 preview 或源码级测试，可使用内存 store 或测试替身，但真实选择和删除后的 AppSessionState 同步必须由 App 层收口。
+
 启动恢复：
 
-1. App bootstrap 创建 SQLite database queue 和 `GRDBLanguageSpaceRepository`。
+1. App bootstrap 只做轻量装配，不在 SwiftUI 主线程执行重 I/O。数据库 URL 解析、目录创建、GRDB queue 初始化、migration 和 current 恢复应放入 AppSessionState 的 async restore 流程，或由可抛错的 factory 在异步恢复中调用。
 2. `AppSessionState` 进入恢复中状态，并通过异步任务读取 `currentLanguageSpace()`。
 3. 如果返回 active 空间，设置 `currentLanguageSpace` 并进入 welcome；用户完成 Welcome 后进入 Main。
 4. 如果无 active 空间，进入 welcome；用户完成 Welcome 后进入 onboarding。
 5. 如果 `current_language_space_id` 指向 missing 或 deleted 空间，repository 选择最近使用的其他 active 空间并修复 `app_state`；如果没有 active 空间，则清空 current。
 6. 如果数据库打不开、迁移失败或读取失败，进入可恢复错误状态；第一版可以显示本地存储错误和重试入口，但不得静默创建默认空间，也不得把错误伪装成首次使用。
+7. 如果 repository factory 本身失败，AppEnvironment 不应退回 `EmptyLanguageSpaceRepository` 伪装成功；应把失败传递给 `LanguageSpaceRecoveryState.failed`，并在 UI 提供重试。
 
 创建流程：
 
 1. onboarding 收集母语、目标语言、水平。
 2. 默认 `displayName` 使用目标语言默认空间名；若同名 active 空间存在，显示提示但允许继续。
-3. 用户点击创建后，repository 写入 `language_spaces` 并设为当前空间。
-4. 写入成功后更新 `currentLanguageSpace` 并进入 Main。
-5. 写入失败时停留 onboarding，显示错误。
+3. 若 active 空间中已经存在相同 `targetLanguageCode`，创建页显示非阻断提示：通常建议一门学习语言使用一个语言空间；工作、旅行、生活等内容可用标签或场景区分；用户仍可继续创建新的同目标语言空间。
+4. 用户点击创建后，repository 写入 `language_spaces` 并设为当前空间。
+5. 写入成功后更新 `currentLanguageSpace` 并进入 Main。
+6. 写入失败时停留 onboarding，显示错误。
 
 切换流程：
 
@@ -511,6 +529,8 @@ NavigationStack
   - 目标语言。
   - 当前水平。
 - 若 `displayName` 与其他 active 空间重复，显示 inline warning：`已有同名空间，仍可继续保存。`
+- 若新增空间的目标语言与已有 active 空间相同，显示非阻断提示：`通常建议一门学习语言使用一个语言空间。工作、旅行、生活等内容可用标签或场景区分。你仍可以继续创建新的空间。`
+- 同目标语言提示只用于产品心智引导，不阻断保存，也不改变数据库允许多空间的架构约束。
 - 保存按钮在必填字段有效时启用。
 - 重命名当前空间成功后，当前空间 chip、设置页列表和 Main 内容里的 display context 必须同步更新。
 - 新增空间成功后默认设为当前空间。原因：用户在设置中主动新建学习空间，通常预期接下来进入该空间；如果后续希望“新增但不切换”，应单独设计二级选项。
@@ -524,6 +544,7 @@ NavigationStack
   - 删除后该空间不会再出现在空间列表。
   - 当前版本没有恢复入口。
   - 如果这是当前空间，App 会切换到最近使用的其他空间；如果没有其他空间，会回到创建语言空间流程。
+- 确认文案不得写成“永久删除所有本地文件”或“彻底清除所有数据”。当前 Data 层是 soft delete，未来真实 Entry、附件和隐私彻底删除需要单独设计。
 - 删除按钮使用 `.destructive`。
 
 删除后的 UI 行为：
@@ -564,6 +585,7 @@ settings.languageSpace.management.rename
 settings.languageSpace.management.delete
 settings.languageSpace.management.currentBadge
 settings.languageSpace.management.duplicateNameWarning
+settings.languageSpace.management.sameTargetLanguageWarning
 settings.languageSpace.management.deleteTitle
 settings.languageSpace.management.deleteMessage
 settings.languageSpace.management.deleteCurrentFallbackMessage
@@ -585,6 +607,7 @@ Core 测试：
 - `LanguageSpace` 创建输入规范化。
 - 同目标语言多空间允许。
 - 同名空间检测不阻断模型。
+- `displayNameNormalized` 执行 NFC、trim、连续空白合并和 Latin lowercase，且不做 NFKC、繁简转换或假名折叠。
 - deleted 空间不应映射为 active 当前空间。
 
 Data 测试：
@@ -598,6 +621,8 @@ Data 测试：
 - `duplicateNameExists` 能检测同名并支持 excluding current ID。
 - `duplicateNameExists` 基于规范化名称检测，例如首尾空白、连续空白和 Latin 大小写不影响提示。
 - soft-deleted 同名空间不触发 duplicate warning。
+- `current_language_space_id` 作为本地 app state 处理，不进入语言空间对象模型，不影响语言空间主数据查询。
+- `created_at`、`updated_at`、`last_opened_at` 和 `deleted_at` 使用注入 clock 生成 UTC Unix epoch seconds，fallback 排序可用固定时间稳定测试。
 - 选择当前空间后可恢复。
 - 删除非当前空间不改变当前空间。
 - 删除当前空间后 fallback 到最近使用的其他空间。
@@ -613,14 +638,18 @@ UI 测试或源码级行为测试：
 - iOS 设置页包含语言空间管理入口。
 - 语言空间管理页包含新增、重命名、删除和当前空间标记。
 - 同名输入显示 warning。
+- 同目标语言重复创建显示产品引导 warning，但保存不被阻断。
 - 删除按钮使用 destructive confirmation。
+- 删除确认文案表达“从列表移除、当前版本无恢复入口和 fallback 行为”，不承诺物理彻底删除所有数据。
 - 删除最后一个空间显示明确文案并进入无 active 空间状态。
 - 存储错误状态显示重试入口。
+- `LanguageSpaceManagementView` 不直接依赖 GRDB、SQL record 或 database queue；真实状态变更通过 App 层 action / store 收口。
 - Dynamic Type 和 VoiceOver 所需的 label / value / hint 在源码级测试中覆盖关键路径。
 - 页面文案进入 String Catalog。
 
 App 状态测试：
 
+- repository factory / migration / database open 失败会进入 `LanguageSpaceRecoveryState.failed`，不会注入 empty repository 伪装首次使用。
 - 无空间时 Welcome 后进入 onboarding。
 - 有当前空间时 Welcome 后进入 Main。
 - 当前空间 ID 指向 deleted / missing 空间时 fallback。
@@ -635,15 +664,21 @@ App 状态测试：
 - 代码复查：
   - 确认 `LanguageSpaceRepository` 不再为空协议。
   - 确认 `AppSessionState` 不再只依赖内存 preview。
+  - 确认 App 层是语言空间会话真源，UI 管理页不直接持有 GRDB queue、SQL record 或数据库生命周期。
   - 确认 `LangoTraceRootView` Main 分支不再用 onboarding draft 生成 fallback 空间。
   - 确认数据库 schema 没有对 `target_language_code` 或 `display_name` 加唯一约束。
+  - 确认产品 UI 对同目标语言重复创建只做非阻断引导，Data 层仍允许同目标语言多个空间。
+  - 确认 `current_language_space_id` 被当作本地 app state，不作为 Language Space 主数据字段或未来默认同步对象。
   - 确认数据库实际路径来自 Application Support，测试可注入临时路径。
   - 确认主数据库不包含 API Key、Provider token、对象存储密钥或加密密钥。
   - 确认 `display_name_normalized` 或等价规范化逻辑存在，并且没有唯一约束。
+  - 确认时间字段使用 UTC Unix epoch seconds，并由可测试的 clock / date provider 生成。
   - 确认创建、切换、重命名、删除和 fallback 写入在事务中完成。
   - 确认删除为 soft delete，active list 默认排除 deleted 空间。
+  - 确认删除文案没有承诺物理彻底删除所有数据。
   - 确认迁移失败路径不会清空数据库或静默创建新库覆盖旧库。
 - 产品复查：
+  - 默认心智仍是一门学习语言一个空间，工作/旅行/生活继续作为标签、场景或 Prompt 模式。
   - 同一目标语言可创建多个空间。
   - 同名空间提示但不阻断。
   - 删除当前空间后 fallback 可解释。
@@ -682,6 +717,7 @@ git status --short
 - 终止并重启 App，Welcome 后恢复当前空间。
 - 设置 -> 语言空间 -> 新增一个同目标语言空间，切换成功。
 - 新增或重命名为同名空间时显示提示，仍可保存。
+- 新增同目标语言空间时显示“一门学习语言一个空间”的非阻断引导，仍可保存。
 - 删除非当前空间后当前空间不变。
 - 删除当前空间后切换到最近使用的其他空间。
 - 删除最后一个空间后回到 onboarding 或无空间恢复路径。
@@ -729,18 +765,25 @@ git status --short
 
 - 2026-05-20：按系统架构复评补充 Apple 平台存储约束、Application Support 数据库位置、系统备份语义、iOS 文件保护、WAL/导出一致性、GRDB `DatabaseQueue` 优先策略、迁移失败处理、事务清单、规范化同名检测、启动恢复错误态、iOS 管理页状态和可访问性测试边界。
 - 2026-05-20：新增 `docs/architecture/notes/2026-05-20-language-space-sync-extension-notes.md` 作为后续同步功能开发备忘录。当前任务只保持稳定 ID、软删除、Repository 边界和 `app_state` 分离，不提前实现完整 sync metadata。
+- 2026-05-20：按用户确认补充“产品鼓励一门学习语言一个空间，架构允许同目标语言多空间”的分层原则；补充 `current_language_space_id` 本地状态语义、AppSessionState 会话真源、UI action 边界、bootstrap / migration 失败处理、UTC epoch seconds 与可注入 clock、NFC 同名规范化、soft delete 文案和对应测试/复查项。
 
 ## 16. 完成标准
 
 - SQLite / GRDB 语言空间 schema、migration 和 repository 实现完成。
 - 主数据库位于 Application Support，测试可注入临时路径，iOS 文件保护策略有实现记录。
 - `LanguageSpaceRepository` 支持多空间、当前空间、重命名、删除和同名检测。
+- 产品 UI 默认鼓励一门学习语言一个空间；同目标语言重复创建只给出非阻断引导，数据库和 repository 仍允许同目标语言多个空间。
+- `current_language_space_id` 明确作为本地 app state 处理，不作为 Language Space 主数据字段或未来默认同步对象。
 - 同名检测基于规范化名称，且不阻断保存。
+- 同名规范化至少覆盖 NFC、trim、连续空白合并和 Latin lowercase，并明确不做过度语义折叠。
 - onboarding 创建第一个空间写入数据库并设为当前空间。
 - App 冷启动能恢复当前空间。
 - 存储恢复中和恢复失败状态可见，不静默降级为首次启动。
+- repository factory、数据库打开或 migration 失败不会注入 empty repository 伪装成功。
+- AppSessionState 负责语言空间会话状态，UI 管理页不直接持有 GRDB queue、SQL record 或数据库生命周期。
 - iOS 设置页“语言空间”管理页支持新增、切换、重命名、删除。
 - 同目标语言多空间和同名空间均被测试覆盖。
+- 同目标语言重复创建 warning、soft delete 文案、UTC epoch seconds 和可注入 clock 被测试或源码级检查覆盖。
 - 删除当前空间和删除最后空间的 fallback 被测试覆盖。
 - 创建、切换、重命名、删除和 fallback 写入的事务边界被测试覆盖。
 - `LanguageSpacePreview` 不作为数据库 schema。
