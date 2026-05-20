@@ -304,7 +304,24 @@ iPad onboarding 不应只是放大的 iPhone 单列页面。regular-width iPad �
 
 - `docs/spec/ui-design/mvp-ui-flow-and-design-system.md`
 
-### 4.12 页面闭环先于整体视觉升级
+### 4.15 iPhone 管理类 Sheet 与轻量编辑面板
+
+iPhone 上的管理类 sheet 常用于创建、编辑、重命名、配置少量字段或确认低频设置。此类界面应保持轻量、紧凑和品牌一致，不应因为字段少就直接暴露默认系统 `Form` 的大块灰底、过度留白和临时感。
+
+设计要求：
+
+- 少量字段的编辑 sheet 优先使用中等高度并保留可展开高度；默认视图应让用户一眼看到完整编辑对象和主要字段。
+- 当 sheet 承载的是语迹产品对象，例如语言空间、记录、Provider 草稿或同步草稿，内部应使用语义化 panel、字段行、状态提示和 design token，而不是无差别套用系统 `Form`。
+- 原生输入行为仍优先保留：文本输入使用 `TextField`，枚举选择使用 `Picker`，少量选项可使用 `.menu`，不要为了视觉统一自绘不可访问的选择控件。
+- 字段行高度不得低于 44pt；推荐约 56pt，以兼顾触控、动态字体和中文 / 英文标签长度。
+- 编辑对象的状态或归属可以用低调强调元素表达，例如左侧 teal 轨道、轻量 badge 或弱背景；不要再添加一个看起来可点击但实际只是状态的图标按钮。
+- Warning、duplicate、same target language 等提醒应在相关输入附近以轻量 chip / row 呈现；长期说明文本和删除风险说明不应常驻占据管理页首屏，除非它们是当前动作的确认上下文。
+- 破坏性操作仍使用系统 destructive 语义和确认路径；编辑 sheet 内的保存、取消和删除不能只靠颜色区分。
+- 此类 sheet 的视觉必须跟随 `LangoTraceDesign` token，例如 paper、surfaceRaised、borderSubtle、accent、warning、dangerMuted；不直接散落临时 RGB。
+- 如果默认 `Form` 的系统分组视觉与当前产品主题冲突，应优先构建可复用编辑 panel，而不是通过零散 padding、背景色和 opacity 补丁修补。
+- iPad 和 macOS 不必照搬 iPhone sheet。iPad 可转为 popover、split detail 或 inspector；macOS 可使用 Settings scene、panel 或 overlay，但语义、字段顺序和状态提示应保持一致。
+
+### 4.16 页面闭环先于整体视觉升级
 
 三端页面补全阶段应先确保用户路径完整、平台外壳正确、状态清楚，再进入整体视觉优化。这个阶段不追求最终高级视觉，但必须避免产生新的设计债务。
 
@@ -373,3 +390,4 @@ AI 在创建或修改 UI 前应先确认：
 - 2026-05-20：补充 Onboarding 当前水平选择规则。原因：三端首次引导已采用 A1-C2 解释性列表，替代裸 segmented control；该规则属于表现层和无障碍规范，不改变语言空间数据模型。影响范围：Onboarding、语言空间创建、等级文案、本地化和无障碍。是否需要 ADR：否。
 - 2026-05-20：补充 Onboarding 本地保存轻提示规则。原因：人工查看发现“数据默认保存在本机”卡片视觉权重过高，抢占首次创建页面垂直空间；该信息应作为信任提示放在主按钮下方。影响范围：Onboarding、隐私提示、本地优先文案和无障碍朗读。是否需要 ADR：否，未改变本地优先核心决策。
 - 2026-05-20：补充 Onboarding iPad 横屏与竖屏专属承载规则。原因：iPad 首次创建语言空间页面需要利用 regular-width 画布，横屏采用左右分栏，竖屏采用标题、价值摘要、表单和 CTA 的居中纵向节奏；该规则只改变表现层，不改变首次启动输入边界。影响范围：iPad Onboarding 布局、价值摘要本地化、当前水平列表高度和响应式分支。是否需要 ADR：否。
+- 2026-05-20：补充 iPhone 管理类 sheet 与轻量编辑面板规则。原因：语言空间编辑 sheet 从默认 `Form` 改为语迹主题化紧凑 panel 后形成可复用经验：少量字段的产品对象编辑应保持原生输入行为，但避免系统 `Form` 灰底和过度留白破坏品牌一致性。影响范围：iPhone 管理类 sheet、语言空间编辑、Provider / 同步草稿类配置、后续轻量编辑面板。是否需要 ADR：否。

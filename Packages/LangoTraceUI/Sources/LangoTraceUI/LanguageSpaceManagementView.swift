@@ -14,12 +14,10 @@ struct LanguageSpaceManagementView: View {
 
     var body: some View {
         List {
-            currentSection
             allSpacesSection
-            guidanceSection
         }
         .navigationTitle(localizedText("settings.languageSpace.management.title"))
-        .langoInlineNavigationTitle()
+        .langoLanguageSpaceInlineNavigationTitle()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -53,6 +51,7 @@ struct LanguageSpaceManagementView: View {
                     }
                 )
             }
+            .langoEditorSheetPresentation()
         }
         .confirmationDialog(
             localizedString("settings.languageSpace.management.deleteTitle"),
@@ -81,19 +80,6 @@ struct LanguageSpaceManagementView: View {
         .langoPageBackground()
     }
 
-    private var currentSection: some View {
-        Section {
-            if let current = spaces.first(where: { $0.id == currentSpaceID }) {
-                LanguageSpaceManagementRow(space: current, isCurrent: true)
-            } else {
-                localizedText("settings.languageSpace.management.selectSpacePrompt")
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            }
-        } header: {
-            localizedText("settings.languageSpace.management.currentSection")
-        }
-    }
-
     private var allSpacesSection: some View {
         Section {
             if spaces.isEmpty {
@@ -106,7 +92,7 @@ struct LanguageSpaceManagementView: View {
                 }
                 .padding(.vertical, 4)
             } else {
-                ForEach(spaces) { space in
+                ForEach(displayedSpaces) { space in
                     Button {
                         onSelect(space.id)
                     } label: {
@@ -114,18 +100,23 @@ struct LanguageSpaceManagementView: View {
                     }
                     .id(space.updatedAt)
                     .buttonStyle(.plain)
+                    .listRowBackground(
+                        space.id == currentSpaceID
+                            ? LangoTraceDesign.ColorToken.surfaceSelected
+                            : LangoTraceDesign.ColorToken.elevatedPaper
+                    )
                     .contextMenu {
                         Button {
                             editorMode = .edit(space)
                         } label: {
-                            Label(localizedString("settings.languageSpace.management.rename"), systemImage: "pencil")
+                            Label(localizedString("settings.languageSpace.management.edit"), systemImage: "pencil")
                         }
                     }
                     .swipeActions(edge: .trailing) {
                         Button {
                             editorMode = .edit(space)
                         } label: {
-                            Label(localizedString("settings.languageSpace.management.rename"), systemImage: "pencil")
+                            Label(localizedString("settings.languageSpace.management.edit"), systemImage: "pencil")
                         }
                         .tint(LangoTraceDesign.ColorToken.teal)
                         Button(role: .destructive) {
@@ -144,17 +135,16 @@ struct LanguageSpaceManagementView: View {
         }
     }
 
-    private var guidanceSection: some View {
-        Section {
-            localizedText("settings.languageSpace.management.sameTargetLanguageWarning")
-                .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            localizedText("settings.languageSpace.management.deleteMessage")
-                .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+    private var displayedSpaces: [LanguageSpace] {
+        guard let currentSpaceID,
+              let currentIndex = spaces.firstIndex(where: { $0.id == currentSpaceID })
+        else {
+            return spaces
         }
+        var orderedSpaces = spaces
+        let current = orderedSpaces.remove(at: currentIndex)
+        orderedSpaces.insert(current, at: 0)
+        return orderedSpaces
     }
 
     private var deleteMessage: String {
@@ -176,7 +166,14 @@ private struct LanguageSpaceManagementRow: View {
     let isCurrent: Bool
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
+            if isCurrent {
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(LangoTraceDesign.ColorToken.teal)
+                    .frame(width: 4)
+                    .frame(maxHeight: 42)
+                    .accessibilityHidden(true)
+            }
             VStack(alignment: .leading, spacing: 4) {
                 Text(space.displayName)
                     .font(.body.weight(.semibold))
@@ -189,156 +186,22 @@ private struct LanguageSpaceManagementRow: View {
             }
             Spacer(minLength: 8)
             if isCurrent {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(LangoTraceDesign.ColorToken.teal)
-                    .accessibilityLabel(localizedText("settings.languageSpace.management.currentBadge"))
+                currentPill
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isCurrent ? .isSelected : [])
-    }
-}
-
-private enum LanguageSpaceEditorMode: Identifiable {
-    case add
-    case edit(LanguageSpace)
-
-    var id: String {
-        switch self {
-        case .add:
-            "add"
-        case let .edit(space):
-            "edit-\(space.id)"
-        }
+        .accessibilityValue(isCurrent ? localizedText("settings.languageSpace.management.currentBadge") : Text(""))
     }
 
-    var editedSpace: LanguageSpace? {
-        if case let .edit(space) = self {
-            space
-        } else {
-            nil
-        }
-    }
-}
-
-private struct LanguageSpaceEditorView: View {
-    let mode: LanguageSpaceEditorMode
-    let spaces: [LanguageSpace]
-    let onSave: (LanguageSpaceEditorMode, UpdateLanguageSpaceInput) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var displayName = ""
-    @State private var nativeLanguageCode = LearningLanguage.defaultNative.code
-    @State private var targetLanguageCode = LearningLanguage.defaultTarget.code
-    @State private var level: LanguageLevel = .b1
-
-    var body: some View {
-        Form {
-            Section {
-                TextField(
-                    localizedString("settings.languageSpace.management.name"),
-                    text: $displayName
-                )
-                Picker(localizedString("onboarding.nativeLanguage.title"), selection: $nativeLanguageCode) {
-                    ForEach(LearningLanguage.supportedNativeLanguages) { language in
-                        Text(language.displayTitle(for: .selectedValue)).tag(language.code)
-                    }
-                }
-                Picker(localizedString("onboarding.targetLanguage.title"), selection: $targetLanguageCode) {
-                    ForEach(LearningLanguage.targetLanguages(excludingNativeCode: nativeLanguageCode)) { language in
-                        Text(language.displayTitle(for: .selectedValue)).tag(language.code)
-                    }
-                }
-                Picker(localizedString("onboarding.level.title"), selection: $level) {
-                    ForEach(LanguageLevel.allCases, id: \.self) { level in
-                        Text(level.rawValue).tag(level)
-                    }
-                }
-            }
-
-            if duplicateNameExists {
-                warningRow("settings.languageSpace.management.duplicateNameWarning")
-            }
-            if sameTargetLanguageExists {
-                warningRow("settings.languageSpace.management.sameTargetLanguageWarning")
-            }
-        }
-        .navigationTitle(editorTitle)
-        .langoInlineNavigationTitle()
-        .onAppear(perform: populateFromEditedSpace)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button(localizedString("common.cancel")) {
-                    dismiss()
-                }
-            }
-            ToolbarItem(placement: .confirmationAction) {
-                Button(localizedString("common.save")) {
-                    onSave(
-                        mode,
-                        UpdateLanguageSpaceInput(
-                            nativeLanguageCode: nativeLanguageCode,
-                            targetLanguageCode: targetLanguageCode,
-                            level: level,
-                            displayName: displayName
-                        )
-                    )
-                }
-            }
-        }
-    }
-
-    private var duplicateNameExists: Bool {
-        let normalizedName = CreateLanguageSpaceInput.normalizedDisplayName(displayName)
-        return !normalizedName.isEmpty && spaces.contains { space in
-            space.id != mode.editedSpace?.id && space.displayNameNormalized == normalizedName
-        }
-    }
-
-    private var sameTargetLanguageExists: Bool {
-        spaces.contains { space in
-            space.id != mode.editedSpace?.id && space.targetLanguageCode == targetLanguageCode
-        }
-    }
-
-    private var editorTitle: Text {
-        switch mode {
-        case .add:
-            localizedText("settings.languageSpace.management.add")
-        case .edit:
-            localizedText("settings.languageSpace.management.rename")
-        }
-    }
-
-    private func populateFromEditedSpace() {
-        guard let space = mode.editedSpace else {
-            return
-        }
-        displayName = space.displayName
-        nativeLanguageCode = space.nativeLanguageCode
-        targetLanguageCode = space.targetLanguageCode
-        level = space.level
-    }
-
-    private func warningRow(_ key: String) -> some View {
-        Label {
-            localizedText(key)
-                .font(.callout)
-                .fixedSize(horizontal: false, vertical: true)
-        } icon: {
-            Image(systemName: "exclamationmark.triangle.fill")
-        }
-        .foregroundStyle(.orange)
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func langoInlineNavigationTitle() -> some View {
-        #if os(iOS)
-            navigationBarTitleDisplayMode(.inline)
-        #else
-            self
-        #endif
+    private var currentPill: some View {
+        localizedText("settings.languageSpace.management.currentBadge")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(LangoTraceDesign.ColorToken.teal)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(LangoTraceDesign.ColorToken.paleTeal)
+            .clipShape(Capsule())
+            .accessibilityHidden(true)
     }
 }

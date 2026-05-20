@@ -76,6 +76,7 @@ Sync -> Core
 - 页面主文件保留入口结构、核心 `body` 和少量组合逻辑；尺寸计算、平台 layout helper、局部 reusable component 应按职责移入同目录 extension 或独立组件文件。
 - iPhone、iPad、macOS 的尺寸策略可以共享命名和测试，但大型平台差异不应长期塞在同一个 `body` 分支中。
 - 叶子组件一旦被多个页面、多个布局分支或测试直接关心，应成为独立文件，例如 capsule label、status badge、preview card section。
+- 管理页和编辑器应按职责拆分：列表管理页保留 route、selection、sheet 展示和删除确认；创建 / 编辑 sheet 一旦包含多字段输入、校验提示或自定义 panel，应拆成独立 editor view 文件，避免把列表、表单、验证和 sheet 样式塞在同一个页面文件里。
 - 测试文件也应按行为拆分：内容语义、布局尺寸、本地化覆盖和源码组织可以分别测试。一个 optimization test 文件不应长期承担所有回归职责。
 - Source organization 测试可以用于防止已经拆出的布局 helper 或叶子组件被重新塞回巨型页面文件，但测试内容应保持结构性，不依赖无意义行号。
 - 如果一个文件因为真实平台差异临时超长，任务方案必须记录原因、后续拆分点和验证方式；不应在没有解释的情况下新增 `swiftlint:disable file_length`。
@@ -204,3 +205,4 @@ AI 在写 SwiftUI 代码前应先回答：
 - 2026-05-17：补充页面闭环阶段的共享内容与平台外壳规则。原因：新增三端页面补全计划需要复用记录、练习和设置内容，同时保持 iPhone、iPad、macOS 的原生导航和状态边界。影响范围：LangoTraceUI、App Shell repository 注入、页面 route 和测试设计。是否需要 ADR：否。
 - 2026-05-18：同步第一轮 UI 收敛后的 Data seam 和生成边界。原因：`LearningContentRepository` 与 `LearningContentStore` 已成为三端 UI 的学习内容访问 seam，`contentRevision` 已退出主 View；Entry 保存也已与本地预览生成分离。影响范围：Data/UI package 边界、三端主 View、Entry detail、后续真实 repository 接入。是否需要 ADR：否，仍符合既有模块边界决策。
 - 2026-05-19：补充大型页面文件治理规则。原因：Welcome 三端优化后将布局 helper、叶子组件和回归测试按职责拆分，并用源码组织测试防止 SwiftLint 长度 warning 复发；该经验应成为后续 SwiftUI 页面迭代规则。影响范围：LangoTraceUI 页面文件、平台布局 helper、叶子组件和 UI package 测试组织。是否需要 ADR：否。
+- 2026-05-20：补充管理页与编辑器拆分规则。原因：语言空间管理页新增编辑 sheet 后触发文件长度 warning，最终将列表管理与多字段编辑器拆分为 `LanguageSpaceManagementView` 和 `LanguageSpaceEditorView`，该模式应复用于后续 Provider、同步和记录编辑类页面。影响范围：LangoTraceUI 管理页、editor sheet、源码组织测试和 SwiftLint 文件长度治理。是否需要 ADR：否。

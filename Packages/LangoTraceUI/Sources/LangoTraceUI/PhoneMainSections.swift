@@ -150,7 +150,8 @@ struct SettingsView: View {
             titleKey: "tab.settings",
             languageSpace: languageSpace,
             onLanguageSpaceAction: onLanguageSpaceAction,
-            onSettingsAction: onSettingsAction
+            onSettingsAction: onSettingsAction,
+            showsContextHeader: false
         ) {
             ForEach(capabilities) { capability in
                 CapabilityStatusRow(
@@ -170,16 +171,19 @@ struct PhonePage<Content: View>: View {
     let languageSpace: LanguageSpacePreview
     let onLanguageSpaceAction: () -> Void
     var onSettingsAction: (() -> Void)?
+    var showsContextHeader = true
     @ViewBuilder let content: Content
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                PhoneContextHeader(
-                    languageSpace: languageSpace,
-                    onLanguageSpaceAction: onLanguageSpaceAction,
-                    onSettingsAction: onSettingsAction
-                )
+                if showsContextHeader {
+                    PhoneContextHeader(
+                        languageSpace: languageSpace,
+                        onLanguageSpaceAction: onLanguageSpaceAction,
+                        onSettingsAction: onSettingsAction
+                    )
+                }
                 content
             }
             .padding(20)

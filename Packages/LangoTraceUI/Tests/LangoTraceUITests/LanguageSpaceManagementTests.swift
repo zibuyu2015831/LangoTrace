@@ -18,27 +18,103 @@ struct LanguageSpaceManagementTests {
         #expect(!source.contains("SQL"))
     }
 
-    @Test("Management source contains same target warning and soft delete copy boundary")
-    func managementSourceContainsWarningsAndSoftDeleteBoundary() throws {
-        let source = try String(contentsOf: sourceFileURL(named: "LanguageSpaceManagementView.swift"), encoding: .utf8)
+    @Test("Management source keeps guidance in context instead of a persistent card")
+    func managementSourceKeepsGuidanceInContextInsteadOfPersistentCard() throws {
+        let source = try sourceText(
+            named: "LanguageSpaceManagementView.swift",
+            "LanguageSpaceEditorView.swift"
+        )
 
         #expect(source.contains("settings.languageSpace.management.sameTargetLanguageWarning"))
         #expect(source.contains("settings.languageSpace.management.duplicateNameWarning"))
         #expect(source.contains("settings.languageSpace.management.deleteMessage"))
         #expect(source.contains("settings.languageSpace.management.deleteLastSpaceMessage"))
+        #expect(!source.contains("private var guidanceSection"))
         #expect(!source.contains("永久删除所有本地文件"))
         #expect(!source.contains("彻底清除所有数据"))
     }
 
     @Test("Management source supports editing existing spaces")
     func managementSourceSupportsEditingExistingSpaces() throws {
-        let source = try String(contentsOf: sourceFileURL(named: "LanguageSpaceManagementView.swift"), encoding: .utf8)
+        let source = try sourceText(
+            named: "LanguageSpaceManagementView.swift",
+            "LanguageSpaceEditorView.swift"
+        )
 
         #expect(source.contains("case edit(LanguageSpace)"))
-        #expect(source.contains("settings.languageSpace.management.rename"))
+        #expect(source.contains("settings.languageSpace.management.edit"))
+        #expect(source.contains("settings.languageSpace.management.editTitle"))
+        #expect(!source.contains("settings.languageSpace.management.rename"))
         #expect(source.contains("UpdateLanguageSpaceInput"))
         #expect(source.contains("onUpdate(space.id, input)"))
         #expect(source.contains(".id(space.updatedAt)"))
+    }
+
+    @Test("Management editor uses existing localized picker keys")
+    func managementEditorUsesExistingLocalizedPickerKeys() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "LanguageSpaceEditorView.swift"), encoding: .utf8)
+
+        #expect(source.contains("localizedString(\"onboarding.nativeLanguage\")"))
+        #expect(source.contains("localizedString(\"onboarding.targetLanguage\")"))
+        #expect(!source.contains("onboarding.nativeLanguage.title"))
+        #expect(!source.contains("onboarding.targetLanguage.title"))
+    }
+
+    @Test("Management editor opens as a compact expandable sheet on iOS")
+    func managementEditorOpensAsCompactExpandableSheetOnIOS() throws {
+        let source = try sourceText(
+            named: "LanguageSpaceManagementView.swift",
+            "LanguageSpaceEditorView.swift"
+        )
+
+        #expect(source.contains("langoEditorSheetPresentation"))
+        #expect(source.contains("presentationDetents([.medium, .large])"))
+        #expect(source.contains(".presentationDragIndicator(.visible)"))
+        #expect(source.contains("#if os(iOS)"))
+    }
+
+    @Test("Management editor uses a branded compact panel instead of a default Form")
+    func managementEditorUsesBrandedCompactPanel() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "LanguageSpaceEditorView.swift"), encoding: .utf8)
+
+        #expect(!source.contains("Form {"))
+        #expect(source.contains("LanguageSpaceEditorCard"))
+        #expect(source.contains("LanguageSpaceEditorFieldRow"))
+        #expect(source.contains("LangoTraceDesign.ColorToken.paper.ignoresSafeArea()"))
+        #expect(source.contains(".pickerStyle(.menu)"))
+        #expect(source.contains(".langoPanel(padding: 0)"))
+    }
+
+    @Test("Current language space is styled as row state instead of a check button")
+    func currentLanguageSpaceIsStyledAsRowStateInsteadOfCheckButton() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "LanguageSpaceManagementView.swift"), encoding: .utf8)
+
+        #expect(!source.contains("checkmark.circle.fill"))
+        #expect(source.contains("currentPill"))
+        #expect(source.contains("ColorToken.surfaceSelected"))
+        #expect(source.contains("RoundedRectangle(cornerRadius: 2"))
+        #expect(source.contains("accessibilityValue"))
+    }
+
+    @Test("Management keeps swipe edit and delete shortcuts")
+    func managementKeepsSwipeEditAndDeleteShortcuts() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "LanguageSpaceManagementView.swift"), encoding: .utf8)
+
+        #expect(source.contains(".swipeActions(edge: .trailing)"))
+        #expect(source.contains("settings.languageSpace.management.edit"))
+        #expect(source.contains("settings.languageSpace.management.delete"))
+        #expect(source.contains("Button(role: .destructive)"))
+        #expect(source.contains("pendingDelete = space"))
+    }
+
+    @Test("Management presents one consolidated spaces list")
+    func managementPresentsOneConsolidatedSpacesList() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "LanguageSpaceManagementView.swift"), encoding: .utf8)
+
+        #expect(!source.contains("currentSection"))
+        #expect(source.contains("allSpacesSection"))
+        #expect(source.contains("space.id == currentSpaceID"))
+        #expect(source.contains("ColorToken.surfaceSelected"))
     }
 
     @Test("Phone settings route opens the management page instead of summary only")
@@ -57,5 +133,11 @@ struct LanguageSpaceManagementTests {
             .deletingLastPathComponent()
             .appendingPathComponent("Sources/LangoTraceUI")
             .appendingPathComponent(fileName)
+    }
+
+    private func sourceText(named firstFileName: String, _ otherFileNames: String...) throws -> String {
+        try ([firstFileName] + otherFileNames)
+            .map { try String(contentsOf: sourceFileURL(named: $0), encoding: .utf8) }
+            .joined(separator: "\n")
     }
 }

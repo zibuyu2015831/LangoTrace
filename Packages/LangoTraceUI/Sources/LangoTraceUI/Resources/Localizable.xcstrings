@@ -3586,6 +3586,20 @@
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "已有同名空间，仍可继续保存。" } }
       }
     },
+    "settings.languageSpace.management.edit": {
+      "comment": "Edit language space action.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Edit" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "编辑" } }
+      }
+    },
+    "settings.languageSpace.management.editTitle": {
+      "comment": "Edit language space sheet title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Edit Space" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "编辑空间" } }
+      }
+    },
     "settings.languageSpace.management.name": {
       "comment": "Language space name field label.",
       "localizations": {
@@ -3605,13 +3619,6 @@
       "localizations": {
         "en": { "stringUnit": { "state": "translated", "value": "No Language Spaces" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂无语言空间" } }
-      }
-    },
-    "settings.languageSpace.management.rename": {
-      "comment": "Rename language space action.",
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Rename" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重命名" } }
       }
     },
     "settings.languageSpace.management.sameTargetLanguageWarning": {

@@ -107,6 +107,7 @@ struct PageClosureStateTests {
 
         #expect(source.contains("struct SettingsView: View"))
         #expect(source.contains("PhonePage("))
+        #expect(source.contains("showsContextHeader: false"))
         #expect(source.contains("ForEach(capabilities)"))
         #expect(!source.contains("\"phone.settings.currentSpace.title\""))
         #expect(!source.contains("\"phone.settings.currentSpace.subtitle\""))
