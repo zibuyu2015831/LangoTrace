@@ -133,6 +133,14 @@ MVP 早期允许在 Data package 中提供无副作用的 preview / mock 纯值�
 
 UI 可以简化展示，但底层状态不能丢失。
 
+保存类异步操作还必须遵守以下边界：
+
+- SwiftUI View 可以持有短生命周期草稿和 transient 保存状态，但不能直接访问数据库、Keychain、网络或具体 Provider。
+- View action 应先完成本地输入构造和校验，再进入 saving / running；输入无效应回到 input invalid 状态，不应被记录成真实保存失败。
+- 服务层错误应通过领域错误类型或可展示 failure display 映射到 UI；UI 不解析底层 SQL、Keychain status 或 Provider SDK 错误字符串。
+- 每次保存尝试应有一次可关联的 operation id，供 UI、AI service、Data repository 或诊断日志在不记录敏感内容的前提下串联阶段。
+- 诊断写入必须是 best-effort、non-throwing 的附属路径。诊断失败不得改变保存、验证或 UI 状态结果。
+
 ### 4.8 页面闭环阶段的共享内容与平台外壳
 
 三端页面闭环阶段应明确区分共享内容视图和平台外壳，避免为了复用而牺牲 iPad 和 macOS 的原生形态。
@@ -206,3 +214,4 @@ AI 在写 SwiftUI 代码前应先回答：
 - 2026-05-18：同步第一轮 UI 收敛后的 Data seam 和生成边界。原因：`LearningContentRepository` 与 `LearningContentStore` 已成为三端 UI 的学习内容访问 seam，`contentRevision` 已退出主 View；Entry 保存也已与本地预览生成分离。影响范围：Data/UI package 边界、三端主 View、Entry detail、后续真实 repository 接入。是否需要 ADR：否，仍符合既有模块边界决策。
 - 2026-05-19：补充大型页面文件治理规则。原因：Welcome 三端优化后将布局 helper、叶子组件和回归测试按职责拆分，并用源码组织测试防止 SwiftLint 长度 warning 复发；该经验应成为后续 SwiftUI 页面迭代规则。影响范围：LangoTraceUI 页面文件、平台布局 helper、叶子组件和 UI package 测试组织。是否需要 ADR：否。
 - 2026-05-20：补充管理页与编辑器拆分规则。原因：语言空间管理页新增编辑 sheet 后触发文件长度 warning，最终将列表管理与多字段编辑器拆分为 `LanguageSpaceManagementView` 和 `LanguageSpaceEditorView`，该模式应复用于后续 Provider、同步和记录编辑类页面。影响范围：LangoTraceUI 管理页、editor sheet、源码组织测试和 SwiftLint 文件长度治理。是否需要 ADR：否。
+- 2026-05-20：补充保存类异步操作和诊断关联规则。原因：AI Provider 配置保存现在跨 UI、AI service、Keychain、Data repository 和诊断日志，需要明确 input invalid、真实失败、operation id 和 best-effort logging 的职责边界。影响范围：SwiftUI 保存入口、AI Provider 设置、后续同步 / 导出 / AI 请求状态机。是否需要 ADR：否。

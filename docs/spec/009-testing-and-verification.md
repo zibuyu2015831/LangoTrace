@@ -31,8 +31,10 @@
 - 任何完成声明前必须有本轮新运行的验证证据。
 - 文档任务至少运行入口文档列出的四个文档检查命令。
 - 涉及 Swift 工程状态的任务，收尾优先运行 `scripts/verify.sh`；无法运行时必须说明原因和剩余风险。
+- `scripts/verify.sh` 是 Swift 工程收尾门禁，至少覆盖 XcodeGen、Xcode project list、Core/Data/AI/UI package 测试、iPhone build、iPad build、macOS build、SwiftLint、SwiftFormat 和文档占位扫描。
 - 涉及 UI 的任务不能只靠编译通过；需要按 `docs/testing/README.md` 做三端页面、截图或手动验证。
 - 涉及隐私、权限、AI 请求、日志、导出或同步的任务必须检查敏感数据不会出现在日志、导出包或未经确认的外部请求中。
+- 涉及 AI Provider 保存、Keychain、诊断日志或请求边界的任务，必须至少运行 Core、Data、AI、UI 中受影响 package 的测试，并执行敏感字段扫描；收尾再运行 `scripts/verify.sh`。
 - 验证结果应写回任务方案、审查 round 或对应测试记录，不只留在聊天中。
 
 ## 5. AI 开发提示
@@ -47,3 +49,4 @@
 ## 6. 变更记录
 
 - 2026-05-18：创建测试与验证入口规范。原因：spec 深审确认测试文档已经存在，但 `docs/spec/` 缺少统一入口和对 `docs/testing/README.md` 的明确委托关系。影响范围：所有任务方案、审查 round、验证记录和完成门禁。是否需要 ADR：否。
+- 2026-05-20：补充 AI package 与诊断隐私验证门禁。原因：AI Provider 配置保存链路已经跨 Core/Data/AI/UI，统一验证脚本必须覆盖 `Packages/LangoTraceAI`，隐私敏感任务也需要敏感字段扫描。影响范围：`scripts/verify.sh`、任务方案验证记录、AI Provider、诊断日志和后续权限 / 请求任务。是否需要 ADR：否。

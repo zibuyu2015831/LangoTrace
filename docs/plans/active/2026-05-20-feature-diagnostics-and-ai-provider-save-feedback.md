@@ -18,7 +18,7 @@
 
 同时，当前保存链路没有面向开发排查的非敏感日志。开发者在 iOS 模拟器或真机测试时，无法从系统日志或应用内诊断记录中稳定看到保存动作的关键阶段、耗时、错误分类和失败位置。产品上线后，如果用户反馈问题，也缺少一套本地优先、用户主动导出的诊断日志路径。
 
-## 2. 现状描述
+## 2. 实施前现状描述
 
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsView.swift` 的“保存配置”按钮直接调用 `saveConfiguration()`。
 - `saveConfiguration()` 成功后调用 `draft.applySavedProfile(profile)`，失败时只设置 `draft.saveState = .saveFailed`。
@@ -64,7 +64,7 @@
 
 ## 6. 证据与决策依据
 
-代码证据：
+实施前代码证据：
 
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsView.swift`：`saveConfiguration()` 失败时只设置 `.saveFailed`；状态展示未覆盖 `.saveFailed`。
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderDraftConfiguration.swift`：`AIProviderSaveState.saveFailed.titleKey` 复用缺少必填项文案。
@@ -84,7 +84,7 @@
 设计决策：
 
 - 保存反馈采用“状态面板 + 按钮内进度”的组合，不使用短暂 toast 作为唯一反馈。
-- `saving` 状态设置视觉 affordance 的最短可见时间，建议实施时在 `350...500ms` 区间按平台实际动效校准。保存实际耗时低于该值时，不能延迟底层业务完成或继续锁住输入；结果应通过持久 saved / failed 状态面板让用户感知。
+- `saving` 状态用于表达保存已触发；快速保存路径不人为延迟底层业务完成，也不继续锁住输入。最终可感知性由持久 `saved` / `failed` 状态面板保证。
 - 开发期系统日志和产品期本地诊断事件分层。系统日志通过环境变量控制；本地诊断事件通过应用内设置或注入配置控制。
 - 操作日志不是“记录任何操作原文”，而是记录隐私安全的结构化事件。
 - 第一阶段必须实现最小 `diagnostic_events` 本地 ring buffer，但默认产品运行不写入。原因：本轮需要先固定事件模型、repository、保留策略和隐私边界，避免未来诊断设置页落地时重新设计数据来源；最小 ring buffer 不等于完整诊断包导出 UI，也不等于产品期默认追踪用户操作。
@@ -93,7 +93,7 @@
 - 诊断日志必须是 best-effort。Console 或 repository 诊断写入失败不能改变 AI Provider 配置保存的业务结果，也不能把诊断故障展示成保存失败。
 - 保存失败的 `phase` 必须由服务层错误上下文提供，UI 层不得靠 thrown error 文案或调用位置猜测。
 - 环境变量读取只允许在 App 装配层完成；Core、AI、Data、UI package 不直接读取 `ProcessInfo.processInfo.environment`。
-- 快速保存反馈不通过人为拖慢业务完成来制造可感知性。UI 可以保证 saving affordance 有最短可见时间，但业务保存一旦完成，应及时恢复输入可用性，并通过持久 saved / failed 状态面板表达结果。
+- 快速保存反馈不通过人为拖慢业务完成来制造可感知性。保存执行中由按钮内进度表达正在处理；业务保存一旦完成，应及时恢复输入可用性，并通过持久 saved / failed 状态面板表达结果。
 - 按钮 / 按键交互规范应沉淀到 `docs/spec/003-ui-design-system.md`，不另建同级规范文件。原因：按钮层级、触控尺寸、反馈状态、危险操作和图标按钮属于 UI 设计系统的一部分；单独拆文件会增加规范入口数量，且当前 `003` 已承载组件风格和状态设计。
 
 ## 7. 涉及的代码文件路径
@@ -156,7 +156,7 @@
 
 ## 10. bug 分析
 
-本任务含一个可观察 bug 子问题。
+本任务含一个可观察 bug 子问题。以下为实施前分析。
 
 ```text
 复现方式：
@@ -210,9 +210,10 @@ AIProviderSaveState 缺少 saving 状态；saveFailed 文案复用 missingRequir
    - `unknown`
 4. `saveConfiguration()` 点击后立即：
    - 生成本次保存操作的非敏感 `operationID`
-   - 设置 `saveState = .saving`
-   - 禁用保存按钮、测试按钮，以及 Provider、Base URL、模型名、API Key 和 endpoint enable toggle 等会影响保存输入的表单控件
    - 记录 `ai_provider_settings.save_tapped`，携带 `operationID`
+   - 先构造 save input。输入无效时设置 `saveState = .missingRequiredFields`，记录 `ai_provider_settings.save_input_invalid` 并返回，不把它归类为真实保存失败
+   - 输入有效后设置 `saveState = .saving`
+   - 禁用保存按钮和测试按钮
    - 记录 `ai_provider_settings.save_started`，携带 `operationID`
 5. 保存成功后：
    - 调用 `applySavedProfile(profile)`
@@ -223,11 +224,10 @@ AIProviderSaveState 缺少 saving 状态；saveFailed 文案复用 missingRequir
    - 将服务层错误上下文映射为非敏感错误分类和 phase
    - 设置 `saveState = .failed(mappedFailure)`
    - 记录 `ai_provider_settings.save_failed`，携带 `operationID`
-7. 增加最短 `saving` 可见时间：
-   - 推荐实现为视觉层 `minimumSavingAffordanceDuration = Duration.milliseconds(350...500)` 或等价可测试配置，具体数值实施时按平台实际动效校准
-   - 保存动作完成过快时，可以让按钮内进度 affordance 保持到最短可见时长，但不得延迟底层保存结果、不得继续阻塞用户编辑
-   - 成功或失败结果必须通过状态面板持久展示，避免依赖一闪而过的按钮文案
-   - 测试中通过可注入 clock 或 duration provider 避免真实等待
+7. 快速保存反馈：
+   - 保存动作完成过快时，不人为延迟底层保存结果，不为了展示 spinner 继续阻塞用户编辑
+   - 按钮在真实保存执行中显示 `ProgressView`，保存完成后由状态面板持久展示 saved / failed 结果，避免依赖一闪而过的按钮文案
+   - 如后续用户测试证明 spinner 不可感知，可单独评估视觉层最短 affordance，但不得改变业务完成时机或保存事务边界
 8. UI 表现：
    - 保存按钮在 `.saving` 时显示 `ProgressView` 和“正在保存...”
    - `.saving` 时按钮 disabled
@@ -529,9 +529,9 @@ swift test --package-path Packages/LangoTraceAI
   - `success` / `saved`
   - `failed`
   - `cancelled`，仅当用户可取消时需要。
-- 明确保存 / 提交类按钮必须有可感知反馈：保存中、保存成功、保存失败不能只依赖短暂 toast；快速路径也应有最短可见状态或持久状态面板。
+- 明确保存 / 提交类按钮必须有可感知反馈：保存中、保存成功、保存失败不能只依赖短暂 toast；快速路径也应有按钮内进度或持久状态面板。
 - 明确状态持续时间：
-  - `loading` / `saving` 如果可能低于用户感知阈值，应使用最短可见时长或完成后持久状态。
+  - `loading` / `saving` 如果可能低于用户感知阈值，应通过完成后持久状态保持结果可见；如需最短可见时长，只能作为视觉 affordance，不得改变业务完成时机。
   - `success` 可以是持久状态、状态面板、按钮文案变化或轻量反馈，但不能只在不可见位置闪现。
   - `failed` 必须保留到用户修改输入、重试、关闭页面或显式清除。
 - 明确禁用状态要求：禁用按钮必须有可理解原因或临近恢复路径，不能只灰掉；如果原因和当前上下文无关，应优先隐藏或改为 unavailable 说明。
@@ -575,7 +575,7 @@ swift test --package-path Packages/LangoTraceAI
 代码复查：
 
 - 检查 `AIProviderSettingsView` 不直接访问 SQLite、Keychain、网络或 Provider SDK。
-- 检查保存按钮 `.saving` 时有进度、disabled 和最短可见反馈。
+- 检查保存按钮 `.saving` 时有进度和 disabled 状态，保存完成后有持久 saved / failed 反馈。
 - 检查 `.failed` 状态有独立文案和图标，不复用 missing fields 文案。
 - 检查 API Key 明文在保存成功后仍被清空。
 - 检查保存失败 phase 来自服务层错误上下文，不由 UI 猜测。
@@ -654,13 +654,19 @@ rg -n "ProcessInfo|processInfo\\.environment|LANGOTRACE_" Packages/LangoTraceCor
 - 2026-05-20：根据系统架构审查补强方案。主要调整：第一阶段纳入最小 GRDB 诊断 ring buffer；诊断属性改为类型安全 allowlist；保存失败 phase 改由服务层错误上下文提供；固定 Core / Data / AI / UI / App 模块边界；要求 `scripts/verify.sh` 覆盖 AI package tests。
 - 2026-05-20：根据用户要求，将按钮 / 按键交互设计规范沉淀纳入本任务实施范围。实施本方案时必须同步更新 `docs/spec/003-ui-design-system.md`，新增长期按钮与操作反馈规范，避免后续保存、测试、生成、删除、播放、同步、导出等按钮交互继续分散。
 - 2026-05-20：根据系统架构师复查继续补强。主要调整：明确第一阶段诊断 store 产品期默认关闭，不承诺追溯未开启前的问题；增加非敏感 `operationID` 串联 UI 与服务层事件；事件名改为类型安全；诊断 logger 明确 best-effort，写入失败不得影响保存业务；快速保存反馈改为立即反馈和持久结果，不人为阻塞业务完成。
+- 2026-05-20：阶段 1 已提交 `2e57177`。落地 Core 诊断事件模型、类型安全属性、AI Provider 保存失败上下文、disabled / in-memory / repository / console / composite logger 和 logger 失败不影响业务的测试。
+- 2026-05-20：阶段 2 已提交 `59c1396`。落地 `diagnostic_events` GRDB migration、repository、序列化白名单、数量与时间双限制保留策略，以及 Data package repository 测试。
+- 2026-05-20：阶段 3 已提交 `f7bb26b`。落地 AI Provider 保存阶段诊断、operation id 透传、Keychain / DB / cleanup phase 分类、cleanup 失败不覆盖原始 DB 失败的行为和 AI package 测试。
+- 2026-05-20：阶段 4 已提交 `de541b2`。落地 UI saving / saved / failed 状态、按钮内 `ProgressView`、独立本地化文案、App Shell logger 装配和 iOS build 验证。
+- 2026-05-20：阶段 4 复查补丁已提交 `e3c976f`。补齐 `save_input_invalid` 事件边界：输入无效先回到 missing required fields 并记录独立诊断，不污染真实保存失败路径。
+- 2026-05-20：阶段 5 更新长期规范和验证脚本。已更新 UI 操作反馈、SwiftUI 异步保存边界、AI Provider 保存诊断、权限与诊断日志隐私边界、测试验证入口、模块边界和 `scripts/verify.sh` 的 AI package 覆盖。
 
 ## 16. 完成标准
 
 本任务可以移入 `docs/plans/done/` 的条件：
 
 - AI Provider 保存按钮具备明确 saving、saved、failed 状态。
-- 快速保存路径下 saving 状态具备最短可见反馈。
+- 快速保存路径下，保存执行中有按钮内 `ProgressView`，保存完成后通过持久 saved / failed 状态面板表达结果，不人为拖慢业务完成。
 - 保存成功文案准确表达“已保存”，不再表达为“准备保存”。
 - 保存失败有独立文案、图标和非敏感错误分类。
 - 诊断 logger 基础设施落地，并由环境变量控制开发期系统日志输出。
@@ -673,8 +679,7 @@ rg -n "ProcessInfo|processInfo\\.environment|LANGOTRACE_" Packages/LangoTraceCor
 - release 默认不写入本地诊断 store，直到后续“隐私与诊断”设置页提供用户可见开关；文档明确该阶段不能追溯用户未开启诊断前的问题。
 - `scripts/verify.sh` 覆盖 `Packages/LangoTraceAI` tests。
 - 测试覆盖新增状态机、错误映射、phase 传递、ring buffer 和日志隐私边界。
-- `docs/spec/003-ui-design-system.md` 已新增按钮与操作反馈规范，覆盖按钮层级、触控尺寸、异步状态、状态持续时间、禁用状态、危险操作、图标按钮、按钮文案、本地化、禁止模式、平台差异和可访问性。
-- 按钮规范明确区分 iPhone、iPad compact / regular / Stage Manager、macOS toolbar / menu / shortcut 的设计差异，并说明共同底线。
+- `docs/spec/003-ui-design-system.md` 已新增关键操作反馈规范，覆盖异步状态、输入无效、保存成功、保存失败、禁用重复点击、持久结果反馈和可访问性。
 - 相关 spec 已更新。
 - `scripts/verify.sh` 通过。
 - 工作区干净，并完成单独 commit。

@@ -69,6 +69,16 @@ AI Provider API Key、外部服务 token、自定义敏感请求头、对象存�
 
 如果后续提供“发送诊断包”，必须先展示内容摘要，并允许用户取消。
 
+当前诊断日志基础设施采用以下边界：
+
+- Core 只定义类型安全事件名、domain、level、outcome、operation id、allowlisted attributes 和 non-throwing `DiagnosticLogging` 协议，不提供任意 key / value 日志入口。
+- Data 只实现本地 `diagnostic_events` ring buffer repository 和保留策略。诊断表是本地可裁剪诊断数据源，不是同步对象、学习内容、审计账本或请求日志。
+- App Shell 负责决定是否启用 console、store 或 composite logger。默认产品运行使用 disabled logger；开发期开关可通过 App 层环境变量或未来调试设置装配。
+- UI、AI、Data 和 Core package 不直接读取进程环境变量，也不自行决定产品期是否开启持久诊断。
+- 本地诊断写入失败必须静默降级或仅在开发期 console 记录；不得导致保存配置、验证配置、权限请求、导出、同步或 AI 请求失败。
+- `diagnostic_events` 只保存非敏感枚举和值，例如 operation id、endpoint purpose、endpoint count、duration、failure phase、error category 和 diagnostics mode。不得保存用户输入内容、API Key、完整 Keychain account、请求头、请求体、响应体、照片、音频、OCR 全文或转写全文。
+- 诊断数据默认不进入导出包、同步目录或对象存储。未来若提供诊断导出或发送，必须先显示摘要、允许取消，并在导出前执行敏感字段扫描。
+
 ## 6. 验证要求
 
 - 权限入口手动验证：允许、拒绝、受限、再次进入设置。
@@ -76,6 +86,7 @@ AI Provider API Key、外部服务 token、自定义敏感请求头、对象存�
 - 日志扫描：测试或调试日志中不得出现 API Key、完整日记、完整 OCR 文本或完整请求体。
 - 本地化验证：权限说明、隐私说明、请求预览和 unavailable 文案纳入界面语言检查。
 - 发布前验证：InfoPlist purpose strings、App Store 隐私标签、隐私政策和 App 内说明一致。
+- AI Provider 或权限相关任务必须扫描日志、诊断事件和测试输出，确认未出现 API Key、Bearer token、完整请求头、完整请求 / 响应体、Keychain account、照片内容、音频内容、OCR 全文、转写全文或生活记录全文。
 
 ## 7. AI 开发提示
 
@@ -91,3 +102,4 @@ AI Provider API Key、外部服务 token、自定义敏感请求头、对象存�
 
 - 2026-05-18：创建权限、本地隐私与诊断日志规范。原因：spec 深审确认 AI 隐私规范已有，但跨 Photos、Speech、OCR、录音、TTS、Keychain、日志和系统权限弹窗缺少统一执行源。影响范围：AI、Speech、Data、UI、Testing、Release 和发布隐私材料。是否需要 ADR：否，沿用本地优先和用户自带 Provider 决策。
 - 2026-05-20：补充 Keychain 与敏感配置边界。原因：AI Provider 配置存储已落地，需要把 ThisDeviceOnly、默认不同步、数据库恢复缺密钥、非敏感 validation event 和 SQLite / Keychain 非原子补偿规则沉淀为长期隐私规范。影响范围：AI Provider、Data、AI、UI、Testing 和后续导出 / 同步。是否需要 ADR：否，沿用 ADR-005。
+- 2026-05-20：补充诊断日志基础设施边界。原因：本地 `diagnostic_events` ring buffer、typed diagnostic events 和 App Shell logger 装配已落地，需要明确默认关闭、非敏感 allowlist、包边界、导出 / 同步排除和失败降级规则。影响范围：Core、Data、AI、UI、App Shell、Testing 和后续诊断导出。是否需要 ADR：否，沿用 ADR-005。

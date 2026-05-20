@@ -7,6 +7,7 @@ xcodegen generate
 xcodebuild -list -project LangoTrace.xcodeproj
 swift test --package-path Packages/LangoTraceCore
 swift test --package-path Packages/LangoTraceData
+swift test --package-path Packages/LangoTraceAI
 swift test --package-path Packages/LangoTraceUI
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build

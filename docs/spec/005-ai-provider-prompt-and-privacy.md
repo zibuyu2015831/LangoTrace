@@ -169,6 +169,14 @@ Provider 配置页已经从真实级 mock 表单进入本地配置保存阶段�
 - Provider preset 不能默认声明所有能力都可用。Chat、Embedding、TTS、图片理解、语音识别和自定义请求头需要分别表达支持状态。
 - 聚合服务或兼容层的路由提示应只在用户选择该类 Provider 或进入高级信息时出现，避免把所有 Provider 的技术风险说明长期展示在普通设置主路径。
 
+Provider 配置保存链路必须记录可诊断但非敏感的阶段状态：
+
+- UI 层记录保存点击、输入无效、服务调用开始、保存成功和保存失败。输入无效不得被归类为真实保存失败。
+- AI service 层记录 Keychain 写入、数据库写入、补偿清理和整体保存结果。事件之间用 operation id 关联，不记录 API Key、请求头、完整 Keychain account、明文 base URL query、用户生活内容或 Prompt 内容。
+- 保存失败应区分 `input_validation`、`keychain_write`、`database_write`、`credential_cleanup` 和 `unknown` 等阶段，并提供稳定错误分类给 UI 与诊断日志。
+- SQLite 写入失败后必须尝试清理本次新建 Keychain item；清理也失败时，业务错误仍以原始数据库写入失败为主，清理失败只进入非敏感诊断。
+- 诊断日志默认不开启产品期持久写入。开发期开启控制必须位于 App Shell 或等价装配层，Core、Data、AI 和 UI package 不直接读取环境变量。
+
 ## 5. 可演进部分
 
 - 是否提供官方托管 AI。
@@ -219,3 +227,4 @@ AI 在实现任何 AI 能力前应先确认：
 - 2026-05-19：补充 Provider 和 API Key 表单可用性规则。原因：API Key 输入需要明确字段名和可见性控制，中文主路径应避免“凭证”等偏工程术语。影响范围：AI Provider 设置 UI、本地化文案、后续安全存储表单。是否需要 ADR：否。
 - 2026-05-19：补充三端 Provider 设置页共享与大屏承载规则。原因：iPad / macOS 工作台详情需要保持与 iPhone 相同字段语义，同时避免把 iPhone 表单横向拉满大屏。影响范围：AI Provider 设置 UI、SettingsCapabilityDetailView、macOS Settings scene 边界。是否需要 ADR：否。
 - 2026-05-20：更新 Provider 配置页从 mock 到本地配置保存阶段的事实边界。原因：AI Provider profile、endpoint、credential metadata、Keychain 保存和本地 credential validation 已落地，真实外部 Provider 合成探测仍未接入。影响范围：AI Provider 设置、Keychain、Data repository、validation event、后续真实 AI 请求。是否需要 ADR：否，沿用 ADR-005。
+- 2026-05-20：补充 Provider 配置保存诊断规则。原因：保存链路已经跨 UI、AI service、Keychain、SQLite 和补偿清理，需要稳定 operation id、阶段分类、非敏感日志字段和默认关闭边界。影响范围：AI Provider 设置、诊断日志、Data repository、Testing 和 App Shell 装配。是否需要 ADR：否，沿用 ADR-005。
