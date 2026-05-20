@@ -4,8 +4,13 @@ import SwiftUI
 
 struct MacMainView: View {
     let languageSpace: LanguageSpacePreview
+    let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
+    let onSelectLanguageSpace: (String) -> Void
+    let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
+    let onDeleteLanguageSpace: (String) -> Void
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -146,14 +151,6 @@ struct MacMainView: View {
         )
     }
 
-    private var panelAnimation: Animation? {
-        reduceMotion ? nil : .easeInOut(duration: LangoTraceDesign.Motion.panelTransitionDuration)
-    }
-
-    private func panelTransition(edge: Edge) -> AnyTransition {
-        reduceMotion ? .identity : .move(edge: edge).combined(with: .opacity)
-    }
-
     private func selectSection(_ section: MacWorkspaceSection) {
         selectedSection = section
         route = .overview
@@ -206,35 +203,54 @@ struct MacMainView: View {
         .padding(24)
         .frame(width: LangoTraceDesign.Density.macSidebarWidth, alignment: .topLeading)
     }
+}
 
-    private var main: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                header
-                MacWorkspaceContentView(
-                    selectedSection: selectedSection,
-                    route: route,
-                    languageSpace: languageSpace,
-                    entries: entries,
-                    selectedEntryID: selectedEntryID,
-                    selectedEntry: selectedEntry,
-                    selectedRendering: selectedRendering,
-                    memoryItems: memoryItems,
-                    settingsCapabilities: settingsCapabilities,
-                    contentStore: contentStore,
-                    interfaceLanguagePreference: interfaceLanguagePreference,
-                    onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
-                    onShowEntry: showEntry,
-                    onRoute: { route = $0 }
-                )
+private extension MacMainView {
+    var main: some View {
+        Group {
+            if route.usesDedicatedMainScrolling {
+                mainContent
+                    .padding(26)
+            } else {
+                ScrollView {
+                    mainContent
+                        .padding(26)
+                }
             }
-            .padding(26)
         }
         .frame(minWidth: 500, maxWidth: .infinity)
         .layoutPriority(1)
     }
 
-    private var header: some View {
+    var mainContent: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            header
+            MacWorkspaceContentView(
+                selectedSection: selectedSection,
+                route: route,
+                languageSpace: languageSpace,
+                entries: entries,
+                selectedEntryID: selectedEntryID,
+                selectedEntry: selectedEntry,
+                selectedRendering: selectedRendering,
+                memoryItems: memoryItems,
+                languageSpaces: languageSpaces,
+                settingsCapabilities: settingsCapabilities,
+                contentStore: contentStore,
+                interfaceLanguagePreference: interfaceLanguagePreference,
+                onAddLanguageSpace: onAddLanguageSpace,
+                onSelectLanguageSpace: onSelectLanguageSpace,
+                onUpdateLanguageSpace: onUpdateLanguageSpace,
+                onDeleteLanguageSpace: onDeleteLanguageSpace,
+                onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
+                onShowEntry: showEntry,
+                onRoute: { route = $0 }
+            )
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 8) {
                 localizedText(selectedSection.titleKey)
@@ -246,7 +262,7 @@ struct MacMainView: View {
         }
     }
 
-    private var inspector: some View {
+    var inspector: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 localizedText("mac.inspector.title")
@@ -265,9 +281,15 @@ struct MacMainView: View {
         }
         .frame(width: LangoTraceDesign.Density.macInspectorWidth, alignment: .topLeading)
     }
-}
 
-private extension MacMainView {
+    var panelAnimation: Animation? {
+        reduceMotion ? nil : .easeInOut(duration: LangoTraceDesign.Motion.panelTransitionDuration)
+    }
+
+    func panelTransition(edge: Edge) -> AnyTransition {
+        reduceMotion ? .identity : .move(edge: edge).combined(with: .opacity)
+    }
+
     func closeEntryEditor() {
         isEntryEditorPresented = false
     }

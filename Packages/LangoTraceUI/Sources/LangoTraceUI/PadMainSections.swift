@@ -92,9 +92,14 @@ struct PadWorkspaceContentView: View {
     let selectedEntry: LearningEntry?
     let selectedRendering: LearningRendering?
     let memoryItems: [MemoryItem]
+    let languageSpaces: [LanguageSpace]
     let settingsCapabilities: [SettingsCapability]
     let contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
+    let onSelectLanguageSpace: (String) -> Void
+    let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
+    let onDeleteLanguageSpace: (String) -> Void
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
     let onRoute: (PadWorkspaceRoute) -> Void
 
@@ -115,8 +120,8 @@ struct PadWorkspaceContentView: View {
                 memoryPage
             case .importExport:
                 importExportPage
-            case .languageSpaceSummary:
-                languageSpaceSummaryPage
+            case .languageSpaceManagement:
+                languageSpaceManagementPage
             }
         }
         .frame(maxWidth: .infinity)
@@ -220,7 +225,13 @@ struct PadWorkspaceContentView: View {
                         localizedSummaryKey: settingsCapabilityDetailLocalizationKeys(for: capability.kind).summary,
                         status: capability.status,
                         systemImage: capability.kind.systemImage,
-                        action: { onRoute(.settings(capability.kind)) }
+                        action: {
+                            if capability.kind == .languageSpace {
+                                onRoute(.languageSpaceManagement)
+                            } else {
+                                onRoute(.settings(capability.kind))
+                            }
+                        }
                     )
                 }
             }
@@ -251,8 +262,15 @@ struct PadWorkspaceContentView: View {
         }
     }
 
-    private var languageSpaceSummaryPage: some View {
-        LanguageSpaceSummaryView(languageSpace: languageSpace)
-            .frame(maxWidth: 820, alignment: .leading)
+    private var languageSpaceManagementPage: some View {
+        LanguageSpaceManagementView(
+            spaces: languageSpaces,
+            currentSpaceID: languageSpace.id,
+            onAdd: onAddLanguageSpace,
+            onSelect: onSelectLanguageSpace,
+            onUpdate: onUpdateLanguageSpace,
+            onDelete: onDeleteLanguageSpace
+        )
+        .frame(maxWidth: 820, alignment: .leading)
     }
 }

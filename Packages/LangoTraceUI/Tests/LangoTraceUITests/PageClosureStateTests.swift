@@ -23,7 +23,7 @@ struct PageClosureStateTests {
 
     @Test("Pad footer actions route to visible pages")
     func padFooterActionsRouteToVisiblePages() {
-        #expect(PadFooterAction.languageSpace.route == .languageSpaceSummary)
+        #expect(PadFooterAction.languageSpace.route == .languageSpaceManagement)
         #expect(PadFooterAction.aiProvider.route == .settings(SettingsCapability.Kind.aiProvider))
         #expect(PadFooterAction.sync.route == .settings(SettingsCapability.Kind.sync))
         #expect(PadFooterAction.settings.route == .settingsList)
@@ -34,7 +34,7 @@ struct PageClosureStateTests {
         #expect(PadWorkspaceRoute.settingsList.navigationTitleKey == "tab.settings")
         #expect(PadWorkspaceRoute.memory.navigationTitleKey == "tab.memory")
         #expect(PadWorkspaceRoute.importExport.navigationTitleKey == "mac.section.importExport")
-        #expect(PadWorkspaceRoute.languageSpaceSummary.navigationTitleKey == "settings.languageSpace.title")
+        #expect(PadWorkspaceRoute.languageSpaceManagement.navigationTitleKey == "settings.languageSpace.title")
     }
 
     @Test("Pad learning panel switches content by workspace route")
@@ -56,7 +56,7 @@ struct PageClosureStateTests {
         #expect(learningPanelSource.contains("settingsContextContent"))
         #expect(learningPanelSource.contains("case .memory"))
         #expect(learningPanelSource.contains("case .importExport"))
-        #expect(learningPanelSource.contains("case .languageSpaceSummary"))
+        #expect(learningPanelSource.contains("case .languageSpaceManagement"))
         #expect(learningPanelSource.contains("entryLearningContent"))
         #expect(learningPanelSource.contains("RequestPreviewCard(entry: entry, rendering: selectedRendering)"))
     }
@@ -79,7 +79,7 @@ struct PageClosureStateTests {
     @Test("Mac footer actions route to visible workspace content")
     func macFooterActionsRouteToVisibleWorkspaceContent() {
         #expect(MacFooterAction.languageSpace.section == .settings)
-        #expect(MacFooterAction.languageSpace.route == .languageSpaceSummary)
+        #expect(MacFooterAction.languageSpace.route == .languageSpaceManagement)
         #expect(MacFooterAction.aiProvider.section == .settings)
         #expect(MacFooterAction.aiProvider.route == .settings(SettingsCapability.Kind.aiProvider))
         #expect(MacFooterAction.sync.section == .settings)

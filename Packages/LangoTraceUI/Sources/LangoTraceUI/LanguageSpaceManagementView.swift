@@ -111,6 +111,11 @@ struct LanguageSpaceManagementView: View {
                         } label: {
                             Label(localizedString("settings.languageSpace.management.edit"), systemImage: "pencil")
                         }
+                        Button(role: .destructive) {
+                            pendingDelete = space
+                        } label: {
+                            Label(localizedString("settings.languageSpace.management.delete"), systemImage: "trash")
+                        }
                     }
                     .swipeActions(edge: .trailing) {
                         Button {

@@ -126,12 +126,106 @@ struct LanguageSpaceManagementTests {
         #expect(source.contains("onUpdate: onUpdateLanguageSpace"))
     }
 
+    @Test("iPad routes language-space entry to full management")
+    func iPadRoutesLanguageSpaceEntryToFullManagement() throws {
+        let source = try sourceText(
+            named: "PadMainView.swift",
+            "PadMainSections.swift",
+            "PadMainModels.swift",
+            "LangoTraceRootView.swift"
+        )
+
+        #expect(source.contains("case languageSpaceManagement"))
+        #expect(source.contains("LanguageSpaceManagementView("))
+        #expect(source.contains("spaces: languageSpaces"))
+        #expect(source.contains("currentSpaceID: languageSpace.id"))
+        #expect(source.contains("onAdd: onAddLanguageSpace"))
+        #expect(source.contains("onSelect: onSelectLanguageSpace"))
+        #expect(source.contains("onUpdate: onUpdateLanguageSpace"))
+        #expect(source.contains("onDelete: onDeleteLanguageSpace"))
+        #expect(!source.contains("case .languageSpaceSummary"))
+    }
+
+    @Test("macOS workspace routes language-space entry to full management")
+    func macOSWorkspaceRoutesLanguageSpaceEntryToFullManagement() throws {
+        let source = try sourceText(
+            named: "MacMainView.swift",
+            "MacWorkspaceContentView.swift",
+            "MacMainModels.swift",
+            "LangoTraceRootView.swift"
+        )
+
+        #expect(source.contains("case languageSpaceManagement"))
+        #expect(source.contains("LanguageSpaceManagementView("))
+        #expect(source.contains("spaces: languageSpaces"))
+        #expect(source.contains("currentSpaceID: languageSpace.id"))
+        #expect(source.contains("onAdd: onAddLanguageSpace"))
+        #expect(source.contains("onSelect: onSelectLanguageSpace"))
+        #expect(source.contains("onUpdate: onUpdateLanguageSpace"))
+        #expect(source.contains("onDelete: onDeleteLanguageSpace"))
+        #expect(!source.contains("case .languageSpaceSummary"))
+    }
+
+    @Test("macOS workspace keeps management list outside the outer scroll view")
+    func macOSWorkspaceKeepsManagementListOutsideOuterScrollView() throws {
+        let source = try sourceText(named: "MacMainView.swift", "MacMainModels.swift")
+
+        #expect(source.contains("if route.usesDedicatedMainScrolling"))
+        #expect(source.contains("mainContent"))
+        #expect(source.contains("ScrollView"))
+        #expect(source.contains(".languageSpaceManagement"))
+        #expect(source.contains("var usesDedicatedMainScrolling: Bool"))
+    }
+
+    @Test("macOS management offers pointer-discoverable edit and delete actions")
+    func macOSManagementOffersPointerDiscoverableEditAndDeleteActions() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "LanguageSpaceManagementView.swift"), encoding: .utf8)
+
+        #expect(source.contains(".contextMenu"))
+        #expect(source.contains("pendingDelete = space"))
+        #expect(source.contains(
+            "Label(localizedString(\"settings.languageSpace.management.delete\"), systemImage: \"trash\")"
+        ))
+        #expect(source.contains("ToolbarItem(placement: .primaryAction)"))
+    }
+
+    @Test("macOS Settings scene includes language-space management with lifecycle actions")
+    func macOSSettingsSceneIncludesLanguageSpaceManagementWithLifecycleActions() throws {
+        let settingsSceneSource = try String(
+            contentsOf: sourceFileURL(named: "LangoTraceSettingsSceneView.swift"),
+            encoding: .utf8
+        )
+        let appSource = try String(contentsOf: appSourceFileURL(named: "LangoTraceApp.swift"), encoding: .utf8)
+        let source = settingsSceneSource + "\n" + appSource
+
+        #expect(source.contains("languageSpaces: [LanguageSpace]"))
+        #expect(source.contains("onAddLanguageSpace"))
+        #expect(source.contains("onSelectLanguageSpace"))
+        #expect(source.contains("onUpdateLanguageSpace"))
+        #expect(source.contains("onDeleteLanguageSpace"))
+        #expect(source.contains("LanguageSpaceManagementView("))
+        #expect(source.contains("languageSpaces: session.languageSpaces"))
+        #expect(source.contains("onAddLanguageSpace: session.addLanguageSpace"))
+        #expect(source.contains("onDeleteLanguageSpace: session.deleteLanguageSpace"))
+    }
+
     private func sourceFileURL(named fileName: String) -> URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .appendingPathComponent("Sources/LangoTraceUI")
+            .appendingPathComponent(fileName)
+    }
+
+    private func appSourceFileURL(named fileName: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("LangoTraceApp")
             .appendingPathComponent(fileName)
     }
 

@@ -11,9 +11,14 @@ struct MacWorkspaceContentView: View {
     let selectedEntry: LearningEntry?
     let selectedRendering: LearningRendering?
     let memoryItems: [MemoryItem]
+    let languageSpaces: [LanguageSpace]
     let settingsCapabilities: [SettingsCapability]
     let contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
+    let onSelectLanguageSpace: (String) -> Void
+    let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
+    let onDeleteLanguageSpace: (String) -> Void
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
     let onShowEntry: (LearningEntry) -> Void
     let onRoute: (MacWorkspaceRoute) -> Void
@@ -33,8 +38,8 @@ struct MacWorkspaceContentView: View {
             practice(entryID: entryID)
         case let .settings(kind):
             settingDetail(kind: kind)
-        case .languageSpaceSummary:
-            LanguageSpaceSummaryView(languageSpace: languageSpace)
+        case .languageSpaceManagement:
+            languageSpaceManagement
         case let .unavailable(kind):
             macUnavailableView(kind: kind)
         }
@@ -161,10 +166,27 @@ struct MacWorkspaceContentView: View {
                     localizedSummaryKey: settingsCapabilityDetailLocalizationKeys(for: capability.kind).summary,
                     status: capability.status,
                     systemImage: capability.kind.systemImage,
-                    action: { onRoute(.settings(capability.kind)) }
+                    action: {
+                        if capability.kind == .languageSpace {
+                            onRoute(.languageSpaceManagement)
+                        } else {
+                            onRoute(.settings(capability.kind))
+                        }
+                    }
                 )
             }
         }
+    }
+
+    private var languageSpaceManagement: some View {
+        LanguageSpaceManagementView(
+            spaces: languageSpaces,
+            currentSpaceID: languageSpace.id,
+            onAdd: onAddLanguageSpace,
+            onSelect: onSelectLanguageSpace,
+            onUpdate: onUpdateLanguageSpace,
+            onDelete: onDeleteLanguageSpace
+        )
     }
 
     @ViewBuilder

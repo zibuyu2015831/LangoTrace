@@ -59,7 +59,7 @@ struct PadLearningPanelView: View {
                 panelTextKey: "pad.learningPanel.importExport.panel.body",
                 systemImage: "tray.and.arrow.down"
             )
-        case .languageSpaceSummary:
+        case .languageSpaceManagement:
             routeContextContent(
                 titleKey: "pad.learningPanel.languageSpace.title",
                 subtitleKey: "pad.learningPanel.languageSpace.subtitle",

@@ -80,7 +80,7 @@ iPad 的顶层结构是工作台：顶部工具条、左侧时间线 / 筛选、
 | 设置详情 | 查看单项能力边界 | 设置列表 row、底部 AI / Sync | Implemented / Local Mock / Unavailable | `SettingsCapabilityDetailView.swift`、`SyncSettingsView.swift` | 无真实 provider key、sync、export 写入；AI Provider 详情共享 iOS 表单；同步详情使用共享 Local Mock UI，iPad 常规宽度默认进入设置焦点并收起右侧学习面板，窄宽度回退单列 | 与 iPhone 设置详情共享，改动需三端复查；设置焦点是 transient UI state，不进入语言空间、数据库或同步 manifest |
 | 记忆页 | 查看记忆摘要、记忆项和向量索引边界 | 左侧 `记忆` | Local Mock / Unavailable | `PadWorkspaceContentView.memoryPage`、`MemoryLayerSummaryView` | 向量索引为 unavailable；memory items 来自本地 mock | iPad 可展示较多结构，但不能压过学习主线 |
 | 导入导出页 | 说明导入导出尚未接入 | 左侧 `导入导出` | Unavailable | `PadWorkspaceContentView.importExportPage`、`UnavailableCapabilityView` | 不打开文件、不读写导出包 | 后续真实文件访问需权限和存储方案 |
-| 语言空间摘要页 | 查看当前语言空间摘要 | 底部语言空间入口 | Implemented | `PadWorkspaceContentView.languageSpaceSummaryPage`、`LanguageSpaceSummaryView.swift` | 不支持多空间 lifecycle | 后续多空间选择不应破坏当前 workspace context |
+| 语言空间管理页 | 查看所有语言空间，新增、切换、编辑和删除空间 | 底部语言空间入口、设置列表语言空间 row | Implemented | `PadWorkspaceContentView.languageSpaceManagementPage`、`LanguageSpaceManagementView.swift`、`LanguageSpaceEditorView.swift` | 复用 App 层语言空间 lifecycle actions；不改变 Data 层同目标语言多空间策略；删除沿用 repository fallback 语义 | 管理页应保持 iPad 主区阅读宽度和触控友好操作，不应退化为 iPhone sheet 的放大版 |
 | 右侧学习面板 | 随当前 route 展示上下文；记录 / 练习 route 展示当前句子、记忆提取、练习入口、空间设置、请求预览 | 右侧面板 | Local Mock | `PadMainView.learningPanel`、`PadLearningPanelView` | `RequestPreviewCard` 只出现在 entry 学习上下文；设置、记忆、导入导出和语言空间 route 显示对应低干扰上下文，不发送数据 | 右侧内容必须匹配主区 route，不能在设置页继续展示当前记录学习内容；右侧面板容器需保留外侧 gutter，内容块需保留额外 trailing inset，避免贴近屏幕边缘 |
 | 右侧学习面板空状态 | 未选中记录时说明学习面板等待内容 | 右侧学习面板无 selected entry | Implemented | `PadLearningPanelView`、`LocalizedTextPanel` | 只展示说明，不触发生成或练习 | 空状态应低干扰，不能要求用户先配置工程能力 |
 | 搜索 unavailable sheet | 表达搜索尚未接入 | 顶部搜索 | Unavailable | `PadSheet.unavailableSearch`、`UnavailableCapabilityView(.search)` | 不执行真实搜索或索引查询 | 后续搜索接入时需定义跨空间范围 |
@@ -105,14 +105,14 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 | Import / Export section | 说明导入导出尚未接入 | Sidebar `Import / Export` 或 bulk import action | Unavailable | `MacUnavailableContent("import-export")`、`UnavailableCapabilityView` | 不打开文件、不导入、不导出 | 后续真实能力需文件访问、附件、导出格式方案 |
 | Settings section | 查看能力设置列表 | Sidebar `Settings` 或 `Cmd+,` 通知后选中 settings | Implemented | `MacWorkspaceContentView.settingsContent` | 多数能力只读；界面语言可切换 | Settings section 和原生 Settings scene 的职责不能冲突 |
 | Settings detail route | 查看单项能力详情 | Settings row、Sidebar footer AI / Sync | Implemented / Local Mock / Unavailable | `SettingsCapabilityDetailView.swift`、`SyncSettingsView.swift`、`MacWorkspaceContentView.swift` | 无真实密钥、同步、导出配置写入；AI Provider 详情共享同一表单；同步详情共享 Local Mock UI，并在 macOS 工作台使用 embedded presentation 避免与外层 `ScrollView` 嵌套 | Keychain / Sync / StoreKit 接入时逐项复查；工作台 Settings 和原生 Settings scene 都只是设置入口，不承载学习主流程 |
-| Language Space summary route | 查看当前语言空间摘要 | Sidebar footer 语言空间 | Implemented | `LanguageSpaceSummaryView.swift` | 不支持多空间创建、切换、删除 | 多窗口 / 多语言空间设计前必须更新 |
+| Language Space management route | 查看所有语言空间，新增、切换、编辑和删除空间 | Sidebar footer 语言空间、Settings section 语言空间 row | Implemented | `MacWorkspaceContentView.swift`、`LanguageSpaceManagementView.swift`、`LanguageSpaceEditorView.swift` | 复用 App 层语言空间 lifecycle actions；右键菜单提供编辑和删除；删除沿用 repository fallback 语义 | 多窗口 / 多语言空间设计前必须复查当前空间切换对窗口上下文的影响 |
 | Search unavailable route | 表达搜索尚未接入 | Toolbar search、菜单 search | Unavailable | `MacUnavailableContent("search")`、`UnavailableCapabilityView` | 不查询 FTS、向量索引或外部服务 | 后续搜索需要 Command Palette / 全局搜索边界 |
 | Missing route fallback | 当前 route 指向缺失 entry、practice 或 setting 时给出可读反馈 | 深层 route 找不到对象 | Implemented | `MacWorkspaceContentView.entryDetail`、`practice`、`settingDetail`、`LocalizedCompactPanel` | 不自动恢复、创建或删除数据 | 后续真实持久化后需要明确 missing object 恢复策略 |
 | Inspector Overview | 根据当前 section 展示上下文说明 | 右侧 Inspector，route `.overview` | Implemented | `MacInspectorContent.overviewInspector` | 说明性上下文，不写入数据 | Inspector 文字不能替代主区可用性 |
 | Inspector Entry | 展示 entry metadata、请求预览、记忆候选、隐私边界 | route `.entryDetail` | Local Mock | `MacInspectorContent`、`RequestPreviewCard` | Request preview 仍是本地 / 显式请求边界展示 | macOS 可承载请求预览，但必须避免暗示自动发送 |
 | Inspector Practice | 展示练习状态和后续能力说明 | route `.practice` | Local Mock | `MacInspectorContent` | 不录音、不评分 | 真实练习接入后更新状态来源 |
 | Inspector Settings | 展示设置说明和下一步 | route `.settings` | Implemented / Unavailable | `MacInspectorContent` | 读取 setting capability 文案 | 避免三块式工程说明过重 |
-| macOS Settings scene | 系统级设置窗口，展示能力状态列表并进入能力详情 | App Settings / `Cmd+,` | Implemented / Local Mock | `LangoTraceApp.swift` Settings scene、`LangoTraceSettingsSceneView.swift` | 读取当前环境的 settings capabilities；有当前语言空间时可选择同步等能力并展示共享 `SettingsCapabilityDetailView`；无语言空间时只展示全局能力边界，不创建默认空间、不保存真实配置 | 原生 Settings 和工作台 Settings section 需要保持语义一致；无语言空间状态不能使用 `bootstrap` 能力冒充当前空间配置；后续真实偏好写入要单独设计 |
+| macOS Settings scene | 系统级设置窗口，展示能力状态列表、语言空间管理和能力详情 | App Settings / `Cmd+,` | Implemented / Local Mock | `LangoTraceApp.swift` Settings scene、`LangoTraceSettingsSceneView.swift` | 读取当前环境的 settings capabilities；语言空间 row 进入完整管理页并复用 App 层 lifecycle actions；有当前语言空间时可选择同步等能力并展示共享 `SettingsCapabilityDetailView`；无语言空间时仍可从语言空间管理页新增空间，不创建默认空间、不保存真实配置 | 原生 Settings 和工作台 Settings section 需要保持语义一致；无语言空间状态不能使用 `bootstrap` 能力冒充当前空间配置；后续真实偏好写入要单独设计 |
 | macOS Commands | 菜单触发 New Entry、Search、Toggle Sidebar、Toggle Inspector、Settings | 菜单栏 / 快捷键 | Implemented / Unavailable | `LangoTraceApp.swift`、`LangoTraceAppCommand.swift` | Search 打开 unavailable，不执行真实搜索 | 菜单项必须有可见结果，不能空 action |
 
 ## 6. 共享页面与组件清单
@@ -128,7 +128,8 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 | `SettingsCapabilityDetailView` | iPhone / iPad / macOS | Implemented / Local Mock / Unavailable | `SettingsCapabilityDetailView.swift` | AI、同步、隐私、导入导出、本地数据、语言空间、界面语言；支持 standalone scroll 和 embedded presentation，供 macOS 工作台避免嵌套滚动 |
 | `AIProviderSettingsView` | iPhone / iPad / macOS | Local Mock | `AIProviderSettingsView.swift`、`AIProviderSettingsModels.swift`、`AIProviderSettingsComponents.swift` | 文本模型、语音生成模型、向量模型 endpoint；语音和向量可共享文本模型 API Key 或使用独立 API Key；保存配置按钮和模拟测试按钮；iPad / macOS 由 `SettingsCapabilityDetailView` 负责最大内容宽度，不分叉表单组件 |
 | `SyncSettingsView` | iPhone / iPad / macOS | Local Mock | `SyncSettingsView.swift`、`SyncSettingsModels.swift`、`SyncS3DraftView.swift` | iCloud 推荐、S3-compatible 高级草稿、同步范围和密钥边界；照片和音频附件是唯一可切换草稿项并显式使用 switch；iPad / macOS 常规宽度使用自适应多栏，compact / 窄宽度回退单列；当前不连接 CloudKit、S3、R2、WebDAV、数据库或 Keychain |
-| `LanguageSpaceSummaryView` | iPhone / iPad / macOS | Implemented | `LanguageSpaceSummaryView.swift` | 当前语言空间摘要 |
+| `LanguageSpaceSummaryView` | iPhone | Implemented | `LanguageSpaceSummaryView.swift` | iPhone 顶部语言空间轻量摘要 sheet |
+| `LanguageSpaceManagementView` / `LanguageSpaceEditorView` | iPhone / iPad / macOS | Implemented | `LanguageSpaceManagementView.swift`、`LanguageSpaceEditorView.swift` | 语言空间列表、当前态、新增、切换、编辑和删除确认；三端共享管理语义，平台外壳负责入口和承载 |
 | `UnavailableCapabilityView` | iPhone / iPad / macOS | Unavailable | `UnavailableCapabilityView.swift` | 搜索、导入导出、向量索引和通用未接入能力 |
 | `RequestPreviewCard` | iPad / macOS | Local Mock / Explicit request boundary | `LearningContentComponents.swift`、`PremiumUILayoutRules.swift` | iPad 学习面板、macOS Inspector |
 | `MemoryLayerSummaryView` | iPad / macOS | Local Mock / Unavailable mix | `LearningContentComponents.swift` | 记忆摘要和向量索引边界 |
@@ -147,10 +148,10 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 - Root phase：`LangoTraceAppPhase.welcome`、`onboarding`、`main`。
 - iPhone route：`PhoneRoute.entryDetail`、`practice`、`settings`、`settingsList`。
 - iPhone sheet：`PhoneSheet.entryEditor`、`photoWritingPreview`、`unavailable`、`languageSpaceSummary`。
-- iPad route：`PadWorkspaceRoute.workspace`、`entryDetail`、`practice`、`settingsList`、`settings`、`memory`、`importExport`、`languageSpaceSummary`。
+- iPad route：`PadWorkspaceRoute.workspace`、`entryDetail`、`practice`、`settingsList`、`settings`、`memory`、`importExport`、`languageSpaceManagement`。
 - iPad sheet：`PadSheet.entryEditor`、`unavailableSearch`。
 - macOS section：`MacWorkspaceSection.today`、`entries`、`practice`、`memory`、`importExport`、`settings`。
-- macOS route：`MacWorkspaceRoute.overview`、`entryDetail`、`practice`、`settings`、`languageSpaceSummary`、`unavailable`。
+- macOS route：`MacWorkspaceRoute.overview`、`entryDetail`、`practice`、`settings`、`languageSpaceManagement`、`unavailable`。
 - macOS command：`newEntry`、`search`、`toggleSidebar`、`toggleInspector`、`showSettings`。
 - macOS scene：main `WindowGroup` 和原生 `Settings` scene。
 
@@ -199,3 +200,4 @@ rg "规划中|待配置|当前页面只展示入口边界|不播放真实 TTS|on
 - 2026-05-20：补充 iPad / macOS 同步设置 UI 适配事实。原因：同步设置从 iPhone 单列 Local Mock 扩展为三端共享内容、iPad 设置焦点、macOS 工作台 embedded presentation 和原生 Settings scene 可进入详情；无语言空间时 Settings scene 只展示全局边界。
 - 2026-05-20：补充宽屏 Onboarding 和 Mac 同步范围细节修正事实。原因：Onboarding 创建按钮在 iPad / Mac 宽屏下需要受主操作宽度约束，并在宽屏使用内容流内 CTA 避免顶部贴边和按钮贴底；同步范围附件项在 macOS 上需要显式 switch 表达，而不是默认 checkbox。
 - 2026-05-20：统一三端设置能力项的导入导出命名。原因：iPad / macOS 已有导入导出工作台入口，但共享设置能力仍显示为“导出”，导致 iPhone 设置页语义缺项。影响范围：SettingsCapability、三端设置列表、设置详情本地化和页面清单。是否需要 ADR：否，未改变真实导入导出能力或核心数据策略。
+- 2026-05-20：补充 iPad / macOS 语言空间管理入口事实。原因：iPhone 已落地的语言空间管理能力扩展到 iPad 工作台主区、macOS 工作台 Settings route 和原生 Settings scene，原 iPad / macOS summary-only 页面事实已过期。影响范围：iPad / macOS route、Settings scene、共享语言空间管理组件和 App Shell action 注入。是否需要 ADR：否，未改变语言空间核心模型或数据策略。

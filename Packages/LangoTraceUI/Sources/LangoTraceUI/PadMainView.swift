@@ -4,8 +4,13 @@ import SwiftUI
 
 struct PadMainView: View {
     let languageSpace: LanguageSpacePreview
+    let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
+    let onSelectLanguageSpace: (String) -> Void
+    let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
+    let onDeleteLanguageSpace: (String) -> Void
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -226,9 +231,14 @@ struct PadMainView: View {
             selectedEntry: selectedEntry,
             selectedRendering: selectedRendering,
             memoryItems: memoryItems,
+            languageSpaces: languageSpaces,
             settingsCapabilities: settingsCapabilities,
             contentStore: contentStore,
             interfaceLanguagePreference: interfaceLanguagePreference,
+            onAddLanguageSpace: onAddLanguageSpace,
+            onSelectLanguageSpace: onSelectLanguageSpace,
+            onUpdateLanguageSpace: onUpdateLanguageSpace,
+            onDeleteLanguageSpace: onDeleteLanguageSpace,
             onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
             onRoute: setRoute
         )

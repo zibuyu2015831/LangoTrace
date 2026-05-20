@@ -34,7 +34,12 @@ struct LangoTraceApp: App {
                 LangoTraceSettingsSceneView(
                     capabilities: settingsCapabilities,
                     languageSpace: session.currentLanguageSpace,
+                    languageSpaces: session.languageSpaces,
                     interfaceLanguagePreference: interfaceLanguagePreference,
+                    onAddLanguageSpace: session.addLanguageSpace,
+                    onSelectLanguageSpace: session.selectLanguageSpace,
+                    onUpdateLanguageSpace: session.updateLanguageSpace,
+                    onDeleteLanguageSpace: session.deleteLanguageSpace,
                     onInterfaceLanguagePreferenceChange: { preference in
                         interfaceLanguagePreferenceStore.preference = preference
                         interfaceLanguagePreference = preference

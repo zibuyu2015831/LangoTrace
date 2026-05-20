@@ -170,8 +170,13 @@ private struct PlatformMainView: View {
             if UIDevice.current.userInterfaceIdiom == .pad {
                 PadMainView(
                     languageSpace: languageSpace,
+                    languageSpaces: languageSpaces,
                     contentStore: contentStore,
                     interfaceLanguagePreference: interfaceLanguagePreference,
+                    onAddLanguageSpace: onAddLanguageSpace,
+                    onSelectLanguageSpace: onSelectLanguageSpace,
+                    onUpdateLanguageSpace: onUpdateLanguageSpace,
+                    onDeleteLanguageSpace: onDeleteLanguageSpace,
                     onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
                 )
             } else {
@@ -190,8 +195,13 @@ private struct PlatformMainView: View {
         #elseif os(macOS)
             MacMainView(
                 languageSpace: languageSpace,
+                languageSpaces: languageSpaces,
                 contentStore: contentStore,
                 interfaceLanguagePreference: interfaceLanguagePreference,
+                onAddLanguageSpace: onAddLanguageSpace,
+                onSelectLanguageSpace: onSelectLanguageSpace,
+                onUpdateLanguageSpace: onUpdateLanguageSpace,
+                onDeleteLanguageSpace: onDeleteLanguageSpace,
                 onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
             )
         #endif

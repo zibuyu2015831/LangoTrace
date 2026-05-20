@@ -5,19 +5,34 @@ import SwiftUI
 public struct LangoTraceSettingsSceneView: View {
     private let capabilities: [SettingsCapability]
     private let languageSpace: LanguageSpacePreview?
+    private let languageSpaces: [LanguageSpace]
     private let interfaceLanguagePreference: InterfaceLanguagePreference
+    private let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
+    private let onSelectLanguageSpace: (String) -> Void
+    private let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
+    private let onDeleteLanguageSpace: (String) -> Void
     private let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
-    @State private var selectedCapabilityKind: SettingsCapability.Kind?
+    @State private var selection: LangoTraceSettingsSceneSelection?
 
     public init(
         capabilities: [SettingsCapability],
         languageSpace: LanguageSpacePreview?,
+        languageSpaces: [LanguageSpace] = [],
         interfaceLanguagePreference: InterfaceLanguagePreference,
+        onAddLanguageSpace: @escaping (CreateLanguageSpaceInput) -> Void = { _ in },
+        onSelectLanguageSpace: @escaping (String) -> Void = { _ in },
+        onUpdateLanguageSpace: @escaping (String, UpdateLanguageSpaceInput) -> Void = { _, _ in },
+        onDeleteLanguageSpace: @escaping (String) -> Void = { _ in },
         onInterfaceLanguagePreferenceChange: @escaping (InterfaceLanguagePreference) -> Void
     ) {
         self.capabilities = capabilities
         self.languageSpace = languageSpace
+        self.languageSpaces = languageSpaces
         self.interfaceLanguagePreference = interfaceLanguagePreference
+        self.onAddLanguageSpace = onAddLanguageSpace
+        self.onSelectLanguageSpace = onSelectLanguageSpace
+        self.onUpdateLanguageSpace = onUpdateLanguageSpace
+        self.onDeleteLanguageSpace = onDeleteLanguageSpace
         self.onInterfaceLanguagePreferenceChange = onInterfaceLanguagePreferenceChange
     }
 
@@ -59,7 +74,13 @@ public struct LangoTraceSettingsSceneView: View {
                     localizedSummaryKey: settingsCapabilityDetailLocalizationKeys(for: capability.kind).summary,
                     status: capability.status,
                     systemImage: capability.kind.systemImage,
-                    action: { selectedCapabilityKind = capability.kind }
+                    action: {
+                        if capability.kind == .languageSpace {
+                            selection = .languageSpaces
+                        } else {
+                            selection = .capability(capability.kind)
+                        }
+                    }
                 )
             }
         }
@@ -67,7 +88,10 @@ public struct LangoTraceSettingsSceneView: View {
 
     @ViewBuilder
     private var settingsDetail: some View {
-        if let languageSpace, let selectedCapability {
+        if selection == .languageSpaces {
+            languageSpaceManagement
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        } else if let languageSpace, let selectedCapability {
             SettingsCapabilityDetailView(
                 languageSpace: languageSpace,
                 capability: selectedCapability,
@@ -85,11 +109,22 @@ public struct LangoTraceSettingsSceneView: View {
     }
 
     private var selectedCapability: SettingsCapability? {
-        guard let selectedCapabilityKind else {
+        guard case let .capability(selectedCapabilityKind) = selection else {
             return nil
         }
 
         return capabilities.first { $0.kind == selectedCapabilityKind }
+    }
+
+    private var languageSpaceManagement: some View {
+        LanguageSpaceManagementView(
+            spaces: languageSpaces,
+            currentSpaceID: languageSpace?.id,
+            onAdd: onAddLanguageSpace,
+            onSelect: onSelectLanguageSpace,
+            onUpdate: onUpdateLanguageSpace,
+            onDelete: onDeleteLanguageSpace
+        )
     }
 
     private var settingsOverview: some View {
@@ -121,4 +156,9 @@ public struct LangoTraceSettingsSceneView: View {
             .frame(maxWidth: 640, alignment: .leading)
         }
     }
+}
+
+private enum LangoTraceSettingsSceneSelection: Equatable {
+    case languageSpaces
+    case capability(SettingsCapability.Kind)
 }

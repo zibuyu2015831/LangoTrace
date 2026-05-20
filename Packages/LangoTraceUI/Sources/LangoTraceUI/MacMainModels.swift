@@ -65,8 +65,17 @@ enum MacWorkspaceRoute: Equatable {
     case entryDetail(String)
     case practice(String)
     case settings(SettingsCapability.Kind)
-    case languageSpaceSummary
+    case languageSpaceManagement
     case unavailable(String)
+
+    var usesDedicatedMainScrolling: Bool {
+        switch self {
+        case .languageSpaceManagement:
+            true
+        case .overview, .entryDetail, .practice, .settings, .unavailable:
+            false
+        }
+    }
 }
 
 enum MacFooterAction {
@@ -82,7 +91,7 @@ enum MacFooterAction {
     var route: MacWorkspaceRoute {
         switch self {
         case .languageSpace:
-            .languageSpaceSummary
+            .languageSpaceManagement
         case .aiProvider:
             .settings(.aiProvider)
         case .sync:
