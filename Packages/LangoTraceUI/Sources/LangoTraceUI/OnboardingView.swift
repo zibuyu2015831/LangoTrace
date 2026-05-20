@@ -8,6 +8,7 @@ struct OnboardingView: View {
     private let onboardingContentMaxWidth: CGFloat = 680
     private let onboardingBottomActionMaxWidth: CGFloat = 520
     private let levelSelectorApproxVisibleRows: CGFloat = 3
+    private let padLevelSelectorApproxVisibleRows: CGFloat = 4
     @ScaledMetric(relativeTo: .body) private var compactLevelRowMinHeight: CGFloat = 58
     @ScaledMetric(relativeTo: .body) private var compactLevelRowSpacing: CGFloat = 8
 
@@ -15,7 +16,11 @@ struct OnboardingView: View {
         GeometryReader { proxy in
             let size = proxy.size
 
-            if usesInlineWideOnboardingLayout(in: size) {
+            if usesPadLandscapeOnboardingLayout(in: size) {
+                padLandscapeOnboardingContent(size: size)
+            } else if usesPadPortraitOnboardingLayout(in: size) {
+                padPortraitOnboardingContent(size: size)
+            } else if usesInlineWideOnboardingLayout(in: size) {
                 wideOnboardingContent(size: size)
             } else {
                 compactOnboardingContentWithBottomAction
@@ -23,6 +28,22 @@ struct OnboardingView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .langoPageBackground()
+    }
+
+    private func usesPadLandscapeOnboardingLayout(in size: CGSize) -> Bool {
+        #if os(iOS)
+            size.width >= 980 && size.height >= 680 && size.width > size.height
+        #else
+            false
+        #endif
+    }
+
+    private func usesPadPortraitOnboardingLayout(in size: CGSize) -> Bool {
+        #if os(iOS)
+            size.width >= 760 && size.height >= 900 && size.height > size.width
+        #else
+            false
+        #endif
     }
 
     private func usesInlineWideOnboardingLayout(in size: CGSize) -> Bool {
@@ -65,6 +86,60 @@ private extension OnboardingView {
         .scrollIndicators(.hidden)
     }
 
+    private func padPortraitOnboardingContent(size: CGSize) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 34) {
+                header
+                padPortraitValueStrip
+                languageForm(levelVisibleRows: padLevelSelectorApproxVisibleRows)
+                inlineCreateButton
+            }
+            .padding(.horizontal, 28)
+            .padding(.top, padPortraitTopPadding(in: size))
+            .padding(.bottom, 58)
+            .frame(maxWidth: 700, minHeight: size.height, alignment: .topLeading)
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private func padLandscapeOnboardingContent(size: CGSize) -> some View {
+        ScrollView {
+            HStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 42) {
+                    header
+                    padOnboardingValueList
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: 430, maxHeight: .infinity, alignment: .topLeading)
+                .padding(.leading, padLandscapeHorizontalPadding(in: size))
+                .padding(.trailing, 52)
+                .padding(.top, padLandscapeTopPadding(in: size))
+                .padding(.bottom, 76)
+                .frame(width: size.width * 0.4, alignment: .topLeading)
+
+                Rectangle()
+                    .fill(LangoTraceDesign.ColorToken.hairline.opacity(0.45))
+                    .frame(width: 1)
+                    .padding(.vertical, 48)
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .center, spacing: 26) {
+                    languageForm(levelVisibleRows: padLevelSelectorApproxVisibleRows)
+                        .frame(maxWidth: 700)
+                    inlineCreateButton
+                }
+                .padding(.horizontal, 48)
+                .padding(.top, padLandscapeTopPadding(in: size))
+                .padding(.bottom, 54)
+                .frame(width: size.width * 0.6, alignment: .top)
+                .frame(minHeight: size.height, alignment: .top)
+            }
+            .frame(minHeight: size.height, alignment: .top)
+        }
+        .scrollIndicators(.hidden)
+    }
+
     private var onboardingFormContent: some View {
         VStack(alignment: .leading, spacing: 26) {
             header
@@ -80,6 +155,28 @@ private extension OnboardingView {
         } else {
             44
         }
+    }
+
+    private func padPortraitTopPadding(in size: CGSize) -> CGFloat {
+        if size.height >= 1180 {
+            118
+        } else if size.height >= 1020 {
+            88
+        } else {
+            72
+        }
+    }
+
+    private func padLandscapeTopPadding(in size: CGSize) -> CGFloat {
+        if size.height >= 900 {
+            104
+        } else {
+            72
+        }
+    }
+
+    private func padLandscapeHorizontalPadding(in size: CGSize) -> CGFloat {
+        size.width >= 1260 ? 96 : 80
     }
 
     private var header: some View {
@@ -102,6 +199,10 @@ private extension OnboardingView {
     }
 
     private var languageForm: some View {
+        languageForm(levelVisibleRows: levelSelectorApproxVisibleRows)
+    }
+
+    private func languageForm(levelVisibleRows: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             PickerRow(
                 titleKey: "onboarding.nativeLanguage",
@@ -154,14 +255,73 @@ private extension OnboardingView {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                compactLevelSelector
+                compactLevelSelector(visibleRows: levelVisibleRows)
             }
         }
         .langoPanel(padding: 18)
         .langoSoftShadow()
     }
 
+    private var padOnboardingValueItems: [PadOnboardingValueItem] {
+        [
+            PadOnboardingValueItem(
+                id: "record",
+                systemImage: "camera",
+                titleKey: "onboarding.value.record.title",
+                subtitleKey: "onboarding.value.record.subtitle"
+            ),
+            PadOnboardingValueItem(
+                id: "practice",
+                systemImage: "book",
+                titleKey: "onboarding.value.practice.title",
+                subtitleKey: "onboarding.value.practice.subtitle"
+            ),
+            PadOnboardingValueItem(
+                id: "trace",
+                systemImage: "leaf",
+                titleKey: "onboarding.value.trace.title",
+                subtitleKey: "onboarding.value.trace.subtitle"
+            ),
+        ]
+    }
+
+    private var padPortraitValueStrip: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: 26) {
+                ForEach(padOnboardingValueItems) { item in
+                    PadOnboardingValueStripItem(item: item)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 18) {
+                ForEach(padOnboardingValueItems) { item in
+                    PadOnboardingValueListItem(item: item)
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private var padOnboardingValueList: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(padOnboardingValueItems.enumerated()), id: \.element.id) { index, item in
+                PadOnboardingValueListItem(item: item)
+
+                if index < padOnboardingValueItems.count - 1 {
+                    Divider()
+                        .padding(.vertical, 24)
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
     private var compactLevelSelector: some View {
+        compactLevelSelector(visibleRows: levelSelectorApproxVisibleRows)
+    }
+
+    private func compactLevelSelector(visibleRows: CGFloat) -> some View {
         ScrollView(.vertical) {
             LazyVStack(spacing: compactLevelRowSpacing) {
                 ForEach(LanguageLevel.allCases, id: \.self) { level in
@@ -169,7 +329,7 @@ private extension OnboardingView {
                 }
             }
         }
-        .frame(maxHeight: compactLevelSelectorMaxHeight)
+        .frame(maxHeight: levelSelectorMaxHeight(visibleRows: visibleRows))
         .scrollIndicators(.visible)
         .accessibilityLabel(localizedText("onboarding.level.title"))
         .accessibilityHint(
@@ -178,8 +338,12 @@ private extension OnboardingView {
     }
 
     private var compactLevelSelectorMaxHeight: CGFloat {
-        compactLevelRowMinHeight * levelSelectorApproxVisibleRows +
-            compactLevelRowSpacing * (levelSelectorApproxVisibleRows - 1)
+        levelSelectorMaxHeight(visibleRows: levelSelectorApproxVisibleRows)
+    }
+
+    private func levelSelectorMaxHeight(visibleRows: CGFloat) -> CGFloat {
+        compactLevelRowMinHeight * visibleRows +
+            compactLevelRowSpacing * (visibleRows - 1)
     }
 
     private func compactLevelRow(for level: LanguageLevel) -> some View {
@@ -326,6 +490,68 @@ private extension OnboardingView {
         "\(draft.resolvedNativeLanguage.displayTitle(for: .selectedValue)) -> " +
             "\(draft.resolvedTargetLanguage.displayTitle(for: .selectedValue)) · \(draft.level.rawValue)"
     }
+}
+
+private struct PadOnboardingValueItem: Identifiable {
+    let id: String
+    let systemImage: String
+    let titleKey: String
+    let subtitleKey: String
+}
+
+private struct PadOnboardingValueStripItem: View {
+    let item: PadOnboardingValueItem
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            valueIcon(systemImage: item.systemImage)
+
+            VStack(alignment: .leading, spacing: 4) {
+                localizedText(item.titleKey)
+                    .font(.headline)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                localizedText(item.subtitleKey)
+                    .font(.footnote)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct PadOnboardingValueListItem: View {
+    let item: PadOnboardingValueItem
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 18) {
+            valueIcon(systemImage: item.systemImage)
+                .frame(width: 58, height: 58)
+
+            VStack(alignment: .leading, spacing: 6) {
+                localizedText(item.titleKey)
+                    .font(.headline)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                localizedText(item.subtitleKey)
+                    .font(.subheadline)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private func valueIcon(systemImage: String) -> some View {
+    Image(systemName: systemImage)
+        .font(.headline)
+        .foregroundStyle(LangoTraceDesign.ColorToken.teal)
+        .frame(width: 44, height: 44)
+        .background(LangoTraceDesign.ColorToken.paleTeal)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityHidden(true)
 }
 
 private struct LanguageMenu: View {
