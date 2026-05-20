@@ -18,18 +18,23 @@ struct OnboardingLevelSelectorTests {
     @Test("Compact level selector uses a scrollable localized list")
     func compactLevelSelectorUsesScrollableLocalizedList() throws {
         let source = try String(contentsOf: sourceFileURL(named: "OnboardingView.swift"), encoding: .utf8)
+        let levelSelectorSource = try String(
+            contentsOf: sourceFileURL(named: "OnboardingCompactLevelSelector.swift"),
+            encoding: .utf8
+        )
+        let combinedSource = source + levelSelectorSource
 
         #expect(source.contains("compactLevelSelector"))
-        #expect(source.contains("ScrollView"))
-        #expect(source.contains("LanguageLevel.allCases"))
-        #expect(source.contains("onboarding.level.a1.title"))
-        #expect(source.contains("onboarding.level.c2.description"))
-        #expect(!source.contains("onboarding.level.question"))
+        #expect(combinedSource.contains("ScrollView"))
+        #expect(combinedSource.contains("LanguageLevel.allCases"))
+        #expect(combinedSource.contains("onboarding.level.a1.title"))
+        #expect(combinedSource.contains("onboarding.level.c2.description"))
+        #expect(!combinedSource.contains("onboarding.level.question"))
         #expect(source.contains("levelSelectorApproxVisibleRows"))
-        #expect(source.contains("@ScaledMetric"))
-        #expect(source.contains("Button"))
-        #expect(source.contains("accessibilityValue"))
-        #expect(source.contains("accessibilityAddTraits"))
+        #expect(combinedSource.contains("@ScaledMetric"))
+        #expect(combinedSource.contains("Button"))
+        #expect(combinedSource.contains("accessibilityValue"))
+        #expect(combinedSource.contains("accessibilityAddTraits"))
     }
 
     @Test("Onboarding level copy covers all declared interface languages")
@@ -144,16 +149,28 @@ struct OnboardingLevelSelectorTests {
     @Test("iPad onboarding layouts use shared value summary and four visible level rows")
     func padOnboardingLayoutsUseSharedValueSummaryAndFourVisibleLevelRows() throws {
         let source = try String(contentsOf: sourceFileURL(named: "OnboardingView.swift"), encoding: .utf8)
+        let valueSummarySource = try String(
+            contentsOf: sourceFileURL(named: "OnboardingValueSummary.swift"),
+            encoding: .utf8
+        )
+        let levelSelectorSource = try String(
+            contentsOf: sourceFileURL(named: "OnboardingCompactLevelSelector.swift"),
+            encoding: .utf8
+        )
+        let combinedSource = source + valueSummarySource + levelSelectorSource
 
         #expect(source.contains("private let padLevelSelectorApproxVisibleRows: CGFloat = 4"))
         #expect(source.contains("languageForm(levelVisibleRows: padLevelSelectorApproxVisibleRows)"))
         #expect(source.contains("compactLevelSelector(visibleRows: levelVisibleRows)"))
-        #expect(source.contains("levelSelectorMaxHeight(visibleRows: visibleRows)"))
+        #expect(combinedSource.contains("levelSelectorMaxHeight"))
+        #expect(combinedSource.contains("rowMinHeight * visibleRows"))
         #expect(source.contains("padOnboardingValueItems"))
         #expect(source.contains("padPortraitValueStrip"))
         #expect(source.contains("padOnboardingValueList"))
-        #expect(source.contains("onboarding.value.trace.title"))
-        #expect(!source.contains("onboarding.value.growth"))
+        #expect(combinedSource.contains("onboarding.value.trace.title"))
+        #expect(combinedSource.contains("PadOnboardingValueStripItem"))
+        #expect(combinedSource.contains("PadOnboardingValueListItem"))
+        #expect(!combinedSource.contains("onboarding.value.growth"))
     }
 
     @Test("iPad onboarding value copy covers all declared interface languages")

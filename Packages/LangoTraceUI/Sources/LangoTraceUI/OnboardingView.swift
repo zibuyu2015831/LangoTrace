@@ -9,8 +9,6 @@ struct OnboardingView: View {
     private let onboardingBottomActionMaxWidth: CGFloat = 520
     private let levelSelectorApproxVisibleRows: CGFloat = 3
     private let padLevelSelectorApproxVisibleRows: CGFloat = 4
-    @ScaledMetric(relativeTo: .body) private var compactLevelRowMinHeight: CGFloat = 58
-    @ScaledMetric(relativeTo: .body) private var compactLevelRowSpacing: CGFloat = 8
 
     var body: some View {
         GeometryReader { proxy in
@@ -106,38 +104,48 @@ private extension OnboardingView {
     private func padLandscapeOnboardingContent(size: CGSize) -> some View {
         ScrollView {
             HStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 42) {
-                    header
-                    padOnboardingValueList
-                    Spacer(minLength: 0)
-                }
-                .frame(maxWidth: 430, maxHeight: .infinity, alignment: .topLeading)
-                .padding(.leading, padLandscapeHorizontalPadding(in: size))
-                .padding(.trailing, 52)
-                .padding(.top, padLandscapeTopPadding(in: size))
-                .padding(.bottom, 76)
-                .frame(width: size.width * 0.4, alignment: .topLeading)
-
-                Rectangle()
-                    .fill(LangoTraceDesign.ColorToken.hairline.opacity(0.45))
-                    .frame(width: 1)
-                    .padding(.vertical, 48)
-                    .accessibilityHidden(true)
-
-                VStack(alignment: .center, spacing: 26) {
-                    languageForm(levelVisibleRows: padLevelSelectorApproxVisibleRows)
-                        .frame(maxWidth: 700)
-                    inlineCreateButton
-                }
-                .padding(.horizontal, 48)
-                .padding(.top, padLandscapeTopPadding(in: size))
-                .padding(.bottom, 54)
-                .frame(width: size.width * 0.6, alignment: .top)
-                .frame(minHeight: size.height, alignment: .top)
+                padLandscapeLeftPane(size: size)
+                padLandscapeDivider
+                padLandscapeRightPane(size: size)
             }
             .frame(minHeight: size.height, alignment: .top)
         }
         .scrollIndicators(.hidden)
+    }
+
+    private func padLandscapeLeftPane(size: CGSize) -> some View {
+        VStack(alignment: .leading, spacing: 42) {
+            header
+            padOnboardingValueList
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: 430, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.leading, padLandscapeHorizontalPadding(in: size))
+        .padding(.trailing, 52)
+        .padding(.top, padLandscapeTopPadding(in: size))
+        .padding(.bottom, 76)
+        .frame(width: size.width * 0.4, alignment: .topLeading)
+    }
+
+    private var padLandscapeDivider: some View {
+        Rectangle()
+            .fill(LangoTraceDesign.ColorToken.hairline.opacity(0.45))
+            .frame(width: 1)
+            .padding(.vertical, 48)
+            .accessibilityHidden(true)
+    }
+
+    private func padLandscapeRightPane(size: CGSize) -> some View {
+        VStack(alignment: .center, spacing: 26) {
+            languageForm(levelVisibleRows: padLevelSelectorApproxVisibleRows)
+                .frame(maxWidth: 700)
+            inlineCreateButton
+        }
+        .padding(.horizontal, 48)
+        .padding(.top, padLandscapeTopPadding(in: size))
+        .padding(.bottom, 54)
+        .frame(width: size.width * 0.6, alignment: .top)
+        .frame(minHeight: size.height, alignment: .top)
     }
 
     private var onboardingFormContent: some View {
@@ -204,83 +212,85 @@ private extension OnboardingView {
 
     private func languageForm(levelVisibleRows: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            PickerRow(
-                titleKey: "onboarding.nativeLanguage",
-                systemImage: "person.text.rectangle"
-            ) {
-                LanguageMenu(
-                    titleKey: "onboarding.nativeLanguage",
-                    selectedLanguage: draft.resolvedNativeLanguage,
-                    languages: LearningLanguage.supportedNativeLanguages,
-                    onSelect: { language in
-                        draft.nativeLanguageCode = language.code
-                        draft = draft.normalized()
-                    }
-                )
-            }
-
+            nativeLanguagePickerRow
             Divider()
-
-            PickerRow(
-                titleKey: "onboarding.targetLanguage",
-                systemImage: "text.bubble"
-            ) {
-                LanguageMenu(
-                    titleKey: "onboarding.targetLanguage",
-                    selectedLanguage: draft.resolvedTargetLanguage,
-                    languages: draft.availableTargetLanguages,
-                    onSelect: { language in
-                        draft.targetLanguageCode = language.code
-                        draft = draft.normalized()
-                    }
-                )
-            }
-
+            targetLanguagePickerRow
             Divider()
-
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12) {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .font(.headline)
-                        .foregroundStyle(LangoTraceDesign.ColorToken.teal)
-                        .frame(width: 30, height: 30)
-                        .background(LangoTraceDesign.ColorToken.paleTeal)
-                        .clipShape(Circle())
-                    VStack(alignment: .leading, spacing: 2) {
-                        localizedText("onboarding.level.title")
-                            .font(.headline)
-                        localizedText("onboarding.level.summary")
-                            .font(.footnote)
-                            .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-                compactLevelSelector(visibleRows: levelVisibleRows)
-            }
+            currentLevelSection(levelVisibleRows: levelVisibleRows)
         }
         .langoPanel(padding: 18)
         .langoSoftShadow()
     }
 
+    private var nativeLanguagePickerRow: some View {
+        PickerRow(
+            titleKey: "onboarding.nativeLanguage",
+            systemImage: "person.text.rectangle"
+        ) {
+            LanguageMenu(
+                titleKey: "onboarding.nativeLanguage",
+                selectedLanguage: draft.resolvedNativeLanguage,
+                languages: LearningLanguage.supportedNativeLanguages,
+                onSelect: { language in
+                    draft.nativeLanguageCode = language.code
+                    draft = draft.normalized()
+                }
+            )
+        }
+    }
+
+    private var targetLanguagePickerRow: some View {
+        PickerRow(
+            titleKey: "onboarding.targetLanguage",
+            systemImage: "text.bubble"
+        ) {
+            LanguageMenu(
+                titleKey: "onboarding.targetLanguage",
+                selectedLanguage: draft.resolvedTargetLanguage,
+                languages: draft.availableTargetLanguages,
+                onSelect: { language in
+                    draft.targetLanguageCode = language.code
+                    draft = draft.normalized()
+                }
+            )
+        }
+    }
+
+    private func currentLevelSection(levelVisibleRows: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .font(.headline)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.teal)
+                    .frame(width: 30, height: 30)
+                    .background(LangoTraceDesign.ColorToken.paleTeal)
+                    .clipShape(Circle())
+                VStack(alignment: .leading, spacing: 2) {
+                    localizedText("onboarding.level.title")
+                        .font(.headline)
+                    localizedText("onboarding.level.summary")
+                        .font(.footnote)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            compactLevelSelector(visibleRows: levelVisibleRows)
+        }
+    }
+
     private var padOnboardingValueItems: [PadOnboardingValueItem] {
         [
             PadOnboardingValueItem(
-                id: "record",
-                systemImage: "camera",
-                titleKey: "onboarding.value.record.title",
-                subtitleKey: "onboarding.value.record.subtitle"
+                id: "record", systemImage: "camera",
+                titleKey: "onboarding.value.record.title", subtitleKey: "onboarding.value.record.subtitle"
             ),
             PadOnboardingValueItem(
-                id: "practice",
-                systemImage: "book",
-                titleKey: "onboarding.value.practice.title",
-                subtitleKey: "onboarding.value.practice.subtitle"
+                id: "practice", systemImage: "book",
+                titleKey: "onboarding.value.practice.title", subtitleKey: "onboarding.value.practice.subtitle"
             ),
             PadOnboardingValueItem(
-                id: "trace",
-                systemImage: "leaf",
-                titleKey: "onboarding.value.trace.title",
-                subtitleKey: "onboarding.value.trace.subtitle"
+                id: "trace", systemImage: "leaf",
+                titleKey: "onboarding.value.trace.title", subtitleKey: "onboarding.value.trace.subtitle"
             ),
         ]
     }
@@ -317,116 +327,12 @@ private extension OnboardingView {
         .accessibilityElement(children: .contain)
     }
 
-    private var compactLevelSelector: some View {
-        compactLevelSelector(visibleRows: levelSelectorApproxVisibleRows)
-    }
-
     private func compactLevelSelector(visibleRows: CGFloat) -> some View {
-        ScrollView(.vertical) {
-            LazyVStack(spacing: compactLevelRowSpacing) {
-                ForEach(LanguageLevel.allCases, id: \.self) { level in
-                    compactLevelRow(for: level)
-                }
-            }
-        }
-        .frame(maxHeight: levelSelectorMaxHeight(visibleRows: visibleRows))
-        .scrollIndicators(.visible)
-        .accessibilityLabel(localizedText("onboarding.level.title"))
-        .accessibilityHint(
-            localizedString("onboarding.level.accessibilityHint", draft.resolvedTargetLanguage.nativeName)
+        OnboardingCompactLevelSelector(
+            selectedLevel: $draft.level,
+            targetLanguageNativeName: draft.resolvedTargetLanguage.nativeName,
+            visibleRows: visibleRows
         )
-    }
-
-    private var compactLevelSelectorMaxHeight: CGFloat {
-        levelSelectorMaxHeight(visibleRows: levelSelectorApproxVisibleRows)
-    }
-
-    private func levelSelectorMaxHeight(visibleRows: CGFloat) -> CGFloat {
-        compactLevelRowMinHeight * visibleRows +
-            compactLevelRowSpacing * (visibleRows - 1)
-    }
-
-    private func compactLevelRow(for level: LanguageLevel) -> some View {
-        let selected = draft.level == level
-
-        return Button {
-            draft.level = level
-        } label: {
-            HStack(spacing: 10) {
-                Text(level.rawValue)
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.teal)
-                    .frame(width: 38, alignment: .leading)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    localizedText(onboardingLevelTitleKey(for: level))
-                        .font(.callout.weight(.semibold))
-                        .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-                    localizedText(onboardingLevelDescriptionKey(for: level))
-                        .font(.caption)
-                        .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: 8)
-
-                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(selected ? LangoTraceDesign.ColorToken.teal : LangoTraceDesign.ColorToken.hairline)
-            }
-            .frame(minHeight: max(compactLevelRowMinHeight, LangoTraceDesign.Density.minimumTouchTarget))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(selected ? LangoTraceDesign.ColorToken.paleTeal : LangoTraceDesign.ColorToken.elevatedPaper)
-            .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .stroke(
-                        selected
-                            ? LangoTraceDesign.ColorToken.teal.opacity(0.55)
-                            : LangoTraceDesign.ColorToken.hairline,
-                        lineWidth: selected ? 1.2 : 1
-                    )
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text("\(level.rawValue), \(localizedString(onboardingLevelTitleKey(for: level)))"))
-        .accessibilityValue(localizedText(onboardingLevelDescriptionKey(for: level)))
-        .accessibilityAddTraits(selected ? .isSelected : [])
-    }
-
-    private func onboardingLevelTitleKey(for level: LanguageLevel) -> String {
-        switch level {
-        case .a1:
-            "onboarding.level.a1.title"
-        case .a2:
-            "onboarding.level.a2.title"
-        case .b1:
-            "onboarding.level.b1.title"
-        case .b2:
-            "onboarding.level.b2.title"
-        case .c1:
-            "onboarding.level.c1.title"
-        case .c2:
-            "onboarding.level.c2.title"
-        }
-    }
-
-    private func onboardingLevelDescriptionKey(for level: LanguageLevel) -> String {
-        switch level {
-        case .a1:
-            "onboarding.level.a1.description"
-        case .a2:
-            "onboarding.level.a2.description"
-        case .b1:
-            "onboarding.level.b1.description"
-        case .b2:
-            "onboarding.level.b2.description"
-        case .c1:
-            "onboarding.level.c1.description"
-        case .c2:
-            "onboarding.level.c2.description"
-        }
     }
 
     private var createButtonContent: some View {
@@ -489,129 +395,5 @@ private extension OnboardingView {
     private var createSummary: String {
         "\(draft.resolvedNativeLanguage.displayTitle(for: .selectedValue)) -> " +
             "\(draft.resolvedTargetLanguage.displayTitle(for: .selectedValue)) · \(draft.level.rawValue)"
-    }
-}
-
-private struct PadOnboardingValueItem: Identifiable {
-    let id: String
-    let systemImage: String
-    let titleKey: String
-    let subtitleKey: String
-}
-
-private struct PadOnboardingValueStripItem: View {
-    let item: PadOnboardingValueItem
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            valueIcon(systemImage: item.systemImage)
-
-            VStack(alignment: .leading, spacing: 4) {
-                localizedText(item.titleKey)
-                    .font(.headline)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-                localizedText(item.subtitleKey)
-                    .font(.footnote)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
-}
-
-private struct PadOnboardingValueListItem: View {
-    let item: PadOnboardingValueItem
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 18) {
-            valueIcon(systemImage: item.systemImage)
-                .frame(width: 58, height: 58)
-
-            VStack(alignment: .leading, spacing: 6) {
-                localizedText(item.titleKey)
-                    .font(.headline)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-                localizedText(item.subtitleKey)
-                    .font(.subheadline)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
-}
-
-private func valueIcon(systemImage: String) -> some View {
-    Image(systemName: systemImage)
-        .font(.headline)
-        .foregroundStyle(LangoTraceDesign.ColorToken.teal)
-        .frame(width: 44, height: 44)
-        .background(LangoTraceDesign.ColorToken.paleTeal)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .accessibilityHidden(true)
-}
-
-private struct LanguageMenu: View {
-    let titleKey: String
-    let selectedLanguage: LearningLanguage
-    let languages: [LearningLanguage]
-    let onSelect: (LearningLanguage) -> Void
-
-    var body: some View {
-        Menu {
-            ForEach(languages) { language in
-                Button {
-                    onSelect(language)
-                } label: {
-                    Text(language.displayTitle(for: .onboardingPicker))
-                }
-            }
-        } label: {
-            HStack(spacing: 8) {
-                Text(selectedLanguage.displayTitle(for: .selectedValue))
-                    .lineLimit(1)
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.caption.weight(.semibold))
-            }
-            .font(.headline)
-            .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-            .padding(.horizontal, 14)
-            .frame(minHeight: 36)
-            .background(LangoTraceDesign.ColorToken.hairline.opacity(0.35))
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        }
-        .menuStyle(.button)
-        .accessibilityLabel(localizedText(titleKey))
-        .accessibilityValue(selectedLanguage.displayTitle(for: .onboardingPicker))
-        .accessibilityHint(localizedText(titleKey))
-    }
-}
-
-private struct PickerRow<PickerContent: View>: View {
-    let titleKey: String
-    let systemImage: String
-    @ViewBuilder let picker: PickerContent
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: systemImage)
-                .font(.headline)
-                .foregroundStyle(LangoTraceDesign.ColorToken.teal)
-                .frame(width: 30, height: 30)
-                .background(LangoTraceDesign.ColorToken.paleTeal)
-                .clipShape(Circle())
-            VStack(alignment: .leading, spacing: 2) {
-                localizedText(titleKey)
-                    .font(.headline)
-            }
-            Spacer(minLength: 12)
-            picker
-                .labelsHidden()
-                .pickerStyle(.menu)
-        }
-        .frame(minHeight: 52)
     }
 }
