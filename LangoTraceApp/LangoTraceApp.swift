@@ -47,6 +47,7 @@ struct LangoTraceApp: App {
                 )
                 .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
                 .environment(\.appEnvironment, environment)
+                .environment(\.aiProviderSettingsActions, environment.aiProviderSettingsActions)
             }
         #endif
     }
@@ -92,6 +93,7 @@ struct LangoTraceApp: App {
         )
         .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
         .environment(\.appEnvironment, environment)
+        .environment(\.aiProviderSettingsActions, environment.aiProviderSettingsActions)
         .task {
             session.restoreLanguageSpace()
         }

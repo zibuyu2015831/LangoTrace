@@ -190,6 +190,85 @@ public struct AIProviderEndpointInput: Equatable, Sendable {
     }
 }
 
+public struct AIProviderProfileSaveInput: Equatable, Sendable {
+    public var profileID: AIProviderProfileID?
+    public var displayName: String
+    public var endpoints: [AIProviderEndpointSaveInput]
+
+    public init(
+        profileID: AIProviderProfileID? = nil,
+        displayName: String,
+        endpoints: [AIProviderEndpointSaveInput]
+    ) {
+        self.profileID = profileID
+        self.displayName = displayName
+        self.endpoints = endpoints
+    }
+}
+
+public struct AIProviderEndpointSaveInput: Equatable, Sendable {
+    public var id: AIProviderEndpointID?
+    public var purpose: AIProviderEndpointPurpose
+    public var isEnabled: Bool
+    public var providerPresetID: String
+    public var adapterKind: AIProviderAdapterKind
+    public var baseURL: String
+    public var modelName: String
+    public var credentialMode: AIProviderEndpointCredentialSaveMode
+    public var supportsImageInput: Bool
+    public var imageInputEnabled: Bool
+    public var requestTimeoutSeconds: Double?
+
+    public init(
+        id: AIProviderEndpointID? = nil,
+        purpose: AIProviderEndpointPurpose,
+        isEnabled: Bool,
+        providerPresetID: String,
+        adapterKind: AIProviderAdapterKind,
+        baseURL: String,
+        modelName: String,
+        credentialMode: AIProviderEndpointCredentialSaveMode,
+        supportsImageInput: Bool,
+        imageInputEnabled: Bool,
+        requestTimeoutSeconds: Double? = nil
+    ) {
+        self.id = id
+        self.purpose = purpose
+        self.isEnabled = isEnabled
+        self.providerPresetID = providerPresetID
+        self.adapterKind = adapterKind
+        self.baseURL = baseURL
+        self.modelName = modelName
+        self.credentialMode = credentialMode
+        self.supportsImageInput = supportsImageInput
+        self.imageInputEnabled = imageInputEnabled
+        self.requestTimeoutSeconds = requestTimeoutSeconds
+    }
+}
+
+public enum AIProviderEndpointCredentialSaveMode: Equatable, Sendable {
+    case none
+    case existing(AIProviderCredentialID)
+    case sharedWithPurpose(AIProviderEndpointPurpose)
+    case newSecret(AIProviderCredentialSecretSaveInput)
+}
+
+public struct AIProviderCredentialSecretSaveInput: Equatable, Sendable {
+    public var kind: AIProviderCredentialKind
+    public var label: String
+    public var plaintextSecret: String
+
+    public init(
+        kind: AIProviderCredentialKind,
+        label: String,
+        plaintextSecret: String
+    ) {
+        self.kind = kind
+        self.label = label
+        self.plaintextSecret = plaintextSecret
+    }
+}
+
 public struct AIProviderEndpointConfiguration: Equatable, Sendable {
     public var id: AIProviderEndpointID
     public var profileID: AIProviderProfileID

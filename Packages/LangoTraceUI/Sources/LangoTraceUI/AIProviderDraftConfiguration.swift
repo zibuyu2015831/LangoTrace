@@ -1,4 +1,5 @@
 import Foundation
+import LangoTraceCore
 
 enum AIProviderAPIKeyStorage: Equatable {
     case encryptedStoragePending
@@ -19,6 +20,7 @@ enum AIProviderSaveState: Equatable {
     case idle
     case missingRequiredFields
     case mockSavedSecurely
+    case saveFailed
 
     var titleKey: String {
         switch self {
@@ -28,6 +30,8 @@ enum AIProviderSaveState: Equatable {
             "aiProviderSettings.saveState.missingRequiredFields"
         case .mockSavedSecurely:
             "aiProviderSettings.saveState.mockSavedSecurely"
+        case .saveFailed:
+            "aiProviderSettings.saveState.missingRequiredFields"
         }
     }
 }
@@ -244,5 +248,166 @@ struct AIProviderDraftConfiguration: Equatable {
         }
 
         saveState = .mockSavedSecurely
+    }
+
+    func makeProfileSaveInput() throws -> AIProviderProfileSaveInput {
+        guard testReadiness == .readyForMockRequest else {
+            throw AIProviderConfigurationError.missingRequiredEndpointField
+        }
+
+        var endpoints = try [
+            text.endpoint.makeSaveInput(
+                purpose: .textGeneration,
+                isEnabled: text.textGenerationEnabled,
+                credentialMode: text.endpoint.makeNewSecretCredentialMode(),
+                imageInputEnabled: text.imageUnderstandingEnabled
+            ),
+        ]
+
+        if speech.isEnabled {
+            try endpoints.append(
+                speech.endpoint.makeSaveInput(
+                    purpose: .tts,
+                    isEnabled: true,
+                    credentialMode: speech.endpoint.makeCredentialMode(),
+                    imageInputEnabled: false
+                )
+            )
+        }
+
+        if embedding.isEnabled {
+            try endpoints.append(
+                embedding.endpoint.makeSaveInput(
+                    purpose: .embedding,
+                    isEnabled: true,
+                    credentialMode: embedding.endpoint.makeCredentialMode(),
+                    imageInputEnabled: false
+                )
+            )
+        }
+
+        return AIProviderProfileSaveInput(
+            displayName: "Default AI Provider",
+            endpoints: endpoints
+        )
+    }
+
+    mutating func applySavedProfile(_: AIProviderConfigurationProfile) {
+        clearPlaintextSecrets()
+        saveState = .mockSavedSecurely
+        testState = .idle
+    }
+
+    mutating func applyLoadedProfile(_ profile: AIProviderConfigurationProfile) {
+        let textEndpoint = profile.endpoints.first { $0.purpose == .textGeneration }
+        let speechEndpoint = profile.endpoints.first { $0.purpose == .tts }
+        let embeddingEndpoint = profile.endpoints.first { $0.purpose == .embedding }
+        let textCredentialID = textEndpoint?.credentialID
+
+        if let textEndpoint {
+            text.endpoint.apply(endpoint: textEndpoint)
+            text.imageUnderstandingEnabled = textEndpoint.imageInputEnabled
+        }
+
+        if let speechEndpoint {
+            speech.isEnabled = speechEndpoint.isEnabled
+            speech.endpoint.apply(
+                endpoint: speechEndpoint,
+                sharedCredentialID: textCredentialID
+            )
+        }
+
+        if let embeddingEndpoint {
+            embedding.isEnabled = embeddingEndpoint.isEnabled
+            embedding.endpoint.apply(
+                endpoint: embeddingEndpoint,
+                sharedCredentialID: textCredentialID
+            )
+        }
+
+        clearPlaintextSecrets()
+        saveState = profile.status == .configured ? .mockSavedSecurely : .idle
+        testState = .idle
+    }
+
+    mutating func clearPlaintextSecrets() {
+        text.endpoint.independentCredential.apiKeyDraft = ""
+        speech.endpoint.independentCredential.apiKeyDraft = ""
+        embedding.endpoint.independentCredential.apiKeyDraft = ""
+    }
+}
+
+private extension AIProviderEndpointDraftConfiguration {
+    mutating func apply(
+        endpoint: AIProviderEndpointConfiguration,
+        sharedCredentialID: AIProviderCredentialID? = nil
+    ) {
+        if let provider = AIProviderPreset.allCases.first(where: { $0.id == endpoint.providerPresetID }) {
+            self.provider = provider
+            independentCredential.updateProvider(provider)
+        }
+        baseURL = endpoint.baseURL
+        model = endpoint.modelName
+        if let sharedCredentialID, endpoint.credentialID == sharedCredentialID {
+            credentialReference = .textModelCredential
+        } else {
+            credentialReference = .independent
+        }
+    }
+
+    func makeSaveInput(
+        purpose: LangoTraceCore.AIProviderEndpointPurpose,
+        isEnabled: Bool,
+        credentialMode: AIProviderEndpointCredentialSaveMode,
+        imageInputEnabled: Bool
+    ) throws -> AIProviderEndpointSaveInput {
+        AIProviderEndpointSaveInput(
+            purpose: purpose,
+            isEnabled: isEnabled,
+            providerPresetID: provider.id,
+            adapterKind: provider.coreAdapterKind,
+            baseURL: baseURL,
+            modelName: model,
+            credentialMode: credentialMode,
+            supportsImageInput: provider.capabilities.imageUnderstanding,
+            imageInputEnabled: imageInputEnabled && provider.capabilities.imageUnderstanding
+        )
+    }
+
+    func makeCredentialMode() -> AIProviderEndpointCredentialSaveMode {
+        switch credentialReference {
+        case .textModelCredential:
+            .sharedWithPurpose(.textGeneration)
+        case .independent:
+            makeNewSecretCredentialMode()
+        }
+    }
+
+    func makeNewSecretCredentialMode() -> AIProviderEndpointCredentialSaveMode {
+        guard independentCredential.requiresAPIKey else {
+            return .none
+        }
+        return .newSecret(
+            AIProviderCredentialSecretSaveInput(
+                kind: .apiKey,
+                label: "\(provider.displayName) API Key",
+                plaintextSecret: independentCredential.apiKeyDraft
+            )
+        )
+    }
+}
+
+private extension AIProviderPreset {
+    var coreAdapterKind: LangoTraceCore.AIProviderAdapterKind {
+        switch adapterKind {
+        case .openAICompatibleChat:
+            .openAICompatibleChat
+        case .openAIResponses:
+            .openAIResponses
+        case .anthropicMessages:
+            .anthropicMessages
+        case .geminiGenerateContent:
+            .geminiGenerateContent
+        }
     }
 }

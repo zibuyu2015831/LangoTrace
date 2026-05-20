@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AIProviderSettingsView: View {
+    @Environment(\.aiProviderSettingsActions) private var actions
     @State private var draft = AIProviderDraftConfiguration(provider: .openAI)
 
     var body: some View {
@@ -21,6 +22,9 @@ struct AIProviderSettingsView: View {
             actionSection
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .task {
+            await loadSavedConfiguration()
+        }
     }
 
     private var textModelSection: some View {
@@ -59,7 +63,7 @@ struct AIProviderSettingsView: View {
     private var actionSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Button {
-                draft.saveMockConfiguration()
+                saveConfiguration()
             } label: {
                 Label {
                     localizedText("aiProviderSettings.save.button")
@@ -73,7 +77,7 @@ struct AIProviderSettingsView: View {
             .disabled(draft.testReadiness == .missingRequiredFields)
 
             Button {
-                draft.runMockTest()
+                validateConfiguration()
             } label: {
                 Label {
                     localizedText("aiProviderSettings.testRequest.button")
@@ -119,6 +123,42 @@ struct AIProviderSettingsView: View {
 }
 
 private extension AIProviderSettingsView {
+    @MainActor
+    func loadSavedConfiguration() async {
+        guard let profile = try? await actions.loadDefaultProfile() else {
+            return
+        }
+        draft.applyLoadedProfile(profile)
+    }
+
+    func saveConfiguration() {
+        Task { @MainActor in
+            do {
+                let input = try draft.makeProfileSaveInput()
+                let profile = try await actions.saveDefaultProfile(input)
+                draft.applySavedProfile(profile)
+            } catch {
+                draft.saveState = .saveFailed
+            }
+        }
+    }
+
+    func validateConfiguration() {
+        Task { @MainActor in
+            guard draft.testReadiness == .readyForMockRequest else {
+                draft.testState = .missingRequiredFields
+                return
+            }
+            draft.testState = .mockTesting
+            do {
+                let status = try await actions.validateDefaultProfileCredentials()
+                draft.testState = status == .succeeded ? .mockSucceeded : .mockFailed
+            } catch {
+                draft.testState = .mockFailed
+            }
+        }
+    }
+
     var statusTitleKey: String {
         if draft.testReadiness == .missingRequiredFields {
             return "aiProviderSettings.saveState.missingRequiredFields"

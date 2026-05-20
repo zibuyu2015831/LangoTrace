@@ -1,3 +1,4 @@
+import Foundation
 import LangoTraceAI
 import LangoTraceCore
 import LangoTraceData
@@ -9,23 +10,79 @@ import SwiftUI
 struct AppEnvironment {
     let makeLanguageSpaceRepository: @Sendable () throws -> any LanguageSpaceRepository
     let learningContentRepository: any LearningContentRepository
+    let aiProviderSettingsActions: AIProviderSettingsActions
     let aiProvider: any AIProvider
     let speechService: any SpeechService
     let syncService: any SyncService
 
     static func bootstrap() -> AppEnvironment {
-        AppEnvironment(
+        let databaseFactory = SharedAppDatabaseFactory()
+        let credentialStore = KeychainAIProviderCredentialStore()
+
+        return AppEnvironment(
             makeLanguageSpaceRepository: {
-                try GRDBLanguageSpaceRepository.persistent(
-                    at: LanguageSpaceDatabaseLocation.defaultDatabaseURL()
+                try GRDBLanguageSpaceRepository(
+                    database: databaseFactory.database()
                 )
             },
             learningContentRepository: InMemoryLearningContentRepository(seedEntries: []),
+            aiProviderSettingsActions: AIProviderSettingsActions(
+                loadDefaultProfile: {
+                    let service = try makeAIProviderConfigurationService(
+                        databaseFactory: databaseFactory,
+                        credentialStore: credentialStore
+                    )
+                    return try await service.loadDefaultProfile()
+                },
+                saveDefaultProfile: { input in
+                    let service = try makeAIProviderConfigurationService(
+                        databaseFactory: databaseFactory,
+                        credentialStore: credentialStore
+                    )
+                    return try await service.saveDefaultProfile(input)
+                },
+                validateDefaultProfileCredentials: {
+                    let service = try makeAIProviderConfigurationService(
+                        databaseFactory: databaseFactory,
+                        credentialStore: credentialStore
+                    )
+                    return try await service.validateDefaultProfileCredentials()
+                }
+            ),
             aiProvider: DisabledAIProvider(),
             speechService: DisabledSpeechService(),
             syncService: DisabledSyncService()
         )
     }
+}
+
+private final class SharedAppDatabaseFactory: @unchecked Sendable {
+    private let lock = NSLock()
+    private var cachedDatabase: AppDatabase?
+
+    func database() throws -> AppDatabase {
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let cachedDatabase {
+            return cachedDatabase
+        }
+        let database = try AppDatabase.persistent(
+            at: LanguageSpaceDatabaseLocation.defaultDatabaseURL()
+        )
+        cachedDatabase = database
+        return database
+    }
+}
+
+private func makeAIProviderConfigurationService(
+    databaseFactory: SharedAppDatabaseFactory,
+    credentialStore: any AIProviderCredentialStore
+) throws -> AIProviderConfigurationService {
+    try AIProviderConfigurationService(
+        repository: GRDBAIProviderConfigurationRepository(database: databaseFactory.database()),
+        credentialStore: credentialStore
+    )
 }
 
 extension EnvironmentValues {

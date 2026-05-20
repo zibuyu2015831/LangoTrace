@@ -1,4 +1,5 @@
 import Foundation
+import LangoTraceCore
 @testable import LangoTraceUI
 import Testing
 
@@ -92,6 +93,8 @@ struct AIProviderSettingsTests {
         let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
 
         #expect(source.contains("aiProviderSettings.testRequest.button"))
+        #expect(source.contains("validateConfiguration()"))
+        #expect(source.contains("actions.validateDefaultProfileCredentials"))
         #expect(!source.contains("URLSession"))
         #expect(!source.contains("dataTask"))
         #expect(!source.contains("uploadTask"))
@@ -105,7 +108,54 @@ struct AIProviderSettingsTests {
 
         #expect(source.contains("aiProviderSettings.save.button"))
         #expect(source.contains("aiProviderSettings.save.boundary"))
-        #expect(source.contains("saveMockConfiguration()"))
+        #expect(source.contains("saveConfiguration()"))
+        #expect(source.contains("actions.saveDefaultProfile"))
+    }
+
+    @Test("Draft save input maps endpoints and clears plaintext after saved profile")
+    func draftSaveInputMapsEndpointsAndClearsPlaintextAfterSavedProfile() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "text-secret"
+        draft.speech.isEnabled = true
+        draft.speech.endpoint.credentialReference = .textModelCredential
+        draft.embedding.isEnabled = true
+        draft.embedding.endpoint.credentialReference = .independent
+        draft.embedding.endpoint.independentCredential.apiKeyDraft = "embedding-secret"
+
+        let input = try draft.makeProfileSaveInput()
+
+        #expect(input.endpoints.map(\.purpose) == [.textGeneration, .tts, .embedding])
+        #expect(input.endpoints[0].credentialMode == .newSecret(.init(
+            kind: .apiKey,
+            label: "OpenAI API Key",
+            plaintextSecret: "text-secret"
+        )))
+        #expect(input.endpoints[1].credentialMode == .sharedWithPurpose(.textGeneration))
+        #expect(input.endpoints[2].credentialMode == .newSecret(.init(
+            kind: .apiKey,
+            label: "OpenAI API Key",
+            plaintextSecret: "embedding-secret"
+        )))
+
+        draft.applySavedProfile(emptySavedProfile())
+        #expect(draft.text.endpoint.independentCredential.apiKeyDraft.isEmpty)
+        #expect(draft.embedding.endpoint.independentCredential.apiKeyDraft.isEmpty)
+        #expect(draft.saveState == .mockSavedSecurely)
+    }
+
+    @Test("Loaded profile restores non secret endpoint fields without API key plaintext")
+    func loadedProfileRestoresNonSecretEndpointFieldsWithoutAPIKeyPlaintext() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "old-plaintext"
+
+        try draft.applyLoadedProfile(loadedProfile())
+
+        #expect(draft.text.endpoint.baseURL == "https://api.openai.com/v1")
+        #expect(draft.text.endpoint.model == "gpt-5.2")
+        #expect(draft.speech.isEnabled)
+        #expect(draft.speech.endpoint.credentialReference == .textModelCredential)
+        #expect(draft.text.endpoint.independentCredential.apiKeyDraft.isEmpty)
+        #expect(draft.speech.endpoint.independentCredential.apiKeyDraft.isEmpty)
     }
 
     @Test("Settings source keeps provider form concise and full width")
@@ -221,5 +271,63 @@ struct AIProviderSettingsTests {
             .appendingPathComponent("Sources")
             .appendingPathComponent("LangoTraceUI")
             .appendingPathComponent(fileName)
+    }
+
+    private func emptySavedProfile() -> AIProviderConfigurationProfile {
+        AIProviderConfigurationProfile(
+            id: "profile-1",
+            displayName: "Default AI Provider",
+            isDefault: true,
+            status: .configured,
+            createdAt: Date(timeIntervalSince1970: 100),
+            updatedAt: Date(timeIntervalSince1970: 100)
+        )
+    }
+
+    private func loadedProfile() throws -> AIProviderConfigurationProfile {
+        let now = Date(timeIntervalSince1970: 100)
+        let text = try AIProviderEndpointConfiguration(
+            input: AIProviderEndpointInput(
+                id: "text-endpoint",
+                profileID: "profile-1",
+                purpose: .textGeneration,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-5.2",
+                credentialID: "credential-1",
+                supportsImageInput: true,
+                imageInputEnabled: false
+            ),
+            createdAt: now,
+            updatedAt: now
+        )
+        let speech = try AIProviderEndpointConfiguration(
+            input: AIProviderEndpointInput(
+                id: "speech-endpoint",
+                profileID: "profile-1",
+                purpose: .tts,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-4o-mini-tts",
+                credentialID: "credential-1",
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+            createdAt: now,
+            updatedAt: now
+        )
+        return AIProviderConfigurationProfile(
+            id: "profile-1",
+            displayName: "Default AI Provider",
+            isDefault: true,
+            status: .configured,
+            createdAt: now,
+            updatedAt: now,
+            endpoints: [text, speech]
+        )
     }
 }
