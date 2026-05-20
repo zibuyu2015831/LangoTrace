@@ -1137,49 +1137,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Level"
+            "value": "Current Level"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "水平自评"
+            "value": "当前水平"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nivel"
+            "value": "Nivel actual"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "レベル"
+            "value": "現在のレベル"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Niveau"
+            "value": "Niveau actuel"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Niveau"
+            "value": "Aktuelles Niveau"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "수준"
+            "value": "현재 수준"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Уровень"
+            "value": "Текущий уровень"
           }
         }
       }
@@ -1237,108 +1237,55 @@
         }
       }
     },
-    "onboarding.privacy.localStorage": {
-      "comment": "Onboarding local storage note.",
+    "onboarding.privacy.footnote": {
+      "comment": "Low-weight onboarding footnote below the create language space button.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Data is stored on this device by default"
+            "value": "Data is stored on this device by default. Review and adjust it in Settings."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "数据默认保存在本机"
+            "value": "数据默认保存在本机，可在设置中查看与调整。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los datos se guardan en este dispositivo por defecto"
+            "value": "Los datos se guardan en este dispositivo por defecto. Revísalos y ajústalos en Ajustes."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "データは既定でこのデバイスに保存されます"
+            "value": "データは既定でこのデバイスに保存されます。設定で確認・調整できます。"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les données sont stockées sur cet appareil par défaut"
+            "value": "Les données sont stockées sur cet appareil par défaut. Vous pouvez les consulter et les ajuster dans les réglages."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Daten werden standardmäßig auf diesem Gerät gespeichert"
+            "value": "Daten werden standardmäßig auf diesem Gerät gespeichert. Du kannst dies in den Einstellungen prüfen und anpassen."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "데이터는 기본적으로 이 기기에 저장됩니다"
+            "value": "데이터는 기본적으로 이 기기에 저장됩니다. 설정에서 확인하고 조정할 수 있습니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "По умолчанию данные хранятся на этом устройстве"
-          }
-        }
-      }
-    },
-    "onboarding.privacy.noExternalAI": {
-      "comment": "Onboarding local storage note.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your first language space starts locally. Capability boundaries can be reviewed later in settings."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "第一个语言空间从本地开始。能力边界稍后可在设置中查看。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu primer espacio de idioma empieza localmente. Los límites de capacidades se pueden revisar más tarde en ajustes."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最初の言語スペースはローカルから始まります。機能の境界は後で設定で確認できます。"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Votre premier espace de langue commence localement. Les limites des capacités peuvent être relues plus tard dans les réglages."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dein erster Sprachraum startet lokal. Funktionsgrenzen kannst du später in den Einstellungen prüfen."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "첫 언어 공간은 로컬에서 시작합니다. 기능 경계는 나중에 설정에서 확인할 수 있습니다."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Первое языковое пространство начинается локально. Границы возможностей можно позже проверить в настройках."
+            "value": "По умолчанию данные хранятся на этом устройстве. Их можно просмотреть и настроить в настройках."
           }
         }
       }
@@ -1349,49 +1296,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A language space is a long-term learning profile for one target language. Start with the minimum setup, then turn life into learning material."
+            "value": "Create a language space, then turn life into learning material."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "一个语言空间，就是一门目标语言的长期学习档案。先记录最少信息，之后再开始把生活变成学习材料。"
+            "value": "创建一个语言空间，把生活变成学习材料。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un espacio de idioma es un perfil de aprendizaje a largo plazo para un idioma objetivo. Empieza con la configuración mínima y convierte la vida en material de aprendizaje."
+            "value": "Crea un espacio de idioma y convierte la vida en material de aprendizaje."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "言語スペースは、1つの目標言語のための長期学習プロファイルです。最小限の設定から始め、生活を学習素材に変えていきます。"
+            "value": "言語スペースを作り、生活を学習素材に変えましょう。"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un espace de langue est un profil d’apprentissage à long terme pour une langue cible. Commencez avec la configuration minimale, puis transformez la vie en support d’apprentissage."
+            "value": "Créez un espace de langue et transformez la vie en support d’apprentissage."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ein Sprachraum ist ein langfristiges Lernprofil für eine Zielsprache. Beginne mit der minimalen Einrichtung und mache Alltag zu Lernmaterial."
+            "value": "Erstelle einen Sprachraum und mache Alltag zu Lernmaterial."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "언어 공간은 하나의 목표 언어를 위한 장기 학습 프로필입니다. 최소 설정으로 시작한 뒤 생활을 학습 자료로 바꿉니다."
+            "value": "언어 공간을 만들고 생활을 학습 자료로 바꾸세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Языковое пространство — это долгосрочный профиль обучения для одного целевого языка. Начните с минимальной настройки и превращайте жизнь в учебный материал."
+            "value": "Создайте языковое пространство и превращайте жизнь в учебный материал."
           }
         }
       }
@@ -6408,49 +6355,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preparing your language space. First use asks for native language, target language, and self-assessed level."
+            "value": "Preparing your language space. First use asks for native language, target language, and current level."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在准备你的语言空间。首次使用会先询问母语、目标语言和水平自评。"
+            "value": "正在准备你的语言空间。首次使用会先询问母语、目标语言和当前水平。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preparando tu espacio de idioma. El primer uso pregunta lengua materna, idioma objetivo y nivel autoevaluado."
+            "value": "Preparando tu espacio de idioma. El primer uso pregunta lengua materna, idioma objetivo y nivel actual."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "言語スペースを準備しています。初回利用時に母語、目標言語、自己評価レベルを尋ねます。"
+            "value": "言語スペースを準備しています。初回利用時に母語、目標言語、現在のレベルを尋ねます。"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Préparation de votre espace de langue. La première utilisation demande la langue maternelle, la langue cible et le niveau autoévalué."
+            "value": "Préparation de votre espace de langue. La première utilisation demande la langue maternelle, la langue cible et le niveau actuel."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dein Sprachraum wird vorbereitet. Beim ersten Start fragt die App nach Muttersprache, Zielsprache und Selbsteinschätzung."
+            "value": "Dein Sprachraum wird vorbereitet. Beim ersten Start fragt die App nach Muttersprache, Zielsprache und aktuellem Niveau."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "언어 공간을 준비하는 중입니다. 처음 사용할 때 모국어, 목표 언어, 자기 평가 수준을 묻습니다."
+            "value": "언어 공간을 준비하는 중입니다. 처음 사용할 때 모국어, 목표 언어, 현재 수준을 묻습니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Подготовка языкового пространства. При первом запуске будут запрошены родной язык, целевой язык и самооценка уровня."
+            "value": "Подготовка языкового пространства. При первом запуске будут запрошены родной язык, целевой язык и текущий уровень."
           }
         }
       }
@@ -13000,6 +12947,642 @@
         "en": { "stringUnit": { "state": "translated", "value": "Data stays local" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "数据保留在本机" } }
       }
+    },
+    "onboarding.level.a1.title": {
+        "comment": "Onboarding A1 level short title.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Beginner"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "入门"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Principiante"
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "入門"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Débutant"
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Anfänger"
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "입문"
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Начальный"
+                }
+            }
+        }
+    },
+    "onboarding.level.a1.description": {
+        "comment": "Onboarding A1 level description.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "You know a few words and phrases."
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "认识少量词句，刚开始学"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Conoces algunas palabras y frases."
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "少しの単語や表現を知っている段階です。"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Vous connaissez quelques mots et expressions."
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Du kennst einige Wörter und Wendungen."
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "몇 가지 단어와 표현을 아는 단계입니다."
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Вы знаете несколько слов и фраз."
+                }
+            }
+        }
+    },
+    "onboarding.level.a2.title": {
+        "comment": "Onboarding A2 level short title.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Elementary"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "初级"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Elemental"
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "初級"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Élémentaire"
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Grundlagen"
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "초급"
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Элементарный"
+                }
+            }
+        }
+    },
+    "onboarding.level.a2.description": {
+        "comment": "Onboarding A2 level description.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "You can use simple everyday sentences."
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "能说简单日常句子"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Puedes usar frases sencillas del día a día."
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "簡単な日常文を使えます。"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Vous pouvez utiliser des phrases simples du quotidien."
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Du kannst einfache Alltagssätze verwenden."
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "간단한 일상 문장을 사용할 수 있습니다."
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Вы можете использовать простые повседневные фразы."
+                }
+            }
+        }
+    },
+    "onboarding.level.b1.title": {
+        "comment": "Onboarding B1 level short title.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Everyday"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "日常交流"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Cotidiano"
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "日常会話"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Conversation courante"
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Alltag"
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "일상 회화"
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Повседневный"
+                }
+            }
+        }
+    },
+    "onboarding.level.b1.description": {
+        "comment": "Onboarding B1 level description.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "You can handle common travel and daily situations."
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "能处理旅行、生活中的常见表达"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Puedes manejar viajes y situaciones cotidianas."
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "旅行や日常生活のよくある場面に対応できます。"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Vous pouvez gérer les situations courantes du voyage et du quotidien."
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Du kommst in Reisen und Alltagssituationen zurecht."
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "여행과 일상에서 흔한 상황을 다룰 수 있습니다."
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Вы справляетесь с типичными ситуациями в поездках и быту."
+                }
+            }
+        }
+    },
+    "onboarding.level.b2.title": {
+        "comment": "Onboarding B2 level short title.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Independent"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "独立表达"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Independiente"
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "自立表現"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Autonome"
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Selbstständig"
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "독립 표현"
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Самостоятельный"
+                }
+            }
+        }
+    },
+    "onboarding.level.b2.description": {
+        "comment": "Onboarding B2 level description.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "You can describe experiences and explain opinions."
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "能较完整表达观点和经历"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Puedes describir experiencias y explicar opiniones."
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "経験や意見をある程度まとまって表現できます。"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Vous pouvez décrire des expériences et expliquer vos opinions."
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Du kannst Erlebnisse beschreiben und Meinungen erklären."
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "경험과 의견을 비교적 온전하게 표현할 수 있습니다."
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Вы можете описывать опыт и объяснять мнения."
+                }
+            }
+        }
+    },
+    "onboarding.level.c1.title": {
+        "comment": "Onboarding C1 level short title.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Advanced"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "熟练表达"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Avanzado"
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "上級"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Avancé"
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Fortgeschritten"
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "고급"
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Продвинутый"
+                }
+            }
+        }
+    },
+    "onboarding.level.c1.description": {
+        "comment": "Onboarding C1 level description.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "You can discuss complex topics naturally."
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "能自然讨论复杂话题"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Puedes hablar con naturalidad sobre temas complejos."
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "複雑な話題も自然に話し合えます。"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Vous pouvez discuter naturellement de sujets complexes."
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Du kannst komplexe Themen natürlich besprechen."
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "복잡한 주제도 자연스럽게 논의할 수 있습니다."
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Вы можете естественно обсуждать сложные темы."
+                }
+            }
+        }
+    },
+    "onboarding.level.c2.title": {
+        "comment": "Onboarding C2 level short title.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Proficient"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "高级掌握"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Dominio alto"
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "高度運用"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Maîtrise élevée"
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Sehr sicher"
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "고급 숙련"
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Свободное владение"
+                }
+            }
+        }
+    },
+    "onboarding.level.c2.description": {
+        "comment": "Onboarding C2 level description.",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "You can use the language in demanding professional or academic contexts."
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "接近专业、学术或高强度使用"
+                }
+            },
+            "es": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Puedes usarlo en contextos profesionales o académicos exigentes."
+                }
+            },
+            "ja": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "専門・学術など高負荷の場面でも使えます。"
+                }
+            },
+            "fr": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Vous pouvez l’utiliser dans des contextes professionnels ou académiques exigeants."
+                }
+            },
+            "de": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Du kannst die Sprache in anspruchsvollen beruflichen oder akademischen Kontexten nutzen."
+                }
+            },
+            "ko": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "전문적이거나 학술적인 고난도 상황에서도 사용할 수 있습니다."
+                }
+            },
+            "ru": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Вы можете использовать язык в сложных профессиональных или академических ситуациях."
+                }
+            }
+        }
     }
   },
   "version": "1.0"

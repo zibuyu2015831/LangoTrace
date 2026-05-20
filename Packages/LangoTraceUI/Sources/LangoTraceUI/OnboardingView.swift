@@ -7,6 +7,9 @@ struct OnboardingView: View {
 
     private let onboardingContentMaxWidth: CGFloat = 680
     private let onboardingBottomActionMaxWidth: CGFloat = 520
+    private let levelSelectorApproxVisibleRows: CGFloat = 3
+    @ScaledMetric(relativeTo: .body) private var compactLevelRowMinHeight: CGFloat = 58
+    @ScaledMetric(relativeTo: .body) private var compactLevelRowSpacing: CGFloat = 8
 
     var body: some View {
         GeometryReader { proxy in
@@ -29,14 +32,16 @@ struct OnboardingView: View {
             size.width >= 760 && size.height >= 620
         #endif
     }
+}
 
+private extension OnboardingView {
     private var compactOnboardingContentWithBottomAction: some View {
         ZStack {
             ScrollView {
                 onboardingFormContent
                     .padding(.horizontal, 24)
                     .padding(.top, 36)
-                    .padding(.bottom, 116)
+                    .padding(.bottom, 148)
                     .frame(maxWidth: onboardingContentMaxWidth, alignment: .leading)
             }
         }
@@ -64,7 +69,6 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 26) {
             header
             languageForm
-            privacyNote
         }
     }
 
@@ -147,42 +151,118 @@ struct OnboardingView: View {
                         localizedText("onboarding.level.summary")
                             .font(.footnote)
                             .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                Picker(selection: $draft.level) {
-                    ForEach(LanguageLevel.allCases, id: \.self) { level in
-                        Text(level.rawValue).tag(level)
-                    }
-                } label: {
-                    localizedText("onboarding.level.title")
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .accessibilityLabel(localizedText("onboarding.level.title"))
-                .accessibilityHint(
-                    localizedString("onboarding.level.accessibilityHint", draft.resolvedTargetLanguage.nativeName)
-                )
+                compactLevelSelector
             }
         }
         .langoPanel(padding: 18)
         .langoSoftShadow()
     }
 
-    private var privacyNote: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label {
-                localizedText("onboarding.privacy.localStorage")
-            } icon: {
-                Image(systemName: "lock")
+    private var compactLevelSelector: some View {
+        ScrollView(.vertical) {
+            LazyVStack(spacing: compactLevelRowSpacing) {
+                ForEach(LanguageLevel.allCases, id: \.self) { level in
+                    compactLevelRow(for: level)
+                }
             }
-            .font(.headline)
-            .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-            localizedText("onboarding.privacy.noExternalAI")
-                .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-                .fixedSize(horizontal: false, vertical: true)
         }
-        .langoPanel(padding: 16)
+        .frame(maxHeight: compactLevelSelectorMaxHeight)
+        .scrollIndicators(.visible)
+        .accessibilityLabel(localizedText("onboarding.level.title"))
+        .accessibilityHint(
+            localizedString("onboarding.level.accessibilityHint", draft.resolvedTargetLanguage.nativeName)
+        )
+    }
+
+    private var compactLevelSelectorMaxHeight: CGFloat {
+        compactLevelRowMinHeight * levelSelectorApproxVisibleRows +
+            compactLevelRowSpacing * (levelSelectorApproxVisibleRows - 1)
+    }
+
+    private func compactLevelRow(for level: LanguageLevel) -> some View {
+        let selected = draft.level == level
+
+        return Button {
+            draft.level = level
+        } label: {
+            HStack(spacing: 10) {
+                Text(level.rawValue)
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.teal)
+                    .frame(width: 38, alignment: .leading)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    localizedText(onboardingLevelTitleKey(for: level))
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+                    localizedText(onboardingLevelDescriptionKey(for: level))
+                        .font(.caption)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(selected ? LangoTraceDesign.ColorToken.teal : LangoTraceDesign.ColorToken.hairline)
+            }
+            .frame(minHeight: max(compactLevelRowMinHeight, LangoTraceDesign.Density.minimumTouchTarget))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(selected ? LangoTraceDesign.ColorToken.paleTeal : LangoTraceDesign.ColorToken.elevatedPaper)
+            .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    .stroke(
+                        selected
+                            ? LangoTraceDesign.ColorToken.teal.opacity(0.55)
+                            : LangoTraceDesign.ColorToken.hairline,
+                        lineWidth: selected ? 1.2 : 1
+                    )
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("\(level.rawValue), \(localizedString(onboardingLevelTitleKey(for: level)))"))
+        .accessibilityValue(localizedText(onboardingLevelDescriptionKey(for: level)))
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    private func onboardingLevelTitleKey(for level: LanguageLevel) -> String {
+        switch level {
+        case .a1:
+            "onboarding.level.a1.title"
+        case .a2:
+            "onboarding.level.a2.title"
+        case .b1:
+            "onboarding.level.b1.title"
+        case .b2:
+            "onboarding.level.b2.title"
+        case .c1:
+            "onboarding.level.c1.title"
+        case .c2:
+            "onboarding.level.c2.title"
+        }
+    }
+
+    private func onboardingLevelDescriptionKey(for level: LanguageLevel) -> String {
+        switch level {
+        case .a1:
+            "onboarding.level.a1.description"
+        case .a2:
+            "onboarding.level.a2.description"
+        case .b1:
+            "onboarding.level.b1.description"
+        case .b2:
+            "onboarding.level.b2.description"
+        case .c1:
+            "onboarding.level.c1.description"
+        case .c2:
+            "onboarding.level.c2.description"
+        }
     }
 
     private var createButtonContent: some View {
@@ -208,8 +288,23 @@ struct OnboardingView: View {
             .accessibilityHint(
                 localizedString("onboarding.createSpace.accessibilityHint", draft.resolvedTargetLanguage.nativeName)
             )
+            localStorageFootnote
         }
         .frame(maxWidth: onboardingBottomActionMaxWidth)
+    }
+
+    private var localStorageFootnote: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Image(systemName: "lock")
+                .font(.caption.weight(.semibold))
+                .accessibilityHidden(true)
+            localizedText("onboarding.privacy.footnote")
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .font(.footnote)
+        .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+        .multilineTextAlignment(.center)
+        .accessibilityElement(children: .combine)
     }
 
     private var createButton: some View {
