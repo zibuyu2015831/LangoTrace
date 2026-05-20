@@ -19,6 +19,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 5. 完成前运行适合当前任务的检查，例如链接检查、文档一致性检查、构建或测试。
 6. 如果任务可能导致文档滞后于代码，按 [文档审查机制](review/README.md) 做日常文档影响检查、事件触发专项审查或里程碑轻量全审。
 7. 如果在开发、审查或阅读文档时发现文档体系自身存在结构性问题，例如模板缺陷、规范过期、历史记录误用、文档谬误或无用临时文件，应按 [文档审查机制](review/README.md) 主动汇报，并给出证据、影响、必要性、可行性、风险和推荐方案。
+8. 如果当前任务明确不实现某个未来能力，但当前设计会影响该未来能力，或讨论形成了跨任务复用的架构风险、候选方案、边界提醒，应主动创建或更新对应领域的开发备忘录；架构级备忘录写入 [架构开发备忘录目录](architecture/notes/README.md)。
 
 ### 1.1 早期开发阶段的重构原则
 
@@ -208,6 +209,7 @@ LangoTrace 的文档体系是工程控制面，承载产品北极星、隐私边
 - [任务方案文档规范](plans/README.md)
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2、5、6、9 节
 - [文档体系规范](_meta/documentation-system.md) 的第 4 节
+- [架构开发备忘录目录](architecture/notes/README.md)
 - [数据存储、迁移、导出与附件规范](spec/007-data-storage-migration-export-and-attachments.md)
 - [learning-content 实现地图](spec/learning-content/impl.md)
 - [ADR-005：坚持本地优先和用户自带 Provider](decisions/005-local-first-and-user-owned-providers.md)
@@ -220,6 +222,8 @@ LangoTrace 的文档体系是工程控制面，承载产品北极星、隐私边
 - FTS 和向量索引。
 - WebDAV / S3 / R2 / iCloud 同步。
 - 冲突解决。
+
+创建数据、存储、同步、附件、导出或长期记忆任务方案前，应检查 `docs/architecture/notes/` 是否存在相关开发备忘录，并在任务方案中说明采纳、暂不采纳或需要提升为正式架构文档、spec、ADR 的内容。
 
 ### 5.5 AI、Prompt、TTS、OCR 和语音能力
 
@@ -368,6 +372,7 @@ docs/
 ## 8. 目录职责
 
 - `architecture/`：工程架构、模块边界、数据模型、同步模型、AI Provider、长期记忆和安全边界。
+- `architecture/notes/`：架构级开发备忘录，记录尚未进入正式方案、spec 或 ADR 的跨任务扩展提醒；创建相关任务方案前应主动检查，但不能把其中内容直接当作已接受实现事实。
 - `platform-page-inventory.md`：三端页面清单和当前页面事实源，记录 iPhone、iPad、macOS 页面、入口、实现状态、能力边界、代码路径和审查关注点。
 - `_meta/`：文档体系自身规则，记录目录职责、权威类型、写入规则和退出目录。
 - `archive/`：历史参考和已退出目录内容，不作为新任务入口。

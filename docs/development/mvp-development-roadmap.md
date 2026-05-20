@@ -226,7 +226,7 @@ MVP 应优先保证 iPhone + iPad 核心学习闭环成立，macOS 保持可信�
 
 边界：
 
-- 语言空间启动恢复可以先使用轻量 repository，不代表长期数据库方案。
+- 语言空间启动恢复必须按真实数据基础设施建设，直接使用 SQLite / GRDB 和多语言空间模型；不得再以单空间 UserDefaults 或轻量 repository 作为可交付方案。
 - Entry 一旦进入真实持久化，必须开始考虑迁移、导出、错误和数据损坏处理。
 - SQLite / GRDB 仍是长期主存储候选，SwiftData 只能作为局部原型备选。
 
@@ -238,7 +238,7 @@ MVP 应优先保证 iPhone + iPad 核心学习闭环成立，macOS 保持可信�
 
 文档落点：
 
-- 语言空间启动恢复继续使用 `docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md`。
+- 语言空间数据基础设施、启动恢复和 iOS 语言空间管理页使用 `docs/plans/active/2026-05-20-feature-language-space-data-infrastructure.md`。
 - Entry 本地保存需要单独创建 active plan。
 - 数据 schema、迁移、导出和附件规则进入 `docs/spec/007-data-storage-migration-export-and-attachments.md` 或 architecture 文档。
 
@@ -342,7 +342,7 @@ MVP 应优先保证 iPhone + iPad 核心学习闭环成立，macOS 保持可信�
 1. 创建并确认全面 UI 审核与设计提升任务方案。
 2. 执行页面审核，沉淀页面级和组件级问题清单。
 3. 按审核结果做第一轮 UI 收敛，不扩展真实功能。
-4. 复查并恢复 `docs/plans/active/2026-05-17-feature-language-space-persistence-startup-restore.md`，完成语言空间启动恢复。
+4. 确认并实施 `docs/plans/active/2026-05-20-feature-language-space-data-infrastructure.md`，完成语言空间 SQLite / GRDB 数据基础设施、启动恢复和 iOS 管理页。
 5. 设计并实现 Entry 本地保存最小闭环。
 6. 进入 Request Preview 和最小 AI 文本转换。
 

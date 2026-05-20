@@ -41,6 +41,7 @@
 - 记录模块边界、依赖方向和核心数据流。
 - 记录数据模型、SQLite schema、迁移策略、Repository 设计和索引策略。
 - 记录 AI Provider、Prompt Preset、TTS、OCR、Speech、Sync Engine 和 StoreKit 的技术边界。
+- `docs/architecture/notes/` 保存架构级开发备忘录，用于记录尚未进入正式架构文档、spec、ADR 或任务方案的跨任务扩展提醒。
 
 推荐命名：
 
@@ -49,7 +50,10 @@ docs/architecture/001-app-shell-and-module-boundaries.md
 docs/architecture/002-local-data-model.md
 docs/architecture/003-ai-provider-architecture.md
 docs/architecture/004-sync-engine.md
+docs/architecture/notes/YYYY-MM-DD-<topic>-notes.md
 ```
+
+架构开发备忘录不是最终事实源。它只能作为未来任务方案的设计输入和检查清单；后续采纳其中结论时，必须提升到对应任务方案、正式架构文档、`docs/spec/` 或 `docs/decisions/`。
 
 ### 2.3 决策记录
 
@@ -317,6 +321,26 @@ docs/review/
 - 没有结论的零散竞品截图描述。
 
 若内容有参考价值，应先放入 `docs/reference/research/`，待形成结论后再同步到主参考文档、spec、architecture 或 ADR。
+
+若内容不是外部研究，而是当前开发过程产生的跨任务架构提醒，应放入对应领域的开发备忘录。当前架构级备忘录统一写入 `docs/architecture/notes/`；测试、发布、Prompt、参考研究等备忘性质内容应优先落入各自已有目录，而不是新增泛化的 `docs/memos/` 目录。
+
+### 3.3.1 主动创建开发备忘录的情况
+
+以下情况应主动创建或更新开发备忘录：
+
+- 当前任务明确不实现某个未来能力，但当前设计会影响该未来能力的边界。
+- 一个风险或候选方案会被多个未来任务复用，不适合只留在单个任务方案中。
+- 讨论形成了重要的跨模块扩展提醒，但尚未稳定到需要写入 spec、正式架构文档或 ADR。
+- 若后续 AI 会话忽略该提醒，可能造成数据库迁移、同步协议、隐私边界、权限模型、导出恢复或模块边界返工。
+
+不应创建开发备忘录的情况：
+
+- 单个任务的实施步骤、用户确认、验证命令和完成记录，应留在 `docs/plans/`。
+- 已经稳定为开发一致性规则的内容，应写入 `docs/spec/`。
+- 已经成为不可轻易反转的产品、架构、隐私、同步、付费取舍，应写入 `docs/decisions/`。
+- 外部参考项目、竞品分析和许可证研究，应写入 `docs/reference/research/`。
+- 手动测试流程和验证记录，应写入 `docs/testing/` 或对应任务方案。
+- 发布、StoreKit 和 App Store 相关提醒，应写入 `docs/release/` 或对应任务方案。
 
 ### 3.4 文档审查规则
 
