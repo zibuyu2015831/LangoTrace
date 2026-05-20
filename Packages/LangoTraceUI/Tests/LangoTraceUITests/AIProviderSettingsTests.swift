@@ -408,6 +408,87 @@ struct AIProviderSettingsTests {
     }
 }
 
+@Suite("AI provider platform consistency")
+struct AIProviderPlatformConsistencyTests {
+    @Test("iPad and Mac workspace route AI provider through shared settings detail")
+    func iPadAndMacWorkspaceRouteAIProviderThroughSharedSettingsDetail() throws {
+        let padSource = try String(contentsOf: sourceFileURL(named: "PadMainSections.swift"), encoding: .utf8)
+        let macSource = try String(contentsOf: sourceFileURL(named: "MacWorkspaceContentView.swift"), encoding: .utf8)
+
+        #expect(padSource.contains("SettingsCapabilityDetailView("))
+        #expect(padSource.contains("capability: capability"))
+        #expect(padSource.contains("onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange"))
+        #expect(!padSource.contains("AIProviderSettingsView()"))
+        #expect(!padSource.contains("PadAIProviderSettingsView"))
+
+        #expect(macSource.contains("SettingsCapabilityDetailView("))
+        #expect(macSource.contains("presentation: .embeddedInExistingScroll"))
+        #expect(macSource.contains("onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange"))
+        #expect(!macSource.contains("AIProviderSettingsView()"))
+        #expect(!macSource.contains("MacAIProviderSettingsView"))
+    }
+
+    @Test("macOS settings scene and root inject the same AI provider actions")
+    func macOSSettingsSceneAndRootInjectSameAIProviderActions() throws {
+        let appSource = try String(contentsOf: appSourceFileURL(named: "LangoTraceApp.swift"), encoding: .utf8)
+        let sceneSource = try String(
+            contentsOf: sourceFileURL(named: "LangoTraceSettingsSceneView.swift"),
+            encoding: .utf8
+        )
+
+        let actionInjectionNeedle = ".environment(\\.aiProviderSettingsActions, environment.aiProviderSettingsActions)"
+        let actionInjectionCount = appSource
+            .components(separatedBy: actionInjectionNeedle)
+            .count - 1
+
+        #expect(sceneSource.contains("SettingsCapabilityDetailView("))
+        #expect(sceneSource.contains("selection = .capability(capability.kind)"))
+        #expect(!sceneSource.contains("AIProviderSettingsView()"))
+        #expect(appSource.contains("Settings {"))
+        #expect(appSource.contains("LangoTraceSettingsSceneView("))
+        #expect(actionInjectionCount == 2)
+    }
+
+    @Test("Shared detail is the only platform owner for AI provider form")
+    func sharedDetailIsOnlyPlatformOwnerForAIProviderForm() throws {
+        let detailSource = try String(
+            contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(detailSource.contains("AIProviderSettingsView()"))
+        #expect(detailSource.contains("aiProviderSettingsContainer"))
+        #expect(detailSource.contains("aiProviderSettingsContentMaxWidth"))
+        #expect(detailSource.contains(".frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)"))
+        #expect(detailSource.contains("#if os(macOS)"))
+        #expect(detailSource.contains("860"))
+        #expect(detailSource.contains("820"))
+        #expect(!detailSource.contains("PadAIProviderSettingsView"))
+        #expect(!detailSource.contains("MacAIProviderSettingsView"))
+    }
+
+    private func sourceFileURL(named fileName: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources")
+            .appendingPathComponent("LangoTraceUI")
+            .appendingPathComponent(fileName)
+    }
+
+    private func appSourceFileURL(named fileName: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("LangoTraceApp")
+            .appendingPathComponent(fileName)
+    }
+}
+
 @Suite("AI provider settings save status repair")
 struct AIProviderSettingsSaveStatusRepairTests {
     @Test("Loaded profile save input preserves profile and endpoint identities")
