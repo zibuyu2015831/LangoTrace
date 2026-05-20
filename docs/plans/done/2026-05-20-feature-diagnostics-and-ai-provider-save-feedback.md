@@ -662,6 +662,7 @@ rg -n "ProcessInfo|processInfo\\.environment|LANGOTRACE_" Packages/LangoTraceCor
 - 2026-05-20：阶段 5 更新长期规范和验证脚本。已更新 UI 操作反馈、SwiftUI 异步保存边界、AI Provider 保存诊断、权限与诊断日志隐私边界、测试验证入口、模块边界和 `scripts/verify.sh` 的 AI package 覆盖。
 - 2026-05-20：验证修复已提交 `6cc1ab0` 和 `3188d6a`。前者拆分 AI Provider 保存 workflow，消除 SwiftLint serious；后者按 SwiftFormat 规则格式化诊断基础设施文件。
 - 2026-05-20：最终收口验证通过并移入 `docs/plans/done/`。完整 `scripts/verify.sh` 退出码 0；SwiftLint 剩余 19 个非阻断 warning，0 serious。
+- 2026-05-20：系统架构复查发现 `diagnostic_events` repository 已提供手动 `prune`，但 `record` 写入时未自动应用保留策略，不符合 ring buffer 边界；已补齐写入后同事务按数量和时间裁剪，并新增 `InMemoryDiagnosticEventRepository` 与回归测试。
 
 ## 16. 完成标准
 
@@ -697,7 +698,7 @@ rg -n "ProcessInfo|processInfo\\.environment|LANGOTRACE_" Packages/LangoTraceCor
 ## 18. 最终验证记录
 
 - `swift test --package-path Packages/LangoTraceCore`：通过，39 tests。
-- `swift test --package-path Packages/LangoTraceData`：通过，26 tests。
+- `swift test --package-path Packages/LangoTraceData`：通过，27 tests。
 - `swift test --package-path Packages/LangoTraceAI`：通过，12 tests。
 - `swift test --package-path Packages/LangoTraceUI`：通过，137 tests。
 - `xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build`：通过。

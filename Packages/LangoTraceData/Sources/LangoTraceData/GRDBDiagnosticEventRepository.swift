@@ -4,9 +4,17 @@ import LangoTraceCore
 
 public struct GRDBDiagnosticEventRepository: DiagnosticEventRepository, @unchecked Sendable {
     private let databaseQueue: DatabaseQueue
+    private let retentionPolicy: DiagnosticRetentionPolicy
+    private let clock: @Sendable () -> Date
 
-    public init(database: AppDatabase) {
+    public init(
+        database: AppDatabase,
+        retentionPolicy: DiagnosticRetentionPolicy = DiagnosticRetentionPolicy(),
+        clock: @escaping @Sendable () -> Date = Date.init
+    ) {
         databaseQueue = database.databaseQueue
+        self.retentionPolicy = retentionPolicy
+        self.clock = clock
     }
 
     public func record(_ event: DiagnosticEvent) async throws {
@@ -28,6 +36,11 @@ public struct GRDBDiagnosticEventRepository: DiagnosticEventRepository, @uncheck
                     attributesJSON(from: event.attributes),
                     event.createdAt.timeIntervalSince1970,
                 ]
+            )
+            try prune(
+                db,
+                keepingMostRecent: retentionPolicy.maximumEventCount,
+                newerThan: clock().addingTimeInterval(-retentionPolicy.maximumAge)
             )
         }
     }
@@ -53,33 +66,37 @@ public struct GRDBDiagnosticEventRepository: DiagnosticEventRepository, @uncheck
 
     public func prune(keepingMostRecent count: Int, newerThan cutoff: Date) async throws {
         try await databaseQueue.write { db in
-            try db.execute(
-                sql: "DELETE FROM diagnostic_events WHERE created_at < ?",
-                arguments: [cutoff.timeIntervalSince1970]
-            )
-
-            guard count > 0 else {
-                try db.execute(sql: "DELETE FROM diagnostic_events")
-                return
-            }
-
-            try db.execute(
-                sql: """
-                DELETE FROM diagnostic_events
-                WHERE id NOT IN (
-                    SELECT id
-                    FROM diagnostic_events
-                    ORDER BY created_at DESC, id DESC
-                    LIMIT ?
-                )
-                """,
-                arguments: [count]
-            )
+            try prune(db, keepingMostRecent: count, newerThan: cutoff)
         }
     }
 }
 
 private extension GRDBDiagnosticEventRepository {
+    func prune(_ db: Database, keepingMostRecent count: Int, newerThan cutoff: Date) throws {
+        try db.execute(
+            sql: "DELETE FROM diagnostic_events WHERE created_at < ?",
+            arguments: [cutoff.timeIntervalSince1970]
+        )
+
+        guard count > 0 else {
+            try db.execute(sql: "DELETE FROM diagnostic_events")
+            return
+        }
+
+        try db.execute(
+            sql: """
+            DELETE FROM diagnostic_events
+            WHERE id NOT IN (
+                SELECT id
+                FROM diagnostic_events
+                ORDER BY created_at DESC, id DESC
+                LIMIT ?
+            )
+            """,
+            arguments: [count]
+        )
+    }
+
     func event(from row: Row) throws -> DiagnosticEvent {
         try DiagnosticEvent(
             id: row["id"],

@@ -7,7 +7,11 @@ import Testing
 @Test("Diagnostic event repository records and loads recent allowlisted events")
 func diagnosticEventRepositoryRecordsAndLoadsRecentAllowlistedEvents() async throws {
     let database = try AppDatabase.inMemory()
-    let repository = GRDBDiagnosticEventRepository(database: database)
+    let repository = GRDBDiagnosticEventRepository(
+        database: database,
+        retentionPolicy: DiagnosticRetentionPolicy(maximumEventCount: 10, maximumAge: 1000),
+        clock: { Date(timeIntervalSince1970: 300) }
+    )
     let operationID = DiagnosticOperationID(rawValue: "operation-1")
 
     try await repository.record(
@@ -48,7 +52,11 @@ func diagnosticEventRepositoryRecordsAndLoadsRecentAllowlistedEvents() async thr
 @Test("Diagnostic event repository prunes by count and cutoff")
 func diagnosticEventRepositoryPrunesByCountAndCutoff() async throws {
     let database = try AppDatabase.inMemory()
-    let repository = GRDBDiagnosticEventRepository(database: database)
+    let repository = GRDBDiagnosticEventRepository(
+        database: database,
+        retentionPolicy: DiagnosticRetentionPolicy(maximumEventCount: 10, maximumAge: 1000),
+        clock: { Date(timeIntervalSince1970: 500) }
+    )
 
     for index in 1 ... 4 {
         try await repository.record(
@@ -64,6 +72,29 @@ func diagnosticEventRepositoryPrunesByCountAndCutoff() async throws {
         keepingMostRecent: 2,
         newerThan: Date(timeIntervalSince1970: 250)
     )
+
+    let recent = try await repository.recentEvents(limit: 10)
+    #expect(recent.map(\.id) == ["event-4", "event-3"])
+}
+
+@Test("Diagnostic event repository applies retention policy after record")
+func diagnosticEventRepositoryAppliesRetentionPolicyAfterRecord() async throws {
+    let database = try AppDatabase.inMemory()
+    let repository = GRDBDiagnosticEventRepository(
+        database: database,
+        retentionPolicy: DiagnosticRetentionPolicy(maximumEventCount: 2, maximumAge: 250),
+        clock: { Date(timeIntervalSince1970: 500) }
+    )
+
+    for index in 1 ... 4 {
+        try await repository.record(
+            diagnosticEvent(
+                id: "event-\(index)",
+                operationID: DiagnosticOperationID(rawValue: "operation-\(index)"),
+                createdAt: Date(timeIntervalSince1970: Double(index * 100))
+            )
+        )
+    }
 
     let recent = try await repository.recentEvents(limit: 10)
     #expect(recent.map(\.id) == ["event-4", "event-3"])

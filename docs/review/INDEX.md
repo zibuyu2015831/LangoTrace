@@ -53,7 +53,7 @@
 
 | 轮次 | 问题数 | 代码问题记录数 | 新会话可用抽样 |
 | --- | --- | --- | --- |
-| `2026-05-20-diagnostics-provider-save-feedback` | 5 个文档事实 / 规范覆盖问题，已修正 AI package 验证缺口、诊断日志隐私边界、Provider 保存诊断、SwiftUI / UI 操作反馈和模块边界快照；剩余风险是用户可见诊断设置页、诊断包导出和真实 Provider 合成探测 | 1 个代码边界补丁：输入无效保存路径独立记录 `save_input_invalid`，不污染真实保存失败 | 通过：README 覆盖触发原因、当前事实、延期项、验证记录和剩余风险 |
+| `2026-05-20-diagnostics-provider-save-feedback` | 6 个文档 / 架构事实问题，已修正 AI package 验证缺口、诊断日志隐私边界、Provider 保存诊断、SwiftUI / UI 操作反馈、模块边界快照和诊断 ring buffer 自动保留策略；剩余风险是用户可见诊断设置页、诊断包导出和真实 Provider 合成探测 | 2 个代码边界补丁：输入无效保存路径独立记录 `save_input_invalid`；`diagnostic_events` 写入后同事务应用数量 / 时间保留策略 | 通过：README 覆盖触发原因、当前事实、延期项、验证记录和剩余风险 |
 | `2026-05-20-ai-provider-configuration-storage` | 4 个文档事实问题，已修正 plan 状态、AI Provider 页面事实、Keychain/隐私规范和模块边界快照；剩余风险是真实 Provider 合成探测、凭证轮换 / 删除 UI、cleanup retry 和 iOS / iPadOS Keychain 行为验证 | 0 个新增代码问题；审查确认当前实现不发网络、不回填 API Key 明文、不把 secret 写入 SQLite | 通过：README 覆盖触发原因、当前事实、延期项、验证记录和剩余风险 |
 | `2026-05-20-language-space-data-infrastructure` | 3 个问题，已修复 missing current fallback、iOS 重命名闭环和长期文档事实漂移；剩余风险是 App 层独立测试 target、存储错误视图、全语言翻译和 iPad/macOS 管理 UI | 2 个代码/测试问题，1 个文档事实问题 | 通过：README 覆盖发现、处理、剩余风险和验证记录 |
 | `2026-05-19-ios-page-element-design-audit` | P1 5 个，P2 5 个，P3 3 个；核心结论是 iOS 主流程去说明化，请求预览只在显式外部 AI 请求中出现 | 13 个元素级设计 / 交互问题 | 通过：单轮 README 覆盖 Welcome、Onboarding、记录、详情、练习、记忆、设置、unavailable 和共享组件 |

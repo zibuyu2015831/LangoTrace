@@ -51,6 +51,7 @@
 | DP-003 | P1 | AI Provider 规范未固定保存阶段、operation id、cleanup failure 和非敏感日志字段边界。 | 已更新 `005`。 |
 | DP-004 | P1 | SwiftUI 与 UI 规范没有沉淀保存类异步操作的 input invalid、saving、saved、failed 和 best-effort logging 边界。 | 已更新 `003` 和 `004`。 |
 | DP-005 | P1 | 模块边界快照缺少 Diagnostic model、repository、App Shell logger 装配和 AI service 保存失败分类事实。 | 已更新 `001`。 |
+| DP-006 | P1 | 系统架构复查发现 `diagnostic_events` repository 虽有手动 `prune`，但 `record` 写入不自动执行数量 / 时间保留策略，开启本地诊断 store 后不满足 ring buffer 边界。 | 已补齐写入后同事务自动裁剪、内存 repository 和 Data 层回归测试。 |
 
 ## 6. 文档修改记录
 
@@ -85,6 +86,7 @@
 - `xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build`：阶段 4 修复 AppEnvironment 签名后通过。
 - `git diff --check`：文档更新后通过。
 - 文档占位扫描：文档更新后无命中。
+- 2026-05-20 架构复查追加：`swift test --package-path Packages/LangoTraceData` 通过，27 tests，覆盖 `record` 写入后自动应用 retention policy。
 
 完整收尾仍需在任务方案移入 done 前运行 `scripts/verify.sh`、敏感字段扫描和最终 `git status --short`。
 
