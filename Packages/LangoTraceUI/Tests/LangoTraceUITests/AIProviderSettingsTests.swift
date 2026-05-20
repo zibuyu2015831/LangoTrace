@@ -133,6 +133,15 @@ struct AIProviderSettingsTests {
         #expect(source.contains("actions.saveDefaultProfile"))
     }
 
+    @Test("Settings source records invalid save input separately from save failure")
+    func settingsSourceRecordsInvalidSaveInputSeparatelyFromSaveFailure() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+
+        #expect(source.contains(".aiProviderSettingsSaveInputInvalid"))
+        #expect(source.contains("draft.saveState = .missingRequiredFields"))
+        #expect(source.contains("return"))
+    }
+
     @Test("Draft save input maps endpoints and clears plaintext after saved profile")
     func draftSaveInputMapsEndpointsAndClearsPlaintextAfterSavedProfile() throws {
         var draft = AIProviderDraftConfiguration(provider: .openAI)

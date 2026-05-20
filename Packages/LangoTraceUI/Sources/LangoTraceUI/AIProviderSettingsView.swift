@@ -140,14 +140,31 @@ private extension AIProviderSettingsView {
     func saveConfiguration() {
         Task { @MainActor in
             let operationID = actions.operationIDGenerator()
-            draft.saveState = .saving
             await recordSaveEvent(
                 .aiProviderSettingsSaveTapped,
                 outcome: .started,
                 operationID: operationID
             )
+            let input: AIProviderProfileSaveInput
             do {
-                let input = try draft.makeProfileSaveInput()
+                input = try draft.makeProfileSaveInput()
+            } catch {
+                let failure = AIProviderSaveFailureDisplay(error: error)
+                draft.saveState = .missingRequiredFields
+                await recordSaveEvent(
+                    .aiProviderSettingsSaveInputInvalid,
+                    outcome: .failed,
+                    operationID: operationID,
+                    attributes: [
+                        .failurePhase(failure.phase.rawValue),
+                        .errorCategory(failure.category.rawValue),
+                    ]
+                )
+                return
+            }
+
+            draft.saveState = .saving
+            do {
                 await recordSaveEvent(
                     .aiProviderSettingsSaveStarted,
                     outcome: .started,
