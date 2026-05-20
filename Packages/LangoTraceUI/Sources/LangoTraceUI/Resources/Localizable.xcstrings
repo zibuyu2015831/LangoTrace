@@ -12441,19 +12441,53 @@
         }
       }
     },
-    "aiProviderSettings.saveState.mockSavedSecurely": {
-      "comment": "Mock saved state for AI provider save action.",
+    "aiProviderSettings.saveState.failed": {
+      "comment": "Failed state for AI provider save action.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Configuration is ready for encrypted storage"
+            "value": "Could not save configuration"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "配置已准备加密保存"
+            "value": "配置保存失败"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.saveState.saved": {
+      "comment": "Saved state for AI provider save action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration saved on this device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置已保存到本机安全存储"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.saveState.saving": {
+      "comment": "Saving state for AI provider save action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在保存..."
           }
         }
       }

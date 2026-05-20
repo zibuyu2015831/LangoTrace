@@ -18,6 +18,7 @@ struct AppEnvironment {
     static func bootstrap() -> AppEnvironment {
         let databaseFactory = SharedAppDatabaseFactory()
         let credentialStore = KeychainAIProviderCredentialStore()
+        let diagnosticLogger = makeDiagnosticLogger(databaseFactory: databaseFactory)
 
         return AppEnvironment(
             makeLanguageSpaceRepository: {
@@ -30,23 +31,29 @@ struct AppEnvironment {
                 loadDefaultProfile: {
                     let service = try makeAIProviderConfigurationService(
                         databaseFactory: databaseFactory,
-                        credentialStore: credentialStore
+                        credentialStore: credentialStore,
+                        diagnosticLogger: diagnosticLogger
                     )
                     return try await service.loadDefaultProfile()
                 },
-                saveDefaultProfile: { input in
+                saveDefaultProfile: { input, operationID in
                     let service = try makeAIProviderConfigurationService(
                         databaseFactory: databaseFactory,
-                        credentialStore: credentialStore
+                        credentialStore: credentialStore,
+                        diagnosticLogger: diagnosticLogger
                     )
-                    return try await service.saveDefaultProfile(input)
+                    return try await service.saveDefaultProfile(input, operationID: operationID)
                 },
                 validateDefaultProfileCredentials: {
                     let service = try makeAIProviderConfigurationService(
                         databaseFactory: databaseFactory,
-                        credentialStore: credentialStore
+                        credentialStore: credentialStore,
+                        diagnosticLogger: diagnosticLogger
                     )
                     return try await service.validateDefaultProfileCredentials()
+                },
+                recordDiagnosticEvent: { event in
+                    await diagnosticLogger.record(event)
                 }
             ),
             aiProvider: DisabledAIProvider(),
@@ -77,12 +84,57 @@ private final class SharedAppDatabaseFactory: @unchecked Sendable {
 
 private func makeAIProviderConfigurationService(
     databaseFactory: SharedAppDatabaseFactory,
-    credentialStore: any AIProviderCredentialStore
+    credentialStore: any AIProviderCredentialStore,
+    diagnosticLogger: any DiagnosticLogging
 ) throws -> AIProviderConfigurationService {
     try AIProviderConfigurationService(
         repository: GRDBAIProviderConfigurationRepository(database: databaseFactory.database()),
-        credentialStore: credentialStore
+        credentialStore: credentialStore,
+        diagnosticLogger: diagnosticLogger
     )
+}
+
+private func makeDiagnosticLogger(
+    databaseFactory: SharedAppDatabaseFactory,
+    environment: [String: String] = ProcessInfo.processInfo.environment
+) -> any DiagnosticLogging {
+    var loggers: [any DiagnosticLogging] = []
+
+    if environment["LANGOTRACE_DIAGNOSTICS"] == "1" {
+        loggers.append(
+            ConsoleDiagnosticLogger(
+                minimumLevel: diagnosticLevel(from: environment["LANGOTRACE_LOG_LEVEL"])
+            )
+        )
+    }
+
+    if environment["LANGOTRACE_DIAGNOSTIC_STORE"] == "1",
+       let repository = try? GRDBDiagnosticEventRepository(database: databaseFactory.database())
+    {
+        loggers.append(RepositoryDiagnosticLogger(repository: repository))
+    }
+
+    switch loggers.count {
+    case 0:
+        return DisabledDiagnosticLogger()
+    case 1:
+        return loggers[0]
+    default:
+        return CompositeDiagnosticLogger(loggers: loggers)
+    }
+}
+
+private func diagnosticLevel(from value: String?) -> DiagnosticLevel {
+    switch value {
+    case "debug":
+        .debug
+    case "warning":
+        .warning
+    case "error":
+        .error
+    default:
+        .info
+    }
 }
 
 extension EnvironmentValues {

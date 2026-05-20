@@ -46,3 +46,50 @@ func aiProviderSaveFailurePreservesPrimaryPhaseWhenCleanupAlsoFails() {
     #expect(failure.category == .databaseWriteFailed)
     #expect(failure.cleanupFailure == .credentialCleanupFailed)
 }
+
+@Test("Repository diagnostic logger swallows repository failures")
+func repositoryDiagnosticLoggerSwallowsRepositoryFailures() async {
+    let logger = RepositoryDiagnosticLogger(repository: FailingDiagnosticEventRepository())
+
+    await logger.record(sampleDiagnosticEvent(id: "event-failing-repository"))
+}
+
+@Test("Composite diagnostic logger records to all loggers")
+func compositeDiagnosticLoggerRecordsToAllLoggers() async {
+    let first = InMemoryDiagnosticLogger()
+    let second = InMemoryDiagnosticLogger()
+    let logger = CompositeDiagnosticLogger(loggers: [first, second])
+
+    await logger.record(sampleDiagnosticEvent(id: "event-composite"))
+
+    #expect(await first.events().map(\.id) == ["event-composite"])
+    #expect(await second.events().map(\.id) == ["event-composite"])
+}
+
+private struct FailingDiagnosticEventRepository: DiagnosticEventRepository {
+    func record(_: DiagnosticEvent) async throws {
+        throw TestDiagnosticRepositoryError.recordFailed
+    }
+
+    func recentEvents(limit _: Int) async throws -> [DiagnosticEvent] {
+        []
+    }
+
+    func prune(keepingMostRecent _: Int, newerThan _: Date) async throws {}
+}
+
+private enum TestDiagnosticRepositoryError: Error {
+    case recordFailed
+}
+
+private func sampleDiagnosticEvent(id: String) -> DiagnosticEvent {
+    DiagnosticEvent(
+        id: id,
+        name: .aiProviderSettingsSaveStarted,
+        domain: .aiProviderSettings,
+        level: .info,
+        outcome: .started,
+        attributes: [.operationID(DiagnosticOperationID(rawValue: "operation"))],
+        createdAt: Date(timeIntervalSince1970: 100)
+    )
+}

@@ -1,3 +1,5 @@
+import Foundation
+import LangoTraceCore
 import SwiftUI
 
 struct AIProviderSettingsView: View {
@@ -66,15 +68,19 @@ struct AIProviderSettingsView: View {
                 saveConfiguration()
             } label: {
                 Label {
-                    localizedText("aiProviderSettings.save.button")
+                    localizedText(saveButtonTitleKey)
                 } icon: {
-                    Image(systemName: "lock.shield")
+                    if isSaving {
+                        ProgressView()
+                    } else {
+                        Image(systemName: "lock.shield")
+                    }
                 }
                 .font(.callout.weight(.semibold))
                 .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(draft.testReadiness == .missingRequiredFields)
+            .disabled(draft.testReadiness == .missingRequiredFields || isSaving)
 
             Button {
                 validateConfiguration()
@@ -88,7 +94,7 @@ struct AIProviderSettingsView: View {
                 .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
             }
             .buttonStyle(.bordered)
-            .disabled(draft.testReadiness == .missingRequiredFields)
+            .disabled(draft.testReadiness == .missingRequiredFields || isSaving)
 
             statusPanel
         }
@@ -133,12 +139,39 @@ private extension AIProviderSettingsView {
 
     func saveConfiguration() {
         Task { @MainActor in
+            let operationID = actions.operationIDGenerator()
+            draft.saveState = .saving
+            await recordSaveEvent(
+                .aiProviderSettingsSaveTapped,
+                outcome: .started,
+                operationID: operationID
+            )
             do {
                 let input = try draft.makeProfileSaveInput()
-                let profile = try await actions.saveDefaultProfile(input)
+                await recordSaveEvent(
+                    .aiProviderSettingsSaveStarted,
+                    outcome: .started,
+                    operationID: operationID
+                )
+                let profile = try await actions.saveDefaultProfile(input, operationID)
                 draft.applySavedProfile(profile)
+                await recordSaveEvent(
+                    .aiProviderSettingsSaveSucceeded,
+                    outcome: .succeeded,
+                    operationID: operationID
+                )
             } catch {
-                draft.saveState = .saveFailed
+                let failure = AIProviderSaveFailureDisplay(error: error)
+                draft.saveState = .failed(failure)
+                await recordSaveEvent(
+                    .aiProviderSettingsSaveFailed,
+                    outcome: .failed,
+                    operationID: operationID,
+                    attributes: [
+                        .failurePhase(failure.phase.rawValue),
+                        .errorCategory(failure.category.rawValue),
+                    ]
+                )
             }
         }
     }
@@ -160,20 +193,30 @@ private extension AIProviderSettingsView {
     }
 
     var statusTitleKey: String {
-        if draft.testReadiness == .missingRequiredFields {
-            return "aiProviderSettings.saveState.missingRequiredFields"
+        switch draft.saveState {
+        case .saving, .saved, .failed:
+            return draft.saveState.titleKey
+        case .idle, .missingRequiredFields:
+            break
         }
 
-        if draft.saveState == .mockSavedSecurely {
-            return draft.saveState.titleKey
+        if draft.testReadiness == .missingRequiredFields {
+            return "aiProviderSettings.saveState.missingRequiredFields"
         }
 
         return "aiProviderSettings.saveState.idle"
     }
 
     var statusIconName: String {
-        if draft.saveState == .mockSavedSecurely {
+        switch draft.saveState {
+        case .saving:
+            return "clock"
+        case .saved:
             return "checkmark.circle"
+        case .failed:
+            return "exclamationmark.triangle"
+        case .idle, .missingRequiredFields:
+            break
         }
 
         if draft.testReadiness == .missingRequiredFields {
@@ -184,6 +227,17 @@ private extension AIProviderSettingsView {
     }
 
     var statusTone: Color {
+        switch draft.saveState {
+        case .saved:
+            return LangoTraceDesign.ColorToken.stateReady
+        case .failed:
+            return LangoTraceDesign.ColorToken.danger
+        case .saving:
+            return LangoTraceDesign.ColorToken.accent
+        case .idle, .missingRequiredFields:
+            break
+        }
+
         if draft.testReadiness == .missingRequiredFields {
             return LangoTraceDesign.ColorToken.warning
         }
@@ -191,31 +245,51 @@ private extension AIProviderSettingsView {
         return LangoTraceDesign.ColorToken.accent
     }
 
+    var saveButtonTitleKey: String {
+        isSaving ? "aiProviderSettings.saveState.saving" : "aiProviderSettings.save.button"
+    }
+
+    var isSaving: Bool {
+        draft.saveState == .saving
+    }
+
     var textProviderBinding: Binding<AIProviderPreset> {
         Binding(
             get: { draft.text.endpoint.provider },
-            set: { draft.text.updateProvider($0) }
+            set: {
+                draft.markInputChanged()
+                draft.text.updateProvider($0)
+            }
         )
     }
 
     var textBaseURLBinding: Binding<String> {
         Binding(
             get: { draft.text.endpoint.baseURL },
-            set: { draft.text.endpoint.baseURL = $0 }
+            set: {
+                draft.markInputChanged()
+                draft.text.endpoint.baseURL = $0
+            }
         )
     }
 
     var textModelBinding: Binding<String> {
         Binding(
             get: { draft.text.endpoint.model },
-            set: { draft.text.endpoint.model = $0 }
+            set: {
+                draft.markInputChanged()
+                draft.text.endpoint.model = $0
+            }
         )
     }
 
     var textAPIKeyBinding: Binding<String> {
         Binding(
             get: { draft.text.endpoint.independentCredential.apiKeyDraft },
-            set: { draft.text.endpoint.independentCredential.apiKeyDraft = $0 }
+            set: {
+                draft.markInputChanged()
+                draft.text.endpoint.independentCredential.apiKeyDraft = $0
+            }
         )
     }
 
@@ -223,6 +297,7 @@ private extension AIProviderSettingsView {
         Binding(
             get: { draft.text.imageUnderstandingEnabled },
             set: {
+                draft.markInputChanged()
                 draft.text.imageUnderstandingEnabled = $0 &&
                     draft.text.endpoint.provider.capabilities.imageUnderstanding
             }
@@ -232,14 +307,39 @@ private extension AIProviderSettingsView {
     var speechBinding: Binding<AIOptionalModelDraftConfiguration> {
         Binding(
             get: { draft.speech },
-            set: { draft.speech = $0 }
+            set: {
+                draft.markInputChanged()
+                draft.speech = $0
+            }
         )
     }
 
     var embeddingBinding: Binding<AIOptionalModelDraftConfiguration> {
         Binding(
             get: { draft.embedding },
-            set: { draft.embedding = $0 }
+            set: {
+                draft.markInputChanged()
+                draft.embedding = $0
+            }
+        )
+    }
+
+    func recordSaveEvent(
+        _ name: DiagnosticEventName,
+        outcome: DiagnosticOutcome,
+        operationID: DiagnosticOperationID,
+        attributes: [DiagnosticAttribute] = []
+    ) async {
+        await actions.recordDiagnosticEvent(
+            DiagnosticEvent(
+                id: UUID().uuidString,
+                name: name,
+                domain: .aiProviderSettings,
+                level: outcome == .failed ? .error : .info,
+                outcome: outcome,
+                attributes: [.operationID(operationID)] + attributes,
+                createdAt: Date()
+            )
         )
     }
 }

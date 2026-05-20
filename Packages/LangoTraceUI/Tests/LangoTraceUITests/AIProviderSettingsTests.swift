@@ -40,7 +40,20 @@ struct AIProviderSettingsTests {
         #expect(draft.testReadiness == .readyForMockRequest)
 
         draft.saveMockConfiguration()
-        #expect(draft.saveState == .mockSavedSecurely)
+        #expect(draft.saveState == .saved)
+    }
+
+    @Test("Draft save states expose independent saving saved and failed titles")
+    func draftSaveStatesExposeIndependentSavingSavedAndFailedTitles() {
+        let failure = AIProviderSaveFailureDisplay(
+            phase: .databaseWrite,
+            category: .databaseWriteFailed
+        )
+
+        #expect(AIProviderSaveState.saving.titleKey == "aiProviderSettings.saveState.saving")
+        #expect(AIProviderSaveState.saved.titleKey == "aiProviderSettings.saveState.saved")
+        #expect(AIProviderSaveState.failed(failure).titleKey == "aiProviderSettings.saveState.failed")
+        #expect(AIProviderSaveState.failed(failure).titleKey != AIProviderSaveState.missingRequiredFields.titleKey)
     }
 
     @Test("Draft model separates text speech and embedding endpoints from credentials")
@@ -104,10 +117,18 @@ struct AIProviderSettingsTests {
 
     @Test("Settings source has save-first secure-storage UI")
     func settingsSourceHasSaveFirstSecureStorageUI() throws {
-        let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+        let viewSource = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+        let draftSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderDraftConfiguration.swift"),
+            encoding: .utf8
+        )
+        let source = viewSource + draftSource
 
         #expect(source.contains("aiProviderSettings.save.button"))
         #expect(source.contains("aiProviderSettings.save.boundary"))
+        #expect(source.contains("ProgressView"))
+        #expect(source.contains("operationID"))
+        #expect(source.contains("aiProviderSettings.saveState.failed"))
         #expect(source.contains("saveConfiguration()"))
         #expect(source.contains("actions.saveDefaultProfile"))
     }
@@ -140,7 +161,7 @@ struct AIProviderSettingsTests {
         draft.applySavedProfile(emptySavedProfile())
         #expect(draft.text.endpoint.independentCredential.apiKeyDraft.isEmpty)
         #expect(draft.embedding.endpoint.independentCredential.apiKeyDraft.isEmpty)
-        #expect(draft.saveState == .mockSavedSecurely)
+        #expect(draft.saveState == .saved)
     }
 
     @Test("Loaded profile restores non secret endpoint fields without API key plaintext")

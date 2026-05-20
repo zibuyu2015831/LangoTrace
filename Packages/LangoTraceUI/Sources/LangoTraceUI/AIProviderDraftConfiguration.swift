@@ -19,8 +19,9 @@ enum AIProviderTestReadiness: Equatable {
 enum AIProviderSaveState: Equatable {
     case idle
     case missingRequiredFields
-    case mockSavedSecurely
-    case saveFailed
+    case saving
+    case saved
+    case failed(AIProviderSaveFailureDisplay)
 
     var titleKey: String {
         switch self {
@@ -28,10 +29,56 @@ enum AIProviderSaveState: Equatable {
             "aiProviderSettings.saveState.idle"
         case .missingRequiredFields:
             "aiProviderSettings.saveState.missingRequiredFields"
-        case .mockSavedSecurely:
-            "aiProviderSettings.saveState.mockSavedSecurely"
-        case .saveFailed:
-            "aiProviderSettings.saveState.missingRequiredFields"
+        case .saving:
+            "aiProviderSettings.saveState.saving"
+        case .saved:
+            "aiProviderSettings.saveState.saved"
+        case .failed:
+            "aiProviderSettings.saveState.failed"
+        }
+    }
+}
+
+struct AIProviderSaveFailureDisplay: Equatable {
+    var phase: AIProviderConfigurationSavePhase
+    var category: AIProviderConfigurationSaveFailureCategory
+
+    init(
+        phase: AIProviderConfigurationSavePhase = .unknown,
+        category: AIProviderConfigurationSaveFailureCategory = .unknown
+    ) {
+        self.phase = phase
+        self.category = category
+    }
+
+    init(error: Error) {
+        if let failure = error as? AIProviderConfigurationSaveFailure {
+            phase = failure.phase
+            category = failure.category
+        } else if let error = error as? AIProviderConfigurationError {
+            switch error {
+            case .missingRequiredEndpointField:
+                phase = .inputValidation
+                category = .missingRequiredEndpointField
+            case .invalidBaseURL, .unsupportedCapabilityForProvider:
+                phase = .inputValidation
+                category = .invalidBaseURL
+            case .missingRequiredAPIKey:
+                phase = .inputValidation
+                category = .missingRequiredAPIKey
+            case .keychainWriteFailed:
+                phase = .keychainWrite
+                category = .keychainWriteFailed
+            case .databaseWriteFailed:
+                phase = .databaseWrite
+                category = .databaseWriteFailed
+            case .orphanedCredentialCleanupFailed:
+                phase = .credentialCleanup
+                category = .credentialCleanupFailed
+            }
+        } else {
+            phase = .unknown
+            category = .unknown
         }
     }
 }
@@ -247,7 +294,7 @@ struct AIProviderDraftConfiguration: Equatable {
             return
         }
 
-        saveState = .mockSavedSecurely
+        saveState = .saved
     }
 
     func makeProfileSaveInput() throws -> AIProviderProfileSaveInput {
@@ -294,7 +341,7 @@ struct AIProviderDraftConfiguration: Equatable {
 
     mutating func applySavedProfile(_: AIProviderConfigurationProfile) {
         clearPlaintextSecrets()
-        saveState = .mockSavedSecurely
+        saveState = .saved
         testState = .idle
     }
 
@@ -326,8 +373,17 @@ struct AIProviderDraftConfiguration: Equatable {
         }
 
         clearPlaintextSecrets()
-        saveState = profile.status == .configured ? .mockSavedSecurely : .idle
+        saveState = profile.status == .configured ? .saved : .idle
         testState = .idle
+    }
+
+    mutating func markInputChanged() {
+        switch saveState {
+        case .saved, .failed:
+            saveState = .idle
+        case .idle, .missingRequiredFields, .saving:
+            break
+        }
     }
 
     mutating func clearPlaintextSecrets() {
