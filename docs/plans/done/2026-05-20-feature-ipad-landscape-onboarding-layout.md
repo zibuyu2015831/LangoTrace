@@ -1,9 +1,10 @@
 # iPad 横屏 Onboarding 分栏布局优化方案
 
-状态：In Progress  
+状态：Done  
 类型：feature  
 创建日期：2026-05-20  
-最后更新日期：2026-05-20
+最后更新日期：2026-05-20  
+完成日期：2026-05-20
 
 ## 用户确认记录
 
@@ -299,6 +300,7 @@ xcrun simctl launch "iPad Pro 13-inch (M5)" com.zibuyu.LangoTrace
 
 - 2026-05-20：创建方案，等待用户确认后实施。
 - 2026-05-20：开始实施。已在 `OnboardingView.swift` 中新增 iPad 横屏专属布局分支，横屏使用左侧说明/价值摘要与右侧表单/CTA 的分栏承载；当前水平列表在 iPad 横屏显示约 4 行并保持内部滚动。价值摘要与竖屏方案共用 `onboarding.value.*` 本地化 key。已新增 source-scan 和 String Catalog 覆盖测试，并通过 `swift test --package-path Packages/LangoTraceUI --filter Onboarding`。
+- 2026-05-20：完成实现并提交 `c677754`、`44d76c7`。最终验证通过 `swift test --package-path Packages/LangoTraceUI --filter Onboarding`、`swift test --package-path Packages/LangoTraceUI`、`scripts/verify.sh`、`git diff --check`；iPad Pro 13-inch (M5) 模拟器已重启、安装并启动当前构建。
 
 ## 完成标准
 
