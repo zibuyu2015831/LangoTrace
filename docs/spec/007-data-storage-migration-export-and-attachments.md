@@ -12,7 +12,7 @@
 
 语迹是本地优先的个人语言记忆系统。真实记录、AI 生成材料、练习结果和记忆沉淀都必须先有清晰的本地数据边界，再接入 AI、Speech、OCR、同步或 StoreKit。
 
-当前代码已有 `InMemoryLearningContentRepository` 用于验证 `Entry -> Rendering -> Practice -> Memory` 的 mock 闭环，但它不是长期存储方案。长期主存储候选仍是 SQLite / GRDB；SwiftData 只能作为备选或局部原型方案。
+当前代码已有 SQLite / GRDB 语言空间基础设施，用于持久化 `language_spaces`、本地 `app_state.current_language_space_id`、启动恢复和语言空间管理。`InMemoryLearningContentRepository` 仍用于验证 `Entry -> Rendering -> Practice -> Memory` 的 mock 闭环，它不是长期记录存储方案。后续 Entry、附件、FTS、导出和同步仍应沿用 SQLite / GRDB 主存储路线；SwiftData 只能作为备选或局部原型方案。
 
 ## 3. 数据分层
 
@@ -22,6 +22,13 @@
 - 设备级偏好：界面语言偏好、窗口和面板状态、最近打开空间、调试开关。
 
 主数据必须可迁移、可导出、可删除。附件必须有稳定归属和引用关系。派生数据必须可重建，默认不作为同步真源。
+
+当前已落地的语言空间主数据采用：
+
+- `language_spaces`：稳定 `id` 主键、母语、目标语言、水平、展示名、规范化展示名、创建/更新/最近打开/软删除时间。
+- `app_state`：本设备当前空间状态，例如 `current_language_space_id`。该状态用于启动恢复和本机最近上下文，不等同于未来默认跨设备同步对象。
+- 数据库位置：App 私有容器的 `Application Support/LangoTrace/LangoTrace.sqlite`。
+- 删除语义：首版为 soft delete，active 查询、当前空间候选和同名提示排除 deleted 空间；真实 Entry、附件、导出和隐私删除仍需后续任务定义级联行为。
 
 ## 4. 强制规则
 
@@ -37,6 +44,7 @@
 - API Key、对象存储密钥和外部 Provider token 不得进入普通数据库导出包。
 - FTS 和向量索引是可重建派生数据，默认不同步，导出时默认不作为必需数据。
 - 同步引擎不能把本地数据库文件整体当作唯一同步对象；后续应以对象、版本和冲突解决为边界。
+- `current_language_space_id` 属于本地 app state。后续同步任务不得默认把它作为语言空间主数据同步；如需跨设备最近空间，应单独设计 device state 或用户偏好边界。
 
 ## 5. 默认推荐
 
@@ -57,6 +65,7 @@
 - 附件测试：写入、引用、删除和导出包含关系。
 - 导出测试：确认导出包不含 API Key、完整请求头或未授权同步密钥。
 - 启动恢复测试：冷启动后恢复最近语言空间和本地记录列表。
+- 语言空间基础设施测试：同目标语言多空间、同名提示、missing/deleted current fallback、软删除、最近使用 fallback、Application Support 数据库位置、UTC epoch seconds 和可注入 clock。
 - 统一收口：涉及数据库或附件写入的任务必须运行 `scripts/verify.sh`，除非环境缺少明确工具并记录剩余风险。
 
 ## 7. AI 开发提示
@@ -72,4 +81,5 @@
 ## 8. 变更记录
 
 - 2026-05-20：补充基础设施完整建设原则。原因：语言空间持久化与启动恢复讨论确认，数据基础设施不能只实现单语言空间临时版本，否则会在多空间、删除、导出、同步和迁移阶段造成返工。影响范围：Language Space、Repository、SQLite / GRDB schema、启动恢复、导出、删除和测试。是否需要 ADR：否，属于既有本地优先与数据规范的实施约束。
+- 2026-05-20：补充语言空间 SQLite / GRDB 已落地事实。原因：语言空间数据基础设施实现后，长期数据规范需要区分已完成的语言空间主数据与尚未持久化的 Entry / 附件 / 导出。影响范围：Language Space schema、Repository、Application Support 数据库位置、soft delete、current app state 和测试要求。是否需要 ADR：否，延续本地优先和语言空间 ADR。
 - 2026-05-18：创建数据存储、迁移、导出与附件规范。原因：spec 深审确认正式数据层规范缺失，而当前内存 mock repository 不等于长期 SQLite / GRDB 边界。影响范围：Data package、Repository、附件、导入导出、同步前置设计和测试。是否需要 ADR：否，沿用本地优先和 SQLite / GRDB 候选决策。

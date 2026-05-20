@@ -4,8 +4,13 @@ import SwiftUI
 
 struct PhoneMainView: View {
     let languageSpace: LanguageSpacePreview
+    let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
+    let onSelectLanguageSpace: (String) -> Void
+    let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
+    let onDeleteLanguageSpace: (String) -> Void
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
     @State private var selectedTab: PhoneRootTab = .entries
@@ -88,6 +93,15 @@ struct PhoneMainView: View {
                             session: contentStore.practiceSession(for: entry)
                         )
                     }
+                case .settings(.languageSpace):
+                    LanguageSpaceManagementView(
+                        spaces: languageSpaces,
+                        currentSpaceID: languageSpace.id,
+                        onAdd: onAddLanguageSpace,
+                        onSelect: onSelectLanguageSpace,
+                        onUpdate: onUpdateLanguageSpace,
+                        onDelete: onDeleteLanguageSpace
+                    )
                 case let .settings(kind):
                     if let capability = capability(kind: kind) {
                         SettingsCapabilityDetailView(

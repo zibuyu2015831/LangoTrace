@@ -37,8 +37,8 @@
 当前项目已经从纯 App Shell 进入产品体验骨架阶段，并且已经完成多轮页面闭合和 UI 质量提升。现有页面可以表达：
 
 - Welcome / Onboarding / Main 启动路由。
-- 内存语言空间 preview。
-- iPhone 五个 Tab。
+- 真实语言空间 SQLite / GRDB 持久化、启动恢复和 iPhone 管理页。
+- iPhone `记录 / 练习 / 记忆` 三个 Tab。
 - iPad 三栏学习工作台。
 - macOS Sidebar / 主区 / Inspector 工作台骨架。
 - Mock Entry 创建、详情、练习、记忆和设置能力说明。
@@ -218,10 +218,10 @@ MVP 应优先保证 iPhone + iPad 核心学习闭环成立，macOS 保持可信�
 
 优先顺序：
 
-1. 语言空间持久化与启动恢复。
+1. 语言空间持久化与启动恢复已先行落地，仍需 iPhone 人工验收后收口。
 2. Entry 本地保存和启动后恢复。
 3. Rendering / Practice / Memory 的本地 mock 结果保存边界。
-4. SQLite / GRDB schema、迁移和 repository。
+4. Entry / 附件 / 导出相关 SQLite / GRDB schema、迁移和 repository。
 5. 附件存储、导出和搜索。
 
 边界：
@@ -232,13 +232,13 @@ MVP 应优先保证 iPhone + iPad 核心学习闭环成立，macOS 保持可信�
 
 完成标准：
 
-- 用户完成 onboarding 后，重启仍能恢复第一个语言空间。
+- 用户完成 onboarding 后，重启仍能恢复第一个语言空间；语言空间已由 `docs/plans/done/2026-05-20-feature-language-space-data-infrastructure.md` 落地并完成人工验收。
 - 用户创建的文本 Entry 可以本地保存并恢复。
 - 保存失败、数据损坏和缺少语言空间时有明确 UI 和测试覆盖。
 
 文档落点：
 
-- 语言空间数据基础设施、启动恢复和 iOS 语言空间管理页使用 `docs/plans/active/2026-05-20-feature-language-space-data-infrastructure.md`。
+- 语言空间数据基础设施、启动恢复和 iOS 语言空间管理页已由 `docs/plans/done/2026-05-20-feature-language-space-data-infrastructure.md` 收口。
 - Entry 本地保存需要单独创建 active plan。
 - 数据 schema、迁移、导出和附件规则进入 `docs/spec/007-data-storage-migration-export-and-attachments.md` 或 architecture 文档。
 
@@ -342,7 +342,7 @@ MVP 应优先保证 iPhone + iPad 核心学习闭环成立，macOS 保持可信�
 1. 创建并确认全面 UI 审核与设计提升任务方案。
 2. 执行页面审核，沉淀页面级和组件级问题清单。
 3. 按审核结果做第一轮 UI 收敛，不扩展真实功能。
-4. 确认并实施 `docs/plans/active/2026-05-20-feature-language-space-data-infrastructure.md`，完成语言空间 SQLite / GRDB 数据基础设施、启动恢复和 iOS 管理页。
+4. 语言空间 SQLite / GRDB 数据基础设施已完成；下一步进入 Entry 本地保存最小闭环。
 5. 设计并实现 Entry 本地保存最小闭环。
 6. 进入 Request Preview 和最小 AI 文本转换。
 

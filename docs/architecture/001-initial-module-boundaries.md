@@ -70,7 +70,7 @@
 - FTS 索引。
 - 附件元数据。
 
-第一阶段可以只定义协议和内存实现。
+第一阶段可以从协议和内存实现起步；语言空间持久化已进入真实 SQLite / GRDB 基础设施，其余 Entry、附件、AI、Speech 和 Sync 仍按各自任务分阶段落地。
 
 基础设施建设边界：
 
@@ -141,12 +141,12 @@ Sync -> Core
 - 根视图。
 - 最小 Core 类型，例如产品身份、平台角色、手机根 Tab、学习语言、语言水平、隐私状态、启动路由和占位语言空间状态。
 - 可以编译的模块结构。
-- Core 和 UI package 的首批测试。
+- Core、Data 和 UI package 的首批测试。
 - 统一验证脚本。
 
 仍未落地：
 
-- 真实数据库。
+- Entry、Rendering、Practice、Memory、附件和导出的真实数据库表。
 - 真实 AI 请求。
 - 真实 TTS。
 - 真实同步。
@@ -163,10 +163,11 @@ Sync -> Core
 
 当前职责：
 
-- 通过 `AppEnvironment.bootstrap()` 装配 Data / AI / Speech / Sync 的 empty 或 disabled 实现。
+- 通过 `AppEnvironment.bootstrap()` 装配真实语言空间 SQLite / GRDB repository，以及 AI / Speech / Sync 的 disabled 实现。
 - 通过 `AppSessionState` 管理 `welcome`、`onboarding`、`main` 三段启动状态。
 - 使用 `LaunchRoute` 判断缺少语言空间时应回到 onboarding。
-- 创建语言空间时只生成内存 `LanguageSpacePreview`，不写入持久化存储。
+- 通过 `AppSessionState` 恢复、创建、切换、重命名和删除当前语言空间；缺少 active 语言空间时回到 onboarding。
+- `LanguageSpacePreview` 只作为 UI 展示投影，真实语言空间来自 Core `LanguageSpace` 和 Data repository。
 
 ### 5.2 Core
 
@@ -178,6 +179,11 @@ Sync -> Core
 - `LearningLanguage`
 - `LanguageLevel`
 - `LanguageSpacePreview`
+- `LanguageSpace`
+- `CreateLanguageSpaceInput`
+- `UpdateLanguageSpaceInput`
+- `LanguageSpaceDeletionResult`
+- `LanguageSpaceError`
 - `PrivacyStatusSeverity`
 - `AIProviderStatus`
 - `SyncProviderStatus`
@@ -189,7 +195,8 @@ Sync -> Core
 
 - 产品身份。
 - 启动路由。
-- onboarding draft 默认值、语言空间生成和异常语言 code 归一化。
+- onboarding draft 默认值、语言空间创建输入和异常语言 code 归一化。
+- 语言空间 display name 规范化、软删除 preview 边界和持久化身份投影。
 - 学习语言展示和目标语言过滤。
 - 手机 Tab 顺序。
 - 隐私状态标签和图标。
@@ -205,24 +212,28 @@ Sync -> Core
 - `PadMainView`
 - `MacMainView`
 - `LanguageSpaceFooter`
+- `LanguageSpaceManagementView`
 - `PadWorkspaceBar`
 - `LangoPanelToggleButton`
 - `PadPanelGestureAction`
 - `LangoTraceDesign`
 
-当前 UI 能展示三端产品骨架，但页面内容仍是 Mock。UI 不应直接接入 SQLite、Keychain、网络、对象存储或具体 AI Provider。
+当前 UI 能展示三端产品骨架，其中 iPhone 设置页已接入语言空间管理页；Entry、练习、记忆和 AI 相关页面内容仍是 Mock。UI 不应直接接入 SQLite、Keychain、网络、对象存储或具体 AI Provider，语言空间管理页通过 App 层 action closures 修改状态。
 
 当前测试覆盖：
 
 - iPad 左右辅助面板边缘手势判定。
+- iPhone 语言空间管理页源码级行为边界：不依赖 GRDB / SQL、包含新增/切换/重命名/删除 action、同目标语言提示、同名提示和 soft delete 文案约束。
 
 ### 5.4 Data / AI / Speech / Sync
 
 当前状态：
 
-- `LangoTraceData` 只有 `LanguageSpaceRepository` 和 `EmptyLanguageSpaceRepository`。
+- `LangoTraceData` 已包含 `LanguageSpaceRepository`、`EmptyLanguageSpaceRepository`、`GRDBLanguageSpaceRepository`、`LanguageSpaceDatabaseLocation` 和内存学习内容 repository。
+- 语言空间 repository 已使用 SQLite / GRDB 持久化 `language_spaces` 与 `app_state.current_language_space_id`，支持 active list、读取、当前空间、创建、更新、选择、软删除和同名检测。
+- Entry / Rendering / Practice / Memory 仍使用内存学习内容 repository，不代表本地记录闭环已持久化。
 - `LangoTraceAI` 只有 `AIProvider` 和 `DisabledAIProvider`。
 - `LangoTraceSpeech` 只有 `SpeechService` 和 `DisabledSpeechService`。
 - `LangoTraceSync` 只有 `SyncService` 和 `DisabledSyncService`。
 
-这些类型只表示模块边界和装配位置，不表示真实数据库、真实 AI 请求、真实语音服务或真实同步已经实现。后续接入具体能力时，应在对应模块内扩展协议、状态和测试，而不是从 UI 直接调用平台 API 或外部服务。
+这些类型中只有语言空间已进入真实本地数据库基础设施；其他 Data 主数据、AI、语音和同步仍表示模块边界和装配位置。后续接入具体能力时，应在对应模块内扩展协议、状态和测试，而不是从 UI 直接调用平台 API 或外部服务。

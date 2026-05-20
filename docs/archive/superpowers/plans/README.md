@@ -16,4 +16,4 @@
 - `2026-05-17-string-catalog-interface-language-settings.md`：已完成，作为 String Catalog 与界面语言设置历史证据保留。
 - `2026-05-17-three-platform-page-closure.md`：已完成，作为三端页面闭环历史证据保留。
 
-语言空间持久化与启动恢复计划仍未完成。旧单空间 UserDefaults 方案已被 `docs/plans/active/2026-05-20-feature-language-space-data-infrastructure.md` 取代；后续以新的 SQLite / GRDB 多语言空间数据基础设施方案为活跃入口。
+语言空间持久化与启动恢复计划已由 `docs/plans/done/2026-05-20-feature-language-space-data-infrastructure.md` 收口。旧单空间 UserDefaults 方案已被 SQLite / GRDB 多语言空间数据基础设施方案取代。

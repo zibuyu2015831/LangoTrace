@@ -114,6 +114,8 @@ View 不直接创建真实 Provider、Repository 或 KeychainStore。预览、�
 
 不要把所有状态塞进单一全局对象，也不要让每个 View 各自复制语言空间状态。
 
+当前语言空间会话状态由 App 层 `AppSessionState` 收口：启动恢复、创建、切换、重命名、删除 fallback 和根路由保护都在 App 层处理；SwiftUI 管理页只接收 `LanguageSpace` 列表、当前空间 ID 和 action closures，不直接持有 GRDB queue、SQL record 或数据库生命周期。
+
 MVP 早期允许在 Data package 中提供无副作用的 preview / mock 纯值状态，例如设置能力状态和练习会话步骤。此类模型只能表达 UI 可见状态和后续真实接入边界，不能读取 Keychain、访问网络、写入数据库或直接启动系统权限流程。
 
 面向学习内容的 UI 应通过 `LearningContentRepository` 协议和 MainActor feature store 访问 Entry、Rendering、Practice、Memory、设置能力和练习会话状态。View 不直接依赖 concrete `InMemoryLearningContentRepository`，也不直接 mutate repository 后用手写 revision 强制刷新。
@@ -176,6 +178,7 @@ Entry 保存只创建用户原始记录，不应自动补齐完整 Rendering、P
 - 在 Button action 中直接拼接 AI 请求。
 - 在 SwiftUI View 中直接读写 Keychain。
 - 在页面文件中写 SQLite 查询。
+- 在 SwiftUI View 中直接创建 GRDB `DatabaseQueue`、拼 SQL、管理 migration 或修复 `app_state`。
 - 为了快速实现，把语言空间、Entry、Prompt 和设置状态都塞进一个全局对象。
 - 在 iPhone/iPad/macOS 上强行复用完全相同的大页面。
 

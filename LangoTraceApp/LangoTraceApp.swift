@@ -8,14 +8,21 @@ import SwiftUI
 
 @main
 struct LangoTraceApp: App {
-    private let environment = AppEnvironment.bootstrap()
+    private let environment: AppEnvironment
     private let interfaceLanguagePreferenceStore: UserDefaultsInterfaceLanguageStore
-    @StateObject private var session = AppSessionState()
+    @StateObject private var session: AppSessionState
     @State private var interfaceLanguagePreference: InterfaceLanguagePreference
 
     init() {
+        let environment = AppEnvironment.bootstrap()
         let store = UserDefaultsInterfaceLanguageStore()
+        self.environment = environment
         interfaceLanguagePreferenceStore = store
+        _session = StateObject(
+            wrappedValue: AppSessionState(
+                languageSpaceRepositoryFactory: environment.makeLanguageSpaceRepository
+            )
+        )
         _interfaceLanguagePreference = State(initialValue: store.preference)
     }
 
@@ -60,6 +67,7 @@ struct LangoTraceApp: App {
         LangoTraceRootView(
             phase: session.phase,
             languageSpace: session.currentLanguageSpace,
+            languageSpaces: session.languageSpaces,
             learningContentRepository: environment.learningContentRepository,
             interfaceLanguagePreference: interfaceLanguagePreference,
             onboardingDraft: Binding(
@@ -68,6 +76,10 @@ struct LangoTraceApp: App {
             ),
             onWelcomeFinished: session.completeWelcome,
             onCreateLanguageSpace: session.createLanguageSpace,
+            onAddLanguageSpace: session.addLanguageSpace,
+            onSelectLanguageSpace: session.selectLanguageSpace,
+            onUpdateLanguageSpace: session.updateLanguageSpace,
+            onDeleteLanguageSpace: session.deleteLanguageSpace,
             onInterfaceLanguagePreferenceChange: { preference in
                 interfaceLanguagePreferenceStore.preference = preference
                 interfaceLanguagePreference = preference
@@ -75,6 +87,9 @@ struct LangoTraceApp: App {
         )
         .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
         .environment(\.appEnvironment, environment)
+        .task {
+            session.restoreLanguageSpace()
+        }
     }
 
     private var resolvedInterfaceLanguageCode: String {

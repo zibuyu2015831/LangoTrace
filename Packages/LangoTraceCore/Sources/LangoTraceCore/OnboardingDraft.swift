@@ -56,4 +56,14 @@ public struct OnboardingDraft: Equatable, Sendable {
             level: normalizedDraft.level
         )
     }
+
+    public func makeLanguageSpaceInput() throws -> CreateLanguageSpaceInput {
+        let normalizedDraft = normalized()
+        return CreateLanguageSpaceInput(
+            nativeLanguageCode: normalizedDraft.nativeLanguageCode,
+            targetLanguageCode: normalizedDraft.targetLanguageCode,
+            level: normalizedDraft.level,
+            displayName: normalizedDraft.resolvedTargetLanguage.defaultSpaceName
+        )
+    }
 }

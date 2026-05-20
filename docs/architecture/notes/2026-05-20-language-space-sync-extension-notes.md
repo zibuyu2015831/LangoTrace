@@ -6,7 +6,7 @@
 
 ## 1. 目的
 
-本文记录 `docs/plans/active/2026-05-20-feature-language-space-data-infrastructure.md` 在语言空间本地持久化方案中为同步功能预留的边界，以及后续开发同步功能时必须重新决策的问题。
+本文记录 `docs/plans/done/2026-05-20-feature-language-space-data-infrastructure.md` 在语言空间本地持久化方案中为同步功能预留的边界，以及后续开发同步功能时必须重新决策的问题。
 
 本文不是同步功能实施方案，不替代未来 `docs/plans/active/` 中的同步任务方案，也不改变现有 ADR。后续一旦正式设计同步，应以本文为输入，新增独立任务方案，并把被采纳的结论同步到 `docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/architecture/` 或 ADR。
 

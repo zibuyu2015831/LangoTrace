@@ -15,30 +15,45 @@ public enum LangoTraceAppPhase: Equatable, Sendable {
 public struct LangoTraceRootView: View {
     private let phase: LangoTraceAppPhase
     private let languageSpace: LanguageSpacePreview?
+    private let languageSpaces: [LanguageSpace]
     private let learningContentRepository: any LearningContentRepository
     private let interfaceLanguagePreference: InterfaceLanguagePreference
     @Binding private var onboardingDraft: OnboardingDraft
     private let onWelcomeFinished: () -> Void
     private let onCreateLanguageSpace: () -> Void
+    private let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
+    private let onSelectLanguageSpace: (String) -> Void
+    private let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
+    private let onDeleteLanguageSpace: (String) -> Void
     private let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
 
     public init(
         phase: LangoTraceAppPhase,
         languageSpace: LanguageSpacePreview?,
+        languageSpaces: [LanguageSpace] = [],
         learningContentRepository: any LearningContentRepository,
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         onboardingDraft: Binding<OnboardingDraft>,
         onWelcomeFinished: @escaping () -> Void,
         onCreateLanguageSpace: @escaping () -> Void,
+        onAddLanguageSpace: @escaping (CreateLanguageSpaceInput) -> Void = { _ in },
+        onSelectLanguageSpace: @escaping (String) -> Void = { _ in },
+        onUpdateLanguageSpace: @escaping (String, UpdateLanguageSpaceInput) -> Void = { _, _ in },
+        onDeleteLanguageSpace: @escaping (String) -> Void = { _ in },
         onInterfaceLanguagePreferenceChange: @escaping (InterfaceLanguagePreference) -> Void = { _ in }
     ) {
         self.phase = phase
         self.languageSpace = languageSpace
+        self.languageSpaces = languageSpaces
         self.learningContentRepository = learningContentRepository
         self.interfaceLanguagePreference = interfaceLanguagePreference
         _onboardingDraft = onboardingDraft
         self.onWelcomeFinished = onWelcomeFinished
         self.onCreateLanguageSpace = onCreateLanguageSpace
+        self.onAddLanguageSpace = onAddLanguageSpace
+        self.onSelectLanguageSpace = onSelectLanguageSpace
+        self.onUpdateLanguageSpace = onUpdateLanguageSpace
+        self.onDeleteLanguageSpace = onDeleteLanguageSpace
         self.onInterfaceLanguagePreferenceChange = onInterfaceLanguagePreferenceChange
         LocalizedChromeLanguageResolver.use(
             languageCode: interfaceLanguagePreference.resolvedLanguageCode(
@@ -58,12 +73,24 @@ public struct LangoTraceRootView: View {
                     onCreateLanguageSpace: onCreateLanguageSpace
                 )
             case .main:
-                PlatformMainView(
-                    languageSpace: languageSpace ?? onboardingDraft.makeLanguageSpacePreview(),
-                    learningContentRepository: learningContentRepository,
-                    interfaceLanguagePreference: interfaceLanguagePreference,
-                    onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
-                )
+                if let languageSpace {
+                    PlatformMainView(
+                        languageSpace: languageSpace,
+                        languageSpaces: languageSpaces,
+                        learningContentRepository: learningContentRepository,
+                        interfaceLanguagePreference: interfaceLanguagePreference,
+                        onAddLanguageSpace: onAddLanguageSpace,
+                        onSelectLanguageSpace: onSelectLanguageSpace,
+                        onUpdateLanguageSpace: onUpdateLanguageSpace,
+                        onDeleteLanguageSpace: onDeleteLanguageSpace,
+                        onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
+                    )
+                } else {
+                    OnboardingView(
+                        draft: $onboardingDraft,
+                        onCreateLanguageSpace: onCreateLanguageSpace
+                    )
+                }
             }
         }
         .onAppear(perform: applyInterfaceChromeLanguage)
@@ -102,18 +129,33 @@ public struct LangoTraceRootView: View {
 
 private struct PlatformMainView: View {
     let languageSpace: LanguageSpacePreview
+    let languageSpaces: [LanguageSpace]
     let interfaceLanguagePreference: InterfaceLanguagePreference
+    let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
+    let onSelectLanguageSpace: (String) -> Void
+    let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
+    let onDeleteLanguageSpace: (String) -> Void
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
     @StateObject private var contentStore: LearningContentStore
 
     init(
         languageSpace: LanguageSpacePreview,
+        languageSpaces: [LanguageSpace],
         learningContentRepository: any LearningContentRepository,
         interfaceLanguagePreference: InterfaceLanguagePreference,
+        onAddLanguageSpace: @escaping (CreateLanguageSpaceInput) -> Void,
+        onSelectLanguageSpace: @escaping (String) -> Void,
+        onUpdateLanguageSpace: @escaping (String, UpdateLanguageSpaceInput) -> Void,
+        onDeleteLanguageSpace: @escaping (String) -> Void,
         onInterfaceLanguagePreferenceChange: @escaping (InterfaceLanguagePreference) -> Void
     ) {
         self.languageSpace = languageSpace
+        self.languageSpaces = languageSpaces
         self.interfaceLanguagePreference = interfaceLanguagePreference
+        self.onAddLanguageSpace = onAddLanguageSpace
+        self.onSelectLanguageSpace = onSelectLanguageSpace
+        self.onUpdateLanguageSpace = onUpdateLanguageSpace
+        self.onDeleteLanguageSpace = onDeleteLanguageSpace
         self.onInterfaceLanguagePreferenceChange = onInterfaceLanguagePreferenceChange
         _contentStore = StateObject(
             wrappedValue: LearningContentStore(
@@ -135,8 +177,13 @@ private struct PlatformMainView: View {
             } else {
                 PhoneMainView(
                     languageSpace: languageSpace,
+                    languageSpaces: languageSpaces,
                     contentStore: contentStore,
                     interfaceLanguagePreference: interfaceLanguagePreference,
+                    onAddLanguageSpace: onAddLanguageSpace,
+                    onSelectLanguageSpace: onSelectLanguageSpace,
+                    onUpdateLanguageSpace: onUpdateLanguageSpace,
+                    onDeleteLanguageSpace: onDeleteLanguageSpace,
                     onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
                 )
             }

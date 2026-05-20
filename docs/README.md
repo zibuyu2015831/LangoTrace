@@ -49,7 +49,7 @@ LangoTrace 的文档体系是工程控制面，承载产品北极星、隐私边
 
 ## 2. 项目当前状态
 
-当前仓库已经完成 SwiftUI Multiplatform 工程初始化，并从纯 App Shell 推进到产品体验骨架阶段。现有实现可以展示 Welcome / Onboarding / Main 启动路由、内存语言空间 preview、iPhone / iPad / macOS 分平台主界面、Mock 学习内容、隐私状态图标、iPad 侧栏折叠和边缘手势。
+当前仓库已经完成 SwiftUI Multiplatform 工程初始化，并从纯 App Shell 推进到产品体验骨架阶段。现有实现可以展示 Welcome / Onboarding / Main 启动路由、真实语言空间 SQLite / GRDB 持久化、iPhone 语言空间管理页、iPhone / iPad / macOS 分平台主界面、Mock 学习内容、隐私状态图标、iPad 侧栏折叠和边缘手势。
 
 当前仍处于真实数据、真实 AI、真实语音、真实同步和 StoreKit 之前的早期阶段。现有页面和状态用于验证产品方向、平台结构和工程边界，不代表核心学习闭环已经可用。
 
@@ -70,6 +70,10 @@ LangoTrace 的文档体系是工程控制面，承载产品北极星、隐私边
 - Welcome / Onboarding / Main 三段启动状态。
 - `LaunchRoute` 缺少语言空间时回到 onboarding 的路由保护。
 - `OnboardingDraft`、`LearningLanguage`、`LanguageLevel` 和 `LanguageSpacePreview` 的内存模型。
+- `LanguageSpace` Core 主模型、创建/更新输入、软删除状态和 preview 投影。
+- SQLite / GRDB 语言空间 schema、migration、Repository、Application Support 数据库位置和当前空间本地状态。
+- `AppSessionState` 语言空间启动恢复、新增、切换、重命名、删除 fallback 和三端共享会话状态。
+- iPhone 设置页语言空间管理入口，支持新增、切换、重命名和删除。
 - iPhone Tab、iPad 学习桌面、macOS 工作台的原生 SwiftUI 骨架。
 - 隐私状态模型和 AI / 同步 / 设置状态图标展示。
 - iPad 左右辅助面板折叠按钮和边缘手势判定 helper。
@@ -78,10 +82,9 @@ LangoTrace 的文档体系是工程控制面，承载产品北极星、隐私边
 
 尚未完成：
 
-- 真实语言空间持久化和启动恢复。
 - 真实生活记录创建、时间线选择和本地记录闭环。
-- 数据库 schema。
-- SQLite / GRDB Repository、迁移、FTS、附件存储和导出。
+- Entry、Rendering、Practice、Memory 的真实数据库 schema。
+- FTS、附件存储、导出和可恢复备份。
 - AI Provider、TTS、Embedding / 向量化处理、对象存储等真实配置，敏感凭证安全存储、请求预览、请求日志和外部请求。
 - Prompt Preset 的真实渲染和执行链路。
 - TTS、录音、Speech、OCR、照片和权限接入。
@@ -394,7 +397,7 @@ docs/
 
 1. 做首次启动引导与语言空间的最小闭环。
 2. 做本地记录和英语示例学习闭环。
-3. 再接入真实 AI Provider、TTS、听写、回译、SQLite、同步和 StoreKit。
+3. 再接入真实 AI Provider、TTS、听写、回译、Entry SQLite 表、同步和 StoreKit。
 
 第一阶段不要同时实现完整数据库、完整 AI、完整同步、完整 StoreKit 和完整视觉系统。
 

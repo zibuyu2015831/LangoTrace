@@ -2,7 +2,7 @@
 
 状态：Current Implementation Map
 
-最后更新：2026-05-18
+最后更新：2026-05-20
 
 ## 1. 对应规范
 
@@ -23,15 +23,16 @@
 
 - Welcome / Onboarding / Main 三段启动路由。
 - 缺少语言空间时回到 onboarding 的路由保护。
-- iPhone 五个 Tab。
+- iPhone `记录 / 练习 / 记忆` 三个 Tab。
+- iPhone 设置页语言空间管理入口，支持新增、切换、重命名和删除。
 - iPad 三栏工作台和左右辅助面板收起 / 展开。
 - macOS Sidebar / 主区 / Inspector 工作台骨架。
-- 配置能力的只读说明页和 mock / unavailable 边界。
+- macOS `Settings` scene、基础 commands 和键盘快捷键。
+- 配置能力的说明页、部分真实配置页和 mock / unavailable 边界。
 
 ## 3. 已知偏差
 
-- 当前 App scene 只有 `WindowGroup`，没有 macOS `Settings` scene、`.commands`、菜单命令或键盘快捷键。
-- 语言空间仍是内存 preview，没有真实启动恢复。
+- iPad / macOS 还没有完整语言空间管理页；本轮先以 iOS 为第一验收面。
 - 外部入口、多窗口、Command Palette、深链和状态恢复尚未实现。
 - iPad / macOS 面板展开状态仍是瞬时 UI state，不持久化。
 

@@ -35,7 +35,7 @@
 
 设置与练习状态闭环阶段至少覆盖：
 
-- iPhone 设置：进入设置 Tab 后，语言空间、AI Provider、同步、本地数据、隐私边界和导出每一项都能进入二级说明页。
+- iPhone 设置：进入设置后，语言空间进入真实管理页，AI Provider、同步、本地数据、隐私边界和导出每一项都能进入二级说明页或对应配置页。
 - iPhone 设置二级页：每页必须显示当前状态、当前边界、后续接入条件和“不会发生”的副作用说明。
 - iPhone 练习：练习 Tab 中可从已有记录进入本地 mock 练习会话。
 - iPhone 练习会话：准备、跟读、对照、完成四个步骤可以切换；下一步按钮不会触发音频、录音、AI 请求或持久化。
@@ -57,7 +57,7 @@ iPhone 手动验证：
 
 - `今日 / 记录 / 练习 / 记忆 / 设置` 五个 Tab 均可进入。
 - `写一句` 打开本地记录编辑 sheet，保存后进入记录详情。
-- `拍照`、`听一句` 和语言空间切换入口打开 unavailable 说明，不访问照片、麦克风、网络、Keychain、真实数据库、同步服务或导出文件。
+- `拍照`、`听一句` 等未接入能力打开 unavailable 说明，不访问照片、麦克风、网络、Keychain、同步服务或导出文件。语言空间设置入口已访问本地 SQLite / GRDB repository，用于新增、切换、重命名和删除语言空间。
 - 记录详情可进入 mock 练习会话。
 - 设置列表每个能力项可进入只读说明页。
 - iPhone 17 和较窄宽度下文案、按钮和状态标签不溢出。
@@ -142,7 +142,7 @@ macOS 手动验证：
 
 - 2026-05-18 回归：用户截图发现 English 设置下 Settings detail 仍混入中文，且 iPhone 二级页标题重叠。本轮修复后，设置列表和设置详情中 `SettingsCapability` 驱动的 title / summary / detail / next requirement / no side effects chrome 均改由 UI 层 String Catalog 渲染；`SettingsCapabilityDetailView` 在 iOS 上固定 inline navigation title。`PageClosureStateTests` 已覆盖每个设置能力的 detail key 映射，`scripts/verify.sh` 通过且 SwiftLint 0 warning。
 - iPhone / iPad 模拟器 tab bar 的子元素在 Computer Use accessibility tree 中没有稳定暴露，未保留 Settings 页截图；Settings 可达性通过 `PageClosureStateTests` 的 route 断言和 settings capability localization key 断言覆盖。
-- 2026-05-18 回归验证时已启动 iPhone 17 / iPad Pro 13-inch (M5) Simulator 并安装修复后构建；由于当前 App 尚无语言空间持久化，重启后回到 onboarding，自动化工具未能稳定导航到 Settings detail 重新截图。
+- 2026-05-20 语言空间数据基础设施后，iPhone 人工回归应覆盖：首次 onboarding 创建空间、终止并重启后恢复当前空间、设置 -> 语言空间新增同目标语言空间、同名提示、切换、重命名、删除非当前空间、删除当前空间 fallback、删除最后空间回到 onboarding 或无空间恢复路径。
 - macOS Settings 页面复查时发现 settings row 的 accessibility label 曾暴露本地化 key；已改为使用 `Text` 组合本地化标题和状态，避免 VoiceOver 读出 catalog key。
 
 检查标准：

@@ -3516,6 +3516,125 @@
         }
       }
     },
+    "settings.languageSpace.management.add": {
+      "comment": "Add language space action.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Add Space" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "新增空间" } }
+      }
+    },
+    "settings.languageSpace.management.allSection": {
+      "comment": "All language spaces section title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "All Language Spaces" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "所有语言空间" } }
+      }
+    },
+    "settings.languageSpace.management.currentBadge": {
+      "comment": "Current language space badge.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Current" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前" } }
+      }
+    },
+    "settings.languageSpace.management.currentSection": {
+      "comment": "Current language space section title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Current Space" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前空间" } }
+      }
+    },
+    "settings.languageSpace.management.delete": {
+      "comment": "Delete language space action.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Delete" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "删除" } }
+      }
+    },
+    "settings.languageSpace.management.deleteCurrentFallbackMessage": {
+      "comment": "Delete current language space fallback message.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This space will be removed from the active list. LangoTrace will switch to your most recently used remaining space." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "该空间会从当前列表移除。语迹会切换到最近使用的其他空间。" } }
+      }
+    },
+    "settings.languageSpace.management.deleteLastSpaceMessage": {
+      "comment": "Delete final language space message.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This space will be removed from the active list. This version has no restore entry, and you will return to the language-space creation flow." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "该空间会从当前列表移除。当前版本没有恢复入口，删除后会回到创建语言空间流程。" } }
+      }
+    },
+    "settings.languageSpace.management.deleteMessage": {
+      "comment": "Delete language space message.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This space will be removed from the active list. This version has no restore entry." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "该空间会从当前列表移除。当前版本没有恢复入口。" } }
+      }
+    },
+    "settings.languageSpace.management.deleteTitle": {
+      "comment": "Delete language space confirmation title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Delete Language Space?" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "删除语言空间？" } }
+      }
+    },
+    "settings.languageSpace.management.duplicateNameWarning": {
+      "comment": "Duplicate language space name warning.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "A space with this name already exists. You can still save it." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已有同名空间，仍可继续保存。" } }
+      }
+    },
+    "settings.languageSpace.management.name": {
+      "comment": "Language space name field label.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Space Name" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "空间名称" } }
+      }
+    },
+    "settings.languageSpace.management.noSpacesBody": {
+      "comment": "No language spaces empty body.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Create a language space to start saving your learning context locally." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "创建语言空间后，语迹会在本地保存你的学习上下文。" } }
+      }
+    },
+    "settings.languageSpace.management.noSpacesTitle": {
+      "comment": "No language spaces empty title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "No Language Spaces" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂无语言空间" } }
+      }
+    },
+    "settings.languageSpace.management.rename": {
+      "comment": "Rename language space action.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Rename" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重命名" } }
+      }
+    },
+    "settings.languageSpace.management.sameTargetLanguageWarning": {
+      "comment": "Same target language warning.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "One space per learning language is usually best. Use tags or scenes for work, travel, and daily life; you can still create another space." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "通常建议一门学习语言使用一个语言空间。工作、旅行、生活等内容可用标签或场景区分；你仍可以继续创建新的空间。" } }
+      }
+    },
+    "settings.languageSpace.management.selectSpacePrompt": {
+      "comment": "Prompt to select a language space.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Select a language space." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请选择一个语言空间。" } }
+      }
+    },
+    "settings.languageSpace.management.title": {
+      "comment": "Language space management title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Language Spaces" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语言空间" } }
+      }
+    },
     "settings.languageSpace.nextRequirement": {
       "comment": "Language space settings next requirement.",
       "localizations": {

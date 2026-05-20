@@ -1,6 +1,6 @@
 # 任务方案：语言空间数据基础设施与 iOS 管理页
 
-状态：Draft
+状态：Verified
 类型：feature
 创建日期：2026-05-20
 最后更新日期：2026-05-20
@@ -12,7 +12,8 @@
 - 2026-05-20：用户确认允许同一目标语言创建多个语言空间；允许同名空间，但 UI 创建或重命名时应提示“已有同名空间”。
 - 2026-05-20：用户要求第一版即实现删除功能，并先完成 iOS 端设置页中的“语言空间”管理页面设计与实现。
 - 2026-05-20：用户确认产品设计上应鼓励一门学习语言使用一个空间，但架构设计必须允许同一学习语言存在多个空间，便于后续导入恢复、高级用户拆分、同步冲突和扩展场景。
-- 状态为 `Draft` 时不能开始实现。用户确认本方案后，需补充确认记录再进入编码。
+- 2026-05-20：用户确认采纳“共享数据与会话架构一次打好，平台 UI 分阶段交付，iOS 作为第一验收面”的实施策略，并要求立即进入开发。
+- 本方案已由用户确认，可进入实现；实现过程中若改变核心产品或架构决策，需要补充确认记录或新增/更新 ADR。
 
 ## 1. 需求描述
 
@@ -24,6 +25,7 @@
 - 多语言空间模型。
 - 同一目标语言可以有多个空间。
 - 产品默认鼓励“一门学习语言一个空间”，工作、生活、旅行等内容继续作为标签、场景或 Prompt 模式处理；同目标语言多空间属于架构允许和高级/扩展能力，不作为普通用户默认分类心智。
+- 共享数据层、Core 模型和 App 会话状态一次按三端共用能力建设；平台 UI 分阶段交付，本轮以 iOS 管理页作为第一验收面。
 - 同名空间允许存在，但创建或重命名时提示用户已有同名空间。
 - 当前语言空间的显式选择和冷启动恢复。
 - 新增、切换、重命名、删除语言空间。
@@ -121,6 +123,7 @@
 - 首版优先使用 `DatabaseQueue`。原因：语言空间管理写入频率低，单连接队列更容易验证事务、迁移和错误恢复；后续 Entry 列表、FTS 或后台处理需要并发读时再升级到 `DatabasePool`。
 - 同名检测使用独立规范化字段或等价 repository 规范化函数，不依赖 UI 字符串临场比较。原因：同名允许存在但提示必须稳定、可测试。
 - UI 第一版先完成 iOS。原因：iPhone 是个人记录和设置管理的核心入口；iPad / macOS 可在后续按平台设计展开。
+- 实施策略采用“共享底座一次打好，平台 UI 分阶段交付”：Core、Data、Repository、migration、AppSessionState 和路由保护从第一版开始即按 iPhone / iPad / macOS 共享能力建设；iOS 设置页语言空间管理作为首个完整用户验收面；iPad / macOS 本轮只接收共享状态和路由保护，完整管理页在 iOS 人工验收稳定后再扩展。这样既避免把底层做成 iOS 专用实现，又能把交互和视觉风险集中在最核心的 iPhone 路径上先验证。
 
 ## 7. 涉及的代码文件路径
 
@@ -571,6 +574,7 @@ iPad / macOS 短期边界：
 - 本轮不开发完整 iPad / macOS 管理页，但 shared repository 和 `AppSessionState` 是三端共用能力。
 - iPad / macOS 仍可展示 summary 或 unavailable 管理说明，但不能再声称语言空间没有真实持久化。
 - 如果 iOS 删除最后一个空间导致 `currentLanguageSpace == nil`，iPad / macOS 同一 App 状态也必须遵守无空间路由保护。
+- iOS 人工测试通过后，后续扩展 iPad / macOS 时不得重写 Data 或 App 会话层，只应补平台入口、布局和交互适配；若发现共享底座不足，应回到本方案或新增后续方案记录原因。
 
 ### 11.6 文案与本地化
 
@@ -766,6 +770,35 @@ git status --short
 - 2026-05-20：按系统架构复评补充 Apple 平台存储约束、Application Support 数据库位置、系统备份语义、iOS 文件保护、WAL/导出一致性、GRDB `DatabaseQueue` 优先策略、迁移失败处理、事务清单、规范化同名检测、启动恢复错误态、iOS 管理页状态和可访问性测试边界。
 - 2026-05-20：新增 `docs/architecture/notes/2026-05-20-language-space-sync-extension-notes.md` 作为后续同步功能开发备忘录。当前任务只保持稳定 ID、软删除、Repository 边界和 `app_state` 分离，不提前实现完整 sync metadata。
 - 2026-05-20：按用户确认补充“产品鼓励一门学习语言一个空间，架构允许同目标语言多空间”的分层原则；补充 `current_language_space_id` 本地状态语义、AppSessionState 会话真源、UI action 边界、bootstrap / migration 失败处理、UTC epoch seconds 与可注入 clock、NFC 同名规范化、soft delete 文案和对应测试/复查项。
+- 2026-05-20：按用户确认将状态改为 `Confirmed`，并补充“共享数据与会话架构一次打好，平台 UI 分阶段交付，iOS 作为第一验收面”的实施策略；从本记录后开始进入实现。
+
+实现进展记录：
+
+- 2026-05-20：新增 Core 语言空间主模型、创建/更新输入、规范化规则、删除结果和 preview 映射；`OnboardingDraft` 改为产生创建输入，避免把语言 code 当作持久化身份。
+- 2026-05-20：`LangoTraceData` 引入 GRDB 7.10.0，新增 SQLite schema、migration、Application Support 数据库 URL、`GRDBLanguageSpaceRepository`、`app_state.current_language_space_id`、soft delete、同名检测、同目标语言多空间和可注入 clock 测试。
+- 2026-05-20：`AppSessionState` 接入 repository factory、启动恢复、创建、选择、删除 fallback 和语言空间列表状态；`LangoTraceRootView` 移除 Main 分支的 onboarding preview fallback。
+- 2026-05-20：iOS 设置页语言空间入口接入 `LanguageSpaceManagementView`；管理页接收共享状态和 action closures，不持有 GRDB queue、SQL record 或数据库生命周期；新增同目标语言引导、同名提示、soft delete 确认文案和基础本地化文案。
+- 2026-05-20：按系统架构师复查补齐 missing current fallback 修复；`current_language_space_id` 指向不存在空间时 repository 会 fallback 到最近使用 active 空间并修复 `app_state`。
+- 2026-05-20：补齐重命名链路：iOS 管理页提供 edit 模式，AppSessionState 通过 `updateLanguageSpace(id:input:)` 更新 repository，Root / PhoneMain 继续保持 UI 不直接持有 Data 实现。
+- 2026-05-20：补充 Data 回归测试：missing current fallback、deleted 空间不可选择或更新、Application Support 数据库位置、同目标语言多空间、同名 active 空间、soft-deleted 同名排除、UTC epoch seconds 与可注入 clock。
+- 2026-05-20：补充 UI 源码级测试：管理页不依赖 GRDB / SQL、支持新增/切换/重命名/删除 action、设置路由进入管理页、同目标语言提示、同名提示和 soft delete 文案边界。
+- 2026-05-20：更新长期文档事实源：`docs/README.md`、`docs/architecture/001-initial-module-boundaries.md`、`docs/development/environment.md`、`docs/development/mvp-development-roadmap.md`、`docs/spec/002-navigation-and-routing.md`、`docs/spec/navigation/impl.md`、`docs/spec/004-swiftui-architecture.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/testing/README.md` 和文档审查记录。
+- 2026-05-20：iPhone 人工验收发现重命名后 row secondary action 仍保留旧删除标签；已通过 `LanguageSpaceManagementView` row `.id(space.updatedAt)` 修复，并补充 UI 源码级测试，避免重命名后 swipe / context action 复用旧状态。
+
+验证记录：
+
+- 2026-05-20：`swift test --package-path Packages/LangoTraceCore` 通过，31 tests。
+- 2026-05-20：`swift test --package-path Packages/LangoTraceData` 通过，19 tests。
+- 2026-05-20：`swift test --package-path Packages/LangoTraceUI` 通过，122 tests。
+- 2026-05-20：`scripts/verify.sh` 通过，覆盖 XcodeGen、Core/Data/UI tests、iPhone 17 build、iPad Pro 13-inch (M5) build、macOS arm64 build、SwiftLint、SwiftFormat 和文档占位扫描。
+- 2026-05-20：`find docs -maxdepth 3 -type f | sort` 完成；文档占位扫描无匹配；`git diff --check` 通过。
+- 2026-05-20：iPhone 17 Simulator 人工验收通过。覆盖：干净安装后 Welcome -> onboarding 创建首个语言空间；数据库位于 `Library/Application Support/LangoTrace/LangoTrace.sqlite`；`language_spaces` 和 `app_state.current_language_space_id` 写入；终止重启后 Welcome -> Main 恢复当前空间；设置 -> 语言空间新增同目标语言空间并显示非阻断提示；新增后自动切换为当前空间；切换回原空间；重命名第二空间；删除非当前空间；删除最后一个空间后回到 onboarding；SQLite 复查 active 空间数为 0，两个空间均为 soft-deleted，`current_language_space_id` 为 NULL。
+
+当前收口状态：
+
+- 代码实现、单元/源码级测试和 iPhone 17 人工验收已覆盖本方案的 shared Core/Data/AppSessionState 底座和 iOS 第一验收面。
+- 本方案可移入 `docs/plans/done/`。
+- iPad / macOS 完整语言空间管理 UI 不在本轮范围内；后续只应补平台入口和布局，不应重写共享数据与会话层。
 
 ## 16. 完成标准
 
@@ -789,6 +822,7 @@ git status --short
 - `LanguageSpacePreview` 不作为数据库 schema。
 - 相关文档和 review round 更新。
 - `scripts/verify.sh` 通过，或失败项有明确环境原因和替代验证。
+- 方案从 `active/` 移入 `done/` 并记录最终验证快照。
 
 ## 17. 剩余风险
 
