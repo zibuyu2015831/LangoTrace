@@ -125,25 +125,58 @@ struct AIProviderSettingsTests {
         let source = viewSource + draftSource
 
         #expect(source.contains("aiProviderSettings.save.button"))
-        #expect(source.contains("aiProviderSettings.save.boundary"))
+        #expect(!viewSource.contains("aiProviderSettings.save.boundary"))
+        #expect(!viewSource.contains("aiProviderSettings.saveState.saving"))
         #expect(!source.contains("ProgressView"))
         #expect(!source.contains("saveButtonTitleKey"))
         #expect(source.contains("guard !isSaving else"))
         #expect(source.contains("operationID"))
+        #expect(source.contains("aiProviderSettings.saveState.unsavedChanges"))
+        #expect(source.contains("statusTitleKey: String?"))
         #expect(source.contains("aiProviderSettings.saveState.failed"))
         #expect(source.contains("saveConfiguration()"))
         #expect(source.contains("actions.saveDefaultProfile"))
     }
 
     @Test("Save boundary copy is short enough for compact iPhone status panel")
-    func saveBoundaryCopyIsShortEnoughForCompactPhoneStatusPanel() throws {
-        let source = try String(
+    func statusPanelUsesTitleOnlyCopyWithoutTip() throws {
+        let strings = try String(
             contentsOf: sourceFileURL(named: "Resources/Localizable.xcstrings"),
             encoding: .utf8
         )
+        let viewSource = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
 
-        #expect(source.contains("\"value\": \"数据会加密存储\""))
-        #expect(!source.contains("保存后的凭证会加密留在本机，并供后续 AI 请求使用。"))
+        #expect(strings.contains("\"value\": \"配置未保存\""))
+        #expect(strings.contains("\"value\": \"配置已更新\""))
+        #expect(!viewSource.contains("localizedText(\"aiProviderSettings.save.boundary\")"))
+        #expect(!strings.contains("数据会加密存储"))
+        #expect(!strings.contains("保存后的凭证会加密留在本机，并供后续 AI 请求使用。"))
+    }
+
+    @Test("Loaded profile stays quiet until edited and saved")
+    func loadedProfileStaysQuietUntilEditedAndSaved() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+
+        try draft.applyLoadedProfile(loadedProfile())
+        #expect(draft.saveState == .idle)
+
+        draft.markInputChanged()
+        #expect(draft.saveState == .unsavedChanges)
+
+        draft.applySavedProfile(emptySavedProfile())
+        #expect(draft.saveState == .saved)
+
+        draft.markInputChanged()
+        #expect(draft.saveState == .unsavedChanges)
+    }
+
+    @Test("New incomplete or draft configuration stays visually quiet before save")
+    func newIncompleteOrDraftConfigurationStaysQuietBeforeSave() {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+
+        #expect(draft.saveState == .idle)
+        draft.markInputChanged()
+        #expect(draft.saveState == .idle)
     }
 
     @Test("Settings source records invalid save input separately from save failure")

@@ -19,6 +19,7 @@ enum AIProviderTestReadiness: Equatable {
 enum AIProviderSaveState: Equatable {
     case idle
     case missingRequiredFields
+    case unsavedChanges
     case saving
     case saved
     case failed(AIProviderSaveFailureDisplay)
@@ -29,6 +30,8 @@ enum AIProviderSaveState: Equatable {
             "aiProviderSettings.saveState.idle"
         case .missingRequiredFields:
             "aiProviderSettings.saveState.missingRequiredFields"
+        case .unsavedChanges:
+            "aiProviderSettings.saveState.unsavedChanges"
         case .saving:
             "aiProviderSettings.saveState.saving"
         case .saved:
@@ -261,6 +264,7 @@ struct AIProviderDraftConfiguration: Equatable {
     var embedding: AIOptionalModelDraftConfiguration
     var saveState: AIProviderSaveState
     var testState: AIProviderTestState
+    private var hasPersistedConfiguration: Bool
 
     init(provider: AIProviderPreset) {
         text = AITextModelDraftConfiguration(provider: provider)
@@ -268,6 +272,7 @@ struct AIProviderDraftConfiguration: Equatable {
         embedding = AIOptionalModelDraftConfiguration(provider: provider, purpose: .embedding)
         saveState = .idle
         testState = .idle
+        hasPersistedConfiguration = false
     }
 
     var testReadiness: AIProviderTestReadiness {
@@ -294,6 +299,7 @@ struct AIProviderDraftConfiguration: Equatable {
             return
         }
 
+        hasPersistedConfiguration = true
         saveState = .saved
     }
 
@@ -341,6 +347,7 @@ struct AIProviderDraftConfiguration: Equatable {
 
     mutating func applySavedProfile(_: AIProviderConfigurationProfile) {
         clearPlaintextSecrets()
+        hasPersistedConfiguration = true
         saveState = .saved
         testState = .idle
     }
@@ -373,15 +380,16 @@ struct AIProviderDraftConfiguration: Equatable {
         }
 
         clearPlaintextSecrets()
-        saveState = profile.status == .configured ? .saved : .idle
+        hasPersistedConfiguration = profile.status == .configured
+        saveState = .idle
         testState = .idle
     }
 
     mutating func markInputChanged() {
         switch saveState {
-        case .saved, .failed:
-            saveState = .idle
-        case .idle, .missingRequiredFields, .saving:
+        case .idle, .saved, .failed:
+            saveState = hasPersistedConfiguration ? .unsavedChanges : .idle
+        case .missingRequiredFields, .unsavedChanges, .saving:
             break
         }
     }

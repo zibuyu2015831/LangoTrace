@@ -92,29 +92,21 @@ struct AIProviderSettingsView: View {
             .buttonStyle(.bordered)
             .disabled(draft.testReadiness == .missingRequiredFields)
 
-            statusPanel
+            if let statusTitleKey {
+                statusPanel(titleKey: statusTitleKey)
+            }
         }
         .langoPanel()
     }
 
-    private var statusPanel: some View {
+    private func statusPanel(titleKey: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: statusIconName)
                 .foregroundStyle(statusTone)
                 .frame(width: 28, height: 28)
             VStack(alignment: .leading, spacing: 5) {
-                localizedText(statusTitleKey)
+                localizedText(titleKey)
                     .font(.callout.weight(.semibold))
-                localizedText("aiProviderSettings.save.boundary")
-                    .font(.footnote)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if draft.testState == .mockSucceeded {
-                    localizedText("aiProviderSettings.testRequest.boundary")
-                        .font(.footnote)
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -211,57 +203,39 @@ private extension AIProviderSettingsView {
         }
     }
 
-    var statusTitleKey: String {
+    var statusTitleKey: String? {
         switch draft.saveState {
-        case .saving, .saved, .failed:
-            return draft.saveState.titleKey
-        case .idle, .missingRequiredFields:
-            break
+        case .unsavedChanges, .saved, .failed:
+            draft.saveState.titleKey
+        case .idle, .missingRequiredFields, .saving:
+            nil
         }
-
-        if draft.testReadiness == .missingRequiredFields {
-            return "aiProviderSettings.saveState.missingRequiredFields"
-        }
-
-        return "aiProviderSettings.saveState.idle"
     }
 
     var statusIconName: String {
         switch draft.saveState {
-        case .saving:
-            return "clock"
+        case .unsavedChanges:
+            "exclamationmark.circle"
         case .saved:
-            return "checkmark.circle"
+            "checkmark.circle"
         case .failed:
-            return "exclamationmark.triangle"
-        case .idle, .missingRequiredFields:
-            break
+            "exclamationmark.triangle"
+        case .idle, .missingRequiredFields, .saving:
+            "lock.circle"
         }
-
-        if draft.testReadiness == .missingRequiredFields {
-            return "exclamationmark.triangle"
-        }
-
-        return "lock.circle"
     }
 
     var statusTone: Color {
         switch draft.saveState {
+        case .unsavedChanges:
+            LangoTraceDesign.ColorToken.warning
         case .saved:
-            return LangoTraceDesign.ColorToken.stateReady
+            LangoTraceDesign.ColorToken.stateReady
         case .failed:
-            return LangoTraceDesign.ColorToken.danger
-        case .saving:
-            return LangoTraceDesign.ColorToken.accent
-        case .idle, .missingRequiredFields:
-            break
+            LangoTraceDesign.ColorToken.danger
+        case .idle, .missingRequiredFields, .saving:
+            LangoTraceDesign.ColorToken.accent
         }
-
-        if draft.testReadiness == .missingRequiredFields {
-            return LangoTraceDesign.ColorToken.warning
-        }
-
-        return LangoTraceDesign.ColorToken.accent
     }
 
     var isSaving: Bool {

@@ -12373,23 +12373,6 @@
         }
       }
     },
-    "aiProviderSettings.save.boundary": {
-      "comment": "Boundary copy for mock secure save action.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Data is encrypted at rest."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "数据会加密存储"
-          }
-        }
-      }
-    },
     "aiProviderSettings.save.button": {
       "comment": "Primary button title for saving AI provider configuration.",
       "localizations": {
@@ -12464,13 +12447,30 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Configuration saved on this device"
+            "value": "Configuration updated"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "配置已保存到本机安全存储"
+            "value": "配置已更新"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.saveState.unsavedChanges": {
+      "comment": "Unsaved changes state for AI provider save action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration not saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置未保存"
           }
         }
       }
