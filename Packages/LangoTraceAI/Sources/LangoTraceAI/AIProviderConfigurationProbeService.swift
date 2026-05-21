@@ -105,6 +105,7 @@ private extension AIProviderConfigurationProbeService {
     enum ProbeKind {
         case textReply
         case structuredJSON
+        case imageUnderstanding
 
         var capability: AIProviderProbeCapability {
             switch self {
@@ -112,6 +113,8 @@ private extension AIProviderConfigurationProbeService {
                 .textReply
             case .structuredJSON:
                 .structuredJSON
+            case .imageUnderstanding:
+                .imageUnderstanding
             }
         }
 
@@ -122,6 +125,9 @@ private extension AIProviderConfigurationProbeService {
             case .structuredJSON:
                 "Configuration test. Return a single JSON object with exactly one field named ok. " +
                     "The value must be the boolean true. Do not include markdown, code fences, or any other text."
+            case .imageUnderstanding:
+                "Describe the image using exactly two lowercase English words: color then shape. " +
+                    "Do not include punctuation or any other text."
             }
         }
     }
@@ -138,7 +144,9 @@ private extension AIProviderConfigurationProbeService {
                 textStatus: .failed,
                 textError: .missingCredential,
                 jsonStatus: .notRun,
-                jsonError: nil
+                jsonError: nil,
+                imageStatus: .notRun,
+                imageError: nil
             )
         }
 
@@ -151,11 +159,14 @@ private extension AIProviderConfigurationProbeService {
                 textError: textResult.errorCategory,
                 textDuration: textResult.durationMilliseconds,
                 jsonStatus: .notRun,
-                jsonError: nil
+                jsonError: nil,
+                imageStatus: .notRun,
+                imageError: nil
             )
         }
 
         let jsonResult = await runProbe(.structuredJSON, endpoint: endpoint, secret: secret)
+        let imageResult = await imageProbeResult(afterTextSucceededFor: endpoint, secret: secret)
         return result(
             source: source,
             endpoint: endpoint,
@@ -164,8 +175,42 @@ private extension AIProviderConfigurationProbeService {
             textDuration: textResult.durationMilliseconds,
             jsonStatus: jsonResult.status,
             jsonError: jsonResult.errorCategory,
-            jsonDuration: jsonResult.durationMilliseconds
+            jsonDuration: jsonResult.durationMilliseconds,
+            imageStatus: imageResult.status,
+            imageError: imageResult.errorCategory,
+            imageDuration: imageResult.durationMilliseconds
         )
+    }
+
+    func imageProbeResult(
+        afterTextSucceededFor endpoint: AIProviderEndpointInput,
+        secret: String?
+    ) async -> AIProviderProbeCapabilityResult {
+        guard endpoint.supportsImageInput else {
+            return AIProviderProbeCapabilityResult(
+                capability: .imageUnderstanding,
+                status: .unsupported,
+                errorCategory: .unsupportedEndpointPurpose,
+                durationMilliseconds: nil
+            )
+        }
+        guard endpoint.imageInputEnabled else {
+            return AIProviderProbeCapabilityResult(
+                capability: .imageUnderstanding,
+                status: .notEnabled,
+                errorCategory: nil,
+                durationMilliseconds: nil
+            )
+        }
+        guard supportsImageProbe(endpoint.adapterKind) else {
+            return AIProviderProbeCapabilityResult(
+                capability: .imageUnderstanding,
+                status: .unsupported,
+                errorCategory: .unsupportedEndpointPurpose,
+                durationMilliseconds: nil
+            )
+        }
+        return await runProbe(.imageUnderstanding, endpoint: endpoint, secret: secret)
     }
 
     func runProbe(
@@ -189,6 +234,14 @@ private extension AIProviderConfigurationProbeService {
 
             let text = try parseText(from: response.body, adapterKind: endpoint.adapterKind)
             if kind == .structuredJSON, !isStrictOKJSON(text) {
+                return AIProviderProbeCapabilityResult(
+                    capability: kind.capability,
+                    status: .failed,
+                    errorCategory: .invalidResponse,
+                    durationMilliseconds: duration
+                )
+            }
+            if kind == .imageUnderstanding, !isStrictBlueSquare(text) {
                 return AIProviderProbeCapabilityResult(
                     capability: kind.capability,
                     status: .failed,
@@ -264,15 +317,18 @@ private extension AIProviderConfigurationProbeService {
         return url
     }
 
-    func body(_ kind: ProbeKind, endpoint: AIProviderEndpointInput) -> [String: Any] {
+    func body(_ kind: ProbeKind, endpoint: AIProviderEndpointInput) throws -> [String: Any] {
+        if kind == .imageUnderstanding {
+            return try imageBody(endpoint: endpoint)
+        }
         switch endpoint.adapterKind {
         case .openAIResponses:
-            [
+            return [
                 "model": endpoint.modelName,
                 "input": kind.prompt,
             ]
         case .openAICompatibleChat:
-            [
+            return [
                 "model": endpoint.modelName,
                 "messages": [
                     [
@@ -282,7 +338,58 @@ private extension AIProviderConfigurationProbeService {
                 ],
             ]
         case .anthropicMessages, .geminiGenerateContent:
-            [:]
+            return [:]
+        }
+    }
+
+    func imageBody(endpoint: AIProviderEndpointInput) throws -> [String: Any] {
+        let fixture = try AIProviderProbeImageFixture.blueSquare()
+        switch endpoint.adapterKind {
+        case .openAIResponses:
+            return [
+                "model": endpoint.modelName,
+                "input": [
+                    [
+                        "role": "user",
+                        "content": [
+                            [
+                                "type": "input_text",
+                                "text": ProbeKind.imageUnderstanding.prompt,
+                            ],
+                            [
+                                "type": "input_image",
+                                "image_url": fixture.dataURLString,
+                                "detail": "low",
+                            ],
+                        ],
+                    ],
+                ],
+                "max_output_tokens": 8,
+            ]
+        case .openAICompatibleChat:
+            return [
+                "model": endpoint.modelName,
+                "messages": [
+                    [
+                        "role": "user",
+                        "content": [
+                            [
+                                "type": "text",
+                                "text": ProbeKind.imageUnderstanding.prompt,
+                            ],
+                            [
+                                "type": "image_url",
+                                "image_url": [
+                                    "url": fixture.dataURLString,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+                "max_tokens": 8,
+            ]
+        case .anthropicMessages, .geminiGenerateContent:
+            return [:]
         }
     }
 
@@ -341,6 +448,10 @@ private extension AIProviderConfigurationProbeService {
         return ok == true
     }
 
+    func isStrictBlueSquare(_ text: String) -> Bool {
+        text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "blue square"
+    }
+
     func result(
         source: AIProviderProbeSource,
         endpoint: AIProviderEndpointInput,
@@ -349,12 +460,22 @@ private extension AIProviderConfigurationProbeService {
         textDuration: Int? = nil,
         jsonStatus: AIProviderProbeCapabilityStatus,
         jsonError: AIProviderValidationErrorCategory?,
-        jsonDuration: Int? = nil
+        jsonDuration: Int? = nil,
+        imageStatus: AIProviderProbeCapabilityStatus,
+        imageError: AIProviderValidationErrorCategory?,
+        imageDuration: Int? = nil
     ) -> AIProviderConfigurationProbeResult {
-        let overallStatus: AIProviderValidationStatus = if textStatus == .cancelled || jsonStatus == .cancelled {
+        let overallStatus: AIProviderValidationStatus = if textStatus == .cancelled
+            || jsonStatus == .cancelled
+            || imageStatus == .cancelled
+        {
             .cancelled
         } else {
-            textStatus == .succeeded && jsonStatus == .succeeded ? .succeeded : .failed
+            textStatus == .succeeded
+                && jsonStatus == .succeeded
+                && (imageStatus == .succeeded || imageStatus == .notEnabled || imageStatus == .unsupported)
+                ? .succeeded
+                : .failed
         }
         return AIProviderConfigurationProbeResult(
             source: source,
@@ -376,9 +497,9 @@ private extension AIProviderConfigurationProbeService {
                 ),
                 AIProviderProbeCapabilityResult(
                     capability: .imageUnderstanding,
-                    status: .unsupported,
-                    errorCategory: .unsupportedEndpointPurpose,
-                    durationMilliseconds: nil
+                    status: imageStatus,
+                    errorCategory: imageError,
+                    durationMilliseconds: imageDuration
                 ),
                 AIProviderProbeCapabilityResult(
                     capability: .speechSynthesis,
@@ -416,6 +537,10 @@ private extension AIProviderConfigurationProbeService {
 
     func endpointRequiresCredential(_ endpoint: AIProviderEndpointInput) -> Bool {
         endpoint.providerPresetID != "ollama-local"
+    }
+
+    func supportsImageProbe(_ adapterKind: AIProviderAdapterKind) -> Bool {
+        adapterKind == .openAIResponses || adapterKind == .openAICompatibleChat
     }
 
     func errorCategory(forHTTPStatusCode statusCode: Int) -> AIProviderValidationErrorCategory {
