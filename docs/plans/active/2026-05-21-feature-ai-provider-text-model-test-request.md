@@ -13,6 +13,7 @@
 - 2026-05-21：经进一步讨论确认：设置页仍保留一个 `测试请求` 入口，点击后打开底部测试结果面板；内部架构从单一 Text Probe 预留为 Configuration Probe Runner。第一阶段执行文本回复和 JSON 结构化输出两个 probe，图片理解、语音生成和向量化先显示未启用 / 暂未接入状态，后续通过新增 capability probe 扩展。
 - 2026-05-21：经系统架构师复查和方案头脑风暴后确认：Configuration Probe 是独立边界，不复用保存输入；测试 readiness 与保存 readiness 分离；Core 只承载非敏感 probe 结果和枚举，UI 只生成短生命周期 draft snapshot，AppEnvironment 负责映射到 AI package transient probe input；saved profile 的 synthetic probe validation event 与 profile 最近验证摘要应同事务更新；OpenAI Responses adapter 解析原始 HTTP JSON output item，不依赖 SDK-only `output_text` convenience 字段。
 - 2026-05-21：经进一步讨论确认三端实施顺序：本任务不是仅针对 iOS，但第一阶段交互落地应先完成共享基础设施，再完成 iPhone / iOS 的完整测试入口和人工验证；iOS 验证无误后再适配 iPad / macOS presentation。三端共享结果模型、状态映射、文案 key 和结果内容组件，不强制共享 iPhone bottom sheet 形态。
+- 2026-05-21：经系统架构师复查确认两个收口调整：已保存 profile 测试即使在 Keychain secret 缺失或不可访问的 preflight 阶段失败，也应记录非敏感 diagnostic event，同时写入 `synthetic_test` validation outcome；测试按钮在必填项不完整时保持禁用，`missingRequiredFields` 仅作为防御性状态和程序性触发兜底。JSON probe 从“提示中直接给出完整目标 JSON 字面量”调整为“描述字段和结构，由模型生成严格 JSON object”，验收仍只接受 exactly one field `ok: true`。
 
 ## 0. 实施者快速上下文
 
@@ -22,7 +23,7 @@
 
 - SwiftUI View 不直接使用 `URLSession`、Provider SDK、API Key、Authorization header 或 Keychain。
 - 真实网络探测必须走 AI package 服务层，并通过 Core 中的非敏感输入 / 输出 / 错误类型暴露给 UI。
-- 测试请求只发送合成检测内容。第一阶段包含两个文本能力 probe：要求模型返回 `OK` 的基础文本回复 probe，以及要求模型只返回 `{"ok":true}` 的 JSON 结构化输出 probe。
+- 测试请求只发送合成检测内容。第一阶段包含两个文本能力 probe：要求模型返回 `OK` 的基础文本回复 probe，以及要求模型按字段和结构说明生成严格 JSON object 的结构化输出 probe；JSON 验收仍只接受 exactly one field `ok: true`。
 - API Key 只能来自当前页面短生命周期 draft 或已保存 Keychain 引用，不进入 SQLite、诊断日志、请求预览、测试输出或 UI 明文结果。
 - 测试请求不是保存配置的变体，不得复用 `makeProfileSaveInput()` 或 `AIProviderProfileSaveInput` 作为 probe 输入。保存配置、配置测试和未来真实学习请求是三条不同边界。
 - 诊断只记录 provider、model、endpoint purpose、duration、status、error category、operation id 等非敏感字段。
@@ -72,7 +73,7 @@
 - 当前页面存在未保存修改时，测试当前 draft，而不是静默测试数据库中的旧配置。
 - 测试请求只测试文本生成 endpoint。
 - 第一阶段文本测试至少包含两个分项：基础文本回复和 JSON 结构化输出。
-- 测试请求只发送合成内容，不发送生活记录、照片、音频、历史记忆、目标语言正文或 Prompt Preset 内容。JSON probe 只要求返回固定 `{"ok":true}`。
+- 测试请求只发送合成内容，不发送生活记录、照片、音频、历史记忆、目标语言正文或 Prompt Preset 内容。JSON probe 只描述需要一个名为 `ok`、值为布尔 `true` 的字段，不把完整目标 JSON 字面量作为可复制答案直接写入 prompt；服务端验收仍严格要求响应可解析为 exactly one field `ok: true`。
 - 测试成功显示简洁成功状态，例如 `测试成功`。
 - 测试失败显示简洁失败状态，并按非敏感错误分类映射为可理解标题或短文案；文本回复成功但 JSON probe 失败时显示 `部分可用` 或 `文本可用，JSON 输出异常`。
 - 点击测试后弹出结果面板，分项展示文本回复、JSON 输出、图片理解、语音生成和向量化的测试状态；第一阶段后三项只显示未启用 / 暂未接入 / 暂不支持测试，不发真实请求。
@@ -246,6 +247,7 @@
 - 保存按钮和测试按钮仍保持明确层级：保存是主操作，测试是次操作。
 - 文本模型必填项完整后，测试按钮可触发。测试按钮是统一 Provider 配置验证入口，不随能力数量增加拆成多个按钮。
 - 如果用户还没有填写必填项，点击测试不显示成功样式，显示缺少必填项状态。
+- 当前实现采用更保守的表单交互：文本测试必填项不完整时禁用 `测试请求` 按钮；`missingRequiredFields` 状态保留为程序性触发、异步状态竞争或后续入口复用时的防御性兜底，不作为常规点击路径。
 - 如果已有本机保存配置且当前没有新输入，点击测试使用已保存配置。
 - 如果已有本机保存配置但当前页面存在新修改，点击测试使用当前 draft。
 - 点击测试后打开底部测试结果面板，面板负责展示测试进度、分项结果、错误说明和重新测试入口。
@@ -463,7 +465,7 @@ public struct AIProviderProbeHTTPResponse: Equatable, Sendable {
   - OpenAI Responses：`POST /responses`，input 内容要求模型只回复 `OK`。
   - 成功判定：HTTP 2xx 且可解析出非空文本；如文本不是 `OK`，仍可视为 Provider 可访问成功，但记录响应格式可解析即可。
 - JSON 输出 probe：
-  - 使用同一个文本 endpoint，发送固定合成请求，要求模型只返回 `{"ok":true}`。
+  - 使用同一个文本 endpoint，发送固定合成请求，要求模型返回单个 JSON object；prompt 只描述字段结构：exactly one field named `ok`，value 必须是 boolean `true`，不得包含 markdown、code fence 或额外文本。
   - 成功判定：HTTP 2xx、adapter 可解析出文本、文本可严格解析为 JSON object，且 `ok == true`。
   - 如果模型返回 markdown fenced code、自然语言包裹 JSON、数组、字符串或其他非 object 内容，视为 JSON 输出异常，能力结果为 `structuredJSON.failed`，错误分类为 `.invalidResponse`。
 - 解析测试必须分别覆盖 Chat `choices[].message.content` 和 Responses 原始 HTTP JSON 输出路径；不能只检查 HTTP 2xx。
@@ -526,6 +528,7 @@ public struct AIProviderProbeHTTPResponse: Equatable, Sendable {
 validation event 写入规则：
 
 - saved profile 测试：成功、认证失败、网络失败、timeout、unsupported、invalid response、JSON 输出异常等非取消结果写入 `AIProviderValidationEvent(eventType: .syntheticTest)`，并在同一 Data 事务内更新 `ai_provider_profiles.last_validated_at` 和 `last_validation_status`。
+- saved profile 测试如果在发网前因为 credential metadata 缺失、Keychain secret 缺失或 Keychain secret 不可访问而失败，也属于一次用户触发的配置测试操作：必须记录非敏感 failed diagnostic event，并写入 `synthetic_test` validation outcome；诊断属性只能包含 operation id、provider、endpoint purpose、model、status、error category 等 allowlisted 字段，不得包含完整 Keychain account 或 secret。
 - draft 测试：不写 `AIProviderValidationEvent`，只写 diagnostic event。原因是 validation event schema 以持久 `profileID` 为事实归属，draft 没有可靠持久身份，不能用临时 profile id 污染配置历史。
 - cancelled：只写 cancelled diagnostic event，不写失败 validation event，不更新 credential presence。
 - 文本回复成功但 JSON 输出失败时，UI 可显示 `部分可用`；持久 `AIProviderValidationStatus` 第一阶段仍写 `.failed`，`errorCategory` 写 `.invalidResponse`。不为第一阶段扩展 Core `partial` validation status。
@@ -799,6 +802,7 @@ iPhone / iOS 人工验证通过后，再决定是否在本任务内继续验证 
 - 2026-05-21：按用户确认完成测试目录治理和 TDD 文档落地。AI Provider UI 单元测试已移动到 `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProvider/` 功能子目录；`Tests/README.md`、`docs/testing/README.md` 和入口 `docs/README.md` 已明确后续开发默认采用 TDD，单元测试放在所属 package 的 `Tests` 下，功能增长时在 test target 内创建子目录，根目录 `Tests/` 只作为项目级测试索引和未来集成 / UI 自动化入口。移动后修复 source-boundary 测试的路径 helper，避免功能子目录破坏源码边界测试。
 - 2026-05-21：为后续 AI 辅助排查运行时问题，新增独立任务方案 `docs/plans/active/2026-05-21-chore-runtime-log-capture.md` 并实施宿主机日志采集脚本。后续复现 AI Provider 运行期失败时优先运行 `scripts/capture-runtime-log --last 30m --category ai-provider` 生成 `logs/latest.log`，再基于日志进行排查；App 仍不得直接写仓库 `logs/` 目录。
 - 2026-05-21：新增开发期外部 Provider 连通性诊断脚本 `scripts/probe_openai_compatible_api.py`，用于独立验证 OpenAI-compatible API Key、Base URL 和 model 是否能通过固定合成文本请求。脚本支持参数模式和无参数交互模式；交互模式依次要求输入 Base URL、API Key 和 Model，API Key 在终端输入时可见，但脚本输出仍会脱敏。脚本支持 `chat`、`responses` 和 `both` 模式，输出非敏感错误分类，不打印 API Key、请求体或响应体；新增 `Tests/Tooling/test_probe_openai_compatible_api.py` 覆盖 URL 规范化、Bearer 请求构造、Chat 成功解析、HTTP 401 认证失败分类和交互输入。
+- 2026-05-21：按系统架构师复查和用户确认，补充两个收口调整：一是 saved profile 在 Keychain secret 缺失或不可访问的 preflight 失败分支也必须写非敏感 diagnostic event，避免只有 validation outcome 而缺少操作诊断链路；二是 JSON 输出 probe 不再把完整 `{"ok":true}` 作为可复制字面量直接放入 prompt，而改为描述字段名、类型和约束，由模型生成严格 JSON object，验收仍只接受 exactly one field `ok: true`。同时确认文本测试必填项不完整时按钮禁用更符合当前设置页交互，`missingRequiredFields` 作为防御性兜底保留。
 
 ## 18. 完成标准
 
@@ -809,13 +813,14 @@ iPhone / iOS 人工验证通过后，再决定是否在本任务内继续验证 
 - 结果面板拆分为共享内容组件和平台 presentation wrapper；iPhone 使用 bottom sheet，iPad / macOS 不强制使用 bottom sheet。
 - 未保存 draft 和已保存配置两条路径都可测试。
 - 保存 readiness 和文本测试 readiness 已分离，文本模型测试不被未完成的语音生成 / 向量模型配置阻断。
-- 第一阶段真实请求只发送固定合成文本内容和固定 `{"ok":true}` JSON 输出请求。
+- 第一阶段真实请求只发送固定合成文本内容和固定 JSON 结构说明；JSON probe 不发送用户内容，不直接要求模型复制完整 JSON 字面量，验收仍严格要求 exactly one field `ok: true`。
 - UI 层没有直接网络请求或密钥拼接。
 - 测试请求没有复用 `makeProfileSaveInput()`、`AIProviderProfileSaveInput` 或 `AIProviderCredentialSecretSaveInput` 作为 probe 输入。
 - Core probe 类型不包含明文 secret、请求体、响应体或 header；UI draft snapshot / AI transient input 不进入持久化、诊断属性或测试输出。
 - 成功、认证失败、网络失败、文本响应异常、JSON 输出异常至少有单元测试覆盖。
 - saved profile 测试的 validation event 记录 `synthetic_test`，且不含敏感内容。
 - saved profile 测试的 validation event 和 profile 最近验证摘要同事务更新；draft / cancelled 不更新 profile summary。
+- saved profile 测试在 Keychain secret 缺失或不可访问的 preflight 失败分支，也记录非敏感 failed diagnostic event。
 - draft 测试不写 validation event，只写非敏感 diagnostic event。
 - OpenAI Responses adapter 解析原始 HTTP JSON output item，不依赖 SDK-only convenience 字段。
 - Anthropic / Gemini 第一阶段明确 unsupported，不发 HTTP 请求，不误映射为认证或网络失败。

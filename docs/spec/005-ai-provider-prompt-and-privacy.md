@@ -164,7 +164,7 @@ Provider 配置页已经从真实级 mock 表单进入本地配置保存和文�
 - iPad / macOS 工作台中的 Provider 设置详情应使用合理最大内容宽度保持阅读栏；该宽度是视觉承载约束，不得写入 Provider 配置模型、Repository、同步协议或安全存储模型。
 - macOS 原生 Settings scene 和工作台 Settings section 是两个入口层。当前原生 Settings scene 只展示能力状态列表，不承载 Provider 写入表单；后续若要在原生 Settings scene 支持 Provider 配置，必须复用同一配置模块并单独审查写入边界。
 - “测试请求”按钮必须走明确状态机，并通过 `AIProviderSettingsActions` 进入 AI service / Provider 层；SwiftUI View 不得直接创建 `URLRequest`、拼接 Authorization header、读取 Keychain 或调用 Provider SDK。
-- 当前阶段测试请求只允许对文本模型 endpoint 发送固定合成检测内容，分为文本回复 probe 和 JSON 输出 probe；JSON probe 只要求返回固定 `{"ok":true}`。不得发送生活记录、照片、音频、历史记忆、目标语言正文、Prompt Preset 内容、用户自定义长文本或请求预览正文。
+- 当前阶段测试请求只允许对文本模型 endpoint 发送固定合成检测内容，分为文本回复 probe 和 JSON 输出 probe；JSON probe 只描述一个名为 `ok`、值为布尔 `true` 的字段结构，由模型生成严格 JSON object，验收仍只接受 exactly one field `ok: true`。不得发送生活记录、照片、音频、历史记忆、目标语言正文、Prompt Preset 内容、用户自定义长文本或请求预览正文。
 - 图片理解、语音生成和向量化可以出现在结果面板的分能力状态中，但第一阶段不得为这些能力发真实网络测试请求；应显示未启用、未配置或暂不支持测试。
 - 未保存 draft 测试必须测试当前屏幕配置，且不得先写入 Keychain、SQLite 或 validation event；已保存且无修改的配置测试由服务层通过 Keychain 引用重新解析密钥。
 - 已保存 profile 的合成测试可以记录 `synthetic_test` 类型的非敏感 validation event，并在同一 Data 事务内更新最近验证摘要；draft 测试只允许记录非敏感 diagnostic event，不得污染持久 profile 事实。取消的测试不得写失败 validation event。

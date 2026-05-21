@@ -38,7 +38,10 @@ func openAICompatibleChatProbeBuildsRequestsAndMapsSuccess() async throws {
     let bodies = requests.compactMap(\.httpBody).compactMap { String(data: $0, encoding: .utf8) }
     #expect(bodies.allSatisfy { !$0.contains("life record") && !$0.contains("Prompt Preset") })
     #expect(bodies[0].contains("OK"))
-    #expect(bodies[1].contains(#"{\"ok\":true}"#))
+    #expect(!bodies[1].contains(#"{\"ok\":true}"#))
+    #expect(bodies[1].contains("field named ok"))
+    #expect(bodies[1].contains("boolean true"))
+    #expect(bodies[1].contains("Do not include markdown"))
 
     let events = await logger.events()
     #expect(events.map(\.name).contains(.aiProviderConfigurationProbeStarted))

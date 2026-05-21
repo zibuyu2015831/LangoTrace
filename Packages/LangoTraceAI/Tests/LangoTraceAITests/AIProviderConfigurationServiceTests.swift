@@ -218,12 +218,14 @@ func configurationServiceTestsSavedTextEndpointThroughKeychainAndRecordsSyntheti
 func configurationServiceRecordsMissingKeychainSecretAsSyntheticProbeFailure() async throws {
     let repository = try StubAIProviderConfigurationRepository(profile: savedProfile())
     let store = TrackingAIProviderCredentialStore(resolveError: AIProviderCredentialStoreError.missingCredential)
+    let logger = InMemoryDiagnosticLogger()
     let service = AIProviderConfigurationService(
         repository: repository,
         credentialStore: store,
         configurationProbeService: AIProviderConfigurationProbeService(
             httpClient: CapturingProbeHTTPClient(responses: [])
         ),
+        diagnosticLogger: logger,
         clock: { Date(timeIntervalSince1970: 230) },
         idGenerator: IncrementingIDGenerator().next
     )
@@ -239,6 +241,10 @@ func configurationServiceRecordsMissingKeychainSecretAsSyntheticProbeFailure() a
     #expect(await repository.recordedValidationOutcomes.first?.eventType == .syntheticTest)
     #expect(await repository.recordedValidationOutcomes.first?.errorCategory == .missingCredential)
     #expect(await repository.recordedValidationOutcomes.first?.status == .failed)
+    let diagnosticEvents = await logger.events()
+    #expect(diagnosticEvents.map(\.name).contains(.aiProviderConfigurationProbeFailed))
+    #expect(diagnosticEvents.flatMap(\.attributes).contains(.errorCategory("missing_credential")))
+    #expect(!String(describing: diagnosticEvents).contains("ai-provider-credential:credential-1:api_key"))
 }
 
 @Test("Configuration service does not persist cancelled saved synthetic probe")

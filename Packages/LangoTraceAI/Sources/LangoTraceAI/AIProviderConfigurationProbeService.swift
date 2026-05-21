@@ -120,7 +120,8 @@ private extension AIProviderConfigurationProbeService {
             case .textReply:
                 "Configuration test. Reply with OK only."
             case .structuredJSON:
-                #"Configuration test. Reply only with {"ok":true}."#
+                "Configuration test. Return a single JSON object with exactly one field named ok. " +
+                    "The value must be the boolean true. Do not include markdown, code fences, or any other text."
             }
         }
     }

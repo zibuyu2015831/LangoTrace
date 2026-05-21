@@ -188,6 +188,11 @@ public struct AIProviderConfigurationService: Sendable {
             else {
                 resolvedSecret = nil
                 let result = missingSavedCredentialResult(endpoint: endpoint, category: .missingCredential)
+                await recordSavedProbePreflightFailure(
+                    endpoint: endpoint,
+                    category: .missingCredential,
+                    operationID: operationID
+                )
                 return try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
             }
             do {
@@ -199,6 +204,11 @@ public struct AIProviderConfigurationService: Sendable {
                 let result = missingSavedCredentialResult(
                     endpoint: endpoint,
                     category: validationErrorCategory(for: error)
+                )
+                await recordSavedProbePreflightFailure(
+                    endpoint: endpoint,
+                    category: validationErrorCategory(for: error),
+                    operationID: operationID
                 )
                 return try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
             }
@@ -308,6 +318,35 @@ private extension AIProviderConfigurationService {
         case .credentialInaccessible, .credentialCorrupted, .userInteractionRequired:
             .credentialInaccessible
         }
+    }
+
+    func recordSavedProbePreflightFailure(
+        endpoint: AIProviderEndpointConfiguration,
+        category: AIProviderValidationErrorCategory,
+        operationID: DiagnosticOperationID
+    ) async {
+        await diagnosticLogger.record(
+            DiagnosticEvent(
+                id: UUID().uuidString,
+                name: .aiProviderConfigurationProbeFailed,
+                domain: .aiProviderSettings,
+                level: .warning,
+                outcome: .failed,
+                attributes: [
+                    .operationID(operationID),
+                    .providerPresetID(endpoint.providerPresetID),
+                    .endpointPurpose(endpoint.purpose),
+                    .modelName(endpoint.modelName),
+                    .adapterKind(endpoint.adapterKind),
+                    .errorCategory(category.rawValue),
+                    .probeCapability(.textReply),
+                    .probeCapabilityStatus(.failed),
+                    .probeCapability(.structuredJSON),
+                    .probeCapabilityStatus(.notRun),
+                ],
+                createdAt: clock()
+            )
+        )
     }
 
     func makeProfile(

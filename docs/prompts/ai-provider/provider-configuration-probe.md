@@ -47,13 +47,13 @@ AI Provider 配置页的“测试请求”能力，用于确认用户配置的�
 
 ### Structured JSON Probe
 
-模型必须返回严格 JSON：
+模型必须根据字段结构说明生成严格 JSON object。验收目标为：
 
 ```json
 {"ok":true}
 ```
 
-不得返回 Markdown code fence、解释文本、额外字段或非 JSON 包裹内容。当前实现会解析响应文本，并要求顶层对象中的 `ok` 为 `true`。
+Prompt 不直接提供完整目标 JSON 字面量作为可复制答案，只说明字段名、字段类型和禁止额外文本的约束。模型不得返回 Markdown code fence、解释文本、额外字段或非 JSON 包裹内容。当前实现会解析响应文本，并要求顶层对象 exactly one field，且 `ok` 为 `true`。
 
 ## 7. 是否包含用户原文
 
@@ -99,7 +99,7 @@ Configuration test. Reply with OK only.
 ### `ai-provider.configuration-probe.structured-json.v1`
 
 ```text
-Configuration test. Reply only with {"ok":true}.
+Configuration test. Return a single JSON object with exactly one field named ok. The value must be the boolean true. Do not include markdown, code fences, or any other text.
 ```
 
 ## 13. 中文版本 Prompt
@@ -113,9 +113,10 @@ Configuration test. Reply only with {"ok":true}.
 ### `ai-provider.configuration-probe.structured-json.v1`
 
 ```text
-配置测试。只回复 {"ok":true}。
+配置测试。返回一个 JSON object，且只包含一个名为 ok 的字段。该字段的值必须是布尔值 true。不要包含 Markdown、代码块或任何其他文本。
 ```
 
 ## 14. 版本记录
 
 - 2026-05-21：创建 Provider 配置合成测试 Prompt 文档。原因：代码已经通过 `AIProviderConfigurationProbeService` 向 Provider 发送固定合成 Prompt，按 Prompt Registry 规则需要记录完整 Prompt 文案、输出契约和隐私边界。影响范围：AI Provider 配置测试请求、后续请求预览和 Prompt 审查。是否需要 ADR：否，沿用 ADR-005 和 `spec/005` / `spec/008` 的隐私边界。
+- 2026-05-21：更新 structured JSON probe Prompt。原因：系统架构复查认为直接在 Prompt 中给出完整 `{"ok":true}` 字面量更像回显测试，不足以证明模型能按结构说明生成 JSON；新版本只描述字段名、字段类型和无额外文本约束，验收仍严格要求 exactly one field `ok: true`。影响范围：AI Provider 配置测试请求、Prompt Registry 和相关单元测试。是否需要 ADR：否。
