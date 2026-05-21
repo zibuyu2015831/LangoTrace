@@ -1,6 +1,6 @@
 # 任务方案：iPad 和 macOS AI Provider 请求测试适配
 
-状态：Implemented
+状态：Verified
 类型：feature
 创建日期：2026-05-21
 最后更新日期：2026-05-21
@@ -291,6 +291,7 @@ git status --short
 - 2026-05-21：按 TDD 先在 `AIProviderSettingsProbeTests.swift` 新增失败测试，锁定测试结果 sheet 必须使用更明确的 `aiProviderProbePresentationStyle(compactWidth:)`、保留 iPhone compact detents，并为 iPad / macOS regular presentation 提供最大宽度规则。首次运行 `swift test --package-path Packages/LangoTraceUI` 失败，失败点集中在旧 helper 名称和缺少大屏宽度约束，符合预期。
 - 2026-05-21：在 `AIProviderSettingsView.swift` 增加 `aiProviderProbeRegularWidth`，将结果内容限制为 `520` 最大宽度，并把 helper 从 `aiProviderProbePresentationDetents` 重命名为 `aiProviderProbePresentationStyle`。iPhone compact 仍使用 `.presentationDetents([.medium, .large])`；iPad regular 和 macOS 不添加 detents。再次运行 `swift test --package-path Packages/LangoTraceUI`，155 个 UI package 测试通过。代码阶段 commit `a2e33b9`。
 - 2026-05-21：更新 `docs/platform-page-inventory.md`，记录 iPad / macOS AI Provider 测试结果面板已通过共享 action seam 覆盖，并在大屏使用固定最大宽度，未改变 Provider 请求、隐私、诊断或 Data 边界。
+- 2026-05-21：运行最终验证：`swift test --package-path Packages/LangoTraceAI` 通过，`scripts/verify.sh` 通过；随后将本方案从 `docs/plans/active/` 移入 `docs/plans/done/` 并标记为 `Verified`。
 
 ## 15. 完成标准
 
