@@ -91,9 +91,9 @@ public struct LangoTraceSettingsSceneView: View {
         if selection == .languageSpaces {
             languageSpaceManagement
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        } else if let languageSpace, let selectedCapability {
+        } else if let selectedCapability, let detailLanguageSpace = selectedDetailLanguageSpace {
             SettingsCapabilityDetailView(
-                languageSpace: languageSpace,
+                languageSpace: detailLanguageSpace,
                 capability: selectedCapability,
                 interfaceLanguagePreference: interfaceLanguagePreference,
                 onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
@@ -108,12 +108,46 @@ public struct LangoTraceSettingsSceneView: View {
         }
     }
 
+    private var selectedCapabilityKind: SettingsCapability.Kind? {
+        guard case let .capability(kind) = selection else {
+            return nil
+        }
+
+        return kind
+    }
+
     private var selectedCapability: SettingsCapability? {
-        guard case let .capability(selectedCapabilityKind) = selection else {
+        guard let selectedCapabilityKind else {
             return nil
         }
 
         return capabilities.first { $0.kind == selectedCapabilityKind }
+    }
+
+    private var selectedDetailLanguageSpace: LanguageSpacePreview? {
+        guard let selectedCapability else {
+            return nil
+        }
+
+        return settingsDetailLanguageSpace(for: selectedCapability)
+    }
+
+    private func settingsDetailLanguageSpace(for capability: SettingsCapability) -> LanguageSpacePreview? {
+        if capability.kind == .interfaceLanguage, selectedCapabilityKind == .interfaceLanguage {
+            return languageSpace ?? interfaceLanguagePlaceholderSpace
+        }
+
+        return languageSpace
+    }
+
+    private var interfaceLanguagePlaceholderSpace: LanguageSpacePreview {
+        LanguageSpacePreview(
+            id: "interface-language-settings",
+            name: "Interface Language",
+            nativeLanguage: "System",
+            targetLanguage: "Interface",
+            level: .b1
+        )
     }
 
     private var languageSpaceManagement: some View {

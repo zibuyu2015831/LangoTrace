@@ -50,6 +50,41 @@ struct InterfaceLanguageSettingsPageTests {
         #expect(!english.localizedCaseInsensitiveContains("per-app language"))
     }
 
+    @Test("iPad and Mac workspaces route interface language through shared detail")
+    func iPadAndMacWorkspacesRouteInterfaceLanguageThroughSharedDetail() throws {
+        let padSource = try String(contentsOf: sourceFileURL(named: "PadMainSections.swift"), encoding: .utf8)
+        let macSource = try String(contentsOf: sourceFileURL(named: "MacWorkspaceContentView.swift"), encoding: .utf8)
+
+        #expect(padSource.contains("SettingsCapabilityDetailView("))
+        #expect(padSource.contains("interfaceLanguagePreference: interfaceLanguagePreference"))
+        #expect(padSource.contains("onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange"))
+
+        #expect(macSource.contains("SettingsCapabilityDetailView("))
+        #expect(macSource.contains("presentation: .embeddedInExistingScroll"))
+        #expect(macSource.contains("interfaceLanguagePreference: interfaceLanguagePreference"))
+        #expect(macSource.contains("onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange"))
+    }
+
+    @Test("Mac Settings scene keeps interface language available without a language space")
+    func macSettingsSceneKeepsInterfaceLanguageAvailableWithoutLanguageSpace() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "LangoTraceSettingsSceneView.swift"), encoding: .utf8)
+
+        #expect(source.contains("selectedCapabilityKind == .interfaceLanguage"))
+        #expect(source.contains("settingsDetailLanguageSpace(for: selectedCapability)"))
+        #expect(source.contains("interfaceLanguagePlaceholderSpace"))
+        #expect(source.contains("SettingsCapabilityDetailView("))
+        #expect(!source.contains("else if let languageSpace, let selectedCapability"))
+    }
+
+    @Test("Mac inspector keeps interface language explanation short")
+    func macInspectorKeepsInterfaceLanguageExplanationShort() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "MacInspectorContent.swift"), encoding: .utf8)
+
+        #expect(source.contains("if kind == .interfaceLanguage"))
+        #expect(source.contains("textKey: \"settings.interfaceLanguage.selectionFootnote\""))
+        #expect(!source.contains("settingsCapabilityDetailLocalizationKeys(for: capability.kind).nextRequirement"))
+    }
+
     private func localizableCatalogURL() -> URL? {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

@@ -38,14 +38,23 @@ struct MacInspectorContent: View {
             )
         case let .settings(kind):
             if let capability = settingsCapabilities.first(where: { $0.kind == kind }) {
-                LocalizedTextPanel(
-                    titleKey: capability.kind.localizedTitleKey,
-                    textKey: settingsCapabilityDetailLocalizationKeys(for: capability.kind).detail
-                )
-                LocalizedTextPanel(
-                    titleKey: settingsNextRequirementTitleKey,
-                    textKey: settingsCapabilityDetailLocalizationKeys(for: capability.kind).nextRequirement
-                )
+                if kind == .interfaceLanguage {
+                    LocalizedTextPanel(
+                        titleKey: capability.kind.localizedTitleKey,
+                        textKey: "settings.interfaceLanguage.selectionFootnote"
+                    )
+                } else {
+                    let localizationKeys = settingsCapabilityDetailLocalizationKeys(for: capability.kind)
+
+                    LocalizedTextPanel(
+                        titleKey: capability.kind.localizedTitleKey,
+                        textKey: localizationKeys.detail
+                    )
+                    LocalizedTextPanel(
+                        titleKey: settingsNextRequirementTitleKey,
+                        textKey: localizationKeys.nextRequirement
+                    )
+                }
             }
         case .unavailable:
             LocalizedTextPanel(

@@ -155,8 +155,10 @@ struct SyncSettingsTests {
 
         #expect(settingsSceneSource.contains("languageSpace: LanguageSpacePreview?"))
         #expect(settingsSceneSource.contains("selectedCapabilityKind"))
+        #expect(settingsSceneSource.contains("settingsDetailLanguageSpace(for: selectedCapability)"))
+        #expect(settingsSceneSource.contains("if capability.kind == .interfaceLanguage"))
+        #expect(settingsSceneSource.contains("return languageSpace"))
         #expect(settingsSceneSource.contains("SettingsCapabilityDetailView("))
-        #expect(settingsSceneSource.contains("if let languageSpace"))
         #expect(!settingsSceneSource.contains("\"bootstrap\""))
         #expect(!settingsSceneSource.contains("action: nil"))
     }
