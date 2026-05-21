@@ -19,12 +19,27 @@ struct AIProviderSettingsProbeTests {
         #expect(draft.textProbeSource == .draft)
 
         let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
-            operationID: DiagnosticOperationID(rawValue: "operation-ui-probe")
+            operationID: DiagnosticOperationID(rawValue: "operation-ui-probe"),
+            languageContext: AIProviderProbeLanguageContext(languageCode: "en")
         )
         #expect(snapshot.source == .draft)
         #expect(snapshot.endpoint.purpose == .textGeneration)
         #expect(snapshot.endpoint.providerPresetID == "openai")
         #expect(snapshot.plaintextSecret == "sk-local-draft")
+        #expect(snapshot.languageContext == AIProviderProbeLanguageContext(languageCode: "en"))
+        #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON, .languageSupport])
+    }
+
+    @Test("Draft model omits language support capability when no language context exists")
+    func draftModelOmitsLanguageSupportCapabilityWhenNoLanguageContextExists() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
+
+        let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
+            operationID: DiagnosticOperationID(rawValue: "operation-ui-no-language-probe")
+        )
+
+        #expect(snapshot.languageContext == nil)
         #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON])
     }
 
@@ -166,19 +181,20 @@ struct AIProviderSettingsProbeTests {
         #expect(!source.contains("Bearer "))
     }
 
-    @Test("Probe result content is presentation independent and shows all capability rows")
-    func probeResultContentIsPresentationIndependentAndShowsAllCapabilityRows() throws {
+    @Test("Probe result content is presentation independent and uses caller supplied capability rows")
+    func probeResultContentIsPresentationIndependentAndUsesCallerSuppliedCapabilityRows() throws {
         let source = try String(
             contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
             encoding: .utf8
         )
 
         #expect(source.contains("struct AIProviderProbeResultPanelContent"))
-        #expect(source.contains("AIProviderProbeCapability.allCases"))
+        #expect(source.contains("displayedCapabilities"))
         #expect(source.contains("activeCapabilities"))
         #expect(!source.contains("capability == .textReply || capability == .structuredJSON"))
         #expect(source.contains("aiProviderSettings.probeCapability.textReply"))
         #expect(source.contains("aiProviderSettings.probeCapability.structuredJSON"))
+        #expect(source.contains("aiProviderSettings.probeCapability.languageSupport"))
         #expect(source.contains("aiProviderSettings.probeCapability.imageUnderstanding"))
         #expect(source.contains("aiProviderSettings.probeCapability.speechSynthesis"))
         #expect(source.contains("aiProviderSettings.probeCapability.embedding"))
@@ -186,6 +202,34 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("aiProviderSettings.probeCapabilityStatus.cancelled"))
         #expect(!source.contains(".sheet("))
         #expect(!source.contains("presentationDetents"))
+    }
+
+    @Test("AI provider settings source keeps language support out of SwiftUI network and language recognition boundaries")
+    func aiProviderSettingsSourceKeepsLanguageSupportOutOfSwiftUINetworkAndLanguageRecognitionBoundaries() throws {
+        let viewSource = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+        let draftSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderDraftConfiguration.swift"),
+            encoding: .utf8
+        )
+        let detailSource = try String(
+            contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(viewSource.contains("languageContext"))
+        #expect(draftSource.contains("languageContext"))
+        #expect(detailSource.contains("#if os(iOS)"))
+        #expect(detailSource.contains("AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)"))
+        #expect(!viewSource.contains("NLLanguageRecognizer"))
+        #expect(!draftSource.contains("NLLanguageRecognizer"))
+        #expect(!viewSource.contains("NaturalLanguage"))
+        #expect(!draftSource.contains("NaturalLanguage"))
+        #expect(!viewSource.contains("URLSession"))
+        #expect(!draftSource.contains("URLSession"))
+        #expect(!viewSource.contains("Authorization"))
+        #expect(!draftSource.contains("Authorization"))
+        #expect(!viewSource.contains("Bearer "))
+        #expect(!draftSource.contains("Bearer "))
     }
 
     @Test("Probe result sheet has a large platform width rule without applying compact detents everywhere")

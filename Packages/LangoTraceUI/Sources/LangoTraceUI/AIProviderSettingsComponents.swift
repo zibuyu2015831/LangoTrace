@@ -68,6 +68,7 @@ struct AIProviderProbeResultPanelContent: View {
     let result: AIProviderConfigurationProbeResult?
     let isTesting: Bool
     let activeCapabilities: [AIProviderProbeCapability]
+    let displayedCapabilities: [AIProviderProbeCapability]
     let onRetry: () -> Void
     let onClose: () -> Void
 
@@ -92,7 +93,7 @@ struct AIProviderProbeResultPanelContent: View {
             }
 
             VStack(alignment: .leading, spacing: 10) {
-                ForEach(AIProviderProbeCapability.allCases, id: \.rawValue) { capability in
+                ForEach(displayedCapabilities, id: \.rawValue) { capability in
                     AIProviderProbeCapabilityRow(
                         capability: capability,
                         result: result?.capabilities.first { $0.capability == capability },
@@ -188,6 +189,8 @@ private struct AIProviderProbeCapabilityRow: View {
             "aiProviderSettings.probeCapability.textReply"
         case .structuredJSON:
             "aiProviderSettings.probeCapability.structuredJSON"
+        case .languageSupport:
+            "aiProviderSettings.probeCapability.languageSupport"
         case .imageUnderstanding:
             "aiProviderSettings.probeCapability.imageUnderstanding"
         case .speechSynthesis:

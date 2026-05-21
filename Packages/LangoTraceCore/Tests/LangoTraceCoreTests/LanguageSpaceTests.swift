@@ -80,6 +80,7 @@ func languageSpaceMapsToPreviewWithoutLanguageCodeIdentity() {
     #expect(preview.name == "Work English")
     #expect(preview.nativeLanguage == "中文")
     #expect(preview.targetLanguage == "英语")
+    #expect(preview.targetLanguageCode == "en")
     #expect(preview.level == .c1)
 }
 

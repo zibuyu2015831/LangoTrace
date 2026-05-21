@@ -20,6 +20,7 @@ public struct AIProviderDraftProbeSnapshot: Sendable {
     public var source: AIProviderProbeSource
     public var endpoint: AIProviderEndpointInput
     public var plaintextSecret: String?
+    public var languageContext: AIProviderProbeLanguageContext?
     public var requestedCapabilities: [AIProviderProbeCapability]
     public var operationID: DiagnosticOperationID
 }
@@ -393,16 +394,31 @@ struct AIProviderDraftConfiguration: Equatable {
     }
 
     var configurationProbeRequestedCapabilities: [AIProviderProbeCapability] {
+        configurationProbeRequestedCapabilities(languageContext: nil, includePlaceholders: false)
+    }
+
+    func configurationProbeRequestedCapabilities(
+        languageContext: AIProviderProbeLanguageContext?,
+        includePlaceholders: Bool = false
+    ) -> [AIProviderProbeCapability] {
         var capabilities: [AIProviderProbeCapability] = [.textReply, .structuredJSON]
+        if languageContext != nil {
+            capabilities.append(.languageSupport)
+        }
         let imageInputDecision = text.endpoint.imageInputDecision(purpose: .textGeneration)
-        if text.imageUnderstandingEnabled, imageInputDecision.canProbe {
+        if includePlaceholders || (text.imageUnderstandingEnabled && imageInputDecision.canProbe) {
             capabilities.append(.imageUnderstanding)
+        }
+        if includePlaceholders {
+            capabilities.append(.speechSynthesis)
+            capabilities.append(.embedding)
         }
         return capabilities
     }
 
     func makeConfigurationProbeDraftSnapshot(
-        operationID: DiagnosticOperationID
+        operationID: DiagnosticOperationID,
+        languageContext: AIProviderProbeLanguageContext? = nil
     ) throws -> AIProviderDraftProbeSnapshot {
         guard textProbeReadiness == .readyForRequest else {
             throw AIProviderConfigurationError.missingRequiredEndpointField
@@ -427,7 +443,8 @@ struct AIProviderDraftConfiguration: Equatable {
             plaintextSecret: text.endpoint.independentCredential.requiresAPIKey
                 ? text.endpoint.independentCredential.apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
                 : nil,
-            requestedCapabilities: configurationProbeRequestedCapabilities,
+            languageContext: languageContext,
+            requestedCapabilities: configurationProbeRequestedCapabilities(languageContext: languageContext),
             operationID: operationID
         )
     }

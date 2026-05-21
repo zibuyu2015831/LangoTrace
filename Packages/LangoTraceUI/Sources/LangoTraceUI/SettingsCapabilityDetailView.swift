@@ -94,8 +94,15 @@ struct SettingsCapabilityDetailView: View {
     }
 
     private var aiProviderSettingsContainer: some View {
-        AIProviderSettingsView()
+        #if os(iOS)
+            AIProviderSettingsView(
+                languageContext: AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)
+            )
             .frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)
+        #else
+            AIProviderSettingsView()
+            .frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)
+        #endif
     }
 
     private var syncSettingsContainer: some View {

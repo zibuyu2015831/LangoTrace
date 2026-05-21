@@ -11,6 +11,7 @@ public struct AIProviderSettingsActions: Sendable {
     var testProviderConfiguration: @Sendable (
         AIProviderProbeSource,
         AIProviderDraftProbeSnapshot?,
+        AIProviderProbeLanguageContext?,
         DiagnosticOperationID
     ) async throws -> AIProviderConfigurationProbeResult
     public var recordDiagnosticEvent: @Sendable (DiagnosticEvent) async -> Void
@@ -35,8 +36,9 @@ public struct AIProviderSettingsActions: Sendable {
         testProviderConfiguration: @escaping @Sendable (
             AIProviderProbeSource,
             AIProviderDraftProbeSnapshot?,
+            AIProviderProbeLanguageContext?,
             DiagnosticOperationID
-        ) async throws -> AIProviderConfigurationProbeResult = { _, _, _ in
+        ) async throws -> AIProviderConfigurationProbeResult = { _, _, _, _ in
             AIProviderConfigurationProbeResult(
                 source: .draft,
                 overallStatus: .failed,

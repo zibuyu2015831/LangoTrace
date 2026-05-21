@@ -12919,6 +12919,13 @@
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "JSON 输出" } }
       }
     },
+    "aiProviderSettings.probeCapability.languageSupport": {
+      "comment": "Capability row title for target language support probe.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Language support" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语言支持" } }
+      }
+    },
     "aiProviderSettings.probeCapability.imageUnderstanding": {
       "comment": "Capability row title for image understanding probe.",
       "localizations": {

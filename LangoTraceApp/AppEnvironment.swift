@@ -58,7 +58,7 @@ struct AppEnvironment {
                     )
                     return try await service.validateDefaultProfileCredentials()
                 },
-                testProviderConfiguration: { source, snapshot, operationID in
+                testProviderConfiguration: { source, snapshot, languageContext, operationID in
                     let service = try makeAIProviderConfigurationService(
                         databaseFactory: databaseFactory,
                         credentialStore: credentialStore,
@@ -73,11 +73,15 @@ struct AppEnvironment {
                             AIProviderConfigurationProbeDraftInput(
                                 endpoint: snapshot.endpoint,
                                 plaintextSecret: snapshot.plaintextSecret,
+                                languageContext: snapshot.languageContext,
                                 operationID: operationID
                             )
                         )
                     case .savedProfile:
-                        return try await service.testDefaultConfiguration(operationID: operationID)
+                        return try await service.testDefaultConfiguration(
+                            languageContext: languageContext,
+                            operationID: operationID
+                        )
                     }
                 },
                 recordDiagnosticEvent: { event in

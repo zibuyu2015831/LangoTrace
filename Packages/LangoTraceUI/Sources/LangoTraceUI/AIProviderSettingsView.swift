@@ -9,12 +9,17 @@ struct AIProviderSettingsView: View {
     #if os(iOS)
         @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
+    let languageContext: AIProviderProbeLanguageContext?
     @State private var draft = AIProviderDraftConfiguration(provider: .openAI)
     @State private var transientSaveStatusClearTask: Task<Void, Never>?
     @State private var transientTestStatusClearTask: Task<Void, Never>?
     @State private var isProbeResultPresented = false
     @State private var latestProbeResult: AIProviderConfigurationProbeResult?
     @State private var activeProbeCapabilities: [AIProviderProbeCapability] = []
+
+    init(languageContext: AIProviderProbeLanguageContext? = nil) {
+        self.languageContext = languageContext
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -46,6 +51,7 @@ struct AIProviderSettingsView: View {
                 result: latestProbeResult,
                 isTesting: isTesting,
                 activeCapabilities: activeProbeCapabilities,
+                displayedCapabilities: displayedProbeCapabilities,
                 onRetry: validateConfiguration,
                 onClose: { isProbeResultPresented = false }
             )
@@ -253,7 +259,10 @@ private extension AIProviderSettingsView {
             let snapshot: AIProviderDraftProbeSnapshot?
             do {
                 snapshot = source == .draft
-                    ? try draft.makeConfigurationProbeDraftSnapshot(operationID: operationID)
+                    ? try draft.makeConfigurationProbeDraftSnapshot(
+                        operationID: operationID,
+                        languageContext: languageContext
+                    )
                     : nil
             } catch {
                 draft.testState = .missingRequiredFields
@@ -262,10 +271,15 @@ private extension AIProviderSettingsView {
             draft.testState = .testing
             latestProbeResult = nil
             activeProbeCapabilities = snapshot?.requestedCapabilities
-                ?? draft.configurationProbeRequestedCapabilities
+                ?? draft.configurationProbeRequestedCapabilities(languageContext: languageContext)
             isProbeResultPresented = true
             do {
-                let result = try await actions.testProviderConfiguration(source, snapshot, operationID)
+                let result = try await actions.testProviderConfiguration(
+                    source,
+                    snapshot,
+                    languageContext,
+                    operationID
+                )
                 latestProbeResult = result
                 activeProbeCapabilities = []
                 draft.testState = testState(for: result)
@@ -290,6 +304,13 @@ private extension AIProviderSettingsView {
         case .idle, .missingRequiredFields, .saving:
             nil
         }
+    }
+
+    var displayedProbeCapabilities: [AIProviderProbeCapability] {
+        draft.configurationProbeRequestedCapabilities(
+            languageContext: languageContext,
+            includePlaceholders: true
+        )
     }
 
     var statusIconName: String {
