@@ -96,9 +96,18 @@ public enum AIProviderProbeSource: String, Codable, Sendable {
 public enum AIProviderProbeCapability: String, Codable, CaseIterable, Sendable {
     case textReply = "text_reply"
     case structuredJSON = "structured_json"
+    case languageSupport = "language_support"
     case imageUnderstanding = "image_understanding"
     case speechSynthesis = "speech_synthesis"
     case embedding
+}
+
+public struct AIProviderProbeLanguageContext: Equatable, Sendable {
+    public var languageCode: String
+
+    public init(languageCode: String) {
+        self.languageCode = languageCode
+    }
 }
 
 public enum AIProviderProbeCapabilityStatus: String, Codable, Sendable {

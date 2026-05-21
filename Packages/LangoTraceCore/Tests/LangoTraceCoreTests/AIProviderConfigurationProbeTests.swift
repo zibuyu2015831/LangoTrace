@@ -54,10 +54,18 @@ func configurationProbeCapabilitiesIncludeFuturePlaceholders() {
     #expect(AIProviderProbeCapability.allCases == [
         .textReply,
         .structuredJSON,
+        .languageSupport,
         .imageUnderstanding,
         .speechSynthesis,
         .embedding,
     ])
+}
+
+@Test("Configuration probe language context carries only stable language code")
+func configurationProbeLanguageContextCarriesOnlyStableLanguageCode() {
+    let context = AIProviderProbeLanguageContext(languageCode: "ja")
+
+    #expect(context.languageCode == "ja")
 }
 
 @Test("Configuration probe diagnostics use typed event names and attributes")
