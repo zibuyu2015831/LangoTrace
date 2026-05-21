@@ -51,7 +51,7 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("makeTextProbeDraftSnapshot"))
         #expect(source.contains("AIProviderProbeResultPanelContent"))
         #expect(source.contains(".sheet(isPresented: $isProbeResultPresented)"))
-        #expect(source.contains("aiProviderProbePresentationDetents(compactWidth: isCompactWidth)"))
+        #expect(source.contains("aiProviderProbePresentationStyle(compactWidth: isCompactWidth)"))
         #expect(source.contains("horizontalSizeClass == .compact"))
         #expect(!source.contains("actions.validateDefaultProfileCredentials"))
         #expect(!source.contains("URLSession"))
@@ -79,6 +79,19 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("aiProviderSettings.probeCapabilityStatus.cancelled"))
         #expect(!source.contains(".sheet("))
         #expect(!source.contains("presentationDetents"))
+    }
+
+    @Test("Probe result sheet has a large platform width rule without applying compact detents everywhere")
+    func probeResultSheetHasLargePlatformWidthRuleWithoutApplyingCompactDetentsEverywhere() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+
+        #expect(source.contains("aiProviderProbePresentationStyle(compactWidth: isCompactWidth)"))
+        #expect(source.contains("private let aiProviderProbeRegularWidth"))
+        #expect(source.contains(".frame(maxWidth: aiProviderProbeRegularWidth, alignment: .leading)"))
+        #expect(source.contains("presentationDetents([.medium, .large])"))
+        #expect(source.contains("#if os(iOS)"))
+        #expect(source.contains("if compactWidth"))
+        #expect(!source.contains("aiProviderProbePresentationDetents"))
     }
 
     @Test("Unsupported optional capabilities do not mask authentication failure")

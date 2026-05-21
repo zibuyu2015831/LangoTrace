@@ -2,6 +2,8 @@ import Foundation
 import LangoTraceCore
 import SwiftUI
 
+private let aiProviderProbeRegularWidth: CGFloat = 520
+
 struct AIProviderSettingsView: View {
     @Environment(\.aiProviderSettingsActions) private var actions
     #if os(iOS)
@@ -45,7 +47,8 @@ struct AIProviderSettingsView: View {
                 onRetry: validateConfiguration,
                 onClose: { isProbeResultPresented = false }
             )
-            .aiProviderProbePresentationDetents(compactWidth: isCompactWidth)
+            .frame(maxWidth: aiProviderProbeRegularWidth, alignment: .leading)
+            .aiProviderProbePresentationStyle(compactWidth: isCompactWidth)
         }
     }
 
@@ -146,7 +149,7 @@ struct AIProviderSettingsView: View {
 
 private extension View {
     @ViewBuilder
-    func aiProviderProbePresentationDetents(compactWidth: Bool) -> some View {
+    func aiProviderProbePresentationStyle(compactWidth: Bool) -> some View {
         #if os(iOS)
             if compactWidth {
                 presentationDetents([.medium, .large])
