@@ -55,8 +55,8 @@ iPhone 的顶层结构是 `记录 / 练习 / 记忆` 三个 Tab，设置通过�
 | AI Provider 设置页 | 配置文本模型、语音生成模型、向量模型，保存本地安全配置并执行文本模型配置合成测试 | 设置列表 `AI Provider` row | Implemented / Configuration Synthetic Probe | `AIProviderSettingsView.swift`、`AIProviderDraftConfiguration.swift`、`AIProviderSettingsModels.swift`、`AIProviderSettingsComponents.swift`、`AIProviderSettingsActions.swift`、`SettingsCapabilityDetailView.swift` | 主路径按模型用途分组；Provider 行内展示；API Key 有明确字段名和显示/隐藏按钮；文本模型必填，图片理解默认关闭；语音和向量 endpoint 可引用文本模型 API Key 或使用独立 API Key；iPad / macOS 工作台详情复用同一表单，但通过平台最大宽度保持大屏阅读栏；保存动作把非敏感配置写入 SQLite / GRDB，把 API Key 写入 Keychain；加载已保存配置时通过服务边界解析 Keychain 并回填到短生命周期 UI draft，默认仍隐藏；测试按钮打开分能力结果面板，当前真实请求覆盖文本回复、JSON 输出，以及 OpenAI Responses / OpenAI-compatible Chat 在用户显式启用图片输入后的内置图片理解 probe；图片理解使用 App 内置白底蓝色正方形 PNG，不使用用户照片或生活记录附件；语音生成和向量化仍只显示未启用、未配置或暂不支持测试；iPhone compact 使用 bottom sheet detents，iPad 常规宽度和 macOS 不强制套用移动端 detents，结果内容在大屏使用固定最大宽度避免横向拉满；测试请求不发送生活记录、用户照片、音频、历史记忆、目标语言正文或 Prompt Preset 内容 | 后续真实学习内容请求、请求预览、请求日志和 Prompt Preset 执行必须另开任务；Anthropic / Gemini 文本测试和图片 probe 第一阶段返回暂不支持测试，不误报为网络或 API Key 错误；真网人工复核需要可控测试 Provider / API Key |
 | 同步设置页 | 预览 iCloud 推荐路径、S3 兼容对象存储高级草稿、同步范围和密钥边界 | 设置列表 `同步` row | Local Mock | `SyncSettingsView.swift`、`SyncSettingsModels.swift`、`SettingsCapabilityDetailView.swift` | 只做真实级 mock UI；iCloud 为推荐路径，S3 兼容对象存储为高级二级表单；照片和音频附件使用本地草稿 switch 开关且默认关闭；生活记录、学习材料、Prompt Preset 和 AI 生成内容作为固定纳入范围展示；向量索引本地重建；AI Key、对象存储密钥和恢复密钥不进入同步；当前不写 Keychain、不写数据库、不发 CloudKit/S3/R2/WebDAV 请求、不上传内容 | 后续真实 Sync Engine / CloudKit Adapter / S3 Adapter 接入前，必须先定义数据模型、manifest、冲突、tombstone、密钥恢复和文档审查 |
 | 设置详情 | 查看单项能力的当前状态、下一步和副作用边界 | 设置列表 row | Implemented / Unavailable | `SettingsCapabilityDetailView.swift` | AI Provider 已接入本地配置保存和 Keychain；同步仍是真实级 mock 配置入口；界面语言可切换 preference；不保存真实导入导出配置 | 后续真实 Provider 请求、同步、导入导出接入后逐项复查 |
-| 语言空间摘要 sheet | 查看当前空间、母语到目标语言、水平和本地优先边界 | 顶部语言空间胶囊或设置入口 | Implemented | `LanguageSpaceSummaryView.swift` | 不支持多空间切换、删除或持久化恢复 | 后续语言空间 lifecycle 落地后更新入口和状态 |
-| iPhone 页面 chrome | 为记录、练习、记忆、设置提供顶部语言空间和设置入口 | 三个 Tab 和设置列表内部 | Implemented | `PhonePage`、`PhoneContextHeader.swift` | 语言空间入口打开摘要；设置入口进入设置列表 | 所有主 Tab 都应保留当前语言空间可见性，gear 不应变成底部 Tab |
+| 语言空间快速切换 sheet | 查看当前空间、切换 active 空间、添加学习语言，并进入完整管理页 | 顶部语言空间胶囊 | Implemented | `LanguageSpaceSwitcherSheet.swift`、`PhoneMainView.swift` | 复用 App 层语言空间 lifecycle actions；不直接持有 repository、GRDB queue 或 SQL；新增后沿用 AppSessionState 设为当前空间的语义 | 不退回只读 summary；新增流程避免未经验证的双层 modal；失败反馈受当前 action 返回值边界约束 |
+| iPhone 页面 chrome | 为记录、练习、记忆、设置提供顶部语言空间和设置入口 | 三个 Tab 和设置列表内部 | Implemented | `PhonePage`、`PhoneContextHeader.swift` | 语言空间入口打开快速切换 sheet；设置入口进入设置列表 | 所有主 Tab 都应保留当前语言空间可见性，gear 不应变成底部 Tab |
 | Unavailable sheet | 搜索等未接入能力的临时承载 | `PhoneSheet.unavailable` 或共享组件调用 | Unavailable | `UnavailableCapabilityView.swift`、`PhoneMainView.swift` | 只解释边界，不执行真实副作用 | 不应用于主学习高频体验；能 mock 的能力优先做真实级 local mock |
 
 ## 4. iPad 页面清单
@@ -128,7 +128,7 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 | `SettingsCapabilityDetailView` | iPhone / iPad / macOS | Implemented / Local Mock / Unavailable | `SettingsCapabilityDetailView.swift` | AI、同步、隐私、导入导出、本地数据、语言空间、界面语言；支持 standalone scroll 和 embedded presentation，供 macOS 工作台避免嵌套滚动 |
 | `AIProviderSettingsView` | iPhone / iPad / macOS | Implemented / Configuration Synthetic Probe | `AIProviderSettingsView.swift`、`AIProviderDraftConfiguration.swift`、`AIProviderSettingsActions.swift`、`AIProviderSettingsModels.swift`、`AIProviderSettingsComponents.swift` | 文本模型、语音生成模型、向量模型 endpoint；语音和向量可共享文本模型 API Key 或使用独立 API Key；保存配置写 SQLite / GRDB metadata 与 Keychain secret；加载已保存配置时回填 Keychain secret 到短生命周期 UI draft，默认隐藏；测试按钮走共享 action seam，打开共享分能力结果内容；文本测试 readiness 与保存 readiness 分离；未保存 draft 测当前屏幕配置，已保存且无修改时由服务层重新解析 Keychain；iPhone compact 使用 bottom sheet detents，iPad 常规宽度和 macOS 不强制套用移动端 detents；结果面板内容在大屏使用固定最大宽度；iPad / macOS 由 `SettingsCapabilityDetailView` 负责表单最大内容宽度，不分叉表单组件 |
 | `SyncSettingsView` | iPhone / iPad / macOS | Local Mock | `SyncSettingsView.swift`、`SyncSettingsModels.swift`、`SyncS3DraftView.swift` | iCloud 推荐、S3-compatible 高级草稿、同步范围和密钥边界；照片和音频附件是唯一可切换草稿项并显式使用 switch；iPad / macOS 常规宽度使用自适应多栏，compact / 窄宽度回退单列；当前不连接 CloudKit、S3、R2、WebDAV、数据库或 Keychain |
-| `LanguageSpaceSummaryView` | iPhone | Implemented | `LanguageSpaceSummaryView.swift` | iPhone 顶部语言空间轻量摘要 sheet |
+| `LanguageSpaceSwitcherSheet` | iPhone | Implemented | `LanguageSpaceSwitcherSheet.swift` | iPhone 顶部语言空间快速切换、添加学习语言和完整管理入口 |
 | `LanguageSpaceManagementView` / `LanguageSpaceEditorView` | iPhone / iPad / macOS | Implemented | `LanguageSpaceManagementView.swift`、`LanguageSpaceEditorView.swift` | 语言空间列表、当前态、新增、切换、编辑和删除确认；三端共享管理语义，平台外壳负责入口和承载 |
 | `UnavailableCapabilityView` | iPhone / iPad / macOS | Unavailable | `UnavailableCapabilityView.swift` | 搜索、导入导出、向量索引和通用未接入能力 |
 | `RequestPreviewCard` | iPad / macOS | Local Mock / Explicit request boundary | `LearningContentComponents.swift`、`PremiumUILayoutRules.swift` | iPad 学习面板、macOS Inspector |
@@ -143,11 +143,11 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 
 ## 7. 页面覆盖自检
 
-截至 2026-05-19，本文档已按以下代码事实逐项覆盖：
+截至 2026-05-21，本文档已按以下代码事实逐项覆盖：
 
 - Root phase：`LangoTraceAppPhase.welcome`、`onboarding`、`main`。
 - iPhone route：`PhoneRoute.entryDetail`、`practice`、`settings`、`settingsList`。
-- iPhone sheet：`PhoneSheet.entryEditor`、`photoWritingPreview`、`unavailable`、`languageSpaceSummary`。
+- iPhone sheet：`PhoneSheet.entryEditor`、`photoWritingPreview`、`unavailable`、`languageSpaceSwitcher`。
 - iPad route：`PadWorkspaceRoute.workspace`、`entryDetail`、`practice`、`settingsList`、`settings`、`memory`、`importExport`、`languageSpaceManagement`。
 - iPad sheet：`PadSheet.entryEditor`、`unavailableSearch`。
 - macOS section：`MacWorkspaceSection.today`、`entries`、`practice`、`memory`、`importExport`、`settings`。

@@ -26,7 +26,7 @@ struct PhoneMainView: View {
                     renderingForEntry: rendering(for:),
                     onNewEntry: { presentedSheet = .entryEditor },
                     onPhotoWriting: { presentedSheet = .photoWritingPreview },
-                    onLanguageSpaceAction: { presentedSheet = .languageSpaceSummary },
+                    onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
                     onSettingsAction: { navigationPath.append(.settingsList) },
                     onSelectEntry: showEntryDetail
                 )
@@ -43,7 +43,7 @@ struct PhoneMainView: View {
                     languageSpace: languageSpace,
                     entries: entries,
                     contentStore: contentStore,
-                    onLanguageSpaceAction: { presentedSheet = .languageSpaceSummary },
+                    onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
                     onSettingsAction: { navigationPath.append(.settingsList) },
                     onPractice: { entry in navigationPath.append(.practice(entry.id)) }
                 )
@@ -59,7 +59,7 @@ struct PhoneMainView: View {
                 MemoryView(
                     languageSpace: languageSpace,
                     memoryItems: contentStore.memoryItems,
-                    onLanguageSpaceAction: { presentedSheet = .languageSpaceSummary },
+                    onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
                     onSettingsAction: { navigationPath.append(.settingsList) }
                 )
                 .tabItem {
@@ -115,7 +115,7 @@ struct PhoneMainView: View {
                     SettingsView(
                         languageSpace: languageSpace,
                         capabilities: contentStore.settingsCapabilities,
-                        onLanguageSpaceAction: { presentedSheet = .languageSpaceSummary },
+                        onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
                         onSettingsAction: nil,
                         onSelectCapability: { kind in navigationPath.append(.settings(kind)) }
                     )
@@ -146,18 +146,31 @@ struct PhoneMainView: View {
                         presentedSheet = nil
                     }
                     .presentationDetents([.medium, .large])
-                case .languageSpaceSummary:
+                case .languageSpaceSwitcher:
                     NavigationStack {
-                        LanguageSpaceSummaryView(languageSpace: languageSpace)
-                            .toolbar {
-                                ToolbarItem(placement: .confirmationAction) {
-                                    Button {
-                                        presentedSheet = nil
-                                    } label: {
-                                        localizedText("common.close")
-                                    }
+                        LanguageSpaceSwitcherSheet(
+                            spaces: languageSpaces,
+                            currentSpaceID: languageSpace.id,
+                            onSelect: { id in
+                                onSelectLanguageSpace(id)
+                            },
+                            onAdd: { input in
+                                onAddLanguageSpace(input)
+                            },
+                            onManage: {
+                                presentedSheet = nil
+                                navigationPath.append(.settings(.languageSpace))
+                            }
+                        )
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button {
+                                    presentedSheet = nil
+                                } label: {
+                                    localizedText("common.close")
                                 }
                             }
+                        }
                     }
                     .presentationDetents([.medium, .large])
                 }
@@ -201,7 +214,7 @@ private enum PhoneSheet: Identifiable {
     case entryEditor
     case photoWritingPreview
     case unavailable(PhoneUnavailableAction)
-    case languageSpaceSummary
+    case languageSpaceSwitcher
 
     var id: String {
         switch self {
@@ -211,8 +224,8 @@ private enum PhoneSheet: Identifiable {
             "photo-writing-preview"
         case let .unavailable(action):
             "unavailable-\(action.rawValue)"
-        case .languageSpaceSummary:
-            "language-space-summary"
+        case .languageSpaceSwitcher:
+            "language-space-switcher"
         }
     }
 }

@@ -319,6 +319,8 @@ iPhone 上的管理类 sheet 常用于创建、编辑、重命名、配置少量
 - 破坏性操作仍使用系统 destructive 语义和确认路径；编辑 sheet 内的保存、取消和删除不能只靠颜色区分。
 - 此类 sheet 的视觉必须跟随 `LangoTraceDesign` token，例如 paper、surfaceRaised、borderSubtle、accent、warning、dangerMuted；不直接散落临时 RGB。
 - 如果默认 `Form` 的系统分组视觉与当前产品主题冲突，应优先构建可复用编辑 panel，而不是通过零散 padding、背景色和 opacity 补丁修补。
+- iPhone 顶部语言空间入口使用快速切换 sheet，而不是只读说明 sheet。该 sheet 的首屏应优先展示当前空间、active 空间列表、添加学习语言和完整管理入口；长期说明、删除风险和复杂生命周期操作留给完整管理页或当前动作确认上下文。
+- 快速切换 sheet 不应默认叠第二层 modal 承载新增流程；优先在同一 sheet 的导航层或阶段状态中复用语言空间编辑面板。若必须嵌套 sheet，应人工验证取消、保存、拖拽关闭和 VoiceOver 逃逸路径。
 - iPad 和 macOS 不必照搬 iPhone sheet。iPad 可转为 popover、split detail 或 inspector；macOS 可使用 Settings scene、panel 或 overlay，但语义、字段顺序和状态提示应保持一致。
 
 ### 4.16 页面闭环先于整体视觉升级
@@ -406,3 +408,4 @@ AI 在创建或修改 UI 前应先确认：
 - 2026-05-20：补充 Onboarding iPad 横屏与竖屏专属承载规则。原因：iPad 首次创建语言空间页面需要利用 regular-width 画布，横屏采用左右分栏，竖屏采用标题、价值摘要、表单和 CTA 的居中纵向节奏；该规则只改变表现层，不改变首次启动输入边界。影响范围：iPad Onboarding 布局、价值摘要本地化、当前水平列表高度和响应式分支。是否需要 ADR：否。
 - 2026-05-20：补充 iPhone 管理类 sheet 与轻量编辑面板规则。原因：语言空间编辑 sheet 从默认 `Form` 改为语迹主题化紧凑 panel 后形成可复用经验：少量字段的产品对象编辑应保持原生输入行为，但避免系统 `Form` 灰底和过度留白破坏品牌一致性。影响范围：iPhone 管理类 sheet、语言空间编辑、Provider / 同步草稿类配置、后续轻量编辑面板。是否需要 ADR：否。
 - 2026-05-20：补充关键操作反馈规则。原因：AI Provider 保存配置已进入真实 Keychain + SQLite 写入链路，需要把 saving、saved、failed 和 input invalid 的独立反馈沉淀为通用 UI 约束。影响范围：Provider 设置、同步、导出、删除、AI 生成和后续保存类操作。是否需要 ADR：否。
+- 2026-05-21：补充 iPhone 语言空间快速切换 sheet 规则。原因：顶部语言空间 pill 已从只读 summary 调整为快速切换入口，需要明确快速切换、添加学习语言和完整管理页之间的职责分工，并避免新增流程默认叠双层 modal。影响范围：iPhone 顶部语言空间入口、管理类 sheet、语言空间编辑承载。是否需要 ADR：否。

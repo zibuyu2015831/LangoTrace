@@ -144,8 +144,8 @@ iPad 和 macOS 的左右辅助面板属于主工作区的可召回上下文，�
 
 推荐边界：
 
-- iPhone 可以在页面顶部显示轻量语言空间上下文，例如 `英语 · B1`，并在设置页提供完整配置入口。
-- iPhone 的设置页语言空间入口已进入真实管理页：展示当前空间和 active 空间列表，支持新增、切换、重命名和删除。顶部语言空间摘要仍可保持轻量 summary，但不得成为唯一管理入口。
+- iPhone 可以在页面顶部显示轻量语言空间上下文，例如 `英语 · B1`，点击后优先打开快速切换 sheet，支持查看当前空间、切换 active 空间、添加学习语言，并提供进入完整管理页的次级入口。
+- iPhone 的设置页语言空间入口已进入真实管理页：展示当前空间和 active 空间列表，支持新增、切换、重命名和删除。顶部语言空间入口不得退回只读 summary；它是当前学习上下文的轻量切换入口，不替代设置页的完整管理页。
 - iPad 和 macOS 的 Sidebar footer 语言空间入口、设置列表语言空间 row，以及 macOS 原生 `Settings` scene 的语言空间 row，均应进入完整语言空间管理页，而不是只读 summary。管理页共享新增、切换、编辑、删除语义；平台外壳只负责主区、Settings scene 或桌面右键菜单等原生承载。
 - 语言空间管理 UI 应鼓励一门学习语言使用一个空间；同目标语言多空间只做非阻断提示，不能在 Data 层禁止。
 - iPad 默认把当前语言空间、AI Provider 状态、同步状态和设置入口放在左侧 Sidebar 底部；AI、同步、设置三个图标应在语言空间标题行右侧同组呈现，顶部全局条优先服务当前任务，不再重复放置设置齿轮。
@@ -216,3 +216,4 @@ iPad 和 macOS 的左右辅助面板属于主工作区的可召回上下文，�
 - 2026-05-20：补充三端 onboarding 当前水平规则。原因：A1-C2 裸露给新用户不够直观，已收敛为“当前水平”字段和解释性等级列表；iPhone、iPad、macOS 都不应回退为裸 segmented control。影响范围：首次启动、语言空间创建、界面文案和无障碍。是否需要 ADR：否，未改变语言空间模型或 A1-C2 数据模型。
 - 2026-05-20：更新 iPhone 语言空间入口事实。原因：语言空间数据基础设施已接入 iPhone 设置页管理入口，原“只展示 Space summary / lifecycle 说明”的描述已过期。影响范围：iPhone 设置导航、语言空间管理页、无空间路由保护和后续 iPad/macOS 扩展。是否需要 ADR：否，延续语言空间核心模型和三端分平台 UI 决策。
 - 2026-05-20：更新 iPad / macOS 语言空间入口事实。原因：语言空间管理从 iPhone 扩展到 iPad 工作台主区、macOS 工作台 Settings route 和原生 Settings scene，iPad / macOS 不再使用 summary-only route 作为管理入口。影响范围：iPad / macOS route、Sidebar footer、设置列表、macOS Settings scene 和 App Shell action 注入。是否需要 ADR：否，未改变语言空间核心模型或三端分平台 UI 决策。
+- 2026-05-21：更新 iPhone 顶部语言空间入口事实。原因：顶部语言空间 pill 已从只读 summary sheet 调整为快速切换 sheet，支持切换 active 空间、添加学习语言和进入完整管理页。影响范围：iPhone 顶部语言空间入口、`PhoneSheet`、语言空间管理路径和页面清单。是否需要 ADR：否，未改变语言空间核心模型或多空间数据策略。

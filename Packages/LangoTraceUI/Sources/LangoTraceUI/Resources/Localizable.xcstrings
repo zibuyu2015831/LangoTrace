@@ -3516,6 +3516,55 @@
         }
       }
     },
+    "languageSpace.switcher.add": {
+      "comment": "Add learning language action in the phone language space switcher.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Add Learning Language" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "添加学习语言" } }
+      }
+    },
+    "languageSpace.switcher.allSection": {
+      "comment": "All language spaces section title in the phone switcher.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "All Language Spaces" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "所有语言空间" } }
+      }
+    },
+    "languageSpace.switcher.currentBadge": {
+      "comment": "Current language space badge in the phone switcher.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Current" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前" } }
+      }
+    },
+    "languageSpace.switcher.headerSummary": {
+      "comment": "Short header summary for the phone language space switcher.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Switch the learning context for records, practice, and memory." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "切换记录、练习和记忆使用的学习上下文。" } }
+      }
+    },
+    "languageSpace.switcher.localFirstFootnote": {
+      "comment": "Local-first footnote in the phone language space switcher.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Your data stays on this device by default. Switching spaces does not change the app interface language." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "数据默认保存在本机。切换语言空间不会改变 App 界面语言。" } }
+      }
+    },
+    "languageSpace.switcher.manage": {
+      "comment": "Manage language spaces action in the phone switcher.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Manage Language Spaces" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "管理语言空间" } }
+      }
+    },
+    "languageSpace.switcher.title": {
+      "comment": "Phone language space switcher title.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Language Spaces" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语言空间" } }
+      }
+    },
     "settings.languageSpace.management.add": {
       "comment": "Add language space action.",
       "localizations": {

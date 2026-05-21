@@ -50,7 +50,7 @@ struct ThreePlatformPresentationCopyTests {
             "MacMainView.swift",
             "MacWorkspaceContentView.swift",
             "LearningContentComponents.swift",
-            "LanguageSpaceSummaryView.swift",
+            "LanguageSpaceSwitcherSheet.swift",
             "LangoTraceSettingsSceneView.swift",
         ] {
             let source = try String(contentsOf: sourceFileURL(named: fileName), encoding: .utf8)
