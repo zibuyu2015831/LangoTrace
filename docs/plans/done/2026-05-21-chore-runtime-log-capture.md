@@ -1,6 +1,6 @@
 # 任务方案：运行时日志采集到本地 logs 目录
 
-状态：In Progress
+状态：Verified
 类型：chore
 创建日期：2026-05-21
 最后更新日期：2026-05-21
@@ -74,7 +74,7 @@ AI 辅助编程排查运行期问题时，需要能在仓库内快速读取最�
 - `docs/README.md`
 - `docs/testing/README.md`
 - `Tests/README.md`
-- `docs/plans/active/2026-05-21-feature-ai-provider-text-model-test-request.md`
+- `docs/plans/done/2026-05-21-feature-ai-provider-text-model-test-request.md`
 
 ## 实施方案
 
@@ -126,6 +126,7 @@ scripts/capture-runtime-log --last 5m
 - 2026-05-21：创建方案文档。
 - 2026-05-21：新增 `scripts/capture-runtime-log` 并设为可执行；脚本支持 `--help`、`--last`、`--stream`、`--device`、`--macos`、`--category ai-provider`、`--output` 和 `--no-latest`。`.gitignore` 已忽略 `/logs/`，`Tests/README.md`、`docs/testing/README.md`、`docs/README.md` 已补充运行时日志采集和 App 不直接写仓库目录的边界。
 - 2026-05-21：验证 `scripts/capture-runtime-log --help` 通过；`git check-ignore -v logs logs/latest.log` 确认日志目录被忽略。普通沙盒下访问 CoreSimulatorService 失败，错误包含 `Operation not permitted` / `Connection refused`；按工具权限升级后 `scripts/capture-runtime-log --last 5m --category ai-provider --output logs/runtime-ai-provider-smoke-filtered.log` 成功生成日志并更新 `logs/latest.log`。首次 `ai-provider` 过滤包含通用 `Provider`，误采集系统 `LocationProvider` 噪音；已收紧为 `AIProvider` / `aiProvider` / `configurationProbe`，复测 `logs/latest.log` 不再包含 `LocationProvider`。
+- 2026-05-21：收口复查确认本方案已完成。新鲜验证通过 `scripts/capture-runtime-log --help`、`git check-ignore -v logs logs/latest.log`；普通沙盒下访问 CoreSimulatorService 仍会失败，按工具权限升级后 `scripts/capture-runtime-log --last 1m --category ai-provider --output /private/tmp/langotrace-runtime-plan-check.log --no-latest` 成功导出日志到 `/private/tmp/langotrace-runtime-plan-check.log`。本方案状态更新为 `Verified` 并移入 `docs/plans/done/`。
 
 ## 完成标准
 

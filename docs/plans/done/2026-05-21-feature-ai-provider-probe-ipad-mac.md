@@ -32,7 +32,7 @@
 
 推荐阅读顺序：
 
-1. `docs/plans/active/2026-05-21-feature-ai-provider-text-model-test-request.md`
+1. `docs/plans/done/2026-05-21-feature-ai-provider-text-model-test-request.md`
 2. `docs/spec/005-ai-provider-prompt-and-privacy.md` 第 4.7 节
 3. `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 第 4.1、5、6 节
 4. `docs/platform-page-inventory.md` 中 `AIProviderSettingsView`、iPad 设置详情、macOS Settings detail route 条目

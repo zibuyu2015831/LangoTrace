@@ -1,6 +1,6 @@
 # 任务方案：AI Provider 文本模型配置测试请求
 
-状态：Implemented
+状态：Verified
 类型：feature
 创建日期：2026-05-21
 最后更新日期：2026-05-21
@@ -225,7 +225,7 @@
 
 本方案创建：
 
-- `docs/plans/active/2026-05-21-feature-ai-provider-text-model-test-request.md`
+- `docs/plans/done/2026-05-21-feature-ai-provider-text-model-test-request.md`
 
 实施完成后预计更新：
 
@@ -800,9 +800,10 @@ iPhone / iOS 人工验证通过后，再决定是否在本任务内继续验证 
 - 2026-05-21：复查 docs 文档体系后确认 `docs/prompts/README.md` 要求代码中出现真实 Prompt 时必须新增具体 Prompt 文档。当前 Provider 配置合成测试已经向 Provider 发送固定 Prompt，因此新增 `docs/prompts/ai-provider/provider-configuration-probe.md`，记录两个 probe Prompt 的英文/中文全文、输出契约、调用位置、隐私边界、请求预览要求和评测方式。
 - 2026-05-21：用户在 iPhone 17 模拟器人工测试小米 `mimo-v2.5-pro` 自定义 OpenAI-compatible Provider 时失败。模拟器最新日志显示测试触发后读取 Keychain，发出一次 POST，服务端 17ms 返回 HTTP `401`，因此真实根因是 Provider 认证失败或 API Key / 鉴权方式不匹配；代码映射为文本回复 `authentication_failed`、JSON 未运行符合第一阶段“文本失败即短路 JSON”的策略。复查同时发现 UI 汇总标题把非本轮能力 `imageUnderstanding == unsupported` 误提升为“当前 Provider 暂不支持测试”，掩盖认证失败。已修复结果分类：只有文本回复和 JSON 输出均为 unsupported 时才显示 Provider 不支持；认证失败、网络、超时、模型不可用等失败在分项行展示具体错误类别。已补充 `AIProviderSettingsProbeTests` 回归用例覆盖“可选能力 unsupported 不掩盖认证失败”和“文本 probe 全 unsupported 仍显示 Provider 不支持”。
 - 2026-05-21：按用户确认完成测试目录治理和 TDD 文档落地。AI Provider UI 单元测试已移动到 `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProvider/` 功能子目录；`Tests/README.md`、`docs/testing/README.md` 和入口 `docs/README.md` 已明确后续开发默认采用 TDD，单元测试放在所属 package 的 `Tests` 下，功能增长时在 test target 内创建子目录，根目录 `Tests/` 只作为项目级测试索引和未来集成 / UI 自动化入口。移动后修复 source-boundary 测试的路径 helper，避免功能子目录破坏源码边界测试。
-- 2026-05-21：为后续 AI 辅助排查运行时问题，新增独立任务方案 `docs/plans/active/2026-05-21-chore-runtime-log-capture.md` 并实施宿主机日志采集脚本。后续复现 AI Provider 运行期失败时优先运行 `scripts/capture-runtime-log --last 30m --category ai-provider` 生成 `logs/latest.log`，再基于日志进行排查；App 仍不得直接写仓库 `logs/` 目录。
+- 2026-05-21：为后续 AI 辅助排查运行时问题，新增独立任务方案 `docs/plans/done/2026-05-21-chore-runtime-log-capture.md` 并实施宿主机日志采集脚本。后续复现 AI Provider 运行期失败时优先运行 `scripts/capture-runtime-log --last 30m --category ai-provider` 生成 `logs/latest.log`，再基于日志进行排查；App 仍不得直接写仓库 `logs/` 目录。
 - 2026-05-21：新增开发期外部 Provider 连通性诊断脚本 `scripts/probe_openai_compatible_api.py`，用于独立验证 OpenAI-compatible API Key、Base URL 和 model 是否能通过固定合成文本请求。脚本支持参数模式和无参数交互模式；交互模式依次要求输入 Base URL、API Key 和 Model，API Key 在终端输入时可见，但脚本输出仍会脱敏。脚本支持 `chat`、`responses` 和 `both` 模式，输出非敏感错误分类，不打印 API Key、请求体或响应体；新增 `Tests/Tooling/test_probe_openai_compatible_api.py` 覆盖 URL 规范化、Bearer 请求构造、Chat 成功解析、HTTP 401 认证失败分类和交互输入。
 - 2026-05-21：按系统架构师复查和用户确认，补充两个收口调整：一是 saved profile 在 Keychain secret 缺失或不可访问的 preflight 失败分支也必须写非敏感 diagnostic event，避免只有 validation outcome 而缺少操作诊断链路；二是 JSON 输出 probe 不再把完整 `{"ok":true}` 作为可复制字面量直接放入 prompt，而改为描述字段名、类型和约束，由模型生成严格 JSON object，验收仍只接受 exactly one field `ok: true`。同时确认文本测试必填项不完整时按钮禁用更符合当前设置页交互，`missingRequiredFields` 作为防御性兜底保留。
+- 2026-05-21：收口复查确认本方案已完成。新鲜验证通过 `swift test --package-path Packages/LangoTraceCore --filter AIProviderConfigurationProbeTests`、`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationProbeServiceTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests` 和 `swift test --package-path Packages/LangoTraceData --filter AIProviderConfigurationRepositoryTests`。后续 iPad / macOS presentation 适配方案已完成并归档为 `docs/plans/done/2026-05-21-feature-ai-provider-probe-ipad-mac.md`，用户已完成人工测试并确认无误。本方案状态更新为 `Verified` 并移入 `docs/plans/done/`。
 
 ## 18. 完成标准
 
@@ -841,7 +842,7 @@ iPhone / iOS 人工验证通过后，再决定是否在本任务内继续验证 
 - JSON 输出 probe 只能证明固定合成 JSON 输出可解析，不等同于后续复杂 Prompt Preset 的完整结构化输出可靠性。后续复杂 schema、长期记忆上下文和多对象输出仍需单独测试。
 - profile 最近验证摘要只有 saved profile 非取消测试会更新；draft 测试结果只存在于当前 UI 状态和非敏感 diagnostic event，不能作为持久配置事实。
 - draft 测试只有 diagnostic event，没有 validation event 历史；这是为了避免临时配置污染持久 profile 事实。用户保存后再次测试，才会形成可持久追踪的 `synthetic_test` 记录。
-- 第一阶段优先验证 iPhone / iOS 交互。iPad / macOS presentation 如果推迟，短期内大屏用户可能只能获得共享基础设施和已记录的后续适配计划；这必须在页面清单和实施记录中如实标注。
+- iPad / macOS presentation 已通过后续方案完成并归档；后续如改动大屏设置详情承载方式，仍需重新验证共享 action seam、结果面板和平台 presentation 边界。
 - 模拟器网络成功不等于真机、公司代理、地区网络或 Provider 账户额度都可用；手动验证应覆盖错误 API Key、错误模型和不可达网络。
 
 ## 20. 方案自检
