@@ -22,6 +22,7 @@
 - `Packages/LangoTraceData/Tests/LangoTraceDataTests/`：SQLite / GRDB repository、migration、local state 和非敏感诊断持久化。
 - `Packages/LangoTraceAI/Tests/LangoTraceAITests/`：AI Provider 配置服务、Keychain 引用、网络 probe 和错误映射。
 - `Packages/LangoTraceUI/Tests/LangoTraceUITests/`：SwiftUI 状态、presentation model、本地化 key、source-boundary 和页面 helper。
+- `Tests/Tooling/`：项目级开发脚本的 Python 单元测试；这些测试不替代 package XCTest，只覆盖宿主机诊断工具。
 
 同一功能有多个测试文件或预计继续扩展时，应在对应 package test target 内创建功能子目录，例如 `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProvider/`。这样既保持 SwiftPM / XcodeGen 的测试发现机制，也避免测试文件在单一目录下平铺失控。
 
@@ -35,6 +36,12 @@
 4. Swift 工程行为、包边界、资源、本地化或构建配置发生变化时，继续运行 `scripts/verify.sh`。
 
 无法自动化的视觉、真机、权限弹窗或真实 Provider 账号路径，应在任务方案中写明手动验证方法、未自动化原因和剩余风险。
+
+Python 开发脚本应优先用标准库 `unittest` 做聚焦测试，避免为了诊断工具引入额外依赖。当前可运行：
+
+```bash
+python3 -m unittest Tests/Tooling/test_probe_openai_compatible_api.py
+```
 
 ## 运行时日志采集
 
@@ -72,6 +79,34 @@ scripts/capture-runtime-log --macos --last 15m
 LANGOTRACE_DIAGNOSTICS=1
 LANGOTRACE_LOG_LEVEL=debug
 ```
+
+## OpenAI-compatible Provider 外部连通性诊断
+
+当 App 内 AI Provider 测试失败，且需要判断问题来自 App 代码、API Key、Base URL、模型名还是 Provider 兼容层时，先用宿主机脚本对同一配置发送固定合成请求：
+
+```bash
+OPENAI_API_KEY='...' scripts/probe_openai_compatible_api.py \
+  --base-url 'https://api.example.com' \
+  --model 'model-name' \
+  --mode chat
+```
+
+可选模式：
+
+```bash
+scripts/probe_openai_compatible_api.py
+scripts/probe_openai_compatible_api.py --mode responses ...
+scripts/probe_openai_compatible_api.py --mode both ...
+scripts/probe_openai_compatible_api.py --json ...
+```
+
+边界：
+
+- 脚本只用于开发期宿主机诊断，不属于 App 运行链路。
+- 不携带任何参数时，脚本进入交互模式，依次要求输入 Base URL、API Key 和 Model；API Key 在终端输入时可见，但脚本输出仍会脱敏。
+- 请求内容固定为 `Reply with exactly OK.`，不发送生活记录、照片、音频、历史记忆、Prompt Preset 或用户正文。
+- 输出不会打印 API Key、请求体或响应体。
+- 如果脚本返回 `authentication_failed`，应优先检查 API Key、Provider 账号权限和兼容层认证方式；如果脚本通过但 App 失败，再回到 App 日志和 Provider probe 实现排查。
 
 ## 模拟器截图验证
 

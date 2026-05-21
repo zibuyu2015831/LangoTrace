@@ -117,6 +117,12 @@
 - 不引入官方托管 AI，不改变用户自带 Provider 决策。
 - 不新增语言空间级 Provider 配置。
 
+补充开发期诊断边界：
+
+- App 内测试失败时，可以使用宿主机脚本 `scripts/probe_openai_compatible_api.py` 对同一 API Key、Base URL 和 model 发固定合成请求，先排除外部 Provider 配置本身不可用。
+- 该脚本不是 App 运行链路，不读取 Keychain，不写 validation event，不代表真实学习内容请求或 Prompt Preset 执行。
+- 脚本不得打印 API Key、请求体或响应体；输出只包含 endpoint 模式、非敏感错误分类、耗时和简短结果。
+
 ## 6. 备忘录检查
 
 已检查：
@@ -792,6 +798,7 @@ iPhone / iOS 人工验证通过后，再决定是否在本任务内继续验证 
 - 2026-05-21：用户在 iPhone 17 模拟器人工测试小米 `mimo-v2.5-pro` 自定义 OpenAI-compatible Provider 时失败。模拟器最新日志显示测试触发后读取 Keychain，发出一次 POST，服务端 17ms 返回 HTTP `401`，因此真实根因是 Provider 认证失败或 API Key / 鉴权方式不匹配；代码映射为文本回复 `authentication_failed`、JSON 未运行符合第一阶段“文本失败即短路 JSON”的策略。复查同时发现 UI 汇总标题把非本轮能力 `imageUnderstanding == unsupported` 误提升为“当前 Provider 暂不支持测试”，掩盖认证失败。已修复结果分类：只有文本回复和 JSON 输出均为 unsupported 时才显示 Provider 不支持；认证失败、网络、超时、模型不可用等失败在分项行展示具体错误类别。已补充 `AIProviderSettingsProbeTests` 回归用例覆盖“可选能力 unsupported 不掩盖认证失败”和“文本 probe 全 unsupported 仍显示 Provider 不支持”。
 - 2026-05-21：按用户确认完成测试目录治理和 TDD 文档落地。AI Provider UI 单元测试已移动到 `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProvider/` 功能子目录；`Tests/README.md`、`docs/testing/README.md` 和入口 `docs/README.md` 已明确后续开发默认采用 TDD，单元测试放在所属 package 的 `Tests` 下，功能增长时在 test target 内创建子目录，根目录 `Tests/` 只作为项目级测试索引和未来集成 / UI 自动化入口。移动后修复 source-boundary 测试的路径 helper，避免功能子目录破坏源码边界测试。
 - 2026-05-21：为后续 AI 辅助排查运行时问题，新增独立任务方案 `docs/plans/active/2026-05-21-chore-runtime-log-capture.md` 并实施宿主机日志采集脚本。后续复现 AI Provider 运行期失败时优先运行 `scripts/capture-runtime-log --last 30m --category ai-provider` 生成 `logs/latest.log`，再基于日志进行排查；App 仍不得直接写仓库 `logs/` 目录。
+- 2026-05-21：新增开发期外部 Provider 连通性诊断脚本 `scripts/probe_openai_compatible_api.py`，用于独立验证 OpenAI-compatible API Key、Base URL 和 model 是否能通过固定合成文本请求。脚本支持参数模式和无参数交互模式；交互模式依次要求输入 Base URL、API Key 和 Model，API Key 在终端输入时可见，但脚本输出仍会脱敏。脚本支持 `chat`、`responses` 和 `both` 模式，输出非敏感错误分类，不打印 API Key、请求体或响应体；新增 `Tests/Tooling/test_probe_openai_compatible_api.py` 覆盖 URL 规范化、Bearer 请求构造、Chat 成功解析、HTTP 401 认证失败分类和交互输入。
 
 ## 18. 完成标准
 
