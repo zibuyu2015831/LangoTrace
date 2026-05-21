@@ -22,6 +22,9 @@ let package = Package(
             name: "LangoTraceAI",
             dependencies: [
                 .product(name: "LangoTraceCore", package: "LangoTraceCore"),
+            ],
+            resources: [
+                .process("Resources"),
             ]
         ),
         .testTarget(

@@ -1,7 +1,24 @@
 import Foundation
+import ImageIO
 import LangoTraceAI
 import LangoTraceCore
 import Testing
+
+@Test("Image understanding probe fixture loads a small PNG data URL from package resources")
+func imageUnderstandingProbeFixtureLoadsPNGDataURL() throws {
+    let fixture = try AIProviderProbeImageFixture.blueSquare()
+
+    #expect(fixture.mimeType == "image/png")
+    #expect(fixture.data.count > 0)
+    #expect(fixture.data.prefix(8) == Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]))
+    #expect(fixture.dataURLString.hasPrefix("data:image/png;base64,"))
+    #expect(!fixture.dataURLString.contains("\n"))
+
+    let imageSource = CGImageSourceCreateWithData(fixture.data as CFData, nil)
+    let properties = CGImageSourceCopyPropertiesAtIndex(imageSource!, 0, nil) as? [CFString: Any]
+    #expect(properties?[kCGImagePropertyPixelWidth] as? Int == 256)
+    #expect(properties?[kCGImagePropertyPixelHeight] as? Int == 256)
+}
 
 @Test("OpenAI-compatible Chat probe builds POST requests and maps text and JSON success")
 func openAICompatibleChatProbeBuildsRequestsAndMapsSuccess() async throws {
