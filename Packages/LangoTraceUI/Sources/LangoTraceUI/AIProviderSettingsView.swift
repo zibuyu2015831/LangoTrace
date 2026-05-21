@@ -252,14 +252,17 @@ private extension AIProviderSettingsView {
                 : AIProviderProbeSource.draft
             let snapshot: AIProviderDraftProbeSnapshot?
             do {
-                snapshot = source == .draft ? try draft.makeConfigurationProbeDraftSnapshot(operationID: operationID) : nil
+                snapshot = source == .draft
+                    ? try draft.makeConfigurationProbeDraftSnapshot(operationID: operationID)
+                    : nil
             } catch {
                 draft.testState = .missingRequiredFields
                 return
             }
             draft.testState = .testing
             latestProbeResult = nil
-            activeProbeCapabilities = snapshot?.requestedCapabilities ?? [.textReply, .structuredJSON]
+            activeProbeCapabilities = snapshot?.requestedCapabilities
+                ?? draft.configurationProbeRequestedCapabilities
             isProbeResultPresented = true
             do {
                 let result = try await actions.testProviderConfiguration(source, snapshot, operationID)

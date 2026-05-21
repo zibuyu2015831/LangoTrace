@@ -250,9 +250,9 @@ Memory 页面第一轮至少表达三层：
    - 面板收起时保持主内容行长和焦点。
 
 5. 设置闭环：
-   - AI Provider 已支持本地配置保存、Keychain secret 和本地凭证验证。
+   - AI Provider 已支持本地配置保存、Keychain secret、已保存凭证读取，以及配置合成测试。
    - 同步和本地数据设置仍保持只读说明或 Mock 配置页。
-   - AI Provider 测试请求当前只做本地完整性和 Keychain 可读性验证，不触发真实网络请求。
+   - AI Provider 测试请求当前会触发固定低敏合成请求，覆盖文本回复、JSON 输出，以及用户显式启用后的内置图片理解 probe；它不发送生活记录、用户照片、音频、历史记忆或 Prompt Preset 内容。
 
 ## 8. 测试与验证要求
 
@@ -313,3 +313,4 @@ scripts/verify.sh
 
 - 2026-05-18：同步第一轮 UI 收敛后的页面地图和状态边界。原因：iPhone 已收敛为记录、练习、记忆三主 Tab；Entry 保存与 local preview 生成已分离；iPad / macOS 已补基础响应式和命令入口；Memory 已出现内容、语言、学习三层表达。影响范围：MVP 页面地图、状态矩阵、设计系统后续实施顺序和手动验证清单。
 - 2026-05-20：同步 AI Provider 设置页从占位 / mock 进入本地配置保存阶段的事实。原因：AI Provider 已落地 SQLite / GRDB metadata、Keychain secret、本地凭证验证和已保存 API Key 短生命周期回显；同步和本地数据设置仍未进入真实写入阶段。影响范围：设置闭环、AI Provider 设置 UI、文档一致性。是否需要 ADR：否，沿用 ADR-005。
+- 2026-05-21：同步 AI Provider 设置页从本地凭证验证推进到配置合成测试的事实。原因：测试请求已可对文本回复、JSON 输出和用户显式启用后的内置图片理解 probe 发起固定低敏 Provider 请求。影响范围：设置闭环、AI Provider 设置 UI、图片输入边界和文档一致性。是否需要 ADR：否，沿用 ADR-005；真实学习内容请求和用户照片请求仍需单独方案。

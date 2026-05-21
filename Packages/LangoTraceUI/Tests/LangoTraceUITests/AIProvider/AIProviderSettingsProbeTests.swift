@@ -34,6 +34,8 @@ struct AIProviderSettingsProbeTests {
         draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
         draft.text.imageUnderstandingEnabled = true
 
+        #expect(draft.configurationProbeRequestedCapabilities == [.textReply, .structuredJSON, .imageUnderstanding])
+
         let openAISnapshot = try draft.makeConfigurationProbeDraftSnapshot(
             operationID: DiagnosticOperationID(rawValue: "operation-ui-image-probe")
         )
@@ -45,6 +47,7 @@ struct AIProviderSettingsProbeTests {
         let textOnlySnapshot = try draft.makeConfigurationProbeDraftSnapshot(
             operationID: DiagnosticOperationID(rawValue: "operation-ui-text-only-probe")
         )
+        #expect(draft.configurationProbeRequestedCapabilities == [.textReply, .structuredJSON])
         #expect(!textOnlySnapshot.endpoint.imageInputEnabled)
         #expect(textOnlySnapshot.requestedCapabilities == [.textReply, .structuredJSON])
     }
@@ -70,6 +73,7 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("validateConfiguration()"))
         #expect(source.contains("actions.testProviderConfiguration"))
         #expect(source.contains("makeConfigurationProbeDraftSnapshot"))
+        #expect(source.contains("draft.configurationProbeRequestedCapabilities"))
         #expect(!source.contains("makeTextProbeDraftSnapshot"))
         #expect(source.contains("AIProviderProbeResultPanelContent"))
         #expect(source.contains(".sheet(isPresented: $isProbeResultPresented)"))

@@ -392,7 +392,18 @@ struct AIProviderDraftConfiguration: Equatable {
         )
     }
 
-    func makeConfigurationProbeDraftSnapshot(operationID: DiagnosticOperationID) throws -> AIProviderDraftProbeSnapshot {
+    var configurationProbeRequestedCapabilities: [AIProviderProbeCapability] {
+        var capabilities: [AIProviderProbeCapability] = [.textReply, .structuredJSON]
+        let imageProbeSupported = text.endpoint.provider.capabilities.imageUnderstanding
+        if text.imageUnderstandingEnabled, imageProbeSupported {
+            capabilities.append(.imageUnderstanding)
+        }
+        return capabilities
+    }
+
+    func makeConfigurationProbeDraftSnapshot(
+        operationID: DiagnosticOperationID
+    ) throws -> AIProviderDraftProbeSnapshot {
         guard textProbeReadiness == .readyForRequest else {
             throw AIProviderConfigurationError.missingRequiredEndpointField
         }
@@ -409,17 +420,13 @@ struct AIProviderDraftConfiguration: Equatable {
             supportsImageInput: text.endpoint.provider.capabilities.imageUnderstanding,
             imageInputEnabled: text.imageUnderstandingEnabled && text.endpoint.provider.capabilities.imageUnderstanding
         ).normalized()
-        var requestedCapabilities: [AIProviderProbeCapability] = [.textReply, .structuredJSON]
-        if endpoint.imageInputEnabled {
-            requestedCapabilities.append(.imageUnderstanding)
-        }
         return AIProviderDraftProbeSnapshot(
             source: .draft,
             endpoint: endpoint,
             plaintextSecret: text.endpoint.independentCredential.requiresAPIKey
                 ? text.endpoint.independentCredential.apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
                 : nil,
-            requestedCapabilities: requestedCapabilities,
+            requestedCapabilities: configurationProbeRequestedCapabilities,
             operationID: operationID
         )
     }
