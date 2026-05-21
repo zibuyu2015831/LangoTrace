@@ -2668,6 +2668,59 @@
         }
       }
     },
+    "settings.interfaceLanguage.selectionFootnote": {
+      "comment": "Concise footnote for the interface language selection page.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only changes the LangoTrace interface. Language spaces and saved content stay unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅影响语迹界面，不改变语言空间或已保存内容。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo cambia la interfaz de LangoTrace. Los espacios y el contenido guardado no cambian."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LangoTraceの界面だけが変わります。言語スペースと保存済み内容は変わりません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change seulement l’interface de LangoTrace. Les espaces et contenus enregistrés restent inchangés."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ändert nur die LangoTrace-Oberfläche. Sprachräume und gespeicherte Inhalte bleiben unverändert."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LangoTrace 인터페이스만 바뀝니다. 언어 공간과 저장된 내용은 그대로입니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Меняется только интерфейс LangoTrace. Языковые пространства и сохраненное содержимое не меняются."
+          }
+        }
+      }
+    },
     "settings.interfaceLanguage.detail": {
       "comment": "Interface language settings detail body.",
       "localizations": {

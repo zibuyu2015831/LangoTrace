@@ -207,6 +207,8 @@ Deutsch
 - 系统级权限弹窗、StoreKit sheet、系统文件选择器和部分 Apple 服务 UI 可能遵循系统或 per-app language，而不是语迹自定义文案偏好。
 - 如果当前版本尚未支持 App 内即时切换，应明确需要重启 App 或前往系统设置调整 App 语言。
 
+界面语言选择页应以选择任务为主。完整边界说明属于规范、帮助或发布材料语义，不要求在选择页常驻展示；常驻 UI 可使用短脚注说明“仅影响 App 界面，不改变语言空间或已保存内容”。系统弹窗、StoreKit、文件选择器和第三方 UI 的边界不得被反向承诺，但也不应以长段落压过选择任务。
+
 ### 5.3 SwiftUI 资源策略
 
 推荐使用 Apple String Catalog 作为 SwiftUI Multiplatform 的主本地化机制。

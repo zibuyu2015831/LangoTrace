@@ -48,11 +48,15 @@ struct SettingsCapabilityDetailView: View {
         let localizationKeys = settingsCapabilityDetailLocalizationKeys(for: capability.kind)
 
         return VStack(alignment: .leading, spacing: 18) {
-            header
+            if capability.kind != .interfaceLanguage {
+                header
+            }
             if capability.kind == .aiProvider {
                 aiProviderSettingsContainer
             } else if capability.kind == .sync {
                 syncSettingsContainer
+            } else if capability.kind == .interfaceLanguage {
+                interfaceLanguageSettingsContent
             } else {
                 CapabilityStatusRow(
                     localizedTitleKey: capability.kind.localizedTitleKey,
@@ -61,11 +65,6 @@ struct SettingsCapabilityDetailView: View {
                     systemImage: capability.kind.systemImage,
                     action: nil
                 )
-            }
-            if capability.kind == .interfaceLanguage {
-                interfaceLanguagePicker
-            }
-            if capability.kind != .aiProvider, capability.kind != .sync {
                 LocalizedTextPanel(
                     titleKey: settingsCurrentBoundaryTitleKey,
                     textKey: localizationKeys.detail
@@ -120,39 +119,60 @@ struct SettingsCapabilityDetailView: View {
         #endif
     }
 
-    private var interfaceLanguagePicker: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Picker(
-                selection: Binding(
-                    get: { interfaceLanguagePreference },
-                    set: { preference in
-                        onInterfaceLanguagePreferenceChange(preference)
-                    }
-                )
-            ) {
-                ForEach(InterfaceLanguagePreference.allCases) { preference in
-                    localizedText(interfaceLanguagePreferenceTitleKey(for: preference))
-                        .tag(preference)
-                }
-            } label: {
-                localizedText("settings.interfaceLanguage.title")
-            }
-            .pickerStyle(.inline)
+    private var interfaceLanguageSettingsContent: some View {
+        let preferences = InterfaceLanguagePreference.allCases
 
-            localizedText("settings.interfaceLanguage.explanation")
-                .font(.callout)
+        return VStack(alignment: .leading, spacing: 12) {
+            VStack(spacing: 0) {
+                ForEach(Array(preferences.enumerated()), id: \.element.id) { index, preference in
+                    interfaceLanguageOptionRow(for: preference)
+                    if index < preferences.count - 1 {
+                        Divider()
+                    }
+                }
+            }
+            .langoPanel(padding: 0)
+
+            localizedText("settings.interfaceLanguage.selectionFootnote")
+                .font(.footnote)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
-            localizedText("settings.interfaceLanguage.systemBoundary")
-                .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            localizedText("settings.interfaceLanguage.contentBoundary")
-                .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 2)
         }
-        .langoPanel()
+    }
+
+    private func interfaceLanguageOptionRow(for preference: InterfaceLanguagePreference) -> some View {
+        let isSelected = interfaceLanguagePreference == preference
+
+        return Button {
+            guard interfaceLanguagePreference != preference else {
+                return
+            }
+            onInterfaceLanguagePreferenceChange(preference)
+        } label: {
+            HStack(spacing: 12) {
+                localizedText(interfaceLanguagePreferenceTitleKey(for: preference))
+                    .font(.body)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.headline)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                        .accessibilityHidden(true)
+                }
+            }
+            .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(localizedText(interfaceLanguagePreferenceTitleKey(for: preference)))
+        .accessibilityValue(localizedText(isSelected ? "accessibility.selected" : "accessibility.unselected"))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
