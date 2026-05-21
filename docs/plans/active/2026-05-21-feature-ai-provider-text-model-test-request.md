@@ -787,6 +787,8 @@ iPhone / iOS 人工验证通过后，再决定是否在本任务内继续验证 
 - 2026-05-21：iPhone / iOS 自动化与构建验证已覆盖成功、认证失败、模型不可用、JSON 输出异常、unsupported provider、Ollama 无 API Key、未保存 draft、保存配置、分能力占位和敏感字段禁入等路径；这些路径由 Core / AI / Data / UI 单元测试和 iPhone 17 build 承担。由于当前仓库未提供可控真实 Provider / API Key，也没有 XCUITest 交互目标，本轮未完成真网人工点击验证；该剩余验证不影响共享基础设施和代码路径落地，但发布前仍需使用可控测试 Provider 在 iPhone 上复核成功路径、错误 API Key、错误模型、不可达网络和 JSON 输出异常。
 - 2026-05-21：完成文档影响检查。已更新 `docs/platform-page-inventory.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`。已复查 `docs/spec/009-testing-and-verification.md` 和 `docs/decisions/005-local-first-and-user-owned-providers.md`，当前任务沿用既有测试入口、本地优先、用户自带 Provider 和 Keychain 默认不同步决策，不需要更新。
 - 2026-05-21：最终统一验证时发现 `AIProviderSettingsTests` 超过 SwiftLint `type_body_length` serious 阈值，已拆出 `AIProviderSettingsProbeTests` 并运行 SwiftFormat，commit `e690f3e`。最终 `scripts/verify.sh` 通过；SwiftLint 仍报告若干既有 warning，但 0 serious。
+- 2026-05-21：严格复查发现两个边界缺口并已修复：生产 `URLSession` 抛出的 `URLError` / cancellation 需要映射为 `.networkUnavailable`、`.timeout` 或 cancelled，而不是落入 `.invalidResponse`；已保存 profile 测试遇到 Keychain secret 丢失 / 不可访问时，应写入非敏感 `synthetic_test` 失败结果，cancelled 测试不得写 validation event。已补充 Core / AI / UI 回归测试和取消态文案；`005` / `008` 既有规范已覆盖该行为，本轮无需新增长期规范。
+- 2026-05-21：复查 docs 文档体系后确认 `docs/prompts/README.md` 要求代码中出现真实 Prompt 时必须新增具体 Prompt 文档。当前 Provider 配置合成测试已经向 Provider 发送固定 Prompt，因此新增 `docs/prompts/ai-provider/provider-configuration-probe.md`，记录两个 probe Prompt 的英文/中文全文、输出契约、调用位置、隐私边界、请求预览要求和评测方式。
 
 ## 18. 完成标准
 

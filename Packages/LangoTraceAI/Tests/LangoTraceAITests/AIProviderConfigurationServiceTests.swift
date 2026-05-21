@@ -214,6 +214,55 @@ func configurationServiceTestsSavedTextEndpointThroughKeychainAndRecordsSyntheti
     #expect(await repository.recordedValidationOutcomes.first?.createdAt == Date(timeIntervalSince1970: 220))
 }
 
+@Test("Configuration service records missing Keychain secret as synthetic probe failure")
+func configurationServiceRecordsMissingKeychainSecretAsSyntheticProbeFailure() async throws {
+    let repository = try StubAIProviderConfigurationRepository(profile: savedProfile())
+    let store = TrackingAIProviderCredentialStore(resolveError: AIProviderCredentialStoreError.missingCredential)
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: AIProviderConfigurationProbeService(
+            httpClient: CapturingProbeHTTPClient(responses: [])
+        ),
+        clock: { Date(timeIntervalSince1970: 230) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let result = try await service.testDefaultTextEndpoint(
+        operationID: DiagnosticOperationID(rawValue: "operation-missing-secret-probe")
+    )
+
+    #expect(result.source == .savedProfile)
+    #expect(result.overallStatus == .failed)
+    #expect(result.persistedValidationEventID == "id-1")
+    #expect(result.capabilities.first?.errorCategory == .missingCredential)
+    #expect(await repository.recordedValidationOutcomes.first?.eventType == .syntheticTest)
+    #expect(await repository.recordedValidationOutcomes.first?.errorCategory == .missingCredential)
+    #expect(await repository.recordedValidationOutcomes.first?.status == .failed)
+}
+
+@Test("Configuration service does not persist cancelled saved synthetic probe")
+func configurationServiceDoesNotPersistCancelledSavedSyntheticProbe() async throws {
+    let repository = try StubAIProviderConfigurationRepository(profile: savedProfile())
+    let store = TrackingAIProviderCredentialStore()
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: AIProviderConfigurationProbeService(
+            httpClient: CapturingProbeHTTPClient(responses: [.failure(AIProviderProbeHTTPClientError.cancelled)])
+        ),
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let result = try await service.testDefaultTextEndpoint(
+        operationID: DiagnosticOperationID(rawValue: "operation-cancelled-probe")
+    )
+
+    #expect(result.overallStatus == .cancelled)
+    #expect(result.persistedValidationEventID == nil)
+    #expect(await repository.recordedValidationOutcomes.isEmpty)
+}
+
 @Test("Configuration service draft text endpoint probe does not write Keychain or validation event")
 func configurationServiceDraftTextEndpointProbeDoesNotWriteKeychainOrValidationEvent() async throws {
     let repository = StubAIProviderConfigurationRepository(profile: nil)
@@ -348,15 +397,23 @@ private actor CapturingProbeHTTPClient: AIProviderProbeHTTPClient {
             throw AIProviderProbeHTTPClientError.transportUnavailable
         }
         let response = responses.removeFirst()
+        if let error = response.error {
+            throw error
+        }
         return AIProviderProbeHTTPResponse(statusCode: response.statusCode, body: response.body)
     }
 
     struct Response {
         var statusCode: Int
         var body: Data
+        var error: (any Error)?
 
         static func json(_ value: String) -> Response {
             Response(statusCode: 200, body: Data(value.utf8))
+        }
+
+        static func failure(_ error: any Error) -> Response {
+            Response(statusCode: 0, body: Data(), error: error)
         }
     }
 }

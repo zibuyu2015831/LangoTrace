@@ -270,7 +270,7 @@ private extension AIProviderSettingsView {
         switch draft.testState {
         case .idle:
             break
-        case .missingRequiredFields, .testing, .succeeded, .partial, .failed, .unsupportedProvider:
+        case .missingRequiredFields, .testing, .succeeded, .partial, .failed, .cancelled, .unsupportedProvider:
             return draft.testState.titleKey
         }
         return switch draft.saveState {
@@ -289,6 +289,8 @@ private extension AIProviderSettingsView {
             return "checkmark.circle"
         case .partial:
             return "exclamationmark.circle"
+        case .cancelled:
+            return "xmark.circle"
         case .missingRequiredFields, .failed, .unsupportedProvider:
             return "exclamationmark.triangle"
         case .idle:
@@ -314,6 +316,8 @@ private extension AIProviderSettingsView {
             return LangoTraceDesign.ColorToken.stateReady
         case .partial, .unsupportedProvider:
             return LangoTraceDesign.ColorToken.warning
+        case .cancelled:
+            return LangoTraceDesign.ColorToken.textSecondary
         case .missingRequiredFields, .failed:
             return LangoTraceDesign.ColorToken.danger
         case .idle:
@@ -379,7 +383,7 @@ private extension AIProviderSettingsView {
         transientTestStatusClearTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(3))
             switch draft.testState {
-            case .succeeded, .partial, .failed, .unsupportedProvider, .missingRequiredFields:
+            case .succeeded, .partial, .failed, .cancelled, .unsupportedProvider, .missingRequiredFields:
                 draft.testState = .idle
             case .idle, .testing:
                 break
@@ -401,6 +405,9 @@ private extension AIProviderSettingsView {
     func testState(for result: AIProviderConfigurationProbeResult) -> AIProviderTestState {
         if result.overallStatus == .succeeded {
             return .succeeded(result)
+        }
+        if result.overallStatus == .cancelled {
+            return .cancelled(result)
         }
         if result.capabilities.contains(where: { $0.status == .unsupported }),
            !result.capabilities.contains(where: { $0.status == .succeeded })

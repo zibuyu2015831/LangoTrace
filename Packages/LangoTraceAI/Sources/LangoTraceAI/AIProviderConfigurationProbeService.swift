@@ -203,10 +203,25 @@ private extension AIProviderConfigurationProbeService {
                 durationMilliseconds: duration
             )
         } catch let error as AIProviderProbeHTTPClientError {
+            if error == .cancelled {
+                return AIProviderProbeCapabilityResult(
+                    capability: kind.capability,
+                    status: .cancelled,
+                    errorCategory: nil,
+                    durationMilliseconds: durationMilliseconds(since: startedAt)
+                )
+            }
             return AIProviderProbeCapabilityResult(
                 capability: kind.capability,
                 status: .failed,
                 errorCategory: error == .timedOut ? .timeout : .networkUnavailable,
+                durationMilliseconds: durationMilliseconds(since: startedAt)
+            )
+        } catch is CancellationError {
+            return AIProviderProbeCapabilityResult(
+                capability: kind.capability,
+                status: .cancelled,
+                errorCategory: nil,
                 durationMilliseconds: durationMilliseconds(since: startedAt)
             )
         } catch {
@@ -335,7 +350,11 @@ private extension AIProviderConfigurationProbeService {
         jsonError: AIProviderValidationErrorCategory?,
         jsonDuration: Int? = nil
     ) -> AIProviderConfigurationProbeResult {
-        let overallStatus: AIProviderValidationStatus = textStatus == .succeeded && jsonStatus == .succeeded ? .succeeded : .failed
+        let overallStatus: AIProviderValidationStatus = if textStatus == .cancelled || jsonStatus == .cancelled {
+            .cancelled
+        } else {
+            textStatus == .succeeded && jsonStatus == .succeeded ? .succeeded : .failed
+        }
         return AIProviderConfigurationProbeResult(
             source: source,
             overallStatus: overallStatus,
@@ -421,8 +440,12 @@ private extension AIProviderConfigurationProbeService {
         let name: DiagnosticEventName
         let outcome: DiagnosticOutcome
         let level: DiagnosticLevel
-        if result.capabilities.contains(where: { $0.status == .unsupported }),
-           !result.capabilities.contains(where: { $0.status == .succeeded })
+        if result.overallStatus == .cancelled {
+            name = .aiProviderConfigurationProbeCancelled
+            outcome = .cancelled
+            level = .info
+        } else if result.capabilities.contains(where: { $0.status == .unsupported }),
+                  !result.capabilities.contains(where: { $0.status == .succeeded })
         {
             name = .aiProviderConfigurationProbeUnsupported
             outcome = .failed

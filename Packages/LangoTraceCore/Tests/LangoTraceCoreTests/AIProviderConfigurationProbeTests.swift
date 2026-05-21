@@ -62,14 +62,33 @@ func configurationProbeCapabilitiesIncludeFuturePlaceholders() {
 
 @Test("Configuration probe diagnostics use typed event names and attributes")
 func configurationProbeDiagnosticsUseTypedEventNamesAndAttributes() {
-    #expect(DiagnosticEventName.aiProviderConfigurationProbeStarted.rawValue == "ai_provider_configuration.probe_started")
-    #expect(DiagnosticEventName.aiProviderConfigurationProbeSucceeded.rawValue == "ai_provider_configuration.probe_succeeded")
-    #expect(DiagnosticEventName.aiProviderConfigurationProbePartial.rawValue == "ai_provider_configuration.probe_partial")
-    #expect(DiagnosticEventName.aiProviderConfigurationProbeFailed.rawValue == "ai_provider_configuration.probe_failed")
-    #expect(DiagnosticEventName.aiProviderConfigurationProbeUnsupported.rawValue == "ai_provider_configuration.probe_unsupported")
-    #expect(DiagnosticEventName.aiProviderConfigurationProbeCancelled.rawValue == "ai_provider_configuration.probe_cancelled")
+    #expect(
+        DiagnosticEventName.aiProviderConfigurationProbeStarted.rawValue ==
+            "ai_provider_configuration.probe_started"
+    )
+    #expect(
+        DiagnosticEventName.aiProviderConfigurationProbeSucceeded.rawValue ==
+            "ai_provider_configuration.probe_succeeded"
+    )
+    #expect(
+        DiagnosticEventName.aiProviderConfigurationProbePartial.rawValue ==
+            "ai_provider_configuration.probe_partial"
+    )
+    #expect(
+        DiagnosticEventName.aiProviderConfigurationProbeFailed.rawValue ==
+            "ai_provider_configuration.probe_failed"
+    )
+    #expect(
+        DiagnosticEventName.aiProviderConfigurationProbeUnsupported.rawValue ==
+            "ai_provider_configuration.probe_unsupported"
+    )
+    #expect(
+        DiagnosticEventName.aiProviderConfigurationProbeCancelled.rawValue ==
+            "ai_provider_configuration.probe_cancelled"
+    )
 
     #expect(DiagnosticAttribute.adapterKind(.openAIResponses).key == "adapter_kind")
     #expect(DiagnosticAttribute.probeCapability(.structuredJSON).key == "probe_capability")
     #expect(DiagnosticAttribute.probeCapabilityStatus(.unsupported).key == "probe_capability_status")
+    #expect(DiagnosticAttribute.probeCapabilityStatus(.cancelled).key == "probe_capability_status")
 }

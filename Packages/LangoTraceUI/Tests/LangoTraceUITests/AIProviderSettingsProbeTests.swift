@@ -75,6 +75,8 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("aiProviderSettings.probeCapability.imageUnderstanding"))
         #expect(source.contains("aiProviderSettings.probeCapability.speechSynthesis"))
         #expect(source.contains("aiProviderSettings.probeCapability.embedding"))
+        #expect(source.contains("aiProviderSettings.testState.cancelled"))
+        #expect(source.contains("aiProviderSettings.probeCapabilityStatus.cancelled"))
         #expect(!source.contains(".sheet("))
         #expect(!source.contains("presentationDetents"))
     }

@@ -12707,6 +12707,13 @@
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试失败" } }
       }
     },
+    "aiProviderSettings.testState.cancelled": {
+      "comment": "Cancelled state for AI provider synthetic request.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Test cancelled" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试已取消" } }
+      }
+    },
     "aiProviderSettings.testState.unsupportedProvider": {
       "comment": "Unsupported provider state for first-phase AI provider synthetic request.",
       "localizations": {
@@ -12803,6 +12810,13 @@
       "localizations": {
         "en": { "stringUnit": { "state": "translated", "value": "Issue" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "异常" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityStatus.cancelled": {
+      "comment": "Capability status for cancelled.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Cancelled" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已取消" } }
       }
     },
     "aiProviderSettings.probeCapabilityStatus.unsupported": {

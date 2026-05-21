@@ -17,6 +17,7 @@ public struct AIProviderProbeHTTPResponse: Equatable, Sendable {
 public enum AIProviderProbeHTTPClientError: Error, Equatable, Sendable {
     case transportUnavailable
     case timedOut
+    case cancelled
 }
 
 public struct URLSessionAIProviderProbeHTTPClient: AIProviderProbeHTTPClient {
@@ -27,8 +28,21 @@ public struct URLSessionAIProviderProbeHTTPClient: AIProviderProbeHTTPClient {
     }
 
     public func send(_ request: URLRequest) async throws -> AIProviderProbeHTTPResponse {
-        let (data, response) = try await session.data(for: request)
-        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-        return AIProviderProbeHTTPResponse(statusCode: statusCode, body: data)
+        do {
+            let (data, response) = try await session.data(for: request)
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            return AIProviderProbeHTTPResponse(statusCode: statusCode, body: data)
+        } catch is CancellationError {
+            throw AIProviderProbeHTTPClientError.cancelled
+        } catch let error as URLError {
+            switch error.code {
+            case .timedOut:
+                throw AIProviderProbeHTTPClientError.timedOut
+            case .cancelled:
+                throw AIProviderProbeHTTPClientError.cancelled
+            default:
+                throw AIProviderProbeHTTPClientError.transportUnavailable
+            }
+        }
     }
 }

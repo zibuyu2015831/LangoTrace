@@ -1,6 +1,6 @@
 # Prompt Registry
 
-本目录用于记录 LangoTrace 后续 AI / Prompt 功能中实际使用或计划使用的 Prompt。现在先固定规则，不创建具体 Prompt 文档。
+本目录用于记录 LangoTrace 后续 AI / Prompt 功能中实际使用或计划使用的 Prompt。代码中出现真实发送给 Provider 的 Prompt 后，必须在本目录登记完整文案、输出契约和隐私边界。
 
 ## 1. 使用原则
 
@@ -20,7 +20,7 @@ docs/prompts/
   <feature-or-module>/<prompt-id>.md
 ```
 
-第一阶段不创建具体 Prompt 文档。只有当代码中出现真实 Prompt、Prompt Preset、模板渲染或请求预览需求时，才新增对应文档。
+只有当代码中出现真实 Prompt、Prompt Preset、模板渲染或请求预览需求时，才新增对应文档。固定合成测试 Prompt 也属于真实 Provider 请求内容，必须登记。
 
 ## 3. 单个 Prompt 文档必填字段
 
@@ -71,3 +71,11 @@ Prompt 文档必须明确该 Prompt 是否会包含：
 状态：Accepted
 
 适用阶段：Prompt Preset、AI Provider、请求预览和真实 AI 功能接入前。
+
+当前已登记：
+
+- [AI Provider Configuration Probe Prompts](ai-provider/provider-configuration-probe.md)：AI Provider 配置页文本模型合成测试请求。
+
+## 7. 版本记录
+
+- 2026-05-21：更新目录当前事实。原因：AI Provider 配置测试请求已经接入固定合成 Prompt，Prompt Registry 不再是空目录；后续真实 Provider 请求内容必须在本目录登记。影响范围：AI Provider 配置测试请求、Prompt 审查、请求预览和隐私复查。是否需要 ADR：否。

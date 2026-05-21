@@ -59,6 +59,9 @@ struct AIProviderProbeResultPanelContent: View {
         if result.overallStatus == .succeeded {
             return "aiProviderSettings.testState.succeeded"
         }
+        if result.overallStatus == .cancelled {
+            return "aiProviderSettings.testState.cancelled"
+        }
         if result.capabilities.contains(where: { $0.status == .succeeded }) {
             return "aiProviderSettings.testState.partial"
         }
@@ -78,6 +81,9 @@ struct AIProviderProbeResultPanelContent: View {
         if result.overallStatus == .succeeded {
             return "checkmark.circle"
         }
+        if result.overallStatus == .cancelled {
+            return "xmark.circle"
+        }
         if result.capabilities.contains(where: { $0.status == .succeeded }) {
             return "exclamationmark.circle"
         }
@@ -93,6 +99,9 @@ struct AIProviderProbeResultPanelContent: View {
         }
         if result.overallStatus == .succeeded {
             return LangoTraceDesign.ColorToken.stateReady
+        }
+        if result.overallStatus == .cancelled {
+            return LangoTraceDesign.ColorToken.textSecondary
         }
         if result.capabilities.contains(where: { $0.status == .succeeded }) {
             return LangoTraceDesign.ColorToken.warning
@@ -151,6 +160,8 @@ private struct AIProviderProbeCapabilityRow: View {
             "aiProviderSettings.probeCapabilityStatus.succeeded"
         case .failed:
             "aiProviderSettings.probeCapabilityStatus.failed"
+        case .cancelled:
+            "aiProviderSettings.probeCapabilityStatus.cancelled"
         case .unsupported:
             "aiProviderSettings.probeCapabilityStatus.unsupported"
         case .notRun:
@@ -167,6 +178,8 @@ private struct AIProviderProbeCapabilityRow: View {
             "checkmark.circle.fill"
         case .failed:
             "exclamationmark.triangle.fill"
+        case .cancelled:
+            "xmark.circle"
         case .unsupported, .notEnabled, .notConfigured, .notRun:
             "minus.circle"
         case .testing:
@@ -183,6 +196,8 @@ private struct AIProviderProbeCapabilityRow: View {
             LangoTraceDesign.ColorToken.stateReady
         case .failed:
             LangoTraceDesign.ColorToken.danger
+        case .cancelled:
+            LangoTraceDesign.ColorToken.textSecondary
         case .unsupported:
             LangoTraceDesign.ColorToken.warning
         case .notConfigured, .notEnabled, .notRun, .testing:

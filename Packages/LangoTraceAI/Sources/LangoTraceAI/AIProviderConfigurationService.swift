@@ -187,13 +187,21 @@ public struct AIProviderConfigurationService: Sendable {
                   let credential = credentialsByID[credentialID]
             else {
                 resolvedSecret = nil
-                let result = missingSavedCredentialResult(endpoint: endpoint)
+                let result = missingSavedCredentialResult(endpoint: endpoint, category: .missingCredential)
                 return try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
             }
-            let secret = try await credentialStore.resolveSecret(
-                for: AIProviderCredentialKeychainReference(metadata: credential)
-            )
-            resolvedSecret = secret.value
+            do {
+                let secret = try await credentialStore.resolveSecret(
+                    for: AIProviderCredentialKeychainReference(metadata: credential)
+                )
+                resolvedSecret = secret.value
+            } catch let error as AIProviderCredentialStoreError {
+                let result = missingSavedCredentialResult(
+                    endpoint: endpoint,
+                    category: validationErrorCategory(for: error)
+                )
+                return try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
+            }
         }
 
         let result = try await configurationProbeService.probeSavedConfiguration(
@@ -246,6 +254,9 @@ private extension AIProviderConfigurationService {
         profileID: AIProviderProfileID,
         endpointID: AIProviderEndpointID
     ) async throws -> AIProviderConfigurationProbeResult {
+        guard result.overallStatus != .cancelled else {
+            return result
+        }
         let eventID = idGenerator()
         let event = AIProviderValidationEvent(
             id: eventID,
@@ -265,21 +276,38 @@ private extension AIProviderConfigurationService {
         return persisted
     }
 
-    func missingSavedCredentialResult(endpoint: AIProviderEndpointConfiguration) -> AIProviderConfigurationProbeResult {
+    func missingSavedCredentialResult(
+        endpoint: AIProviderEndpointConfiguration,
+        category: AIProviderValidationErrorCategory
+    ) -> AIProviderConfigurationProbeResult {
         AIProviderConfigurationProbeResult(
             source: .savedProfile,
             overallStatus: .failed,
             providerPresetID: endpoint.providerPresetID,
             modelName: endpoint.modelName,
             capabilities: [
-                .init(capability: .textReply, status: .failed, errorCategory: .missingCredential, durationMilliseconds: nil),
+                .init(capability: .textReply, status: .failed, errorCategory: category, durationMilliseconds: nil),
                 .init(capability: .structuredJSON, status: .notRun, errorCategory: nil, durationMilliseconds: nil),
-                .init(capability: .imageUnderstanding, status: .unsupported, errorCategory: .unsupportedEndpointPurpose, durationMilliseconds: nil),
+                .init(
+                    capability: .imageUnderstanding,
+                    status: .unsupported,
+                    errorCategory: .unsupportedEndpointPurpose,
+                    durationMilliseconds: nil
+                ),
                 .init(capability: .speechSynthesis, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
                 .init(capability: .embedding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
             ],
             persistedValidationEventID: nil
         )
+    }
+
+    func validationErrorCategory(for error: AIProviderCredentialStoreError) -> AIProviderValidationErrorCategory {
+        switch error {
+        case .missingCredential:
+            .missingCredential
+        case .credentialInaccessible, .credentialCorrupted, .userInteractionRequired:
+            .credentialInaccessible
+        }
     }
 
     func makeProfile(

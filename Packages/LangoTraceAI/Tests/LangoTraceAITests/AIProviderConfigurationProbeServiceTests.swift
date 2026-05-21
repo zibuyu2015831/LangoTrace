@@ -101,6 +101,34 @@ func providerFailuresMapToValidationCategories() async throws {
 
     let modelResult = try await modelService.probeDraftConfiguration(draftInput())
     #expect(modelResult.capability(.textReply)?.errorCategory == .unsupportedModel)
+
+    let networkClient = CapturingProbeHTTPClient(
+        responses: [.failure(AIProviderProbeHTTPClientError.transportUnavailable)]
+    )
+    let networkService = AIProviderConfigurationProbeService(httpClient: networkClient)
+
+    let networkResult = try await networkService.probeDraftConfiguration(draftInput())
+    #expect(networkResult.capability(.textReply)?.errorCategory == .networkUnavailable)
+
+    let timeoutClient = CapturingProbeHTTPClient(responses: [.failure(AIProviderProbeHTTPClientError.timedOut)])
+    let timeoutService = AIProviderConfigurationProbeService(httpClient: timeoutClient)
+
+    let timeoutResult = try await timeoutService.probeDraftConfiguration(draftInput())
+    #expect(timeoutResult.capability(.textReply)?.errorCategory == .timeout)
+}
+
+@Test("Cancelled probes record cancellation without treating it as a validation failure")
+func cancelledProbesRecordCancellation() async throws {
+    let httpClient = CapturingProbeHTTPClient(responses: [.failure(AIProviderProbeHTTPClientError.cancelled)])
+    let logger = InMemoryDiagnosticLogger()
+    let service = AIProviderConfigurationProbeService(httpClient: httpClient, diagnosticLogger: logger)
+
+    let result = try await service.probeDraftConfiguration(draftInput())
+
+    #expect(result.overallStatus == .cancelled)
+    #expect(result.capability(.textReply)?.status == .cancelled)
+    #expect(result.capability(.textReply)?.errorCategory == nil)
+    #expect(await logger.events().map(\.name).contains(.aiProviderConfigurationProbeCancelled))
 }
 
 @Test("Unsupported adapters and placeholder capabilities do not send HTTP")
@@ -162,12 +190,16 @@ private actor CapturingProbeHTTPClient: AIProviderProbeHTTPClient {
             throw AIProviderProbeHTTPClientError.transportUnavailable
         }
         let response = responses.removeFirst()
+        if let error = response.error {
+            throw error
+        }
         return AIProviderProbeHTTPResponse(statusCode: response.statusCode, body: response.body)
     }
 
     struct Response {
         var statusCode: Int
         var body: Data
+        var error: (any Error)?
 
         static func json(_ value: String) -> Response {
             .http(statusCode: 200, body: value)
@@ -175,6 +207,10 @@ private actor CapturingProbeHTTPClient: AIProviderProbeHTTPClient {
 
         static func http(statusCode: Int, body: String) -> Response {
             Response(statusCode: statusCode, body: Data(body.utf8))
+        }
+
+        static func failure(_ error: any Error) -> Response {
+            Response(statusCode: 0, body: Data(), error: error)
         }
     }
 }

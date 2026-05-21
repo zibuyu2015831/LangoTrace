@@ -106,6 +106,7 @@ enum AIProviderTestState: Equatable {
     case succeeded(AIProviderConfigurationProbeResult)
     case partial(AIProviderConfigurationProbeResult)
     case failed(AIProviderValidationErrorCategory?, AIProviderConfigurationProbeResult?)
+    case cancelled(AIProviderConfigurationProbeResult?)
     case unsupportedProvider(AIProviderConfigurationProbeResult?)
 
     var titleKey: String {
@@ -122,6 +123,8 @@ enum AIProviderTestState: Equatable {
             "aiProviderSettings.testState.partial"
         case .failed:
             "aiProviderSettings.testState.failed"
+        case .cancelled:
+            "aiProviderSettings.testState.cancelled"
         case .unsupportedProvider:
             "aiProviderSettings.testState.unsupportedProvider"
         }

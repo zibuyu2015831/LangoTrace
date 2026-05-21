@@ -107,6 +107,7 @@ public enum AIProviderProbeCapabilityStatus: String, Codable, Sendable {
     case testing
     case succeeded
     case failed
+    case cancelled
     case unsupported
     case notRun = "not_run"
 }
