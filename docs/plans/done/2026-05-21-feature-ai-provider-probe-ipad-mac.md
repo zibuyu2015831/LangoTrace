@@ -292,6 +292,7 @@ git status --short
 - 2026-05-21：在 `AIProviderSettingsView.swift` 增加 `aiProviderProbeRegularWidth`，将结果内容限制为 `520` 最大宽度，并把 helper 从 `aiProviderProbePresentationDetents` 重命名为 `aiProviderProbePresentationStyle`。iPhone compact 仍使用 `.presentationDetents([.medium, .large])`；iPad regular 和 macOS 不添加 detents。再次运行 `swift test --package-path Packages/LangoTraceUI`，155 个 UI package 测试通过。代码阶段 commit `a2e33b9`。
 - 2026-05-21：更新 `docs/platform-page-inventory.md`，记录 iPad / macOS AI Provider 测试结果面板已通过共享 action seam 覆盖，并在大屏使用固定最大宽度，未改变 Provider 请求、隐私、诊断或 Data 边界。
 - 2026-05-21：运行最终验证：`swift test --package-path Packages/LangoTraceAI` 通过，`scripts/verify.sh` 通过；随后将本方案从 `docs/plans/active/` 移入 `docs/plans/done/` 并标记为 `Verified`。
+- 2026-05-21：重新构建并启动 iPad Simulator 与 macOS App 后，用户完成人工测试并确认无误。本轮人工验证覆盖 iPad 与 Mac 端 AI Provider 请求测试入口、结果展示和基本交互可用性，未发现需要修改代码或长期规范的差异。
 
 ## 15. 完成标准
 
@@ -307,6 +308,6 @@ git status --short
 
 ## 16. 剩余风险
 
-- 自动化测试主要能锁定平台路由、源码边界和状态映射，不能替代真实 iPad / macOS 人工点击验证。
+- 自动化测试主要能锁定平台路由、源码边界和状态映射；iPad / macOS 人工点击验证已于 2026-05-21 完成并由用户确认无误。
 - 真实网络成功路径依赖用户提供可控测试 Provider / API Key；没有测试 Key 时，只能验证 presentation、缺密钥、unsupported 和失败分类路径。
 - macOS 原生 Settings scene 与工作台 Settings detail route 是两个入口；即使共享 View，也需要分别人工打开确认窗口行为。
