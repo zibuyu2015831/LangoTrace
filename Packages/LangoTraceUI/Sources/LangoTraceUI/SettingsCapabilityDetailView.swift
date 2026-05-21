@@ -101,7 +101,7 @@ struct SettingsCapabilityDetailView: View {
             .frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)
         #else
             AIProviderSettingsView()
-            .frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)
+                .frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)
         #endif
     }
 

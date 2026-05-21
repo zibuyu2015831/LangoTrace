@@ -94,6 +94,8 @@ Provider / Prompt 输出语言是 AI 请求中的生成要求，例如：
 
 Provider / Prompt 输出语言必须由请求构建层显式传入，不得从某个 UI 文案字符串反推。
 
+AI Provider 配置页的 `语言支持` 合成测试也属于 Provider / Prompt 输出语言边界。该测试必须使用当前语言空间的稳定目标语言 code 作为上下文，由 AI 层 allowlist 派生 Prompt 英文语言名称、`NLLanguage` 映射和脚本规则；不得从 `LanguageSpacePreview.targetLanguage` 展示名、界面语言、本地化文案或用户母语反推 Provider 输出语言。
+
 ### 3.5 地区格式与语言
 
 地区格式用于日期、时间、数字、货币、温度、长度单位、周起始日和日历显示。它与界面语言相关，但不能被简单等同。
@@ -130,6 +132,7 @@ Welcome 示例的语言边界：
 - 可见 UI 文案不得硬编码为只能服务单一界面语言的长期实现；早期 mock 文案若临时硬编码，必须在 worklog 或实现计划中明确迁移到 String Catalog 的时间点。
 - 任何语言相关模型必须使用稳定 code，例如 `en`、`zh-Hans`、`ja`，不得使用展示名作为数据标识。
 - 界面语言、用户母语、目标学习语言、TTS 声音语言、OCR 识别语言和 Prompt 输出语言不得共用一个字符串字段。
+- 语言空间 preview 如果需要参与 Provider / Prompt 输出语言上下文，必须携带稳定 `targetLanguageCode`，展示名只能用于 UI 显示，不得作为 AI 请求事实源。
 - 语言空间切换不得自动改变 App 界面语言。
 - 用户修改 App 界面语言不得自动改变语言空间目标语言、用户母语或已生成学习内容。
 - App 默认应跟随系统语言；系统语言未支持时回退英文。
@@ -361,3 +364,4 @@ AI 在设计、改进或实现任何页面前，如果任务涉及可见文案�
 - 2026-05-18：将规范状态升级为 Accepted。原因：入口文档、Core 语言偏好模型、App target 本地化声明和设置体验已经按本文档边界推进，本文档应作为后续可见文案、界面语言设置和三端本地化的生效规范。影响范围：`docs/spec/README.md`、界面国际化实现和后续测试。是否需要 ADR：否，未改变核心产品或架构决策。
 - 2026-05-18：同步显式 interface-language resolver 和 UI display projection 边界。原因：第一轮 UI 收敛已让显式界面语言偏好驱动 package-owned SwiftUI chrome，并将语言展示组合从 Core 单一中文 helper 移到 UI 层；iPhone 设置入口也已从底部 Tab 调整为低频配置入口。影响范围：界面语言解析、Tab / Settings / toolbar / unavailable 文案测试、语言展示 helper 和三端设置入口。是否需要 ADR：否。
 - 2026-05-19：补充静态演示内容语言边界。原因：Welcome 示例已采用受控双语 demo 来解释“生活线索 -> 目标语言表达”闭环，需要区分静态示例、App chrome、真实用户内容和语言空间目标语言。影响范围：Welcome、空状态、教学示例、本地化测试和后续 demo 数据模型。是否需要 ADR：否。
+- 2026-05-22：补充 AI Provider `语言支持` 合成测试的语言上下文边界。原因：Provider 配置测试新增 iOS 当前语言空间目标语言 probe，需要明确请求构建层只能使用稳定 target language code，并由 AI 层 allowlist 派生 Prompt 名称和离线校验规则，不能从 UI 展示名或界面语言反推。影响范围：LanguageSpacePreview、AI Provider 设置页、LangoTraceAI 语言校验和 Prompt Registry。是否需要 ADR：否。

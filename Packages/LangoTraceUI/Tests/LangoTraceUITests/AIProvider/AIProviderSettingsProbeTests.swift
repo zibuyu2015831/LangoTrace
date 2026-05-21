@@ -3,6 +3,67 @@ import LangoTraceCore
 @testable import LangoTraceUI
 import Testing
 
+@Suite("AI provider settings language support probe boundaries")
+struct AIProviderSettingsLanguageSupportProbeTests {
+    @Test("Draft model omits language support capability when no language context exists")
+    func draftModelOmitsLanguageSupportCapabilityWhenNoLanguageContextExists() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
+
+        let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
+            operationID: DiagnosticOperationID(rawValue: "operation-ui-no-language-probe")
+        )
+
+        #expect(snapshot.languageContext == nil)
+        #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON])
+    }
+
+    @Test("AI provider settings source keeps language support out of SwiftUI network and language recognition boundaries")
+    func aiProviderSettingsSourceKeepsLanguageSupportOutOfSwiftUINetworkAndLanguageRecognitionBoundaries() throws {
+        let viewSource = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+        let draftSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderDraftConfiguration.swift"),
+            encoding: .utf8
+        )
+        let detailSource = try String(
+            contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(viewSource.contains("languageContext"))
+        #expect(draftSource.contains("languageContext"))
+        #expect(detailSource.contains("#if os(iOS)"))
+        #expect(detailSource.contains("AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)"))
+        #expect(!viewSource.contains("NLLanguageRecognizer"))
+        #expect(!draftSource.contains("NLLanguageRecognizer"))
+        #expect(!viewSource.contains("NaturalLanguage"))
+        #expect(!draftSource.contains("NaturalLanguage"))
+        #expect(!viewSource.contains("URLSession"))
+        #expect(!draftSource.contains("URLSession"))
+        #expect(!viewSource.contains("Authorization"))
+        #expect(!draftSource.contains("Authorization"))
+        #expect(!viewSource.contains("Bearer "))
+        #expect(!draftSource.contains("Bearer "))
+    }
+}
+
+private func sourceFileURL(named fileName: String) -> URL {
+    packageRootURL()
+        .appendingPathComponent("Sources")
+        .appendingPathComponent("LangoTraceUI")
+        .appendingPathComponent(fileName)
+}
+
+private func packageRootURL() -> URL {
+    var url = URL(fileURLWithPath: #filePath)
+    while url.lastPathComponent != "LangoTraceUI" {
+        let parent = url.deletingLastPathComponent()
+        precondition(parent.path != url.path, "Could not locate LangoTraceUI package root")
+        url = parent
+    }
+    return url
+}
+
 @Suite("AI provider settings probe flow")
 struct AIProviderSettingsProbeTests {
     @Test("Draft model separates save readiness from configuration probe readiness")
@@ -28,19 +89,6 @@ struct AIProviderSettingsProbeTests {
         #expect(snapshot.plaintextSecret == "sk-local-draft")
         #expect(snapshot.languageContext == AIProviderProbeLanguageContext(languageCode: "en"))
         #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON, .languageSupport])
-    }
-
-    @Test("Draft model omits language support capability when no language context exists")
-    func draftModelOmitsLanguageSupportCapabilityWhenNoLanguageContextExists() throws {
-        var draft = AIProviderDraftConfiguration(provider: .openAI)
-        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
-
-        let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
-            operationID: DiagnosticOperationID(rawValue: "operation-ui-no-language-probe")
-        )
-
-        #expect(snapshot.languageContext == nil)
-        #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON])
     }
 
     @Test("Draft configuration probe snapshot includes image capability only when enabled and supported")
@@ -204,34 +252,6 @@ struct AIProviderSettingsProbeTests {
         #expect(!source.contains("presentationDetents"))
     }
 
-    @Test("AI provider settings source keeps language support out of SwiftUI network and language recognition boundaries")
-    func aiProviderSettingsSourceKeepsLanguageSupportOutOfSwiftUINetworkAndLanguageRecognitionBoundaries() throws {
-        let viewSource = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
-        let draftSource = try String(
-            contentsOf: sourceFileURL(named: "AIProviderDraftConfiguration.swift"),
-            encoding: .utf8
-        )
-        let detailSource = try String(
-            contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"),
-            encoding: .utf8
-        )
-
-        #expect(viewSource.contains("languageContext"))
-        #expect(draftSource.contains("languageContext"))
-        #expect(detailSource.contains("#if os(iOS)"))
-        #expect(detailSource.contains("AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)"))
-        #expect(!viewSource.contains("NLLanguageRecognizer"))
-        #expect(!draftSource.contains("NLLanguageRecognizer"))
-        #expect(!viewSource.contains("NaturalLanguage"))
-        #expect(!draftSource.contains("NaturalLanguage"))
-        #expect(!viewSource.contains("URLSession"))
-        #expect(!draftSource.contains("URLSession"))
-        #expect(!viewSource.contains("Authorization"))
-        #expect(!draftSource.contains("Authorization"))
-        #expect(!viewSource.contains("Bearer "))
-        #expect(!draftSource.contains("Bearer "))
-    }
-
     @Test("Probe result sheet has a large platform width rule without applying compact detents everywhere")
     func probeResultSheetHasLargePlatformWidthRuleWithoutApplyingCompactDetentsEverywhere() throws {
         let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
@@ -325,23 +345,6 @@ struct AIProviderSettingsProbeTests {
         #expect(!source.contains(
             "makeTextProbeDraftSnapshot(operationID: DiagnosticOperationID) throws -> AIProviderProfileSaveInput"
         ))
-    }
-
-    private func sourceFileURL(named fileName: String) -> URL {
-        packageRootURL()
-            .appendingPathComponent("Sources")
-            .appendingPathComponent("LangoTraceUI")
-            .appendingPathComponent(fileName)
-    }
-
-    private func packageRootURL() -> URL {
-        var url = URL(fileURLWithPath: #filePath)
-        while url.lastPathComponent != "LangoTraceUI" {
-            let parent = url.deletingLastPathComponent()
-            precondition(parent.path != url.path, "Could not locate LangoTraceUI package root")
-            url = parent
-        }
-        return url
     }
 
     private func loadedProfile() throws -> AIProviderConfigurationProfile {

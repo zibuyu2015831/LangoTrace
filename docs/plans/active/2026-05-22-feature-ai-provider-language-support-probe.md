@@ -1,6 +1,6 @@
 # AI Provider 语言支持合成测试方案
 
-状态：User Approved
+状态：iOS Implementation Complete, Awaiting User Audit
 类型：feature
 创建日期：2026-05-22
 最后更新日期：2026-05-22
@@ -741,6 +741,11 @@ scripts/verify.sh
 ## 18. 实施记录
 
 - 2026-05-22：创建方案文档。当前仅完成设计和实施路径记录，尚未修改生产代码。
+- 2026-05-22：提交方案文档，commit `fb9f720`。
+- 2026-05-22：完成阶段 1，新增 Core `languageSupport` capability、`AIProviderProbeLanguageContext` 和 AI 本地语言支持 validator，commit `3e5da47`。聚焦验证：`swift test --package-path Packages/LangoTraceCore --filter AIProviderConfigurationProbeTests`、`swift test --package-path Packages/LangoTraceAI --filter AIProviderLanguageSupportValidatorTests`。
+- 2026-05-22：完成阶段 2，Provider probe 执行链路支持语言上下文、语言支持请求、JSON 成功后执行规则、无上下文 `notConfigured`、JSON 失败跳过语言支持且图片行为保持既有策略；已保存 profile 持久摘要排除语言支持失败，commit `ffb27ef`。聚焦验证：`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationProbeServiceTests`、`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationServiceTests`。
+- 2026-05-22：完成阶段 3，iOS AI Provider 设置页从当前语言空间传入稳定 target language code，结果面板可展示 `语言支持`；iPad / macOS 在人工审核前不传入语言上下文、不展示语言支持入口，commit `559fc33`。聚焦验证：`swift test --package-path Packages/LangoTraceCore --filter LanguageSpaceTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests`、`xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build`。
+- 2026-05-22：完成阶段 4 和阶段 5，已同步 Prompt Registry、AI Provider 隐私规范、语言边界规范和页面清单；根据完整验证反馈修复 SwiftLint / SwiftFormat 格式问题。聚焦验证：`swift test --package-path Packages/LangoTraceAI --filter LangoTraceAITests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swiftformat --lint . --cache ignore`。完整验证：`scripts/verify.sh` 通过。当前进入 iOS 人工审核等待节点，人工审核通过前不继续 iPad / macOS 设置页接入。
 
 ## 19. 完成标准
 

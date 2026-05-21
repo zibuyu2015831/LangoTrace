@@ -129,11 +129,11 @@ private extension AIProviderLanguageSupportValidator {
     }
 
     func visibleCharacterCount(_ sample: String) -> Int {
-        sample.unicodeScalars.filter { scalar in
+        sample.unicodeScalars.count { scalar in
             !CharacterSet.whitespacesAndNewlines.contains(scalar)
                 && !CharacterSet.punctuationCharacters.contains(scalar)
                 && !CharacterSet.symbols.contains(scalar)
-        }.count
+        }
     }
 
     func wordCount(_ sample: String) -> Int {

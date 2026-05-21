@@ -5,8 +5,11 @@ import Testing
 @Test("Language support validator accepts English JSON sample with target word count")
 func languageSupportValidatorAcceptsEnglishSampleWithTargetWordCount() {
     let validator = AIProviderLanguageSupportValidator()
+    let sample = "Today I opened the kitchen window before breakfast and wrote a short note about the rain, " +
+        "the quiet street, and the warm cup of tea beside my notebook. Later, I planned to review the " +
+        "moment in English so the simple details would become useful practice."
     let response = """
-    {"sample":"Today I opened the kitchen window before breakfast and wrote a short note about the rain, the quiet street, and the warm cup of tea beside my notebook. Later, I planned to review the moment in English so the simple details would become useful practice."}
+    {"sample":"\(sample)"}
     """
 
     let result = validator.validateResponseText(
@@ -49,7 +52,9 @@ func languageSupportValidatorRejectsJapaneseWithoutKana() {
 @Test("Language support validator rejects Korean sample without Hangul")
 func languageSupportValidatorRejectsKoreanWithoutHangul() {
     let validator = AIProviderLanguageSupportValidator()
-    let response = #"{"sample":"Today I opened the kitchen window and recorded an ordinary morning moment for language practice."}"#
+    let response = """
+    {"sample":"Today I opened the kitchen window and recorded an ordinary morning moment for language practice."}
+    """
 
     let result = validator.validateResponseText(
         response,
@@ -63,8 +68,10 @@ func languageSupportValidatorRejectsKoreanWithoutHangul() {
 @Test("Language support validator rejects Chinese sample written in English")
 func languageSupportValidatorRejectsChineseWrittenInEnglish() {
     let validator = AIProviderLanguageSupportValidator()
+    let sample = "Today I opened the kitchen window before breakfast and wrote a short note about the rain, " +
+        "the quiet street, and the warm cup of tea beside my notebook."
     let response = """
-    {"sample":"Today I opened the kitchen window before breakfast and wrote a short note about the rain, the quiet street, and the warm cup of tea beside my notebook."}
+    {"sample":"\(sample)"}
     """
 
     let result = validator.validateResponseText(

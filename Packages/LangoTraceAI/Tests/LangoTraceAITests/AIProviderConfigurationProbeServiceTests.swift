@@ -72,10 +72,13 @@ func openAICompatibleChatProbeBuildsRequestsAndMapsSuccess() async throws {
 
 @Test("OpenAI-compatible Chat probe runs language support after structured JSON success")
 func openAICompatibleChatProbeRunsLanguageSupportAfterStructuredJSONSuccess() async throws {
+    let sample = "Today I opened the kitchen window before breakfast and wrote a short note about the rain, " +
+        "the quiet street, and the warm cup of tea beside my notebook. Later, I planned to review the " +
+        "moment in English so the simple details would become useful practice."
     let httpClient = CapturingProbeHTTPClient(responses: [
         .json(#"{"choices":[{"message":{"content":"OK"}}]}"#),
         .json(#"{"choices":[{"message":{"content":"{\"ok\":true}"}}]}"#),
-        .json(#"{"choices":[{"message":{"content":"{\"sample\":\"Today I opened the kitchen window before breakfast and wrote a short note about the rain, the quiet street, and the warm cup of tea beside my notebook. Later, I planned to review the moment in English so the simple details would become useful practice.\"}"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"{\"sample\":\"\#(sample)\"}"}}]}"#),
     ])
     let service = AIProviderConfigurationProbeService(httpClient: httpClient)
 

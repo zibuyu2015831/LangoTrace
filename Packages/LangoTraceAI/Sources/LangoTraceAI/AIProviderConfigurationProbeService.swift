@@ -165,6 +165,13 @@ private extension AIProviderConfigurationProbeService {
         }
     }
 
+    struct ProbeAggregate {
+        var text: AIProviderProbeCapabilityResult
+        var json: AIProviderProbeCapabilityResult
+        var language: AIProviderProbeCapabilityResult
+        var image: AIProviderProbeCapabilityResult
+    }
+
     func runTextProbes(
         source: AIProviderProbeSource,
         endpoint: AIProviderEndpointInput,
@@ -175,14 +182,32 @@ private extension AIProviderConfigurationProbeService {
             return result(
                 source: source,
                 endpoint: endpoint,
-                textStatus: .failed,
-                textError: .missingCredential,
-                jsonStatus: .notRun,
-                jsonError: nil,
-                languageStatus: .notRun,
-                languageError: nil,
-                imageStatus: .notRun,
-                imageError: nil
+                aggregate: ProbeAggregate(
+                    text: .init(
+                        capability: .textReply,
+                        status: .failed,
+                        errorCategory: .missingCredential,
+                        durationMilliseconds: nil
+                    ),
+                    json: .init(
+                        capability: .structuredJSON,
+                        status: .notRun,
+                        errorCategory: nil,
+                        durationMilliseconds: nil
+                    ),
+                    language: .init(
+                        capability: .languageSupport,
+                        status: .notRun,
+                        errorCategory: nil,
+                        durationMilliseconds: nil
+                    ),
+                    image: .init(
+                        capability: .imageUnderstanding,
+                        status: .notRun,
+                        errorCategory: nil,
+                        durationMilliseconds: nil
+                    )
+                )
             )
         }
 
@@ -191,15 +216,27 @@ private extension AIProviderConfigurationProbeService {
             return result(
                 source: source,
                 endpoint: endpoint,
-                textStatus: textResult.status,
-                textError: textResult.errorCategory,
-                textDuration: textResult.durationMilliseconds,
-                jsonStatus: .notRun,
-                jsonError: nil,
-                languageStatus: .notRun,
-                languageError: nil,
-                imageStatus: .notRun,
-                imageError: nil
+                aggregate: ProbeAggregate(
+                    text: textResult,
+                    json: .init(
+                        capability: .structuredJSON,
+                        status: .notRun,
+                        errorCategory: nil,
+                        durationMilliseconds: nil
+                    ),
+                    language: .init(
+                        capability: .languageSupport,
+                        status: .notRun,
+                        errorCategory: nil,
+                        durationMilliseconds: nil
+                    ),
+                    image: .init(
+                        capability: .imageUnderstanding,
+                        status: .notRun,
+                        errorCategory: nil,
+                        durationMilliseconds: nil
+                    )
+                )
             )
         }
 
@@ -214,18 +251,12 @@ private extension AIProviderConfigurationProbeService {
         return result(
             source: source,
             endpoint: endpoint,
-            textStatus: textResult.status,
-            textError: textResult.errorCategory,
-            textDuration: textResult.durationMilliseconds,
-            jsonStatus: jsonResult.status,
-            jsonError: jsonResult.errorCategory,
-            jsonDuration: jsonResult.durationMilliseconds,
-            languageStatus: languageResult.status,
-            languageError: languageResult.errorCategory,
-            languageDuration: languageResult.durationMilliseconds,
-            imageStatus: imageResult.status,
-            imageError: imageResult.errorCategory,
-            imageDuration: imageResult.durationMilliseconds
+            aggregate: ProbeAggregate(
+                text: textResult,
+                json: jsonResult,
+                language: languageResult,
+                image: imageResult
+            )
         )
     }
 
@@ -574,29 +605,22 @@ private extension AIProviderConfigurationProbeService {
     func result(
         source: AIProviderProbeSource,
         endpoint: AIProviderEndpointInput,
-        textStatus: AIProviderProbeCapabilityStatus,
-        textError: AIProviderValidationErrorCategory?,
-        textDuration: Int? = nil,
-        jsonStatus: AIProviderProbeCapabilityStatus,
-        jsonError: AIProviderValidationErrorCategory?,
-        jsonDuration: Int? = nil,
-        languageStatus: AIProviderProbeCapabilityStatus,
-        languageError: AIProviderValidationErrorCategory?,
-        languageDuration: Int? = nil,
-        imageStatus: AIProviderProbeCapabilityStatus,
-        imageError: AIProviderValidationErrorCategory?,
-        imageDuration: Int? = nil
+        aggregate: ProbeAggregate
     ) -> AIProviderConfigurationProbeResult {
-        let overallStatus: AIProviderValidationStatus = if textStatus == .cancelled
-            || jsonStatus == .cancelled
-            || imageStatus == .cancelled
+        let overallStatus: AIProviderValidationStatus = if aggregate.text.status == .cancelled
+            || aggregate.json.status == .cancelled
+            || aggregate.image.status == .cancelled
         {
             .cancelled
         } else {
-            textStatus == .succeeded
-                && jsonStatus == .succeeded
-                && (languageStatus == .succeeded || languageStatus == .notConfigured)
-                && (imageStatus == .succeeded || imageStatus == .notEnabled || imageStatus == .unsupported)
+            aggregate.text.status == .succeeded
+                && aggregate.json.status == .succeeded
+                && (aggregate.language.status == .succeeded || aggregate.language.status == .notConfigured)
+                && (
+                    aggregate.image.status == .succeeded
+                        || aggregate.image.status == .notEnabled
+                        || aggregate.image.status == .unsupported
+                )
                 ? .succeeded
                 : .failed
         }
@@ -606,30 +630,10 @@ private extension AIProviderConfigurationProbeService {
             providerPresetID: endpoint.providerPresetID,
             modelName: endpoint.modelName,
             capabilities: [
-                AIProviderProbeCapabilityResult(
-                    capability: .textReply,
-                    status: textStatus,
-                    errorCategory: textError,
-                    durationMilliseconds: textDuration
-                ),
-                AIProviderProbeCapabilityResult(
-                    capability: .structuredJSON,
-                    status: jsonStatus,
-                    errorCategory: jsonError,
-                    durationMilliseconds: jsonDuration
-                ),
-                AIProviderProbeCapabilityResult(
-                    capability: .languageSupport,
-                    status: languageStatus,
-                    errorCategory: languageError,
-                    durationMilliseconds: languageDuration
-                ),
-                AIProviderProbeCapabilityResult(
-                    capability: .imageUnderstanding,
-                    status: imageStatus,
-                    errorCategory: imageError,
-                    durationMilliseconds: imageDuration
-                ),
+                aggregate.text,
+                aggregate.json,
+                aggregate.language,
+                aggregate.image,
                 AIProviderProbeCapabilityResult(
                     capability: .speechSynthesis,
                     status: .notEnabled,
@@ -654,10 +658,30 @@ private extension AIProviderConfigurationProbeService {
             providerPresetID: endpoint.providerPresetID,
             modelName: endpoint.modelName,
             capabilities: [
-                .init(capability: .textReply, status: .unsupported, errorCategory: .unsupportedEndpointPurpose, durationMilliseconds: nil),
-                .init(capability: .structuredJSON, status: .unsupported, errorCategory: .unsupportedEndpointPurpose, durationMilliseconds: nil),
-                .init(capability: .languageSupport, status: .unsupported, errorCategory: .unsupportedEndpointPurpose, durationMilliseconds: nil),
-                .init(capability: .imageUnderstanding, status: .unsupported, errorCategory: .unsupportedEndpointPurpose, durationMilliseconds: nil),
+                .init(
+                    capability: .textReply,
+                    status: .unsupported,
+                    errorCategory: .unsupportedEndpointPurpose,
+                    durationMilliseconds: nil
+                ),
+                .init(
+                    capability: .structuredJSON,
+                    status: .unsupported,
+                    errorCategory: .unsupportedEndpointPurpose,
+                    durationMilliseconds: nil
+                ),
+                .init(
+                    capability: .languageSupport,
+                    status: .unsupported,
+                    errorCategory: .unsupportedEndpointPurpose,
+                    durationMilliseconds: nil
+                ),
+                .init(
+                    capability: .imageUnderstanding,
+                    status: .unsupported,
+                    errorCategory: .unsupportedEndpointPurpose,
+                    durationMilliseconds: nil
+                ),
                 .init(capability: .speechSynthesis, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
                 .init(capability: .embedding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
             ],
