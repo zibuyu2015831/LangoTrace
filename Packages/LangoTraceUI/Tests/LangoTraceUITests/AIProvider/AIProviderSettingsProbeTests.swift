@@ -5,8 +5,8 @@ import Testing
 
 @Suite("AI provider settings probe flow")
 struct AIProviderSettingsProbeTests {
-    @Test("Draft model separates save readiness from text probe readiness")
-    func draftModelSeparatesSaveReadinessFromTextProbeReadiness() throws {
+    @Test("Draft model separates save readiness from configuration probe readiness")
+    func draftModelSeparatesSaveReadinessFromConfigurationProbeReadiness() throws {
         var draft = AIProviderDraftConfiguration(provider: .openAI)
         draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
         draft.speech.isEnabled = true
@@ -18,7 +18,7 @@ struct AIProviderSettingsProbeTests {
         #expect(draft.textProbeReadiness == .readyForRequest)
         #expect(draft.textProbeSource == .draft)
 
-        let snapshot = try draft.makeTextProbeDraftSnapshot(
+        let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
             operationID: DiagnosticOperationID(rawValue: "operation-ui-probe")
         )
         #expect(snapshot.source == .draft)
@@ -26,6 +26,27 @@ struct AIProviderSettingsProbeTests {
         #expect(snapshot.endpoint.providerPresetID == "openai")
         #expect(snapshot.plaintextSecret == "sk-local-draft")
         #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON])
+    }
+
+    @Test("Draft configuration probe snapshot includes image capability only when enabled and supported")
+    func draftConfigurationProbeSnapshotIncludesImageCapabilityOnlyWhenEnabledAndSupported() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
+        draft.text.imageUnderstandingEnabled = true
+
+        let openAISnapshot = try draft.makeConfigurationProbeDraftSnapshot(
+            operationID: DiagnosticOperationID(rawValue: "operation-ui-image-probe")
+        )
+        #expect(openAISnapshot.endpoint.imageInputEnabled)
+        #expect(openAISnapshot.requestedCapabilities == [.textReply, .structuredJSON, .imageUnderstanding])
+
+        draft.text.updateProvider(.deepSeek)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
+        let textOnlySnapshot = try draft.makeConfigurationProbeDraftSnapshot(
+            operationID: DiagnosticOperationID(rawValue: "operation-ui-text-only-probe")
+        )
+        #expect(!textOnlySnapshot.endpoint.imageInputEnabled)
+        #expect(textOnlySnapshot.requestedCapabilities == [.textReply, .structuredJSON])
     }
 
     @Test("Loaded profile without edits uses saved profile as text probe source")
@@ -48,7 +69,8 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("aiProviderSettings.testRequest.button"))
         #expect(source.contains("validateConfiguration()"))
         #expect(source.contains("actions.testProviderConfiguration"))
-        #expect(source.contains("makeTextProbeDraftSnapshot"))
+        #expect(source.contains("makeConfigurationProbeDraftSnapshot"))
+        #expect(!source.contains("makeTextProbeDraftSnapshot"))
         #expect(source.contains("AIProviderProbeResultPanelContent"))
         #expect(source.contains(".sheet(isPresented: $isProbeResultPresented)"))
         #expect(source.contains("aiProviderProbePresentationStyle(compactWidth: isCompactWidth)"))
@@ -70,6 +92,8 @@ struct AIProviderSettingsProbeTests {
 
         #expect(source.contains("struct AIProviderProbeResultPanelContent"))
         #expect(source.contains("AIProviderProbeCapability.allCases"))
+        #expect(source.contains("activeCapabilities"))
+        #expect(!source.contains("capability == .textReply || capability == .structuredJSON"))
         #expect(source.contains("aiProviderSettings.probeCapability.textReply"))
         #expect(source.contains("aiProviderSettings.probeCapability.structuredJSON"))
         #expect(source.contains("aiProviderSettings.probeCapability.imageUnderstanding"))
@@ -170,7 +194,7 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("struct AIProviderDraftProbeSnapshot: Sendable"))
         #expect(!source.contains("struct AIProviderDraftProbeSnapshot: Equatable"))
         #expect(!source.contains("struct AIProviderDraftProbeSnapshot: Codable"))
-        #expect(source.contains("makeTextProbeDraftSnapshot"))
+        #expect(source.contains("makeConfigurationProbeDraftSnapshot"))
         #expect(!source.contains(
             "makeTextProbeDraftSnapshot(operationID: DiagnosticOperationID) throws -> AIProviderProfileSaveInput"
         ))

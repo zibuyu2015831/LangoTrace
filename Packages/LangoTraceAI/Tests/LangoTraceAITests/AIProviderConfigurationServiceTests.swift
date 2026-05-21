@@ -184,8 +184,8 @@ func configurationServiceRecordsMissingKeychainCredentialsAsNonSecretValidationE
     #expect(await repository.recordedValidationEvents.first?.errorCategory == .missingCredential)
 }
 
-@Test("Configuration service tests saved text endpoint through Keychain and records synthetic outcome")
-func configurationServiceTestsSavedTextEndpointThroughKeychainAndRecordsSyntheticOutcome() async throws {
+@Test("Configuration service tests saved configuration through Keychain and records synthetic outcome")
+func configurationServiceTestsSavedConfigurationThroughKeychainAndRecordsSyntheticOutcome() async throws {
     let repository = try StubAIProviderConfigurationRepository(profile: savedProfile())
     let store = TrackingAIProviderCredentialStore()
     let httpClient = CapturingProbeHTTPClient(responses: [
@@ -201,7 +201,7 @@ func configurationServiceTestsSavedTextEndpointThroughKeychainAndRecordsSyntheti
         idGenerator: IncrementingIDGenerator().next
     )
 
-    let result = try await service.testDefaultTextEndpoint(
+    let result = try await service.testDefaultConfiguration(
         operationID: DiagnosticOperationID(rawValue: "operation-saved-probe")
     )
 
@@ -212,6 +212,34 @@ func configurationServiceTestsSavedTextEndpointThroughKeychainAndRecordsSyntheti
     #expect(await repository.recordedValidationOutcomes.first?.eventType == .syntheticTest)
     #expect(await repository.recordedValidationOutcomes.first?.status == .succeeded)
     #expect(await repository.recordedValidationOutcomes.first?.createdAt == Date(timeIntervalSince1970: 220))
+}
+
+@Test("Configuration service saved configuration can include image understanding probe")
+func configurationServiceSavedConfigurationCanIncludeImageUnderstandingProbe() async throws {
+    let repository = try StubAIProviderConfigurationRepository(profile: savedProfile(imageInputEnabled: true))
+    let store = TrackingAIProviderCredentialStore()
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"OK"}]}]}"#),
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"{\"ok\":true}"}]}]}"#),
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"blue square"}]}]}"#),
+    ])
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: AIProviderConfigurationProbeService(httpClient: httpClient),
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let result = try await service.testDefaultConfiguration(
+        operationID: DiagnosticOperationID(rawValue: "operation-saved-image-probe")
+    )
+
+    #expect(result.overallStatus == .succeeded)
+    #expect(result.capabilities.first { $0.capability == .imageUnderstanding }?.status == .succeeded)
+    #expect(result.persistedValidationEventID == "id-1")
+    #expect(await httpClient.requests.count == 3)
+    #expect(await repository.recordedValidationOutcomes.first?.status == .succeeded)
+    #expect(!String(describing: await repository.recordedValidationOutcomes).contains("data:image"))
 }
 
 @Test("Configuration service records missing Keychain secret as synthetic probe failure")
@@ -230,7 +258,7 @@ func configurationServiceRecordsMissingKeychainSecretAsSyntheticProbeFailure() a
         idGenerator: IncrementingIDGenerator().next
     )
 
-    let result = try await service.testDefaultTextEndpoint(
+    let result = try await service.testDefaultConfiguration(
         operationID: DiagnosticOperationID(rawValue: "operation-missing-secret-probe")
     )
 
@@ -260,7 +288,7 @@ func configurationServiceDoesNotPersistCancelledSavedSyntheticProbe() async thro
         idGenerator: IncrementingIDGenerator().next
     )
 
-    let result = try await service.testDefaultTextEndpoint(
+    let result = try await service.testDefaultConfiguration(
         operationID: DiagnosticOperationID(rawValue: "operation-cancelled-probe")
     )
 
@@ -269,8 +297,8 @@ func configurationServiceDoesNotPersistCancelledSavedSyntheticProbe() async thro
     #expect(await repository.recordedValidationOutcomes.isEmpty)
 }
 
-@Test("Configuration service draft text endpoint probe does not write Keychain or validation event")
-func configurationServiceDraftTextEndpointProbeDoesNotWriteKeychainOrValidationEvent() async throws {
+@Test("Configuration service draft configuration probe does not write Keychain or validation event")
+func configurationServiceDraftConfigurationProbeDoesNotWriteKeychainOrValidationEvent() async throws {
     let repository = StubAIProviderConfigurationRepository(profile: nil)
     let store = TrackingAIProviderCredentialStore()
     let httpClient = CapturingProbeHTTPClient(responses: [
@@ -283,7 +311,7 @@ func configurationServiceDraftTextEndpointProbeDoesNotWriteKeychainOrValidationE
         configurationProbeService: AIProviderConfigurationProbeService(httpClient: httpClient)
     )
 
-    let result = try await service.testDraftTextEndpoint(
+    let result = try await service.testDraftConfiguration(
         AIProviderConfigurationProbeDraftInput(
             endpoint: AIProviderEndpointInput(
                 id: "draft-endpoint",
@@ -392,13 +420,15 @@ private actor RepositoryStorage {
 }
 
 private actor CapturingProbeHTTPClient: AIProviderProbeHTTPClient {
+    private(set) var requests: [URLRequest] = []
     private var responses: [Response]
 
     init(responses: [Response]) {
         self.responses = responses
     }
 
-    func send(_: URLRequest) async throws -> AIProviderProbeHTTPResponse {
+    func send(_ request: URLRequest) async throws -> AIProviderProbeHTTPResponse {
+        requests.append(request)
         guard !responses.isEmpty else {
             throw AIProviderProbeHTTPClientError.transportUnavailable
         }
@@ -497,7 +527,7 @@ private func saveInput() -> AIProviderProfileSaveInput {
     )
 }
 
-private func savedProfile() throws -> AIProviderConfigurationProfile {
+private func savedProfile(imageInputEnabled: Bool = false) throws -> AIProviderConfigurationProfile {
     let now = Date(timeIntervalSince1970: 100)
     let endpoint = try AIProviderEndpointConfiguration(
         input: AIProviderEndpointInput(
@@ -511,7 +541,7 @@ private func savedProfile() throws -> AIProviderConfigurationProfile {
             modelName: "gpt-5.2",
             credentialID: "credential-1",
             supportsImageInput: true,
-            imageInputEnabled: false
+            imageInputEnabled: imageInputEnabled
         ),
         createdAt: now,
         updatedAt: now

@@ -154,7 +154,7 @@ public struct AIProviderConfigurationService: Sendable {
         return didFail ? .failed : .succeeded
     }
 
-    public func testDraftTextEndpoint(
+    public func testDraftConfiguration(
         _ input: AIProviderConfigurationProbeDraftInput
     ) async throws -> AIProviderConfigurationProbeResult {
         guard let configurationProbeService else {
@@ -163,7 +163,7 @@ public struct AIProviderConfigurationService: Sendable {
         return try await configurationProbeService.probeDraftConfiguration(input)
     }
 
-    public func testDefaultTextEndpoint(
+    public func testDefaultConfiguration(
         operationID: DiagnosticOperationID = DiagnosticOperationID(rawValue: UUID().uuidString)
     ) async throws -> AIProviderConfigurationProbeResult {
         guard let credentialStore else {

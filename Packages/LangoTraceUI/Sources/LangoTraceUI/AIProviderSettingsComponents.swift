@@ -67,6 +67,7 @@ private extension AIProviderValidationErrorCategory {
 struct AIProviderProbeResultPanelContent: View {
     let result: AIProviderConfigurationProbeResult?
     let isTesting: Bool
+    let activeCapabilities: [AIProviderProbeCapability]
     let onRetry: () -> Void
     let onClose: () -> Void
 
@@ -95,7 +96,7 @@ struct AIProviderProbeResultPanelContent: View {
                     AIProviderProbeCapabilityRow(
                         capability: capability,
                         result: result?.capabilities.first { $0.capability == capability },
-                        isTesting: isTesting && (capability == .textReply || capability == .structuredJSON)
+                        isTesting: isTesting && activeCapabilities.contains(capability)
                     )
                 }
             }

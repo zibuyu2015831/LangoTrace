@@ -14,6 +14,7 @@ struct AIProviderSettingsView: View {
     @State private var transientTestStatusClearTask: Task<Void, Never>?
     @State private var isProbeResultPresented = false
     @State private var latestProbeResult: AIProviderConfigurationProbeResult?
+    @State private var activeProbeCapabilities: [AIProviderProbeCapability] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -44,6 +45,7 @@ struct AIProviderSettingsView: View {
             AIProviderProbeResultPanelContent(
                 result: latestProbeResult,
                 isTesting: isTesting,
+                activeCapabilities: activeProbeCapabilities,
                 onRetry: validateConfiguration,
                 onClose: { isProbeResultPresented = false }
             )
@@ -250,19 +252,22 @@ private extension AIProviderSettingsView {
                 : AIProviderProbeSource.draft
             let snapshot: AIProviderDraftProbeSnapshot?
             do {
-                snapshot = source == .draft ? try draft.makeTextProbeDraftSnapshot(operationID: operationID) : nil
+                snapshot = source == .draft ? try draft.makeConfigurationProbeDraftSnapshot(operationID: operationID) : nil
             } catch {
                 draft.testState = .missingRequiredFields
                 return
             }
             draft.testState = .testing
             latestProbeResult = nil
+            activeProbeCapabilities = snapshot?.requestedCapabilities ?? [.textReply, .structuredJSON]
             isProbeResultPresented = true
             do {
                 let result = try await actions.testProviderConfiguration(source, snapshot, operationID)
                 latestProbeResult = result
+                activeProbeCapabilities = []
                 draft.testState = testState(for: result)
             } catch {
+                activeProbeCapabilities = []
                 draft.testState = .failed(nil, nil)
             }
             scheduleTransientTestStatusClear()

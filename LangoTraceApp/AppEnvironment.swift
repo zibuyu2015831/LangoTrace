@@ -69,7 +69,7 @@ struct AppEnvironment {
                         guard let snapshot else {
                             throw AIProviderConfigurationError.missingRequiredEndpointField
                         }
-                        return try await service.testDraftTextEndpoint(
+                        return try await service.testDraftConfiguration(
                             AIProviderConfigurationProbeDraftInput(
                                 endpoint: snapshot.endpoint,
                                 plaintextSecret: snapshot.plaintextSecret,
@@ -77,7 +77,7 @@ struct AppEnvironment {
                             )
                         )
                     case .savedProfile:
-                        return try await service.testDefaultTextEndpoint(operationID: operationID)
+                        return try await service.testDefaultConfiguration(operationID: operationID)
                     }
                 },
                 recordDiagnosticEvent: { event in
