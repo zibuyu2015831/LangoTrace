@@ -1,6 +1,6 @@
 # AI Provider 图片理解合成测试方案
 
-状态：User Approved
+状态：Verified
 类型：feature
 创建日期：2026-05-21
 最后更新日期：2026-05-21
@@ -473,14 +473,12 @@ xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' bui
 ## 15. 实施记录
 
 - 2026-05-21：创建方案文档。尚未开始代码实现。
-
-后续每次实施或验证都应在此处追加：
-
-- 修改的关键文件。
-- 聚焦测试命令和结果。
-- 完整验证命令和结果。
-- 手动验证设备和结果。
-- 未能执行的检查及剩余风险。
+- 2026-05-21：提交方案基线 `50fc99b Plan AI provider image understanding probe`。
+- 2026-05-21：Phase 1 提交 `05e848a Add AI provider image probe fixture`。新增 `scripts/generate-ai-provider-probe-image.swift`、`AIProviderProbeImageFixture` 和 `blue-square.png`；先写 fixture 测试并确认失败，再生成 256 x 256 PNG 并通过 `swift test --package-path Packages/LangoTraceAI --filter LangoTraceAITests`。
+- 2026-05-21：Phase 2 提交 `bcbcc86 Add image understanding configuration probe`。新增 OpenAI Responses / OpenAI-compatible Chat 图片请求体、内置图片 data URL、`blue square` 严格校验、未启用 / 不支持状态映射；通过 `swift test --package-path Packages/LangoTraceAI --filter LangoTraceAITests`。
+- 2026-05-21：Phase 3 提交 `602c8a6 Integrate image probe across provider settings`。将 text-only service / draft snapshot 命名改为 configuration probe 语义，更新 AppEnvironment、UI active capabilities 和服务集成测试；通过 `swift test --package-path Packages/LangoTraceAI --filter LangoTraceAITests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests`。
+- 2026-05-21：Phase 4 更新 `docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/prompts/README.md` 和 `docs/prompts/ai-provider/provider-configuration-probe.md`，登记图片理解合成 probe 的 Prompt、内置图片输入、输出契约和隐私边界。
+- 2026-05-21：Phase 4 最终验证通过。聚焦测试 `swift test --package-path Packages/LangoTraceAI --filter LangoTraceAITests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests` 均通过；文档占位扫描无匹配，`git diff --check` 通过，`scripts/verify.sh` 通过。
 
 ## 16. 完成标准
 

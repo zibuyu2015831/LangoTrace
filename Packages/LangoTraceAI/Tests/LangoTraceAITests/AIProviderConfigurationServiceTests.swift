@@ -239,7 +239,8 @@ func configurationServiceSavedConfigurationCanIncludeImageUnderstandingProbe() a
     #expect(result.persistedValidationEventID == "id-1")
     #expect(await httpClient.requests.count == 3)
     #expect(await repository.recordedValidationOutcomes.first?.status == .succeeded)
-    #expect(!String(describing: await repository.recordedValidationOutcomes).contains("data:image"))
+    let recordedValidationOutcomes = await repository.recordedValidationOutcomes
+    #expect(!String(describing: recordedValidationOutcomes).contains("data:image"))
 }
 
 @Test("Configuration service records missing Keychain secret as synthetic probe failure")

@@ -14,10 +14,12 @@ func imageUnderstandingProbeFixtureLoadsPNGDataURL() throws {
     #expect(fixture.dataURLString.hasPrefix("data:image/png;base64,"))
     #expect(!fixture.dataURLString.contains("\n"))
 
-    let imageSource = CGImageSourceCreateWithData(fixture.data as CFData, nil)
-    let properties = CGImageSourceCopyPropertiesAtIndex(imageSource!, 0, nil) as? [CFString: Any]
-    #expect(properties?[kCGImagePropertyPixelWidth] as? Int == 256)
-    #expect(properties?[kCGImagePropertyPixelHeight] as? Int == 256)
+    let imageSource = try #require(CGImageSourceCreateWithData(fixture.data as CFData, nil))
+    let properties = try #require(
+        CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any]
+    )
+    #expect(properties[kCGImagePropertyPixelWidth] as? Int == 256)
+    #expect(properties[kCGImagePropertyPixelHeight] as? Int == 256)
 }
 
 @Test("OpenAI-compatible Chat probe builds POST requests and maps text and JSON success")

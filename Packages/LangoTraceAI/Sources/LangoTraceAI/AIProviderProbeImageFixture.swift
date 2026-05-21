@@ -15,9 +15,10 @@ public struct AIProviderProbeImageFixture: Sendable {
         ) else {
             throw AIProviderProbeImageFixtureError.missingResource
         }
+        let data = try Data(contentsOf: url)
         return AIProviderProbeImageFixture(
             mimeType: "image/png",
-            data: try Data(contentsOf: url)
+            data: data
         )
     }
 }

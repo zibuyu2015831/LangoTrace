@@ -74,8 +74,9 @@ Prompt 文档必须明确该 Prompt 是否会包含：
 
 当前已登记：
 
-- [AI Provider Configuration Probe Prompts](ai-provider/provider-configuration-probe.md)：AI Provider 配置页文本模型合成测试请求。
+- [AI Provider Configuration Probe Prompts](ai-provider/provider-configuration-probe.md)：AI Provider 配置页文本、JSON 和内置图片合成测试请求。
 
 ## 7. 版本记录
 
 - 2026-05-21：更新目录当前事实。原因：AI Provider 配置测试请求已经接入固定合成 Prompt，Prompt Registry 不再是空目录；后续真实 Provider 请求内容必须在本目录登记。影响范围：AI Provider 配置测试请求、Prompt 审查、请求预览和隐私复查。是否需要 ADR：否。
+- 2026-05-21：补充图片理解合成测试 Prompt 当前事实。原因：AI Provider 配置测试请求新增可选内置图片 probe，仍属于真实发送给 Provider 的固定 Prompt，需要纳入 Prompt Registry。影响范围：AI Provider 配置测试请求、图片输入边界和隐私复查。是否需要 ADR：否。
