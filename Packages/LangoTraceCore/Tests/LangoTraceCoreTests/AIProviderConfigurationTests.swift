@@ -31,6 +31,19 @@ func endpointInputAllowsHTTPSAndLoopbackHTTP() throws {
     #expect(loopback.baseURL == "http://127.0.0.1:11434/v1")
 }
 
+@Test("Non text generation endpoints clear image input support and enablement")
+func nonTextGenerationEndpointsClearImageInputSupportAndEnablement() throws {
+    let endpoint = try endpointInput(
+        baseURL: "https://api.openai.com/v1",
+        purpose: .embedding,
+        supportsImageInput: true,
+        imageInputEnabled: true
+    ).normalized()
+
+    #expect(!endpoint.supportsImageInput)
+    #expect(!endpoint.imageInputEnabled)
+}
+
 @Test("Credential metadata derives stable non secret Keychain reference fields")
 func credentialMetadataDerivesStableKeychainReferenceFields() {
     let metadata = AIProviderCredentialMetadata(
@@ -48,18 +61,23 @@ func credentialMetadataDerivesStableKeychainReferenceFields() {
     #expect(metadata.secretPresence == .unknown)
 }
 
-private func endpointInput(baseURL: String) -> AIProviderEndpointInput {
+private func endpointInput(
+    baseURL: String,
+    purpose: AIProviderEndpointPurpose = .textGeneration,
+    supportsImageInput: Bool = true,
+    imageInputEnabled: Bool = false
+) -> AIProviderEndpointInput {
     AIProviderEndpointInput(
         id: "endpoint-1",
         profileID: "profile-1",
-        purpose: .textGeneration,
+        purpose: purpose,
         isEnabled: true,
         providerPresetID: "openai",
         adapterKind: .openAIResponses,
         baseURL: baseURL,
         modelName: "gpt-5.2",
         credentialID: "credential-1",
-        supportsImageInput: true,
-        imageInputEnabled: false
+        supportsImageInput: supportsImageInput,
+        imageInputEnabled: imageInputEnabled
     )
 }

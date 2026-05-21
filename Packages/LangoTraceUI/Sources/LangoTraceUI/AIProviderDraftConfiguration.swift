@@ -217,7 +217,7 @@ struct AITextModelDraftConfiguration: Equatable {
             defaultModel: provider.defaultTextModel,
             credentialReference: .independent
         )
-        if !provider.capabilities.imageUnderstanding {
+        if !endpoint.imageInputDecision(purpose: .textGeneration).canToggle {
             imageUnderstandingEnabled = false
         }
     }
@@ -394,8 +394,8 @@ struct AIProviderDraftConfiguration: Equatable {
 
     var configurationProbeRequestedCapabilities: [AIProviderProbeCapability] {
         var capabilities: [AIProviderProbeCapability] = [.textReply, .structuredJSON]
-        let imageProbeSupported = text.endpoint.provider.capabilities.imageUnderstanding
-        if text.imageUnderstandingEnabled, imageProbeSupported {
+        let imageInputDecision = text.endpoint.imageInputDecision(purpose: .textGeneration)
+        if text.imageUnderstandingEnabled, imageInputDecision.canProbe {
             capabilities.append(.imageUnderstanding)
         }
         return capabilities
@@ -407,6 +407,7 @@ struct AIProviderDraftConfiguration: Equatable {
         guard textProbeReadiness == .readyForRequest else {
             throw AIProviderConfigurationError.missingRequiredEndpointField
         }
+        let imageInputDecision = text.endpoint.imageInputDecision(purpose: .textGeneration)
         let endpoint = try AIProviderEndpointInput(
             id: text.endpoint.id ?? "draft-text-endpoint",
             profileID: profileID ?? "draft-profile",
@@ -417,8 +418,8 @@ struct AIProviderDraftConfiguration: Equatable {
             baseURL: text.endpoint.baseURL,
             modelName: text.endpoint.model,
             credentialID: text.endpoint.credentialID ?? "draft-text-credential",
-            supportsImageInput: text.endpoint.provider.capabilities.imageUnderstanding,
-            imageInputEnabled: text.imageUnderstandingEnabled && text.endpoint.provider.capabilities.imageUnderstanding
+            supportsImageInput: imageInputDecision.shouldPersistImageSupport,
+            imageInputEnabled: text.imageUnderstandingEnabled && imageInputDecision.canProbe
         ).normalized()
         return AIProviderDraftProbeSnapshot(
             source: .draft,
@@ -452,7 +453,10 @@ struct AIProviderDraftConfiguration: Equatable {
 
         if let textEndpoint {
             text.endpoint.apply(endpoint: textEndpoint)
-            text.imageUnderstandingEnabled = textEndpoint.imageInputEnabled
+            let imageInputDecision = text.endpoint.imageInputDecision(purpose: .textGeneration)
+            text.imageUnderstandingEnabled = textEndpoint.imageInputEnabled &&
+                imageInputDecision.canToggle &&
+                imageInputDecision.canProbe
         }
 
         if let speechEndpoint {
@@ -558,7 +562,8 @@ private extension AIProviderEndpointDraftConfiguration {
         credentialMode: AIProviderEndpointCredentialSaveMode,
         imageInputEnabled: Bool
     ) throws -> AIProviderEndpointSaveInput {
-        AIProviderEndpointSaveInput(
+        let imageInputDecision = imageInputDecision(purpose: purpose)
+        return AIProviderEndpointSaveInput(
             id: id,
             purpose: purpose,
             isEnabled: isEnabled,
@@ -567,8 +572,19 @@ private extension AIProviderEndpointDraftConfiguration {
             baseURL: baseURL,
             modelName: model,
             credentialMode: credentialMode,
-            supportsImageInput: provider.capabilities.imageUnderstanding,
-            imageInputEnabled: imageInputEnabled && provider.capabilities.imageUnderstanding
+            supportsImageInput: imageInputDecision.shouldPersistImageSupport,
+            imageInputEnabled: imageInputEnabled && imageInputDecision.canProbe
+        )
+    }
+
+    func imageInputDecision(
+        purpose: LangoTraceCore.AIProviderEndpointPurpose
+    ) -> AIProviderCapabilityDecision {
+        AIProviderEndpointCapabilityResolver.imageInputDecision(
+            provider: provider,
+            adapterKind: provider.adapterKind,
+            purpose: purpose,
+            modelName: model
         )
     }
 

@@ -52,6 +52,85 @@ struct AIProviderSettingsProbeTests {
         #expect(textOnlySnapshot.requestedCapabilities == [.textReply, .structuredJSON])
     }
 
+    @Test("OpenRouter model dependent image input can be enabled for configuration probe")
+    func openRouterModelDependentImageInputCanBeEnabledForConfigurationProbe() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openRouter)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
+        draft.text.endpoint.model = "openai/gpt-5.4-image-2"
+        draft.text.imageUnderstandingEnabled = true
+
+        let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
+            operationID: DiagnosticOperationID(rawValue: "operation-openrouter-image-probe")
+        )
+
+        #expect(draft.configurationProbeRequestedCapabilities == [.textReply, .structuredJSON, .imageUnderstanding])
+        #expect(snapshot.endpoint.providerPresetID == "openrouter")
+        #expect(snapshot.endpoint.adapterKind == .openAICompatibleChat)
+        #expect(snapshot.endpoint.supportsImageInput)
+        #expect(snapshot.endpoint.imageInputEnabled)
+        #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON, .imageUnderstanding])
+    }
+
+    @Test("OpenRouter image input is not requested until user enables it")
+    func openRouterImageInputIsNotRequestedUntilUserEnablesIt() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openRouter)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
+        draft.text.endpoint.model = "openai/gpt-5.4-image-2"
+
+        let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
+            operationID: DiagnosticOperationID(rawValue: "operation-openrouter-text-probe")
+        )
+
+        #expect(snapshot.endpoint.supportsImageInput)
+        #expect(!snapshot.endpoint.imageInputEnabled)
+        #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON])
+    }
+
+    @Test("Loaded profile image state is downgraded by live resolver instead of persisted support")
+    func loadedProfileImageStateIsDowngradedByLiveResolverInsteadOfPersistedSupport() throws {
+        var textOnlyDraft = AIProviderDraftConfiguration(provider: .openAI)
+        try textOnlyDraft.applyLoadedProfile(loadedProfile(
+            providerPresetID: "deepseek",
+            adapterKind: .openAICompatibleChat,
+            modelName: "deepseek-v4-flash",
+            supportsImageInput: true,
+            imageInputEnabled: true
+        ))
+        #expect(textOnlyDraft.text.endpoint.provider == .deepSeek)
+        #expect(!textOnlyDraft.text.imageUnderstandingEnabled)
+
+        var openRouterDraft = AIProviderDraftConfiguration(provider: .openAI)
+        try openRouterDraft.applyLoadedProfile(loadedProfile(
+            providerPresetID: "openrouter",
+            adapterKind: .openAICompatibleChat,
+            modelName: "openai/gpt-5.4-image-2",
+            supportsImageInput: false,
+            imageInputEnabled: true
+        ))
+        #expect(openRouterDraft.text.endpoint.provider == .openRouter)
+        #expect(openRouterDraft.text.imageUnderstandingEnabled)
+    }
+
+    @Test("Settings source uses resolver instead of provider image boolean for image toggle")
+    func settingsSourceUsesResolverInsteadOfProviderImageBooleanForImageToggle() throws {
+        let viewSource = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+        let draftSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderDraftConfiguration.swift"),
+            encoding: .utf8
+        )
+        let componentSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
+            encoding: .utf8
+        )
+
+        #expect(viewSource.contains("imageInputDecision"))
+        #expect(draftSource.contains("imageInputDecision"))
+        #expect(componentSource.contains("AIProviderCapabilityDecision"))
+        #expect(!viewSource.contains("provider.capabilities.imageUnderstanding"))
+        #expect(!draftSource.contains("provider.capabilities.imageUnderstanding"))
+        #expect(!componentSource.contains("supportsImageUnderstanding"))
+    }
+
     @Test("Loaded profile without edits uses saved profile as text probe source")
     func loadedProfileWithoutEditsUsesSavedProfileAsTextProbeSource() throws {
         var draft = AIProviderDraftConfiguration(provider: .openAI)
@@ -222,6 +301,22 @@ struct AIProviderSettingsProbeTests {
     }
 
     private func loadedProfile() throws -> AIProviderConfigurationProfile {
+        try loadedProfile(
+            providerPresetID: "openai",
+            adapterKind: .openAIResponses,
+            modelName: "gpt-5.2",
+            supportsImageInput: true,
+            imageInputEnabled: false
+        )
+    }
+
+    private func loadedProfile(
+        providerPresetID: String,
+        adapterKind: LangoTraceCore.AIProviderAdapterKind,
+        modelName: String,
+        supportsImageInput: Bool,
+        imageInputEnabled: Bool
+    ) throws -> AIProviderConfigurationProfile {
         let now = Date(timeIntervalSince1970: 100)
         let text = try AIProviderEndpointConfiguration(
             input: AIProviderEndpointInput(
@@ -229,13 +324,13 @@ struct AIProviderSettingsProbeTests {
                 profileID: "profile-1",
                 purpose: .textGeneration,
                 isEnabled: true,
-                providerPresetID: "openai",
-                adapterKind: .openAIResponses,
+                providerPresetID: providerPresetID,
+                adapterKind: adapterKind,
                 baseURL: "https://api.openai.com/v1",
-                modelName: "gpt-5.2",
+                modelName: modelName,
                 credentialID: "credential-1",
-                supportsImageInput: true,
-                imageInputEnabled: false
+                supportsImageInput: supportsImageInput,
+                imageInputEnabled: imageInputEnabled
             ),
             createdAt: now,
             updatedAt: now

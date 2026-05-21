@@ -413,7 +413,7 @@ struct AIProviderRowPicker: View {
 }
 
 struct AIProviderCapabilityBoundaryView: View {
-    let supportsImageUnderstanding: Bool
+    let imageInputDecision: AIProviderCapabilityDecision
     @Binding var imageUnderstandingEnabled: Bool
 
     var body: some View {
@@ -427,12 +427,10 @@ struct AIProviderCapabilityBoundaryView: View {
                 localizedText("aiProviderSettings.capability.image")
                     .font(.callout.weight(.semibold))
             }
-            .disabled(!supportsImageUnderstanding)
-            if !supportsImageUnderstanding {
-                localizedText("aiProviderSettings.capability.unsupported")
-                    .font(.footnote)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            }
+            .disabled(!imageInputDecision.canToggle)
+            localizedText(imageInputDecision.explanationKey)
+                .font(.footnote)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
         }
     }
 }

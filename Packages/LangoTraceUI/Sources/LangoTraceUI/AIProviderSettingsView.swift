@@ -73,7 +73,7 @@ struct AIProviderSettingsView: View {
             )
             AIProviderAPIKeyField(text: textAPIKeyBinding)
             AIProviderCapabilityBoundaryView(
-                supportsImageUnderstanding: draft.text.endpoint.provider.capabilities.imageUnderstanding,
+                imageInputDecision: textImageInputDecision,
                 imageUnderstandingEnabled: imageUnderstandingBinding
             )
         }
@@ -484,13 +484,21 @@ private extension AIProviderSettingsView {
         Binding(
             get: { draft.text.imageUnderstandingEnabled },
             set: { newValue in
-                let acceptedValue = newValue &&
-                    draft.text.endpoint.provider.capabilities.imageUnderstanding
+                let acceptedValue = newValue && textImageInputDecision.canToggle
                 guard markDraftInputChanged(from: draft.text.imageUnderstandingEnabled, to: acceptedValue) else {
                     return
                 }
                 draft.text.imageUnderstandingEnabled = acceptedValue
             }
+        )
+    }
+
+    var textImageInputDecision: AIProviderCapabilityDecision {
+        AIProviderEndpointCapabilityResolver.imageInputDecision(
+            provider: draft.text.endpoint.provider,
+            adapterKind: draft.text.endpoint.provider.adapterKind,
+            purpose: .textGeneration,
+            modelName: draft.text.endpoint.model
         )
     }
 

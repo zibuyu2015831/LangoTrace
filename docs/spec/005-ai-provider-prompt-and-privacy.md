@@ -159,17 +159,17 @@ Provider 配置页已经从真实级 mock 表单进入本地配置保存和配�
 - Provider 和 API Key 属于高频填写项。Provider 应使用一行设置项展示当前选择；API Key 输入必须有明确字段名，并提供显示/隐藏按钮，默认隐藏。面向普通中文用户的主路径文案应使用 `API Key`，避免使用“凭证”等偏工程术语。
 - 模型 endpoint 与敏感凭证必须分离。多个 endpoint 可以引用同一份凭证，例如同一 Provider 的文本、语音和向量 endpoint 共用同一个 API Key，但它们的 Base URL、adapter、请求格式和模型名仍应独立配置。
 - 当不同能力选择不同 Provider 时，默认使用独立凭证，避免跨 Provider 误用 API Key。只有用户明确选择共享凭证时，才允许 endpoint 引用文本模型凭证。
-- 图片理解是文本模型 endpoint 的能力开关。默认关闭，只有用户显式启用后，后续照片或图片理解请求才可使用该能力。
+- 图片理解是文本模型 endpoint 的模型级输入能力开关。默认关闭，只有用户显式启用后，后续图片理解请求才可使用该能力。UI 可用性必须由 Provider preset、adapter 请求格式、endpoint purpose、模型能力策略和用户授权共同解析，不得只由 Provider preset 的静态布尔值决定。
 - iPhone、iPad 和 macOS 的 Provider 设置页应共享同一字段语义和表单组件。平台差异只允许体现在承载宽度、导航位置、输入密度和窗口行为上；不得为 iPad 或 macOS 复制一套字段模型，避免重新出现旧术语、旧能力分组或未标注 API Key 输入。
 - iPad / macOS 工作台中的 Provider 设置详情应使用合理最大内容宽度保持阅读栏；该宽度是视觉承载约束，不得写入 Provider 配置模型、Repository、同步协议或安全存储模型。
 - macOS 原生 Settings scene 和工作台 Settings section 是两个入口层。当前原生 Settings scene 只展示能力状态列表，不承载 Provider 写入表单；后续若要在原生 Settings scene 支持 Provider 配置，必须复用同一配置模块并单独审查写入边界。
 - “测试请求”按钮必须走明确状态机，并通过 `AIProviderSettingsActions` 进入 AI service / Provider 层；SwiftUI View 不得直接创建 `URLRequest`、拼接 Authorization header、读取 Keychain 或调用 Provider SDK。
-- 当前阶段测试请求只允许对文本模型 endpoint 发送固定合成检测内容，分为文本回复 probe、JSON 输出 probe 和可选图片理解 probe；JSON probe 只描述一个名为 `ok`、值为布尔 `true` 的字段结构，由模型生成严格 JSON object，验收仍只接受 exactly one field `ok: true`。图片理解 probe 只在 Provider 支持且用户显式启用图片输入后运行，并只发送项目内置白底蓝色正方形 PNG，用于验证图片输入链路、基础视觉属性识别和受控短标签输出；它不得发送用户照片、生活记录附件、OCR 文本、历史记忆、目标语言正文、Prompt Preset 内容、用户自定义长文本或请求预览正文，也不代表真实照片理解质量评分。
+- 当前阶段测试请求只允许对文本模型 endpoint 发送固定合成检测内容，分为文本回复 probe、JSON 输出 probe 和可选图片理解 probe；JSON probe 只描述一个名为 `ok`、值为布尔 `true` 的字段结构，由模型生成严格 JSON object，验收仍只接受 exactly one field `ok: true`。图片理解 probe 只在当前 adapter 已支持图片请求体、endpoint purpose 为文本生成、能力策略允许或由模型决定、且用户显式启用图片输入后运行，并只发送项目内置白底蓝色正方形 PNG，用于验证图片输入链路、基础视觉属性识别和受控短标签输出；它不得发送用户照片、生活记录附件、OCR 文本、历史记忆、目标语言正文、Prompt Preset 内容、用户自定义长文本或请求预览正文，也不代表真实照片理解质量评分。
 - 语音生成和向量化可以出现在结果面板的分能力状态中，但当前阶段不得为这些能力发真实网络测试请求；应显示未启用、未配置或暂不支持测试。
 - 未保存 draft 测试必须测试当前屏幕配置，且不得先写入 Keychain、SQLite 或 validation event；已保存且无修改的配置测试由服务层通过 Keychain 引用重新解析密钥。
 - 已保存 profile 的合成测试可以记录 `synthetic_test` 类型的非敏感 validation event，并在同一 Data 事务内更新最近验证摘要；draft 测试只允许记录非敏感 diagnostic event，不得污染持久 profile 事实。取消的测试不得写失败 validation event。
 - 本地配置验证可以记录 `credential_validation` 类型的非敏感 validation event；合成测试可以记录 `synthetic_test`。允许字段包括 provider、model、endpoint purpose、状态、错误分类、耗时和 operation id；不得记录请求体、响应体、API Key、完整 Keychain account、完整请求头、Base URL query 中的敏感参数或用户内容。
-- OpenAI Responses 和 OpenAI-compatible Chat 是第一阶段真实文本和内置图片合成测试范围；Anthropic / Gemini 第一阶段应返回明确暂不支持测试，不得误映射为认证失败或网络失败。Provider preset 的图片理解能力只表示产品配置层面允许用户启用图片输入，不等于当前 adapter 已支持图片 probe。
+- OpenAI Responses 和 OpenAI-compatible Chat 是第一阶段真实文本和内置图片合成测试范围；Anthropic / Gemini 第一阶段应返回明确暂不支持测试，不得误映射为认证失败或网络失败。Provider preset 不能作为模型级图片输入能力的最终事实源；OpenRouter 和 Custom OpenAI-compatible 等兼容层应表达为 model-dependent，允许用户显式开启并由真实 probe 验证。`supportsImageInput` 只作为 endpoint 运行期防线和保存快照，不表示模型已被验证支持图片理解；真实可用性以 probe result 为准。
 - Provider preset 不能默认声明所有能力都可用。Chat、Embedding、TTS、图片理解、语音识别和自定义请求头需要分别表达支持状态。
 - 聚合服务或兼容层的路由提示应只在用户选择该类 Provider 或进入高级信息时出现，避免把所有 Provider 的技术风险说明长期展示在普通设置主路径。
 

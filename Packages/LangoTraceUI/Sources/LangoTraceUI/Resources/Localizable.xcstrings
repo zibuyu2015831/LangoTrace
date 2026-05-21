@@ -11999,6 +11999,74 @@
         }
       }
     },
+    "aiProviderSettings.capability.image.adapterUnsupported": {
+      "comment": "Short note for an image capability that the current request adapter cannot test yet.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This request format does not support image testing yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前请求格式暂不支持图片测试"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.capability.image.modelDependent": {
+      "comment": "Short note for model-dependent image input capability.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image understanding requires a model that supports image input."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片理解功能需要选择支持图片输入的模型"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.capability.image.supported": {
+      "comment": "Short note for supported image input capability.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available. Enable it to include the built-in synthetic image in configuration tests."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用。启用后，配置测试会携带内置合成图片。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.capability.image.unsupportedProvider": {
+      "comment": "Short note for a provider preset that does not support image input.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This provider preset does not support image input."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前 Provider 预设不支持图片输入"
+          }
+        }
+      }
+    },
     "aiProviderSettings.chatModel.title": {
       "comment": "Label for AI provider chat model field.",
       "localizations": {

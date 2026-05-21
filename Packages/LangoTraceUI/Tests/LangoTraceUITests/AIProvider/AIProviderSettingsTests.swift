@@ -413,6 +413,104 @@ struct AIProviderSettingsTests {
     }
 }
 
+@Suite("AI provider capability resolver")
+struct AIProviderCapabilityResolverTests {
+    @Test("OpenAI image input is supported through the responses adapter")
+    func openAIImageInputIsSupportedThroughResponsesAdapter() {
+        let decision = imageInputDecision(
+            provider: .openAI,
+            adapterKind: .openAIResponses,
+            modelName: "gpt-5.2"
+        )
+
+        #expect(decision.support == .supported)
+        #expect(decision.canToggle)
+        #expect(decision.canProbe)
+        #expect(!decision.requiresUserAssertion)
+        #expect(decision.shouldPersistImageSupport)
+    }
+
+    @Test("OpenRouter and custom image input are model dependent")
+    func openRouterAndCustomImageInputAreModelDependent() {
+        let openRouter = imageInputDecision(
+            provider: .openRouter,
+            adapterKind: .openAICompatibleChat,
+            modelName: "openai/gpt-5.4-image-2"
+        )
+        let custom = imageInputDecision(
+            provider: .customOpenAICompatible,
+            adapterKind: .openAICompatibleChat,
+            modelName: "vision-model"
+        )
+
+        #expect(openRouter.support == .modelDependent)
+        #expect(openRouter.canToggle)
+        #expect(openRouter.canProbe)
+        #expect(openRouter.requiresUserAssertion)
+        #expect(openRouter.shouldPersistImageSupport)
+        #expect(custom.support == .modelDependent)
+        #expect(custom.canToggle)
+        #expect(custom.canProbe)
+        #expect(custom.requiresUserAssertion)
+    }
+
+    @Test("Unsupported adapters and providers cannot probe image input")
+    func unsupportedAdaptersAndProvidersCannotProbeImageInput() {
+        let gemini = imageInputDecision(
+            provider: .gemini,
+            adapterKind: .geminiGenerateContent,
+            modelName: "gemini-2.5-flash"
+        )
+        let anthropic = imageInputDecision(
+            provider: .anthropic,
+            adapterKind: .anthropicMessages,
+            modelName: "claude-sonnet-4-5"
+        )
+        let deepSeek = imageInputDecision(
+            provider: .deepSeek,
+            adapterKind: .openAICompatibleChat,
+            modelName: "deepseek-v4-flash"
+        )
+
+        #expect(gemini.support == .adapterUnsupported)
+        #expect(!gemini.canToggle)
+        #expect(!gemini.canProbe)
+        #expect(anthropic.support == .adapterUnsupported)
+        #expect(!anthropic.canToggle)
+        #expect(!anthropic.canProbe)
+        #expect(deepSeek.support == .unsupported)
+        #expect(!deepSeek.canToggle)
+        #expect(!deepSeek.canProbe)
+    }
+
+    @Test("Non text endpoints cannot carry image input capability")
+    func nonTextEndpointsCannotCarryImageInputCapability() {
+        let decision = AIProviderEndpointCapabilityResolver.imageInputDecision(
+            provider: .openRouter,
+            adapterKind: .openAICompatibleChat,
+            purpose: .embedding,
+            modelName: "openai/gpt-5.4-image-2"
+        )
+
+        #expect(decision.support == .unsupported)
+        #expect(!decision.canToggle)
+        #expect(!decision.canProbe)
+    }
+
+    private func imageInputDecision(
+        provider: AIProviderPreset,
+        adapterKind: LangoTraceUI.AIProviderAdapterKind,
+        modelName: String
+    ) -> AIProviderCapabilityDecision {
+        AIProviderEndpointCapabilityResolver.imageInputDecision(
+            provider: provider,
+            adapterKind: adapterKind,
+            purpose: .textGeneration,
+            modelName: modelName
+        )
+    }
+}
+
 @Suite("AI provider platform consistency")
 struct AIProviderPlatformConsistencyTests {
     @Test("iPad and Mac workspace route AI provider through shared settings detail")

@@ -12,7 +12,7 @@
 
 ## 2. 所属功能
 
-AI Provider 配置页的“测试请求”能力，用于确认用户配置的文本模型 endpoint、model、credential 和 adapter 能完成最小合成请求。当前包含文本回复、JSON 输出和用户显式启用后的内置图片理解 probe。
+AI Provider 配置页的“测试请求”能力，用于确认用户配置的文本模型 endpoint、model、credential 和 adapter 能完成最小合成请求。当前包含文本回复、JSON 输出和用户显式启用后的内置图片理解 probe。图片理解 probe 是否可启用由 Provider preset、adapter 请求格式、文本 endpoint purpose 和模型能力策略共同决定；OpenRouter / Custom OpenAI-compatible 等兼容层属于模型相关能力，由真实 probe 验证。
 
 该 Prompt 只用于 Provider 配置探测，不属于真实学习内容生成、Prompt Preset、请求预览或长期记忆链路。
 
@@ -95,7 +95,7 @@ Prompt 不直接包含 `blue` 或 `square`。当前实现会对响应文本执�
 - endpoint purpose。
 - model。
 - 将发送的固定 Prompt 文案。
-- 图片理解 probe 是否会发送内置合成图片。
+- 图片理解 probe 是否会发送内置合成图片，以及该能力是官方支持、模型相关还是当前 adapter 暂不支持测试。
 - 是否使用已保存 Keychain credential 或当前 draft credential。
 
 预览不得展示 API Key、Authorization header、完整 Keychain account、完整图片 base64、请求体中的敏感字段或 Base URL query 中的敏感参数。
@@ -152,3 +152,4 @@ Describe the image using exactly two lowercase English words: color then shape. 
 - 2026-05-21：创建 Provider 配置合成测试 Prompt 文档。原因：代码已经通过 `AIProviderConfigurationProbeService` 向 Provider 发送固定合成 Prompt，按 Prompt Registry 规则需要记录完整 Prompt 文案、输出契约和隐私边界。影响范围：AI Provider 配置测试请求、后续请求预览和 Prompt 审查。是否需要 ADR：否，沿用 ADR-005 和 `spec/005` / `spec/008` 的隐私边界。
 - 2026-05-21：更新 structured JSON probe Prompt。原因：系统架构复查认为直接在 Prompt 中给出完整 `{"ok":true}` 字面量更像回显测试，不足以证明模型能按结构说明生成 JSON；新版本只描述字段名、字段类型和无额外文本约束，验收仍严格要求 exactly one field `ok: true`。影响范围：AI Provider 配置测试请求、Prompt Registry 和相关单元测试。是否需要 ADR：否。
 - 2026-05-21：新增 image understanding probe Prompt。原因：AI Provider 配置测试请求新增用户显式启用后的内置图片合成 probe，需要登记固定 Prompt、内置图片输入、输出契约和隐私边界。影响范围：AI Provider 配置测试请求、Prompt Registry、图片输入边界和相关单元测试。是否需要 ADR：否，沿用 ADR-005；真实用户照片请求仍需单独请求预览方案。
+- 2026-05-21：补充 model-dependent 图片理解适用范围。原因：OpenRouter / Custom OpenAI-compatible 的图片输入能力不能由 Provider preset 静态布尔值判断，应由能力解析器允许用户显式开启，再通过本 Prompt 的内置图片 probe 验证。影响范围：AI Provider 配置测试请求、请求预览说明和能力边界文案。是否需要 ADR：否。

@@ -268,6 +268,7 @@ public struct AIProviderEndpointInput: Equatable, Sendable {
         normalized.baseURL = trimmedBaseURL
         normalized.modelName = trimmedModelName
         if normalized.purpose != .textGeneration {
+            normalized.supportsImageInput = false
             normalized.imageInputEnabled = false
         }
         return normalized

@@ -1,4 +1,5 @@
 import Foundation
+import LangoTraceCore
 
 enum AIProviderAdapterKind: String, CaseIterable, Equatable {
     case openAICompatibleChat
@@ -58,6 +59,108 @@ struct AIProviderCapabilitySet: Equatable {
         openAICompatible: true,
         customHeaders: true
     )
+}
+
+enum AIProviderCapabilitySupport: Equatable {
+    case supported
+    case unsupported
+    case modelDependent
+    case adapterUnsupported
+}
+
+struct AIProviderCapabilityPolicy: Equatable {
+    var textGeneration: AIProviderCapabilitySupport
+    var structuredJSON: AIProviderCapabilitySupport
+    var imageInput: AIProviderCapabilitySupport
+    var speechSynthesis: AIProviderCapabilitySupport
+    var embedding: AIProviderCapabilitySupport
+}
+
+struct AIProviderAdapterCapabilityPolicy: Equatable {
+    var canProbeText: Bool
+    var canProbeStructuredJSON: Bool
+    var canProbeImageInput: Bool
+    var canProbeSpeechSynthesis: Bool
+    var canProbeEmbedding: Bool
+}
+
+struct AIProviderCapabilityDecision: Equatable {
+    var support: AIProviderCapabilitySupport
+    var canToggle: Bool
+    var canProbe: Bool
+    var requiresUserAssertion: Bool
+    var shouldPersistImageSupport: Bool
+    var explanationKey: String
+}
+
+enum AIProviderEndpointCapabilityResolver {
+    static func imageInputDecision(
+        provider: AIProviderPreset,
+        adapterKind: AIProviderAdapterKind,
+        purpose: LangoTraceCore.AIProviderEndpointPurpose,
+        modelName _: String
+    ) -> AIProviderCapabilityDecision {
+        guard purpose == .textGeneration else {
+            return .unsupported("aiProviderSettings.capability.image.unsupportedProvider")
+        }
+
+        let providerSupport = provider.capabilityPolicy.imageInput
+        let adapterCanProbe = adapterKind.capabilityPolicy.canProbeImageInput
+        if !adapterCanProbe, providerSupport != .unsupported {
+            return .adapterUnsupported("aiProviderSettings.capability.image.adapterUnsupported")
+        }
+
+        switch providerSupport {
+        case .supported:
+            return AIProviderCapabilityDecision(
+                support: .supported,
+                canToggle: true,
+                canProbe: adapterCanProbe,
+                requiresUserAssertion: false,
+                shouldPersistImageSupport: adapterCanProbe,
+                explanationKey: "aiProviderSettings.capability.image.supported"
+            )
+        case .modelDependent:
+            return AIProviderCapabilityDecision(
+                support: .modelDependent,
+                canToggle: adapterCanProbe,
+                canProbe: adapterCanProbe,
+                requiresUserAssertion: true,
+                shouldPersistImageSupport: adapterCanProbe,
+                explanationKey: adapterCanProbe
+                    ? "aiProviderSettings.capability.image.modelDependent"
+                    : "aiProviderSettings.capability.image.adapterUnsupported"
+            )
+        case .unsupported:
+            return .unsupported("aiProviderSettings.capability.image.unsupportedProvider")
+        case .adapterUnsupported:
+            return .adapterUnsupported("aiProviderSettings.capability.image.adapterUnsupported")
+        }
+    }
+}
+
+private extension AIProviderCapabilityDecision {
+    static func unsupported(_ explanationKey: String) -> AIProviderCapabilityDecision {
+        AIProviderCapabilityDecision(
+            support: .unsupported,
+            canToggle: false,
+            canProbe: false,
+            requiresUserAssertion: false,
+            shouldPersistImageSupport: false,
+            explanationKey: explanationKey
+        )
+    }
+
+    static func adapterUnsupported(_ explanationKey: String) -> AIProviderCapabilityDecision {
+        AIProviderCapabilityDecision(
+            support: .adapterUnsupported,
+            canToggle: false,
+            canProbe: false,
+            requiresUserAssertion: false,
+            shouldPersistImageSupport: false,
+            explanationKey: explanationKey
+        )
+    }
 }
 
 enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
@@ -291,6 +394,51 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
         }
     }
 
+    var capabilityPolicy: AIProviderCapabilityPolicy {
+        switch self {
+        case .openAI:
+            AIProviderCapabilityPolicy(
+                textGeneration: .supported,
+                structuredJSON: .supported,
+                imageInput: .supported,
+                speechSynthesis: .supported,
+                embedding: .supported
+            )
+        case .openRouter, .customOpenAICompatible:
+            AIProviderCapabilityPolicy(
+                textGeneration: .supported,
+                structuredJSON: .supported,
+                imageInput: .modelDependent,
+                speechSynthesis: .modelDependent,
+                embedding: .modelDependent
+            )
+        case .gemini:
+            AIProviderCapabilityPolicy(
+                textGeneration: .supported,
+                structuredJSON: .supported,
+                imageInput: .supported,
+                speechSynthesis: .unsupported,
+                embedding: .unsupported
+            )
+        case .anthropic:
+            AIProviderCapabilityPolicy(
+                textGeneration: .supported,
+                structuredJSON: .supported,
+                imageInput: .modelDependent,
+                speechSynthesis: .unsupported,
+                embedding: .unsupported
+            )
+        default:
+            AIProviderCapabilityPolicy(
+                textGeneration: .supported,
+                structuredJSON: .supported,
+                imageInput: .unsupported,
+                speechSynthesis: .unsupported,
+                embedding: .unsupported
+            )
+        }
+    }
+
     var requiresAPIKey: Bool {
         switch self {
         case .ollamaLocal:
@@ -308,6 +456,29 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
             "aiProviderSettings.providerRisk.local"
         default:
             "aiProviderSettings.providerRisk.direct"
+        }
+    }
+}
+
+extension AIProviderAdapterKind {
+    var capabilityPolicy: AIProviderAdapterCapabilityPolicy {
+        switch self {
+        case .openAICompatibleChat, .openAIResponses:
+            AIProviderAdapterCapabilityPolicy(
+                canProbeText: true,
+                canProbeStructuredJSON: true,
+                canProbeImageInput: true,
+                canProbeSpeechSynthesis: false,
+                canProbeEmbedding: false
+            )
+        case .anthropicMessages, .geminiGenerateContent:
+            AIProviderAdapterCapabilityPolicy(
+                canProbeText: false,
+                canProbeStructuredJSON: false,
+                canProbeImageInput: false,
+                canProbeSpeechSynthesis: false,
+                canProbeEmbedding: false
+            )
         }
     }
 }
