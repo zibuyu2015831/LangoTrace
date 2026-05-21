@@ -70,6 +70,74 @@ func openAICompatibleChatProbeBuildsRequestsAndMapsSuccess() async throws {
     #expect(!String(describing: events).contains("sk-test-secret"))
 }
 
+@Test("OpenAI-compatible Chat probe runs language support after structured JSON success")
+func openAICompatibleChatProbeRunsLanguageSupportAfterStructuredJSONSuccess() async throws {
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"choices":[{"message":{"content":"OK"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"{\"ok\":true}"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"{\"sample\":\"Today I opened the kitchen window before breakfast and wrote a short note about the rain, the quiet street, and the warm cup of tea beside my notebook. Later, I planned to review the moment in English so the simple details would become useful practice.\"}"}}]}"#),
+    ])
+    let service = AIProviderConfigurationProbeService(httpClient: httpClient)
+
+    let result = try await service.probeDraftConfiguration(
+        draftInput(
+            adapterKind: .openAICompatibleChat,
+            languageContext: AIProviderProbeLanguageContext(languageCode: "en")
+        )
+    )
+
+    #expect(result.overallStatus == .succeeded)
+    #expect(result.capability(.languageSupport)?.status == .succeeded)
+    #expect(await httpClient.requests.count == 3)
+
+    let requests = await httpClient.requests
+    let languageBody = try #require(String(data: requests[2].httpBody ?? Data(), encoding: .utf8))
+    #expect(languageBody.contains("field named sample"))
+    #expect(languageBody.contains("English"))
+    #expect(languageBody.contains("40 to 70 words"))
+    #expect(!languageBody.contains("life record"))
+    #expect(!languageBody.contains("Prompt Preset"))
+}
+
+@Test("Language support probe is not configured and sends no request without language context")
+func languageSupportProbeIsNotConfiguredWithoutLanguageContext() async throws {
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"choices":[{"message":{"content":"OK"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"{\"ok\":true}"}}]}"#),
+    ])
+    let service = AIProviderConfigurationProbeService(httpClient: httpClient)
+
+    let result = try await service.probeDraftConfiguration(draftInput(adapterKind: .openAICompatibleChat))
+
+    #expect(result.overallStatus == .succeeded)
+    #expect(result.capability(.languageSupport)?.status == .notConfigured)
+    #expect(await httpClient.requests.count == 2)
+}
+
+@Test("Structured JSON failure skips language support but keeps existing image probe behavior")
+func structuredJSONFailureSkipsLanguageSupportButKeepsImageProbeBehavior() async throws {
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"choices":[{"message":{"content":"OK"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"not json"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"blue square"}}]}"#),
+    ])
+    let service = AIProviderConfigurationProbeService(httpClient: httpClient)
+
+    let result = try await service.probeDraftConfiguration(
+        draftInput(
+            adapterKind: .openAICompatibleChat,
+            imageInputEnabled: true,
+            languageContext: AIProviderProbeLanguageContext(languageCode: "en")
+        )
+    )
+
+    #expect(result.overallStatus == .failed)
+    #expect(result.capability(.structuredJSON)?.status == .failed)
+    #expect(result.capability(.languageSupport)?.status == .notRun)
+    #expect(result.capability(.imageUnderstanding)?.status == .succeeded)
+    #expect(await httpClient.requests.count == 3)
+}
+
 @Test("OpenAI-compatible Chat image understanding probe sends data URL and validates blue square")
 func openAICompatibleChatImageUnderstandingProbeSendsDataURLAndMapsSuccess() async throws {
     let httpClient = CapturingProbeHTTPClient(responses: [
@@ -354,7 +422,8 @@ private func draftInput(
     modelName: String = "gpt-5.2",
     plaintextSecret: String? = "sk-test",
     supportsImageInput: Bool = true,
-    imageInputEnabled: Bool = false
+    imageInputEnabled: Bool = false,
+    languageContext: AIProviderProbeLanguageContext? = nil
 ) -> AIProviderConfigurationProbeDraftInput {
     AIProviderConfigurationProbeDraftInput(
         endpoint: AIProviderEndpointInput(
@@ -371,6 +440,7 @@ private func draftInput(
             imageInputEnabled: imageInputEnabled
         ),
         plaintextSecret: plaintextSecret,
+        languageContext: languageContext,
         operationID: DiagnosticOperationID(rawValue: "operation-probe")
     )
 }

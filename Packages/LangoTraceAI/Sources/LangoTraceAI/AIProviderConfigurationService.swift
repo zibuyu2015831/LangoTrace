@@ -164,6 +164,7 @@ public struct AIProviderConfigurationService: Sendable {
     }
 
     public func testDefaultConfiguration(
+        languageContext: AIProviderProbeLanguageContext? = nil,
         operationID: DiagnosticOperationID = DiagnosticOperationID(rawValue: UUID().uuidString)
     ) async throws -> AIProviderConfigurationProbeResult {
         guard let credentialStore else {
@@ -231,6 +232,7 @@ public struct AIProviderConfigurationService: Sendable {
                     requestTimeoutSeconds: endpoint.requestTimeoutSeconds
                 ),
                 plaintextSecret: resolvedSecret,
+                languageContext: languageContext,
                 operationID: operationID
             )
         )
@@ -240,7 +242,7 @@ public struct AIProviderConfigurationService: Sendable {
 
 private extension AIProviderConfigurationProbeResult {
     var firstFailureCategory: AIProviderValidationErrorCategory? {
-        capabilities.first { $0.errorCategory != nil }?.errorCategory
+        persistableCapabilities.first { $0.errorCategory != nil }?.errorCategory
     }
 
     var totalDurationMilliseconds: Int? {
@@ -249,6 +251,29 @@ private extension AIProviderConfigurationProbeResult {
             return nil
         }
         return durations.reduce(0, +)
+    }
+
+    var persistableCapabilities: [AIProviderProbeCapabilityResult] {
+        capabilities.filter { $0.capability != .languageSupport }
+    }
+
+    var persistenceStatus: AIProviderValidationStatus {
+        if overallStatus == .cancelled {
+            return .cancelled
+        }
+        if persistableCapabilities.contains(where: { $0.status == .cancelled }) {
+            return .cancelled
+        }
+        let textStatus = persistableCapabilities.first { $0.capability == .textReply }?.status
+        let jsonStatus = persistableCapabilities.first { $0.capability == .structuredJSON }?.status
+        let imageStatus = persistableCapabilities.first { $0.capability == .imageUnderstanding }?.status
+        guard textStatus == .succeeded,
+              jsonStatus == .succeeded,
+              imageStatus == .succeeded || imageStatus == .notEnabled || imageStatus == .unsupported
+        else {
+            return .failed
+        }
+        return .succeeded
     }
 }
 
@@ -273,7 +298,7 @@ private extension AIProviderConfigurationService {
             profileID: profileID,
             endpointID: endpointID,
             eventType: .syntheticTest,
-            status: result.overallStatus,
+            status: result.persistenceStatus,
             errorCategory: result.firstFailureCategory,
             providerPresetID: result.providerPresetID,
             modelName: result.modelName,
@@ -298,6 +323,7 @@ private extension AIProviderConfigurationService {
             capabilities: [
                 .init(capability: .textReply, status: .failed, errorCategory: category, durationMilliseconds: nil),
                 .init(capability: .structuredJSON, status: .notRun, errorCategory: nil, durationMilliseconds: nil),
+                .init(capability: .languageSupport, status: .notRun, errorCategory: nil, durationMilliseconds: nil),
                 .init(
                     capability: .imageUnderstanding,
                     status: .unsupported,

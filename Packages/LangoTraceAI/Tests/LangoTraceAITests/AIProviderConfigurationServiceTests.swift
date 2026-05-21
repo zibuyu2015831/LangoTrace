@@ -243,6 +243,40 @@ func configurationServiceSavedConfigurationCanIncludeImageUnderstandingProbe() a
     #expect(!String(describing: recordedValidationOutcomes).contains("data:image"))
 }
 
+@Test("Configuration service does not persist language support failure as global profile failure")
+func configurationServiceDoesNotPersistLanguageSupportFailureAsGlobalProfileFailure() async throws {
+    let repository = try StubAIProviderConfigurationRepository(profile: savedProfile())
+    let store = TrackingAIProviderCredentialStore()
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"OK"}]}]}"#),
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"{\"ok\":true}"}]}]}"#),
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"{\"sample\":\"I wrote a note today.\"}"}]}]}"#),
+    ])
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: AIProviderConfigurationProbeService(httpClient: httpClient),
+        clock: { Date(timeIntervalSince1970: 240) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let result = try await service.testDefaultConfiguration(
+        languageContext: AIProviderProbeLanguageContext(languageCode: "en"),
+        operationID: DiagnosticOperationID(rawValue: "operation-saved-language-probe")
+    )
+
+    #expect(result.overallStatus == .failed)
+    #expect(result.capabilities.first { $0.capability == .textReply }?.status == .succeeded)
+    #expect(result.capabilities.first { $0.capability == .structuredJSON }?.status == .succeeded)
+    #expect(result.capabilities.first { $0.capability == .languageSupport }?.status == .failed)
+    #expect(result.persistedValidationEventID == "id-1")
+    #expect(await repository.recordedValidationOutcomes.first?.eventType == .syntheticTest)
+    #expect(await repository.recordedValidationOutcomes.first?.status == .succeeded)
+    #expect(await repository.recordedValidationOutcomes.first?.errorCategory == nil)
+    let recordedValidationOutcomes = await repository.recordedValidationOutcomes
+    #expect(!String(describing: recordedValidationOutcomes).contains("I wrote a note today"))
+}
+
 @Test("Configuration service records missing Keychain secret as synthetic probe failure")
 func configurationServiceRecordsMissingKeychainSecretAsSyntheticProbeFailure() async throws {
     let repository = try StubAIProviderConfigurationRepository(profile: savedProfile())

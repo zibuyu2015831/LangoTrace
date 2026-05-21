@@ -4,15 +4,18 @@ import LangoTraceCore
 public struct AIProviderConfigurationProbeDraftInput {
     public var endpoint: AIProviderEndpointInput
     public var plaintextSecret: String?
+    public var languageContext: AIProviderProbeLanguageContext?
     public var operationID: DiagnosticOperationID
 
     public init(
         endpoint: AIProviderEndpointInput,
         plaintextSecret: String?,
+        languageContext: AIProviderProbeLanguageContext? = nil,
         operationID: DiagnosticOperationID
     ) {
         self.endpoint = endpoint
         self.plaintextSecret = plaintextSecret
+        self.languageContext = languageContext
         self.operationID = operationID
     }
 }
@@ -20,15 +23,18 @@ public struct AIProviderConfigurationProbeDraftInput {
 public struct AIProviderConfigurationProbeSavedInput {
     public var endpoint: AIProviderEndpointInput
     public var plaintextSecret: String?
+    public var languageContext: AIProviderProbeLanguageContext?
     public var operationID: DiagnosticOperationID
 
     public init(
         endpoint: AIProviderEndpointInput,
         plaintextSecret: String?,
+        languageContext: AIProviderProbeLanguageContext? = nil,
         operationID: DiagnosticOperationID
     ) {
         self.endpoint = endpoint
         self.plaintextSecret = plaintextSecret
+        self.languageContext = languageContext
         self.operationID = operationID
     }
 }
@@ -55,6 +61,7 @@ public struct AIProviderConfigurationProbeService: Sendable {
             source: .draft,
             endpoint: input.endpoint,
             plaintextSecret: input.plaintextSecret,
+            languageContext: input.languageContext,
             operationID: input.operationID
         )
     }
@@ -66,6 +73,7 @@ public struct AIProviderConfigurationProbeService: Sendable {
             source: .savedProfile,
             endpoint: input.endpoint,
             plaintextSecret: input.plaintextSecret,
+            languageContext: input.languageContext,
             operationID: input.operationID
         )
     }
@@ -74,6 +82,7 @@ public struct AIProviderConfigurationProbeService: Sendable {
         source: AIProviderProbeSource,
         endpoint inputEndpoint: AIProviderEndpointInput,
         plaintextSecret: String?,
+        languageContext: AIProviderProbeLanguageContext?,
         operationID: DiagnosticOperationID
     ) async throws -> AIProviderConfigurationProbeResult {
         let endpoint = try inputEndpoint.normalized()
@@ -91,7 +100,12 @@ public struct AIProviderConfigurationProbeService: Sendable {
 
         let result: AIProviderConfigurationProbeResult = switch endpoint.adapterKind {
         case .openAICompatibleChat, .openAIResponses:
-            await runTextProbes(source: source, endpoint: endpoint, secret: plaintextSecret)
+            await runTextProbes(
+                source: source,
+                endpoint: endpoint,
+                secret: plaintextSecret,
+                languageContext: languageContext
+            )
         case .anthropicMessages, .geminiGenerateContent:
             unsupportedResult(source: source, endpoint: endpoint)
         }
@@ -105,6 +119,7 @@ private extension AIProviderConfigurationProbeService {
     enum ProbeKind {
         case textReply
         case structuredJSON
+        case languageSupport(context: AIProviderProbeLanguageContext, prompt: String)
         case imageUnderstanding
 
         var capability: AIProviderProbeCapability {
@@ -113,6 +128,8 @@ private extension AIProviderConfigurationProbeService {
                 .textReply
             case .structuredJSON:
                 .structuredJSON
+            case .languageSupport:
+                .languageSupport
             case .imageUnderstanding:
                 .imageUnderstanding
             }
@@ -125,17 +142,34 @@ private extension AIProviderConfigurationProbeService {
             case .structuredJSON:
                 "Configuration test. Return a single JSON object with exactly one field named ok. " +
                     "The value must be the boolean true. Do not include markdown, code fences, or any other text."
+            case let .languageSupport(_, prompt):
+                prompt
             case .imageUnderstanding:
                 "Describe the image using exactly two lowercase English words: color then shape. " +
                     "Do not include punctuation or any other text."
             }
+        }
+
+        var isStructuredJSON: Bool {
+            if case .structuredJSON = self {
+                return true
+            }
+            return false
+        }
+
+        var isImageUnderstanding: Bool {
+            if case .imageUnderstanding = self {
+                return true
+            }
+            return false
         }
     }
 
     func runTextProbes(
         source: AIProviderProbeSource,
         endpoint: AIProviderEndpointInput,
-        secret: String?
+        secret: String?,
+        languageContext: AIProviderProbeLanguageContext?
     ) async -> AIProviderConfigurationProbeResult {
         if endpointRequiresCredential(endpoint), secret?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
             return result(
@@ -145,6 +179,8 @@ private extension AIProviderConfigurationProbeService {
                 textError: .missingCredential,
                 jsonStatus: .notRun,
                 jsonError: nil,
+                languageStatus: .notRun,
+                languageError: nil,
                 imageStatus: .notRun,
                 imageError: nil
             )
@@ -160,12 +196,20 @@ private extension AIProviderConfigurationProbeService {
                 textDuration: textResult.durationMilliseconds,
                 jsonStatus: .notRun,
                 jsonError: nil,
+                languageStatus: .notRun,
+                languageError: nil,
                 imageStatus: .notRun,
                 imageError: nil
             )
         }
 
         let jsonResult = await runProbe(.structuredJSON, endpoint: endpoint, secret: secret)
+        let languageResult = await languageSupportProbeResult(
+            afterStructuredJSON: jsonResult,
+            endpoint: endpoint,
+            secret: secret,
+            languageContext: languageContext
+        )
         let imageResult = await imageProbeResult(afterTextSucceededFor: endpoint, secret: secret)
         return result(
             source: source,
@@ -176,9 +220,43 @@ private extension AIProviderConfigurationProbeService {
             jsonStatus: jsonResult.status,
             jsonError: jsonResult.errorCategory,
             jsonDuration: jsonResult.durationMilliseconds,
+            languageStatus: languageResult.status,
+            languageError: languageResult.errorCategory,
+            languageDuration: languageResult.durationMilliseconds,
             imageStatus: imageResult.status,
             imageError: imageResult.errorCategory,
             imageDuration: imageResult.durationMilliseconds
+        )
+    }
+
+    func languageSupportProbeResult(
+        afterStructuredJSON jsonResult: AIProviderProbeCapabilityResult,
+        endpoint: AIProviderEndpointInput,
+        secret: String?,
+        languageContext: AIProviderProbeLanguageContext?
+    ) async -> AIProviderProbeCapabilityResult {
+        guard jsonResult.status == .succeeded else {
+            return AIProviderProbeCapabilityResult(
+                capability: .languageSupport,
+                status: .notRun,
+                errorCategory: nil,
+                durationMilliseconds: nil
+            )
+        }
+        guard let languageContext,
+              let prompt = languageSupportPrompt(languageContext: languageContext)
+        else {
+            return AIProviderProbeCapabilityResult(
+                capability: .languageSupport,
+                status: .notConfigured,
+                errorCategory: nil,
+                durationMilliseconds: nil
+            )
+        }
+        return await runProbe(
+            .languageSupport(context: languageContext, prompt: prompt),
+            endpoint: endpoint,
+            secret: secret
         )
     }
 
@@ -233,7 +311,7 @@ private extension AIProviderConfigurationProbeService {
             }
 
             let text = try parseText(from: response.body, adapterKind: endpoint.adapterKind)
-            if kind == .structuredJSON, !isStrictOKJSON(text) {
+            if kind.isStructuredJSON, !isStrictOKJSON(text) {
                 return AIProviderProbeCapabilityResult(
                     capability: kind.capability,
                     status: .failed,
@@ -241,7 +319,30 @@ private extension AIProviderConfigurationProbeService {
                     durationMilliseconds: duration
                 )
             }
-            if kind == .imageUnderstanding, !isStrictBlueSquare(text) {
+            if kind.isImageUnderstanding, !isStrictBlueSquare(text) {
+                return AIProviderProbeCapabilityResult(
+                    capability: kind.capability,
+                    status: .failed,
+                    errorCategory: .invalidResponse,
+                    durationMilliseconds: duration
+                )
+            }
+            if case let .languageSupport(context, _) = kind {
+                let validation = AIProviderLanguageSupportValidator().validateResponseText(
+                    text,
+                    languageContext: context
+                )
+                guard validation.isValid else {
+                    return AIProviderProbeCapabilityResult(
+                        capability: kind.capability,
+                        status: .failed,
+                        errorCategory: validation.errorCategory,
+                        durationMilliseconds: duration
+                    )
+                }
+            }
+
+            if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 return AIProviderProbeCapabilityResult(
                     capability: kind.capability,
                     status: .failed,
@@ -252,8 +353,8 @@ private extension AIProviderConfigurationProbeService {
 
             return AIProviderProbeCapabilityResult(
                 capability: kind.capability,
-                status: text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .failed : .succeeded,
-                errorCategory: text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .invalidResponse : nil,
+                status: .succeeded,
+                errorCategory: nil,
                 durationMilliseconds: duration
             )
         } catch let error as AIProviderProbeHTTPClientError {
@@ -318,7 +419,7 @@ private extension AIProviderConfigurationProbeService {
     }
 
     func body(_ kind: ProbeKind, endpoint: AIProviderEndpointInput) throws -> [String: Any] {
-        if kind == .imageUnderstanding {
+        if kind.isImageUnderstanding {
             return try imageBody(endpoint: endpoint)
         }
         switch endpoint.adapterKind {
@@ -452,6 +553,24 @@ private extension AIProviderConfigurationProbeService {
         text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "blue square"
     }
 
+    func languageSupportPrompt(languageContext: AIProviderProbeLanguageContext) -> String? {
+        guard let language = LearningLanguage.supportedTargetLanguages.first(where: {
+            $0.code == languageContext.languageCode
+        }) else {
+            return nil
+        }
+        let targetLanguageName = language.promptLanguageName
+        return """
+        Configuration test. Generate a natural sample in \(targetLanguageName).
+        Return exactly one JSON object with exactly one field named sample.
+        The sample must be written only in \(targetLanguageName).
+        For Chinese, Japanese, or Korean, write approximately 45 to 80 visible characters.
+        For English, French, German, or Spanish, write approximately 40 to 70 words.
+        The sample should describe a person recording an ordinary moment from daily life.
+        Do not include translation, language names, markdown, code fences, explanations, or any other text.
+        """
+    }
+
     func result(
         source: AIProviderProbeSource,
         endpoint: AIProviderEndpointInput,
@@ -461,6 +580,9 @@ private extension AIProviderConfigurationProbeService {
         jsonStatus: AIProviderProbeCapabilityStatus,
         jsonError: AIProviderValidationErrorCategory?,
         jsonDuration: Int? = nil,
+        languageStatus: AIProviderProbeCapabilityStatus,
+        languageError: AIProviderValidationErrorCategory?,
+        languageDuration: Int? = nil,
         imageStatus: AIProviderProbeCapabilityStatus,
         imageError: AIProviderValidationErrorCategory?,
         imageDuration: Int? = nil
@@ -473,6 +595,7 @@ private extension AIProviderConfigurationProbeService {
         } else {
             textStatus == .succeeded
                 && jsonStatus == .succeeded
+                && (languageStatus == .succeeded || languageStatus == .notConfigured)
                 && (imageStatus == .succeeded || imageStatus == .notEnabled || imageStatus == .unsupported)
                 ? .succeeded
                 : .failed
@@ -494,6 +617,12 @@ private extension AIProviderConfigurationProbeService {
                     status: jsonStatus,
                     errorCategory: jsonError,
                     durationMilliseconds: jsonDuration
+                ),
+                AIProviderProbeCapabilityResult(
+                    capability: .languageSupport,
+                    status: languageStatus,
+                    errorCategory: languageError,
+                    durationMilliseconds: languageDuration
                 ),
                 AIProviderProbeCapabilityResult(
                     capability: .imageUnderstanding,
@@ -527,6 +656,7 @@ private extension AIProviderConfigurationProbeService {
             capabilities: [
                 .init(capability: .textReply, status: .unsupported, errorCategory: .unsupportedEndpointPurpose, durationMilliseconds: nil),
                 .init(capability: .structuredJSON, status: .unsupported, errorCategory: .unsupportedEndpointPurpose, durationMilliseconds: nil),
+                .init(capability: .languageSupport, status: .unsupported, errorCategory: .unsupportedEndpointPurpose, durationMilliseconds: nil),
                 .init(capability: .imageUnderstanding, status: .unsupported, errorCategory: .unsupportedEndpointPurpose, durationMilliseconds: nil),
                 .init(capability: .speechSynthesis, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
                 .init(capability: .embedding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
