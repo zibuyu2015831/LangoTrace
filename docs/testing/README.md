@@ -12,6 +12,67 @@
 - 同步冲突。
 - StoreKit 购买和恢复购买。
 
+## 自动化测试组织原则
+
+可执行单元测试默认放在所属 Swift Package 的 `Tests` 目录，而不是根目录 `Tests/`。根目录 `Tests/` 作为项目级测试索引、未来跨包集成测试、UI 自动化、共享 fixtures 和测试 runbook 的入口。
+
+当前单元测试落点：
+
+- `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/`：领域模型、路由、隐私状态、诊断事件和核心枚举。
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/`：SQLite / GRDB repository、migration、local state 和非敏感诊断持久化。
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/`：AI Provider 配置服务、Keychain 引用、网络 probe 和错误映射。
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/`：SwiftUI 状态、presentation model、本地化 key、source-boundary 和页面 helper。
+
+同一功能有多个测试文件或预计继续扩展时，应在对应 package test target 内创建功能子目录，例如 `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProvider/`。这样既保持 SwiftPM / XcodeGen 的测试发现机制，也避免测试文件在单一目录下平铺失控。
+
+## TDD 要求
+
+新功能、bug 修复、架构调整和可观察行为变化默认采用测试驱动开发：
+
+1. 先写或更新能失败的单元测试，明确当前缺口或目标行为。
+2. 再实施最小生产代码变更。
+3. 先运行聚焦 package 测试，例如 `swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`。
+4. Swift 工程行为、包边界、资源、本地化或构建配置发生变化时，继续运行 `scripts/verify.sh`。
+
+无法自动化的视觉、真机、权限弹窗或真实 Provider 账号路径，应在任务方案中写明手动验证方法、未自动化原因和剩余风险。
+
+## 运行时日志采集
+
+运行期问题、模拟器人工验证失败或 AI 辅助排查需要最新 App 日志时，使用宿主机脚本采集 OSLog / unified log 到项目根目录 `logs/`：
+
+```bash
+scripts/capture-runtime-log --last 30m
+```
+
+常用命令：
+
+```bash
+scripts/capture-runtime-log --last 10m
+scripts/capture-runtime-log --stream
+scripts/capture-runtime-log --last 30m --category ai-provider
+scripts/capture-runtime-log --macos --last 15m
+```
+
+采集结果：
+
+- 默认写入 `logs/runtime-YYYYMMDD-HHMMSS.log`。
+- 默认同步更新 `logs/latest.log`。
+- `logs/` 已在 `.gitignore` 中排除，不进入 Git。
+
+架构边界：
+
+- App 不直接写仓库 `logs/` 目录。
+- App 仍通过 `OSLog` / `ConsoleDiagnosticLogger` / 非敏感诊断事件产生运行期信息。
+- 采集脚本只在宿主机开发环境运行，负责把模拟器或 macOS unified log 导出到本地文件。
+- 日志不得包含 API Key、Authorization header、请求体、响应体、用户正文、照片、音频或转写全文。
+
+如果需要更细的 App 诊断事件，可在开发运行环境中启用：
+
+```text
+LANGOTRACE_DIAGNOSTICS=1
+LANGOTRACE_LOG_LEVEL=debug
+```
+
 ## 模拟器截图验证
 
 涉及 iPhone、iPad、macOS 页面结构、设计系统、导航和主要用户路径的改动，除自动化测试外，应保留一轮模拟器或本机截图验证记录。

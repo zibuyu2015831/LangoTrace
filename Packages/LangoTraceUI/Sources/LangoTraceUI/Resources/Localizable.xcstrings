@@ -12812,6 +12812,83 @@
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "异常" } }
       }
     },
+    "aiProviderSettings.probeCapabilityError.missingCredential": {
+      "comment": "Capability failure status when no credential is available.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Missing key" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "缺少密钥" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityError.credentialInaccessible": {
+      "comment": "Capability failure status when the stored credential cannot be read.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Key unavailable" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "密钥不可用" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityError.networkUnavailable": {
+      "comment": "Capability failure status for network errors.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Network issue" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "网络异常" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityError.timeout": {
+      "comment": "Capability failure status for request timeouts.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Timed out" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请求超时" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityError.providerRejected": {
+      "comment": "Capability failure status when the provider rejects the request.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Rejected" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请求被拒" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityError.authenticationFailed": {
+      "comment": "Capability failure status for provider authentication failure.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Auth failed" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "认证失败" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityError.unsupportedModel": {
+      "comment": "Capability failure status when the provider reports an unsupported model or path.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Model unavailable" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "模型不可用" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityError.unsupportedEndpointPurpose": {
+      "comment": "Capability failure status when the endpoint purpose is not supported by the current probe.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Not supported" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂不支持" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityError.invalidResponse": {
+      "comment": "Capability failure status for malformed or unexpected provider responses.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Invalid response" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "响应异常" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityError.invalidAudioResponse": {
+      "comment": "Capability failure status for invalid audio responses.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Invalid audio" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "音频异常" } }
+      }
+    },
+    "aiProviderSettings.probeCapabilityError.invalidEmbeddingResponse": {
+      "comment": "Capability failure status for invalid embedding responses.",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Invalid vectors" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "向量异常" } }
+      }
+    },
     "aiProviderSettings.probeCapabilityStatus.cancelled": {
       "comment": "Capability status for cancelled.",
       "localizations": {

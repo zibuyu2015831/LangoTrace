@@ -3,6 +3,31 @@ import LangoTraceCore
 @testable import LangoTraceUI
 import Testing
 
+private func langoTraceUIPackageRootURL(currentFilePath: String = #filePath) -> URL {
+    var url = URL(fileURLWithPath: currentFilePath)
+    while url.lastPathComponent != "LangoTraceUI" {
+        let parent = url.deletingLastPathComponent()
+        precondition(parent.path != url.path, "Could not locate LangoTraceUI package root")
+        url = parent
+    }
+    return url
+}
+
+private func langoTraceUISourceFileURL(named fileName: String, currentFilePath: String = #filePath) -> URL {
+    langoTraceUIPackageRootURL(currentFilePath: currentFilePath)
+        .appendingPathComponent("Sources")
+        .appendingPathComponent("LangoTraceUI")
+        .appendingPathComponent(fileName)
+}
+
+private func langoTraceAppSourceFileURL(named fileName: String, currentFilePath: String = #filePath) -> URL {
+    langoTraceUIPackageRootURL(currentFilePath: currentFilePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .appendingPathComponent("LangoTraceApp")
+        .appendingPathComponent(fileName)
+}
+
 @Suite("AI provider settings")
 struct AIProviderSettingsTests {
     @Test("Provider presets expose the complete first-run set")
@@ -326,13 +351,7 @@ struct AIProviderSettingsTests {
     }
 
     private func sourceFileURL(named fileName: String) -> URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("Sources")
-            .appendingPathComponent("LangoTraceUI")
-            .appendingPathComponent(fileName)
+        langoTraceUISourceFileURL(named: fileName)
     }
 
     private func emptySavedProfile() -> AIProviderConfigurationProfile {
@@ -454,24 +473,11 @@ struct AIProviderPlatformConsistencyTests {
     }
 
     private func sourceFileURL(named fileName: String) -> URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("Sources")
-            .appendingPathComponent("LangoTraceUI")
-            .appendingPathComponent(fileName)
+        langoTraceUISourceFileURL(named: fileName)
     }
 
     private func appSourceFileURL(named fileName: String) -> URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("LangoTraceApp")
-            .appendingPathComponent(fileName)
+        langoTraceAppSourceFileURL(named: fileName)
     }
 }
 
@@ -502,13 +508,7 @@ struct AIProviderSettingsSaveStatusRepairTests {
     }
 
     private func sourceFileURL(named fileName: String) -> URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("Sources")
-            .appendingPathComponent("LangoTraceUI")
-            .appendingPathComponent(fileName)
+        langoTraceUISourceFileURL(named: fileName)
     }
 
     private func loadedProfile() throws -> AIProviderConfigurationProfile {
@@ -606,13 +606,7 @@ struct AIProviderLoadedSecretRepairTests {
     }
 
     private func sourceFileURL(named fileName: String) -> URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("Sources")
-            .appendingPathComponent("LangoTraceUI")
-            .appendingPathComponent(fileName)
+        langoTraceUISourceFileURL(named: fileName)
     }
 
     private func loadedProfile() throws -> AIProviderConfigurationProfile {

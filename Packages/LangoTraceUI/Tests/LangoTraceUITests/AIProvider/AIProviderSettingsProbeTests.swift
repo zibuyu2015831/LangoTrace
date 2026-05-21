@@ -81,6 +81,72 @@ struct AIProviderSettingsProbeTests {
         #expect(!source.contains("presentationDetents"))
     }
 
+    @Test("Unsupported optional capabilities do not mask authentication failure")
+    func unsupportedOptionalCapabilitiesDoNotMaskAuthenticationFailure() {
+        let result = AIProviderConfigurationProbeResult(
+            source: .savedProfile,
+            overallStatus: .failed,
+            providerPresetID: "custom-openai-compatible",
+            modelName: "mimo-v2.5-pro",
+            capabilities: [
+                .init(
+                    capability: .textReply,
+                    status: .failed,
+                    errorCategory: .authenticationFailed,
+                    durationMilliseconds: 17
+                ),
+                .init(capability: .structuredJSON, status: .notRun, errorCategory: nil, durationMilliseconds: nil),
+                .init(
+                    capability: .imageUnderstanding,
+                    status: .unsupported,
+                    errorCategory: .unsupportedEndpointPurpose,
+                    durationMilliseconds: nil
+                ),
+                .init(capability: .speechSynthesis, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+                .init(capability: .embedding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+            ],
+            persistedValidationEventID: nil
+        )
+
+        #expect(!result.isUnsupportedTextProbeResult)
+        #expect(result.primaryProbeFailureCategory == AIProviderValidationErrorCategory.authenticationFailed)
+        #expect(result.probePanelTitleKey == "aiProviderSettings.testState.failed")
+    }
+
+    @Test("Text probe unsupported result remains unsupported provider")
+    func textProbeUnsupportedResultRemainsUnsupportedProvider() {
+        let result = AIProviderConfigurationProbeResult(
+            source: .draft,
+            overallStatus: .failed,
+            providerPresetID: "anthropic",
+            modelName: "claude-sonnet-4-5",
+            capabilities: [
+                .init(
+                    capability: .textReply,
+                    status: .unsupported,
+                    errorCategory: .unsupportedEndpointPurpose,
+                    durationMilliseconds: nil
+                ),
+                .init(
+                    capability: .structuredJSON,
+                    status: .unsupported,
+                    errorCategory: .unsupportedEndpointPurpose,
+                    durationMilliseconds: nil
+                ),
+                .init(
+                    capability: .imageUnderstanding,
+                    status: .unsupported,
+                    errorCategory: .unsupportedEndpointPurpose,
+                    durationMilliseconds: nil
+                ),
+            ],
+            persistedValidationEventID: nil
+        )
+
+        #expect(result.isUnsupportedTextProbeResult)
+        #expect(result.probePanelTitleKey == "aiProviderSettings.testState.unsupportedProvider")
+    }
+
     @Test("Draft probe snapshot is not equatable codable or a profile save input")
     func draftProbeSnapshotIsNotEquatableCodableOrProfileSaveInput() throws {
         let source = try String(
@@ -98,13 +164,20 @@ struct AIProviderSettingsProbeTests {
     }
 
     private func sourceFileURL(named fileName: String) -> URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
+        packageRootURL()
             .appendingPathComponent("Sources")
             .appendingPathComponent("LangoTraceUI")
             .appendingPathComponent(fileName)
+    }
+
+    private func packageRootURL() -> URL {
+        var url = URL(fileURLWithPath: #filePath)
+        while url.lastPathComponent != "LangoTraceUI" {
+            let parent = url.deletingLastPathComponent()
+            precondition(parent.path != url.path, "Could not locate LangoTraceUI package root")
+            url = parent
+        }
+        return url
     }
 
     private func loadedProfile() throws -> AIProviderConfigurationProfile {

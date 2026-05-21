@@ -409,15 +409,13 @@ private extension AIProviderSettingsView {
         if result.overallStatus == .cancelled {
             return .cancelled(result)
         }
-        if result.capabilities.contains(where: { $0.status == .unsupported }),
-           !result.capabilities.contains(where: { $0.status == .succeeded })
-        {
+        if result.isUnsupportedTextProbeResult {
             return .unsupportedProvider(result)
         }
         if result.capabilities.contains(where: { $0.status == .succeeded }) {
             return .partial(result)
         }
-        return .failed(result.capabilities.first { $0.errorCategory != nil }?.errorCategory, result)
+        return .failed(result.primaryProbeFailureCategory, result)
     }
 
     var textProviderBinding: Binding<AIProviderPreset> {

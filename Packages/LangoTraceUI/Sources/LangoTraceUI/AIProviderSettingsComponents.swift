@@ -1,6 +1,69 @@
 import LangoTraceCore
 import SwiftUI
 
+extension AIProviderConfigurationProbeResult {
+    var textProbeCapabilityResults: [AIProviderProbeCapabilityResult] {
+        capabilities.filter { capability in
+            capability.capability == .textReply || capability.capability == .structuredJSON
+        }
+    }
+
+    var isUnsupportedTextProbeResult: Bool {
+        let results = textProbeCapabilityResults
+        return !results.isEmpty && results.allSatisfy { $0.status == .unsupported }
+    }
+
+    var primaryProbeFailureCategory: AIProviderValidationErrorCategory? {
+        textProbeCapabilityResults.first { $0.errorCategory != nil }?.errorCategory
+            ?? capabilities.first { $0.errorCategory != nil }?.errorCategory
+    }
+
+    var probePanelTitleKey: String {
+        if overallStatus == .succeeded {
+            return "aiProviderSettings.testState.succeeded"
+        }
+        if overallStatus == .cancelled {
+            return "aiProviderSettings.testState.cancelled"
+        }
+        if capabilities.contains(where: { $0.status == .succeeded }) {
+            return "aiProviderSettings.testState.partial"
+        }
+        if isUnsupportedTextProbeResult {
+            return "aiProviderSettings.testState.unsupportedProvider"
+        }
+        return "aiProviderSettings.testState.failed"
+    }
+}
+
+private extension AIProviderValidationErrorCategory {
+    var probeCapabilityStatusKey: String {
+        switch self {
+        case .missingCredential:
+            "aiProviderSettings.probeCapabilityError.missingCredential"
+        case .credentialInaccessible:
+            "aiProviderSettings.probeCapabilityError.credentialInaccessible"
+        case .networkUnavailable:
+            "aiProviderSettings.probeCapabilityError.networkUnavailable"
+        case .timeout:
+            "aiProviderSettings.probeCapabilityError.timeout"
+        case .providerRejected:
+            "aiProviderSettings.probeCapabilityError.providerRejected"
+        case .authenticationFailed:
+            "aiProviderSettings.probeCapabilityError.authenticationFailed"
+        case .unsupportedModel:
+            "aiProviderSettings.probeCapabilityError.unsupportedModel"
+        case .unsupportedEndpointPurpose:
+            "aiProviderSettings.probeCapabilityError.unsupportedEndpointPurpose"
+        case .invalidResponse:
+            "aiProviderSettings.probeCapabilityError.invalidResponse"
+        case .invalidAudioResponse:
+            "aiProviderSettings.probeCapabilityError.invalidAudioResponse"
+        case .invalidEmbeddingResponse:
+            "aiProviderSettings.probeCapabilityError.invalidEmbeddingResponse"
+        }
+    }
+}
+
 struct AIProviderProbeResultPanelContent: View {
     let result: AIProviderConfigurationProbeResult?
     let isTesting: Bool
@@ -18,7 +81,10 @@ struct AIProviderProbeResultPanelContent: View {
                 Spacer(minLength: 0)
                 Button(action: onClose) {
                     Image(systemName: "xmark")
-                        .frame(width: LangoTraceDesign.Density.minimumTouchTarget, height: LangoTraceDesign.Density.minimumTouchTarget)
+                        .frame(
+                            width: LangoTraceDesign.Density.minimumTouchTarget,
+                            height: LangoTraceDesign.Density.minimumTouchTarget
+                        )
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(localizedText("aiProviderSettings.probeResult.close"))
@@ -53,22 +119,7 @@ struct AIProviderProbeResultPanelContent: View {
         if isTesting {
             return "aiProviderSettings.testState.testing"
         }
-        guard let result else {
-            return "aiProviderSettings.probeResult.title"
-        }
-        if result.overallStatus == .succeeded {
-            return "aiProviderSettings.testState.succeeded"
-        }
-        if result.overallStatus == .cancelled {
-            return "aiProviderSettings.testState.cancelled"
-        }
-        if result.capabilities.contains(where: { $0.status == .succeeded }) {
-            return "aiProviderSettings.testState.partial"
-        }
-        if result.capabilities.contains(where: { $0.status == .unsupported }) {
-            return "aiProviderSettings.testState.unsupportedProvider"
-        }
-        return "aiProviderSettings.testState.failed"
+        return result?.probePanelTitleKey ?? "aiProviderSettings.probeResult.title"
     }
 
     private var iconName: String {
@@ -159,7 +210,7 @@ private struct AIProviderProbeCapabilityRow: View {
         case .succeeded:
             "aiProviderSettings.probeCapabilityStatus.succeeded"
         case .failed:
-            "aiProviderSettings.probeCapabilityStatus.failed"
+            result?.errorCategory?.probeCapabilityStatusKey ?? "aiProviderSettings.probeCapabilityStatus.failed"
         case .cancelled:
             "aiProviderSettings.probeCapabilityStatus.cancelled"
         case .unsupported:
