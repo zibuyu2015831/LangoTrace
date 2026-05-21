@@ -50,9 +50,6 @@ struct LanguageSpaceEditorView: View {
                     if duplicateNameExists {
                         warningRow("settings.languageSpace.management.duplicateNameWarning")
                     }
-                    if sameTargetLanguageExists {
-                        warningRow("settings.languageSpace.management.sameTargetLanguageWarning")
-                    }
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
@@ -88,12 +85,6 @@ struct LanguageSpaceEditorView: View {
         let normalizedName = CreateLanguageSpaceInput.normalizedDisplayName(displayName)
         return !normalizedName.isEmpty && spaces.contains { space in
             space.id != mode.editedSpace?.id && space.displayNameNormalized == normalizedName
-        }
-    }
-
-    private var sameTargetLanguageExists: Bool {
-        spaces.contains { space in
-            space.id != mode.editedSpace?.id && space.targetLanguageCode == targetLanguageCode
         }
     }
 

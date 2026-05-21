@@ -3670,13 +3670,6 @@
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂无语言空间" } }
       }
     },
-    "settings.languageSpace.management.sameTargetLanguageWarning": {
-      "comment": "Same target language warning.",
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "One space per learning language is usually best. Use tags or scenes for work, travel, and daily life; you can still create another space." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "通常建议一门学习语言使用一个语言空间。工作、旅行、生活等内容可用标签或场景区分；你仍可以继续创建新的空间。" } }
-      }
-    },
     "settings.languageSpace.management.selectSpacePrompt": {
       "comment": "Prompt to select a language space.",
       "localizations": {

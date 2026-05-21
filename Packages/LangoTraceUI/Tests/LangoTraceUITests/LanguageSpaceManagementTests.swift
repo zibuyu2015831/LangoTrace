@@ -25,7 +25,7 @@ struct LanguageSpaceManagementTests {
             "LanguageSpaceEditorView.swift"
         )
 
-        #expect(source.contains("settings.languageSpace.management.sameTargetLanguageWarning"))
+        #expect(!source.contains("settings.languageSpace.management.sameTargetLanguageWarning"))
         #expect(source.contains("settings.languageSpace.management.duplicateNameWarning"))
         #expect(source.contains("settings.languageSpace.management.deleteMessage"))
         #expect(source.contains("settings.languageSpace.management.deleteLastSpaceMessage"))
@@ -58,6 +58,20 @@ struct LanguageSpaceManagementTests {
         #expect(source.contains("localizedString(\"onboarding.targetLanguage\")"))
         #expect(!source.contains("onboarding.nativeLanguage.title"))
         #expect(!source.contains("onboarding.targetLanguage.title"))
+    }
+
+    @Test("Same target language warning is removed from the editor")
+    func sameTargetLanguageWarningIsRemovedFromEditor() throws {
+        let catalog = try String(
+            contentsOf: sourceFileURL(named: "Resources/Localizable.xcstrings"),
+            encoding: .utf8
+        )
+
+        #expect(!catalog.contains("\"settings.languageSpace.management.sameTargetLanguageWarning\""))
+        #expect(!catalog.contains("One space per learning language"))
+        #expect(!catalog.contains("同一学习语言通常一个空间即可"))
+        #expect(!catalog.contains("工作、旅行、生活等内容可用标签或场景区分"))
+        #expect(!catalog.contains("Use tags or scenes for work, travel, and daily life"))
     }
 
     @Test("Management editor opens as a compact expandable sheet on iOS")
