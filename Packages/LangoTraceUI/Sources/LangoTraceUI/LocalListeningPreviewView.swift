@@ -74,9 +74,11 @@ struct LocalListeningPreviewView: View {
                 } icon: {
                     Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                 }
+                .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
         }
         .langoPanel()
     }

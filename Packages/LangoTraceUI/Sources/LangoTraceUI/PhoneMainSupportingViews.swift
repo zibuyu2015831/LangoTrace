@@ -250,9 +250,11 @@ struct HeroActionCard: View {
                     Image(systemName: "pencil")
                 }
                 .font(.headline)
+                .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                 .frame(maxWidth: .infinity, minHeight: 48)
             }
             .buttonStyle(.borderedProminent)
+            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
 
             SecondaryActionChip(titleKey: "photoWriting.startWithPhoto", systemImage: "camera", action: onPhotoWriting)
         }
@@ -335,8 +337,10 @@ struct EmptyEntryPanel: View {
                 } icon: {
                     Image(systemName: "plus")
                 }
+                .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
             }
             .buttonStyle(.borderedProminent)
+            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
         }
         .langoPanel()
     }

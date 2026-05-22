@@ -135,8 +135,10 @@ struct SentencePairView: View {
                 .accessibilityHint(localizedText("practice.listen.hint"))
                 Button(action: onPractice) {
                     localizedText("common.practice")
+                        .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(LangoTraceDesign.ColorToken.primaryActionFill)
             }
         }
         .langoPanel()

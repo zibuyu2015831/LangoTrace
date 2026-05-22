@@ -112,9 +112,11 @@ struct AIProviderSettingsView: View {
                     Image(systemName: "lock.shield")
                 }
                 .font(.callout.weight(.semibold))
+                .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                 .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
             }
             .buttonStyle(.borderedProminent)
+            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
             .disabled(draft.saveReadiness == .missingRequiredFields)
 
             Button {

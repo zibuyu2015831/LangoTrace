@@ -50,8 +50,10 @@ struct PadWorkspaceBar: View {
                 } icon: {
                     Image(systemName: "plus")
                 }
+                .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
             }
             .buttonStyle(.borderedProminent)
+            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
             .keyboardShortcut("n", modifiers: .command)
 
             LangoPanelToggleButton(

@@ -340,12 +340,12 @@ private extension OnboardingView {
                 .font(.headline)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .foregroundStyle(LangoTraceDesign.ColorToken.whiteInk)
+                .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
             }
             .buttonStyle(.borderedProminent)
             .buttonBorderShape(.roundedRectangle(radius: 16))
             .controlSize(.large)
-            .tint(LangoTraceDesign.ColorToken.deepTeal)
+            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
             .accessibilityHint(
                 localizedString("onboarding.createSpace.accessibilityHint", draft.resolvedTargetLanguage.nativeName)
             )

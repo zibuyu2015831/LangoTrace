@@ -269,10 +269,11 @@ extension WelcomeView {
                 } icon: {
                     Image(systemName: "arrow.right")
                 }
+                .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                 .frame(maxWidth: .infinity, minHeight: 44)
             }
             .buttonStyle(.borderedProminent)
-            .tint(LangoTraceDesign.ColorToken.deepTeal)
+            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
             .frame(maxWidth: maxButtonWidth)
         }
         .frame(maxWidth: maxButtonWidth, alignment: .leading)

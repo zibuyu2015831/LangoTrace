@@ -108,9 +108,11 @@ struct AIProviderProbeResultPanelContent: View {
                 } icon: {
                     Image(systemName: "arrow.clockwise")
                 }
+                .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                 .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
             }
             .buttonStyle(.borderedProminent)
+            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
             .disabled(isTesting)
         }
         .padding(20)
@@ -277,6 +279,8 @@ struct AIProviderOptionalModelSection: View {
                     localizedText(enabledKey)
                 }
                 .labelsHidden()
+                .toggleStyle(.switch)
+                .tint(LangoTraceDesign.ColorToken.switchOnFill)
             }
             if configuration.isEnabled {
                 AIProviderEndpointFields(
@@ -430,6 +434,8 @@ struct AIProviderCapabilityBoundaryView: View {
                 localizedText("aiProviderSettings.capability.image")
                     .font(.callout.weight(.semibold))
             }
+            .toggleStyle(.switch)
+            .tint(LangoTraceDesign.ColorToken.switchOnFill)
             .disabled(!imageInputDecision.canToggle)
             localizedText(imageInputDecision.explanationKey)
                 .font(.footnote)

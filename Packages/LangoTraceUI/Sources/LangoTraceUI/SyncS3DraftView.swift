@@ -78,10 +78,14 @@ struct S3SyncDraftView: View {
                 localizedText("syncSettings.s3.https.title")
                     .font(.callout.weight(.semibold))
             }
+            .toggleStyle(.switch)
+            .tint(LangoTraceDesign.ColorToken.switchOnFill)
             Toggle(isOn: $draft.usesPathStyleAccess) {
                 localizedText("syncSettings.s3.pathStyle.title")
                     .font(.callout.weight(.semibold))
             }
+            .toggleStyle(.switch)
+            .tint(LangoTraceDesign.ColorToken.switchOnFill)
         }
         .langoPanel()
     }
@@ -145,10 +149,11 @@ struct S3SyncDraftView: View {
             } label: {
                 localizedText("syncSettings.s3.close")
                     .font(.callout.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                     .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
             }
             .buttonStyle(.borderedProminent)
-            .tint(LangoTraceDesign.ColorToken.accent)
+            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .langoPanel()

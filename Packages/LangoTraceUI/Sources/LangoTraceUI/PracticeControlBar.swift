@@ -36,9 +36,11 @@ struct PracticeControlBar: View {
                 } icon: {
                     Image(systemName: "arrow.right")
                 }
+                .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                 .frame(maxWidth: .infinity, minHeight: 44)
             }
             .buttonStyle(.borderedProminent)
+            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
         }
         .langoPanel(padding: 14)
     }

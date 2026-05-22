@@ -26,15 +26,23 @@ struct AppearanceSettingsTests {
         #expect(source.contains("appearanceOptionRow"))
         #expect(source.contains("guard appearancePreference != preference else {"))
         #expect(source.contains("AppearancePreference.allCases"))
-        #expect(source.contains(".accessibilityValue(localizedText(isSelected ? \"accessibility.selected\" : \"accessibility.unselected\"))"))
+        #expect(source.contains(".accessibilityValue(localizedText(isSelected ?"))
+        #expect(source.contains("\"accessibility.selected\""))
+        #expect(source.contains("\"accessibility.unselected\""))
         #expect(source.contains(".accessibilityAddTraits(isSelected ? .isSelected : [])"))
         #expect(source.contains("LangoTraceDesign.Density.minimumTouchTarget"))
     }
 
     @Test("Shared detail accepts global settings without placeholder language space")
     func sharedDetailAcceptsGlobalSettingsWithoutPlaceholderLanguageSpace() throws {
-        let detailSource = try String(contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"), encoding: .utf8)
-        let sceneSource = try String(contentsOf: sourceFileURL(named: "LangoTraceSettingsSceneView.swift"), encoding: .utf8)
+        let detailSource = try String(
+            contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"),
+            encoding: .utf8
+        )
+        let sceneSource = try String(
+            contentsOf: sourceFileURL(named: "LangoTraceSettingsSceneView.swift"),
+            encoding: .utf8
+        )
 
         #expect(detailSource.contains("let languageSpace: LanguageSpacePreview?"))
         #expect(detailSource.contains("requiresLanguageSpaceContext"))
@@ -49,7 +57,10 @@ struct AppearanceSettingsTests {
         let phoneSource = try String(contentsOf: sourceFileURL(named: "PhoneMainView.swift"), encoding: .utf8)
         let padSource = try String(contentsOf: sourceFileURL(named: "PadMainSections.swift"), encoding: .utf8)
         let macSource = try String(contentsOf: sourceFileURL(named: "MacWorkspaceContentView.swift"), encoding: .utf8)
-        let sceneSource = try String(contentsOf: sourceFileURL(named: "LangoTraceSettingsSceneView.swift"), encoding: .utf8)
+        let sceneSource = try String(
+            contentsOf: sourceFileURL(named: "LangoTraceSettingsSceneView.swift"),
+            encoding: .utf8
+        )
 
         for source in [phoneSource, padSource, macSource, sceneSource] {
             #expect(source.contains("appearancePreference: appearancePreference"))
@@ -87,6 +98,92 @@ struct AppearanceSettingsTests {
         #expect(!source.contains("Color(red: 0.965, green: 0.949, blue: 0.918)"))
         #expect(!source.contains("Color(red: 0.425, green: 0.467, blue: 0.500)"))
         #expect(!source.contains("Color(red: 0.690, green: 0.505, blue: 0.215)"))
+    }
+
+    @Test("Phone hero primary action uses a quieter dark-mode CTA token")
+    func phoneHeroPrimaryActionUsesQuieterDarkModeCTAToken() throws {
+        let designSource = try String(
+            contentsOf: sourceFileURL(named: "LangoTraceDesign.swift"),
+            encoding: .utf8
+        )
+        let phoneSource = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
+            encoding: .utf8
+        )
+
+        #expect(designSource.contains("static var primaryActionFill: Color"))
+        #expect(designSource.contains("static var primaryActionForeground: Color"))
+        #expect(designSource.contains("dark: 0x23786A"))
+        #expect(phoneSource.contains(".tint(LangoTraceDesign.ColorToken.primaryActionFill)"))
+        #expect(
+            phoneSource.contains(
+                ".foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)"
+            )
+        )
+    }
+
+    @Test("Large filled primary actions use dedicated CTA tokens")
+    func largeFilledPrimaryActionsUseDedicatedCTATokens() throws {
+        let sourcesRequiringPrimaryActionTint = [
+            "WelcomeView+Layout.swift",
+            "OnboardingView.swift",
+            "AIProviderSettingsView.swift",
+            "AIProviderSettingsComponents.swift",
+            "SyncS3DraftView.swift",
+            "SyncSettingsView.swift",
+            "PracticeControlBar.swift",
+            "LocalListeningPreviewView.swift",
+            "PadWorkspaceBar.swift",
+            "MacEntryEditorSheet.swift",
+        ]
+
+        for fileName in sourcesRequiringPrimaryActionTint {
+            let source = try String(contentsOf: sourceFileURL(named: fileName), encoding: .utf8)
+            #expect(
+                source.contains("LangoTraceDesign.ColorToken.primaryActionFill"),
+                "\(fileName) must use the dedicated filled primary action token."
+            )
+        }
+
+        let welcomeSource = try collapsedSource(named: "WelcomeView+Layout.swift")
+        let onboardingSource = try collapsedSource(named: "OnboardingView.swift")
+        let syncS3Source = try collapsedSource(named: "SyncS3DraftView.swift")
+        let syncSettingsSource = try collapsedSource(named: "SyncSettingsView.swift")
+        let macEditorSource = try collapsedSource(named: "MacEntryEditorSheet.swift")
+
+        #expect(!welcomeSource.contains(prominentButtonUsingTint("deepTeal")))
+        #expect(!onboardingSource.contains(prominentButtonUsingTint("deepTeal")))
+        #expect(!syncS3Source.contains(prominentButtonUsingTint("accent")))
+        #expect(!syncSettingsSource.contains(prominentButtonUsingTint("accent")))
+        #expect(!macEditorSource.contains(prominentButtonUsingTint("accent")))
+    }
+
+    @Test("Switch controls use a dedicated active fill token")
+    func switchControlsUseDedicatedActiveFillToken() throws {
+        let designSource = try String(
+            contentsOf: sourceFileURL(named: "LangoTraceDesign.swift"),
+            encoding: .utf8
+        )
+        #expect(designSource.contains("static var switchOnFill: Color"))
+        #expect(designSource.contains("dark: 0x2C8A7B"))
+
+        for fileName in [
+            "AIProviderSettingsComponents.swift",
+            "SyncSettingsView.swift",
+            "SyncS3DraftView.swift",
+        ] {
+            let source = try String(contentsOf: sourceFileURL(named: fileName), encoding: .utf8)
+            #expect(
+                source.contains(".tint(LangoTraceDesign.ColorToken.switchOnFill)"),
+                "\(fileName) must avoid bright accent switch fills."
+            )
+        }
+
+        let aiProviderSource = try collapsedSource(named: "AIProviderSettingsComponents.swift")
+        let syncSettingsSource = try collapsedSource(named: "SyncSettingsView.swift")
+
+        #expect(!aiProviderSource.contains(switchUsingTint("accent")))
+        #expect(!syncSettingsSource.contains(switchUsingTint("accent")))
     }
 
     @Test("Appearance resources are present in English and Simplified Chinese")
@@ -146,5 +243,18 @@ struct AppearanceSettingsTests {
             .appendingPathComponent("Sources")
             .appendingPathComponent("LangoTraceUI")
             .appendingPathComponent(fileName)
+    }
+
+    private func collapsedSource(named fileName: String) throws -> String {
+        let source = try String(contentsOf: sourceFileURL(named: fileName), encoding: .utf8)
+        return source.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+    }
+
+    private func prominentButtonUsingTint(_ tokenName: String) -> String {
+        ".buttonStyle(.borderedProminent) .tint(LangoTraceDesign.ColorToken.\(tokenName))"
+    }
+
+    private func switchUsingTint(_ tokenName: String) -> String {
+        ".toggleStyle(.switch) .tint(LangoTraceDesign.ColorToken.\(tokenName))"
     }
 }

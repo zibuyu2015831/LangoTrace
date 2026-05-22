@@ -151,6 +151,18 @@ enum LangoTraceDesign {
             deepTeal
         }
 
+        static var primaryActionFill: Color {
+            dynamicColor(light: 0x0D544B, dark: 0x23786A)
+        }
+
+        static var primaryActionForeground: Color {
+            dynamicColor(light: 0xFFFFFF, dark: 0xFFFFFF)
+        }
+
+        static var switchOnFill: Color {
+            dynamicColor(light: 0x126B5D, dark: 0x2C8A7B)
+        }
+
         static var warning: Color {
             gold
         }

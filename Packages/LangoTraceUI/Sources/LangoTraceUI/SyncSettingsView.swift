@@ -237,7 +237,7 @@ private struct SyncScopeRow: View {
                 }
                 .labelsHidden()
                 .toggleStyle(.switch)
-                .tint(LangoTraceDesign.ColorToken.accent)
+                .tint(LangoTraceDesign.ColorToken.switchOnFill)
                 .accessibilityLabel(localizedString(item.titleKey))
                 .accessibilityValue(localizedString(item.state.titleKey))
             } else {
@@ -291,10 +291,11 @@ private struct ICloudSyncPreviewView: View {
                 } label: {
                     localizedText("syncSettings.iCloudPreview.close")
                         .font(.callout.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                         .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(LangoTraceDesign.ColorToken.accent)
+                .tint(LangoTraceDesign.ColorToken.primaryActionFill)
             }
             .padding(20)
             .frame(maxWidth: 640, alignment: .leading)

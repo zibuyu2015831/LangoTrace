@@ -148,10 +148,11 @@ import SwiftUI
                     onSave(title, bodyText)
                 } label: {
                     localizedText("common.save")
+                        .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                         .frame(minWidth: 92, minHeight: 34)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(LangoTraceDesign.ColorToken.accent)
+                .tint(LangoTraceDesign.ColorToken.primaryActionFill)
                 .keyboardShortcut(.defaultAction)
                 .disabled(!canSave)
             }

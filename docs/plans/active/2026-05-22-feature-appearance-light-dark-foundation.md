@@ -366,6 +366,9 @@ struct LangoTracePalette: Equatable {
 | `accent` | `#126B5D` | `#72D2BF` | 主强调 |
 | `accentStrong` | `#0D544B` | `#9AE5D5` | 强强调、焦点态 |
 | `accentMuted` / `surfaceSelected` | `#E2F1EC` | `#203A35` | 选中背景 |
+| `primaryActionFill` | `#0D544B` | `#23786A` | 大面积 filled 主操作按钮 |
+| `primaryActionForeground` | `#FFFFFF` | `#FFFFFF` | filled 主操作按钮文字 |
+| `switchOnFill` | `#126B5D` | `#2C8A7B` | Switch 开启态填充 |
 | `warning` | `#835B1F` | `#D8AE64` | 警告文字、警告图标 |
 | `warningMuted` | `#F3E4C9` | `#332818` | 警告弱背景 |
 | `danger` | `#AD2D25` | `#FF8B80` | 危险、错误 |
@@ -392,6 +395,7 @@ struct LangoTracePalette: Equatable {
 | `accent` text on `surfaceSelected` | 5.48:1 | 6.80:1 |
 | Tab active text on `accent` | 5.68:1 | 9.88:1 |
 | `privacyLocal` on `accentMuted` | 4.55:1 | 7.44:1 |
+| `primaryActionForeground` on `primaryActionFill` | 8.80:1 | 5.29:1 |
 | `warning` on `warningMuted` | 4.81:1 | 6.97:1 |
 | `danger` on `paper` | 5.87:1 | 7.82:1 |
 
@@ -576,3 +580,6 @@ git status --short
 - 2026-05-23：完成代码落地。新增 `AppearancePreference` 和 `UserDefaultsAppearancePreferenceStore`，新增 `.appearance` 设置能力，三端设置详情共享外观选项，App 层通过 `preferredColorScheme` 注入浅色 / 深色 / 跟随系统，`LangoTraceDesign` 保留 `ColorToken` 调用面并接入已审核 light / dark palette。自动化覆盖新增 `AppearancePreferenceTests`、Data settings capability 测试和 `AppearanceSettingsTests`，并更新旧的界面语言、AI Provider 与 Sync 源码约束测试以匹配新的 global settings context。
 - 2026-05-23：完成文档同步。`docs/spec/003-ui-design-system.md` 已记录浅色 / 深色基础设施已接入但发布级视觉待截图验收；`docs/platform-page-inventory.md` 已记录三端外观设置入口、无语言空间边界和代码路径；`docs/testing/README.md` 已新增浅色 / 深色 / 跟随系统人工验证清单。当前 `rg -n "Color\\(red:" Packages/LangoTraceUI/Sources/LangoTraceUI --glob '!LangoTraceDesign.swift'` 无结果，未新增页面级散落 RGB。
 - 2026-05-23：完整自动化验证通过。`scripts/verify.sh` 已完成 `xcodegen generate`、`xcodebuild -list`、Core / Data / AI / UI package 测试、iPhone 17 Simulator 构建、iPad Pro 13-inch (M5) Simulator 构建、macOS arm64 构建、SwiftLint、SwiftFormat lint、文档占位扫描和最终 `git status --short`。SwiftLint 仍输出既有 warning，但无 serious violation；SwiftFormat lint 为 `0/155 files require formatting`。剩余验证项是发布级浅色 / 深色截图和真机视觉 QA。
+- 2026-05-23：根据 iPhone 17 深色主题模拟器截图复查主学习页 CTA。结论：`accent` 的深色值 `#72D2BF` 适合小面积强调，但作为“写一句”大面积 filled button 时过亮，且与白字对比约 1.80:1；已新增 `primaryActionFill` / `primaryActionForeground` 主操作 token，将 iPhone 主学习页新建记录入口和空记录主入口改为深色 `#23786A` 配白字，对比约 5.29:1。新增 `AppearanceSettingsTests.phoneHeroPrimaryActionUsesQuieterDarkModeCTAToken` 固定该边界。
+- 2026-05-23：根据 Welcome “开始设置”和 AI Provider “保存配置”深色截图继续做全局复查。结论：问题边界不是单页按钮，而是 `.borderedProminent` filled primary CTA 不能继承全局高亮 tint 或直接使用 `accent` / `deepTeal`。已将 Welcome、Onboarding、AI Provider 保存 / retry、同步关闭、练习继续、听力预览播放、学习内容练习、iPad 新建记录和 macOS 编辑保存等 filled primary action 统一迁移到 `primaryActionFill` / `primaryActionForeground`；保留 `accent` 给小面积图标、状态和普通 bordered 按钮。新增 `AppearanceSettingsTests.largeFilledPrimaryActionsUseDedicatedCTATokens` 固定该边界。
+- 2026-05-23：根据 AI Provider 能力开关深色截图继续复查 switch 控件。结论：开关不是 primary CTA，但开启态若直接继承 `accent #72D2BF`，在深色卡片中仍会形成过亮的浅薄荷色块；已新增 `switchOnFill`，深色为 `#2C8A7B`，并将 AI Provider 能力开关、可选模型开关、Sync scope 开关和 S3 draft 连接开关迁移到该 token。新增 `AppearanceSettingsTests.switchControlsUseDedicatedActiveFillToken` 固定该边界。
