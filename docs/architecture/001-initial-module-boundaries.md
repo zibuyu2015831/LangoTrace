@@ -89,7 +89,7 @@
 - 请求预览和请求元数据。
 - 图片理解、文本转换、写作检测和改写的接口。
 
-当前已落地 AI Provider 配置保存、Keychain 凭证存储和本地 credential validation；仍不发送真实外部 Provider 请求。
+当前已落地 AI Provider 配置保存、Keychain 凭证存储、本地 credential validation，以及用户主动触发的固定合成 Provider probe。配置 probe 可以向用户配置的文本 endpoint 发送文本回复、JSON 输出、语言支持和可选内置图片理解测试；真实学习内容请求、Prompt Preset 执行、请求预览和请求日志仍未接入。
 
 ### 2.6 Speech
 
@@ -148,7 +148,7 @@ Sync -> Core
 仍未落地：
 
 - Entry、Rendering、Practice、Memory、附件和导出的真实数据库表。
-- 真实 AI 请求。
+- 真实学习内容 AI 请求、Prompt Preset 执行、请求预览和请求日志。
 - 真实 TTS。
 - 真实同步。
 - StoreKit。
@@ -164,7 +164,7 @@ Sync -> Core
 
 当前职责：
 
-- 通过 `AppEnvironment.bootstrap()` 装配共享 `AppDatabase`、真实语言空间 SQLite / GRDB repository、AI Provider 配置 repository、Keychain credential store、AI Provider 设置页 actions，以及 AI / Speech / Sync 的 disabled 实现。
+- 通过 `AppEnvironment.bootstrap()` 装配共享 `AppDatabase`、真实语言空间 SQLite / GRDB repository、AI Provider 配置 repository、Keychain credential store、AI Provider 配置保存与合成测试 actions，以及 Speech / Sync 的 disabled 实现。
 - App Shell 负责装配 Data 和 AI package 的实现，但不直接持有 SQL、Keychain query 或 Provider SDK 调用细节。
 - App Shell 负责装配诊断 logger。产品期默认 disabled；开发期可组合 console 和本地 ring buffer。Core、Data、AI、UI package 不直接读取环境变量。
 - 通过 `AppSessionState` 管理 `welcome`、`onboarding`、`main` 三段启动状态。
@@ -232,13 +232,13 @@ Sync -> Core
 - `PadPanelGestureAction`
 - `LangoTraceDesign`
 
-当前 UI 能展示三端产品骨架，其中 iPhone 设置页已接入语言空间管理页，AI Provider 设置页已接入真实本地配置保存、本地 credential validation 和保存结果反馈；Entry、练习、记忆和真实 AI 请求内容仍是 Mock。UI 不应直接接入 SQLite、Keychain、网络、对象存储或具体 AI Provider，语言空间管理页和 AI Provider 设置页都通过 App 层 action closures 修改状态。
+当前 UI 能展示三端产品骨架，其中 iPhone 设置页已接入语言空间管理页，AI Provider 设置页已接入真实本地配置保存、本地 credential validation、保存结果反馈和配置合成测试结果面板；Entry、练习、记忆和真实学习内容 AI 请求仍是 Mock 或未接入。UI 不应直接接入 SQLite、Keychain、网络、对象存储或具体 AI Provider，语言空间管理页和 AI Provider 设置页都通过 App 层 action closures 修改状态。
 
 当前测试覆盖：
 
 - iPad 左右辅助面板边缘手势判定。
 - iPhone 语言空间管理页源码级行为边界：不依赖 GRDB / SQL、包含新增/切换/重命名/删除 action、同目标语言提示、同名提示和 soft delete 文案约束。
-- AI Provider 设置页源码级行为边界：真实保存调用、按钮内 saving 反馈、独立 saved / failed / input invalid 状态、operation id 关联和无网络测试请求。
+- AI Provider 设置页源码级行为边界：真实保存调用、按钮内 saving 反馈、独立 saved / failed / input invalid 状态、operation id 关联、配置合成测试 action seam，以及 SwiftUI View 不直接触网或读取 Keychain。
 
 ### 5.4 Data / AI / Speech / Sync
 
@@ -254,4 +254,4 @@ Sync -> Core
 - `LangoTraceSpeech` 只有 `SpeechService` 和 `DisabledSpeechService`。
 - `LangoTraceSync` 只有 `SyncService` 和 `DisabledSyncService`。
 
-这些类型中语言空间和 AI Provider 配置已进入真实本地数据库基础设施；AI 仍未发送真实外部请求，Speech 和 Sync 仍表示模块边界和装配位置。后续接入具体能力时，应在对应模块内扩展协议、状态和测试，而不是从 UI 直接调用平台 API 或外部服务。
+这些类型中语言空间和 AI Provider 配置已进入真实本地数据库基础设施；AI Provider 配置合成测试已经可以由用户主动触发固定外部 / 本地 Provider probe，但真实学习内容请求、Prompt Preset 执行、请求预览和请求日志仍未接入。Speech 和 Sync 仍表示模块边界和装配位置。后续接入具体能力时，应在对应模块内扩展协议、状态和测试，而不是从 UI 直接调用平台 API 或外部服务。

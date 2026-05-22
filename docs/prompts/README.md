@@ -80,4 +80,4 @@ Prompt 文档必须明确该 Prompt 是否会包含：
 
 - 2026-05-21：更新目录当前事实。原因：AI Provider 配置测试请求已经接入固定合成 Prompt，Prompt Registry 不再是空目录；后续真实 Provider 请求内容必须在本目录登记。影响范围：AI Provider 配置测试请求、Prompt 审查、请求预览和隐私复查。是否需要 ADR：否。
 - 2026-05-21：补充图片理解合成测试 Prompt 当前事实。原因：AI Provider 配置测试请求新增可选内置图片 probe，仍属于真实发送给 Provider 的固定 Prompt，需要纳入 Prompt Registry。影响范围：AI Provider 配置测试请求、图片输入边界和隐私复查。是否需要 ADR：否。
-- 2026-05-22：补充语言支持合成测试 Prompt 当前事实。原因：AI Provider 配置测试请求新增 iOS 当前语言空间上下文下的 `语言支持` probe，仍属于真实发送给 Provider 的固定 Prompt，需要登记完整文案、输出契约和隐私边界。影响范围：AI Provider 配置测试请求、语言边界和隐私复查。是否需要 ADR：否。
+- 2026-05-22：补充语言支持合成测试 Prompt 当前事实。原因：AI Provider 配置测试请求新增当前语言空间上下文下的 `语言支持` probe，仍属于真实发送给 Provider 的固定 Prompt，需要登记完整文案、输出契约和隐私边界。影响范围：AI Provider 配置测试请求、语言边界和隐私复查。是否需要 ADR：否。

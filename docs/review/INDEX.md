@@ -4,8 +4,8 @@
 
 ## 最新状态摘要
 
-- 最近审查轮次：`2026-05-20-diagnostics-provider-save-feedback`。
-- 最近完成时间：2026-05-20。
+- 最近审查轮次：`2026-05-22-ai-provider-language-support-probe`。
+- 最近完成时间：2026-05-22。
 - 待用户澄清的问题数：0。
 - 延后项：0。
 
@@ -13,6 +13,7 @@
 
 | 轮次 ID | 类型 | 启动时间 | 完成时间 | 状态 | 当前事实源 | 后续覆盖记录 | 可作为依据 | 链接 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `2026-05-22-ai-provider-language-support-probe` | 专项审查 | 2026-05-22 | 2026-05-22 | Verified | `docs/README.md`、`docs/architecture/001-initial-module-boundaries.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/006-interface-localization-and-language-boundaries.md`、`docs/platform-page-inventory.md`、`docs/prompts/ai-provider/provider-configuration-probe.md` | none | Yes | [README](rounds/2026-05-22-ai-provider-language-support-probe/README.md) |
 | `2026-05-20-diagnostics-provider-save-feedback` | 专项审查 | 2026-05-20 | 2026-05-20 | Verified | `docs/review/rounds/2026-05-20-diagnostics-provider-save-feedback/` | `docs/plans/done/2026-05-20-feature-diagnostics-and-ai-provider-save-feedback.md`、`docs/spec/003-ui-design-system.md`、`docs/spec/004-swiftui-architecture.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`、`docs/spec/009-testing-and-verification.md`、`docs/architecture/001-initial-module-boundaries.md` | Yes | [README](rounds/2026-05-20-diagnostics-provider-save-feedback/README.md) |
 | `2026-05-20-ai-provider-configuration-storage` | 专项审查 | 2026-05-20 | 2026-05-20 | Verified | `docs/review/rounds/2026-05-20-ai-provider-configuration-storage/` | `docs/plans/done/2026-05-20-feature-ai-provider-configuration-storage.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`、`docs/architecture/001-initial-module-boundaries.md`、`docs/platform-page-inventory.md` | Yes | [README](rounds/2026-05-20-ai-provider-configuration-storage/README.md) |
 | `2026-05-20-language-space-data-infrastructure` | 专项审查 | 2026-05-20 | 2026-05-20 | Verified | `docs/review/rounds/2026-05-20-language-space-data-infrastructure/` | `docs/plans/done/2026-05-20-feature-language-space-data-infrastructure.md`、`docs/README.md`、`docs/architecture/001-initial-module-boundaries.md`、`docs/development/environment.md`、`docs/development/mvp-development-roadmap.md`、`docs/spec/002-navigation-and-routing.md`、`docs/spec/navigation/impl.md`、`docs/spec/004-swiftui-architecture.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/testing/README.md` | Yes | [README](rounds/2026-05-20-language-space-data-infrastructure/README.md) |
@@ -39,6 +40,7 @@
 
 | 日期 | 触发原因 | 触发的轮次 | 涉及文档 |
 | --- | --- | --- | --- |
+| 2026-05-22 | AI Provider 语言支持合成测试从 iOS 扩展到 iPad / macOS，并触发 AI Provider、隐私边界、Prompt Registry、三端设置入口和模块边界专项文档影响检查 | `2026-05-22-ai-provider-language-support-probe` | `docs/README.md`、`docs/architecture/001-initial-module-boundaries.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/006-interface-localization-and-language-boundaries.md`、`docs/platform-page-inventory.md`、`docs/prompts/README.md`、`docs/prompts/ai-provider/provider-configuration-probe.md` |
 | 2026-05-20 | AI Provider 保存反馈与诊断日志基础设施实现触发数据库 schema、AI Provider、隐私边界、诊断日志、验证脚本、包边界和 App 启动结构专项文档影响检查 | `2026-05-20-diagnostics-provider-save-feedback` | `docs/plans/done/2026-05-20-feature-diagnostics-and-ai-provider-save-feedback.md`、`docs/spec/003-ui-design-system.md`、`docs/spec/004-swiftui-architecture.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`、`docs/spec/009-testing-and-verification.md`、`docs/architecture/001-initial-module-boundaries.md` |
 | 2026-05-20 | AI Provider 配置存储实现触发数据库 schema、Keychain、AI Provider、隐私边界和 App 启动结构专项文档影响检查 | `2026-05-20-ai-provider-configuration-storage` | `docs/plans/done/2026-05-20-feature-ai-provider-configuration-storage.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`、`docs/architecture/001-initial-module-boundaries.md`、`docs/platform-page-inventory.md` |
 | 2026-05-20 | 语言空间数据基础设施实现触发数据层、启动闭环、语言空间闭环、包依赖和 App 启动结构专项文档影响检查 | `2026-05-20-language-space-data-infrastructure` | `docs/plans/done/2026-05-20-feature-language-space-data-infrastructure.md`、`docs/README.md`、`docs/architecture/001-initial-module-boundaries.md`、`docs/development/environment.md`、`docs/development/mvp-development-roadmap.md`、`docs/spec/002-navigation-and-routing.md`、`docs/spec/navigation/impl.md`、`docs/spec/004-swiftui-architecture.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/testing/README.md` |
@@ -53,6 +55,7 @@
 
 | 轮次 | 问题数 | 代码问题记录数 | 新会话可用抽样 |
 | --- | --- | --- | --- |
+| `2026-05-22-ai-provider-language-support-probe` | 4 个文档事实 / 变更记录漂移问题，已修正 README 已完成能力、模块边界 AI 请求事实、UI action seam 边界和 iOS-only 记录 | 0 | 通过：README、架构快照、spec、Prompt Registry 和页面清单均可说明语言支持 probe 是用户触发的固定合成测试，不是真实学习内容请求 |
 | `2026-05-20-diagnostics-provider-save-feedback` | 6 个文档 / 架构事实问题，已修正 AI package 验证缺口、诊断日志隐私边界、Provider 保存诊断、SwiftUI / UI 操作反馈、模块边界快照和诊断 ring buffer 自动保留策略；剩余风险是用户可见诊断设置页、诊断包导出和真实 Provider 合成探测 | 2 个代码边界补丁：输入无效保存路径独立记录 `save_input_invalid`；`diagnostic_events` 写入后同事务应用数量 / 时间保留策略 | 通过：README 覆盖触发原因、当前事实、延期项、验证记录和剩余风险 |
 | `2026-05-20-ai-provider-configuration-storage` | 4 个文档事实问题，已修正 plan 状态、AI Provider 页面事实、Keychain/隐私规范和模块边界快照；剩余风险是真实 Provider 合成探测、凭证轮换 / 删除 UI、cleanup retry 和 iOS / iPadOS Keychain 行为验证 | 0 个新增代码问题；审查确认当前实现不发网络、不回填 API Key 明文、不把 secret 写入 SQLite | 通过：README 覆盖触发原因、当前事实、延期项、验证记录和剩余风险 |
 | `2026-05-20-language-space-data-infrastructure` | 3 个问题，已修复 missing current fallback、iOS 重命名闭环和长期文档事实漂移；剩余风险是 App 层独立测试 target、存储错误视图、全语言翻译和 iPad/macOS 管理 UI | 2 个代码/测试问题，1 个文档事实问题 | 通过：README 覆盖发现、处理、剩余风险和验证记录 |

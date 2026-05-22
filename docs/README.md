@@ -93,7 +93,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - 隐私状态模型和 AI / 同步 / 设置状态图标展示。
 - iPad 左右辅助面板折叠按钮和边缘手势判定 helper。
 - AI Provider 本地配置保存，非敏感配置进入 SQLite / GRDB，API Key 进入 Keychain。
-- AI Provider 配置合成测试，覆盖文本回复、JSON 输出，以及用户显式启用后的内置图片理解 probe。
+- AI Provider 配置合成测试，覆盖文本回复、JSON 输出、当前语言空间上下文下的语言支持，以及用户显式启用后的内置图片理解 probe。
 - Core、Data、AI 和 UI package 的首批单元测试；UI package 已开始按功能子目录组织 AI Provider 测试。
 - 统一验证脚本 `scripts/verify.sh`。
 
