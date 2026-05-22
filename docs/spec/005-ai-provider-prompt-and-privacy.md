@@ -148,7 +148,9 @@ UI 可用简洁文案展示，但服务层应保留可诊断错误类型。
 
 ### 4.7 Provider 配置页边界
 
-Provider 配置页已经从真实级 mock 表单进入本地配置保存和配置合成测试阶段：非敏感 Provider profile、endpoint、credential metadata 和 validation event 进入 SQLite / GRDB，API Key 写入 Keychain；测试请求可以通过 Provider 层对文本 endpoint 发送固定文本、JSON、当前语言空间上下文下的语言支持和可选内置图片合成探测。真实学习内容请求、Prompt Preset 执行、请求预览和请求日志仍未接入。后续实现必须遵守以下边界：
+Provider 配置页已经从真实级 mock 表单进入本地配置保存和配置合成测试阶段：非敏感 Provider profile、endpoint、credential metadata 和 validation event 进入 SQLite / GRDB，API Key 写入 Keychain；测试请求可以通过 Provider 层对文本 endpoint 发送固定文本、JSON、当前语言空间上下文下的语言支持和可选内置图片合成探测。
+
+真实文本 Entry 的一键学习材料生成已在 iOS / iPhone 记录详情接入：用户点击 `生成学习材料` 时，App Shell 通过 `LearningMaterialGenerationActions` 读取默认文本 endpoint、解析 Keychain secret、调用 `LearningMaterialGenerationService`，并将 LearningMaterial、analysis、candidate 和 operation 摘要写入 GRDB。该能力第一版只发送当前 Entry 文本或用户编辑后的当前 learning text，不发送照片、音频、OCR、附件摘要、历史记忆或多条 Entry 上下文；iPad / macOS UI 入口待 iOS 人工测试通过后再接入。后续实现必须遵守以下边界：
 
 - API Key 输入只能作为当前页面的短生命周期明文草稿。保存成功后应清空本次新输入草稿；用户主动再次打开 Provider 配置页时，可以通过服务边界从 Keychain 解析已保存密钥并回填到输入框，默认仍以隐藏态展示。该回填只允许存在于当前 UI draft，不得写入 SQLite、诊断日志、同步目录、请求预览或测试输出。
 - 非敏感配置和敏感凭证必须分层。Provider、Base URL、模型名属于普通表单配置；请求格式、认证方式和自定义请求头等技术信息应默认收起或进入高级配置，不应挤占首屏主路径。API Key、外部服务 token、自定义请求头中的密钥属于敏感凭证。
@@ -165,6 +167,11 @@ Provider 配置页已经从真实级 mock 表单进入本地配置保存和配�
 - macOS 原生 Settings scene 和工作台 Settings section 是两个入口层。当前原生 Settings scene 只展示能力状态列表，不承载 Provider 写入表单；后续若要在原生 Settings scene 支持 Provider 配置，必须复用同一配置模块并单独审查写入边界。
 - “测试请求”按钮必须走明确状态机，并通过 `AIProviderSettingsActions` 进入 AI service / Provider 层；SwiftUI View 不得直接创建 `URLRequest`、拼接 Authorization header、读取 Keychain 或调用 Provider SDK。
 - 当前阶段测试请求只允许对文本模型 endpoint 发送固定合成检测内容，分为文本回复 probe、JSON 输出 probe、语言支持 probe 和可选图片理解 probe；JSON probe 只描述一个名为 `ok`、值为布尔 `true` 的字段结构，由模型生成严格 JSON object，验收仍只接受 exactly one field `ok: true`。语言支持 probe 只在调用方提供稳定目标语言 code 时运行，Prompt 中的目标语言英文名称、`NLLanguage` 映射和脚本规则必须由 AI 层 allowlist 派生；它要求模型返回包含 `sample` 字段的 JSON object，本机从常见 Markdown code fence 中提取 JSON，忽略 `sample` 之外的额外字段，并做非空、长度、离线语言识别和脚本规则校验。语言支持不得发送生活记录、用户照片、音频、OCR、历史记忆、目标语言正文、Prompt Preset 内容、用户自定义长文本或请求预览正文；失败只表示本次合成测试未能确认当前模型适合该语言空间，不是模型语言能力认证。图片理解 probe 只在当前 adapter 已支持图片请求体、endpoint purpose 为文本生成、能力策略允许或由模型决定、且用户显式启用图片输入后运行，并只发送项目内置白底蓝色正方形 PNG，用于验证图片输入链路、基础视觉属性识别和受控短标签输出；它不得发送用户照片、生活记录附件、OCR 文本、历史记忆、目标语言正文、Prompt Preset 内容、用户自定义长文本或请求预览正文，也不代表真实照片理解质量评分。
+- 一键学习材料生成不是 Provider 配置测试。它允许发送当前文本 Entry 或当前 learning text，前提是用户在记录详情主动点击 `生成学习材料` 或 `重新分析`。保存 Entry 的本机写入动作不得自动触发 AI 请求，也不得让用户误以为保存已经上传。
+- 一键学习材料生成第一版采用非阻断确认：不弹出请求预览确认 sheet，但按钮附近、生成中状态和结果元数据必须明确表达当前文本会发送给已配置的 AI Provider，结果由 AI 生成，并展示非敏感 Prompt / Provider / model 元数据。照片、音频、OCR、历史记忆、多条 Entry 上下文或附件摘要不得复用该低摩擦边界。
+- 学习材料 Prompt 必须由 `docs/prompts/learning-material/one-tap-learning-material.md` 和 `LearningMaterialPromptRegistry` 登记版本；修改 Prompt id、version、输入变量、schema version 或输出字段时，必须同步更新 Prompt Registry 文档、AI service 测试和 Data 映射测试。
+- 学习材料响应必须是结构化 JSON object。AI service 必须拒绝 Markdown code fence、自然语言前后缀、缺字段、非法枚举、数组超限或无法映射的结构，不得把半成品结果写入 Data 层。
+- 学习材料请求和 operation 摘要只允许记录 operation id、Prompt id / version、Provider profile / endpoint / preset、model、长度分桶、input kind、失败分类、耗时和时间戳等非敏感元数据；不得记录用户原文、learning text、sentence / candidate 正文、完整 Prompt、请求体、响应体、API Key、Authorization header 或完整 Keychain account。
 - 语音生成和向量化可以出现在结果面板的分能力状态中，但当前阶段不得为这些能力发真实网络测试请求；应显示未启用、未配置或暂不支持测试。
 - iPhone、iPad 和 macOS Provider 设置页当前都通过共享 `SettingsCapabilityDetailView` 从当前语言空间传入目标语言 code 并展示 `语言支持` 分项。平台差异只允许体现在承载宽度、导航位置和 presentation 行为；不得为 iPad 或 macOS 复制平台专属 Provider 表单，也不得让任一平台绕过共享 action seam。
 - 未保存 draft 测试必须测试当前屏幕配置，且不得先写入 Keychain、SQLite 或 validation event；已保存且无修改的配置测试由服务层通过 Keychain 引用重新解析密钥。
@@ -224,6 +231,7 @@ AI 在实现任何 AI 能力前应先确认：
 
 ## 8. 变更记录
 
+- 2026-05-23：补充一键学习材料生成真实请求边界。原因：iOS / iPhone 记录详情已接入当前文本 Entry 的真实 Provider 请求、结构化 Prompt、GRDB 结果保存和非阻断 AI 披露，需要把“真实学习内容请求未接入”的旧边界更新为当前实现事实。影响范围：LangoTraceAI、LangoTraceData、LangoTraceUI、AppEnvironment、Prompt Registry 和页面清单。是否需要 ADR：否，沿用 ADR-005；照片、音频、历史记忆和多 Entry 上下文仍需单独方案。
 - 2026-05-17：创建第一版 AI Provider、Prompt 与隐私规范。
 - 2026-05-17：补充同意级别、结构化输出校验、输出保存边界和失败处理分类。原因：降低 AI 请求隐私、可靠性和数据覆盖风险。影响范围：AI Provider、Prompt、UI 请求预览、数据保存。是否需要 ADR：否。
 - 2026-05-19：补充 Provider 配置页边界。原因：AI Provider 设置页开始从静态说明改为真实级 mock 配置页，需要把安全配置草稿、保存配置、测试请求、能力矩阵和聚合 provider 提示沉淀为长期约束。影响范围：AI Provider 设置、隐私文案、后续 Keychain 和真实请求测试。是否需要 ADR：否。

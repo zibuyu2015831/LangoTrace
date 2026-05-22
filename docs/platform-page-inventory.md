@@ -41,13 +41,13 @@ iPhone 的顶层结构是 `记录 / 练习 / 记忆` 三个 Tab，设置通过�
 | iPhone Main Shell | 承载三 Tab、NavigationStack、sheet 和语言空间上下文 | Root 进入 iPhone main | Shell | `PhoneMainView.swift` | `contentStore.ensureSeeded()` 使用本地种子数据 | Tab 数量保持克制；sheet 不应抢占主流程 |
 | 记录 Tab | 随手创建生活记录，查看最近记录 | 底部 `记录` Tab | Implemented | `PhoneRecordWorkspaceView` in `PhoneMainSections.swift` | 最近记录来自本地 repository / mock seed | 首屏应突出写一句和照片写作，避免说明卡堆叠 |
 | 记录 Hero | 提供高频记录入口 | 记录 Tab 顶部 | Implemented | `HeroActionCard` in `PhoneMainSupportingViews.swift` | `写一句` 打开文本编辑；`用照片开始` 打开本地照片写作预览 | 不恢复旧的 `听` 首屏入口；按钮文案不能溢出 |
-| 文本记录编辑 | 输入标题和正文，保存为本地记录 | `写一句`、iPad 新建、部分 Mac 复用路径 | Implemented | `EntryEditorView` in `PhoneMainSupportingViews.swift` | 保存到内存 repository；不触发 AI、同步或导出 | 隐私说明保持短；后续真实存储后检查失败恢复 |
+| 文本记录编辑 | 输入标题和正文，保存为本地记录 | `写一句`、iPad 新建、部分 Mac 复用路径 | Implemented | `EntryEditorView` in `PhoneMainSupportingViews.swift` | iOS 主路径保存到 GRDB learning content repository；保存动作不触发 AI、同步或导出 | 隐私说明保持短；iPad / Mac 创建入口仍需在后续平台接入时复查 async 保存和失败恢复 |
 | 照片写作预览 | 用模拟照片展示未来照片写作体验 | 记录 Hero 的 `用照片开始` | Local Mock | `PhonePhotoWritingPreviewView.swift`、`LearningContentStore.createMockPhotoWritingEntry()` | 不打开 PhotosUI、不调用 OCR/AI、不上传照片 | 视觉应像真实流程，不显示内部接入计划 |
 | 最近记录列表 | 浏览本地生活记录并进入详情 | 记录 Tab 下方列表 | Implemented | `EntryCard` in `PhoneMainSupportingViews.swift` | 展示 seed 和用户本地创建记录 | 卡片密度、目标语言内容和状态 badge 需保持清晰 |
 | 空记录状态 | 没有记录时给出创建入口 | 记录 Tab 无 entries | Implemented | `EmptyEntryPanel` in `PhoneMainSupportingViews.swift` | 只引导创建，不写入数据 | 空状态不能像错误或开发提示 |
-| 记录详情 | 阅读母语记录、目标语言文本、逐句练习入口和练习条目 | 最近记录、保存后、照片写作创建后 | Implemented / Local Mock | `EntryDetailView`、`EntryDetailHeader.swift`、`SentencePairView` | rendering 可为本地 mock；未 rendering 时允许显式生成本地预览 | 默认 iPhone 流程不显示持久请求预览卡；避免开发标记 |
+| 记录详情 | 阅读原始记录、生成学习材料、编辑 learning text、重新分析和进入练习候选 | 最近记录、保存后、照片写作创建后 | iOS Implemented / iPad macOS Deferred | `EntryDetailView`、`EntryDetailHeader.swift`、`SentencePairView`、`LearningMaterialGenerationActions` | iPhone 无 material 时只有一个核心 AI 动作 `生成学习材料`；点击后经 App Shell 发送当前文本给已配置 AI Provider 并保存 GRDB LearningMaterial；原始 Entry 正文只读；learning text 可编辑，编辑后可 `重新分析`；iPad / macOS 暂不接入真实生成 UI，等待 iOS 人工测试通过 | 不恢复本地预览主按钮；生成动作必须披露 AI Provider 边界；平台接入时复查共享详情组件和大屏布局 |
 | 听一句预览 | 针对单句进行本地听读练习展示 | 记录详情每句的 `听` | Local Mock | `LocalListeningPreviewView.swift`、`SentencePairView` | 播放按钮只切换本地状态；不接 TTS、不录音、不保存成绩 | 不得回退到 `听力播放规划中`、`待配置` 等工程文案 |
-| 逐句练习入口 | 从单句进入完整练习会话 | 记录详情每句的 `练` | Local Mock | `SentencePairView`、`PracticeSessionView` | 练习状态来自本地 mock session | `听` 与 `练` 的职责需清晰，避免重复入口 |
+| 逐句练习入口 | 从单句进入完整练习会话 | 记录详情每句的 `练` | Candidate / Local Practice | `SentencePairView`、`PracticeSessionView` | 句子和 practice candidate 可来自 GRDB LearningMaterial analysis；真实听写、跟读评分和音频仍未接入 | `听` 与 `练` 的职责需清晰，避免重复入口 |
 | 练习 Tab | 从生活记录继续听、读、跟读、回译 | 底部 `练习` Tab | Local Mock | `PracticeView` in `PhoneMainSections.swift`、`PhonePracticeRows.swift` | 练习任务来自本地 rendering 和 practice items | 作为 `听` 的高频承载，不应暴露 TTS 接入计划 |
 | 练习会话 | 展示准备、跟读、对照、完成步骤 | 练习 Tab、记录详情 `练` | Local Mock | `PracticeSessionView`、`PracticeControlBar.swift` | step 切换为本地 UI 状态，不录音、不评分 | 后续真实语音能力接入前，需要单独权限和语音边界方案 |
 | 记忆 Tab | 查看从生活记录中沉淀的短语和句子 | 底部 `记忆` Tab | Local Mock | `MemoryView` in `PhoneMainSections.swift` | iPhone 当前隐藏技术性三层记忆基础设施 | 不展示向量索引、embedding 等工程概念 |
@@ -68,13 +68,13 @@ iPad 的顶层结构是工作台：顶部工具条、左侧时间线 / 筛选、
 | --- | --- | --- | --- | --- | --- | --- |
 | iPad Main Workspace | 承载三栏工作台和可收起面板 | Root 进入 iPad main | Shell | `PadMainView.swift` | 使用本地 seed；面板展开状态是 transient UI state | Split View、Stage Manager 和窄宽度下主内容优先 |
 | 顶部工作台工具条 | 切换左右面板、搜索、新建记录 | iPad main 顶部 | Implemented / Unavailable | `PadWorkspaceBar.swift` | 搜索打开 unavailable；新建打开编辑 sheet；设置入口不在顶部重复出现 | 图标按钮需保持 44pt 触控和动态辅助标签，右侧面板切换位于顶部最右侧 |
-| 左侧时间线 | 浏览记录并选择当前 entry | 左侧面板 | Implemented | `PadSidebarView`、`EntryTimelineRow` | 使用本地 entries | 收起后不留空白；选择 entry 后主区进入详情 |
+| 左侧时间线 | 浏览记录并选择当前 entry | 左侧面板 | Implemented / Platform Follow-up | `PadSidebarView`、`EntryTimelineRow` | 使用共享 learning content store；本轮未完成人工验收后的 iPad 真实学习材料生成接入 | 收起后不留空白；选择 entry 后主区进入详情；iOS 验收后复查 iPad async 保存、生成入口和状态展示 |
 | 左侧筛选 | 按全部、照片写作、待练习、已记忆筛选 | 左侧面板 | Local Mock | `PadFilter` in `PadMainModels.swift`、`FilterPill` | 基于本地 mock 数据和 memory items 推导 | 筛选语义后续要随真实数据模型复查 |
 | 左侧页面入口 | 进入记忆、导入导出、设置 | 左侧面板 | Implemented / Unavailable | `PadSidebarView`、`PadWorkspaceRoute` | 导入导出为 unavailable；设置为只读能力页 | 不把低频配置放到顶部挤压工作台 |
 | iPad 语言空间底部区 | 显示当前空间、AI、同步、设置入口 | 左侧面板底部 | Implemented | `LanguageSpaceFooter.swift` | AI / Sync 为状态说明，不自动发送或同步 | 图标不能只靠颜色表达状态 |
 | 工作台概览 / 写作主区 | 展示当前记录、双语正文、音频面板和句子列表 | 默认 route `.workspace` | Local Mock | `PadWorkspaceContentView.workspaceOverview` | `AudioPanel` 是本地 mock UI；句子来自 rendering | 中央主区是视觉焦点；避免卡片套卡片 |
 | iPad 空工作台状态 | 没有选中记录时给出安静的主区占位 | 默认 route 且无 selected entry，或目标 entry 缺失 | Implemented | `EmptyWorkspacePanel` in `PadSidebarControls.swift` | 不创建记录、不生成内容 | 不能显示裸文本或错误式空状态；后续真实空数据需保留创建入口 |
-| 记录详情 | 在主区完整查看单条记录 | 时间线选择或 route `.entryDetail` | Implemented / Local Mock | `EntryDetailView` reused in `PadWorkspaceContentView` | 与 iPhone 共享详情组件 | 共享组件改动需同时复查 iPhone 和 iPad |
+| 记录详情 | 在主区完整查看单条记录 | 时间线选择或 route `.entryDetail` | Implemented / Platform Follow-up | `EntryDetailView` reused in `PadWorkspaceContentView` | 与 iPhone 共享详情组件；本轮未接入 iPad 真实学习材料生成 UI，等待 iOS 人工测试通过后再推进 | 共享组件改动需同时复查 iPhone 和 iPad；平台接入时复查大屏状态展示 |
 | 听一句预览 | 从句子列表打开本地听读预览 | 句子 `听` | Local Mock | `SentencePairView`、`LocalListeningPreviewView.swift` | 不触发真实 TTS 或录音 | sheet 尺寸和 iPad 阅读宽度需单独检查 |
 | 练习详情 | 在主区进行步骤式练习 | 句子 `练` 或学习面板练习入口 | Local Mock | `PracticeSessionView`、`PracticeControlBar.swift` | 本地 step 状态；无真实语音服务 | 后续语音能力不能直接塞入小 sheet |
 | 设置列表 | 在主区查看能力列表 | 左侧设置、底部设置 | Implemented | `PadWorkspaceContentView.settingsList` | 多数设置为只读说明，界面语言可切换 | iPad 设置应服务当前空间，不变成后台管理；顶部工具条不重复放置设置齿轮 |
@@ -85,7 +85,7 @@ iPad 的顶层结构是工作台：顶部工具条、左侧时间线 / 筛选、
 | 右侧学习面板 | 随当前 route 展示上下文；记录 / 练习 route 展示当前句子、记忆提取、练习入口、空间设置、请求预览 | 右侧面板 | Local Mock | `PadMainView.learningPanel`、`PadLearningPanelView` | `RequestPreviewCard` 只出现在 entry 学习上下文；设置、记忆、导入导出和语言空间 route 显示对应低干扰上下文，不发送数据 | 右侧内容必须匹配主区 route，不能在设置页继续展示当前记录学习内容；右侧面板容器需保留外侧 gutter，内容块需保留额外 trailing inset，避免贴近屏幕边缘 |
 | 右侧学习面板空状态 | 未选中记录时说明学习面板等待内容 | 右侧学习面板无 selected entry | Implemented | `PadLearningPanelView`、`LocalizedTextPanel` | 只展示说明，不触发生成或练习 | 空状态应低干扰，不能要求用户先配置工程能力 |
 | 搜索 unavailable sheet | 表达搜索尚未接入 | 顶部搜索 | Unavailable | `PadSheet.unavailableSearch`、`UnavailableCapabilityView(.search)` | 不执行真实搜索或索引查询 | 后续搜索接入时需定义跨空间范围 |
-| 新建记录 sheet | 创建文本记录 | 顶部新建 | Implemented | `EntryEditorView` reused by `PadMainView` | 内存 repository；不持久化 | 后续 iPad 可考虑平台专属编辑体验 |
+| 新建记录 sheet | 创建文本记录 | 顶部新建 | Implemented / Platform Follow-up | `EntryEditorView` reused by `PadMainView` | 复用共享 store；本轮未做 iPad 人工验收后的真实学习材料生成 UI 接入 | 后续 iPad 可考虑平台专属编辑体验；iOS 验收后复查创建保存状态和失败恢复 |
 
 ## 5. macOS 页面清单
 
@@ -98,8 +98,8 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 | Mac Toolbar | 切换 Sidebar / Inspector、搜索、新建记录 | 窗口 toolbar | Implemented / Unavailable | `MacMainView.toolbar` | 搜索 route 为 unavailable；新建打开 overlay | 桌面命令需与菜单栏保持一致 |
 | Today 主区 | 展示当前 entry 详情和搜索 / 批量导入入口 | Sidebar `Today` | Local Mock | `MacWorkspaceContentView.todayContent` | 搜索、批量导入为 unavailable；entry 为本地 mock | 不能像后台 dashboard，主内容应围绕当前记录 |
 | Entries 资料库 | 浏览所有记录并选择详情 | Sidebar `Entries` | Implemented | `MacWorkspaceContentView.entriesContent` | 使用本地 entries | 后续批量管理、排序、搜索接入后更新 |
-| Entry Detail | 查看选中记录详情 | Entries row、Today 选中、保存后 | Implemented / Local Mock | `EntryDetailView` reused in `MacWorkspaceContentView` | 共享移动端详情组件；rendering 可能为 mock | macOS 可能需要更桌面化详情布局，避免移动布局直接放大 |
-| New Entry Overlay | 桌面化创建记录 | Toolbar plus、菜单 New Entry | Implemented | `MacEntryEditorOverlay`、`MacEntryEditorSheet.swift` | 保存到内存 repository；不持久化 | overlay 点击背景取消、键盘取消和输入体验需保持 |
+| Entry Detail | 查看选中记录详情 | Entries row、Today 选中、保存后 | Implemented / Platform Follow-up | `EntryDetailView` reused in `MacWorkspaceContentView` | 共享详情组件；本轮未做 macOS 真实学习材料生成 UI 接入，等待 iOS 人工测试通过后再推进 | macOS 可能需要更桌面化详情布局，避免移动布局直接放大；接入时复查 AI Provider 披露和右侧 Inspector 元数据 |
+| New Entry Overlay | 桌面化创建记录 | Toolbar plus、菜单 New Entry | Implemented / Platform Follow-up | `MacEntryEditorOverlay`、`MacEntryEditorSheet.swift` | 复用共享 store；本轮未做 macOS 人工验收后的真实学习材料生成 UI 接入 | overlay 点击背景取消、键盘取消和输入体验需保持；iOS 验收后复查 async 保存和失败恢复 |
 | Practice section | 查看所有 entry 的练习任务 | Sidebar `Practice` | Local Mock | `MacWorkspaceContentView.practiceContent` | 有 rendering 的记录显示 mock practice items | 后续真实音频 / 录音应有桌面控制面 |
 | Practice route | 执行某条记录的练习会话 | Practice item 或 entry detail | Local Mock | `PracticeSessionView` reused in `MacWorkspaceContentView.practice` | 本地 step 状态；无录音或 TTS | macOS 练习可能需要键盘快捷键和更高密度布局 |
 | Memory section | 查看记忆摘要、记忆项和向量索引边界 | Sidebar `Memory` | Local Mock / Unavailable | `MacWorkspaceContentView.memoryContent`、`MemoryLayerSummaryView` | 向量索引为 unavailable | macOS 可展示更多资料库信息，但不能泄露工程术语给普通用户 |
@@ -212,4 +212,5 @@ rg "规划中|待配置|当前页面只展示入口边界|不播放真实 TTS|on
 - 2026-05-21：更新 AI Provider 图片理解能力边界事实。原因：OpenRouter / Custom OpenAI-compatible 的图片输入能力由具体模型决定，设置页不再用 Provider preset 静态布尔值禁用图片理解；UI 通过 Provider、adapter、endpoint purpose、模型策略和用户启用状态解析能力，`supportsImageInput` 只作为 endpoint 运行期防线和保存快照。影响范围：AIProviderSettingsModels、AIProviderDraftConfiguration、AIProviderSettingsView、AIProviderSettingsComponents、Core endpoint normalization 和 AI Provider 隐私规范。是否需要 ADR：否，沿用 ADR-005；动态模型列表和真实用户照片请求仍需另开方案。
 - 2026-05-22：更新 AI Provider 语言支持合成测试首轮事实。原因：iOS Provider 设置页先新增当前语言空间上下文下的 `语言支持` probe，AI 层会让模型生成目标语言较长样例并用本机 JSON、长度、NaturalLanguage 和脚本规则校验；iPad / macOS 设置入口在后续人工审核节点后接入。影响范围：LanguageSpacePreview、AIProviderSettingsView、AIProviderDraftConfiguration、AIProviderSettingsActions、AppEnvironment、LangoTraceAI、Prompt Registry 和 AI Provider 隐私规范。是否需要 ADR：否，沿用 ADR-005；真实学习内容请求仍需单独请求预览方案。
 - 2026-05-22：补充 iPad / macOS 语言支持入口事实。原因：iOS 人工审核后，iPad / macOS 工作台设置详情和 macOS 原生 Settings scene 通过共享 `SettingsCapabilityDetailView` 注入同一 target language code，不新增平台专属 AI Provider 表单。影响范围：SettingsCapabilityDetailView、AIProviderSettingsView、页面清单和 AI Provider 隐私规范。是否需要 ADR：否，沿用 ADR-005。
+- 2026-05-23：更新一键学习材料生成的 iOS 优先落地状态。原因：iPhone 记录详情已从本地预览推进到真实 AI Provider 请求、GRDB LearningMaterial 保存、learning text 编辑和重新分析；iPad / macOS UI 接入按用户确认延后到 iOS 人工测试通过后。影响范围：EntryDetailView、LearningContentStore、LearningMaterialGenerationActions、AppEnvironment、LangoTraceData、LangoTraceAI 和页面清单。是否需要 ADR：否，沿用本地优先与三端共享业务逻辑决策。
 - 2026-05-23：补充外观设置与浅色 / 深色基础设施事实。原因：三端设置列表新增外观能力，App 层通过设备级 `AppearancePreference` 和 `preferredColorScheme` 即时切换浅色 / 深色，`LangoTraceDesign` 已接入 light / dark token；发布级视觉仍需截图或人工验收。影响范围：iPhone / iPad / macOS 设置入口、macOS Settings scene、共享设置详情和设计 token。是否需要 ADR：否，当前只实现系统外观偏好。

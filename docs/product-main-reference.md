@@ -924,6 +924,8 @@ Entry 可以包含：
 
 Entry 的产品含义是：这是用户生活中的一段真实语境。
 
+保存后的 Entry 正文是原始生活记录快照，不应被 AI 优化稿、学习文本编辑或重新分析覆盖。用户在保存前可以编辑草稿；保存后若需要修正正文，第一版通过删除重建处理，未来可以另行设计“复制为新记录”或非正文 metadata 编辑能力。标题、标签、场景等元数据可以在后续任务中单独设计编辑，但不得把正文编辑和派生学习文本编辑混在同一路径。
+
 ### 18.3 Rendering
 
 Rendering 是 AI 将 Entry 转换成目标语言后的学习版本。
@@ -948,6 +950,10 @@ Rendering 应记录：
 - 用户对质量的反馈。
 
 Rendering 的产品含义是：这是用户生活材料在目标语言中的一种表达方式。
+
+当前实现中，`LearningMaterial` 是 Rendering 的第一版真实持久化形态：AI 可以根据原始 Entry 一次生成目标语言 learning text、输入类型判断、修改说明、逐句分析、memory candidate 和 practice candidate。用户可以编辑派生 learning text；编辑后 analysis 标记为 stale，用户可触发 `重新分析` 只重建分析和候选内容，不改原始 Entry，也不重新生成 learning text。
+
+第一版 iPhone 记录详情只保留一个核心 AI 动作 `生成学习材料`。它由 AI 自行判断母语记录、目标语言写作、混合文本或不确定文本；目标语言写作会返回优化稿和修改说明。iPad / macOS 记录详情的真实学习材料生成入口在 iOS 人工测试通过后再接入，底层数据、Prompt 和 Provider 边界保持三端复用。
 
 ### 18.4 Practice
 

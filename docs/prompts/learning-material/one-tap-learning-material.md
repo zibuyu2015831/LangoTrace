@@ -7,9 +7,9 @@ Prompt id：
 
 所属功能：一键生成学习材料闭环。
 
-调用模块：规划为 `Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialGenerationService.swift` 与 `LearningMaterialPromptRegistry.swift`。
+调用模块：`Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialGenerationService.swift` 与 `LearningMaterialPromptRegistry.swift`。
 
-代码位置：当前任务尚未实现生产代码；实现时必须让代码中的英文 Prompt 与本文档一致，或在代码中引用可由本文档完整还原的模板片段。
+代码位置：当前生产代码使用 `LearningMaterialPromptRegistry` 渲染内置英文 system / user prompt，并由 `LearningMaterialGenerationService` 发送给 OpenAI Responses / OpenAI-compatible Chat adapter。本文档保存完整 Prompt 设计、输入变量、输出契约和隐私边界；代码中的紧凑英文 Prompt 必须保持同一 prompt id、version、schema version、输入变量和结构化输出要求，后续若扩展为完整模板，应以本文档为准同步更新 AI snapshot 测试。
 
 输入变量：
 
@@ -60,6 +60,7 @@ Prompt id：
 版本记录：
 
 - 2026-05-23：补充运行时 JSON Schema 绑定要求。原因：仅要求 `Return JSON only` 不能稳定约束深层字段、枚举、数组上限和额外字段；真实实现必须通过 Provider-native schema 或 fallback schema prompt 加解析校验来保证结构化输出质量。影响范围：LangoTraceAI、Prompt Registry、AI tests、Data mapping tests。是否需要 ADR：否，属于既有结构化输出规范的实施细化。
+- 2026-05-23：更新实现状态。原因：一键学习材料生成和重新分析已通过 `LearningMaterialPromptRegistry` / `LearningMaterialGenerationService` 接入生产代码，当前代码采用紧凑英文 Prompt 加 Codable 结构校验，完整 Prompt 设计仍由本文档维护。影响范围：LangoTraceAI、LangoTraceData、LangoTraceUI 和 App Shell。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-23：创建 v1 Prompt 设计。原因：一键生成学习材料方案确认采用完整 GRDB 持久化路径，需要同步明确真实 AI Prompt、结构化输出契约和隐私边界。影响范围：LangoTraceAI、LangoTraceData、LangoTraceUI、Prompt Registry 和 active plan。是否需要 ADR：否，沿用 ADR-005。
 
 ## Generate Prompt

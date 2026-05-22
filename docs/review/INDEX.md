@@ -4,8 +4,8 @@
 
 ## 最新状态摘要
 
-- 最近审查轮次：`2026-05-22-doc-system-ai-coding-quality-alignment`。
-- 最近完成时间：2026-05-22。
+- 最近审查轮次：`2026-05-23-one-tap-learning-material-flow`。
+- 最近完成时间：待最终验证。
 - 待用户澄清的问题数：0。
 - 延后项：0。
 
@@ -13,6 +13,7 @@
 
 | 轮次 ID | 类型 | 启动时间 | 完成时间 | 状态 | 当前事实源 | 后续覆盖记录 | 可作为依据 | 链接 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `2026-05-23-one-tap-learning-material-flow` | 专项审查 | 2026-05-23 | 待最终验证 | In Progress | `docs/product-main-reference.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/learning-content/impl.md`、`docs/platform-page-inventory.md`、`docs/prompts/learning-material/one-tap-learning-material.md` | `docs/plans/active/2026-05-22-feature-one-tap-learning-material-flow.md` | No | [README](rounds/2026-05-23-one-tap-learning-material-flow/README.md) |
 | `2026-05-22-doc-system-ai-coding-quality-alignment` | 专项审查 | 2026-05-22 | 2026-05-22 | Verified | `docs/README.md`、`docs/product-main-reference.md`、`docs/platform-page-inventory.md`、`docs/spec/README.md`、`docs/spec/010-apple-platform-interaction-and-accessibility.md`、`docs/testing/README.md` | `docs/plans/done/2026-05-22-docs-doc-system-ai-coding-quality-alignment.md` | Yes | [README](rounds/2026-05-22-doc-system-ai-coding-quality-alignment/README.md) |
 | `2026-05-22-ai-provider-language-support-probe` | 专项审查 | 2026-05-22 | 2026-05-22 | Verified | `docs/README.md`、`docs/architecture/001-initial-module-boundaries.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/006-interface-localization-and-language-boundaries.md`、`docs/platform-page-inventory.md`、`docs/prompts/ai-provider/provider-configuration-probe.md` | none | Yes | [README](rounds/2026-05-22-ai-provider-language-support-probe/README.md) |
 | `2026-05-20-diagnostics-provider-save-feedback` | 专项审查 | 2026-05-20 | 2026-05-20 | Verified | `docs/review/rounds/2026-05-20-diagnostics-provider-save-feedback/` | `docs/plans/done/2026-05-20-feature-diagnostics-and-ai-provider-save-feedback.md`、`docs/spec/003-ui-design-system.md`、`docs/spec/004-swiftui-architecture.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`、`docs/spec/009-testing-and-verification.md`、`docs/architecture/001-initial-module-boundaries.md` | Yes | [README](rounds/2026-05-20-diagnostics-provider-save-feedback/README.md) |
@@ -41,6 +42,7 @@
 
 | 日期 | 触发原因 | 触发的轮次 | 涉及文档 |
 | --- | --- | --- | --- |
+| 2026-05-23 | 一键生成学习材料闭环落地触发数据库 schema、GRDB repository、AI Provider 真实学习请求、Prompt Registry、Keychain 编排、iPhone 记录详情主流程和隐私披露边界专项文档影响检查 | `2026-05-23-one-tap-learning-material-flow` | `docs/plans/active/2026-05-22-feature-one-tap-learning-material-flow.md`、`docs/product-main-reference.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/learning-content/impl.md`、`docs/platform-page-inventory.md`、`docs/prompts/learning-material/one-tap-learning-material.md` |
 | 2026-05-22 | 用户要求从系统架构师和资深 Apple 应用交互师角度审查 docs 文档体系，审查发现 iPhone IA、Onboarding 持久化和 Apple 三端交互 / 可访问性规范入口存在事实漂移或缺口 | `2026-05-22-doc-system-ai-coding-quality-alignment` | `docs/README.md`、`docs/product-main-reference.md`、`docs/platform-page-inventory.md`、`docs/spec/README.md`、`docs/spec/010-apple-platform-interaction-and-accessibility.md`、`docs/testing/README.md` |
 | 2026-05-22 | AI Provider 语言支持合成测试从 iOS 扩展到 iPad / macOS，并触发 AI Provider、隐私边界、Prompt Registry、三端设置入口和模块边界专项文档影响检查 | `2026-05-22-ai-provider-language-support-probe` | `docs/README.md`、`docs/architecture/001-initial-module-boundaries.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/006-interface-localization-and-language-boundaries.md`、`docs/platform-page-inventory.md`、`docs/prompts/README.md`、`docs/prompts/ai-provider/provider-configuration-probe.md` |
 | 2026-05-20 | AI Provider 保存反馈与诊断日志基础设施实现触发数据库 schema、AI Provider、隐私边界、诊断日志、验证脚本、包边界和 App 启动结构专项文档影响检查 | `2026-05-20-diagnostics-provider-save-feedback` | `docs/plans/done/2026-05-20-feature-diagnostics-and-ai-provider-save-feedback.md`、`docs/spec/003-ui-design-system.md`、`docs/spec/004-swiftui-architecture.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`、`docs/spec/009-testing-and-verification.md`、`docs/architecture/001-initial-module-boundaries.md` |
@@ -57,6 +59,7 @@
 
 | 轮次 | 问题数 | 代码问题记录数 | 新会话可用抽样 |
 | --- | --- | --- | --- |
+| `2026-05-23-one-tap-learning-material-flow` | 5 个文档事实问题，已更新 learning content、AI 隐私、数据存储、页面清单、Prompt Registry 和产品主参考；待完整 verify 与 iOS 人工验收后转 Verified | 0 个新增代码问题；审查确认当前代码仍有 Prompt 完整模板 / JSON Schema 强化、settings capability 拆分和 iPad/macOS 接入后续项 | 暂不作为依据：仍需 `scripts/verify.sh` 和 iOS 人工测试记录 |
 | `2026-05-22-doc-system-ai-coding-quality-alignment` | 4 个文档事实 / 规范入口问题，已修正 iPhone 旧五 Tab 口径、测试闭环旧清单、Onboarding 持久化事实和 Apple 三端交互 / 可访问性规范入口 | 0 | 通过：README、产品主参考、页面清单、spec 入口、新增 010 规范和 testing 入口可共同指导 AI 后续开发三端 UI、可访问性和验证边界 |
 | `2026-05-22-ai-provider-language-support-probe` | 4 个文档事实 / 变更记录漂移问题，已修正 README 已完成能力、模块边界 AI 请求事实、UI action seam 边界和 iOS-only 记录 | 0 | 通过：README、架构快照、spec、Prompt Registry 和页面清单均可说明语言支持 probe 是用户触发的固定合成测试，不是真实学习内容请求 |
 | `2026-05-20-diagnostics-provider-save-feedback` | 6 个文档 / 架构事实问题，已修正 AI package 验证缺口、诊断日志隐私边界、Provider 保存诊断、SwiftUI / UI 操作反馈、模块边界快照和诊断 ring buffer 自动保留策略；剩余风险是用户可见诊断设置页、诊断包导出和真实 Provider 合成探测 | 2 个代码边界补丁：输入无效保存路径独立记录 `save_input_invalid`；`diagnostic_events` 写入后同事务应用数量 / 时间保留策略 | 通过：README 覆盖触发原因、当前事实、延期项、验证记录和剩余风险 |
