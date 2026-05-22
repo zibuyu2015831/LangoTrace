@@ -97,7 +97,7 @@ func openAICompatibleChatProbeRunsLanguageSupportAfterStructuredJSONSuccess() as
     let languageBody = try #require(String(data: requests[2].httpBody ?? Data(), encoding: .utf8))
     #expect(languageBody.contains("field named sample"))
     #expect(languageBody.contains("English"))
-    #expect(languageBody.contains("40 to 70 words"))
+    #expect(languageBody.contains("about 50 words"))
     #expect(!languageBody.contains("life record"))
     #expect(!languageBody.contains("Prompt Preset"))
 }
@@ -115,6 +115,33 @@ func languageSupportProbeIsNotConfiguredWithoutLanguageContext() async throws {
     #expect(result.overallStatus == .succeeded)
     #expect(result.capability(.languageSupport)?.status == .notConfigured)
     #expect(await httpClient.requests.count == 2)
+}
+
+@Test("Language support failure diagnostics include capability scoped error category")
+func languageSupportFailureDiagnosticsIncludeCapabilityScopedErrorCategory() async throws {
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"choices":[{"message":{"content":"OK"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"{\"ok\":true}"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"{\"sample\":\"I wrote a note today.\"}"}}]}"#),
+    ])
+    let logger = InMemoryDiagnosticLogger()
+    let service = AIProviderConfigurationProbeService(httpClient: httpClient, diagnosticLogger: logger)
+
+    let result = try await service.probeDraftConfiguration(
+        draftInput(
+            adapterKind: .openAICompatibleChat,
+            languageContext: AIProviderProbeLanguageContext(languageCode: "en")
+        )
+    )
+
+    #expect(result.capability(.languageSupport)?.status == .failed)
+    #expect(result.capability(.languageSupport)?.errorCategory == .invalidResponse)
+
+    let events = await logger.events()
+    let completion = try #require(events.last)
+    #expect(completion.name == .aiProviderConfigurationProbePartial)
+    #expect(completion.attributes.contains(.errorCategory("language_support:invalid_response")))
+    #expect(!String(describing: completion).contains("I wrote a note today"))
 }
 
 @Test("Structured JSON failure skips language support but keeps existing image probe behavior")

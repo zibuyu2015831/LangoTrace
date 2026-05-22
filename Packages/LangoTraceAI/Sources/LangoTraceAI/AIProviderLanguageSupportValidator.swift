@@ -106,11 +106,9 @@ private extension AIProviderLanguageSupportValidator {
     }
 
     func parseSample(from responseText: String) -> String? {
-        let trimmed = responseText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.hasPrefix("```"),
-              let data = trimmed.data(using: .utf8),
+        guard let candidate = jsonCandidate(from: responseText),
+              let data = candidate.data(using: .utf8),
               let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              object.count == 1,
               let sample = object["sample"] as? String
         else {
             return nil
@@ -119,13 +117,37 @@ private extension AIProviderLanguageSupportValidator {
         return normalizedSample.isEmpty ? nil : normalizedSample
     }
 
+    func jsonCandidate(from responseText: String) -> String? {
+        let trimmed = responseText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("```") else {
+            return trimmed
+        }
+
+        var lines = trimmed.split(separator: "\n", omittingEmptySubsequences: false)
+        guard let first = lines.first,
+              first.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("```")
+        else {
+            return nil
+        }
+        lines.removeFirst()
+
+        if let last = lines.last,
+           last.trimmingCharacters(in: .whitespacesAndNewlines) == "```"
+        {
+            lines.removeLast()
+        }
+
+        let candidate = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        return candidate.isEmpty ? nil : candidate
+    }
+
     func validateLength(_ sample: String, for target: TargetLanguage) -> Bool {
         if target.usesVisibleCharacterCount {
             let count = visibleCharacterCount(sample)
-            return (45 ... 80).contains(count)
+            return (35 ... 140).contains(count)
         }
         let count = wordCount(sample)
-        return (40 ... 70).contains(count)
+        return (25 ... 120).contains(count)
     }
 
     func visibleCharacterCount(_ sample: String) -> Int {

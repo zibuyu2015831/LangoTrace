@@ -72,15 +72,15 @@ Prompt 不直接提供完整目标 JSON 字面量作为可复制答案，只说�
 
 ### Language Support Probe
 
-模型必须根据目标学习语言生成严格 JSON object，且只包含一个字段 `sample`。验收结构为：
+模型必须根据目标学习语言生成 JSON object，且包含一个字段 `sample`。验收结构为：
 
 ```json
 {"sample":"..."}
 ```
 
-`sample` 必须只使用 `target_language_name` 对应语言。中文、日语或韩语目标长度为 45 到 80 个可见字符；英语、法语、德语或西班牙语目标长度为 40 到 70 个词。内容主题固定为“一个人记录日常生活中的普通片刻”，不包含用户真实生活内容。
+`sample` 必须只使用 `target_language_name` 对应语言。Prompt 要求中文、日语或韩语约 50 个可见字符，英语、法语、德语或西班牙语约 50 个词；本机验收使用更宽容的范围，避免把轻微长度偏差误判为语言能力失败。内容主题固定为“一个人记录日常生活中的普通片刻”，不包含用户真实生活内容。
 
-当前实现会拒绝 Markdown code fence、额外字段、空字符串、长度不合格、离线语言识别不匹配或脚本规则不匹配的响应。语言支持失败只表示本次合成测试未能确认当前模型适合该目标语言，不证明模型绝对不支持该语言。
+当前实现会从常见 Markdown code fence 中提取 JSON，忽略 `sample` 之外的额外字段，但会拒绝空字符串、明显短句、离线语言识别不匹配或脚本规则不匹配的响应。严格结构化输出能力由 `JSON 输出` probe 负责；语言支持失败只表示本次合成测试未能确认当前模型适合该目标语言，不证明模型绝对不支持该语言。
 
 ### Image Understanding Probe
 
@@ -147,8 +147,8 @@ Configuration test. Return a single JSON object with exactly one field named ok.
 Configuration test. Generate a natural sample in {target_language_name}.
 Return exactly one JSON object with exactly one field named sample.
 The sample must be written only in {target_language_name}.
-For Chinese, Japanese, or Korean, write approximately 45 to 80 visible characters.
-For English, French, German, or Spanish, write approximately 40 to 70 words.
+For Chinese, Japanese, or Korean, write about 50 visible characters.
+For English, French, German, or Spanish, write about 50 words.
 The sample should describe a person recording an ordinary moment from daily life.
 Do not include translation, language names, markdown, code fences, explanations, or any other text.
 ```
@@ -179,8 +179,8 @@ Describe the image using exactly two lowercase English words: color then shape. 
 配置测试。请使用 {目标语言名称} 生成一段自然样例。
 只返回一个 JSON object，且只包含一个名为 sample 的字段。
 sample 必须只使用 {目标语言名称}。
-中文、日语或韩语请写约 45 到 80 个可见字符。
-英语、法语、德语或西班牙语请写约 40 到 70 个词。
+中文、日语或韩语请写约 50 个可见字符。
+英语、法语、德语或西班牙语请写约 50 个词。
 样例内容描述一个人记录日常生活中的普通片刻。
 不要包含翻译、语言名称、Markdown、代码块、解释或任何其他文本。
 ```

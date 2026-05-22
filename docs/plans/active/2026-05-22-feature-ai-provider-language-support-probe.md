@@ -28,7 +28,7 @@
 
 本任务新增：
 
-- `语言支持`：本轮使用当前语言空间的目标学习语言，要求文本模型生成约 50 字左右的目标语言样例；本机解析严格 JSON 后，用离线语言识别和脚本规则做 smoke test。后续若实现 onboarding 或新增语言空间软验证入口，再使用正在创建语言空间的 draft 目标语言。
+- `语言支持`：本轮使用当前语言空间的目标学习语言，要求文本模型生成约 50 字左右的目标语言样例；本机提取 JSON `sample` 后，用长度、离线语言识别和脚本规则做 smoke test。后续若实现 onboarding 或新增语言空间软验证入口，再使用正在创建语言空间的 draft 目标语言。
 
 硬边界：
 
@@ -88,11 +88,11 @@ AI Provider 配置页当前能验证模型 endpoint 是否可连通、能否返�
 - AI Provider 配置测试结果面板新增 `语言支持` 分项。
 - 本轮 `语言支持` probe 使用当前语言空间目标语言；语言空间创建 draft 目标语言只作为后续 onboarding / 新增语言空间软验证入口的设计边界。
 - 当没有当前语言空间且测试入口不在创建流程中时，`语言支持` 显示未配置或需要选择测试语言，不阻断其他 probe。
-- `语言支持` Prompt 要求模型返回严格 JSON object，且只包含一个字段 `sample`。
+- `语言支持` Prompt 要求模型返回包含 `sample` 字段的 JSON object；本机允许常见 Markdown code fence 包裹和 `sample` 之外的额外字段，避免把结构化输出偏差误判为语言能力失败。
 - `sample` 是目标语言的较长样例文本，不是简短一句话。
-- 输出长度采用按语言族分层的“约 50 字左右”策略：
-  - `zh-Hans`、`ja`、`ko`：目标为 45 到 80 个可见字符。
-  - `en`、`fr`、`de`、`es`：目标为 40 到 70 个词。
+- Prompt 输出长度采用“约 50 字/词”策略，本机验收范围按语言族放宽：
+  - `zh-Hans`、`ja`、`ko`：验收 35 到 140 个可见字符。
+  - `en`、`fr`、`de`、`es`：验收 25 到 120 个词。
 - 本机校验至少包含 JSON 结构校验、非空校验、长度校验、离线语言识别和脚本规则。
 - `语言支持` 失败不等于“模型不支持该语言”的绝对结论，只表示本次合成测试未能确认该模型适合当前目标语言。
 - 已保存 profile 测试的 App 级 synthetic outcome 可以继续写入 validation event；语言支持分项失败不得把 Provider profile 最近验证摘要改为失败。diagnostic event 只记录非敏感枚举和值，不记录 `sample` 原文。
@@ -153,8 +153,8 @@ AI Provider 配置页当前能验证模型 endpoint 是否可连通、能否返�
 | 决策 | 结论 | 理由 | 防误读 |
 | --- | --- | --- | --- |
 | UI 名称 | `语言支持` | 短、可与文本回复 / JSON 输出 / 图片理解并列 | 不是语言能力认证。 |
-| 测试长度 | CJK/日/韩 45-80 可见字符；拉丁语系 40-70 词 | 长文本比一句短句更能暴露模型是否真正按目标语言输出 | 不要求精确 50 个字符或 50 个词。 |
-| 校验方式 | JSON 结构 + 长度 + NaturalLanguage + 脚本规则 | 当前本机可做到的较强 smoke test | 不证明语法、自然度或教学质量。 |
+| 测试长度 | Prompt 要求约 50 个可见字符或约 50 个词；本机验收使用更宽容的下限和上限 | 长文本比一句短句更能暴露模型是否真正按目标语言输出，同时避免强模型因轻微长度偏差被误判 | 不要求精确 50 个字符或 50 个词；仍拒绝明显短句。 |
+| 校验方式 | JSON `sample` 提取 + 长度 + NaturalLanguage + 脚本规则 | 当前本机可做到的较强 smoke test | 不证明语法、自然度或教学质量；语言支持不是结构化 JSON 严格格式认证。 |
 | 语言空间创建 | 软门槛 | 语言空间是本地学习容器，AI Provider 是增强能力 | 失败不阻止创建，但应清楚提示风险。 |
 | Provider 设置页测试语言 | 优先当前语言空间；无当前空间则显示未配置或引导选择 | Provider 配置本身是 App 级默认 profile，不绑定语言空间 | 不把测试语言写入 Provider profile。 |
 | 日志与 validation | 只记录非敏感状态、语言 code、错误分类、耗时 | 防止样例文本进入诊断或持久日志 | `sample` 原文不得写入日志、validation event 或持久 profile；语言支持失败不得污染 Provider profile 全局验证摘要。 |
@@ -171,8 +171,8 @@ Prompt id：
 Configuration test. Generate a natural sample in {target_language_name}.
 Return exactly one JSON object with exactly one field named sample.
 The sample must be written only in {target_language_name}.
-For Chinese, Japanese, or Korean, write approximately 45 to 80 visible characters.
-For English, French, German, or Spanish, write approximately 40 to 70 words.
+For Chinese, Japanese, or Korean, write about 50 visible characters.
+For English, French, German, or Spanish, write about 50 words.
 The sample should describe a person recording an ordinary moment from daily life.
 Do not include translation, language names, markdown, code fences, explanations, or any other text.
 ```
@@ -183,8 +183,8 @@ Do not include translation, language names, markdown, code fences, explanations,
 配置测试。请使用 {目标语言名称} 生成一段自然样例。
 只返回一个 JSON object，且只包含一个名为 sample 的字段。
 sample 必须只使用 {目标语言名称}。
-中文、日语或韩语请写约 45 到 80 个可见字符。
-英语、法语、德语或西班牙语请写约 40 到 70 个词。
+中文、日语或韩语请写约 50 个可见字符。
+英语、法语、德语或西班牙语请写约 50 个词。
 样例内容描述一个人记录日常生活中的普通片刻。
 不要包含翻译、语言名称、Markdown、代码块、解释或任何其他文本。
 ```
@@ -209,12 +209,12 @@ sample 必须只使用 {目标语言名称}。
 必须先解析响应文本：
 
 - 去除响应首尾空白。
-- 拒绝 Markdown code fence。
+- 允许整体响应被常见 Markdown code fence 包裹；只从其中提取 JSON object。
 - 使用 JSON parser 解析。
 - 顶层必须是 object。
-- object 必须 exactly one field。
 - 字段名必须为 `sample`。
 - `sample` 必须是非空字符串。
+- 额外字段不作为失败条件；语言支持 probe 关注当前模型是否能生成目标语言样例，严格结构化输出已由 `JSON 输出` probe 覆盖。
 
 结构失败映射：
 
@@ -228,19 +228,19 @@ sample 必须只使用 {目标语言名称}。
 
 | 目标语言 | 校验单位 | 合格范围 |
 | --- | --- | --- |
-| `zh-Hans` | 可见字符 | 45-80 |
-| `ja` | 可见字符 | 45-80 |
-| `ko` | 可见字符 | 45-80 |
-| `en` | 词 | 40-70 |
-| `fr` | 词 | 40-70 |
-| `de` | 词 | 40-70 |
-| `es` | 词 | 40-70 |
+| `zh-Hans` | 可见字符 | 35-140 |
+| `ja` | 可见字符 | 35-140 |
+| `ko` | 可见字符 | 35-140 |
+| `en` | 词 | 25-120 |
+| `fr` | 词 | 25-120 |
+| `de` | 词 | 25-120 |
+| `es` | 词 | 25-120 |
 
 说明：
 
 - 可见字符统计应去除空白和常见标点。
 - 词数统计按 Unicode word boundary 或 `NLTokenizer(unit: .word)`，实现时优先使用 Apple NaturalLanguage 的 tokenizer。
-- 长度不合格时返回 `invalidResponse`，因为 Provider 已响应但不符合测试契约。
+- 长度不合格时返回 `invalidResponse`，因为 Provider 已响应但不符合测试契约；范围故意宽于 Prompt，避免把约 50 字/词的轻微偏差误判为语言能力失败。
 
 ### 8.3 离线语言识别
 
@@ -574,7 +574,8 @@ public struct AIProviderProbeLanguageContext: Equatable, Sendable {
 3. 在 `AIProviderConfigurationProbeTests` 中更新 capability all cases 顺序。
 4. 新增 `AIProviderLanguageSupportValidator`。
 5. 用 TDD 覆盖：
-   - 英语 40-70 词通过。
+   - 英语 25-120 词范围内的较长样例通过。
+   - 常见 Markdown code fence 包裹的 JSON 可以提取 `sample`。
    - 英语短句失败。
    - 日语无假名失败。
    - 韩语无 Hangul 失败。
@@ -747,6 +748,8 @@ scripts/verify.sh
 - 2026-05-22：完成阶段 3，iOS AI Provider 设置页从当前语言空间传入稳定 target language code，结果面板可展示 `语言支持`；iPad / macOS 在人工审核前不传入语言上下文、不展示语言支持入口，commit `559fc33`。聚焦验证：`swift test --package-path Packages/LangoTraceCore --filter LanguageSpaceTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests`、`xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build`。
 - 2026-05-22：完成阶段 4 和阶段 5，已同步 Prompt Registry、AI Provider 隐私规范、语言边界规范和页面清单；根据完整验证反馈修复 SwiftLint / SwiftFormat 格式问题。聚焦验证：`swift test --package-path Packages/LangoTraceAI --filter LangoTraceAITests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swiftformat --lint . --cache ignore`。完整验证：`scripts/verify.sh` 通过。当前进入 iOS 人工审核等待节点，人工审核通过前不继续 iPad / macOS 设置页接入。
 - 2026-05-22：iOS 人工审核前严格复查发现语言支持 probe 取消时，总状态聚合漏算 `.languageSupport` cancelled，可能导致取消被误标为 failed 且诊断事件不是 cancelled。已按 TDD 补充回归测试并修复总状态聚合。验证：`swift test --package-path Packages/LangoTraceAI --filter languageSupportCancellationKeepsOverallProbeStatusCancelled` 先失败后通过；`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationProbeServiceTests`、`swift test --package-path Packages/LangoTraceAI --filter LangoTraceAITests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swiftformat --lint . --cache ignore`、`scripts/verify.sh` 通过。
+- 2026-05-22：iOS 人工测试复现 `语言支持` 显示 `响应异常`。诊断模式下最新事件显示 `text_reply`、`structured_json`、`image_understanding` 均成功，只有 `language_support` 失败；四次 Provider 请求均为 HTTP 200，持久 `synthetic_test` 摘要仍为成功，说明问题不是 Provider 连通性或认证，而是语言支持 smoke test 过窄。已按 TDD 放宽语言支持验收：Prompt 仍要求约 50 字/词，但本机接受 35-140 CJK/日/韩可见字符或 25-120 拉丁语系词；允许从常见 Markdown code fence 中提取 JSON，并忽略 `sample` 之外额外字段；仍拒绝短句、目标脚本不匹配和离线语言识别不匹配。诊断事件补充 capability scoped error category，例如 `language_support:invalid_response`，且不记录 `sample` 原文。验证：`swift test --package-path Packages/LangoTraceAI --filter AIProviderLanguageSupportValidatorTests` 先失败后通过；`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationProbeServiceTests` 通过。
+- 2026-05-22：修复后重新构建并安装 iPhone 17 模拟器，使用同一 OpenRouter `openai/gpt-4o` 配置复测，结果面板显示 `测试成功`，`语言支持` 显示 `可用`；诊断事件 `ai_provider_configuration.probe_succeeded` 中 `language_support=succeeded`，持久 `synthetic_test` 摘要为 `succeeded`。同时复查文档一致性，已同步 `docs/spec/005-ai-provider-prompt-and-privacy.md`、Prompt Registry 和本方案中的验收范围、code fence 容忍和额外字段边界。
 
 ## 19. 完成标准
 
@@ -767,7 +770,7 @@ scripts/verify.sh
 
 ## 20. 剩余风险
 
-- Apple `NLLanguageRecognizer` 对拉丁语系短文本仍可能误判；本方案通过 40-70 词样例和脚本规则降低风险，但不能完全消除。
+- Apple `NLLanguageRecognizer` 对拉丁语系文本仍可能误判；本方案通过 25-120 词验收范围、短句拒绝和脚本规则降低风险，但不能完全消除。
 - 部分模型可能输出混合语言文本，语言识别结果接近目标语言但内容质量不佳；本任务不评价教学质量。
 - `zh-Hans` 与 `zh-Hant` 可能在语言识别中互相接近；第一阶段可按中文族处理，但 UI 文案仍应说明测试目标是中文输出，不是简繁转换质量。
 - 某些 Provider 会自动翻译、审查或改写 Prompt；语言支持失败应被视为风险提示，不应删除或阻止本地语言空间。

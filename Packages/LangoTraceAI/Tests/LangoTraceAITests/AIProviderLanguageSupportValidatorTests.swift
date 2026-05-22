@@ -5,9 +5,8 @@ import Testing
 @Test("Language support validator accepts English JSON sample with target word count")
 func languageSupportValidatorAcceptsEnglishSampleWithTargetWordCount() {
     let validator = AIProviderLanguageSupportValidator()
-    let sample = "Today I opened the kitchen window before breakfast and wrote a short note about the rain, " +
-        "the quiet street, and the warm cup of tea beside my notebook. Later, I planned to review the " +
-        "moment in English so the simple details would become useful practice."
+    let sample = "Today I opened the kitchen window before breakfast and wrote a note about the rain, " +
+        "the quiet street, and the warm cup of tea beside my notebook."
     let response = """
     {"sample":"\(sample)"}
     """
@@ -19,6 +18,26 @@ func languageSupportValidatorAcceptsEnglishSampleWithTargetWordCount() {
 
     #expect(result.isValid)
     #expect(result.sample != nil)
+}
+
+@Test("Language support validator accepts fenced JSON with a valid sample")
+func languageSupportValidatorAcceptsFencedJSONWithValidSample() {
+    let validator = AIProviderLanguageSupportValidator()
+    let sample = "Today I opened the kitchen window before breakfast and wrote a note about the rain, " +
+        "the quiet street, and the warm cup of tea beside my notebook."
+    let response = """
+    ```json
+    {"sample":"\(sample)","note":"synthetic configuration sample"}
+    ```
+    """
+
+    let result = validator.validateResponseText(
+        response,
+        languageContext: AIProviderProbeLanguageContext(languageCode: "en")
+    )
+
+    #expect(result.isValid)
+    #expect(result.sample == sample)
 }
 
 @Test("Language support validator rejects English short sentence")
