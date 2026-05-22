@@ -75,9 +75,11 @@ Prompt 文档必须明确该 Prompt 是否会包含：
 当前已登记：
 
 - [AI Provider Configuration Probe Prompts](ai-provider/provider-configuration-probe.md)：AI Provider 配置页文本、JSON、语言支持和内置图片合成测试请求。
+- [One-Tap Learning Material Prompts](learning-material/one-tap-learning-material.md)：一键生成学习材料和重新分析当前学习文本的完整 Prompt、JSON schema、隐私边界和评测方式。
 
 ## 7. 版本记录
 
 - 2026-05-21：更新目录当前事实。原因：AI Provider 配置测试请求已经接入固定合成 Prompt，Prompt Registry 不再是空目录；后续真实 Provider 请求内容必须在本目录登记。影响范围：AI Provider 配置测试请求、Prompt 审查、请求预览和隐私复查。是否需要 ADR：否。
 - 2026-05-21：补充图片理解合成测试 Prompt 当前事实。原因：AI Provider 配置测试请求新增可选内置图片 probe，仍属于真实发送给 Provider 的固定 Prompt，需要纳入 Prompt Registry。影响范围：AI Provider 配置测试请求、图片输入边界和隐私复查。是否需要 ADR：否。
 - 2026-05-22：补充语言支持合成测试 Prompt 当前事实。原因：AI Provider 配置测试请求新增当前语言空间上下文下的 `语言支持` probe，仍属于真实发送给 Provider 的固定 Prompt，需要登记完整文案、输出契约和隐私边界。影响范围：AI Provider 配置测试请求、语言边界和隐私复查。是否需要 ADR：否。
+- 2026-05-23：登记一键生成学习材料 Prompt 设计。原因：用户确认完整 GRDB 持久化路径后，真实学习内容请求需要提前明确 Prompt 正文、结构化输出契约和隐私边界。影响范围：LangoTraceAI、LangoTraceData、LangoTraceUI、Prompt Registry 和学习材料任务方案。是否需要 ADR：否，沿用 ADR-005。
