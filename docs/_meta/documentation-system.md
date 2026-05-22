@@ -120,7 +120,7 @@ docs/development/environment.md
 - 标注哪些规则是强制的，哪些是默认推荐，哪些可以在开发过程中演进。
 - 后续模块可以在本目录下形成 `spec.md` 和 `impl.md`，让模块规范与当前实现地图保持同目录。
 
-第一批规范：
+当前核心规范入口以 `docs/spec/README.md` 为准。现有高优先级规范包括：
 
 ```text
 docs/spec/001-guideline-governance.md
@@ -128,6 +128,11 @@ docs/spec/002-navigation-and-routing.md
 docs/spec/003-ui-design-system.md
 docs/spec/004-swiftui-architecture.md
 docs/spec/005-ai-provider-prompt-and-privacy.md
+docs/spec/006-interface-localization-and-language-boundaries.md
+docs/spec/007-data-storage-migration-export-and-attachments.md
+docs/spec/008-permissions-local-privacy-and-diagnostics.md
+docs/spec/009-testing-and-verification.md
+docs/spec/010-apple-platform-interaction-and-accessibility.md
 ```
 
 规范不是一成不变的教条。当前项目处于起步阶段，若开发中发现更优设计，可以更新对应 spec；若影响产品核心模型、技术路线、数据边界、隐私边界或商业模式，应新增或更新 ADR。

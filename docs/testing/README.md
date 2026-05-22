@@ -112,6 +112,8 @@ scripts/probe_openai_compatible_api.py --json ...
 
 涉及 iPhone、iPad、macOS 页面结构、设计系统、导航和主要用户路径的改动，除自动化测试外，应保留一轮模拟器或本机截图验证记录。
 
+Apple 三端交互、Dynamic Type、VoiceOver、键盘、指针、菜单命令和 Reduce Motion 的长期规则见 `docs/spec/010-apple-platform-interaction-and-accessibility.md`。本节只记录验证入口和清单，不重复定义平台交互规范。
+
 最低截图覆盖：
 
 - iPhone：welcome、onboarding、主 Tab、关键二级页。
@@ -151,11 +153,14 @@ scripts/probe_openai_compatible_api.py --json ...
 
 iPhone 手动验证：
 
-- `今日 / 记录 / 练习 / 记忆 / 设置` 五个 Tab 均可进入。
-- `写一句` 打开本地记录编辑 sheet，保存后进入记录详情。
-- `拍照`、`听一句` 等未接入能力打开 unavailable 说明，不访问照片、麦克风、网络、Keychain、同步服务或导出文件。语言空间设置入口已访问本地 SQLite / GRDB repository，用于新增、切换、重命名和删除语言空间。
-- 记录详情可进入 mock 练习会话。
-- 设置列表每个能力项可进入只读说明页。
+- `记录 / 练习 / 记忆` 三个 Tab 均可进入；设置通过顶部 gear 或二级 route 稳定可达，不作为底部 Tab。
+- `写一句` 打开本地记录编辑 sheet，保存后进入记录详情；当前 Entry / Rendering / Practice / Memory 仍是内存学习内容 repository，不代表本地记录闭环已持久化。
+- `用照片开始` 打开照片写作本地预览，不访问 Photos、Camera、OCR、AI Provider、网络、同步服务或导出文件。
+- 记录详情的 `听` 打开本地听读预览，只切换本地播放状态，不触发 TTS、录音、Speech 或练习成绩保存。
+- 记录详情和练习 Tab 可进入 mock 练习会话。
+- 语言空间设置入口已访问本地 SQLite / GRDB repository，用于新增、切换、重命名和删除语言空间。
+- AI Provider 设置页可保存非敏感配置到 SQLite / GRDB、保存 API Key 到 Keychain，并通过用户主动触发的配置合成测试显示文本回复、JSON 输出、语言支持和可选内置图片理解结果；不得发送生活记录、用户照片、音频、历史记忆或 Prompt Preset 内容。
+- 同步、本地数据、隐私和导入导出等未完成真实能力的设置项应显示当前边界、本地 mock 或 unavailable 状态，不能写成真实同步、导出或外部请求已经完成。
 - iPhone 17 和较窄宽度下文案、按钮和状态标签不溢出。
 
 iPad 手动验证：

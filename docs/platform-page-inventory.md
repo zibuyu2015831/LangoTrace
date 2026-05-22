@@ -29,7 +29,7 @@
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | App Root phase | iPhone / iPad / macOS | 根据启动状态进入 Welcome、Onboarding 或 Main | `LangoTraceRootView` 的 `phase` 和 `LaunchRoute` | Shell | `Packages/LangoTraceUI/Sources/LangoTraceUI/LangoTraceRootView.swift` | 缺少语言空间时强制回到 onboarding，不直接创建数据 | 首次启动恢复、语言空间持久化落地后必须复查 |
 | Welcome | iPhone / iPad / macOS | 首次解释产品定位并进入设置流程 | App 初次启动或 `phase == .welcome` | Implemented | `WelcomeView.swift`、`WelcomeView+Layout.swift`、`WelcomeTracePreviewCarousel.swift`、`WelcomeCapsuleLabel.swift` | 使用静态示例和本地 UI，不创建语言空间 | 首屏不能营销化；三端布局不能压缩、溢出或遮挡 |
-| Onboarding | iPhone / iPad / macOS | 选择母语、目标语言和水平，创建第一个语言空间 | Welcome 完成后或缺少语言空间 | Implemented | `OnboardingView.swift`、`LangoTraceRootView.swift` | 当前创建内存语言空间预览，未持久化；compact 宽度使用底部 sticky CTA，iPad / macOS 宽屏使用内容流内 CTA 和下移的页面 stage；创建按钮按主操作宽度居中约束，不铺满宽屏 | 后续真实持久化后检查启动恢复、错误状态和无障碍 |
+| Onboarding | iPhone / iPad / macOS | 选择母语、目标语言和水平，创建第一个语言空间 | Welcome 完成后或缺少语言空间 | Implemented | `OnboardingView.swift`、`LangoTraceRootView.swift`、`LangoTraceApp/AppEnvironment.swift` | 通过 App Shell action 调用 `LanguageSpaceRepository` 创建真实语言空间；当前默认装配 SQLite / GRDB 语言空间 repository 并支持启动恢复。compact 宽度使用底部 sticky CTA，iPad / macOS 宽屏使用内容流内 CTA 和下移的页面 stage；创建按钮按主操作宽度居中约束，不铺满宽屏 | 后续应继续检查创建失败恢复、删除最后空间回到 onboarding、动态字体和无障碍 |
 | Platform Main 分发 | iPhone / iPad / macOS | 按设备进入专属主界面 | `phase == .main` 且存在语言空间 | Shell | `LangoTraceRootView.swift` | iOS 通过 `UIDevice.current.userInterfaceIdiom` 区分 iPhone / iPad；macOS 走 Mac 主界面 | 分平台 UI 不应退化为同一套放大布局 |
 
 ## 3. iPhone 页面清单
@@ -179,7 +179,7 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 4. 它是否创建、修改、导入、导出、发送、录音、读取照片或访问文件？
 5. 它的当前状态应该是 `Implemented`、`Local Mock`、`Unavailable`、`Shell` 还是 `Planned`？
 6. 对应 SwiftUI 文件和测试文件是什么？
-7. 是否需要同步更新 `docs/spec/002-navigation-and-routing.md`、`docs/spec/003-ui-design-system.md` 或 `docs/review/INDEX.md`？
+7. 是否需要同步更新 `docs/spec/002-navigation-and-routing.md`、`docs/spec/003-ui-design-system.md`、`docs/spec/010-apple-platform-interaction-and-accessibility.md` 或 `docs/review/INDEX.md`？
 
 完成页面相关任务前，至少检查：
 
@@ -201,6 +201,7 @@ rg "规划中|待配置|当前页面只展示入口边界|不播放真实 TTS|on
 - 2026-05-20：补充宽屏 Onboarding 和 Mac 同步范围细节修正事实。原因：Onboarding 创建按钮在 iPad / Mac 宽屏下需要受主操作宽度约束，并在宽屏使用内容流内 CTA 避免顶部贴边和按钮贴底；同步范围附件项在 macOS 上需要显式 switch 表达，而不是默认 checkbox。
 - 2026-05-20：统一三端设置能力项的导入导出命名。原因：iPad / macOS 已有导入导出工作台入口，但共享设置能力仍显示为“导出”，导致 iPhone 设置页语义缺项。影响范围：SettingsCapability、三端设置列表、设置详情本地化和页面清单。是否需要 ADR：否，未改变真实导入导出能力或核心数据策略。
 - 2026-05-20：补充 iPad / macOS 语言空间管理入口事实。原因：iPhone 已落地的语言空间管理能力扩展到 iPad 工作台主区、macOS 工作台 Settings route 和原生 Settings scene，原 iPad / macOS summary-only 页面事实已过期。影响范围：iPad / macOS route、Settings scene、共享语言空间管理组件和 App Shell action 注入。是否需要 ADR：否，未改变语言空间核心模型或数据策略。
+- 2026-05-22：修正 Onboarding 语言空间创建事实。原因：语言空间基础设施已通过 App Shell action、`LanguageSpaceRepository` 和 SQLite / GRDB 持久化落地，页面清单不应继续写成内存预览。影响范围：Root、Onboarding、启动恢复、语言空间管理和测试清单。是否需要 ADR：否，延续语言空间核心模型和 SQLite / GRDB 主存储路线。
 - 2026-05-20：更新 AI Provider 设置页实现事实。原因：Provider 设置页已从 Local Mock 推进到 SQLite / GRDB metadata、Keychain secret 保存和本地 credential validation；真实外部 Provider 合成探测仍未接入。影响范围：iPhone / iPad / macOS 设置详情、AIProviderSettingsView、AppEnvironment、Data / AI package。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-20：更新 AI Provider 已保存密钥回显事实。原因：用户再次打开配置页时需要看到并编辑已保存的本机 API Key；实现通过服务边界解析 Keychain，仅回填到短生命周期 UI draft，默认隐藏，不改变数据库、同步或真实 Provider 请求边界。影响范围：AIProviderSettingsView、AIProviderDraftConfiguration、AIProviderSettingsActions、AppEnvironment。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-21：更新 AI Provider 文本模型合成测试事实。原因：测试请求已从本地 credential validation 推进到 Provider 层固定合成文本探测，结果面板分项展示文本回复、JSON 输出、图片理解、语音生成和向量化；第一阶段只真实请求文本 endpoint，后三项只显示占位状态。影响范围：AIProviderSettingsView、AIProviderDraftConfiguration、AIProviderSettingsComponents、AIProviderSettingsActions、AppEnvironment、LangoTraceAI、LangoTraceData。是否需要 ADR：否，沿用 ADR-005；真网人工复核仍依赖可控测试 Provider / API Key。

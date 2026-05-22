@@ -189,6 +189,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 10 节
 - [三端页面清单](platform-page-inventory.md)
 - [UI 设计系统规范](spec/003-ui-design-system.md)
+- [Apple 三端交互与可访问性规范](spec/010-apple-platform-interaction-and-accessibility.md)
 - [导航与路由规范](spec/002-navigation-and-routing.md)
 - [界面国际化与语言边界规范](spec/006-interface-localization-and-language-boundaries.md)
 - `prototypes/langotrace-multi-device-prototype/README.md`

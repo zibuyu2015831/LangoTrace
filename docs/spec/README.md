@@ -42,6 +42,7 @@
 - [007：数据存储、迁移、导出与附件规范](007-data-storage-migration-export-and-attachments.md)
 - [008：权限、本地隐私与诊断日志规范](008-permissions-local-privacy-and-diagnostics.md)
 - [009：测试与验证入口规范](009-testing-and-verification.md)
+- [010：Apple 三端交互与可访问性规范](010-apple-platform-interaction-and-accessibility.md)
 
 当前模块实现地图：
 
@@ -70,7 +71,7 @@ docs/spec/<module>/
 
 - 领域模型规范。
 - 错误、空状态和加载状态规范。
-- 可访问性规范。
+- 错误状态与恢复路径的模块化实现地图。
 
 ## 4. AI 开发使用方式
 
@@ -84,6 +85,7 @@ docs/spec/<module>/
 
 - 做 App Shell 或页面跳转：读导航与路由规范。
 - 做 SwiftUI 页面或组件：读 UI 设计系统规范和 SwiftUI 架构规范。
+- 做 Apple 三端页面、控制、菜单、键盘、指针、Dynamic Type 或 VoiceOver：读 Apple 三端交互与可访问性规范。
 - 做 AI 请求、Prompt、TTS、OCR、写作检查：读 AI Provider、Prompt 与隐私规范。
 - 发现现有代码和规范冲突：先报告冲突，再提出修正规范或修代码的方案。
 
@@ -104,4 +106,4 @@ AI 不应在没有读取相关规范的情况下自行发明新的导航模式�
 
 适用阶段：工程初始化前、SwiftUI App Shell、MVP 早期开发。
 
-本目录当前只定义第一批高优先级规范。随着工程创建、真实代码出现和 MVP 推进，应继续补充数据、测试、权限、日志、可访问性和发布相关规范。当前项目仍处于起步阶段，spec 会随着功能开发持续总结和完善；如果发现更优设计，或功能开发需要补充模块级不变量、实现地图和验证规则，可以更新对应 spec。
+本目录当前定义 MVP 早期高优先级规范，已覆盖导航、UI、SwiftUI 架构、AI / 隐私、国际化、数据、权限诊断、测试验证和 Apple 三端交互 / 可访问性。随着工程创建、真实代码出现和 MVP 推进，应继续补充发布、StoreKit、同步冲突、真实 AI 学习请求和模块级实现地图。当前项目仍处于起步阶段，spec 会随着功能开发持续总结和完善；如果发现更优设计，或功能开发需要补充模块级不变量、实现地图和验证规则，可以更新对应 spec。
