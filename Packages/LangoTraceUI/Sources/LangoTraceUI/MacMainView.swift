@@ -204,6 +204,8 @@ struct MacMainView: View {
         }
         .padding(24)
         .frame(width: LangoTraceDesign.Density.macSidebarWidth, alignment: .topLeading)
+        .frame(maxHeight: .infinity, alignment: .topLeading)
+        .background(LangoTraceDesign.ColorToken.surfaceSidebar.opacity(0.72))
     }
 }
 
@@ -284,6 +286,8 @@ private extension MacMainView {
             .padding(24)
         }
         .frame(width: LangoTraceDesign.Density.macInspectorWidth, alignment: .topLeading)
+        .frame(maxHeight: .infinity, alignment: .topLeading)
+        .background(LangoTraceDesign.ColorToken.surfaceInspector.opacity(0.58))
     }
 
     var panelAnimation: Animation? {
@@ -382,10 +386,7 @@ private struct MacSidebarItem: View {
     }
 
     private var itemBackground: Color {
-        if active {
-            return LangoTraceDesign.ColorToken.surfaceRaised
-        }
-
+        if active { return LangoTraceDesign.ColorToken.surfaceRaised }
         return isHovered ? LangoTraceDesign.ColorToken.elevatedPaper : .clear
     }
 

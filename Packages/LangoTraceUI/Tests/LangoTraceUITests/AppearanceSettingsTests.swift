@@ -186,6 +186,26 @@ struct AppearanceSettingsTests {
         #expect(!syncSettingsSource.contains(switchUsingTint("accent")))
     }
 
+    @Test("iPad and macOS workbenches use platform surface tokens")
+    func padAndMacWorkbenchesUsePlatformSurfaceTokens() throws {
+        let padSidebarSource = try String(contentsOf: sourceFileURL(named: "PadMainSections.swift"), encoding: .utf8)
+        let padInspectorSource = try String(
+            contentsOf: sourceFileURL(named: "PadLearningPanelView.swift"),
+            encoding: .utf8
+        )
+        let macSource = try String(contentsOf: sourceFileURL(named: "MacMainView.swift"), encoding: .utf8)
+        let settingsSceneSource = try String(
+            contentsOf: sourceFileURL(named: "LangoTraceSettingsSceneView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(padSidebarSource.contains("LangoTraceDesign.ColorToken.surfaceSidebar.opacity(0.72)"))
+        #expect(padInspectorSource.contains("LangoTraceDesign.ColorToken.surfaceInspector.opacity(0.58)"))
+        #expect(settingsSceneSource.contains("LangoTraceDesign.ColorToken.surfaceSidebar.opacity(0.72)"))
+        #expect(macSource.contains("LangoTraceDesign.ColorToken.surfaceSidebar.opacity(0.72)"))
+        #expect(macSource.contains("LangoTraceDesign.ColorToken.surfaceInspector.opacity(0.58)"))
+    }
+
     @Test("Appearance resources are present in English and Simplified Chinese")
     func appearanceResourcesArePresent() throws {
         let catalogURL = try #require(localizableCatalogURL())

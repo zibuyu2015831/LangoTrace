@@ -1,6 +1,6 @@
 # 外观浅色与深色基础设施方案
 
-状态：Implemented, Automated Verification Passed, Visual QA Pending
+状态：Implemented, iPhone Visual QA Passed, iPad/macOS Automated Verification Passed, iPad/macOS Visual QA Pending
 类型：feature
 创建日期：2026-05-22
 最后更新日期：2026-05-23
@@ -583,3 +583,5 @@ git status --short
 - 2026-05-23：根据 iPhone 17 深色主题模拟器截图复查主学习页 CTA。结论：`accent` 的深色值 `#72D2BF` 适合小面积强调，但作为“写一句”大面积 filled button 时过亮，且与白字对比约 1.80:1；已新增 `primaryActionFill` / `primaryActionForeground` 主操作 token，将 iPhone 主学习页新建记录入口和空记录主入口改为深色 `#23786A` 配白字，对比约 5.29:1。新增 `AppearanceSettingsTests.phoneHeroPrimaryActionUsesQuieterDarkModeCTAToken` 固定该边界。
 - 2026-05-23：根据 Welcome “开始设置”和 AI Provider “保存配置”深色截图继续做全局复查。结论：问题边界不是单页按钮，而是 `.borderedProminent` filled primary CTA 不能继承全局高亮 tint 或直接使用 `accent` / `deepTeal`。已将 Welcome、Onboarding、AI Provider 保存 / retry、同步关闭、练习继续、听力预览播放、学习内容练习、iPad 新建记录和 macOS 编辑保存等 filled primary action 统一迁移到 `primaryActionFill` / `primaryActionForeground`；保留 `accent` 给小面积图标、状态和普通 bordered 按钮。新增 `AppearanceSettingsTests.largeFilledPrimaryActionsUseDedicatedCTATokens` 固定该边界。
 - 2026-05-23：根据 AI Provider 能力开关深色截图继续复查 switch 控件。结论：开关不是 primary CTA，但开启态若直接继承 `accent #72D2BF`，在深色卡片中仍会形成过亮的浅薄荷色块；已新增 `switchOnFill`，深色为 `#2C8A7B`，并将 AI Provider 能力开关、可选模型开关、Sync scope 开关和 S3 draft 连接开关迁移到该 token。新增 `AppearanceSettingsTests.switchControlsUseDedicatedActiveFillToken` 固定该边界。
+- 2026-05-23：用户确认 iPhone 端视觉测试通过后，继续补齐 iPad 与 macOS 工作台外观实现。复查结论：iPad sidebar 和学习面板已分别使用 `surfaceSidebar` 与 `surfaceInspector`，但 macOS 主工作台 sidebar / inspector 只依赖整页背景，深浅色切换下三栏层级不够明确。已为 macOS sidebar 增加 `surfaceSidebar.opacity(0.72)`，为 macOS inspector 增加 `surfaceInspector.opacity(0.58)`，并新增 `AppearanceSettingsTests.padAndMacWorkbenchesUsePlatformSurfaceTokens` 固定 iPad / macOS 平台 surface token 边界。剩余验证项是 iPad 与 macOS 真实截图或人工视觉验收。
+- 2026-05-23：iPad 与 macOS 外观补齐完成自动化验证。`AppearanceSettingsTests` 11 项通过；iPad Pro 13-inch (M5) Simulator 构建通过；macOS arm64 构建通过；`scripts/verify.sh` 完整通过。SwiftLint 仍有既有普通 warning，但无 serious violation；本轮新增的 line length 与文件长度 warning 已清理。

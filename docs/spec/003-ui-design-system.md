@@ -81,6 +81,7 @@ macOS：
 - 更高信息密度。
 - 支持批量管理和高级配置。
 - Sidebar 和 Inspector 应可手动显示或隐藏，不能固定挤压主编辑区。
+- Sidebar 和 Inspector 应使用独立 surface token 与主内容区拉开层级；浅色 / 深色下不能只依赖整页背景表达三栏结构。
 
 ### 4.3 组件方向
 
@@ -416,3 +417,4 @@ AI 在创建或修改 UI 前应先确认：
 - 2026-05-23：更新浅色 / 深色外观基础设施事实。原因：App 已新增设备级外观偏好、`preferredColorScheme` 注入和 light / dark 语义 color token；真实发布级深色视觉仍需截图或人工验收。影响范围：`LangoTraceDesign`、`SettingsCapabilityDetailView`、`LangoTraceApp`、三端设置入口和外观验证清单。是否需要 ADR：否，当前只实现系统浅深色外观，不改变未来主题策略。
 - 2026-05-23：补充深色主操作 CTA 色彩边界。原因：模拟器截图显示 `accent` 作为大面积 filled button 时视觉过亮，且浅薄荷底配白字对比不足；filled primary CTA 已统一改用主操作专用 token。影响范围：`LangoTraceDesign`、Welcome / Onboarding、iPhone 主学习页、AI Provider、同步、练习、iPad 工作台和 macOS 编辑保存主 CTA。是否需要 ADR：否，属于设计 token 语义细分。
 - 2026-05-23：补充深色开关开启态色彩边界。原因：AI Provider 能力开关在深色面板中使用 `accent` 时会形成与主 CTA 类似的浅薄荷色块；开关开启态已拆为 `switchOnFill`。影响范围：`LangoTraceDesign`、AI Provider 能力开关、Sync scope 开关和 S3 draft 连接开关。是否需要 ADR：否，属于设计 token 语义细分。
+- 2026-05-23：补充 macOS 三栏 surface token 边界。原因：iPhone 端视觉验收后继续开发 iPad / macOS 外观时发现 Mac sidebar / inspector 不应只依赖整页背景；三栏工作台需要在浅色 / 深色下保留清晰层级。影响范围：`MacMainView`、`surfaceSidebar`、`surfaceInspector` 和外观自动化测试。是否需要 ADR：否，属于平台 UI token 落地细化。
