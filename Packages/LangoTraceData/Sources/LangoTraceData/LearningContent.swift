@@ -195,6 +195,13 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
                 detail: "settings.interfaceLanguage.detail",
                 nextRequirement: "settings.interfaceLanguage.nextRequirement"
             ),
+            SettingsCapability(
+                kind: .appearance,
+                status: .ready,
+                summary: "settings.appearance.summary",
+                detail: "settings.appearance.detail",
+                nextRequirement: "settings.appearance.nextRequirement"
+            ),
         ] + Self.serviceSettingsCapabilities
     }
 

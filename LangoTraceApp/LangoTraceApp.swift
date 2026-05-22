@@ -10,20 +10,25 @@ import SwiftUI
 struct LangoTraceApp: App {
     private let environment: AppEnvironment
     private let interfaceLanguagePreferenceStore: UserDefaultsInterfaceLanguageStore
+    private let appearancePreferenceStore: UserDefaultsAppearancePreferenceStore
     @StateObject private var session: AppSessionState
     @State private var interfaceLanguagePreference: InterfaceLanguagePreference
+    @State private var appearancePreference: AppearancePreference
 
     init() {
         let environment = AppEnvironment.bootstrap()
         let store = UserDefaultsInterfaceLanguageStore()
+        let appearanceStore = UserDefaultsAppearancePreferenceStore()
         self.environment = environment
         interfaceLanguagePreferenceStore = store
+        appearancePreferenceStore = appearanceStore
         _session = StateObject(
             wrappedValue: AppSessionState(
                 languageSpaceRepositoryFactory: environment.makeLanguageSpaceRepository
             )
         )
         _interfaceLanguagePreference = State(initialValue: store.preference)
+        _appearancePreference = State(initialValue: appearanceStore.preference)
     }
 
     var body: some Scene {
@@ -36,6 +41,7 @@ struct LangoTraceApp: App {
                     languageSpace: session.currentLanguageSpace,
                     languageSpaces: session.languageSpaces,
                     interfaceLanguagePreference: interfaceLanguagePreference,
+                    appearancePreference: appearancePreference,
                     onAddLanguageSpace: session.addLanguageSpace,
                     onSelectLanguageSpace: session.selectLanguageSpace,
                     onUpdateLanguageSpace: session.updateLanguageSpace,
@@ -43,11 +49,15 @@ struct LangoTraceApp: App {
                     onInterfaceLanguagePreferenceChange: { preference in
                         interfaceLanguagePreferenceStore.preference = preference
                         interfaceLanguagePreference = preference
+                    },
+                    onAppearancePreferenceChange: { preference in
+                        applyAppearancePreference(preference)
                     }
                 )
                 .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
                 .environment(\.appEnvironment, environment)
                 .environment(\.aiProviderSettingsActions, environment.aiProviderSettingsActions)
+                .preferredColorScheme(appearancePreference.preferredColorScheme)
             }
         #endif
     }
@@ -76,6 +86,7 @@ struct LangoTraceApp: App {
             languageSpaces: session.languageSpaces,
             learningContentRepository: environment.learningContentRepository,
             interfaceLanguagePreference: interfaceLanguagePreference,
+            appearancePreference: appearancePreference,
             onboardingDraft: Binding(
                 get: { session.onboardingDraft },
                 set: { session.onboardingDraft = $0 }
@@ -89,11 +100,15 @@ struct LangoTraceApp: App {
             onInterfaceLanguagePreferenceChange: { preference in
                 interfaceLanguagePreferenceStore.preference = preference
                 interfaceLanguagePreference = preference
+            },
+            onAppearancePreferenceChange: { preference in
+                applyAppearancePreference(preference)
             }
         )
         .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
         .environment(\.appEnvironment, environment)
         .environment(\.aiProviderSettingsActions, environment.aiProviderSettingsActions)
+        .preferredColorScheme(appearancePreference.preferredColorScheme)
         .task {
             session.restoreLanguageSpace()
         }
@@ -109,6 +124,27 @@ struct LangoTraceApp: App {
         environment.learningContentRepository.settingsCapabilities(
             for: session.currentLanguageSpace?.id ?? "bootstrap"
         )
+    }
+
+    private func applyAppearancePreference(_ preference: AppearancePreference) {
+        guard appearancePreference != preference else {
+            return
+        }
+        appearancePreferenceStore.preference = preference
+        appearancePreference = preference
+    }
+}
+
+private extension AppearancePreference {
+    var preferredColorScheme: ColorScheme? {
+        switch self {
+        case .system:
+            nil
+        case .light:
+            .light
+        case .dark:
+            .dark
+        }
     }
 }
 

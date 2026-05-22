@@ -12,6 +12,7 @@ public struct SettingsCapability: Equatable, Identifiable, Sendable {
     public enum Kind: String, CaseIterable, Equatable, Hashable, Sendable {
         case languageSpace
         case interfaceLanguage
+        case appearance
         case aiProvider
         case sync
         case localData
@@ -28,6 +29,8 @@ public struct SettingsCapability: Equatable, Identifiable, Sendable {
                 "text.badge.star"
             case .interfaceLanguage:
                 "globe"
+            case .appearance:
+                "circle.lefthalf.filled"
             case .aiProvider:
                 "sparkles"
             case .sync:

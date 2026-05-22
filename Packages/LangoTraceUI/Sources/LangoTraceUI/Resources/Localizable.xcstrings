@@ -2668,6 +2668,159 @@
         }
       }
     },
+    "settings.appearance.dark": {
+      "comment": "Dark appearance option title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dark"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深色"
+          }
+        }
+      }
+    },
+    "settings.appearance.detail": {
+      "comment": "Appearance settings detail body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appearance only changes the interface on this device. It does not change language spaces, learning content, Provider configuration, or sync scope."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外观只影响这台设备上的界面显示，不改变语言空间、学习内容、Provider 配置或同步范围。"
+          }
+        }
+      }
+    },
+    "settings.appearance.light": {
+      "comment": "Light appearance option title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浅色"
+          }
+        }
+      }
+    },
+    "settings.appearance.nextRequirement": {
+      "comment": "Appearance settings next requirement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Future theme work can add brand palettes, typography, or interaction profiles behind a separate theme registry. This setting only controls system light and dark appearance."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后续主题能力可以在独立主题注册表中扩展品牌色、字体或交互样式；当前设置只控制系统浅色与深色外观。"
+          }
+        }
+      }
+    },
+    "settings.appearance.selectionFootnote": {
+      "comment": "Concise footnote for the appearance selection page.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only changes this device's interface. Language spaces and saved content stay unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅影响这台设备的界面，不改变语言空间或已保存内容。"
+          }
+        }
+      }
+    },
+    "settings.appearance.summary": {
+      "comment": "Appearance settings summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose whether LangoTrace follows the system appearance, uses Light, or uses Dark."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择语迹使用系统外观、浅色或深色。"
+          }
+        }
+      }
+    },
+    "settings.appearance.system": {
+      "comment": "System appearance option title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随系统"
+          }
+        }
+      }
+    },
+    "settings.appearance.title": {
+      "comment": "Appearance settings title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appearance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外观"
+          }
+        }
+      }
+    },
+    "settings.globalDeviceContext": {
+      "comment": "Global device-level settings context label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前设备"
+          }
+        }
+      }
+    },
     "settings.interfaceLanguage.selectionFootnote": {
       "comment": "Concise footnote for the interface language selection page.",
       "localizations": {

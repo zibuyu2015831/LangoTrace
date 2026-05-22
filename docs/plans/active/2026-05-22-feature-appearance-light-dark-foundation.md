@@ -1,6 +1,6 @@
 # 外观浅色与深色基础设施方案
 
-状态：User Approved, Awaiting Implementation
+状态：Implemented, Automated Verification Passed, Visual QA Pending
 类型：feature
 创建日期：2026-05-22
 最后更新日期：2026-05-23
@@ -407,9 +407,9 @@ struct LangoTracePalette: Equatable {
 
 ### 任务 1：Core 偏好模型与测试
 
-- [ ] 新增 `AppearancePreference`。
-- [ ] 新增 `AppearancePreferenceStore` 与 `UserDefaultsAppearancePreferenceStore`。
-- [ ] 新增 `AppearancePreferenceTests`，覆盖：
+- [x] 新增 `AppearancePreference`。
+- [x] 新增 `AppearancePreferenceStore` 与 `UserDefaultsAppearancePreferenceStore`。
+- [x] 新增 `AppearancePreferenceTests`，覆盖：
   - `system` 是未知存储值 fallback。
   - `light` 和 `dark` 可从 storage value 恢复。
   - store 写入、读取和 reset 行为。
@@ -422,10 +422,10 @@ swift test --package-path Packages/LangoTraceCore --filter AppearancePreferenceT
 
 ### 任务 2：设置能力模型接入
 
-- [ ] 在 `SettingsCapability.Kind` 新增 `.appearance`。
-- [ ] 为 `.appearance` 配置 `circle.lefthalf.filled` 图标。
-- [ ] 在学习内容 repository 的 settings capabilities 中加入外观项。
-- [ ] 更新 `InMemoryLearningContentRepositoryTests` 和 `SettingsCapabilityTests`，确认设置能力包含外观、顺序稳定、文案 key 完整，且不依赖语言空间写入。
+- [x] 在 `SettingsCapability.Kind` 新增 `.appearance`。
+- [x] 为 `.appearance` 配置 `circle.lefthalf.filled` 图标。
+- [x] 在学习内容 repository 的 settings capabilities 中加入外观项。
+- [x] 更新 `InMemoryLearningContentRepositoryTests` 和 `SettingsCapabilityTests`，确认设置能力包含外观、顺序稳定、文案 key 完整，且不依赖语言空间写入。
 
 验证命令：
 
@@ -435,12 +435,12 @@ swift test --package-path Packages/LangoTraceData
 
 ### 任务 3：App 层状态与 `preferredColorScheme`
 
-- [ ] 在 `LangoTraceApp` 增加 `UserDefaultsAppearancePreferenceStore`。
-- [ ] 增加 `@State private var appearancePreference: AppearancePreference`。
-- [ ] 将 preference 传入 `LangoTraceRootView` 和 `LangoTraceSettingsSceneView`。
-- [ ] 在 root content 和 macOS Settings scene 上应用 `preferredColorScheme(appearancePreference.preferredColorScheme)`。
-- [ ] 确保 `system` 模式传入 `nil`，不覆盖系统外观。
-- [ ] 外观变更 closure 中先写入 store，再更新 App 层 `@State`；若后续引入异步 store，必须保持 UI 主线程更新和重复点击防抖。
+- [x] 在 `LangoTraceApp` 增加 `UserDefaultsAppearancePreferenceStore`。
+- [x] 增加 `@State private var appearancePreference: AppearancePreference`。
+- [x] 将 preference 传入 `LangoTraceRootView` 和 `LangoTraceSettingsSceneView`。
+- [x] 在 root content 和 macOS Settings scene 上应用 `preferredColorScheme(appearancePreference.preferredColorScheme)`。
+- [x] 确保 `system` 模式传入 `nil`，不覆盖系统外观。
+- [x] 外观变更 closure 中先写入 store，再更新 App 层 `@State`；若后续引入异步 store，必须保持 UI 主线程更新和重复点击防抖。
 
 验证重点：
 
@@ -450,13 +450,13 @@ swift test --package-path Packages/LangoTraceData
 
 ### 任务 4：UI 设置详情
 
-- [ ] 扩展 `LangoTraceRootView`、`PhoneMainView`、`PadMainView`、`MacMainView` 和 `LangoTraceSettingsSceneView` 的初始化参数。
-- [ ] 扩展 `PadMainSections`、`MacWorkspaceContentView` 和 `MacInspectorContent` 的共享设置详情传参，避免只接通 iPhone 或 macOS Settings scene。
-- [ ] 在 `SettingsCapabilityDetailView` 新增外观设置内容。
-- [ ] 将设置详情上下文改为可表达全局偏好，确保 `.appearance` 和 `.interfaceLanguage` 无当前语言空间时仍可展示。
-- [ ] 在 `LocalizedChrome.swift` 增加外观相关 localization key resolver。
-- [ ] 更新 `Localizable.xcstrings` 的中文和英文文案。
-- [ ] 增加 `AppearanceSettingsTests`，用源码或 presentation model 覆盖：
+- [x] 扩展 `LangoTraceRootView`、`PhoneMainView`、`PadMainView`、`MacMainView` 和 `LangoTraceSettingsSceneView` 的初始化参数。
+- [x] 扩展 `PadMainSections`、`MacWorkspaceContentView` 和 `MacInspectorContent` 的共享设置详情传参，避免只接通 iPhone 或 macOS Settings scene。
+- [x] 在 `SettingsCapabilityDetailView` 新增外观设置内容。
+- [x] 将设置详情上下文改为可表达全局偏好，确保 `.appearance` 和 `.interfaceLanguage` 无当前语言空间时仍可展示。
+- [x] 在 `LocalizedChrome.swift` 增加外观相关 localization key resolver。
+- [x] 更新 `Localizable.xcstrings` 的中文和英文文案。
+- [x] 增加 `AppearanceSettingsTests`，用源码或 presentation model 覆盖：
   - 外观能力存在。
   - 三个选项存在。
   - 已选项具备可访问状态。
@@ -471,11 +471,11 @@ swift test --package-path Packages/LangoTraceUI --filter AppearanceSettingsTests
 
 ### 任务 5：设计 token 浅深色基础设施
 
-- [ ] 重构 `LangoTraceDesign.swift`，让颜色 token 具备浅色 / 深色解析能力。
-- [ ] 保留现有 `LangoTraceDesign.ColorToken.*` 调用面，降低本轮改动面。
-- [ ] 按第 10.1 节已审核通过色号表实现浅色 / 深色 palette；如需平台等价映射，必须记录原因和对比度结果。
-- [ ] 检查设置、Welcome、Onboarding、记录、练习、记忆、AI Provider 设置和 Sync 设置中是否仍有新增散落 RGB。
-- [ ] 若仍存在历史 RGB，记录在实施记录中；本轮至少不能新增更多散落颜色。
+- [x] 重构 `LangoTraceDesign.swift`，让颜色 token 具备浅色 / 深色解析能力。
+- [x] 保留现有 `LangoTraceDesign.ColorToken.*` 调用面，降低本轮改动面。
+- [x] 按第 10.1 节已审核通过色号表实现浅色 / 深色 palette；如需平台等价映射，必须记录原因和对比度结果。
+- [x] 检查设置、Welcome、Onboarding、记录、练习、记忆、AI Provider 设置和 Sync 设置中是否仍有新增散落 RGB。
+- [x] 若仍存在历史 RGB，记录在实施记录中；本轮至少不能新增更多散落颜色。
 
 验证命令：
 
@@ -488,10 +488,10 @@ swift test --package-path Packages/LangoTraceUI
 
 ### 任务 6：文档同步
 
-- [ ] 更新 `docs/spec/003-ui-design-system.md`，把“深色模式预留”改为“浅色 / 深色外观基础设施已接入，发布级视觉仍需截图验收”的准确表述。
-- [ ] 更新 `docs/platform-page-inventory.md`，记录外观设置入口、状态和代码路径。
-- [ ] 更新 `docs/testing/README.md`，加入浅色 / 深色 / 跟随系统的人工验证清单。
-- [ ] 若实现中改变了设置能力列表或 Settings scene 行为，按 `docs/review/README.md` 判断是否需要文档影响检查。
+- [x] 更新 `docs/spec/003-ui-design-system.md`，把“深色模式预留”改为“浅色 / 深色外观基础设施已接入，发布级视觉仍需截图验收”的准确表述。
+- [x] 更新 `docs/platform-page-inventory.md`，记录外观设置入口、状态和代码路径。
+- [x] 更新 `docs/testing/README.md`，加入浅色 / 深色 / 跟随系统的人工验证清单。
+- [x] 若实现中改变了设置能力列表或 Settings scene 行为，按 `docs/review/README.md` 判断是否需要文档影响检查。
 
 ## 12. 测试方案
 
@@ -573,3 +573,6 @@ git status --short
 - 2026-05-22：创建方案文档，当前尚未修改 Swift 代码。
 - 2026-05-22：完成严格代码审查并更新方案。主要修正：外观详情必须支持无语言空间；`ColorToken` 的静态调用面不能被描述为完整未来主题引擎；补充 `PadMainSections`、`MacWorkspaceContentView`、`MacInspectorContent` 和 `SettingsCapabilityTests` 等实际影响面；补充 App 状态同步和 macOS Settings scene 无空间验证要求。
 - 2026-05-23：完成 iPhone 设置页与主学习页浅色 / 深色轻量原型的专业色彩审核；用户确认色号审核通过；已将本轮实现基准色号表和对比度结果写入本方案。原型目录：`prototypes/appearance-theme-review/`。
+- 2026-05-23：完成代码落地。新增 `AppearancePreference` 和 `UserDefaultsAppearancePreferenceStore`，新增 `.appearance` 设置能力，三端设置详情共享外观选项，App 层通过 `preferredColorScheme` 注入浅色 / 深色 / 跟随系统，`LangoTraceDesign` 保留 `ColorToken` 调用面并接入已审核 light / dark palette。自动化覆盖新增 `AppearancePreferenceTests`、Data settings capability 测试和 `AppearanceSettingsTests`，并更新旧的界面语言、AI Provider 与 Sync 源码约束测试以匹配新的 global settings context。
+- 2026-05-23：完成文档同步。`docs/spec/003-ui-design-system.md` 已记录浅色 / 深色基础设施已接入但发布级视觉待截图验收；`docs/platform-page-inventory.md` 已记录三端外观设置入口、无语言空间边界和代码路径；`docs/testing/README.md` 已新增浅色 / 深色 / 跟随系统人工验证清单。当前 `rg -n "Color\\(red:" Packages/LangoTraceUI/Sources/LangoTraceUI --glob '!LangoTraceDesign.swift'` 无结果，未新增页面级散落 RGB。
+- 2026-05-23：完整自动化验证通过。`scripts/verify.sh` 已完成 `xcodegen generate`、`xcodebuild -list`、Core / Data / AI / UI package 测试、iPhone 17 Simulator 构建、iPad Pro 13-inch (M5) Simulator 构建、macOS arm64 构建、SwiftLint、SwiftFormat lint、文档占位扫描和最终 `git status --short`。SwiftLint 仍输出既有 warning，但无 serious violation；SwiftFormat lint 为 `0/155 files require formatting`。剩余验证项是发布级浅色 / 深色截图和真机视觉 QA。

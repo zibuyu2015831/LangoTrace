@@ -141,6 +141,29 @@ Apple 三端交互、Dynamic Type、VoiceOver、键盘、指针、菜单命令�
 - 不可用状态：无 rendering 的记录应显示不可用说明，而不是空白或误导性按钮。
 - 隐私表达：AI Provider 未配置、同步未启用、导出未实现时，不得出现“已连接”“已同步”“已生成真实结果”等文案。
 
+## 外观浅色 / 深色验证清单
+
+外观基础设施落地后，自动化测试至少覆盖：
+
+- Core：`AppearancePreference` 的 `system / light / dark` 稳定存储值、未知值 fallback 和 `UserDefaultsAppearancePreferenceStore` 读写 / reset。
+- Data：`SettingsCapability.Kind.appearance` 存在、顺序稳定、文案 key 完整，且不依赖语言空间写入。
+- UI：外观详情页包含 `跟随系统 / 浅色 / 深色` 三个选项，选中态有 checkmark、accessibility value 和 selected trait，且无当前语言空间时仍可进入。
+- UI 源码约束：`LangoTraceDesign` 提供 light / dark palette，页面不新增散落 `Color(red:)`。
+- App：`AppearancePreference.system` 映射为 `preferredColorScheme(nil)`，浅色和深色分别映射为 `.light` 与 `.dark`。
+
+人工验证至少覆盖：
+
+- iPhone：设置 > 外观可进入；切换浅色、深色、跟随系统后，记录、练习、记忆、设置列表和外观详情主区域可读，触控目标不小于 44pt。
+- iPad：Sidebar 设置 > 外观可进入；切换后 Sidebar、主区、学习面板和设置详情都随当前外观更新；Stage Manager 或窄窗口下选项仍可读可点。
+- macOS 工作台：Settings section > Appearance 可切换，Sidebar、主区和 Inspector 不出现明显低对比或文字遮挡。
+- macOS Settings scene：`Cmd+,` 打开后无当前语言空间也可进入 Appearance；切换后主窗口下一次渲染显示同一选择。
+- Accessibility：外观选项不能只靠颜色表达选中状态；VoiceOver 可读出选项名称和 selected / unselected。
+
+剩余边界：
+
+- 当前 light / dark palette 已有对比度基准，但发布级视觉质量仍需要截图或人工验收记录。
+- 该设置只代表系统浅深色外观，不代表多品牌主题、字体主题、交互样式切换或每个语言空间独立主题已经完成。
+
 ## 三端页面闭环验证清单
 
 三端页面补全阶段完成后，除自动化测试外，需要执行一轮 iPhone、iPad 和 macOS 的页面闭环验证。

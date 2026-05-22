@@ -209,7 +209,8 @@ iPad 和 macOS 上，语言空间和设置入口默认属于 Sidebar 底部工�
 - 页面背景、面板、弱面板和边框使用 surface / border token，不在页面中直接散落 RGB。
 - 状态色通过 semantic token 进入组件，例如 warning、danger、info、success / local；页面只选择状态 kind，不直接决定具体颜色。
 - 危险色、错误色和弱危险背景必须放在 token 定义或经说明的状态组件中。
-- 深色模式、高对比和 reduce transparency 在没有截图或辅助功能验证前只作为预留，不写成已完成能力。
+- 浅色 / 深色外观基础设施已接入 `LangoTraceDesign` 语义 token，当前基准色号来自 `docs/plans/active/2026-05-22-feature-appearance-light-dark-foundation.md` 第 10.1 节；发布级视觉仍需要 iPhone、iPad 和 macOS 截图或人工验收确认。
+- 高对比、reduce transparency 和未来多品牌主题仍是后续能力，不能因为当前 light / dark token 已接入就写成已完成。
 
 Action hierarchy：
 
@@ -295,7 +296,7 @@ iPad onboarding 不应只是放大的 iPhone 单列页面。regular-width iPad �
 - 未配置 AI Provider、同步未启用和本地 mock 生成必须有清楚状态，不能让用户误以为已经发起真实外部请求。
 - 设置、练习和请求预览应复用统一的能力状态表达，例如 ready、Local Mock 和未接入。不可用状态必须有标题、解释和下一步边界，不能只禁用按钮。
 - 练习会话即使处于 mock 阶段，也应呈现可理解的步骤状态，例如准备、跟读、对照和完成；这些步骤不能暗示真实音频、录音、评分或持久化已经发生。
-- 深色模式在没有完整 token 映射和截图验证前，只能写成预留或待实现能力，不能写成已完成能力。
+- 浅色 / 深色外观基础设施可以作为已接入能力描述；但在完成截图或人工验收前，深色视觉质量只能写成“基础设施已完成，发布级视觉待验收”，不能写成已完成发布级体验。
 - 视觉升级必须服务记录、学习和记忆路径，不用装饰性背景、重复卡片或营销式 hero 掩盖交互缺口。
 - `langoPanel` 或等价面板不能作为所有 section 的默认外壳。卡片只用于重复 item、modal / sheet 内容、工具面板或确实需要框定的局部；页面 section 优先使用无框布局、分组标题、列表和平台原生容器。
 - Memory UI 至少区分内容记忆、语言记忆和学习记忆三层：内容记忆回到原始生活记录，语言记忆沉淀词句表达，学习记忆记录练习进度和错误模式。三层可以先是本地预览，但不能混成单一“单词列表”。
@@ -353,14 +354,14 @@ iPhone 上的管理类 sheet 常用于创建、编辑、重命名、配置少量
 
 ## 5. 可演进部分
 
-- 具体颜色 token。
+- 多品牌或完整主题注册表。
 - 字体层级。
 - 圆角数值。
 - 阴影强度。
-- 深色模式。
+- 高对比和 reduce transparency 的专门适配。
 - 动效节奏。
 - SwiftUI 组件命名。
-- 深色模式的优先级。
+- 深色模式发布级截图验收优先级。
 - 多语言 UI 文案策略。
 
 这些内容可在真实 SwiftUI 实现和原型验证后更新，但更新时需要保持整体视觉一致性。
@@ -409,3 +410,4 @@ AI 在创建或修改 UI 前应先确认：
 - 2026-05-20：补充 iPhone 管理类 sheet 与轻量编辑面板规则。原因：语言空间编辑 sheet 从默认 `Form` 改为语迹主题化紧凑 panel 后形成可复用经验：少量字段的产品对象编辑应保持原生输入行为，但避免系统 `Form` 灰底和过度留白破坏品牌一致性。影响范围：iPhone 管理类 sheet、语言空间编辑、Provider / 同步草稿类配置、后续轻量编辑面板。是否需要 ADR：否。
 - 2026-05-20：补充关键操作反馈规则。原因：AI Provider 保存配置已进入真实 Keychain + SQLite 写入链路，需要把 saving、saved、failed 和 input invalid 的独立反馈沉淀为通用 UI 约束。影响范围：Provider 设置、同步、导出、删除、AI 生成和后续保存类操作。是否需要 ADR：否。
 - 2026-05-21：补充 iPhone 语言空间快速切换 sheet 规则。原因：顶部语言空间 pill 已从只读 summary 调整为快速切换入口，需要明确快速切换、添加学习语言和完整管理页之间的职责分工，并避免新增流程默认叠双层 modal。影响范围：iPhone 顶部语言空间入口、管理类 sheet、语言空间编辑承载。是否需要 ADR：否。
+- 2026-05-23：更新浅色 / 深色外观基础设施事实。原因：App 已新增设备级外观偏好、`preferredColorScheme` 注入和 light / dark 语义 color token；真实发布级深色视觉仍需截图或人工验收。影响范围：`LangoTraceDesign`、`SettingsCapabilityDetailView`、`LangoTraceApp`、三端设置入口和外观验证清单。是否需要 ADR：否，当前只实现系统浅深色外观，不改变未来主题策略。

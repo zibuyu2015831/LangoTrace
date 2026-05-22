@@ -7,11 +7,13 @@ struct PhoneMainView: View {
     let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
+    let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
     let onSelectLanguageSpace: (String) -> Void
     let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
     let onDeleteLanguageSpace: (String) -> Void
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
+    let onAppearancePreferenceChange: (AppearancePreference) -> Void
 
     @State private var selectedTab: PhoneRootTab = .entries
     @State private var navigationPath: [PhoneRoute] = []
@@ -108,7 +110,9 @@ struct PhoneMainView: View {
                             languageSpace: languageSpace,
                             capability: capability,
                             interfaceLanguagePreference: interfaceLanguagePreference,
-                            onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
+                            appearancePreference: appearancePreference,
+                            onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
+                            onAppearancePreferenceChange: onAppearancePreferenceChange
                         )
                     }
                 case .settingsList:

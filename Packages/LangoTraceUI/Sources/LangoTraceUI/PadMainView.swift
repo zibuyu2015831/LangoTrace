@@ -7,11 +7,13 @@ struct PadMainView: View {
     let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
+    let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
     let onSelectLanguageSpace: (String) -> Void
     let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
     let onDeleteLanguageSpace: (String) -> Void
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
+    let onAppearancePreferenceChange: (AppearancePreference) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -235,11 +237,13 @@ struct PadMainView: View {
             settingsCapabilities: settingsCapabilities,
             contentStore: contentStore,
             interfaceLanguagePreference: interfaceLanguagePreference,
+            appearancePreference: appearancePreference,
             onAddLanguageSpace: onAddLanguageSpace,
             onSelectLanguageSpace: onSelectLanguageSpace,
             onUpdateLanguageSpace: onUpdateLanguageSpace,
             onDeleteLanguageSpace: onDeleteLanguageSpace,
             onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
+            onAppearancePreferenceChange: onAppearancePreferenceChange,
             onRoute: setRoute
         )
     }

@@ -8,7 +8,7 @@ struct InterfaceLanguageSettingsPageTests {
     func detailUsesChoiceFirstLayoutWithoutPersistentExplanationCards() throws {
         let source = try String(contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"), encoding: .utf8)
 
-        #expect(source.contains("if capability.kind != .interfaceLanguage {"))
+        #expect(source.contains("capability.kind != .interfaceLanguage, capability.kind != .appearance"))
         #expect(source.contains("header"))
         #expect(source.contains("interfaceLanguageSettingsContent"))
         #expect(source.contains("interfaceLanguageOptionRow"))
@@ -69,9 +69,10 @@ struct InterfaceLanguageSettingsPageTests {
     func macSettingsSceneKeepsInterfaceLanguageAvailableWithoutLanguageSpace() throws {
         let source = try String(contentsOf: sourceFileURL(named: "LangoTraceSettingsSceneView.swift"), encoding: .utf8)
 
-        #expect(source.contains("selectedCapabilityKind == .interfaceLanguage"))
-        #expect(source.contains("settingsDetailLanguageSpace(for: selectedCapability)"))
-        #expect(source.contains("interfaceLanguagePlaceholderSpace"))
+        #expect(source.contains("canShowDetail(for kind: SettingsCapability.Kind)"))
+        #expect(source.contains("kind == .interfaceLanguage"))
+        #expect(source.contains("kind == SettingsCapability.Kind.appearance"))
+        #expect(!source.contains("interfaceLanguagePlaceholderSpace"))
         #expect(source.contains("SettingsCapabilityDetailView("))
         #expect(!source.contains("else if let languageSpace, let selectedCapability"))
     }
@@ -80,8 +81,9 @@ struct InterfaceLanguageSettingsPageTests {
     func macInspectorKeepsInterfaceLanguageExplanationShort() throws {
         let source = try String(contentsOf: sourceFileURL(named: "MacInspectorContent.swift"), encoding: .utf8)
 
-        #expect(source.contains("if kind == .interfaceLanguage"))
-        #expect(source.contains("textKey: \"settings.interfaceLanguage.selectionFootnote\""))
+        #expect(source.contains("if kind == .interfaceLanguage || kind == .appearance"))
+        #expect(source.contains("settings.appearance.selectionFootnote"))
+        #expect(source.contains("\"settings.interfaceLanguage.selectionFootnote\""))
         #expect(!source.contains("settingsCapabilityDetailLocalizationKeys(for: capability.kind).nextRequirement"))
     }
 

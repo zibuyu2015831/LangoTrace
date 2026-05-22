@@ -15,11 +15,13 @@ struct MacWorkspaceContentView: View {
     let settingsCapabilities: [SettingsCapability]
     let contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
+    let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
     let onSelectLanguageSpace: (String) -> Void
     let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
     let onDeleteLanguageSpace: (String) -> Void
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
+    let onAppearancePreferenceChange: (AppearancePreference) -> Void
     let onShowEntry: (LearningEntry) -> Void
     let onRoute: (MacWorkspaceRoute) -> Void
 
@@ -233,8 +235,10 @@ struct MacWorkspaceContentView: View {
                 languageSpace: languageSpace,
                 capability: capability,
                 interfaceLanguagePreference: interfaceLanguagePreference,
+                appearancePreference: appearancePreference,
                 presentation: .embeddedInExistingScroll,
-                onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
+                onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
+                onAppearancePreferenceChange: onAppearancePreferenceChange
             )
         } else {
             LocalizedCompactPanel(

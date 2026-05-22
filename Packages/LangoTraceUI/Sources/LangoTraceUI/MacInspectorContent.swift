@@ -38,10 +38,12 @@ struct MacInspectorContent: View {
             )
         case let .settings(kind):
             if let capability = settingsCapabilities.first(where: { $0.kind == kind }) {
-                if kind == .interfaceLanguage {
+                if kind == .interfaceLanguage || kind == .appearance {
                     LocalizedTextPanel(
                         titleKey: capability.kind.localizedTitleKey,
-                        textKey: "settings.interfaceLanguage.selectionFootnote"
+                        textKey: kind == .appearance
+                            ? "settings.appearance.selectionFootnote"
+                            : "settings.interfaceLanguage.selectionFootnote"
                     )
                 } else {
                     let localizationKeys = settingsCapabilityDetailLocalizationKeys(for: capability.kind)

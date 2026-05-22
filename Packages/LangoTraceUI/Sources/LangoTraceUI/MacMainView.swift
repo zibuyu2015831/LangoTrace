@@ -7,11 +7,13 @@ struct MacMainView: View {
     let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
+    let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
     let onSelectLanguageSpace: (String) -> Void
     let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
     let onDeleteLanguageSpace: (String) -> Void
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
+    let onAppearancePreferenceChange: (AppearancePreference) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isSidebarVisible = true
@@ -238,11 +240,13 @@ private extension MacMainView {
                 settingsCapabilities: settingsCapabilities,
                 contentStore: contentStore,
                 interfaceLanguagePreference: interfaceLanguagePreference,
+                appearancePreference: appearancePreference,
                 onAddLanguageSpace: onAddLanguageSpace,
                 onSelectLanguageSpace: onSelectLanguageSpace,
                 onUpdateLanguageSpace: onUpdateLanguageSpace,
                 onDeleteLanguageSpace: onDeleteLanguageSpace,
                 onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
+                onAppearancePreferenceChange: onAppearancePreferenceChange,
                 onShowEntry: showEntry,
                 onRoute: { route = $0 }
             )

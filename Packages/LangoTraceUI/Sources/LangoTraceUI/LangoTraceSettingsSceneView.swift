@@ -7,11 +7,13 @@ public struct LangoTraceSettingsSceneView: View {
     private let languageSpace: LanguageSpacePreview?
     private let languageSpaces: [LanguageSpace]
     private let interfaceLanguagePreference: InterfaceLanguagePreference
+    private let appearancePreference: AppearancePreference
     private let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
     private let onSelectLanguageSpace: (String) -> Void
     private let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
     private let onDeleteLanguageSpace: (String) -> Void
     private let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
+    private let onAppearancePreferenceChange: (AppearancePreference) -> Void
     @State private var selection: LangoTraceSettingsSceneSelection?
 
     public init(
@@ -19,21 +21,25 @@ public struct LangoTraceSettingsSceneView: View {
         languageSpace: LanguageSpacePreview?,
         languageSpaces: [LanguageSpace] = [],
         interfaceLanguagePreference: InterfaceLanguagePreference,
+        appearancePreference: AppearancePreference,
         onAddLanguageSpace: @escaping (CreateLanguageSpaceInput) -> Void = { _ in },
         onSelectLanguageSpace: @escaping (String) -> Void = { _ in },
         onUpdateLanguageSpace: @escaping (String, UpdateLanguageSpaceInput) -> Void = { _, _ in },
         onDeleteLanguageSpace: @escaping (String) -> Void = { _ in },
-        onInterfaceLanguagePreferenceChange: @escaping (InterfaceLanguagePreference) -> Void
+        onInterfaceLanguagePreferenceChange: @escaping (InterfaceLanguagePreference) -> Void,
+        onAppearancePreferenceChange: @escaping (AppearancePreference) -> Void
     ) {
         self.capabilities = capabilities
         self.languageSpace = languageSpace
         self.languageSpaces = languageSpaces
         self.interfaceLanguagePreference = interfaceLanguagePreference
+        self.appearancePreference = appearancePreference
         self.onAddLanguageSpace = onAddLanguageSpace
         self.onSelectLanguageSpace = onSelectLanguageSpace
         self.onUpdateLanguageSpace = onUpdateLanguageSpace
         self.onDeleteLanguageSpace = onDeleteLanguageSpace
         self.onInterfaceLanguagePreferenceChange = onInterfaceLanguagePreferenceChange
+        self.onAppearancePreferenceChange = onAppearancePreferenceChange
     }
 
     public var body: some View {
@@ -91,12 +97,14 @@ public struct LangoTraceSettingsSceneView: View {
         if selection == .languageSpaces {
             languageSpaceManagement
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        } else if let selectedCapability, let detailLanguageSpace = selectedDetailLanguageSpace {
+        } else if let selectedCapability, canShowDetail(for: selectedCapability.kind) {
             SettingsCapabilityDetailView(
-                languageSpace: detailLanguageSpace,
+                languageSpace: languageSpace,
                 capability: selectedCapability,
                 interfaceLanguagePreference: interfaceLanguagePreference,
-                onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange
+                appearancePreference: appearancePreference,
+                onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
+                onAppearancePreferenceChange: onAppearancePreferenceChange
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         } else if languageSpace == nil {
@@ -124,30 +132,10 @@ public struct LangoTraceSettingsSceneView: View {
         return capabilities.first { $0.kind == selectedCapabilityKind }
     }
 
-    private var selectedDetailLanguageSpace: LanguageSpacePreview? {
-        guard let selectedCapability else {
-            return nil
-        }
-
-        return settingsDetailLanguageSpace(for: selectedCapability)
-    }
-
-    private func settingsDetailLanguageSpace(for capability: SettingsCapability) -> LanguageSpacePreview? {
-        if capability.kind == .interfaceLanguage, selectedCapabilityKind == .interfaceLanguage {
-            return languageSpace ?? interfaceLanguagePlaceholderSpace
-        }
-
-        return languageSpace
-    }
-
-    private var interfaceLanguagePlaceholderSpace: LanguageSpacePreview {
-        LanguageSpacePreview(
-            id: "interface-language-settings",
-            name: "Interface Language",
-            nativeLanguage: "System",
-            targetLanguage: "Interface",
-            level: .b1
-        )
+    private func canShowDetail(for kind: SettingsCapability.Kind) -> Bool {
+        languageSpace != nil
+            || kind == SettingsCapability.Kind.appearance
+            || kind == .interfaceLanguage
     }
 
     private var languageSpaceManagement: some View {

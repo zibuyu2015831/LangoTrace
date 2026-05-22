@@ -211,6 +211,17 @@ func interfaceLanguagePreferenceTitleKey(for preference: InterfaceLanguagePrefer
     }
 }
 
+func appearancePreferenceTitleKey(for preference: AppearancePreference) -> String {
+    switch preference {
+    case .system:
+        "settings.appearance.system"
+    case .light:
+        "settings.appearance.light"
+    case .dark:
+        "settings.appearance.dark"
+    }
+}
+
 struct SettingsCapabilityDetailLocalizationKeys: Equatable {
     let summary: String
     let detail: String
@@ -266,6 +277,8 @@ extension SettingsCapability.Kind {
             "settings.languageSpace.title"
         case .interfaceLanguage:
             "settings.interfaceLanguage.title"
+        case .appearance:
+            "settings.appearance.title"
         case .aiProvider:
             "settings.aiProvider.title"
         case .sync:
