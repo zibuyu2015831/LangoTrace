@@ -65,10 +65,19 @@ public struct LearningMaterialGenerationService: Sendable {
         self.clock = clock
     }
 
-    public func generate(_ request: LearningMaterialServiceGenerationRequest) async throws -> LearningMaterialGenerationResult {
+    public func generate(
+        _ request: LearningMaterialServiceGenerationRequest
+    ) async throws -> LearningMaterialGenerationResult {
         let endpoint = try normalizedGenerationEndpoint(request.endpoint)
-        let prompt = LearningMaterialPromptRegistry.generatePrompt(input: request.input, lengthBucket: request.lengthBucket)
-        let text = try await responseText(endpoint: endpoint, plaintextSecret: request.plaintextSecret, prompt: prompt)
+        let prompt = LearningMaterialPromptRegistry.generatePrompt(
+            input: request.input,
+            lengthBucket: request.lengthBucket
+        )
+        let text = try await responseText(
+            endpoint: endpoint,
+            plaintextSecret: request.plaintextSecret,
+            prompt: prompt
+        )
         return try parseGenerationJSON(
             text,
             input: request.input,
@@ -77,10 +86,19 @@ public struct LearningMaterialGenerationService: Sendable {
         )
     }
 
-    public func analyze(_ request: LearningMaterialServiceAnalysisRequest) async throws -> LearningMaterialAnalysisResult {
+    public func analyze(
+        _ request: LearningMaterialServiceAnalysisRequest
+    ) async throws -> LearningMaterialAnalysisResult {
         let endpoint = try normalizedGenerationEndpoint(request.endpoint)
-        let prompt = LearningMaterialPromptRegistry.analyzePrompt(input: request.input, lengthBucket: request.lengthBucket)
-        let text = try await responseText(endpoint: endpoint, plaintextSecret: request.plaintextSecret, prompt: prompt)
+        let prompt = LearningMaterialPromptRegistry.analyzePrompt(
+            input: request.input,
+            lengthBucket: request.lengthBucket
+        )
+        let text = try await responseText(
+            endpoint: endpoint,
+            plaintextSecret: request.plaintextSecret,
+            prompt: prompt
+        )
         return try parseAnalysisJSON(text, input: request.input)
     }
 }
@@ -100,7 +118,7 @@ private extension LearningMaterialGenerationService {
         } catch {
             throw LearningMaterialGenerationServiceError(category: .networkUnavailable)
         }
-        guard (200..<300).contains(response.statusCode) else {
+        guard (200 ..< 300).contains(response.statusCode) else {
             throw LearningMaterialGenerationServiceError(category: .providerRejected)
         }
         return try parseText(from: response.body, adapterKind: endpoint.adapterKind)

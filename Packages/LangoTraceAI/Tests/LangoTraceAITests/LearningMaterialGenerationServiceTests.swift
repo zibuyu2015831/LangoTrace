@@ -40,7 +40,7 @@ func learningMaterialPromptRegistryRendersAnalysisPromptContract() {
 
 @Test("Learning material generation service builds chat request and parses native record response")
 func learningMaterialGenerationServiceBuildsChatRequestAndParsesResponse() async throws {
-    let httpClient = CapturingLearningMaterialHTTPClient(responses: [
+    let httpClient = try CapturingLearningMaterialHTTPClient(responses: [
         .success(.init(statusCode: 200, body: chatResponse(generationJSON(inputKind: "nativeRecord")))),
     ])
     let service = LearningMaterialGenerationService(httpClient: httpClient)
@@ -65,7 +65,7 @@ func learningMaterialGenerationServiceBuildsChatRequestAndParsesResponse() async
 
 @Test("Learning material generation service parses target writing revision notes")
 func learningMaterialGenerationServiceParsesTargetWritingRevisionNotes() async throws {
-    let httpClient = CapturingLearningMaterialHTTPClient(responses: [
+    let httpClient = try CapturingLearningMaterialHTTPClient(responses: [
         .success(.init(statusCode: 200, body: chatResponse(generationJSON(inputKind: "targetWriting")))),
     ])
     let service = LearningMaterialGenerationService(httpClient: httpClient)
@@ -87,7 +87,7 @@ func learningMaterialGenerationServiceParsesTargetWritingRevisionNotes() async t
 
 @Test("Learning material generation service analyzes current learning text without rewriting it")
 func learningMaterialGenerationServiceAnalyzesCurrentLearningText() async throws {
-    let httpClient = CapturingLearningMaterialHTTPClient(responses: [
+    let httpClient = try CapturingLearningMaterialHTTPClient(responses: [
         .success(.init(statusCode: 200, body: chatResponse(analysisJSON()))),
     ])
     let service = LearningMaterialGenerationService(httpClient: httpClient)
@@ -117,8 +117,13 @@ func learningMaterialGenerationServiceAnalyzesCurrentLearningText() async throws
 
 @Test("Learning material generation service rejects missing analysis fields")
 func learningMaterialGenerationServiceRejectsMissingAnalysisFields() async throws {
-    let httpClient = CapturingLearningMaterialHTTPClient(responses: [
-        .success(.init(statusCode: 200, body: chatResponse(#"{"schema_version":"learning_material.v1","input_kind":"nativeRecord","learning_text":"I went."}"#))),
+    let httpClient = try CapturingLearningMaterialHTTPClient(responses: [
+        .success(.init(
+            statusCode: 200,
+            body: chatResponse("""
+            {"schema_version":"learning_material.v1","input_kind":"nativeRecord","learning_text":"I went."}
+            """)
+        )),
     ])
     let service = LearningMaterialGenerationService(httpClient: httpClient)
 
@@ -207,7 +212,7 @@ private func endpoint(adapterKind: AIProviderAdapterKind) -> AIProviderEndpointI
     )
 }
 
-private func chatResponse(_ content: String) -> Data {
+private func chatResponse(_ content: String) throws -> Data {
     let object: [String: Any] = [
         "choices": [
             [
@@ -217,7 +222,7 @@ private func chatResponse(_ content: String) -> Data {
             ],
         ],
     ]
-    return try! JSONSerialization.data(withJSONObject: object)
+    return try JSONSerialization.data(withJSONObject: object)
 }
 
 private func generationJSON(inputKind: String) -> String {

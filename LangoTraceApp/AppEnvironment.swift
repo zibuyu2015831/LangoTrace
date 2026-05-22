@@ -113,6 +113,7 @@ private func makeLearningContentRepository(
     }
 }
 
+// swiftlint:disable:next function_body_length
 private func makeLearningMaterialGenerationActions(
     databaseFactory: SharedAppDatabaseFactory,
     credentialStore: any AIProviderCredentialStore
@@ -198,10 +199,9 @@ private func makeLearningMaterialGenerationActions(
                 )
                 return .failed(error.category)
             } catch let error as AIProviderCredentialStoreError {
-                let category: LearningMaterialGenerationFailureCategory
-                switch error {
+                let category: LearningMaterialGenerationFailureCategory = switch error {
                 case .missingCredential, .credentialInaccessible, .credentialCorrupted, .userInteractionRequired:
-                    category = .credentialMissing
+                    .credentialMissing
                 }
                 try? recordLearningMaterialFailure(
                     category,
@@ -320,10 +320,9 @@ private func makeLearningMaterialGenerationActions(
                 )
                 return .failed(error.category)
             } catch let error as AIProviderCredentialStoreError {
-                let category: LearningMaterialGenerationFailureCategory
-                switch error {
+                let category: LearningMaterialGenerationFailureCategory = switch error {
                 case .missingCredential, .credentialInaccessible, .credentialCorrupted, .userInteractionRequired:
-                    category = .credentialMissing
+                    .credentialMissing
                 }
                 try? recordLearningMaterialFailure(
                     category,

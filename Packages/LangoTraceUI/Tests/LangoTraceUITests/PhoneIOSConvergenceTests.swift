@@ -58,7 +58,10 @@ struct PhoneIOSConvergenceTests {
             encoding: .utf8
         )
         let padSections = try String(contentsOf: sourceFileURL(named: "PadMainSections.swift"), encoding: .utf8)
-        let macWorkspace = try String(contentsOf: sourceFileURL(named: "MacWorkspaceContentView.swift"), encoding: .utf8)
+        let macWorkspace = try String(
+            contentsOf: sourceFileURL(named: "MacWorkspaceContentView.swift"),
+            encoding: .utf8
+        )
 
         #expect(phoneMainView.contains("onGenerateLearningMaterial"))
         #expect(phoneMainView.contains("contentStore.generateLearningMaterial"))

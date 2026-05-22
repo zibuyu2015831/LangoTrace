@@ -341,6 +341,7 @@ private extension GRDBLearningContentRepository {
         ).flatMap { try material(from: $0, db: db) }
     }
 
+    // swiftlint:disable:next function_parameter_count
     func insertMaterial(
         id: String,
         entryID: String,
@@ -413,8 +414,8 @@ private extension GRDBLearningContentRepository {
                     sentence.targetSentence,
                     sentence.literalTranslation,
                     sentence.naturalTranslation,
-                    try encodedJSON(VersionedStringList(values: sentence.grammarNotes)),
-                    try encodedJSON(VersionedStringList(values: sentence.keyPoints)),
+                    encodedJSON(VersionedStringList(values: sentence.grammarNotes)),
+                    encodedJSON(VersionedStringList(values: sentence.keyPoints)),
                     now.timeIntervalSince1970,
                     now.timeIntervalSince1970,
                 ]
@@ -575,14 +576,14 @@ private extension GRDBLearningContentRepository {
     }
 
     func sentence(from row: Row) throws -> LearningSentenceAnalysis {
-        LearningSentenceAnalysis(
+        try LearningSentenceAnalysis(
             id: row["id"],
             nativeSentence: row["native_sentence"],
             targetSentence: row["target_sentence"],
             literalTranslation: row["literal_translation"],
             naturalTranslation: row["natural_translation"],
-            grammarNotes: try decodedJSON(row["grammar_notes_json"] as String, as: VersionedStringList.self).values,
-            keyPoints: try decodedJSON(row["key_points_json"] as String, as: VersionedStringList.self).values,
+            grammarNotes: decodedJSON(row["grammar_notes_json"] as String, as: VersionedStringList.self).values,
+            keyPoints: decodedJSON(row["key_points_json"] as String, as: VersionedStringList.self).values,
             position: row["position"]
         )
     }
@@ -687,8 +688,8 @@ private extension GRDBLearningContentRepository {
         ]
     }
 
-    func encodedJSON<T: Encodable>(_ value: T) throws -> String {
-        String(decoding: try jsonEncoder.encode(value), as: UTF8.self)
+    func encodedJSON(_ value: some Encodable) throws -> String {
+        try String(decoding: jsonEncoder.encode(value), as: UTF8.self)
     }
 
     func decodedJSON<T: Decodable>(_ value: String, as type: T.Type) throws -> T {

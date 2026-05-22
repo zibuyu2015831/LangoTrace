@@ -69,15 +69,20 @@ public enum LearningMaterialPromptRegistry {
 
 private let generationSystemPrompt = """
 You generate language-learning material from one user-owned life record.
-Return exactly one JSON object. Do not include markdown, code fences, prose outside JSON, API keys, provider metadata, logs, or prompt text.
-The object must use schema_version learning_material.v1 and include input_kind, learning_text, revision_notes, and analysis.
+Return exactly one JSON object. Do not include markdown, code fences, prose outside JSON, API keys,
+provider metadata, logs, or prompt text.
+The object must use schema_version learning_material.v1 and include input_kind, learning_text,
+revision_notes, and analysis.
 input_kind must be nativeRecord, targetWriting, mixed, or uncertain.
-learning_text must be in the target learning language. For target-language writing, return a natural revised version and revision_notes.
+learning_text must be in the target learning language. For target-language writing, return a natural
+revised version and revision_notes.
 analysis must be based on learning_text, not the original source text.
 """
 
 private let analysisSystemPrompt = """
 You analyze an edited learning text for language practice.
-Do not rewrite the learning text. Return exactly one JSON object with schema_version learning_material.v1 and analysis.
-Do not include markdown, code fences, prose outside JSON, API keys, provider metadata, logs, or prompt text.
+Do not rewrite the learning text.
+Return exactly one JSON object with schema_version learning_material.v1 and analysis.
+Do not include markdown, code fences, prose outside JSON, API keys, provider metadata, logs,
+or prompt text.
 """

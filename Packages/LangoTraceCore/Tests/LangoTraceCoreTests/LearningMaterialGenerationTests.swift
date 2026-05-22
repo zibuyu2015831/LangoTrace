@@ -41,7 +41,7 @@ func learningMaterialFailureCategoriesCoverContract() {
 func learningMaterialLengthEstimatorBucketsInput() {
     #expect(LearningMaterialLengthEstimator.bucket(for: "今天下班后去买咖啡。") == .short)
     #expect(LearningMaterialLengthEstimator.bucket(for: String(repeating: "hello ", count: 700)) == .medium)
-    #expect(LearningMaterialLengthEstimator.bucket(for: String(repeating: "语", count: 3_001)) == .tooLong)
+    #expect(LearningMaterialLengthEstimator.bucket(for: String(repeating: "语", count: 3001)) == .tooLong)
     #expect(LearningMaterialLengthEstimator.estimateTokens(for: "hello 语迹!") == 4)
 }
 

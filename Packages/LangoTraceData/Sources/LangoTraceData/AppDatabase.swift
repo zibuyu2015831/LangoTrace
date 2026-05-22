@@ -237,6 +237,7 @@ private extension AppDatabase {
         )
     }
 
+    // swiftlint:disable:next function_body_length
     static func createLearningContentInfrastructure(_ db: Database) throws {
         try db.execute(sql: """
         CREATE TABLE entries (

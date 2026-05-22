@@ -42,7 +42,10 @@ func learningContentMigratesV3DatabaseBuiltBySQLHelper() throws {
     try AppDatabaseTestSupport.migrateToV3(queue)
     try queue.write { db in
         try insertLanguageSpace(id: "space-v3", db: db)
-        try db.execute(sql: "INSERT INTO diagnostic_events (id, name, domain, level, attributes_json, created_at) VALUES ('event-1', 'ai_provider_settings.save_started', 'ai_provider_settings', 'info', '{}', 100)")
+        try db.execute(sql: """
+        INSERT INTO diagnostic_events (id, name, domain, level, attributes_json, created_at)
+        VALUES ('event-1', 'ai_provider_settings.save_started', 'ai_provider_settings', 'info', '{}', 100)
+        """)
     }
 
     let database = try AppDatabase(databaseQueue: queue)
@@ -327,6 +330,7 @@ private final class IncrementingIDGenerator: @unchecked Sendable {
 }
 
 private enum AppDatabaseTestSupport {
+    // swiftlint:disable:next function_body_length
     static func migrateToV3(_ queue: DatabaseQueue) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("v1_create_language_space_infrastructure") { db in
@@ -399,8 +403,33 @@ private enum AppDatabaseTestSupport {
                 deleted_at REAL
             )
             """)
-            try db.execute(sql: "CREATE TABLE ai_provider_custom_headers (id TEXT PRIMARY KEY, endpoint_id TEXT NOT NULL REFERENCES ai_provider_endpoints(id) ON DELETE CASCADE, header_name TEXT NOT NULL, header_name_normalized TEXT NOT NULL, value_kind TEXT NOT NULL, plain_value TEXT, credential_id TEXT REFERENCES ai_provider_credentials(id) ON DELETE RESTRICT, created_at REAL NOT NULL, updated_at REAL NOT NULL)")
-            try db.execute(sql: "CREATE TABLE ai_provider_validation_events (id TEXT PRIMARY KEY, profile_id TEXT NOT NULL REFERENCES ai_provider_profiles(id) ON DELETE CASCADE, endpoint_id TEXT REFERENCES ai_provider_endpoints(id) ON DELETE SET NULL, event_type TEXT NOT NULL, status TEXT NOT NULL, error_category TEXT, provider_preset_id TEXT NOT NULL, model_name TEXT, duration_ms INTEGER, created_at REAL NOT NULL)")
+            try db.execute(sql: """
+            CREATE TABLE ai_provider_custom_headers (
+              id TEXT PRIMARY KEY,
+              endpoint_id TEXT NOT NULL REFERENCES ai_provider_endpoints(id) ON DELETE CASCADE,
+              header_name TEXT NOT NULL,
+              header_name_normalized TEXT NOT NULL,
+              value_kind TEXT NOT NULL,
+              plain_value TEXT,
+              credential_id TEXT REFERENCES ai_provider_credentials(id) ON DELETE RESTRICT,
+              created_at REAL NOT NULL,
+              updated_at REAL NOT NULL
+            )
+            """)
+            try db.execute(sql: """
+            CREATE TABLE ai_provider_validation_events (
+              id TEXT PRIMARY KEY,
+              profile_id TEXT NOT NULL REFERENCES ai_provider_profiles(id) ON DELETE CASCADE,
+              endpoint_id TEXT REFERENCES ai_provider_endpoints(id) ON DELETE SET NULL,
+              event_type TEXT NOT NULL,
+              status TEXT NOT NULL,
+              error_category TEXT,
+              provider_preset_id TEXT NOT NULL,
+              model_name TEXT,
+              duration_ms INTEGER,
+              created_at REAL NOT NULL
+            )
+            """)
         }
         migrator.registerMigration("v3_create_diagnostic_events") { db in
             try db.execute(sql: """

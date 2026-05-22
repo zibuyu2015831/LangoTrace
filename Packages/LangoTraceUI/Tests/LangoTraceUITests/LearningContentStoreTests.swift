@@ -105,7 +105,7 @@ struct LearningContentStoreTests {
             }
         )
         let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
-        let longText = String(repeating: "我", count: 3_100)
+        let longText = String(repeating: "我", count: 3100)
         let entry = store.createEntry(title: "Long", body: longText, source: .typedText)
 
         await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
@@ -201,7 +201,7 @@ private func sampleLearningMaterial(
     materialID: String,
     entryID: String,
     learningText: String,
-    operationID: DiagnosticOperationID = DiagnosticOperationID(rawValue: "operation-1"),
+    operationID _: DiagnosticOperationID = DiagnosticOperationID(rawValue: "operation-1"),
     analysisStatus: LearningMaterialAnalysisStatus
 ) -> LearningMaterial {
     LearningMaterial(
