@@ -2,7 +2,7 @@
 
 审查类型：专项审查
 日期：2026-05-23
-代码快照：3284078a8092434cdab3a412ed5b5e75cf2a073b
+代码快照：d1f0d52d109be040035943c74545fd052e8a86c1
 状态：In Progress
 当前事实源：`docs/product-main-reference.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/learning-content/impl.md`、`docs/platform-page-inventory.md`、`docs/prompts/learning-material/one-tap-learning-material.md`
 后续覆盖记录：`docs/plans/active/2026-05-22-feature-one-tap-learning-material-flow.md`
@@ -92,9 +92,12 @@
 
 待最终收口：
 
-- `scripts/verify.sh`
 - iOS 端人工测试记录。
 - 本 review 状态从 `In Progress` 更新为 `Verified`。
+
+完整自动验证：
+
+- 2026-05-23：`scripts/verify.sh` 通过，覆盖 XcodeGen、Core / Data / AI / UI package tests、iPhone 17 / iPad Pro 13-inch / macOS build、SwiftLint、SwiftFormat lint、docs placeholder scan 和 `git status --short`。SwiftLint 保留 85 条 warning-level 风格告警，退出码为 0。
 
 ## 10. 剩余风险
 
