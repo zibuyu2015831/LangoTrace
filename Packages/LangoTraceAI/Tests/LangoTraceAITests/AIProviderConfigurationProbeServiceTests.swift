@@ -334,6 +334,29 @@ func cancelledProbesRecordCancellation() async throws {
     #expect(await logger.events().map(\.name).contains(.aiProviderConfigurationProbeCancelled))
 }
 
+@Test("Language support cancellation keeps overall probe status cancelled")
+func languageSupportCancellationKeepsOverallProbeStatusCancelled() async throws {
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"choices":[{"message":{"content":"OK"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"{\"ok\":true}"}}]}"#),
+        .failure(AIProviderProbeHTTPClientError.cancelled),
+    ])
+    let logger = InMemoryDiagnosticLogger()
+    let service = AIProviderConfigurationProbeService(httpClient: httpClient, diagnosticLogger: logger)
+
+    let result = try await service.probeDraftConfiguration(
+        draftInput(
+            adapterKind: .openAICompatibleChat,
+            languageContext: AIProviderProbeLanguageContext(languageCode: "en")
+        )
+    )
+
+    #expect(result.overallStatus == .cancelled)
+    #expect(result.capability(.languageSupport)?.status == .cancelled)
+    #expect(result.capability(.languageSupport)?.errorCategory == nil)
+    #expect(await logger.events().map(\.name).contains(.aiProviderConfigurationProbeCancelled))
+}
+
 @Test("Unsupported adapters and placeholder capabilities do not send HTTP")
 func unsupportedAdaptersAndPlaceholderCapabilitiesDoNotSendHTTP() async throws {
     let httpClient = CapturingProbeHTTPClient(responses: [])

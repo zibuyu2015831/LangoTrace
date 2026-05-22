@@ -609,6 +609,7 @@ private extension AIProviderConfigurationProbeService {
     ) -> AIProviderConfigurationProbeResult {
         let overallStatus: AIProviderValidationStatus = if aggregate.text.status == .cancelled
             || aggregate.json.status == .cancelled
+            || aggregate.language.status == .cancelled
             || aggregate.image.status == .cancelled
         {
             .cancelled
