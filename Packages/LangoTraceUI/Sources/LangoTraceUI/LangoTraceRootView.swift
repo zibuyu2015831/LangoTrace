@@ -17,6 +17,7 @@ public struct LangoTraceRootView: View {
     private let languageSpace: LanguageSpacePreview?
     private let languageSpaces: [LanguageSpace]
     private let learningContentRepository: any LearningContentRepository
+    private let learningMaterialGenerationActions: LearningMaterialGenerationActions
     private let interfaceLanguagePreference: InterfaceLanguagePreference
     private let appearancePreference: AppearancePreference
     @Binding private var onboardingDraft: OnboardingDraft
@@ -34,6 +35,7 @@ public struct LangoTraceRootView: View {
         languageSpace: LanguageSpacePreview?,
         languageSpaces: [LanguageSpace] = [],
         learningContentRepository: any LearningContentRepository,
+        learningMaterialGenerationActions: LearningMaterialGenerationActions = .disabled,
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         appearancePreference: AppearancePreference = .system,
         onboardingDraft: Binding<OnboardingDraft>,
@@ -50,6 +52,7 @@ public struct LangoTraceRootView: View {
         self.languageSpace = languageSpace
         self.languageSpaces = languageSpaces
         self.learningContentRepository = learningContentRepository
+        self.learningMaterialGenerationActions = learningMaterialGenerationActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
         _onboardingDraft = onboardingDraft
@@ -84,6 +87,7 @@ public struct LangoTraceRootView: View {
                         languageSpace: languageSpace,
                         languageSpaces: languageSpaces,
                         learningContentRepository: learningContentRepository,
+                        learningMaterialGenerationActions: learningMaterialGenerationActions,
                         interfaceLanguagePreference: interfaceLanguagePreference,
                         appearancePreference: appearancePreference,
                         onAddLanguageSpace: onAddLanguageSpace,
@@ -138,6 +142,7 @@ public struct LangoTraceRootView: View {
 private struct PlatformMainView: View {
     let languageSpace: LanguageSpacePreview
     let languageSpaces: [LanguageSpace]
+    let learningMaterialGenerationActions: LearningMaterialGenerationActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
@@ -152,6 +157,7 @@ private struct PlatformMainView: View {
         languageSpace: LanguageSpacePreview,
         languageSpaces: [LanguageSpace],
         learningContentRepository: any LearningContentRepository,
+        learningMaterialGenerationActions: LearningMaterialGenerationActions,
         interfaceLanguagePreference: InterfaceLanguagePreference,
         appearancePreference: AppearancePreference,
         onAddLanguageSpace: @escaping (CreateLanguageSpaceInput) -> Void,
@@ -163,6 +169,7 @@ private struct PlatformMainView: View {
     ) {
         self.languageSpace = languageSpace
         self.languageSpaces = languageSpaces
+        self.learningMaterialGenerationActions = learningMaterialGenerationActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
         self.onAddLanguageSpace = onAddLanguageSpace
@@ -174,7 +181,8 @@ private struct PlatformMainView: View {
         _contentStore = StateObject(
             wrappedValue: LearningContentStore(
                 repository: learningContentRepository,
-                spaceID: languageSpace.id
+                spaceID: languageSpace.id,
+                generationActions: learningMaterialGenerationActions
             )
         )
     }

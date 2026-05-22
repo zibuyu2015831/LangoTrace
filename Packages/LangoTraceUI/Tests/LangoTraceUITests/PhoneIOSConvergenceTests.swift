@@ -50,6 +50,24 @@ struct PhoneIOSConvergenceTests {
         #expect(!supportingViews.contains("entryDetail.practiceEntry.subtitle"))
     }
 
+    @Test("iPhone detail owns real generation entry while iPad and Mac stay unconnected")
+    func iPhoneDetailOwnsRealGenerationEntry() throws {
+        let phoneMainView = try String(contentsOf: sourceFileURL(named: "PhoneMainView.swift"), encoding: .utf8)
+        let supportingViews = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
+            encoding: .utf8
+        )
+        let padSections = try String(contentsOf: sourceFileURL(named: "PadMainSections.swift"), encoding: .utf8)
+        let macWorkspace = try String(contentsOf: sourceFileURL(named: "MacWorkspaceContentView.swift"), encoding: .utf8)
+
+        #expect(phoneMainView.contains("onGenerateLearningMaterial"))
+        #expect(phoneMainView.contains("contentStore.generateLearningMaterial"))
+        #expect(supportingViews.contains("entry.rendering.generateLearningMaterial.title"))
+        #expect(supportingViews.contains("entry.rendering.generateLearningMaterial.summary"))
+        #expect(!padSections.contains("generateLearningMaterial"))
+        #expect(!macWorkspace.contains("generateLearningMaterial"))
+    }
+
     @Test("iPhone sentence listening uses local preview instead of development unavailable copy")
     func iPhoneSentenceListeningUsesLocalPreviewInsteadOfDevelopmentUnavailableCopy() throws {
         let components = try String(

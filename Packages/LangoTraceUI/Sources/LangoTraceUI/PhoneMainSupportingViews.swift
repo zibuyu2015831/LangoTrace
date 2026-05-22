@@ -70,6 +70,8 @@ struct EntryDetailView: View {
     let entry: LearningEntry
     let rendering: LearningRendering?
     let practiceItems: [PracticeItem]
+    var generationState: LearningMaterialGenerationState = .idle
+    var onGenerateLearningMaterial: (() -> Void)?
     let onGenerateLocalPreview: () -> Void
     let onPractice: () -> Void
 
@@ -91,6 +93,14 @@ struct EntryDetailView: View {
                     ForEach(Array(rendering.sentences.enumerated()), id: \.element.id) { index, sentence in
                         SentencePairView(index: index + 1, sentence: sentence, onPractice: onPractice)
                     }
+                } else if let onGenerateLearningMaterial {
+                    CapabilityStatusRow(
+                        localizedTitleKey: generationTitleKey,
+                        localizedSummaryKey: generationSummaryKey,
+                        status: generationStatus,
+                        systemImage: "sparkles",
+                        action: generationState.isRunning ? nil : onGenerateLearningMaterial
+                    )
                 } else {
                     CapabilityStatusRow(
                         localizedTitleKey: "entry.rendering.localPreview.title",
@@ -119,6 +129,37 @@ struct EntryDetailView: View {
         }
         .navigationTitle(localizedText("entryDetail.title"))
         .langoPageBackground()
+    }
+
+    private var generationTitleKey: String {
+        switch generationState {
+        case .generating:
+            "entry.rendering.generateLearningMaterial.generatingTitle"
+        default:
+            "entry.rendering.generateLearningMaterial.title"
+        }
+    }
+
+    private var generationSummaryKey: String {
+        switch generationState {
+        case .generating:
+            "entry.rendering.generateLearningMaterial.generatingSummary"
+        case .blocked(.contentTooLong):
+            "entry.rendering.generateLearningMaterial.tooLongSummary"
+        case .failed:
+            "entry.rendering.generateLearningMaterial.failedSummary"
+        default:
+            "entry.rendering.generateLearningMaterial.summary"
+        }
+    }
+
+    private var generationStatus: CapabilityStatus {
+        switch generationState {
+        case .blocked(.contentTooLong), .blocked(.contentEmpty), .failed:
+            .unavailable
+        case .idle, .generated, .editing, .cancelled, .generating, .analyzing, .blocked:
+            .ready
+        }
     }
 }
 

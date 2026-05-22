@@ -85,6 +85,7 @@ struct LangoTraceApp: App {
             languageSpace: session.currentLanguageSpace,
             languageSpaces: session.languageSpaces,
             learningContentRepository: environment.learningContentRepository,
+            learningMaterialGenerationActions: environment.learningMaterialGenerationActions,
             interfaceLanguagePreference: interfaceLanguagePreference,
             appearancePreference: appearancePreference,
             onboardingDraft: Binding(

@@ -7468,6 +7468,108 @@
         }
       }
     },
+    "entry.rendering.generateLearningMaterial.title": {
+      "comment": "Entry detail AI learning material generation row title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate Learning Material"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成学习材料"
+          }
+        }
+      }
+    },
+    "entry.rendering.generateLearningMaterial.summary": {
+      "comment": "Entry detail AI learning material generation row summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send this text to your configured AI Provider to create target-language material."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将当前文本发送给已配置的 AI Provider，生成目标语言学习材料。"
+          }
+        }
+      }
+    },
+    "entry.rendering.generateLearningMaterial.generatingTitle": {
+      "comment": "Entry detail AI learning material generating row title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generating Learning Material"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在生成学习材料"
+          }
+        }
+      }
+    },
+    "entry.rendering.generateLearningMaterial.generatingSummary": {
+      "comment": "Entry detail AI learning material generating row summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The configured AI Provider is processing this entry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已配置的 AI Provider 正在处理这条记录。"
+          }
+        }
+      }
+    },
+    "entry.rendering.generateLearningMaterial.tooLongSummary": {
+      "comment": "Entry detail AI learning material overlong content summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This content is long. Select a shorter passage before generating learning material."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容较长，先选择一段生成学习材料。"
+          }
+        }
+      }
+    },
+    "entry.rendering.generateLearningMaterial.failedSummary": {
+      "comment": "Entry detail AI learning material failure summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generation failed. Check the AI Provider settings, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成失败。检查 AI Provider 设置后可以重试。"
+          }
+        }
+      }
+    },
     "entryCard.openDetail.label": {
       "comment": "Entry card accessibility label.",
       "localizations": {

@@ -83,6 +83,15 @@ struct PhoneMainView: View {
                             entry: entry,
                             rendering: rendering(for: entry),
                             practiceItems: contentStore.practiceItems(for: entry),
+                            generationState: contentStore.generationState(for: entry),
+                            onGenerateLearningMaterial: {
+                                Task {
+                                    await contentStore.generateLearningMaterial(
+                                        for: entry,
+                                        languageSpace: languageSpace
+                                    )
+                                }
+                            },
                             onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
                             onPractice: { navigationPath.append(.practice(entry.id)) }
                         )

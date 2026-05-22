@@ -1,4 +1,5 @@
 import Foundation
+import LangoTraceCore
 import LangoTraceData
 @testable import LangoTraceUI
 import Testing
@@ -72,4 +73,113 @@ struct LearningContentStoreTests {
 
         #expect(store.selectedEntry?.id == originalSelection)
     }
+
+    @Test("Store runs learning material generation action and exposes generated rendering")
+    func storeRunsLearningMaterialGenerationAction() async {
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let actions = LearningMaterialGenerationActions(
+            generateMaterial: { input, operationID, _ in
+                .generated(sampleLearningMaterial(entryID: input.entryID, operationID: operationID))
+            },
+            operationIDGenerator: { DiagnosticOperationID(rawValue: "operation-1") }
+        )
+        let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
+        let entry = store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
+
+        await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
+
+        #expect(store.generationState(for: entry).materialID == "material-operation-1")
+        #expect(store.generationState(for: entry).isRunning == false)
+        #expect(store.rendering(for: entry)?.targetText == "I went to a cafe today.")
+        #expect(store.rendering(for: entry)?.isMock == false)
+    }
+
+    @Test("Store blocks overlong learning material generation before action")
+    func storeBlocksOverlongLearningMaterialGeneration() async {
+        let actionCounter = LearningMaterialActionCallCounter()
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let actions = LearningMaterialGenerationActions(
+            generateMaterial: { _, _, _ in
+                await actionCounter.increment()
+                return .failed(.unknown)
+            }
+        )
+        let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
+        let longText = String(repeating: "我", count: 3_100)
+        let entry = store.createEntry(title: "Long", body: longText, source: .typedText)
+
+        await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
+
+        #expect(store.generationState(for: entry) == .blocked(.contentTooLong))
+        #expect(await actionCounter.value == 0)
+    }
+
+    private func sampleLanguageSpace() -> LanguageSpacePreview {
+        LanguageSpacePreview(
+            id: "en",
+            name: "English",
+            nativeLanguage: "zh-Hans",
+            targetLanguage: "English",
+            targetLanguageCode: "en",
+            level: .b1
+        )
+    }
+}
+
+private actor LearningMaterialActionCallCounter {
+    private var callCount = 0
+
+    var value: Int {
+        callCount
+    }
+
+    func increment() {
+        callCount += 1
+    }
+}
+
+private func sampleLearningMaterial(
+    entryID: String,
+    operationID: DiagnosticOperationID
+) -> LearningMaterial {
+    LearningMaterial(
+        id: "material-\(operationID.rawValue)",
+        entryID: entryID,
+        spaceID: "en",
+        inputKind: .nativeRecord,
+        promptMode: .automaticLearningMaterial,
+        learningText: "I went to a cafe today.",
+        originalGeneratedText: "I went to a cafe today.",
+        revisionSummary: [],
+        analysis: LearningMaterialAnalysis(
+            status: .fresh,
+            sourceTextHash: "hash",
+            sentences: [
+                LearningSentenceAnalysis(
+                    id: "sentence-1",
+                    nativeSentence: "我今天去咖啡馆。",
+                    targetSentence: "I went to a cafe today.",
+                    literalTranslation: "I today went cafe.",
+                    naturalTranslation: "I went to a cafe today.",
+                    grammarNotes: ["went is past tense."],
+                    keyPoints: ["went to"],
+                    position: 0
+                ),
+            ],
+            memoryCandidates: [],
+            practiceCandidates: []
+        ),
+        metadata: LearningMaterialGenerationMetadata(
+            promptID: "builtin.learning_material.generate.v1",
+            promptVersion: "1",
+            providerProfileID: "profile-1",
+            providerEndpointID: "endpoint-1",
+            providerPresetID: "openai",
+            modelName: "gpt-4.1-mini",
+            generatedAt: Date(timeIntervalSince1970: 0)
+        ),
+        createdAt: Date(timeIntervalSince1970: 0),
+        updatedAt: Date(timeIntervalSince1970: 0),
+        isCurrent: true
+    )
 }

@@ -10,6 +10,7 @@ import SwiftUI
 struct AppEnvironment {
     let makeLanguageSpaceRepository: @Sendable () throws -> any LanguageSpaceRepository
     let learningContentRepository: any LearningContentRepository
+    let learningMaterialGenerationActions: LearningMaterialGenerationActions
     let aiProviderSettingsActions: AIProviderSettingsActions
     let aiProvider: any AIProvider
     let speechService: any SpeechService
@@ -19,6 +20,7 @@ struct AppEnvironment {
         let databaseFactory = SharedAppDatabaseFactory()
         let credentialStore = KeychainAIProviderCredentialStore()
         let diagnosticLogger = makeDiagnosticLogger(databaseFactory: databaseFactory)
+        let learningContentRepository = makeLearningContentRepository(databaseFactory: databaseFactory)
 
         return AppEnvironment(
             makeLanguageSpaceRepository: {
@@ -26,7 +28,11 @@ struct AppEnvironment {
                     database: databaseFactory.database()
                 )
             },
-            learningContentRepository: InMemoryLearningContentRepository(seedEntries: []),
+            learningContentRepository: learningContentRepository,
+            learningMaterialGenerationActions: makeLearningMaterialGenerationActions(
+                databaseFactory: databaseFactory,
+                credentialStore: credentialStore
+            ),
             aiProviderSettingsActions: AIProviderSettingsActions(
                 loadDefaultProfile: {
                     let service = try makeAIProviderConfigurationService(
@@ -92,6 +98,186 @@ struct AppEnvironment {
             speechService: DisabledSpeechService(),
             syncService: DisabledSyncService()
         )
+    }
+}
+
+private func makeLearningContentRepository(
+    databaseFactory: SharedAppDatabaseFactory
+) -> any LearningContentRepository {
+    do {
+        return try GRDBLearningContentRepositoryBridge(
+            repository: GRDBLearningContentRepository(database: databaseFactory.database())
+        )
+    } catch {
+        return InMemoryLearningContentRepository(seedEntries: [])
+    }
+}
+
+private func makeLearningMaterialGenerationActions(
+    databaseFactory: SharedAppDatabaseFactory,
+    credentialStore: any AIProviderCredentialStore
+) -> LearningMaterialGenerationActions {
+    LearningMaterialGenerationActions(
+        generateMaterial: { input, operationID, bucket in
+            do {
+                let database = try databaseFactory.database()
+                let learningRepository = GRDBLearningContentRepository(database: database)
+                let configurationRepository = GRDBAIProviderConfigurationRepository(database: database)
+                try learningRepository.recordOperation(
+                    .started(
+                        operationID: operationID,
+                        entryID: input.entryID,
+                        kind: .generate,
+                        bucket: bucket,
+                        createdAt: Date()
+                    )
+                )
+
+                guard let profile = try await configurationRepository.loadDefaultProfile(),
+                      let endpoint = profile.textGenerationEndpointInput
+                else {
+                    try recordLearningMaterialFailure(
+                        .providerNotConfigured,
+                        operationID: operationID,
+                        input: input,
+                        bucket: bucket,
+                        repository: learningRepository
+                    )
+                    return .failed(.providerNotConfigured)
+                }
+
+                let plaintextSecret = try await resolveLearningMaterialSecret(
+                    endpoint: endpoint,
+                    profile: profile,
+                    credentialStore: credentialStore
+                )
+                let service = LearningMaterialGenerationService(
+                    httpClient: URLSessionAIProviderProbeHTTPClient()
+                )
+                let result = try await service.generate(
+                    LearningMaterialServiceGenerationRequest(
+                        endpoint: endpoint,
+                        plaintextSecret: plaintextSecret,
+                        input: input,
+                        operationID: operationID,
+                        lengthBucket: bucket
+                    )
+                )
+                let material = try learningRepository.saveGeneratedMaterial(result, for: input.entryID)
+                try learningRepository.recordOperation(
+                    LearningMaterialOperationSummary(
+                        operationID: operationID,
+                        entryID: input.entryID,
+                        materialID: material.id,
+                        kind: .generate,
+                        status: .succeeded,
+                        failureCategory: nil,
+                        promptID: material.metadata.promptID,
+                        promptVersion: material.metadata.promptVersion,
+                        providerProfileID: material.metadata.providerProfileID,
+                        providerEndpointID: material.metadata.providerEndpointID,
+                        providerPresetID: material.metadata.providerPresetID,
+                        modelName: material.metadata.modelName,
+                        inputKind: material.inputKind,
+                        estimatedTokenBucket: bucket,
+                        durationMilliseconds: nil,
+                        createdAt: material.createdAt,
+                        completedAt: Date()
+                    )
+                )
+                return .generated(material)
+            } catch let error as LearningMaterialGenerationServiceError {
+                try? recordLearningMaterialFailure(
+                    error.category,
+                    operationID: operationID,
+                    input: input,
+                    bucket: bucket,
+                    repository: GRDBLearningContentRepository(database: databaseFactory.database())
+                )
+                return .failed(error.category)
+            } catch let error as AIProviderCredentialStoreError {
+                let category: LearningMaterialGenerationFailureCategory
+                switch error {
+                case .missingCredential, .credentialInaccessible, .credentialCorrupted, .userInteractionRequired:
+                    category = .credentialMissing
+                }
+                try? recordLearningMaterialFailure(
+                    category,
+                    operationID: operationID,
+                    input: input,
+                    bucket: bucket,
+                    repository: GRDBLearningContentRepository(database: databaseFactory.database())
+                )
+                return .failed(category)
+            } catch {
+                try? recordLearningMaterialFailure(
+                    .unknown,
+                    operationID: operationID,
+                    input: input,
+                    bucket: bucket,
+                    repository: GRDBLearningContentRepository(database: databaseFactory.database())
+                )
+                return .failed(.unknown)
+            }
+        }
+    )
+}
+
+private func resolveLearningMaterialSecret(
+    endpoint: AIProviderEndpointInput,
+    profile: AIProviderConfigurationProfile,
+    credentialStore: any AIProviderCredentialStore
+) async throws -> String? {
+    guard let credentialID = endpoint.credentialID else {
+        return nil
+    }
+    guard let credential = profile.credentials.first(where: { $0.id == credentialID }) else {
+        throw AIProviderCredentialStoreError.missingCredential
+    }
+    return try await credentialStore.resolveSecret(
+        for: AIProviderCredentialKeychainReference(metadata: credential)
+    ).value
+}
+
+private func recordLearningMaterialFailure(
+    _ category: LearningMaterialGenerationFailureCategory,
+    operationID: DiagnosticOperationID,
+    input: LearningMaterialGenerationInput,
+    bucket: LearningMaterialEstimatedTokenBucket,
+    repository: GRDBLearningContentRepository
+) throws {
+    try repository.recordOperation(
+        .failed(
+            operationID: operationID,
+            entryID: input.entryID,
+            kind: .generate,
+            failureCategory: category,
+            bucket: bucket,
+            completedAt: Date()
+        )
+    )
+}
+
+private extension AIProviderConfigurationProfile {
+    var textGenerationEndpointInput: AIProviderEndpointInput? {
+        endpoints.first { endpoint in
+            endpoint.purpose == .textGeneration && endpoint.isEnabled
+        }.map { endpoint in
+            AIProviderEndpointInput(
+                id: endpoint.id,
+                profileID: endpoint.profileID,
+                purpose: endpoint.purpose,
+                isEnabled: endpoint.isEnabled,
+                providerPresetID: endpoint.providerPresetID,
+                adapterKind: endpoint.adapterKind,
+                baseURL: endpoint.baseURL,
+                modelName: endpoint.modelName,
+                credentialID: endpoint.credentialID,
+                supportsImageInput: endpoint.supportsImageInput,
+                imageInputEnabled: endpoint.imageInputEnabled,
+                requestTimeoutSeconds: endpoint.requestTimeoutSeconds
+            )
+        }
     }
 }
 
