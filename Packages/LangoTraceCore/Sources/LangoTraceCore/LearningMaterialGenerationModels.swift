@@ -481,6 +481,59 @@ public struct LearningMaterialAnalysisResult: Equatable, Sendable {
     }
 }
 
+public struct LearningMaterialGenerationInput: Equatable, Sendable {
+    public var entryID: String
+    public var spaceID: String
+    public var sourceText: String
+    public var entrySource: EntrySource
+    public var nativeLanguageCode: String
+    public var targetLanguageCode: String
+    public var proficiencyLevelCode: String
+    public var promptMode: LearningMaterialPromptMode
+
+    public init(
+        entryID: String,
+        spaceID: String,
+        sourceText: String,
+        entrySource: EntrySource,
+        nativeLanguageCode: String,
+        targetLanguageCode: String,
+        proficiencyLevelCode: String,
+        promptMode: LearningMaterialPromptMode
+    ) {
+        self.entryID = entryID
+        self.spaceID = spaceID
+        self.sourceText = sourceText
+        self.entrySource = entrySource
+        self.nativeLanguageCode = nativeLanguageCode
+        self.targetLanguageCode = targetLanguageCode
+        self.proficiencyLevelCode = proficiencyLevelCode
+        self.promptMode = promptMode
+    }
+}
+
+public struct LearningMaterialAnalysisInput: Equatable, Sendable {
+    public var materialID: String
+    public var learningText: String
+    public var nativeLanguageCode: String
+    public var targetLanguageCode: String
+    public var proficiencyLevelCode: String
+
+    public init(
+        materialID: String,
+        learningText: String,
+        nativeLanguageCode: String,
+        targetLanguageCode: String,
+        proficiencyLevelCode: String
+    ) {
+        self.materialID = materialID
+        self.learningText = learningText
+        self.nativeLanguageCode = nativeLanguageCode
+        self.targetLanguageCode = targetLanguageCode
+        self.proficiencyLevelCode = proficiencyLevelCode
+    }
+}
+
 public enum LearningMaterialOperationKind: String, Codable, CaseIterable, Equatable, Sendable {
     case generate
     case analyze
