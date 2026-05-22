@@ -162,6 +162,9 @@ private extension LearningMaterialGenerationService {
             body = [
                 "model": endpoint.modelName,
                 "temperature": 0.2,
+                "response_format": [
+                    "type": "json_object",
+                ],
                 "messages": [
                     ["role": "system", "content": prompt.system],
                     ["role": "user", "content": prompt.user],
@@ -233,9 +236,7 @@ private extension LearningMaterialGenerationService {
         endpoint: AIProviderEndpointInput,
         prompt: LearningMaterialRenderedPrompt
     ) throws -> LearningMaterialGenerationResult {
-        guard let data = text.data(using: .utf8) else {
-            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
-        }
+        let data = try jsonData(fromModelText: text)
         let response: GenerationResponse
         do {
             response = try JSONDecoder().decode(GenerationResponse.self, from: data)
@@ -282,9 +283,7 @@ private extension LearningMaterialGenerationService {
         _ text: String,
         input: LearningMaterialAnalysisInput
     ) throws -> LearningMaterialAnalysisResult {
-        guard let data = text.data(using: .utf8) else {
-            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
-        }
+        let data = try jsonData(fromModelText: text)
         let response: AnalysisOnlyResponse
         do {
             response = try JSONDecoder().decode(AnalysisOnlyResponse.self, from: data)
@@ -298,6 +297,28 @@ private extension LearningMaterialGenerationService {
             materialID: input.materialID,
             analysis: materialAnalysis(from: response.analysis)
         )
+    }
+
+    func jsonData(fromModelText text: String) throws -> Data {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let data = trimmed.data(using: .utf8),
+           (try? JSONSerialization.jsonObject(with: data)) != nil
+        {
+            return data
+        }
+        guard let start = trimmed.firstIndex(of: "{"),
+              let end = trimmed.lastIndex(of: "}"),
+              start <= end
+        else {
+            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+        }
+        let jsonSlice = trimmed[start ... end]
+        guard let data = String(jsonSlice).data(using: .utf8),
+              (try? JSONSerialization.jsonObject(with: data)) != nil
+        else {
+            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+        }
+        return data
     }
 
     func materialAnalysis(from response: AnalysisResponse) throws -> LearningMaterialAnalysis {

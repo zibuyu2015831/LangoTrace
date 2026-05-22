@@ -58,9 +58,38 @@ func learningMaterialGenerationServiceBuildsChatRequestAndParsesResponse() async
     let requests = await httpClient.requests
     #expect(requests.count == 1)
     #expect(requests[0].value(forHTTPHeaderField: "Authorization") == "Bearer sk-test-secret")
+    #expect(requests[0].jsonBodyValue("response_format.type") == "json_object")
     #expect(result.inputKind == .nativeRecord)
     #expect(result.learningText == "I went to a cafe today.")
     #expect(result.analysis.sentences.first?.targetSentence == "I went to a cafe today.")
+}
+
+@Test("Learning material generation service accepts fenced JSON returned by chat providers")
+func learningMaterialGenerationServiceAcceptsFencedJSONResponse() async throws {
+    let httpClient = try CapturingLearningMaterialHTTPClient(responses: [
+        .success(.init(
+            statusCode: 200,
+            body: chatResponse("""
+            ```json
+            \(generationJSON(inputKind: "nativeRecord"))
+            ```
+            """)
+        )),
+    ])
+    let service = LearningMaterialGenerationService(httpClient: httpClient)
+
+    let result = try await service.generate(
+        LearningMaterialServiceGenerationRequest(
+            endpoint: endpoint(adapterKind: .openAICompatibleChat),
+            plaintextSecret: "sk-test-secret",
+            input: sampleGenerationInput(sourceText: "今天我去咖啡馆。"),
+            operationID: DiagnosticOperationID(rawValue: "op-fenced"),
+            lengthBucket: .short
+        )
+    )
+
+    #expect(result.inputKind == .nativeRecord)
+    #expect(result.learningText == "I went to a cafe today.")
 }
 
 @Test("Learning material generation service parses target writing revision notes")
@@ -298,5 +327,20 @@ private func analysisJSON() -> String {
 private extension URLRequest {
     var httpBodyText: String? {
         httpBody.map { String(decoding: $0, as: UTF8.self) }
+    }
+
+    func jsonBodyValue(_ dottedPath: String) -> String? {
+        guard let httpBody,
+              let object = try? JSONSerialization.jsonObject(with: httpBody) as? [String: Any]
+        else {
+            return nil
+        }
+        let value = dottedPath.split(separator: ".").reduce(Optional<Any>(object)) { partial, key in
+            guard let dictionary = partial as? [String: Any] else {
+                return nil
+            }
+            return dictionary[String(key)]
+        }
+        return value as? String
     }
 }
