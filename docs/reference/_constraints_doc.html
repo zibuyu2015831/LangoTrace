@@ -1,0 +1,512 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>code_agent_pro · constraints 系统说明</title>
+<style>
+* { box-sizing: border-box }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont,
+        "Helvetica Neue", "PingFang SC", system-ui, sans-serif;
+        background: #f5f5f7; color: #1d1d1f; line-height: 1.55 }
+.hero { background: linear-gradient(135deg, #5856d6 0%, #af52de 100%);
+        color: white; padding: 24px 32px }
+.hero h1 { margin: 0 0 6px; font-size: 24px }
+.hero p { margin: 0; opacity: 0.92; font-size: 13px; max-width: 1000px }
+.layout { max-width: 1500px; margin: 0 auto; padding: 24px 28px 60px }
+.panel { background: white; border: 1px solid #e5e5ea;
+         border-radius: 12px; margin-bottom: 16px; overflow: hidden }
+.panel-h { background: #fafafa; padding: 12px 18px;
+            border-bottom: 1px solid #f0f0f5;
+            font-weight: 700; font-size: 16px;
+            display: flex; align-items: center; gap: 10px }
+.panel-h .num { display: inline-block; width: 28px; height: 28px;
+                background: linear-gradient(135deg, #5856d6, #af52de);
+                color: white; border-radius: 50%; line-height: 28px;
+                text-align: center; font-size: 13px; font-weight: 700 }
+.panel-body { padding: 16px 20px }
+.kinds-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
+@media (max-width: 1000px) { .kinds-grid { grid-template-columns: 1fr } }
+.kind-card { background: white; border: 1px solid #e5e5ea;
+              border-radius: 10px; overflow: hidden }
+.kind-header { color: white; padding: 10px 14px }
+.kind-name { font-weight: 800; font-size: 16px }
+.kind-counts { font-size: 11.5px; opacity: 0.93; margin-top: 3px }
+.kind-body { padding: 12px 14px; font-size: 13px }
+.row { margin-bottom: 9px; display: grid;
+        grid-template-columns: 110px 1fr; gap: 10px;
+        align-items: start }
+.row b { color: #5856d6; font-size: 11.5px; text-transform: uppercase;
+          padding-top: 2px }
+.row > div:last-child { color: #1d1d1f }
+.chip { display: inline-block; background: #e8f1ff; color: #003e9c;
+        padding: 1.5px 7px; border-radius: 8px; font-size: 10.5px;
+        margin: 1px 3px 1px 0; font-weight: 600 }
+.example { background: #f5f5f7; border-left: 3px solid #5856d6;
+            padding: 7px 10px; border-radius: 4px;
+            font-size: 12px; color: #4a4a55 }
+code { background: #f0f0f5; padding: 1px 5px; border-radius: 3px;
+        font-size: 11.5px }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px }
+th, td { padding: 7px 10px; text-align: left;
+          border-bottom: 1px solid #f0f0f5; vertical-align: top }
+th { background: #fafafa; font-weight: 700; font-size: 11.5px;
+      color: #6e6e73; text-transform: uppercase }
+.live-table th, .live-table td { padding: 5px 9px }
+.flow { font-family: ui-monospace, monospace; font-size: 12px;
+        background: #f5f5f7; padding: 14px 18px; border-radius: 6px;
+        white-space: pre; overflow-x: auto }
+.warn { background: #fff3e0; border-left: 3px solid #ff9500;
+        padding: 10px 14px; border-radius: 4px; margin: 8px 0;
+        font-size: 13px }
+.families-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+@media (max-width: 900px) { .families-grid { grid-template-columns: 1fr } }
+.fam-card { background: white; border: 1px solid #e5e5ea;
+            border-radius: 8px; overflow: hidden }
+.fam-h { color: white; padding: 8px 12px; font-weight: 700;
+         display: flex; justify-content: space-between; align-items: center }
+.fam-h .fam-id { background: rgba(255,255,255,0.25);
+                  padding: 2px 9px; border-radius: 8px;
+                  font-weight: 800; font-size: 13px }
+.fam-h .fam-name { font-size: 14px }
+.fam-body { padding: 9px 13px; font-size: 12.5px }
+.fam-tagline { color: #6e6e73; margin-bottom: 6px; font-size: 11.5px }
+.fam-body ul { margin: 4px 0; padding-left: 18px }
+.fam-body li { margin-bottom: 2px }
+.fam-body code { background: #f0f0f5; padding: 1px 5px;
+                 border-radius: 3px; font-size: 11px }
+.eff-card { background: #f5f5f7; border-left: 3px solid #34c759;
+            padding: 10px 14px; margin-bottom: 9px; border-radius: 4px }
+.eff-card b { display: block; color: #34c759; font-size: 13px;
+              margin-bottom: 3px }
+.eff-card .desc { font-size: 12.5px; color: #1d1d1f }
+</style></head>
+<body>
+<div class="hero">
+  <h1>constraints 系统说明 — code_agent_pro</h1>
+  <p>从 blueprint Pass 0/1/2 + arch.json 派生出来的 12 类 constraint。
+     本文档说明每类的派生来源、字段、严重程度、enforced_by、消费位置，
+     外加 rb_nlsh / rb_arborparser / rb_hex 三个 case 的实际数量分布。</p>
+</div>
+<div class="layout">
+
+  <div class="panel">
+    <div class="panel-h"><span class="num">①</span> Pipeline 数据流</div>
+    <div class="panel-body">
+      <div class="flow">arch.json + Pass 0 intent + Pass 1 decisions + Pass 2 structure
+                                    │
+                                    ▼
+              project_constraints.py:project()
+                                    │
+                                    ▼ (deterministic)
+                          constraints.json
+                                    │
+                       ┌────────────┼────────────┐
+                       ▼            ▼            ▼
+              module_spec      codegen      audit (post)
+              (intent/         (variant     (POST-blueprint
+               conventions      strategies   + runtime
+               + arch slice;     when         checks)
+               constraints       ambiguity
+               是 FYI 不强制)    flagged)</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><span class="num">①.5</span> 为什么这套分类有效 — 4 个正交轴</div>
+    <div class="panel-body">
+      <p style="font-size:13px; margin-top:0">
+        每条 constraint 由 4 个互不相关的属性唯一定位。如果两个 kind 在 4 个轴上取值完全一样，它们就冗余应合并；
+        如果某 kind 在某轴取值跟其他 kind 都不同，它就有独立存在的理由。
+      </p>
+      <table>
+        <thead><tr><th>轴</th><th>取值</th><th>区分什么</th></tr></thead>
+        <tbody>
+<tr><td><b>POLARITY</b></td><td><code>NOT-do · MUST-do · STRUCTURAL · MAY-choose</code></td><td>这条规则是禁止 / 要求 / 关系 / 选择</td></tr><tr><td><b>SOURCE</b></td><td><code>intent · decisions · structure · arch</code></td><td>从蓝图哪个字段派生 (反向溯源能力)</td></tr><tr><td><b>ENFORCED_BY</b></td><td><code>codegen-prompt · static-check · test · runtime-assert · variant-trigger</code></td><td>用什么机制验证</td></tr><tr><td><b>SCOPE</b></td><td><code>global / per-module / per-class</code></td><td>应用范围</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><span class="num">①.6</span> 12 个 kind 分成 5 个 family</div>
+    <div class="panel-body">
+      <div class="families-grid">
+
+<div class="fam-card">
+  <div class="fam-h" style="background:#ff3b30">
+    <span class="fam-id">A</span>
+    <span class="fam-name">负向规则 (2 kinds)</span>
+  </div>
+  <div class="fam-body">
+    <div class="fam-tagline">什么不能做 — 违反 = 多产出了不该有的功能/写法</div>
+    <ul><li><b>hard_dont</b> ← <code>intent.non_goals (feature-level)</code></li><li><b>forbidden_pattern</b> ← <code>conventions.forbidden (pattern-level)</code></li></ul>
+  </div>
+</div>
+<div class="fam-card">
+  <div class="fam-h" style="background:#34c759">
+    <span class="fam-id">B</span>
+    <span class="fam-name">正向目标 (4 kinds)</span>
+  </div>
+  <div class="fam-body">
+    <div class="fam-tagline">必须满足什么 — 违反 = 漏功能/漏鲁棒性</div>
+    <ul><li><b>quality_target</b> ← <code>intent.NFRs (with metric)</code></li><li><b>signature_default</b> ← <code>arch shape (mutable attr 无默认)</code></li><li><b>method_kind</b> ← <code>arch operations (factory-prefix heuristic)</code></li><li><b>validation_required</b> ← <code>intent.FRs/NFRs (keyword &#x27;validate&#x27;/&#x27;raise on&#x27;)</code></li></ul>
+  </div>
+</div>
+<div class="fam-card">
+  <div class="fam-h" style="background:#5856d6">
+    <span class="fam-id">C</span>
+    <span class="fam-name">结构关系 (5 kinds)</span>
+  </div>
+  <div class="fam-body">
+    <div class="fam-tagline">组件间必须遵守什么关系 — 验证靠 import 图 / 调用图 / 时序</div>
+    <ul><li><b>dependency_rule</b> ← <code>architecture.dependency_rule + topology</code></li><li><b>concurrency_rule</b> ← <code>execution_model + concurrency_boundaries</code></li><li><b>error_contract</b> ← <code>error_model + error_routing</code></li><li><b>cross_cutting</b> ← <code>io_boundary + cross_cutting.{validation,auth,…}</code></li><li><b>resource_lifecycle</b> ← <code>resource_lifecycles[]</code></li></ul>
+  </div>
+</div>
+<div class="fam-card">
+  <div class="fam-h" style="background:#007aff">
+    <span class="fam-id">D</span>
+    <span class="fam-name">数据不变式 (1 kind)</span>
+  </div>
+  <div class="fam-body">
+    <div class="fam-tagline">数据字段间/状态机间的关系 — runtime assert + test (★ 当前有 over-derive 风险)</div>
+    <ul><li><b>data_invariant</b> ← <code>datastructures.invariants + state_machines.guards</code></li></ul>
+  </div>
+</div>
+<div class="fam-card">
+  <div class="fam-h" style="background:#af52de">
+    <span class="fam-id">E</span>
+    <span class="fam-name">变体触发器 (3 kinds)</span>
+  </div>
+  <div class="fam-body">
+    <div class="fam-tagline">arch underspec → 让 codegen scatter K 个实现</div>
+    <ul><li><b>protected_param_pair</b> ← <code>arch (_X + X 并存检测)</code></li><li><b>ambiguity_point</b> ← <code>arch (无 __init__ + ≥2 mutable attrs)</code></li><li><b>literal_undefined</b> ← <code>arch (isFinal=true + value 缺失)</code></li></ul>
+  </div>
+</div>
+      </div>
+      <div class="warn" style="margin-top:14px; background:#e8f1ff; border-left-color:#5856d6; color:#003e9c">
+        <b>总计：5 families / 12 kinds</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><span class="num">①.7</span> MECE 矩阵 — 每个 kind 4 轴组合都唯一</div>
+    <div class="panel-body">
+      <table>
+        <thead><tr>
+          <th>Kind</th><th>POLARITY</th><th>SOURCE</th><th>ENFORCED_BY</th><th>SCOPE</th>
+        </tr></thead>
+        <tbody>
+<tr><td><code>hard_dont</code></td><td>NOT-do</td><td>intent.non_goals</td><td>codegen-prompt + static</td><td>global</td></tr><tr><td><code>forbidden_pattern</code></td><td>NOT-do</td><td>conventions.forbidden</td><td>static + codegen-prompt</td><td>global</td></tr><tr><td><code>quality_target</code></td><td>MUST-do</td><td>intent.NFRs</td><td>test</td><td>global</td></tr><tr><td><code>signature_default</code></td><td>MUST-do</td><td>arch shape</td><td>codegen-prompt + static</td><td>per-class</td></tr><tr><td><code>dependency_rule</code></td><td>STRUCTURAL</td><td>architecture + topology</td><td>static (import graph)</td><td>global</td></tr><tr><td><code>concurrency_rule</code></td><td>STRUCTURAL</td><td>execution_model + boundaries</td><td>runtime + codegen</td><td>global / per-module</td></tr><tr><td><code>error_contract</code></td><td>STRUCTURAL</td><td>error_model + routing</td><td>codegen + test</td><td>global / per-module</td></tr><tr><td><code>cross_cutting</code></td><td>STRUCTURAL</td><td>io_boundary + cross_cutting</td><td>static + codegen</td><td>per-module</td></tr><tr><td><code>resource_lifecycle</code></td><td>STRUCTURAL</td><td>resource_lifecycles</td><td>static + test</td><td>per-module</td></tr><tr><td><code>data_invariant</code></td><td>STRUCTURAL</td><td>datastructures.invariants</td><td>runtime + test</td><td>per-module</td></tr><tr><td><code>protected_param_pair</code></td><td>MAY-choose</td><td>arch (dual naming)</td><td>variant-trigger</td><td>per-class</td></tr><tr><td><code>ambiguity_point</code></td><td>MAY-choose</td><td>arch (no init)</td><td>variant-trigger</td><td>per-class</td></tr><tr><td><code>method_kind</code></td><td>MUST-do</td><td>arch operations (heuristic)</td><td>codegen-prompt + static</td><td>per-class</td></tr><tr><td><code>literal_undefined</code></td><td>MAY-choose</td><td>arch (isFinal+no value)</td><td>variant-trigger + codegen</td><td>per-class</td></tr><tr><td><code>validation_required</code></td><td>MUST-do</td><td>intent.FRs/NFRs (keywords)</td><td>codegen + test</td><td>global</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:12.5px; color:#4a4a55; margin: 10px 0 0">
+        每行的 4-tuple 都唯一,没有冗余项。
+        <b>hard_dont vs forbidden_pattern</b> 的区别在 source (feature-level vs pattern-level)；
+        <b>concurrency_rule vs dependency_rule</b> 看似都是模块间关系，但 ENFORCED_BY 完全不同 (运行时断言 vs 静态导入图)。
+      </p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><span class="num">①.8</span> 这套分类为什么"有效"的 4 条证据</div>
+    <div class="panel-body">
+<div class='eff-card'><b>✅ 每条 constraint 一个明确的 enforcement 路径</b><div class='desc'>不同 kind 用不同的 verification 工具：signature_default 用 ast.parse；dependency_rule 用 import graph；data_invariant 用 runtime assert。audit 阶段根据 kind 路由到对应 checker。</div></div><div class='eff-card'><b>✅ 每条 constraint 有反向溯源</b><div class='desc'>给定 kind + source 字段，能精准回到蓝图哪段文字派生它。debugging 失败时能定位是 Pass 0 / Pass 1 / arch detection 哪一步判错了。</div></div><div class='eff-card'><b>✅ 正交轴让 LLM 看 prompt 时易区分</b><div class='desc'>&quot;你必须&quot; (B) / &quot;你不能&quot; (A) / &quot;X 在 Y 之前&quot; (C) 在 prompt 里语气不同；data_invariant (D) 是断言不是规则；variant trigger (E) 不进 codegen prompt，进的是 driver 调度决策。</div></div><div class='eff-card'><b>✅ 5 family 对应 5 种 enforcement 风格 → 消费链路天然分流</b><div class='desc'>A → codegen prompt 禁用语；B → codegen + test；C → 静态/运行时验证；D → runtime assert + test；E → driver 多变体调度。</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><span class="num">②</span> 12 类 constraint — 每类的 what / source / why / 消费</div>
+    <div class="panel-body">
+      <div class="kinds-grid">
+
+<div class="kind-card">
+  <div class="kind-header" style="background:#ff3b30">
+    <div class="kind-name">hard_dont</div>
+    <div class="kind-counts">rb_arborparser: <b>4</b> · rb_hex: <b>5</b> · rb_nlsh: <b>5</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>明确不实现的功能（feature-level negative rule）</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>intent.non_goals[].statement</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>Pass 0 LLM 提取 SRS 里 'Do not implement X' 等显式或推断的非目标。GT 测试不会断言 hard_dont 字段，但 codegen prompt 不应产生违反的 feature。</div></div>
+    <div class="row"><b>applies_to</b><div><code>[&quot;*&quot;]   ← 全局规则</code></div></div>
+    <div class="row"><b>severity</b><div>blocker — 违反 = 多写了不该有的 feature</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">codegen-prompt</span>, <span class="chip">static-check</span></div></div>
+    <div class="row"><b>下游消费</b><div>module_spec prompt (INFO 段) → codegen 全局规则</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-001  Do not implement automatic or scheduled command execution without user confirmation</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#34c759">
+    <div class="kind-name">quality_target</div>
+    <div class="kind-counts">rb_arborparser: <b>3</b> · rb_hex: <b>4</b> · rb_nlsh: <b>5</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>非功能性需求：性能 / 安全 / 兼容性 / 可靠性</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>intent.non_functional_requirements[].constraint + metric_or_target</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>Pass 0 提取的 NFR。每条带 kind（performance/security/safety/...）和 measurable target。codegen 在影响这些维度的代码处需要遵守。</div></div>
+    <div class="row"><b>applies_to</b><div><code>[&quot;*&quot;]   ← 默认全局, 部分可窄化 (e.g. security NFR 命中 env/IO 模块)</code></div></div>
+    <div class="row"><b>severity</b><div>blocker — 影响最终验收</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">test</span>, <span class="chip">codegen-prompt</span></div></div>
+    <div class="row"><b>下游消费</b><div>module_spec prompt (NFR 列表)</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-005 (security) Sensitive environment variables must be redacted before inclusion in LLM prompts (target=any env var matching SENSITIVE_ENV_PATTERNS)</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#ff9500">
+    <div class="kind-name">forbidden_pattern</div>
+    <div class="kind-counts">rb_arborparser: <b>4</b> · rb_hex: <b>4</b> · rb_nlsh: <b>4</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>禁用的实现模式 / API 调用 / 写法</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>decisions.conventions.forbidden[].pattern</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>Pass 1 LLM 列出对本项目有害的反模式。比如 'requests.get() inside tools/' 。codegen 静态可校验。</div></div>
+    <div class="row"><b>applies_to</b><div><code>[&quot;*&quot;]</code></div></div>
+    <div class="row"><b>severity</b><div>blocker</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">static-check</span>, <span class="chip">codegen-prompt</span></div></div>
+    <div class="row"><b>下游消费</b><div>codegen prompt forbidden 段 + audit 静态扫描</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-008  MUST NOT: Direct requests.get() / requests.post() or any HTTP call inside tools/, prompt.py, spinner.py, or editor.py</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#5856d6">
+    <div class="kind-name">dependency_rule</div>
+    <div class="kind-counts">rb_arborparser: <b>2</b> · rb_hex: <b>2</b> · rb_nlsh: <b>2</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>模块间依赖方向（layered architecture 强制）</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>decisions.conventions.architecture.dependency_rule + structure.topology</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>Pass 1+2 联合得出。topology 的 leaves/mid/edges 分桶 + 一条 prose 规则。audit 拿 module_dependency_graph 真实 import 边对照。</div></div>
+    <div class="row"><b>applies_to</b><div><code>[&quot;*&quot;]   ← 整个项目 import 图必须满足</code></div></div>
+    <div class="row"><b>severity</b><div>blocker</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">static-check (import graph)</span></div></div>
+    <div class="row"><b>下游消费</b><div>audit_v2 / G_layering check</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-013  A module may only import from modules in the same layer or a layer strictly below it: edge → orchestrator → domain → adapter → shared</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#af52de">
+    <div class="kind-name">concurrency_rule</div>
+    <div class="kind-counts">rb_arborparser: <b>1</b> · rb_hex: <b>1</b> · rb_nlsh: <b>2</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>同步/异步模型 + 线程边界规则</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>decisions.conventions.architecture.execution_model + structure.concurrency_boundaries[].rule</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>Pass 1 给全局执行模型，Pass 2 给具体每个跨线程模块的局部约束。</div></div>
+    <div class="row"><b>applies_to</b><div><code>[&quot;*&quot;] (执行模型) 或具体模块（线程边界）</code></div></div>
+    <div class="row"><b>severity</b><div>blocker</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">codegen-prompt</span>, <span class="chip">runtime-assert</span></div></div>
+    <div class="row"><b>下游消费</b><div>codegen prompt + 运行时断言</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-017  spinner thread MUST only write to Spinner.stream (stderr) and read Spinner.running; never call into any other project module</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#ff2d55">
+    <div class="kind-name">error_contract</div>
+    <div class="kind-counts">rb_arborparser: <b>7</b> · rb_hex: <b>6</b> · rb_nlsh: <b>9</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>异常类型 + 抛/捕获契约（哪一层抛、哪一层吃）</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>decisions.conventions.infrastructure.error_model + structure.error_routing[]</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>error_model 是全局 raise-exceptions / result-types / envelope 选择；error_routing 是每个异常的 raised_by → caught_by_layer 流。</div></div>
+    <div class="row"><b>applies_to</b><div><code>[&quot;*&quot;] (error_model) 或 raised_by 模块</code></div></div>
+    <div class="row"><b>severity</b><div>blocker</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">codegen-prompt</span>, <span class="chip">test</span></div></div>
+    <div class="row"><b>下游消费</b><div>module_spec 错误处理段 + codegen raise / try 模板</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-024  KeyboardInterrupt: raised_by=[&#x27;cli.py:handle_keyboard_interrupt&#x27;]; caught_by_layer=service</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#5ac8fa">
+    <div class="kind-name">cross_cutting</div>
+    <div class="kind-counts">rb_arborparser: <b>5</b> · rb_hex: <b>5</b> · rb_nlsh: <b>10</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>I/O 边界 + validation / auth / retry 等位置性约束</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>decisions.conventions.infrastructure.io_boundary + decisions.conventions.cross_cutting.*</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>告诉 codegen "X 类关注点应在 Y 模块实现 / 不该在 Z 模块出现"。io_boundary 是最常见的反向约束（所有非 owner 模块禁直 I/O）。</div></div>
+    <div class="row"><b>applies_to</b><div><code>具体 owner 模块 或 [&quot;*&quot;]</code></div></div>
+    <div class="row"><b>severity</b><div>blocker 或 warn</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">static-check</span>, <span class="chip">codegen-prompt</span></div></div>
+    <div class="row"><b>下游消费</b><div>codegen prompt + audit 静态扫描</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-026  All filesystem/network I/O routed through [&#x27;backends.py&#x27;,&#x27;cli.py&#x27;,&#x27;config.py&#x27;,&#x27;editor.py&#x27;,&#x27;environment.py&#x27;,&#x27;git_commit.py&#x27;]; other modules MUST call through them</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#007aff">
+    <div class="kind-name">data_invariant</div>
+    <div class="kind-counts">rb_arborparser: <b>17</b> · rb_hex: <b>14</b> · rb_nlsh: <b>18</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>数据字段间不变式 + 状态机守卫</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>decisions.vocabulary.datastructures[].invariants + structure.state_machines[].guards</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>Pass 1 LLM 推断的字段关系（如 'level_text = dot-join(level_seq)'）+ 状态机门控（如 'method X requires state=Y'）。<b style='color:#ff3b30'>★ 已知问题：这一类容易把 LLM 推断当 blocker，让 codegen 把字段做 derived → tests 传 kwarg 时炸。</b> 2026-05-22 已建议降级为 design_hint。</div></div>
+    <div class="row"><b>applies_to</b><div><code>具体模块（拥有该 datastructure）</code></div></div>
+    <div class="row"><b>severity</b><div>目前 blocker → 建议改 warn</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">runtime-assert</span>, <span class="chip">test</span></div></div>
+    <div class="row"><b>下游消费</b><div>module_spec invariants 段</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-036  Config: config[&#x27;shell&#x27;] is always one of {bash, zsh, fish, powershell} after __init__ completes without raising</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#ffcc00">
+    <div class="kind-name">resource_lifecycle</div>
+    <div class="kind-counts">rb_arborparser: <b>2</b> · rb_hex: <b>1</b> · rb_nlsh: <b>4</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>资源 acquire/release 配对（文件/连接/线程）</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>structure.resource_lifecycles[]</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>Pass 2 列出每个长期持有的资源、谁开、谁关、机制（context-manager/explicit-call/atexit）。audit 静态查 acquire 都有对应 release。</div></div>
+    <div class="row"><b>applies_to</b><div><code>具体 acquired_by 模块</code></div></div>
+    <div class="row"><b>severity</b><div>blocker 或 warn (gc-implicit 降级)</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">static-check</span>, <span class="chip">test</span></div></div>
+    <div class="row"><b>下游消费</b><div>audit + codegen prompt (with/try-finally 模板)</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-054  Resource=background spinner thread; acquired_by=spinner.py:Spinner.start; release=explicit-call via spinner.py:Spinner.stop</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#00c7be">
+    <div class="kind-name">signature_default</div>
+    <div class="kind-counts">rb_arborparser: <b>7</b> · rb_hex: <b>7</b> · rb_nlsh: <b>6</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>构造函数 / 函数必须给可选参数默认值（防 TypeError）</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>arch.modules[].classes[].attributes (mutable 但不在 __init__ 显式参数列表)</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div><b>启发式</b> — 当 arch 列出可变属性但没在 __init__ 操作列表里，建议 codegen 给参数默认值。tests 常用部分 kwargs 构造对象，少默认值就 TypeError。借鉴自 coco_test 的 OPTIONAL_PARAM_DEFAULTS_RULE。</div></div>
+    <div class="row"><b>applies_to</b><div><code>具体模块</code></div></div>
+    <div class="row"><b>severity</b><div>blocker</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">codegen-prompt</span>, <span class="chip">static-check</span></div></div>
+    <div class="row"><b>下游消费</b><div>codegen prompt + variant_selector permissiveness 评分</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-057  BackendManager.__init__ MUST give a default value to every mutable attribute not in the explicit __init__ parameter list. Suggested: __init__(self, *, config=None, backends=None)</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#a2845e">
+    <div class="kind-name">protected_param_pair</div>
+    <div class="kind-counts">rb_arborparser: <b>0</b> · rb_hex: <b>4</b> · rb_nlsh: <b>0</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>arch 同时列 `_X` (protected) 和 `X` (public) → caller 可能用任一形式</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>arch.modules[].classes[].attributes (检测 `_X` + `X` 并存)</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>OO 存储+暴露惯例。<b>已软化为中性</b>：不再 MUST 用 protected，而是 'either is acceptable'。多变体 codegen 在两种 naming 上 scatter，selector 用 call-shape permissiveness 选优。</div></div>
+    <div class="row"><b>applies_to</b><div><code>具体模块</code></div></div>
+    <div class="row"><b>severity</b><div>warn (软化后)</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">codegen-prompt</span></div></div>
+    <div class="row"><b>下游消费</b><div>variant_strategies 触发器 + variant_selector 评分</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-047  Tile has dual-naming attribute pairs [(&#x27;_x&#x27;,&#x27;x&#x27;),(&#x27;_y&#x27;,&#x27;y&#x27;),(&#x27;_colour&#x27;,&#x27;colour&#x27;)]. Pick one naming for ctor param + expose the other via @property</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#8e8e93">
+    <div class="kind-name">ambiguity_point</div>
+    <div class="kind-counts">rb_arborparser: <b>4</b> · rb_hex: <b>6</b> · rb_nlsh: <b>6</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>arch 未明说 __init__ 参数顺序 / 字面值 / 等 → 触发多变体生成</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>arch.modules[].classes[] (无 explicit __init__ 操作 + ≥2 mutable attrs)</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>明确告诉 driver: 这个 module 设计自由度大，应用 multi-variant codegen 在 axes（defaults × callability × naming）上 scatter K 个候选，selector 按 call-shape permissiveness 选 winner。</div></div>
+    <div class="row"><b>applies_to</b><div><code>具体模块</code></div></div>
+    <div class="row"><b>severity</b><div>warn</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">codegen-prompt (variants)</span></div></div>
+    <div class="row"><b>下游消费</b><div>scripts/run_codegen_all.py 的 strategies_for_module()</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-063  BackendManager has no explicit __init__ in arch but 2 mutable attrs. Parameter order is underspecified — multi-variant codegen SHOULD generate variants with different orderings and keyword-only signatures.</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#ff9500">
+    <div class="kind-name">method_kind</div>
+    <div class="kind-counts">rb_arborparser: <b>1</b> · rb_hex: <b>3</b> · rb_nlsh: <b>0</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>@classmethod / @staticmethod 推断 — 修类别 A (instance vs classmethod 失败)</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>arch.modules[].classes[].operations|methods (启发式: from_*/of_* + 特例)</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>arch.json 几乎从不显式标 @classmethod / @staticmethod。LLM 默认写成 instance method。测试调 `Cls.method(arg)` 会 TypeError。从命名模式 (from_X/of_X/opposite) 反推 classmethod 候选。</div></div>
+    <div class="row"><b>applies_to</b><div><code>具体模块</code></div></div>
+    <div class="row"><b>severity</b><div>warn</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">codegen-prompt</span>, <span class="chip">static-check</span></div></div>
+    <div class="row"><b>下游消费</b><div>codegen prompt method-kind 段 + audit ast 校验</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-061  Colour.from_char(): factory pattern (name starts with `from_`); strong indicator of @classmethod — first param should be `cls`, not `self`</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#a2845e">
+    <div class="kind-name">literal_undefined</div>
+    <div class="kind-counts">rb_arborparser: <b>13</b> · rb_hex: <b>10</b> · rb_nlsh: <b>10</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>isFinal=true 但 arch 没给值 → 触发字面值多变体</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>arch.modules[].(classes|variables) (isFinal=true + defaultValue=null)</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>spinner_chars / Move.__str__ format / dict separator 这类常量 arch 标 'final' 但不给值。LLM 随机猜 → 跟测试硬编码不匹配。投影出 literal_undefined → driver scatter K 个字面值变体让 selector 选。</div></div>
+    <div class="row"><b>applies_to</b><div><code>具体模块</code></div></div>
+    <div class="row"><b>severity</b><div>warn</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">codegen-prompt</span>, <span class="chip">variant-trigger</span></div></div>
+    <div class="row"><b>下游消费</b><div>run_codegen_all 的 variant scatter (literal 维度)</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-068  Spinner.spinner_chars is marked isFinal but arch supplies no value. Multi-variant codegen SHOULD scatter K candidate literal values.</div></div>
+  </div>
+</div>
+<div class="kind-card">
+  <div class="kind-header" style="background:#fcd34d">
+    <div class="kind-name">validation_required</div>
+    <div class="kind-counts">rb_arborparser: <b>0</b> · rb_hex: <b>1</b> · rb_nlsh: <b>0</b></div>
+  </div>
+  <div class="kind-body">
+    <div class="row"><b>是什么</b><div>SRS 关键词 (validate / raise on / shall reject) → 强制写 input-check 分支</div></div>
+    <div class="row"><b>从哪 derive</b><div><code>intent.FRs/NFRs (statement 含 KEYWORDS)</code></div></div>
+    <div class="row"><b>为什么这样设计</b><div>'DID NOT RAISE' 类测试失败 — codegen 只写 happy path 忘写 validation。从 SRS 里 'validate / raise on / shall reject' 这类词派生强制约束让 codegen 知道这里需要 try/raise。</div></div>
+    <div class="row"><b>applies_to</b><div><code>[&quot;*&quot;] (因为不知哪个 fn 实现)</code></div></div>
+    <div class="row"><b>severity</b><div>blocker</div></div>
+    <div class="row"><b>enforced_by</b><div><span class="chip">codegen-prompt</span>, <span class="chip">test</span></div></div>
+    <div class="row"><b>下游消费</b><div>codegen prompt validation 段 + audit raise-presence check</div></div>
+    <div class="row"><b>实例</b><div class="example">CONST-073  Validation hint (keywords: [&#x27;raises on&#x27;]): generate a shell command from a natural-language prompt. Code MUST include explicit input-check that raises typed exception when invalid.</div></div>
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><span class="num">③</span> 每条 constraint 的字段（数据结构）</div>
+    <div class="panel-body">
+      <table>
+        <thead><tr><th>字段</th><th>类型</th><th>含义</th></tr></thead>
+        <tbody><tr><td><code>id</code></td><td>str</td><td>唯一标识 (CONST-NNN), 在 by_module 索引里用</td></tr><tr><td><code>kind</code></td><td>enum (12 种)</td><td>上面 12 类之一</td></tr><tr><td><code>source</code></td><td>dotted path</td><td>反向溯源 (e.g. &#x27;intent.non_goals[2]&#x27;)</td></tr><tr><td><code>statement</code></td><td>str</td><td>约束的人类可读 statement</td></tr><tr><td><code>rationale</code></td><td>str (optional)</td><td>为什么是这条规则</td></tr><tr><td><code>applies_to</code></td><td>list[str]</td><td>[&#x27;*&#x27;] 或 [module 列表] 或 [&#x27;role:core&#x27;]</td></tr><tr><td><code>enforced_by</code></td><td>list[enum]</td><td>codegen-prompt / static-check / test / runtime-assert</td></tr><tr><td><code>severity</code></td><td>enum</td><td>blocker (违反 = 失败) / warn (信号但不阻塞)</td></tr><tr><td><code>verification_hint</code></td><td>str (optional)</td><td>audit 阶段如何验证的提示</td></tr></tbody>
+      </table>
+      <div class="warn">
+        <b>另有 <code>by_module</code> 倒排索引</b>：
+        <code>{module_basename: [CONST-IDs whose applies_to covers this module]}</code>。
+        downstream 用它 O(1) 查每模块的相关 constraints。
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><span class="num">④</span> 消费链路 — 谁在哪读 constraints.json</div>
+    <div class="panel-body">
+      <table>
+        <thead><tr><th>位置</th><th>角色</th><th>细节</th></tr></thead>
+        <tbody><tr><td><code>project_constraints.py:project_and_save</code></td><td>写盘</td><td>落 output/&lt;case&gt;/constraints.json</td></tr><tr><td><code>per_module_context.constraints_slice_for_module</code></td><td>per-module 切片</td><td>按 by_module 倒排索引切片：返回 {global, module_specific} 两组</td></tr><tr><td><code>stages/module_spec/prompts.py:MODULE_SPEC_USER_PROMPT_TEMPLATE</code></td><td>module_spec 提示词</td><td>目前 constraints 段已被改为 &#x27;FYI — not binding here&#x27;，主消费为 intent + arch slice</td></tr><tr><td><code>scripts/run_codegen_all.py:strategies_for_module</code></td><td>多变体触发</td><td>当 module 命中 ambiguity_point / protected_param_pair → 生 K 个变体</td></tr><tr><td><code>cognition/variant_selector.py:select_winner</code></td><td>变体打分</td><td>用 call-shape permissiveness + 期望 protected names 选优</td></tr><tr><td><code>cognition/post_blueprint.py:verify</code></td><td>POST 审计</td><td>library vs registrations 一致性、required_empty 等</td></tr><tr><td><code>audit_v2/ (planned)</code></td><td>静态/运行时检查</td><td>尚未全接 — 依据 enforced_by 字段路由到对应 checker</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><span class="num">⑤</span> 实际数量分布（3 case 实测）</div>
+    <div class="panel-body">
+      <table class='live-table'><tr><th>kind</th><th>rb_arborparser</th><th>rb_hex</th><th>rb_nlsh</th></tr><tr><td><code>ambiguity_point</code></td><td style='text-align:center'>4</td><td style='text-align:center'>6</td><td style='text-align:center'>6</td></tr><tr><td><code>concurrency_rule</code></td><td style='text-align:center'>1</td><td style='text-align:center'>1</td><td style='text-align:center'>2</td></tr><tr><td><code>cross_cutting</code></td><td style='text-align:center'>5</td><td style='text-align:center'>5</td><td style='text-align:center'>10</td></tr><tr><td><code>data_invariant</code></td><td style='text-align:center'>17</td><td style='text-align:center'>14</td><td style='text-align:center'>18</td></tr><tr><td><code>dependency_rule</code></td><td style='text-align:center'>2</td><td style='text-align:center'>2</td><td style='text-align:center'>2</td></tr><tr><td><code>error_contract</code></td><td style='text-align:center'>7</td><td style='text-align:center'>6</td><td style='text-align:center'>9</td></tr><tr><td><code>forbidden_pattern</code></td><td style='text-align:center'>4</td><td style='text-align:center'>4</td><td style='text-align:center'>4</td></tr><tr><td><code>hard_dont</code></td><td style='text-align:center'>4</td><td style='text-align:center'>5</td><td style='text-align:center'>5</td></tr><tr><td><code>literal_undefined</code></td><td style='text-align:center'>13</td><td style='text-align:center'>10</td><td style='text-align:center'>10</td></tr><tr><td><code>method_kind</code></td><td style='text-align:center'>1</td><td style='text-align:center'>3</td><td style='text-align:center'><em>—</em></td></tr><tr><td><code>protected_param_pair</code></td><td style='text-align:center'><em>—</em></td><td style='text-align:center'>4</td><td style='text-align:center'><em>—</em></td></tr><tr><td><code>quality_target</code></td><td style='text-align:center'>3</td><td style='text-align:center'>4</td><td style='text-align:center'>5</td></tr><tr><td><code>resource_lifecycle</code></td><td style='text-align:center'>2</td><td style='text-align:center'>1</td><td style='text-align:center'>4</td></tr><tr><td><code>signature_default</code></td><td style='text-align:center'>7</td><td style='text-align:center'>7</td><td style='text-align:center'>6</td></tr><tr><td><code>validation_required</code></td><td style='text-align:center'><em>—</em></td><td style='text-align:center'>1</td><td style='text-align:center'><em>—</em></td></tr><tr><td><b>TOTAL</b></td><td style='text-align:center'><b>70</b></td><td style='text-align:center'><b>73</b></td><td style='text-align:center'><b>81</b></td></tr></table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><span class="num">⑥</span> 一句话总结</div>
+    <div class="panel-body">
+      <p style="font-size:14.5px; line-height:1.7; margin: 6px 0">
+        <b>15 个 kind 不是凑的</b> —— 它们在
+        <code>(polarity × source × enforcement × scope)</code> 四维空间里
+        <b>每个都占据一个独特格子</b>，且每个格子对应一种不同的 enforcement 工具/消费者，
+        所以分类<b style="color:#34c759">有效</b>。最终结构：
+        <b>5 family / 15 kinds</b> — A 负向 (2) · B 正向 (4 含 method_kind / validation_required)
+        · C 结构关系 (5) · D 数据不变式 (1) · E 变体触发 (3 含 literal_undefined)。
+      </p>
+    </div>
+  </div>
+
+</div>
+</body></html>
