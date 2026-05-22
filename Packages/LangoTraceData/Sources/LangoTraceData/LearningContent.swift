@@ -1,4 +1,5 @@
 import Foundation
+import LangoTraceCore
 
 public protocol LearningContentRepository: AnyObject {
     func ensureSeeded(spaceID: String)

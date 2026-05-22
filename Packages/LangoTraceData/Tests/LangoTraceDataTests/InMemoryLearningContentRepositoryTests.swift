@@ -1,4 +1,5 @@
 import Foundation
+import LangoTraceCore
 @testable import LangoTraceData
 import Testing
 

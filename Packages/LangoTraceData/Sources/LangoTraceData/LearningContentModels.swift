@@ -1,10 +1,5 @@
 import Foundation
-
-public enum EntrySource: String, Equatable, Sendable {
-    case typedText
-    case photoWriting
-    case targetLanguageWriting
-}
+import LangoTraceCore
 
 public struct LearningEntry: Equatable, Identifiable, Sendable {
     public let id: String
