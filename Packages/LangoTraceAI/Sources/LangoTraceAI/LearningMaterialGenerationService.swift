@@ -162,9 +162,7 @@ private extension LearningMaterialGenerationService {
             body = [
                 "model": endpoint.modelName,
                 "temperature": 0.2,
-                "response_format": [
-                    "type": "json_object",
-                ],
+                "response_format": responseFormat(for: prompt),
                 "messages": [
                     ["role": "system", "content": prompt.system],
                     ["role": "user", "content": prompt.user],
@@ -196,6 +194,142 @@ private extension LearningMaterialGenerationService {
             return trimmed
         }
         return "\(trimmed)/\(suffix)"
+    }
+
+    func responseFormat(for prompt: LearningMaterialRenderedPrompt) -> [String: Any] {
+        [
+            "type": "json_schema",
+            "json_schema": [
+                "name": prompt.id == LearningMaterialPromptRegistry.analysisPromptID
+                    ? "learning_material_analysis"
+                    : "learning_material_generation",
+                "strict": true,
+                "schema": prompt.id == LearningMaterialPromptRegistry.analysisPromptID
+                    ? analysisResponseSchema()
+                    : generationResponseSchema(),
+            ],
+        ]
+    }
+
+    func generationResponseSchema() -> [String: Any] {
+        [
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema_version", "input_kind", "learning_text", "revision_notes", "analysis"],
+            "properties": [
+                "schema_version": ["type": "string", "enum": [LearningMaterialPromptRegistry.schemaVersion]],
+                "input_kind": [
+                    "type": "string",
+                    "enum": ["nativeRecord", "targetWriting", "mixed", "uncertain"],
+                ],
+                "learning_text": ["type": "string"],
+                "revision_notes": [
+                    "type": "array",
+                    "items": revisionNoteSchema(),
+                ],
+                "analysis": analysisSchema(),
+            ],
+        ]
+    }
+
+    func analysisResponseSchema() -> [String: Any] {
+        [
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["schema_version", "analysis"],
+            "properties": [
+                "schema_version": ["type": "string", "enum": [LearningMaterialPromptRegistry.schemaVersion]],
+                "analysis": analysisSchema(),
+            ],
+        ]
+    }
+
+    func analysisSchema() -> [String: Any] {
+        [
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sentences", "memory_candidates", "practice_candidates"],
+            "properties": [
+                "sentences": [
+                    "type": "array",
+                    "items": sentenceSchema(),
+                ],
+                "memory_candidates": [
+                    "type": "array",
+                    "items": memoryCandidateSchema(),
+                ],
+                "practice_candidates": [
+                    "type": "array",
+                    "items": practiceCandidateSchema(),
+                ],
+            ],
+        ]
+    }
+
+    func sentenceSchema() -> [String: Any] {
+        [
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "native_sentence", "target_sentence", "literal_translation",
+                "natural_translation", "grammar_notes", "key_points",
+            ],
+            "properties": [
+                "native_sentence": ["type": "string"],
+                "target_sentence": ["type": "string"],
+                "literal_translation": ["type": "string"],
+                "natural_translation": ["type": "string"],
+                "grammar_notes": ["type": "array", "items": ["type": "string"]],
+                "key_points": ["type": "array", "items": ["type": "string"]],
+            ],
+        ]
+    }
+
+    func revisionNoteSchema() -> [String: Any] {
+        [
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["original_text", "revised_text", "reason_native", "category"],
+            "properties": [
+                "original_text": ["type": "string"],
+                "revised_text": ["type": "string"],
+                "reason_native": ["type": "string"],
+                "category": ["type": "string", "enum": ["grammar", "vocabulary", "style", "clarity"]],
+            ],
+        ]
+    }
+
+    func memoryCandidateSchema() -> [String: Any] {
+        [
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "kind", "text", "explanation_native", "example_target",
+                "example_native", "difficulty",
+            ],
+            "properties": [
+                "kind": ["type": "string", "enum": ["word", "phrase", "grammar", "expression"]],
+                "text": ["type": "string"],
+                "explanation_native": ["type": "string"],
+                "example_target": ["type": "string"],
+                "example_native": ["type": "string"],
+                "difficulty": ["type": "string", "enum": ["easy", "medium", "hard"]],
+            ],
+        ]
+    }
+
+    func practiceCandidateSchema() -> [String: Any] {
+        [
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "title", "prompt_text", "answer_text"],
+            "properties": [
+                "kind": ["type": "string", "enum": ["shadowing", "dictation", "backTranslation", "writing"]],
+                "title": ["type": "string"],
+                "prompt_text": ["type": "string"],
+                "answer_text": ["type": "string"],
+            ],
+        ]
     }
 
     func parseText(from data: Data, adapterKind: AIProviderAdapterKind) throws -> String {

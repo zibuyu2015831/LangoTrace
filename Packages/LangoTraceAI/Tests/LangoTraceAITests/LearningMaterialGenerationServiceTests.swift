@@ -58,7 +58,8 @@ func learningMaterialGenerationServiceBuildsChatRequestAndParsesResponse() async
     let requests = await httpClient.requests
     #expect(requests.count == 1)
     #expect(requests[0].value(forHTTPHeaderField: "Authorization") == "Bearer sk-test-secret")
-    #expect(requests[0].jsonBodyValue("response_format.type") == "json_object")
+    #expect(requests[0].jsonBodyValue("response_format.type") == "json_schema")
+    #expect(requests[0].jsonBodyValue("response_format.json_schema.name") == "learning_material_generation")
     #expect(result.inputKind == .nativeRecord)
     #expect(result.learningText == "I went to a cafe today.")
     #expect(result.analysis.sentences.first?.targetSentence == "I went to a cafe today.")
