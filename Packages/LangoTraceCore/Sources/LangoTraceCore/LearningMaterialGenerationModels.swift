@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 public enum EntrySource: String, Codable, CaseIterable, Equatable, Sendable {
@@ -184,5 +185,439 @@ public enum LearningMaterialLengthEstimator {
 
     private static func isLatinLetterOrDigit(_ scalar: Unicode.Scalar) -> Bool {
         CharacterSet.alphanumerics.contains(scalar) && scalar.isASCII
+    }
+}
+
+public struct NewLearningEntryDraft: Equatable, Sendable {
+    public var title: String
+    public var body: String
+    public var source: EntrySource
+    public var scene: String
+
+    public init(title: String, body: String, source: EntrySource, scene: String) {
+        self.title = title
+        self.body = body
+        self.source = source
+        self.scene = scene
+    }
+}
+
+public struct LearningMaterial: Equatable, Identifiable, Sendable {
+    public var id: String
+    public var entryID: String
+    public var spaceID: String
+    public var inputKind: LearningMaterialInputKind
+    public var promptMode: LearningMaterialPromptMode
+    public var learningText: String
+    public var originalGeneratedText: String
+    public var revisionSummary: [LearningRevision]
+    public var analysis: LearningMaterialAnalysis
+    public var metadata: LearningMaterialGenerationMetadata
+    public var createdAt: Date
+    public var updatedAt: Date
+    public var isCurrent: Bool
+
+    public init(
+        id: String,
+        entryID: String,
+        spaceID: String,
+        inputKind: LearningMaterialInputKind,
+        promptMode: LearningMaterialPromptMode,
+        learningText: String,
+        originalGeneratedText: String,
+        revisionSummary: [LearningRevision],
+        analysis: LearningMaterialAnalysis,
+        metadata: LearningMaterialGenerationMetadata,
+        createdAt: Date,
+        updatedAt: Date,
+        isCurrent: Bool
+    ) {
+        self.id = id
+        self.entryID = entryID
+        self.spaceID = spaceID
+        self.inputKind = inputKind
+        self.promptMode = promptMode
+        self.learningText = learningText
+        self.originalGeneratedText = originalGeneratedText
+        self.revisionSummary = revisionSummary
+        self.analysis = analysis
+        self.metadata = metadata
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.isCurrent = isCurrent
+    }
+}
+
+public struct LearningRevision: Codable, Equatable, Identifiable, Sendable {
+    public enum Category: String, Codable, CaseIterable, Equatable, Sendable {
+        case grammar
+        case wordChoice
+        case naturalness
+        case clarity
+        case tone
+        case structure
+    }
+
+    public var id: String
+    public var originalText: String
+    public var revisedText: String
+    public var reasonNative: String
+    public var category: Category
+    public var position: Int
+
+    public init(
+        id: String,
+        originalText: String,
+        revisedText: String,
+        reasonNative: String,
+        category: Category,
+        position: Int
+    ) {
+        self.id = id
+        self.originalText = originalText
+        self.revisedText = revisedText
+        self.reasonNative = reasonNative
+        self.category = category
+        self.position = position
+    }
+}
+
+public struct LearningMaterialAnalysis: Equatable, Sendable {
+    public var status: LearningMaterialAnalysisStatus
+    public var sourceTextHash: String
+    public var sentences: [LearningSentenceAnalysis]
+    public var memoryCandidates: [LearningMemoryCandidate]
+    public var practiceCandidates: [LearningPracticeCandidate]
+
+    public init(
+        status: LearningMaterialAnalysisStatus,
+        sourceTextHash: String,
+        sentences: [LearningSentenceAnalysis],
+        memoryCandidates: [LearningMemoryCandidate],
+        practiceCandidates: [LearningPracticeCandidate]
+    ) {
+        self.status = status
+        self.sourceTextHash = sourceTextHash
+        self.sentences = sentences
+        self.memoryCandidates = memoryCandidates
+        self.practiceCandidates = practiceCandidates
+    }
+}
+
+public struct LearningSentenceAnalysis: Equatable, Identifiable, Sendable {
+    public var id: String
+    public var nativeSentence: String
+    public var targetSentence: String
+    public var literalTranslation: String
+    public var naturalTranslation: String
+    public var grammarNotes: [String]
+    public var keyPoints: [String]
+    public var position: Int
+
+    public init(
+        id: String,
+        nativeSentence: String,
+        targetSentence: String,
+        literalTranslation: String,
+        naturalTranslation: String,
+        grammarNotes: [String],
+        keyPoints: [String],
+        position: Int
+    ) {
+        self.id = id
+        self.nativeSentence = nativeSentence
+        self.targetSentence = targetSentence
+        self.literalTranslation = literalTranslation
+        self.naturalTranslation = naturalTranslation
+        self.grammarNotes = grammarNotes
+        self.keyPoints = keyPoints
+        self.position = position
+    }
+}
+
+public struct LearningMemoryCandidate: Equatable, Identifiable, Sendable {
+    public enum Kind: String, Codable, CaseIterable, Equatable, Sendable {
+        case word
+        case phrase
+        case sentencePattern
+        case grammarPoint
+        case errorPattern
+    }
+
+    public enum Difficulty: String, Codable, CaseIterable, Equatable, Sendable {
+        case easy
+        case medium
+        case hard
+    }
+
+    public var id: String
+    public var sentenceID: String?
+    public var kind: Kind
+    public var text: String
+    public var explanationNative: String
+    public var exampleTarget: String
+    public var exampleNative: String
+    public var difficulty: Difficulty
+
+    public init(
+        id: String,
+        sentenceID: String?,
+        kind: Kind,
+        text: String,
+        explanationNative: String,
+        exampleTarget: String,
+        exampleNative: String,
+        difficulty: Difficulty
+    ) {
+        self.id = id
+        self.sentenceID = sentenceID
+        self.kind = kind
+        self.text = text
+        self.explanationNative = explanationNative
+        self.exampleTarget = exampleTarget
+        self.exampleNative = exampleNative
+        self.difficulty = difficulty
+    }
+}
+
+public struct LearningPracticeCandidate: Equatable, Identifiable, Sendable {
+    public enum Kind: String, Codable, CaseIterable, Equatable, Sendable {
+        case listening
+        case shadowing
+        case dictation
+        case backTranslation
+    }
+
+    public var id: String
+    public var sentenceID: String?
+    public var kind: Kind
+    public var title: String
+    public var promptText: String
+    public var answerText: String
+
+    public init(
+        id: String,
+        sentenceID: String?,
+        kind: Kind,
+        title: String,
+        promptText: String,
+        answerText: String
+    ) {
+        self.id = id
+        self.sentenceID = sentenceID
+        self.kind = kind
+        self.title = title
+        self.promptText = promptText
+        self.answerText = answerText
+    }
+}
+
+public struct LearningMaterialGenerationMetadata: Equatable, Sendable {
+    public var promptID: String
+    public var promptVersion: String
+    public var providerProfileID: String?
+    public var providerEndpointID: String?
+    public var providerPresetID: String
+    public var modelName: String
+    public var generatedAt: Date
+
+    public init(
+        promptID: String,
+        promptVersion: String,
+        providerProfileID: String?,
+        providerEndpointID: String?,
+        providerPresetID: String,
+        modelName: String,
+        generatedAt: Date
+    ) {
+        self.promptID = promptID
+        self.promptVersion = promptVersion
+        self.providerProfileID = providerProfileID
+        self.providerEndpointID = providerEndpointID
+        self.providerPresetID = providerPresetID
+        self.modelName = modelName
+        self.generatedAt = generatedAt
+    }
+}
+
+public struct LearningMaterialGenerationResult: Equatable, Sendable {
+    public var entryID: String
+    public var spaceID: String
+    public var inputKind: LearningMaterialInputKind
+    public var promptMode: LearningMaterialPromptMode
+    public var learningText: String
+    public var revisionSummary: [LearningRevision]
+    public var analysis: LearningMaterialAnalysis
+    public var metadata: LearningMaterialGenerationMetadata
+
+    public init(
+        entryID: String,
+        spaceID: String,
+        inputKind: LearningMaterialInputKind,
+        promptMode: LearningMaterialPromptMode,
+        learningText: String,
+        revisionSummary: [LearningRevision],
+        analysis: LearningMaterialAnalysis,
+        metadata: LearningMaterialGenerationMetadata
+    ) {
+        self.entryID = entryID
+        self.spaceID = spaceID
+        self.inputKind = inputKind
+        self.promptMode = promptMode
+        self.learningText = learningText
+        self.revisionSummary = revisionSummary
+        self.analysis = analysis
+        self.metadata = metadata
+    }
+}
+
+public struct LearningMaterialAnalysisResult: Equatable, Sendable {
+    public var materialID: String
+    public var analysis: LearningMaterialAnalysis
+
+    public init(materialID: String, analysis: LearningMaterialAnalysis) {
+        self.materialID = materialID
+        self.analysis = analysis
+    }
+}
+
+public enum LearningMaterialOperationKind: String, Codable, CaseIterable, Equatable, Sendable {
+    case generate
+    case analyze
+}
+
+public enum LearningMaterialOperationStatus: String, Codable, CaseIterable, Equatable, Sendable {
+    case started
+    case succeeded
+    case failed
+    case cancelled
+}
+
+public struct LearningMaterialOperationSummary: Equatable, Sendable {
+    public var operationID: DiagnosticOperationID
+    public var entryID: String
+    public var materialID: String?
+    public var kind: LearningMaterialOperationKind
+    public var status: LearningMaterialOperationStatus
+    public var failureCategory: LearningMaterialGenerationFailureCategory?
+    public var promptID: String
+    public var promptVersion: String
+    public var providerProfileID: String?
+    public var providerEndpointID: String?
+    public var providerPresetID: String?
+    public var modelName: String?
+    public var inputKind: LearningMaterialInputKind?
+    public var estimatedTokenBucket: LearningMaterialEstimatedTokenBucket
+    public var durationMilliseconds: Int?
+    public var createdAt: Date
+    public var completedAt: Date?
+
+    public init(
+        operationID: DiagnosticOperationID,
+        entryID: String,
+        materialID: String?,
+        kind: LearningMaterialOperationKind,
+        status: LearningMaterialOperationStatus,
+        failureCategory: LearningMaterialGenerationFailureCategory?,
+        promptID: String,
+        promptVersion: String,
+        providerProfileID: String?,
+        providerEndpointID: String?,
+        providerPresetID: String?,
+        modelName: String?,
+        inputKind: LearningMaterialInputKind?,
+        estimatedTokenBucket: LearningMaterialEstimatedTokenBucket,
+        durationMilliseconds: Int?,
+        createdAt: Date,
+        completedAt: Date?
+    ) {
+        self.operationID = operationID
+        self.entryID = entryID
+        self.materialID = materialID
+        self.kind = kind
+        self.status = status
+        self.failureCategory = failureCategory
+        self.promptID = promptID
+        self.promptVersion = promptVersion
+        self.providerProfileID = providerProfileID
+        self.providerEndpointID = providerEndpointID
+        self.providerPresetID = providerPresetID
+        self.modelName = modelName
+        self.inputKind = inputKind
+        self.estimatedTokenBucket = estimatedTokenBucket
+        self.durationMilliseconds = durationMilliseconds
+        self.createdAt = createdAt
+        self.completedAt = completedAt
+    }
+
+    public static func started(
+        operationID: DiagnosticOperationID,
+        entryID: String,
+        kind: LearningMaterialOperationKind,
+        bucket: LearningMaterialEstimatedTokenBucket,
+        createdAt: Date = Date(timeIntervalSince1970: 0),
+        promptID: String = "builtin.learning_material.generate.v1",
+        promptVersion: String = "1"
+    ) -> LearningMaterialOperationSummary {
+        LearningMaterialOperationSummary(
+            operationID: operationID,
+            entryID: entryID,
+            materialID: nil,
+            kind: kind,
+            status: .started,
+            failureCategory: nil,
+            promptID: promptID,
+            promptVersion: promptVersion,
+            providerProfileID: nil,
+            providerEndpointID: nil,
+            providerPresetID: nil,
+            modelName: nil,
+            inputKind: nil,
+            estimatedTokenBucket: bucket,
+            durationMilliseconds: nil,
+            createdAt: createdAt,
+            completedAt: nil
+        )
+    }
+
+    public static func failed(
+        operationID: DiagnosticOperationID,
+        entryID: String,
+        kind: LearningMaterialOperationKind,
+        failureCategory: LearningMaterialGenerationFailureCategory,
+        bucket: LearningMaterialEstimatedTokenBucket,
+        completedAt: Date,
+        promptID: String = "builtin.learning_material.generate.v1",
+        promptVersion: String = "1"
+    ) -> LearningMaterialOperationSummary {
+        LearningMaterialOperationSummary(
+            operationID: operationID,
+            entryID: entryID,
+            materialID: nil,
+            kind: kind,
+            status: .failed,
+            failureCategory: failureCategory,
+            promptID: promptID,
+            promptVersion: promptVersion,
+            providerProfileID: nil,
+            providerEndpointID: nil,
+            providerPresetID: nil,
+            modelName: nil,
+            inputKind: nil,
+            estimatedTokenBucket: bucket,
+            durationMilliseconds: nil,
+            createdAt: Date(timeIntervalSince1970: 0),
+            completedAt: completedAt
+        )
+    }
+}
+
+public enum LearningMaterialTextHash {
+    public static func sha256(for text: String) -> String {
+        let normalized = text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        let digest = SHA256.hash(data: Data(normalized.utf8))
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }

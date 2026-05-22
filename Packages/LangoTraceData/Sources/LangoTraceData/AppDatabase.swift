@@ -6,11 +6,14 @@ public struct AppDatabase: @unchecked Sendable {
 
     public init(databaseQueue: DatabaseQueue) throws {
         self.databaseQueue = databaseQueue
+        try databaseQueue.write { db in
+            try db.execute(sql: "PRAGMA foreign_keys = ON")
+        }
         try Self.migrate(databaseQueue)
     }
 
     public static func inMemory() throws -> AppDatabase {
-        try AppDatabase(databaseQueue: DatabaseQueue())
+        try AppDatabase(databaseQueue: DatabaseQueue(configuration: configuration()))
     }
 
     public static func persistent(at databaseURL: URL) throws -> AppDatabase {
@@ -18,13 +21,21 @@ public struct AppDatabase: @unchecked Sendable {
             at: databaseURL.deletingLastPathComponent(),
             withIntermediateDirectories: true
         )
-        let database = try AppDatabase(databaseQueue: DatabaseQueue(path: databaseURL.path))
+        let database = try AppDatabase(databaseQueue: DatabaseQueue(path: databaseURL.path, configuration: configuration()))
         try setFileProtectionIfAvailable(for: databaseURL)
         return database
     }
 }
 
 private extension AppDatabase {
+    static func configuration() -> Configuration {
+        var configuration = Configuration()
+        configuration.prepareDatabase { db in
+            try db.execute(sql: "PRAGMA foreign_keys = ON")
+        }
+        return configuration
+    }
+
     static func migrate(_ databaseQueue: DatabaseQueue) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("v1_create_language_space_infrastructure") { db in
@@ -35,6 +46,9 @@ private extension AppDatabase {
         }
         migrator.registerMigration("v3_create_diagnostic_events") { db in
             try createDiagnosticEvents(db)
+        }
+        migrator.registerMigration("v4_create_learning_content_infrastructure") { db in
+            try createLearningContentInfrastructure(db)
         }
         try migrator.migrate(databaseQueue)
     }
@@ -221,6 +235,190 @@ private extension AppDatabase {
             on: "diagnostic_events",
             columns: ["operation_id", "created_at"]
         )
+    }
+
+    static func createLearningContentInfrastructure(_ db: Database) throws {
+        try db.execute(sql: """
+        CREATE TABLE entries (
+          id TEXT PRIMARY KEY,
+          space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          title TEXT NOT NULL,
+          body TEXT NOT NULL,
+          source TEXT NOT NULL,
+          scene TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          updated_at REAL NOT NULL,
+          deleted_at REAL,
+          CHECK (length(trim(body)) > 0),
+          CHECK (source IN ('typedText', 'photoWriting', 'targetLanguageWriting'))
+        )
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_entries_space_created_at
+        ON entries(space_id, deleted_at, created_at DESC)
+        """)
+        try db.execute(sql: """
+        CREATE TABLE learning_materials (
+          id TEXT PRIMARY KEY,
+          entry_id TEXT NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+          space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          input_kind TEXT NOT NULL,
+          prompt_mode TEXT NOT NULL,
+          learning_text TEXT NOT NULL,
+          original_generated_text TEXT NOT NULL,
+          analysis_source_hash TEXT NOT NULL,
+          analysis_status TEXT NOT NULL,
+          prompt_id TEXT NOT NULL,
+          prompt_version TEXT NOT NULL,
+          provider_profile_id TEXT,
+          provider_endpoint_id TEXT,
+          provider_preset_id TEXT NOT NULL,
+          model_name TEXT NOT NULL,
+          is_current INTEGER NOT NULL,
+          created_at REAL NOT NULL,
+          updated_at REAL NOT NULL,
+          deleted_at REAL,
+          CHECK (length(trim(learning_text)) > 0),
+          CHECK (input_kind IN ('nativeRecord', 'targetWriting', 'mixed', 'uncertain')),
+          CHECK (prompt_mode IN ('automaticLearningMaterial', 'analyzeCurrentLearningText')),
+          CHECK (analysis_status IN ('fresh', 'stale', 'missing', 'failed')),
+          CHECK (is_current IN (0, 1))
+        )
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_learning_materials_entry_created_at
+        ON learning_materials(entry_id, deleted_at, created_at DESC)
+        """)
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_learning_materials_current_per_entry
+        ON learning_materials(entry_id)
+        WHERE is_current = 1 AND deleted_at IS NULL
+        """)
+        try db.execute(sql: """
+        CREATE TABLE learning_material_sentences (
+          id TEXT PRIMARY KEY,
+          material_id TEXT NOT NULL REFERENCES learning_materials(id) ON DELETE CASCADE,
+          position INTEGER NOT NULL,
+          native_sentence TEXT NOT NULL,
+          target_sentence TEXT NOT NULL,
+          literal_translation TEXT NOT NULL,
+          natural_translation TEXT NOT NULL,
+          grammar_notes_json TEXT NOT NULL,
+          key_points_json TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          updated_at REAL NOT NULL,
+          CHECK (position >= 0)
+        )
+        """)
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_learning_material_sentences_position
+        ON learning_material_sentences(material_id, position)
+        """)
+        try db.execute(sql: """
+        CREATE TABLE learning_material_revision_notes (
+          id TEXT PRIMARY KEY,
+          material_id TEXT NOT NULL REFERENCES learning_materials(id) ON DELETE CASCADE,
+          position INTEGER NOT NULL,
+          original_text TEXT NOT NULL,
+          revised_text TEXT NOT NULL,
+          reason_native TEXT NOT NULL,
+          category TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          CHECK (position >= 0),
+          CHECK (category IN ('grammar', 'wordChoice', 'naturalness', 'clarity', 'tone', 'structure'))
+        )
+        """)
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_learning_material_revision_notes_position
+        ON learning_material_revision_notes(material_id, position)
+        """)
+        try db.execute(sql: """
+        CREATE TABLE memory_candidates (
+          id TEXT PRIMARY KEY,
+          space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          entry_id TEXT NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+          material_id TEXT NOT NULL REFERENCES learning_materials(id) ON DELETE CASCADE,
+          sentence_id TEXT REFERENCES learning_material_sentences(id) ON DELETE SET NULL,
+          kind TEXT NOT NULL,
+          text TEXT NOT NULL,
+          explanation_native TEXT NOT NULL,
+          example_target TEXT NOT NULL,
+          example_native TEXT NOT NULL,
+          difficulty TEXT NOT NULL,
+          status TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          updated_at REAL NOT NULL,
+          CHECK (kind IN ('word', 'phrase', 'sentencePattern', 'grammarPoint', 'errorPattern')),
+          CHECK (difficulty IN ('easy', 'medium', 'hard')),
+          CHECK (status IN ('candidate'))
+        )
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_memory_candidates_space_status
+        ON memory_candidates(space_id, status, created_at DESC)
+        """)
+        try db.execute(sql: """
+        CREATE TABLE practice_candidates (
+          id TEXT PRIMARY KEY,
+          space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          entry_id TEXT NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+          material_id TEXT NOT NULL REFERENCES learning_materials(id) ON DELETE CASCADE,
+          sentence_id TEXT REFERENCES learning_material_sentences(id) ON DELETE SET NULL,
+          kind TEXT NOT NULL,
+          title TEXT NOT NULL,
+          prompt_text TEXT NOT NULL,
+          answer_text TEXT NOT NULL,
+          status TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          updated_at REAL NOT NULL,
+          CHECK (kind IN ('listening', 'shadowing', 'dictation', 'backTranslation')),
+          CHECK (status IN ('candidate'))
+        )
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_practice_candidates_entry_kind
+        ON practice_candidates(entry_id, kind, created_at DESC)
+        """)
+        try db.execute(sql: """
+        CREATE TABLE learning_material_operations (
+          id TEXT PRIMARY KEY,
+          operation_id TEXT NOT NULL,
+          entry_id TEXT NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+          material_id TEXT REFERENCES learning_materials(id) ON DELETE SET NULL,
+          operation_kind TEXT NOT NULL,
+          status TEXT NOT NULL,
+          failure_category TEXT,
+          prompt_id TEXT NOT NULL,
+          prompt_version TEXT NOT NULL,
+          provider_profile_id TEXT,
+          provider_endpoint_id TEXT,
+          provider_preset_id TEXT,
+          model_name TEXT,
+          input_kind TEXT,
+          estimated_token_bucket TEXT NOT NULL,
+          duration_ms INTEGER,
+          created_at REAL NOT NULL,
+          completed_at REAL,
+          CHECK (operation_kind IN ('generate', 'analyze')),
+          CHECK (status IN ('started', 'succeeded', 'failed', 'cancelled')),
+          CHECK (failure_category IS NULL OR failure_category IN (
+            'providerNotConfigured', 'credentialMissing', 'networkUnavailable',
+            'timeout', 'providerRejected', 'unsupportedProvider', 'unsupportedModel',
+            'contentTooLong', 'invalidStructuredResponse', 'cancelled',
+            'persistenceFailed', 'unknown'
+          )),
+          CHECK (input_kind IS NULL OR input_kind IN ('nativeRecord', 'targetWriting', 'mixed', 'uncertain')),
+          CHECK (estimated_token_bucket IN ('short', 'medium', 'tooLong'))
+        )
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_learning_material_operations_entry_created_at
+        ON learning_material_operations(entry_id, created_at DESC)
+        """)
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_learning_material_operations_operation_id
+        ON learning_material_operations(operation_id)
+        """)
     }
 
     static func setFileProtectionIfAvailable(for databaseURL: URL) throws {

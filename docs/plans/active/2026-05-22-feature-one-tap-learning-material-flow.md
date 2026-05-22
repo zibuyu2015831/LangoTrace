@@ -1317,6 +1317,7 @@ git status --short
 
 - 2026-05-23：进入实现阶段。第 0 阶段先将用户审核通过、iOS 优先范围和每阶段检查 / 测试 / commit 要求写入方案，随后按 Core -> Data -> AI -> App Shell -> iOS UI -> Docs / Review 的 TDD 顺序推进。
 - 2026-05-23：阶段 1 Core 契约落地。先新增 `LearningMaterialGenerationTests` 并确认 `swift test --package-path Packages/LangoTraceCore` 因缺少 `LearningMaterialInputKind`、`LearningMaterialPromptMode`、`LearningMaterialAnalysisStatus`、`LearningMaterialGenerationFailureCategory`、`LearningMaterialLengthEstimator`、`LearningMaterialGenerationState` 和 Core 层 `EntrySource` 失败；随后新增 Core 学习材料生成模型、长度估算器和状态机，并将 `EntrySource` 从 Data 上移到 Core。验证：`swift test --package-path Packages/LangoTraceCore` 通过，`swift test --package-path Packages/LangoTraceData` 通过。
+- 2026-05-23：阶段 2 Data 持久化基础落地。先新增 `GRDBLearningContentRepositoryTests` 并确认 `swift test --package-path Packages/LangoTraceData` 因缺少 `GRDBLearningContentRepository`、`NewLearningEntryDraft`、`LearningMaterialGenerationResult`、`LearningMaterialAnalysis`、operation summary 和 v3 SQL helper 失败；随后新增 v4 `entries` / `learning_materials` / sentences / revision notes / memory candidates / practice candidates / operation summary schema，显式启用 foreign key，新增 GRDB learning content repository，并补充共享 DTO。验证：`swift test --package-path Packages/LangoTraceData`、`swift test --package-path Packages/LangoTraceCore`、`swift test --package-path Packages/LangoTraceUI` 均通过。
 
 ## 16. 完成标准
 
