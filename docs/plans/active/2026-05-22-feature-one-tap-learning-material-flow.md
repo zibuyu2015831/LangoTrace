@@ -1,6 +1,6 @@
 # 任务方案：一键生成学习材料闭环
 
-状态：Draft
+状态：In Progress
 类型：feature
 创建日期：2026-05-22
 最后更新日期：2026-05-23
@@ -13,7 +13,9 @@
 - 2026-05-23：用户确认本任务采用“完整 GRDB 持久化路径”，不以 `InMemoryLearningContentRepository` 原型作为真实学习闭环完成口径；本次补充存储数据结构、Prompt 完整文本和结构化 JSON 输出契约。
 - 2026-05-23：严格复审后补充 repository 演进路径、soft delete 查询语义、operation 生命周期、非阻断 AI 披露、Core 验证和 execution-readiness gate；本方案仍需用户确认后才可实现。
 - 2026-05-23：再次复审数据存储结构和文档实施步骤后，补充迁移恢复策略、导出边界、数据库枚举约束、operation 单行摘要语义、analysis 部分失败规则，以及 `docs/spec/007-data-storage-migration-export-and-attachments.md` 和 `docs/spec/learning-content/impl.md` 的规范更新落点。
-- 当前状态仍为 Draft。进入实现前，需要用户明确确认本方案可以开始实施。
+- 2026-05-23：代码复核后补充应用编排层、`LearningContentStore` async 迁移、settings capability 解耦、`EntrySource` / `inputKind` 语义分层、Prompt 一致性测试、hash / JSON schema version 和 v3 fixture 迁移测试约束。
+- 2026-05-23：用户确认本轮实现先完成 iOS / iPhone 端；iPad 和 macOS 端待 iOS 端人工测试通过后再另行推进。底层 Core / Data / AI / App Shell 仍按三端可复用边界建设，但本轮 UI 可交付范围只包含 iOS。
+- 2026-05-23：用户确认“该方案审核通过”，并要求根据该方案开始实施，直至方案完整落地；每个阶段均需检查、测试和 commit。
 
 ## 1. 需求描述
 
@@ -63,7 +65,8 @@
 本任务范围：
 
 - iPhone 记录详情页的一键学习材料生成入口。
-- iPad / macOS 共享 `EntryDetailView` 的同一能力入口与状态展示。
+- 本轮 UI 可交付范围仅限 iOS / iPhone；iPad / macOS 的入口、状态展示和平台适配待 iOS 端人工测试通过后另行制定或开启后续任务。
+- 底层 Core / Data / AI / App Shell 仍按三端可复用边界建设，避免为 iOS 写入平台专属数据模型、Prompt、Provider 或 repository 逻辑。
 - 学习材料生成的 Core / Data / AI / UI 模型边界。
 - Prompt Preset 注册与结构化输出契约。
 - 原始 Entry 不可直接编辑的产品与数据规则。
@@ -83,6 +86,7 @@
 - 不在点击 `生成学习材料` 后再弹出阻断式确认。
 - 不把语言检测结果作为不可纠正的绝对事实；AI 输出必须携带输入类型判断和置信提示。
 - 不把 UI 文案、语言空间展示名或本地化字符串作为 Prompt 语言事实源。
+- 本轮不实现 iPad / macOS 记录详情页的学习材料生成 UI 接入、创建入口 async 保存状态、平台适配和人工验收；这些工作必须等 iOS 端人工测试通过后再推进。
 
 ## 6. 证据与决策依据
 
@@ -212,6 +216,104 @@ Data package
 
 因此，跨模块模型优先落在 Core。Data 可以定义持久化 record / repository 细节，但不得要求 AI import Data。
 
+#### 11.0.1 应用编排层
+
+本任务必须新增明确的应用编排层，不能让 SwiftUI View、`LearningContentStore`、AI package 或 Data repository 各自拼接完整流程。
+
+推荐新增：
+
+```swift
+public struct LearningMaterialGenerationActions: Sendable {
+    public var generateMaterial: @Sendable (LearningMaterialGenerationRequest) async -> LearningMaterialGenerationActionResult
+    public var analyzeCurrentText: @Sendable (LearningMaterialAnalysisRequest) async -> LearningMaterialGenerationActionResult
+    public var cancelOperation: @Sendable (DiagnosticOperationID) async -> Void
+}
+```
+
+或在 App target 内新增等价 use case：
+
+```swift
+struct LearningMaterialGenerationUseCase: Sendable {
+    func generate(_ request: LearningMaterialGenerationRequest) async -> LearningMaterialGenerationActionResult
+    func analyze(_ request: LearningMaterialAnalysisRequest) async -> LearningMaterialGenerationActionResult
+}
+```
+
+编排层职责：
+
+1. 读取当前 Entry、Language Space 和默认文本模型 Provider 配置。
+2. 在请求前做长度估算、空文本、Provider 未配置、默认 profile 删除、endpoint disabled、endpoint purpose 非 text generation、credential missing / inaccessible 等 preflight。
+3. 为每次生成或重新分析创建 `DiagnosticOperationID`，并调用 Data repository 写入 `started` operation 摘要。
+4. 通过 Keychain reference 解析 secret；secret 只在编排层和 AI service 调用边界短生命周期存在，不进入 UI、日志、数据库或错误对象。
+5. 将已规范化的 endpoint 输入、短生命周期 secret、Prompt 输入和 operation id 传入 `LearningMaterialGenerationService.generate` 或 `analyze`；AI package 只完成 Prompt 渲染、Provider 请求体构造、HTTP adapter 调用、结构化 JSON 解析和字段级校验，不再自行读取 Provider repository 或 Keychain。
+6. 调用 Data repository 在事务中保存成功结果和 `succeeded` operation 摘要。
+7. 对取消、网络、timeout、provider rejected、unsupported provider / model、invalid structured response、persistence failed 等错误映射为 Core 中稳定的 `LearningMaterialGenerationFailureCategory`。
+8. 保证取消不写成失败；Provider 返回后如果 operation 已过期或当前 Entry / space 不匹配，不得覆盖 UI 当前状态。
+
+依赖方向：
+
+```text
+App Shell / Use Case
+  -> Data repository
+  -> AI service
+  -> Keychain credential store
+  -> Diagnostic logger
+  -> Core DTO / error / state
+
+UI
+  -> LearningMaterialGenerationActions only
+
+AI
+  -> Core only
+
+Data
+  -> Core only
+```
+
+禁止事项：
+
+- SwiftUI View 不得直接读取 Provider profile、Keychain、`DatabaseQueue`、`URLRequest` 或 Provider SDK。
+- `LearningContentStore` 不得直接解析 secret 或构造 Provider 请求体。
+- `LearningMaterialGenerationService` 不得 import `LangoTraceData` 或直接落库。
+- `GRDBLearningContentRepository` 不得 import `LangoTraceAI` 或调用 AI service。
+
+#### 11.0.2 operation 生命周期总图
+
+生成请求必须按以下阶段执行：
+
+```text
+UI action
+  -> use case preflight
+  -> Data: insert started operation
+  -> Keychain: resolve secret
+  -> AI: request + structured parse
+  -> Data: save material + analysis + candidates + succeeded operation in one write transaction
+  -> UI: refresh current entry detail state
+```
+
+失败 / 取消路径：
+
+```text
+preflight blocked
+  -> optionally write blocked operation summary when entryID is known
+  -> UI blocked / recoverable state
+
+network / provider / parse failed
+  -> Data: update same operation row to failed
+  -> UI retryable failure state
+
+cancelled
+  -> Data: update same operation row to cancelled when started exists
+  -> UI previous stable state
+
+persistence failed after AI success
+  -> Data: no partial material remains
+  -> operation marked failed with persistenceFailed when possible
+  -> UI shows save failure and allows regenerate
+```
+
+`started`、AI 网络请求和 `succeeded` 不得处于同一个数据库事务。只有成功时的 material、analysis、candidates 和 operation `succeeded` 摘要必须处于同一个 `DatabaseQueue.write` 边界。
+
 ### 11.1 产品与交互模型
 
 采用单按钮模型：
@@ -304,6 +406,30 @@ public enum LearningMaterialPromptMode: String, Sendable {
 ```
 
 这些类型必须位于 Core 或等价共享层。AI service、Data repository 和 UI action 不得各自复制一套同名枚举。
+
+#### 11.2.1 `EntrySource` 与 `inputKind` 语义分层
+
+`EntrySource` 只表示 Entry 的采集来源或创建模态，不表示语言类型或 AI 处理路径。
+
+第一版语义：
+
+- `EntrySource.typedText`：用户从“写一句”文本入口创建的原始记录。用户可能输入母语、目标语言、混合文本或不确定文本。
+- `EntrySource.photoWriting`：未来照片写作入口创建的记录。本任务不发送照片、OCR 或附件内容。
+- `EntrySource.targetLanguageWriting`：保留为未来显式目标语言写作入口或导入场景的来源标记；当前 `写一句` 入口不使用它。
+
+`LearningMaterialInputKind` 才是 AI 学习材料生成的任务路由结果：
+
+- `nativeRecord`：AI 判断原文主要是母语生活记录。
+- `targetWriting`：AI 判断原文主要是目标语言写作，需要优化稿和修改说明。
+- `mixed`：AI 判断原文混合母语和目标语言。
+- `uncertain`：AI 无法稳定判断，按母语记录或保守策略处理，并在结果中给出判断说明。
+
+实现要求：
+
+- Prompt 输入可以包含 `EntrySource` 作为来源元数据，但不得用它替代语言判断。
+- Data 查询、UI 状态和练习候选不得把 `.typedText` 等同于 `nativeRecord`。
+- 测试必须覆盖 `.typedText` Entry 返回 `targetWriting`、`mixed` 和 `uncertain` 的路径。
+- 如果未来开放显式目标语言写作入口，应另开任务定义入口文案、隐私披露和 `EntrySource.targetLanguageWriting` 的写入条件。
 
 ### 11.3 请求类型
 
@@ -405,6 +531,7 @@ public struct LearningMaterialAnalysis: Equatable, Sendable {
 非阻断 AI 披露要求：
 
 - 无学习材料状态下，主按钮附近必须用简短说明表达“点击后会把当前文本发送给已配置的 AI Provider 生成学习材料”，不得只写“本地预览”或暗示本地处理。
+- 该披露必须和 `EntryEditorView` 的“保存到本机”隐私提示形成清晰分层：保存 Entry 仍是本机写入；只有用户在详情页主动点击 `生成学习材料` 才会发送当前 Entry 文本给已配置的 AI Provider。不得让用户误以为保存动作已经上传，也不得让用户误以为生成动作仍是纯本地处理。
 - 生成中状态必须展示 AI 处理中语义，并保留取消入口。
 - 生成成功后，结果元数据必须展示非敏感来源信息：Provider preset、模型名、Prompt id / version、生成时间或最近更新时间。
 - Provider 未配置时不应静默禁用主按钮；应展示进入 AI Provider 设置的入口，并说明需要先配置文本模型。
@@ -433,6 +560,7 @@ Core package 测试：
 - `LearningMaterialGenerationState` 禁止同一 Entry 重复生成，并能表达 generated、editing stale、analyzing、failed、cancelled 和 blocked。
 - `LearningMaterialGenerationFailureCategory` 覆盖 Provider 未配置、credential missing、网络、timeout、provider rejected、unsupported provider / model、content too long、invalid structured response、cancelled、persistence failed 和 unknown。
 - `LearningMaterialInputKind`、`LearningMaterialPromptMode` 和 `LearningMaterialAnalysisStatus` 的 raw value 与 Prompt / 数据库契约一致。
+- `EntrySource` 与 `LearningMaterialInputKind` 语义分层测试：`.typedText` 不被当作母语记录事实，`inputKind` 才决定目标写作、混合文本和不确定文本的渲染路径。
 
 AI package 测试：
 
@@ -442,6 +570,7 @@ AI package 测试：
 - 不确定输入返回 `uncertain` 或降级为 `nativeRecord`，但必须带判断说明。
 - 结构化 JSON 缺字段时返回可诊断错误。
 - 请求日志不包含原文、学习文本、响应全文或 API Key。
+- Prompt rendering snapshot 测试固定 `builtin.learning_material.generate.v1` 和 `builtin.learning_material.analyze_current_text.v1` 的 prompt id、version、输入变量、JSON schema version 和隐私边界，避免代码 Prompt 与 `docs/prompts/` 漂移。
 
 UI package 测试：
 
@@ -453,6 +582,8 @@ UI package 测试：
 - 编辑学习文本后出现 `重新分析`。
 - Provider 未配置时出现设置入口。
 - 内容过长时不发起请求并显示说明。
+- 离开详情页、切换 Entry 或切换语言空间后，旧 operation 结果不得覆盖当前 UI 状态。
+- Settings 能力列表在 learning content repository 迁移到 GRDB 后不回退、不丢失 AI Provider / Sync / Privacy / Import Export 等入口。
 
 ### 11.9 状态机与并发边界
 
@@ -477,8 +608,14 @@ public enum LearningMaterialGenerationState: Equatable, Sendable {
 
 - 同一 Entry 同一时间只允许一个生成或重新分析任务运行。
 - 重复点击 `生成学习材料` 时，UI 必须禁用按钮；service / store 层也要通过 operation id 或 entry id 防重。
+- use case 层必须维护 in-flight operation registry 或等价防重机制，不能只依赖 View 按钮禁用。防重 key 至少包含 `spaceID`、`entryID` 和 operation kind。
 - 用户切换 Entry、切换语言空间、关闭 sheet 或离开详情页时，UI task 必须可取消。
 - 取消后的结果不得落库为失败；如果 Provider 请求已返回但 operation id 已过期，不得覆盖当前 UI 状态。
+- 用户离开详情页后的后台策略必须在实现中二选一并测试：
+  - 取消策略：详情页 task 生命周期结束即取消 operation，已写入 `started` 的 operation 更新为 `cancelled`。
+  - 继续策略：operation 继续在 use case 层完成并落库，返回详情页时从 repository 恢复生成结果。
+  - 第一版推荐取消策略，减少后台任务和过期 UI 刷新复杂度。
+- 切换语言空间期间的返回结果必须同时校验 `entryID` 和 `spaceID`，避免旧空间结果刷新到新空间 UI。
 - `重新生成` 必须创建新的 LearningMaterial 版本或明确替换当前版本；不得在旧分析尚未清理时半更新。
 - `重新分析` 只能更新当前学习文本对应的 analysis；如果用户在请求期间继续编辑文本，返回结果必须丢弃或标记过期，不能覆盖新文本。
 
@@ -513,6 +650,15 @@ public enum LearningMaterialGenerationFailureCategory: String, Equatable, Sendab
 - Invalid structured response：允许重试，并记录非敏感诊断事件。
 - Persistence failed：请求结果不得只停留在不可恢复内存状态；UI 应提示保存失败并允许重新生成。
 - Cancelled：回到上一个稳定状态，不写失败日志和持久验证事件。
+
+补充错误映射：
+
+- default profile 不存在或已 soft delete：映射为 `providerNotConfigured`。
+- 文本 endpoint 不存在、disabled 或 purpose 不是 `text_generation`：映射为 `providerNotConfigured` 或 `unsupportedProvider`，UI 文案应引导进入 AI Provider 设置检查文本模型。
+- Keychain secret 缺失：映射为 `credentialMissing`。
+- Keychain secret 存在但不可访问、权限失败或解码失败：映射为 `credentialMissing` 的可恢复 UI 文案，诊断属性可记录非敏感内部分类 `credentialInaccessible`。
+- Anthropic / Gemini 第一版未实现真实学习材料请求体时：映射为 `unsupportedProvider` 或 `unsupportedModel`，不得伪装成网络失败。
+- preflight 阻断如果 entryID 已知，应写入 operation 摘要；`prompt_id` / `prompt_version` 使用本次将使用的内置 Prompt id / version，Provider 相关字段允许为空。
 
 ### 11.11 持久化分期要求
 
@@ -550,7 +696,7 @@ public struct LearningMaterialGenerationService: Sendable {
 服务职责：
 
 - 使用默认文本 generation endpoint。
-- 通过 Keychain reference 解析 secret，但不把 secret 暴露给 UI。
+- 接收编排层传入的已规范化 endpoint 输入和短生命周期 plaintext secret；不得自行读取 Provider repository、Keychain、`DatabaseQueue` 或 App 环境。
 - 按 adapter 构造 OpenAI Responses / OpenAI-compatible Chat 请求体。
 - 应先明确 Anthropic / Gemini 的第一阶段策略：支持则实现请求体；不支持则返回 `unsupportedModel` 或 `unsupportedProvider`，不得误报为网络失败。
 - 解析严格结构化 JSON，并校验必填字段、数组长度、语言 code 和输入类型枚举。
@@ -636,6 +782,7 @@ ON entries(space_id, deleted_at, created_at DESC);
 - `title`、`scene` 后续可独立设计 metadata 编辑；本任务不开放正文编辑。
 - `updated_at` 首版等于创建时间；未来 metadata 编辑时更新，不代表正文变化。
 - `source` 第一版取值沿用 `EntrySource`：`typedText`、`photoWriting`、`targetLanguageWriting`。本任务真实入口只写入 `typedText`；`photoWriting` 仍属于未来附件任务。
+- `source` 不得用于推断 `learning_materials.input_kind`。同一个 `typedText` Entry 可以生成 `nativeRecord`、`targetWriting`、`mixed` 或 `uncertain` 的 LearningMaterial。
 
 `learning_materials`：
 
@@ -683,6 +830,7 @@ WHERE is_current = 1 AND deleted_at IS NULL;
 - `analysis_status` 取值：`fresh`、`stale`、`missing`、`failed`。
 - `provider_profile_id` 和 `provider_endpoint_id` 保存为弱引用字符串；Provider 配置删除后历史材料仍可展示，不因外键 restrict 阻止用户清理配置。
 - `provider_preset_id` 和 `model_name` 是非敏感元数据，允许展示给用户和进入导出。
+- `space_id` 是为了查询性能和未来对象级同步保留的冗余字段；写入时必须验证它与 `entries.space_id` 一致。测试必须覆盖跨空间 material 写入被拒绝。
 
 `learning_material_sentences`：
 
@@ -711,6 +859,7 @@ ON learning_material_sentences(material_id, position);
 - `native_sentence` 是面向学习者的母语释义或对照，不是原始 Entry 正文的逐句回放。
 - 句子表首版保留 `grammar_notes_json` 和 `key_points_json`，避免过早拆出过多小表。
 - JSON 字段必须由 Data 层通过 `Codable` 结构编码，不能在 UI 中拼字符串。
+- `grammar_notes_json` 和 `key_points_json` 顶层必须包含 `schemaVersion`，第一版固定为 `1`。Data 层必须有集中 encoder / decoder 和兼容解码测试。
 - 后续如果需要跨 Entry 统计错误模式，再把 grammar notes 拆成规范表；首版以稳定展示和导出为主。
 
 `learning_material_revision_notes`：
@@ -879,6 +1028,11 @@ analysis 部分失败规则：
 - 如果实现时不希望每次 join，应给候选表增加 `deleted_at` 并在删除 Entry / LearningMaterial 的同一事务内同步 soft delete；不得出现 Entry 已删除但候选仍在首页或练习入口展示的状态。
 - 测试必须覆盖删除 Entry 后 `memoryItems(for:)`、`practiceItems(for:)`、`practiceSession(for:)` 不再返回该 Entry 的候选内容。
 
+外键要求：
+
+- `AppDatabase` 必须确认 GRDB 连接启用 foreign key enforcement，迁移测试应显式验证违反 `entries.space_id`、`learning_materials.entry_id`、candidate `material_id` 的写入失败。
+- 如果 GRDB 默认行为或测试 database 配置无法保证外键开启，必须在 `AppDatabase` 初始化时显式配置，并记录在 `docs/spec/007-data-storage-migration-export-and-attachments.md`。
+
 #### 11.15.4 导出、备份和未来同步边界
 
 本任务不实现导出、备份和同步 UI，但新增 schema 已经进入真实主数据路径，必须在数据设计中保留长期边界：
@@ -925,6 +1079,62 @@ public protocol LearningMaterialRepository: AnyObject, Sendable {
 - 所有时间使用可注入 clock，保存为 UTC epoch seconds，沿用现有语言空间基础设施风格。
 - 迁移测试必须验证 current material 唯一约束、Entry 删除后的 active 查询、重新分析不修改 Entry 正文、用户编辑后 analysis stale。
 
+#### 11.15.6 `LearningContentStore` async 迁移
+
+当前 `LearningContentStore` 依赖同步 `LearningContentRepository`，迁移到真实 GRDB repository 时必须同步调整 Store，而不是只给生成按钮增加 async 调用。
+
+第一版推荐 Store 状态：
+
+```swift
+@MainActor
+final class LearningContentStore: ObservableObject {
+    @Published private(set) var entries: [LearningEntry] = []
+    @Published private(set) var selectedEntry: LearningEntry?
+    @Published private(set) var memoryItems: [MemoryItem] = []
+    @Published private(set) var settingsCapabilities: [SettingsCapability] = []
+    @Published private(set) var loadingState: LearningContentLoadingState = .idle
+    @Published private(set) var generationStates: [String: LearningMaterialGenerationState] = [:]
+}
+```
+
+最低迁移要求：
+
+1. `ensureSeeded` 不再作为真实主路径 seed mock 的入口。真实 App Shell 启动后通过 async `load(spaceID:)` 从 GRDB 读取 Entry / current material / memory / practice summary。
+2. `createEntry` 改为 async throwing 或通过 action 返回可恢复错误；UI 保存按钮需要 loading / failure 状态，不能假设写入永远同步成功。
+3. `rendering(for:)` 应演进为 `currentMaterial(for:)` 或兼容 presentation model；如果保留 `LearningRendering` 作为 UI 展示模型，必须由 Data 层或 Store 层从 `LearningMaterial` 投影，不得继续代表 mock-only 事实。
+4. 生成 / 重新分析完成后，Store 至少局部刷新当前 Entry 的 current material、practice candidates、memory candidates；小数据阶段允许全量刷新，但必须在方案实施记录中说明并保留后续优化点。
+5. Store 错误状态必须区分加载失败、创建 Entry 失败、生成失败、重新分析失败和刷新失败，UI 不得吞掉持久化错误。
+6. 本轮只接入 iOS / iPhone UI；但 Store 状态、presentation model 和 action 边界不得写成 iOS 专属，后续 iPad / macOS 接入时应能复用同一个 material 和 generation state。
+7. 测试必须覆盖 App Shell 不再装配 `InMemoryLearningContentRepository` 作为真实 learning content repository。
+
+过渡兼容：
+
+- 如果为降低一次性改动保留旧同步协议，必须新增 adapter / bridge，明确 bridge 只服务旧 UI 读取，不保存真实生成结果。
+- bridge 期限必须写入实施记录；完成标准仍要求真实生成结果由 GRDB repository 持久化并在重启后可恢复。
+
+#### 11.15.7 Settings capability 解耦
+
+当前 `settingsCapabilities(for:)` 挂在 `LearningContentRepository` 上，但 AI Provider、Sync、Privacy、Import Export 等能力不是 learning content 主数据职责。本任务迁移 repository 时必须同时处理该隐藏耦合。
+
+推荐方案：
+
+```swift
+public protocol SettingsCapabilityProviding: Sendable {
+    func settingsCapabilities(for spaceID: String) -> [SettingsCapability]
+}
+```
+
+实现方向：
+
+- 将静态能力列表移动到 UI package 的 presentation provider 或 Data package 的独立 provider，具体落点以现有 package 依赖最小化为准。
+- `LearningContentStore` 可以组合 `LearningContentRepository` 和 `SettingsCapabilityProviding`，但 `GRDBLearningContentRepository` 不应长期负责返回 Sync / Privacy / Import Export 这类非内容能力。
+- 如果本任务不拆分协议，必须在 `GRDBLearningContentRepository.settingsCapabilities(for:)` 标注为过渡兼容，并新增测试防止 SettingsView 能力列表丢失。
+- 三端 Settings detail 仍必须复用现有 `SettingsCapabilityDetailView` 入口；不得为 iPad / macOS 复制平台专属 AI Provider 设置表单。
+
+完成标准增加：
+
+- 实现后搜索 `settingsCapabilities(for:)`，确认它不再迫使 learning content repository 承担长期 settings source 职责，或实施记录中明确过渡期限和后续拆分任务。
+
 ### 11.16 Prompt 与结构化 JSON 契约
 
 本任务新增 Prompt Registry 文档：
@@ -949,6 +1159,26 @@ docs/prompts/learning-material/one-tap-learning-material.md
 - `analysis` 必须基于 `learning_text`，不能基于原始 Entry。
 - 中等长度文本必须执行输出规模限制：最多 20 句、12 个 memory candidates、6 个 practice candidates。
 - Prompt 不得要求模型返回用户 API Key、Provider 信息、系统内部 ID、完整 Prompt 文本或日志字段。
+
+Prompt 一致性验证：
+
+- AI package 必须新增 Prompt rendering snapshot 测试，固定两个内置 Prompt 的 prompt id、version、输入变量、system / user prompt 主要结构和 JSON schema version。
+- `docs/prompts/learning-material/one-tap-learning-material.md` 必须能完整还原最终发送给 Provider 的 system / user prompt。若代码使用模板拼接，文档必须列出模板、变量和渲染示例。
+- 测试不得把用户真实生活记录写入 snapshot fixture；只允许 synthetic sample。
+- Prompt snapshot 变化必须同时更新 Prompt Registry 文档和本方案实施记录。
+
+`analysis_source_hash` 规则：
+
+- 第一版使用固定算法：`SHA256(UTF8(normalizedLearningText))`。
+- `normalizedLearningText` 第一版只做换行规范化：将 CRLF 和 CR 统一为 LF；不 trim、不折叠空白、不大小写转换。
+- hash 只写入 `learning_materials.analysis_source_hash`，不得进入 diagnostic event、operation 摘要、普通 UI 文案或错误对象。
+- 测试必须覆盖同一文本 hash 稳定、换行规范化稳定、文本编辑后 hash 变化，以及重新分析成功后 hash 与当前 `learning_text` 匹配。
+
+JSON blob schema version：
+
+- `grammar_notes_json` 和 `key_points_json` 由 Data package 内部 Codable record 编码。
+- 顶层字段必须包含 `schemaVersion: 1`。
+- 解码失败应映射为 Data repository 可诊断错误，不得让 UI 直接处理任意 JSON 字符串。
 
 ### 11.17 JSON 字段到数据库字段的映射
 
@@ -982,6 +1212,44 @@ operation summary                        -> learning_material_operations
 - 模型返回的 `routing_reason` 不单独落主表，首版可进入用户可见生成摘要或 operation 非敏感摘要；不得进入诊断日志正文。
 - 原始 request body、response body、system prompt、user prompt、Authorization header、API Key、完整用户原文日志都不落库。
 - `confidence` 只用于 UI 提示和非敏感元数据；首版不作为排序、自动纠错或阻断条件。
+
+### 11.18 迁移 fixture 与实施就绪 gate
+
+Data package 必须新增 v3 -> v4 迁移 fixture 或等价 SQL builder，不能只测空库迁移。
+
+推荐 fixture 路径：
+
+```text
+Packages/LangoTraceData/Tests/LangoTraceDataTests/Fixtures/v3-language-space-ai-provider.sqlite
+```
+
+如果不提交二进制 sqlite fixture，则必须提供测试 helper，用 SQL 构造 v3 schema 和代表性数据：
+
+- 至少 1 个 active language space。
+- 至少 1 个 deleted language space。
+- 至少 1 个 default AI Provider profile。
+- 至少 1 个 text generation endpoint。
+- 至少 1 条 diagnostic event。
+
+迁移测试必须覆盖：
+
+- v3 fixture 迁移到当前 schema。
+- 空库直接迁移到当前 schema。
+- 重复 migrator 不重复建表或破坏数据。
+- 新增表、关键 index、唯一 current material、枚举 CHECK、foreign key 行为和 UTC epoch seconds 字段。
+- v3 既有 language space / AI Provider / diagnostic 数据迁移后仍可读取。
+
+实施就绪 gate：
+
+本方案只有在以下内容已经写入第 11 节后，才可以从 Draft 转为可请求用户确认的 implementation-ready 状态：
+
+1. 应用编排层和 operation 生命周期。
+2. `LearningContentStore` async 迁移和三端刷新策略。
+3. Settings capability 解耦或过渡兼容方案。
+4. `EntrySource` 与 `LearningMaterialInputKind` 语义分层。
+5. Prompt 一致性测试、hash 算法、JSON blob schema version、v3 fixture 迁移测试。
+
+上述 gate 已在本节补齐；当前仍需用户确认后才能进入实现。
 
 ## 12. 复查方法
 
@@ -1047,7 +1315,7 @@ git status --short
 
 ## 15. 实施记录
 
-尚未开始实现。
+- 2026-05-23：进入实现阶段。第 0 阶段先将用户审核通过、iOS 优先范围和每阶段检查 / 测试 / commit 要求写入方案，随后按 Core -> Data -> AI -> App Shell -> iOS UI -> Docs / Review 的 TDD 顺序推进。
 
 ## 16. 完成标准
 
@@ -1055,14 +1323,21 @@ git status --short
 
 - 用户已确认本方案进入实现。
 - 记录详情页只有一个核心 AI 动作 `生成学习材料`。
+- 本轮仅要求 iOS / iPhone 端记录详情页完成该入口和状态闭环；iPad / macOS 端保持不接入真实学习材料生成 UI，待 iOS 端人工测试通过后另行推进。
 - 原始 Entry 正文保存后不可直接编辑。
+- 学习材料生成通过 `LearningMaterialGenerationActions` 或等价 use case 编排，SwiftUI View 不直接访问 AI service、Keychain、`DatabaseQueue` 或 Provider SDK。
+- `LearningContentStore` 已迁移到 async GRDB facade 或有明确过渡 bridge，真实生成结果不进入内存 repository。
+- Settings capability 已从 learning content repository 长期职责中拆出，或实施记录明确过渡兼容期限和后续拆分任务。
+- `EntrySource` 与 `LearningMaterialInputKind` 语义已分层，`.typedText` 不被当作母语记录事实。
 - AI 生成请求一次返回学习文本和学习分析。
 - 目标语言写作结果包含优化稿和修改说明。
 - 学习文本可编辑，编辑后可重新分析。
 - 重新分析不修改 Entry 正文，也不重新生成学习文本。
 - 长文本在 App 层阻断或进入选段流程，不直接全量请求。
 - Core、Data、AI、UI 聚焦测试通过。
+- Prompt rendering snapshot、`analysis_source_hash`、JSON blob schema version 和 v3 -> v4 迁移 fixture / SQL builder 测试通过。
 - `scripts/verify.sh` 通过，或记录无法运行的具体原因和剩余风险。
+- iOS 端人工测试通过并记录结果；iPad / macOS 未接入状态必须在实施记录和页面清单中标明为后续任务，不得误标为三端完成。
 - 相关长期文档已经同步更新。
 - `docs/spec/007-data-storage-migration-export-and-attachments.md` 和 `docs/spec/learning-content/impl.md` 已按真实落地状态更新，且没有继续把 learning content 描述为纯内存 mock。
 
@@ -1188,10 +1463,10 @@ git status --short
 1. Core：新增共享 DTO、状态机、错误分类和长度估算器测试。
 2. Data：新增 GRDB schema / async repository facade，迁移 Entry、LearningMaterial、Analysis、MemoryCandidate、PracticeCandidate 和 operation 记录。
 3. AI：新增 LearningMaterialGenerationService、Prompt 文档、请求体构造、结构化解析和脱敏诊断。
-4. UI：改造 EntryDetailView 状态、学习文本编辑、重新分析和错误恢复。
+4. UI：先改造 iOS / iPhone 记录详情页状态、学习文本编辑、重新分析和错误恢复；iPad / macOS 暂不接入本轮 UI。
 5. App Shell：装配 generation actions，解析 saved profile 和 Keychain secret。
 6. Docs：更新 product、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/learning-content/impl.md`、page inventory、Prompt Registry 和必要 review round。
-7. Verification：运行 Core/Data/AI/UI 聚焦测试、敏感字段扫描、`scripts/verify.sh` 和三端手动 UI 验证。
+7. Verification：运行 Core/Data/AI/UI 聚焦测试、敏感字段扫描、`scripts/verify.sh` 和 iOS 端人工 UI 验证；iPad / macOS 人工 UI 验证留到后续平台接入任务。
 
 ### 18.6 剩余疑问
 
@@ -1210,3 +1485,155 @@ git status --short
 - Analysis gate：首次生成 analysis 非法时整次失败不落半成品；重新分析失败不得删除旧 analysis 或覆盖当前学习文本。
 - Privacy gate：非阻断确认必须通过按钮说明、生成中状态和结果元数据披露 AI Provider 调用，不得把中风险文本请求伪装成本地处理。
 - Verification gate：聚焦验证必须包含 Core、Data、AI、UI 四个 package；Core 负责 DTO、状态机、错误分类和长度估算器。
+
+### 18.8 2026-05-23 代码复核补充
+
+审核视角：系统架构、活代码一致性、真实实施链路、隐藏耦合和执行条件。
+
+审核结论：Needs Changes -> 可转入用户确认 gate。方案的产品方向、核心数据边界、Provider 边界和 GRDB 完成口径成立；本次复核发现的编排层不清、同步 repository 迁移低估、settings capability 隐藏耦合和 Prompt / hash / fixture 等执行细节缺口，已补入第 11.0.1、11.0.2、11.2.1、11.8、11.9、11.10、11.15、11.16 和 11.18。方案仍保持 Draft，进入实现前仍需要用户明确确认。
+
+#### 18.8.1 代码现状复核
+
+准确项：
+
+- iPhone 入口链路描述准确。`PhoneMainView` 中 `.entryEditor` sheet 保存后调用 `contentStore.createEntry(title:body:source:)`，并导航到 `.entryDetail(entry.id)`；当前入口固定传入 `.typedText`。
+- `EntryDetailView` 结构描述准确。当前详情页显示 `entry.body`、`rendering?.targetText`、逐句区域、本地预览入口和练习入口；没有原始正文编辑入口。
+- `LearningContentStore` 和 `LearningContentRepository` 仍是同步接口；`generateLocalPreview` 是同步本地 mock。
+- `AppEnvironment.bootstrap()` 当前真实装配语言空间 GRDB repository、AI Provider 配置 service 和 Keychain credential store，但 learning content 仍装配 `InMemoryLearningContentRepository(seedEntries: [])`。
+- `AppDatabase` 当前迁移只有 `v1_create_language_space_infrastructure`、`v2_create_ai_provider_configuration`、`v3_create_diagnostic_events`，没有 Entry / LearningMaterial 表。
+- package 依赖方向描述准确：`LangoTraceAI` 只依赖 Core；`LangoTraceUI` 依赖 Core 和 Data，不依赖 AI。
+
+需要补充或修正的项：
+
+- `EntrySource.targetLanguageWriting` 当前不是 UI 可选项；`写一句` 无论用户写中文、英文或混合文本，都保存为 `.typedText`。因此第一版不能用 `EntrySource` 推断输入类型，必须完全依赖 AI 返回的 `LearningMaterialInputKind`，并在文档中明确 `EntrySource` 是采集来源 / 模态，不是语言分类事实。
+- `settingsCapabilities(for:)` 当前挂在 `LearningContentRepository` 上，且由 `InMemoryLearningContentRepository.serviceSettingsCapabilities` 返回 AI Provider、Sync、Local Data、Privacy 等能力状态。迁移到 `GRDBLearningContentRepository` 时，如果照搬当前协议，会把设置能力元数据继续耦合在 learning content repository 中；如果不照搬，则 SettingsView 会丢能力列表。
+- 方案提出 `LearningMaterialGenerationService` 和 repository，但还没有定义一个明确的编排层来串联：长度预检、Provider 配置读取、Keychain secret 解析、operation started、AI 请求、结构化校验、成功事务落库、失败 / 取消 operation 更新、UI state 回写。若由 SwiftUI / `LearningContentStore` 拼装，容易把 Data / AI / Keychain 责任重新拉回 UI；若由 AI service 直接落库，又会破坏 AI 不依赖 Data 的边界。
+- `analysis_source_hash` 的算法、输入规范化和隐私属性未定。虽然数据库同时保存 `learning_text`，但 hash 仍需稳定算法和测试口径，否则 stale 判定、导出和迁移测试会漂移。
+- v3 fixture 迁移测试要求正确，但仓库当前没有 fixture 目录和 fixture 生成约定。实现前应明确 fixture 存放位置、构造方式和是否使用 SQL snapshot，避免迁移测试只覆盖空库。
+
+#### 18.8.2 新增关键问题
+
+- P0：缺少应用编排层，真实调用链责任仍不完整。
+  - 证据：当前 App Shell 已用 `AIProviderSettingsActions` closure 装配 Provider 设置保存 / 测试链路；学习材料方案只要求新增 AI service 和 repository，未明确等价的 `LearningMaterialGenerationActions` 或 application use case 负责跨 AI / Data / Keychain 的完整事务阶段。
+  - 影响：实现者可能让 SwiftUI View 或 `LearningContentStore` 直接编排网络、Keychain 和数据库 operation；也可能让 AI package import Data，破坏第 11.0 的依赖边界。
+  - 必须修订：新增 `LearningMaterialGenerationActions` 或 `LearningMaterialGenerationUseCase` 边界，由 App Shell 装配。UI 只调用 action；AI service 只返回解析后的 Core result；Data repository 只负责事务；use case 负责 preflight、operation 生命周期、AI 调用和落库顺序。
+
+- P0：同步 `LearningContentRepository` 到 async GRDB facade 的迁移范围仍低估。
+  - 证据：当前 `LearningContentStore.reload()` 同步读取 entries、selectedEntry、memoryItems、settingsCapabilities；`PhoneMainView`、Practice、Memory 和 Settings 都依赖这些同步 published 值。
+  - 影响：只把生成 / 分析方法改成 async 会形成双事实源：Entry 列表仍来自内存同步 repository，LearningMaterial 来自 GRDB；或 UI 缺 loading / error / refresh 状态，导致启动、切换语言空间、生成完成后的刷新不稳定。
+  - 必须修订：第 11.15.5 需要补充 Store 迁移策略：`LearningContentStore` 增加 async load / refresh 状态、错误状态、生成后局部刷新规则，以及对 Phone / iPad / macOS 共享详情页的更新传播方式。若采用 bridge，必须限定 bridge 生命周期并测试 App Shell 不再装配内存 repository。
+
+- P1：settings capability 与 learning content repository 的隐藏耦合需要拆开或显式保留。
+  - 证据：当前 `LearningContentRepository` 协议包含 `settingsCapabilities(for:)`；`InMemoryLearningContentRepository` 返回 AI Provider、Sync、Local Data、Privacy、Import/Export 等设置能力，明显不是学习内容主数据职责。
+  - 影响：新增 `GRDBLearningContentRepository` 后如果继续实现该方法，会把设置能力常量复制进 Data repository；如果删除该方法，SettingsView / 三端 settings detail 会断链。
+  - 建议修订：优先新增 `SettingsCapabilityProvider` 或静态 capability source，由 App Shell / UI Store 组合；如果本任务不拆分，必须明确 `GRDBLearningContentRepository.settingsCapabilities` 只是过渡兼容，并加测试覆盖 SettingsView 能力列表不回退。
+
+- P1：`EntrySource` 与 `inputKind` 的语义需要明确分层。
+  - 证据：当前保存文本入口固定 `.typedText`；方案 schema 允许 `targetLanguageWriting`，同时又要求 AI 自路由判断 `targetWriting`。
+  - 影响：后续实现可能错误地把 `.typedText` 当母语记录，把 `.targetLanguageWriting` 当目标语言写作，导致当前主入口无法正确处理用户直接写目标语言的文本。
+  - 建议修订：第一版规定 `EntrySource` 只表示采集来源，`LearningMaterialInputKind` 才表示语言 / 任务路由；`targetLanguageWriting` 是否继续保留为 source 枚举应另行说明，不能作为 Prompt 输入类型事实。
+
+- P1：Prompt Registry 和代码 prompt 一致性缺少可执行检查。
+  - 证据：方案要求文档能完整还原 system / user prompt，但验证命令只列 package 测试和文档检查，没有指定 prompt registry diff / snapshot test。
+  - 影响：真实请求 Prompt 很容易在代码和文档间漂移，后续隐私审查无法根据 `docs/prompts/` 复原真实发送内容。
+  - 建议修订：AI package 增加 prompt rendering snapshot test，或提供脚本校验 `builtin.learning_material.generate.v1` / `analyze_current_text.v1` 的 prompt id、version、输入变量和 JSON schema 与文档一致。
+
+- P2：`analysis_source_hash` 和 JSON blob schema version 需要实现级定义。
+  - 证据：方案要求稳定 hash 和 JSON blob 可测试 schema version，但没有指定 hash 算法、规范化规则、schema version 字段位置或 Data 层 record 类型命名。
+  - 影响：stale 判定、迁移、导出和兼容解码测试无法稳定。
+  - 建议修订：规定第一版使用固定算法，例如 `SHA256(UTF8(normalizedLearningText))`，其中 normalizedLearningText 只做换行规范化或完全不规范化；`grammar_notes_json` / `key_points_json` 使用 Data package 内部 Codable record，顶层包含 `schemaVersion`。
+
+- P2：v3 fixture 迁移测试缺少仓库约定。
+  - 证据：当前 Data tests 主要使用 in-memory database 和 repository 构造，没有看到既有 schema fixture 目录。
+  - 影响：实现者可能只测试空库迁移，无法证明真实 v3 数据库升级到 v4 的兼容性。
+  - 建议修订：在 Data tests 下新增明确 fixture 路径或 helper，例如 `Packages/LangoTraceData/Tests/LangoTraceDataTests/Fixtures/v3-language-space-ai-provider.sqlite` 或 SQL builder，并在测试名中固定覆盖 v3 -> v4。
+
+#### 18.8.3 四维切片补充
+
+并发 / 性能边界：
+
+- 方案已覆盖同一 Entry 防重、取消、长文本阻断和中等文本输出限制；还需明确 use case 层持有 in-flight operation registry，而不是只靠 View 禁用按钮。
+- `DatabaseQueue.write` 不得跨网络请求，方案已写清；实现时要测试 started 与 succeeded / failed 分事务，成功 material / analysis / operation 同事务。
+- `LearningContentStore` async 化后需要避免每次生成完成全量同步刷新所有 entries / memory / practice，首版至少定义局部刷新或可接受的小数据全量刷新边界。
+
+异常边界：
+
+- 方案错误分类基本完整；还需补充 default text endpoint disabled、default profile deleted、endpoint purpose 不是 text generation、Keychain secret inaccessible 与 credential missing 的区别是否映射到同一 UI 文案。
+- `Provider 未配置` 和 `内容过长` 这类 preflight 阻断是否写 `learning_material_operations` 需要统一。当前表允许 `provider_preset_id` 为空，但 `prompt_id` / `prompt_version` 必填；实现时必须明确 preflight operation 是否仍绑定内置 prompt。
+
+状态同步：
+
+- Entry 原文、LearningMaterial 当前版本、Analysis stale 状态的关系已经清晰。
+- 尚需定义 UI route lifecycle：用户在 generation 期间离开详情页后，operation 是否继续后台完成并落库，还是随 UI task 取消。若随 UI 取消，App Shell action 要收到 cancellation 并写 cancelled operation；若继续完成，返回详情页必须能从 repository 恢复 generated 状态。
+- 语言空间切换期间的 operation 结果必须以 entryID / spaceID 双重校验，避免旧空间生成结果刷新到新空间 UI。
+
+数据一致性：
+
+- schema 草案覆盖主表、子表、候选表和 operation 表，方向正确。
+- 需要补充外键启用和测试口径：迁移测试应显式验证 FK 行为、唯一 current material、soft delete active 查询和非法枚举 CHECK。
+- `learning_materials.space_id` 与 `entries.space_id` 可能不一致；写入 repository 必须校验 material.spaceID == entry.spaceID，或去掉冗余字段并通过 join 获取。若保留冗余字段，必须有测试阻止跨空间 material。
+
+#### 18.8.4 实施条件结论
+
+当前方案不应在未获用户确认时直接进入实现，状态应保持 `Draft`。本次补充后，application use case / action 编排层、repository async 迁移、settings capability 解耦、Prompt / hash / fixture gate 已经具备文档级执行约束。
+
+达到 implementation-ready 前，至少需要把以下内容补入第 11 节：
+
+1. `LearningMaterialGenerationActions` 或 `LearningMaterialGenerationUseCase` 的职责、输入输出、依赖和 operation 生命周期。
+2. `LearningContentStore` 从同步内存 repository 到 async GRDB facade 的迁移步骤、loading / error 状态和三端刷新策略。
+3. `settingsCapabilities` 从 learning content repository 拆分或过渡保留的明确方案。
+4. `EntrySource` 与 `LearningMaterialInputKind` 的语义分层。
+5. Prompt 文档与代码一致性测试、hash 算法、JSON blob schema version、v3 fixture 约定。
+
+这些修订已经补入第 11 节；本方案可以进入用户确认 gate。确认后再按 TDD 顺序实施。
+
+### 18.9 2026-05-23 系统架构师复核补充
+
+审核视角：代码事实一致性、应用编排责任、隐私披露一致性、跨平台实现链路和实施就绪条件。
+
+审核结论：Approved With Notes。方案的主方向、数据完成口径、Provider 边界、状态机、迁移 gate 和验证范围已经足以进入用户确认 gate；但实施时必须严格执行本节新增的两项收紧约束，否则容易在 Keychain 责任和用户隐私理解上产生偏差。
+
+新增准确性确认：
+
+- `EntryEditorView` 当前以 `Form` 承载标题、正文和“保存到本机”隐私提示；保存按钮只检查正文非空，没有 loading / persistence failure 状态。
+- iPad 和 macOS 已复用同一个 `EntryDetailView` 展示详情，但创建入口和承载方式不同：iPad 通过 sheet 使用 `EntryEditorView`，macOS 通过 `MacEntryEditorOverlay` / `MacEntryEditorSheet`。因此本任务改造详情页能力时可以共享，但创建入口的 async 保存状态需要分别接入。
+- `AIProviderConfigurationService` 现有配置测试链路会在 AI package 中组合 repository、Keychain credential store 和 probe service；学习材料生成方案不能照搬该组合方式，因为学习材料还要同时写 Entry / Material 主数据，必须由 App Shell / use case 编排 Data、AI 和 Keychain 的事务顺序。
+
+新增问题与修订：
+
+- P0：Keychain secret 解析责任曾在第 11.0.1 和第 11.12 表述不一致。
+  - 证据：第 11.0.1 要求应用编排层解析 secret；第 11.12 原先又把“通过 Keychain reference 解析 secret”列为 `LearningMaterialGenerationService` 职责。
+  - 影响：实现者可能让 AI service 同时读取 Provider repository / Keychain，又让 use case 写 operation 和 material，形成双编排层；也可能让 AI package 间接承担 Data 生命周期，破坏第 11.0 的边界。
+  - 修订：第 11.0.1 和第 11.12 已统一为 App Shell / use case 解析默认 profile、endpoint 和 Keychain secret；AI package 的 generation service 只接收已规范化 endpoint、短生命周期 plaintext secret、Prompt 输入和 operation id，并负责请求构造、发送、解析和结构校验。
+
+- P1：保存到本机的隐私提示与后续 AI 发送动作需要明确分层。
+  - 证据：当前 `EntryEditorView` 在创建记录时展示“保存到本机，不会发送到外部 AI。”；本方案又采用详情页 `生成学习材料` 的非阻断 AI 调用。
+  - 影响：如果详情页只放一个按钮而不解释边界，用户可能把保存时的本地承诺误读为后续生成也完全本地，或者误以为保存动作已经上传。
+  - 修订：第 11.7 已补充披露要求：保存 Entry 是本机写入；只有用户在详情页主动点击 `生成学习材料` 才发送当前 Entry 文本给已配置 Provider。实现时按钮附近、生成中状态和结果元数据都必须保持该分层。
+
+四维复核补充：
+
+- 并发 / 性能：当前状态机和 operation gate 已覆盖防重、取消、stale result、长度阻断和输出规模；实现时仍需在 use case 层持有 in-flight registry，不能只依赖 View 禁用按钮。
+- 异常边界：错误分类足够启动实现；但 credential missing、credential inaccessible、endpoint disabled 和 unsupported provider 的 UI 文案可以归并，诊断分类必须保留细分。
+- 状态同步：详情页共享有利于三端一致，但创建入口不是单一组件；`createEntry` async 化后，iPhone / iPad sheet 和 macOS overlay 都必须处理保存中、保存失败和避免重复保存。
+- 数据一致性：GRDB 完成口径、current material 唯一约束、soft delete active 查询、operation 单行摘要和 v3 fixture gate 已经清楚；实施时必须测试 `learning_materials.space_id` 与 `entries.space_id` 不一致的防线，或取消冗余 `space_id`。
+
+实施条件结论：
+
+- 可以进入用户确认 gate，但不能直接编码；状态仍应保持 `Draft`，直到用户明确确认。
+- 确认后建议先拆成 TDD 子任务执行：Core DTO / 状态机 / 长度估算 -> Data schema / repository / fixture -> AI generation service / Prompt snapshot -> App Shell use case -> UI 三端状态接入 -> docs / review / verify。
+
+### 18.10 2026-05-23 实施范围收窄确认
+
+用户确认：本轮实现仅先完成 iOS / iPhone 端，iPad 和 macOS 端待 iOS 端人工测试通过后再进行。
+
+方案修订：
+
+- 第 4 节范围已收窄为 iOS / iPhone UI 可交付；底层 Core / Data / AI / App Shell 仍保持三端可复用，不写 iOS 专属业务模型。
+- 第 5 节明确排除本轮 iPad / macOS 记录详情页 UI 接入、创建入口 async 保存状态和平台人工验收。
+- 第 11.15.6、18.5 和第 16 节已同步改为先完成 iOS UI 和 iOS 人工测试；iPad / macOS 平台接入必须在后续任务中推进并单独验收。
+
+实施要求：
+
+- 实现时不得为了“仅 iOS”而把 repository、Prompt、Provider request、operation、LearningMaterial DTO 或持久化 schema 写成 iOS-only。
+- 页面清单和实施记录必须清楚标记：本任务完成后，真实学习材料生成 UI 首先仅 iOS 可用；iPad / macOS 仍处于后续接入状态。
