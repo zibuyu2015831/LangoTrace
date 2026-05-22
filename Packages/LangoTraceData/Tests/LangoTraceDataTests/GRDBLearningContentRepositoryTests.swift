@@ -156,6 +156,56 @@ func deletingEntryHidesActiveLearningContent() throws {
     #expect(try repository.practiceItems(for: entry.id).isEmpty)
 }
 
+@Test("GRDB bridge exposes persisted learning content through UI repository contract")
+func grdbBridgeExposesPersistedLearningContent() throws {
+    let repository = try makeRepository()
+    let bridge = GRDBLearningContentRepositoryBridge(repository: repository)
+
+    let entry = bridge.createEntry(
+        spaceID: "space-1",
+        title: "咖啡馆",
+        body: "我今天在咖啡馆写了一页日记。",
+        source: .typedText
+    )
+    _ = try repository.saveGeneratedMaterial(
+        sampleGenerationResult(
+            entryID: entry.id,
+            spaceID: "space-1",
+            learningText: "I wrote a page in my journal at a cafe today."
+        ),
+        for: entry.id
+    )
+
+    let rendering = bridge.rendering(for: entry.id)
+
+    #expect(bridge.entries(for: "space-1").map(\.id) == [entry.id])
+    #expect(bridge.selectedEntry(for: "space-1")?.id == entry.id)
+    #expect(rendering?.entryID == entry.id)
+    #expect(rendering?.targetText == "I wrote a page in my journal at a cafe today.")
+    #expect(rendering?.isMock == false)
+    #expect(rendering?.sentences.first?.targetText == "I went to a cafe today.")
+    #expect(bridge.practiceItems(for: entry.id).map(\.kind) == [.backTranslation])
+    #expect(bridge.memoryItems(for: "space-1").map(\.text) == ["went to"])
+    #expect(bridge.practiceSession(for: entry.id)?.isExternalRequestRequired == true)
+}
+
+@Test("GRDB bridge does not synthesize local preview material")
+func grdbBridgeDoesNotSynthesizeLocalPreviewMaterial() throws {
+    let repository = try makeRepository()
+    let bridge = GRDBLearningContentRepositoryBridge(repository: repository)
+    let entry = bridge.createEntry(
+        spaceID: "space-1",
+        title: "散步",
+        body: "晚饭后我散步。",
+        source: .typedText
+    )
+
+    let preview = bridge.generateLocalPreview(for: entry.id, spaceID: "space-1")
+
+    #expect(preview == nil)
+    #expect(try repository.currentMaterial(for: entry.id) == nil)
+}
+
 private func makeRepository() throws -> GRDBLearningContentRepository {
     let database = try AppDatabase.inMemory()
     try database.databaseQueue.write { db in
