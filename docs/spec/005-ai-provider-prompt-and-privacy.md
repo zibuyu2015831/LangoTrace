@@ -148,7 +148,7 @@ UI 可用简洁文案展示，但服务层应保留可诊断错误类型。
 
 ### 4.7 Provider 配置页边界
 
-Provider 配置页已经从真实级 mock 表单进入本地配置保存和配置合成测试阶段：非敏感 Provider profile、endpoint、credential metadata 和 validation event 进入 SQLite / GRDB，API Key 写入 Keychain；测试请求可以通过 Provider 层对文本 endpoint 发送固定文本、JSON、iOS 当前语言空间上下文下的语言支持和可选内置图片合成探测。真实学习内容请求、Prompt Preset 执行、请求预览和请求日志仍未接入。后续实现必须遵守以下边界：
+Provider 配置页已经从真实级 mock 表单进入本地配置保存和配置合成测试阶段：非敏感 Provider profile、endpoint、credential metadata 和 validation event 进入 SQLite / GRDB，API Key 写入 Keychain；测试请求可以通过 Provider 层对文本 endpoint 发送固定文本、JSON、当前语言空间上下文下的语言支持和可选内置图片合成探测。真实学习内容请求、Prompt Preset 执行、请求预览和请求日志仍未接入。后续实现必须遵守以下边界：
 
 - API Key 输入只能作为当前页面的短生命周期明文草稿。保存成功后应清空本次新输入草稿；用户主动再次打开 Provider 配置页时，可以通过服务边界从 Keychain 解析已保存密钥并回填到输入框，默认仍以隐藏态展示。该回填只允许存在于当前 UI draft，不得写入 SQLite、诊断日志、同步目录、请求预览或测试输出。
 - 非敏感配置和敏感凭证必须分层。Provider、Base URL、模型名属于普通表单配置；请求格式、认证方式和自定义请求头等技术信息应默认收起或进入高级配置，不应挤占首屏主路径。API Key、外部服务 token、自定义请求头中的密钥属于敏感凭证。
@@ -166,7 +166,7 @@ Provider 配置页已经从真实级 mock 表单进入本地配置保存和配�
 - “测试请求”按钮必须走明确状态机，并通过 `AIProviderSettingsActions` 进入 AI service / Provider 层；SwiftUI View 不得直接创建 `URLRequest`、拼接 Authorization header、读取 Keychain 或调用 Provider SDK。
 - 当前阶段测试请求只允许对文本模型 endpoint 发送固定合成检测内容，分为文本回复 probe、JSON 输出 probe、语言支持 probe 和可选图片理解 probe；JSON probe 只描述一个名为 `ok`、值为布尔 `true` 的字段结构，由模型生成严格 JSON object，验收仍只接受 exactly one field `ok: true`。语言支持 probe 只在调用方提供稳定目标语言 code 时运行，Prompt 中的目标语言英文名称、`NLLanguage` 映射和脚本规则必须由 AI 层 allowlist 派生；它要求模型返回包含 `sample` 字段的 JSON object，本机从常见 Markdown code fence 中提取 JSON，忽略 `sample` 之外的额外字段，并做非空、长度、离线语言识别和脚本规则校验。语言支持不得发送生活记录、用户照片、音频、OCR、历史记忆、目标语言正文、Prompt Preset 内容、用户自定义长文本或请求预览正文；失败只表示本次合成测试未能确认当前模型适合该语言空间，不是模型语言能力认证。图片理解 probe 只在当前 adapter 已支持图片请求体、endpoint purpose 为文本生成、能力策略允许或由模型决定、且用户显式启用图片输入后运行，并只发送项目内置白底蓝色正方形 PNG，用于验证图片输入链路、基础视觉属性识别和受控短标签输出；它不得发送用户照片、生活记录附件、OCR 文本、历史记忆、目标语言正文、Prompt Preset 内容、用户自定义长文本或请求预览正文，也不代表真实照片理解质量评分。
 - 语音生成和向量化可以出现在结果面板的分能力状态中，但当前阶段不得为这些能力发真实网络测试请求；应显示未启用、未配置或暂不支持测试。
-- iOS Provider 设置页当前可以从当前语言空间传入目标语言 code 并展示 `语言支持` 分项；iPad / macOS 设置页在用户完成人工审核前不传入语言上下文、不展示语言支持入口。共享 Core / AI / UI presentation model 可以包含该能力，但平台入口不得提前扩散。
+- iPhone、iPad 和 macOS Provider 设置页当前都通过共享 `SettingsCapabilityDetailView` 从当前语言空间传入目标语言 code 并展示 `语言支持` 分项。平台差异只允许体现在承载宽度、导航位置和 presentation 行为；不得为 iPad 或 macOS 复制平台专属 Provider 表单，也不得让任一平台绕过共享 action seam。
 - 未保存 draft 测试必须测试当前屏幕配置，且不得先写入 Keychain、SQLite 或 validation event；已保存且无修改的配置测试由服务层通过 Keychain 引用重新解析密钥。
 - 已保存 profile 的 App 级合成测试可以记录 `synthetic_test` 类型的非敏感 validation event，并在同一 Data 事务内更新最近验证摘要；语言支持结果是语言空间上下文下的适配性提示，不得把 language support 失败写成 Provider profile 全局最近验证失败，也不得写入 Provider profile 静态能力事实。draft 测试只允许记录非敏感 diagnostic event，不得污染持久 profile 事实。取消的测试不得写失败 validation event。
 - 本地配置验证可以记录 `credential_validation` 类型的非敏感 validation event；合成测试可以记录 `synthetic_test`。允许字段包括 provider、model、endpoint purpose、状态、错误分类、耗时、operation id 和 allowlisted target language code；不得记录请求体、响应体、语言支持 `sample` 原文、API Key、完整 Keychain account、完整请求头、Base URL query 中的敏感参数或用户内容。
@@ -236,4 +236,5 @@ AI 在实现任何 AI 能力前应先确认：
 - 2026-05-20：调整已保存 API Key 回显边界。原因：用户完成配置后再次进入配置页，需要能查看和编辑当前本机保存的 API Key；回显仅允许通过服务边界解析 Keychain 并进入短生命周期 UI draft，默认隐藏，不进入数据库、日志、同步或请求预览。影响范围：AI Provider 设置 UI、Keychain resolver action、SwiftUI draft 状态。是否需要 ADR：否，仍符合 ADR-005 的本地优先和用户自带 Provider 边界。
 - 2026-05-21：更新 Provider 配置测试请求边界。原因：文本模型合成探测已接入 Provider 层，测试请求从本地 credential validation 扩展为固定合成网络 probe；需要沉淀 draft / saved profile 分流、`synthetic_test` validation event、分能力结果面板和非敏感诊断边界。影响范围：AI Provider 设置、LangoTraceAI、LangoTraceData、LangoTraceUI、诊断日志和后续真实学习请求。是否需要 ADR：否，沿用 ADR-005；真实学习内容请求仍需单独请求预览方案。
 - 2026-05-21：补充图片理解合成 probe 边界。原因：Provider 配置测试请求从文本 / JSON 扩展为用户显式启用后的内置图片 probe，需要明确不发送用户照片、adapter 支持范围、Prompt Registry 登记和非敏感日志约束。影响范围：AI Provider 设置、LangoTraceAI、Prompt Registry、诊断日志和后续真实图片理解请求。是否需要 ADR：否，沿用 ADR-005；真实用户照片请求仍需单独请求预览方案。
-- 2026-05-22：补充语言支持合成 probe 边界。原因：Provider 配置测试请求新增 iOS 当前语言空间上下文下的 `语言支持` 分项，需要明确 target language code allowlist、Prompt Registry、离线校验、非认证性质、profile 全局验证摘要隔离和 `sample` 原文不落日志边界。影响范围：AI Provider 设置、LangoTraceAI、LangoTraceUI、Prompt Registry、诊断日志和后续真实学习请求。是否需要 ADR：否，沿用 ADR-005；真实学习内容请求仍需单独请求预览方案。
+- 2026-05-22：补充语言支持合成 probe 边界。原因：Provider 配置测试请求新增当前语言空间上下文下的 `语言支持` 分项，需要明确 target language code allowlist、Prompt Registry、离线校验、非认证性质、profile 全局验证摘要隔离和 `sample` 原文不落日志边界。影响范围：AI Provider 设置、LangoTraceAI、LangoTraceUI、Prompt Registry、诊断日志和后续真实学习请求。是否需要 ADR：否，沿用 ADR-005；真实学习内容请求仍需单独请求预览方案。
+- 2026-05-22：补充 iPad / macOS 语言支持入口事实。原因：iOS 人工审核后，iPad / macOS 通过共享 `SettingsCapabilityDetailView` 接入同一 language context，不改变 Provider 保存、Keychain、网络、Prompt、日志或持久验证摘要边界。影响范围：AI Provider 设置 UI、SettingsCapabilityDetailView、页面清单。是否需要 ADR：否。

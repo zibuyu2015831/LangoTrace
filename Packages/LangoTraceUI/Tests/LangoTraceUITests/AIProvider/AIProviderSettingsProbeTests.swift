@@ -32,7 +32,7 @@ struct AIProviderSettingsLanguageSupportProbeTests {
 
         #expect(viewSource.contains("languageContext"))
         #expect(draftSource.contains("languageContext"))
-        #expect(detailSource.contains("#if os(iOS)"))
+        #expect(!detailSource.contains("#if os(iOS)\n            AIProviderSettingsView("))
         #expect(detailSource.contains("AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)"))
         #expect(!viewSource.contains("NLLanguageRecognizer"))
         #expect(!draftSource.contains("NLLanguageRecognizer"))

@@ -318,7 +318,8 @@ struct AIProviderSettingsTests {
             encoding: .utf8
         )
 
-        #expect(detailSource.contains("AIProviderSettingsView()"))
+        #expect(detailSource.contains("AIProviderSettingsView("))
+        #expect(detailSource.contains("AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)"))
         #expect(detailSource.contains("aiProviderSettingsContainer"))
         #expect(detailSource.contains("aiProviderSettingsContentMaxWidth"))
         #expect(detailSource.contains(".frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)"))
@@ -559,7 +560,8 @@ struct AIProviderPlatformConsistencyTests {
             encoding: .utf8
         )
 
-        #expect(detailSource.contains("AIProviderSettingsView()"))
+        #expect(detailSource.contains("AIProviderSettingsView("))
+        #expect(detailSource.contains("AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)"))
         #expect(detailSource.contains("aiProviderSettingsContainer"))
         #expect(detailSource.contains("aiProviderSettingsContentMaxWidth"))
         #expect(detailSource.contains(".frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)"))

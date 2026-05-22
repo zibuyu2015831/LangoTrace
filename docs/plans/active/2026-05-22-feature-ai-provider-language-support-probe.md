@@ -1,6 +1,6 @@
 # AI Provider 语言支持合成测试方案
 
-状态：iOS Implementation Complete, Awaiting User Audit
+状态：iOS / iPad / macOS Implementation Complete, Awaiting Final Verification
 类型：feature
 创建日期：2026-05-22
 最后更新日期：2026-05-22
@@ -13,7 +13,8 @@
 - 2026-05-22：用户确认 UI 名称采用 `语言支持`，不使用 `目标语言生成可用性检查` 等长名称。
 - 2026-05-22：用户要求语言支持测试不要只让 AI 输出简短一句话，应输出 50 字左右的较长文本；原因是部分仅支持中文的模型可能也能输出简短英文，长文本更能暴露目标语言支持问题。
 - 2026-05-22：系统架构复查后收紧边界：语言支持结果是语言空间上下文下的适配性提示，不得污染 Provider profile 的全局最近验证状态；本轮实施以 AI Provider 设置页的当前语言空间测试为主，onboarding / 新增语言空间软门槛只完成设计和文档落点，另开后续方案再实现交互；语言上下文必须以稳定 language code 为事实源，Prompt 名称、NaturalLanguage 映射和脚本规则由 AI 层 allowlist 派生。
-- 2026-05-22：用户确认上述边界全部成立，并确认实施节奏采用平台分阶段方式：本轮代码先完成 iOS 端 AI Provider 设置页；用户人工审核确认无误后，再继续 iPad 和 macOS 端改动。
+- 2026-05-22：用户确认上述边界全部成立，并确认实施节奏采用平台分阶段方式：先完成 iOS 端 AI Provider 设置页；用户人工审核确认无误后，再继续 iPad 和 macOS 端改动。
+- 2026-05-22：用户完成 iOS 端人工测试并确认继续任务，后续实施范围扩展到 iPad 和 macOS 设置详情入口；共享 Core / AI / UI presentation model 不重写，只补平台装配与文档事实。
 
 ## 0. 实施者快速上下文
 
@@ -97,7 +98,7 @@ AI Provider 配置页当前能验证模型 endpoint 是否可连通、能否返�
 - `语言支持` 失败不等于“模型不支持该语言”的绝对结论，只表示本次合成测试未能确认该模型适合当前目标语言。
 - 已保存 profile 测试的 App 级 synthetic outcome 可以继续写入 validation event；语言支持分项失败不得把 Provider profile 最近验证摘要改为失败。diagnostic event 只记录非敏感枚举和值，不记录 `sample` 原文。
 - 本轮代码实施范围只要求 AI Provider 设置页在已有当前语言空间时运行语言支持 probe；语言空间创建流程的软验证交互仅在本方案中明确设计和文档影响，不作为本轮代码完成标准。后续实现 onboarding / 新增语言空间测试入口时，默认仍不得阻止创建语言空间。
-- 本轮平台实施顺序必须先收敛在 iOS 端：先完成 iPhone / iOS AI Provider 设置页的语言支持 probe、状态展示、测试和文档同步；iPad 与 macOS 的界面接入在用户完成 iOS 人工审核并确认无误后再进行。
+- 平台实施顺序采用 iOS first：先完成 iPhone / iOS AI Provider 设置页的语言支持 probe、状态展示、测试和文档同步；用户完成 iOS 人工审核并确认继续后，再把同一共享设置详情入口接入 iPad 与 macOS。
 - 后续真实 AI 学习内容请求可以把语言支持失败作为风险提示或前置检查，但必须另开真实请求预览和 Prompt Preset 执行方案。
 
 ## 4. 范围
@@ -128,7 +129,7 @@ AI Provider 配置页当前能验证模型 endpoint 是否可连通、能否返�
 - 不把目标语言支持结果同步到云端。
 - 不新增动态模型列表、Provider 能力在线查询或 OpenRouter models API。
 - 不在本任务中接入 Anthropic / Gemini 文本 probe；它们仍沿用当前暂不支持测试边界，除非另开 Provider adapter 方案。
-- 不在 iOS 人工审核前改动 iPad 和 macOS 的 AI Provider 设置页接入；共享 Core / AI / UI 状态模型可以先完成，但平台界面呈现先限制在 iOS。
+- 不在 iOS 人工审核前改动 iPad 和 macOS 的 AI Provider 设置页接入；iOS 人工审核后，iPad 和 macOS 只通过共享 `SettingsCapabilityDetailView` 传入当前语言空间，不复制平台专属表单或重写 Provider 逻辑。
 
 ## 6. 证据与决策依据
 
@@ -327,7 +328,7 @@ UI 文案不得使用：
 - 如果文本回复失败，不运行 JSON 输出、语言支持和图片理解。
 - 如果 JSON 输出失败，不运行语言支持，避免在结构化能力不可靠时继续依赖 JSON 契约；图片理解是否运行保持既有策略，除非另行修改 probe 组合规则并补充测试。
 - 如果语言支持失败但文本回复和 JSON 输出成功，结果面板应显示部分可用，而不是把 Provider 连接性误判为完全不可用。
-- 平台实施顺序为 iOS first：本轮先在 iPhone / iOS AI Provider 设置页展示和验证 `语言支持`；iPad / macOS 设置界面保持现状，待用户完成 iOS 人工审核并确认无误后再接入同一能力。
+- 平台实施顺序为 iOS first：先在 iPhone / iOS AI Provider 设置页展示和验证 `语言支持`；用户完成 iOS 人工审核并确认继续后，iPad / macOS 设置界面通过共享 `SettingsCapabilityDetailView` 接入同一语言上下文与结果面板能力。
 
 ### 9.2 Onboarding 创建第一个语言空间
 
@@ -615,7 +616,7 @@ swift test --package-path Packages/LangoTraceAI --filter AIProviderConfiguration
 5. `AIProviderSettingsActions` 和 `AppEnvironment` 转发 language context。
 6. 补充本地化 key。
 7. 用 source-boundary 测试确认 UI 不出现 `NaturalLanguage`、`NLLanguageRecognizer`、`URLSession`、`Authorization` 或 `Bearer `。
-8. iPad / macOS 的设置界面接入暂不实施；用户完成 iOS 人工审核并确认无误后，再继续三端扩展或另开后续执行轮次。
+8. iPad / macOS 的设置界面接入在 iOS 人工审核通过后实施；实现方式必须复用共享 `SettingsCapabilityDetailView` 和 `AIProviderSettingsView`，只补当前语言空间上下文注入，不新增 `PadAIProviderSettingsView` 或 `MacAIProviderSettingsView`。
 
 验证命令：
 
@@ -627,7 +628,7 @@ swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests
 iOS 人工审核节点：
 
 - 代码完成并通过聚焦测试与完整验证后，先提交给用户进行 iOS 人工审核。
-- 人工审核通过前，不继续改动 iPad / macOS 平台设置页接入。
+- 人工审核通过前，不继续改动 iPad / macOS 平台设置页接入；人工审核通过后，iPad / macOS 只做共享入口接入，不改变 Provider 保存、Keychain、网络、日志或持久摘要边界。
 - 人工审核关注：当前语言空间是否正确传入、结果面板顺序和文案是否清楚、语言支持失败是否显示为风险提示而非硬阻断、Provider profile 全局验证摘要是否未被污染。
 
 ### 阶段 4：语言空间创建软门槛设计记录
@@ -672,7 +673,7 @@ scripts/verify.sh
 代码复查：
 
 - 搜索 `languageSupport`，确认 Core、AI、UI 和测试覆盖一致。
-- 搜索 iPad / macOS 设置页装配路径，确认 iOS 人工审核前没有把 `语言支持` 平台入口扩散到 iPad / macOS；共享 Core / AI / UI presentation model 变更除外。
+- 搜索 iPad / macOS 设置页装配路径，确认 iOS 人工审核后的平台接入仍通过共享 `SettingsCapabilityDetailView` 注入 `AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)`，没有复制平台专属 AI Provider 表单。
 - 搜索 `sample`，确认它只在 Prompt、短生命周期解析、测试 fixture 和 validator 测试中出现，不进入 diagnostic attributes、SQLite repository、validation event 或 UI 持久状态。
 - 搜索 `NLLanguageRecognizer`，确认只出现在 AI package 的本地 validator 和相关测试中，不进入 SwiftUI View。
 - 搜索 `URLSession`、`Authorization`、`Bearer `，确认仍只在 AI package 网络层，Provider 设置 UI 不拼接请求。
@@ -745,11 +746,12 @@ scripts/verify.sh
 - 2026-05-22：提交方案文档，commit `fb9f720`。
 - 2026-05-22：完成阶段 1，新增 Core `languageSupport` capability、`AIProviderProbeLanguageContext` 和 AI 本地语言支持 validator，commit `3e5da47`。聚焦验证：`swift test --package-path Packages/LangoTraceCore --filter AIProviderConfigurationProbeTests`、`swift test --package-path Packages/LangoTraceAI --filter AIProviderLanguageSupportValidatorTests`。
 - 2026-05-22：完成阶段 2，Provider probe 执行链路支持语言上下文、语言支持请求、JSON 成功后执行规则、无上下文 `notConfigured`、JSON 失败跳过语言支持且图片行为保持既有策略；已保存 profile 持久摘要排除语言支持失败，commit `ffb27ef`。聚焦验证：`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationProbeServiceTests`、`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationServiceTests`。
-- 2026-05-22：完成阶段 3，iOS AI Provider 设置页从当前语言空间传入稳定 target language code，结果面板可展示 `语言支持`；iPad / macOS 在人工审核前不传入语言上下文、不展示语言支持入口，commit `559fc33`。聚焦验证：`swift test --package-path Packages/LangoTraceCore --filter LanguageSpaceTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests`、`xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build`。
+- 2026-05-22：完成阶段 3，iOS AI Provider 设置页从当前语言空间传入稳定 target language code，结果面板可展示 `语言支持`；该阶段按 iOS-first 审核边界暂缓 iPad / macOS 平台入口，commit `559fc33`。聚焦验证：`swift test --package-path Packages/LangoTraceCore --filter LanguageSpaceTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests`、`xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build`。
 - 2026-05-22：完成阶段 4 和阶段 5，已同步 Prompt Registry、AI Provider 隐私规范、语言边界规范和页面清单；根据完整验证反馈修复 SwiftLint / SwiftFormat 格式问题。聚焦验证：`swift test --package-path Packages/LangoTraceAI --filter LangoTraceAITests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swiftformat --lint . --cache ignore`。完整验证：`scripts/verify.sh` 通过。当前进入 iOS 人工审核等待节点，人工审核通过前不继续 iPad / macOS 设置页接入。
 - 2026-05-22：iOS 人工审核前严格复查发现语言支持 probe 取消时，总状态聚合漏算 `.languageSupport` cancelled，可能导致取消被误标为 failed 且诊断事件不是 cancelled。已按 TDD 补充回归测试并修复总状态聚合。验证：`swift test --package-path Packages/LangoTraceAI --filter languageSupportCancellationKeepsOverallProbeStatusCancelled` 先失败后通过；`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationProbeServiceTests`、`swift test --package-path Packages/LangoTraceAI --filter LangoTraceAITests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swiftformat --lint . --cache ignore`、`scripts/verify.sh` 通过。
 - 2026-05-22：iOS 人工测试复现 `语言支持` 显示 `响应异常`。诊断模式下最新事件显示 `text_reply`、`structured_json`、`image_understanding` 均成功，只有 `language_support` 失败；四次 Provider 请求均为 HTTP 200，持久 `synthetic_test` 摘要仍为成功，说明问题不是 Provider 连通性或认证，而是语言支持 smoke test 过窄。已按 TDD 放宽语言支持验收：Prompt 仍要求约 50 字/词，但本机接受 35-140 CJK/日/韩可见字符或 25-120 拉丁语系词；允许从常见 Markdown code fence 中提取 JSON，并忽略 `sample` 之外额外字段；仍拒绝短句、目标脚本不匹配和离线语言识别不匹配。诊断事件补充 capability scoped error category，例如 `language_support:invalid_response`，且不记录 `sample` 原文。验证：`swift test --package-path Packages/LangoTraceAI --filter AIProviderLanguageSupportValidatorTests` 先失败后通过；`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationProbeServiceTests` 通过。
 - 2026-05-22：修复后重新构建并安装 iPhone 17 模拟器，使用同一 OpenRouter `openai/gpt-4o` 配置复测，结果面板显示 `测试成功`，`语言支持` 显示 `可用`；诊断事件 `ai_provider_configuration.probe_succeeded` 中 `language_support=succeeded`，持久 `synthetic_test` 摘要为 `succeeded`。同时复查文档一致性，已同步 `docs/spec/005-ai-provider-prompt-and-privacy.md`、Prompt Registry 和本方案中的验收范围、code fence 容忍和额外字段边界。
+- 2026-05-22：用户完成 iOS 端测试并要求继续 iPad / macOS 对应功能。已按 TDD 将 `SettingsCapabilityDetailView` 的语言上下文注入从 iOS 条件分支提升为三端共享行为，iPad / macOS 工作台和 macOS 原生 Settings scene 继续复用同一 AI Provider 表单、同一 action seam 和同一结果面板宽度规则；不新增平台专属表单，不改变 Provider 保存、Keychain、网络、日志、Prompt 或持久验证摘要边界。验证：`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsLanguageSupportProbeTests` 先失败后通过；`swift test --package-path Packages/LangoTraceUI --filter AIProviderPlatformConsistencyTests` 通过。
 
 ## 19. 完成标准
 
@@ -766,7 +768,7 @@ scripts/verify.sh
 - SwiftUI View 不直接调用网络、Keychain、NaturalLanguage 或 Provider SDK。
 - 诊断日志和 validation event 不包含 `sample` 原文、API Key、请求头、请求体或响应体。
 - 聚焦测试和 `scripts/verify.sh` 通过。
-- 用户完成人工审核前，iPad 和 macOS 设置页入口保持未接入；审核通过后再继续对应平台改动。
+- 用户完成 iOS 人工审核并确认继续后，iPad 和 macOS 设置页入口已接入同一语言支持 probe；接入方式保持共享表单和共享 action seam。
 
 ## 20. 剩余风险
 

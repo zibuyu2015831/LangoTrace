@@ -13,7 +13,7 @@
 
 ## 2. 所属功能
 
-AI Provider 配置页的“测试请求”能力，用于确认用户配置的文本模型 endpoint、model、credential 和 adapter 能完成最小合成请求。当前包含文本回复、JSON 输出、iOS 当前语言空间上下文下的语言支持 probe，以及用户显式启用后的内置图片理解 probe。图片理解 probe 是否可启用由 Provider preset、adapter 请求格式、文本 endpoint purpose 和模型能力策略共同决定；OpenRouter / Custom OpenAI-compatible 等兼容层属于模型相关能力，由真实 probe 验证。
+AI Provider 配置页的“测试请求”能力，用于确认用户配置的文本模型 endpoint、model、credential 和 adapter 能完成最小合成请求。当前包含文本回复、JSON 输出、当前语言空间上下文下的语言支持 probe，以及用户显式启用后的内置图片理解 probe。图片理解 probe 是否可启用由 Provider preset、adapter 请求格式、文本 endpoint purpose 和模型能力策略共同决定；OpenRouter / Custom OpenAI-compatible 等兼容层属于模型相关能力，由真实 probe 验证。
 
 语言支持 probe 只用于判断本次配置测试是否能确认当前模型适合当前语言空间的目标学习语言，不是模型语言能力认证。该 Prompt 只用于 Provider 配置探测，不属于真实学习内容生成、Prompt Preset、请求预览或长期记忆链路。
 
@@ -124,7 +124,7 @@ Prompt 不直接包含 `blue` 或 `square`。当前实现会对响应文本执�
 
 - Core 测试确认 probe descriptor、capability status 和 diagnostic event 类型稳定。
 - AI 测试确认 OpenAI Responses / OpenAI-compatible Chat 请求体包含固定 Prompt，语言支持 probe 只使用 allowlisted target language code 派生 Prompt 名称，图片理解 probe 使用内置 PNG data URL，并覆盖成功、认证失败、模型不可用、网络不可达、超时、取消、JSON 格式错误、语言支持响应无效和图片响应无效。
-- UI 测试确认 iOS 当前语言空间能传入 language context，测试状态、分能力状态和取消态文案存在；iPad / macOS 在人工审核前不传入语言上下文。
+- UI 测试确认 iPhone、iPad 和 macOS 的共享设置详情都能从当前语言空间传入 language context，测试状态、分能力状态和取消态文案存在；大屏平台不得复制独立 AI Provider 表单。
 - `scripts/verify.sh` 作为统一回归入口。
 
 ## 12. 英文版本 Prompt
@@ -197,4 +197,4 @@ sample 必须只使用 {目标语言名称}。
 - 2026-05-21：更新 structured JSON probe Prompt。原因：系统架构复查认为直接在 Prompt 中给出完整 `{"ok":true}` 字面量更像回显测试，不足以证明模型能按结构说明生成 JSON；新版本只描述字段名、字段类型和无额外文本约束，验收仍严格要求 exactly one field `ok: true`。影响范围：AI Provider 配置测试请求、Prompt Registry 和相关单元测试。是否需要 ADR：否。
 - 2026-05-21：新增 image understanding probe Prompt。原因：AI Provider 配置测试请求新增用户显式启用后的内置图片合成 probe，需要登记固定 Prompt、内置图片输入、输出契约和隐私边界。影响范围：AI Provider 配置测试请求、Prompt Registry、图片输入边界和相关单元测试。是否需要 ADR：否，沿用 ADR-005；真实用户照片请求仍需单独请求预览方案。
 - 2026-05-21：补充 model-dependent 图片理解适用范围。原因：OpenRouter / Custom OpenAI-compatible 的图片输入能力不能由 Provider preset 静态布尔值判断，应由能力解析器允许用户显式开启，再通过本 Prompt 的内置图片 probe 验证。影响范围：AI Provider 配置测试请求、请求预览说明和能力边界文案。是否需要 ADR：否。
-- 2026-05-22：新增 language support probe Prompt。原因：AI Provider 配置测试需要在 iOS 当前语言空间上下文下确认文本模型能否生成目标学习语言的较长样例，并由本机做 JSON、长度、NaturalLanguage 和脚本规则校验。影响范围：AI Provider 配置测试请求、语言边界、Prompt Registry、隐私日志边界和相关单元测试。是否需要 ADR：否，沿用 ADR-005；该结果不是模型语言能力认证，不写入 Provider profile 静态能力事实。
+- 2026-05-22：新增 language support probe Prompt。原因：AI Provider 配置测试需要在当前语言空间上下文下确认文本模型能否生成目标学习语言的较长样例，并由本机做 JSON、长度、NaturalLanguage 和脚本规则校验。影响范围：AI Provider 配置测试请求、语言边界、Prompt Registry、隐私日志边界和相关单元测试。是否需要 ADR：否，沿用 ADR-005；该结果不是模型语言能力认证，不写入 Provider profile 静态能力事实。
