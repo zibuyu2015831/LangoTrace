@@ -152,7 +152,70 @@ final class LearningContentStore: ObservableObject {
         switch result {
         case let .generated(material):
             generatedRenderingsByEntryID[entry.id] = Self.rendering(from: material)
-            generationStates[entry.id] = .generated(materialID: material.id)
+            generationStates[entry.id] = state(for: material)
+            reload()
+        case let .failed(category):
+            generationStates[entry.id] = .failed(
+                LearningMaterialGenerationFailureDisplay(category: category, operationID: operationID)
+            )
+        }
+    }
+
+    func updateLearningText(
+        materialID: String,
+        entryID: String,
+        learningText: String
+    ) async {
+        let result = await generationActions.updateLearningText(materialID, learningText)
+        switch result {
+        case let .generated(material):
+            generatedRenderingsByEntryID[entryID] = Self.rendering(from: material)
+            generationStates[entryID] = state(for: material)
+            reload()
+        case let .failed(category):
+            generationStates[entryID] = .failed(
+                LearningMaterialGenerationFailureDisplay(category: category)
+            )
+        }
+    }
+
+    func analyzeCurrentLearningText(
+        for entry: LearningEntry,
+        languageSpace: LanguageSpacePreview
+    ) async {
+        guard entry.spaceID == spaceID,
+              let rendering = rendering(for: entry)
+        else {
+            return
+        }
+        guard generationState(for: entry).canStartGeneration else {
+            generationStates[entry.id] = .blocked(.operationInProgress)
+            return
+        }
+        let learningText = rendering.targetText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !learningText.isEmpty else {
+            generationStates[entry.id] = .blocked(.contentEmpty)
+            return
+        }
+        let lengthBucket = LearningMaterialLengthEstimator.bucket(for: learningText)
+        guard lengthBucket != .tooLong else {
+            generationStates[entry.id] = .blocked(.contentTooLong)
+            return
+        }
+        let operationID = generationActions.operationIDGenerator()
+        generationStates[entry.id] = .analyzing(materialID: rendering.id, operationID: operationID)
+        let input = LearningMaterialAnalysisInput(
+            materialID: rendering.id,
+            learningText: learningText,
+            nativeLanguageCode: languageSpace.nativeLanguage,
+            targetLanguageCode: languageSpace.targetLanguageCode,
+            proficiencyLevelCode: languageSpace.level.rawValue.lowercased()
+        )
+        let result = await generationActions.analyzeCurrentText(input, operationID, lengthBucket)
+        switch result {
+        case let .generated(material):
+            generatedRenderingsByEntryID[entry.id] = Self.rendering(from: material)
+            generationStates[entry.id] = state(for: material)
             reload()
         case let .failed(category):
             generationStates[entry.id] = .failed(
@@ -174,6 +237,17 @@ final class LearningContentStore: ObservableObject {
         selectedEntry = repository.selectedEntry(for: spaceID)
         memoryItems = repository.memoryItems(for: spaceID)
         settingsCapabilities = repository.settingsCapabilities(for: spaceID)
+    }
+
+    private func state(for material: LearningMaterial) -> LearningMaterialGenerationState {
+        switch material.analysis.status {
+        case .stale:
+            .editing(materialID: material.id, analysisIsStale: true)
+        case .fresh:
+            .generated(materialID: material.id)
+        case .missing, .failed:
+            .editing(materialID: material.id, analysisIsStale: true)
+        }
     }
 
     private static func rendering(from material: LearningMaterial) -> LearningRendering {

@@ -68,6 +68,22 @@ struct PhoneIOSConvergenceTests {
         #expect(!macWorkspace.contains("generateLearningMaterial"))
     }
 
+    @Test("iPhone detail supports editable learning text and reanalysis")
+    func iPhoneDetailSupportsEditableLearningTextAndReanalysis() throws {
+        let supportingViews = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
+            encoding: .utf8
+        )
+        let phoneMainView = try String(contentsOf: sourceFileURL(named: "PhoneMainView.swift"), encoding: .utf8)
+
+        #expect(supportingViews.contains("LearningMaterialEditorView"))
+        #expect(supportingViews.contains("TextEditor(text: $draftText)"))
+        #expect(supportingViews.contains("entry.rendering.learningText.save"))
+        #expect(supportingViews.contains("entry.rendering.learningText.reanalyze"))
+        #expect(phoneMainView.contains("contentStore.updateLearningText"))
+        #expect(phoneMainView.contains("contentStore.analyzeCurrentLearningText"))
+    }
+
     @Test("iPhone sentence listening uses local preview instead of development unavailable copy")
     func iPhoneSentenceListeningUsesLocalPreviewInsteadOfDevelopmentUnavailableCopy() throws {
         let components = try String(

@@ -92,6 +92,23 @@ struct PhoneMainView: View {
                                     )
                                 }
                             },
+                            onUpdateLearningText: { materialID, learningText in
+                                Task {
+                                    await contentStore.updateLearningText(
+                                        materialID: materialID,
+                                        entryID: entry.id,
+                                        learningText: learningText
+                                    )
+                                }
+                            },
+                            onAnalyzeCurrentLearningText: {
+                                Task {
+                                    await contentStore.analyzeCurrentLearningText(
+                                        for: entry,
+                                        languageSpace: languageSpace
+                                    )
+                                }
+                            },
                             onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
                             onPractice: { navigationPath.append(.practice(entry.id)) }
                         )

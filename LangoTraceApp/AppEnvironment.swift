@@ -139,7 +139,8 @@ private func makeLearningMaterialGenerationActions(
                     try recordLearningMaterialFailure(
                         .providerNotConfigured,
                         operationID: operationID,
-                        input: input,
+                        entryID: input.entryID,
+                        kind: .generate,
                         bucket: bucket,
                         repository: learningRepository
                     )
@@ -190,7 +191,8 @@ private func makeLearningMaterialGenerationActions(
                 try? recordLearningMaterialFailure(
                     error.category,
                     operationID: operationID,
-                    input: input,
+                    entryID: input.entryID,
+                    kind: .generate,
                     bucket: bucket,
                     repository: GRDBLearningContentRepository(database: databaseFactory.database())
                 )
@@ -204,7 +206,8 @@ private func makeLearningMaterialGenerationActions(
                 try? recordLearningMaterialFailure(
                     category,
                     operationID: operationID,
-                    input: input,
+                    entryID: input.entryID,
+                    kind: .generate,
                     bucket: bucket,
                     repository: GRDBLearningContentRepository(database: databaseFactory.database())
                 )
@@ -213,8 +216,133 @@ private func makeLearningMaterialGenerationActions(
                 try? recordLearningMaterialFailure(
                     .unknown,
                     operationID: operationID,
-                    input: input,
+                    entryID: input.entryID,
+                    kind: .generate,
                     bucket: bucket,
+                    repository: GRDBLearningContentRepository(database: databaseFactory.database())
+                )
+                return .failed(.unknown)
+            }
+        },
+        updateLearningText: { materialID, learningText in
+            do {
+                let repository = try GRDBLearningContentRepository(database: databaseFactory.database())
+                let material = try repository.updateLearningText(
+                    materialID: materialID,
+                    learningText: learningText
+                )
+                return .generated(material)
+            } catch {
+                return .failed(.persistenceFailed)
+            }
+        },
+        analyzeCurrentText: { input, operationID, bucket in
+            do {
+                let database = try databaseFactory.database()
+                let learningRepository = GRDBLearningContentRepository(database: database)
+                let configurationRepository = GRDBAIProviderConfigurationRepository(database: database)
+                guard let existingMaterial = try learningRepository.material(id: input.materialID) else {
+                    return .failed(.persistenceFailed)
+                }
+                try learningRepository.recordOperation(
+                    .started(
+                        operationID: operationID,
+                        entryID: existingMaterial.entryID,
+                        kind: .analyze,
+                        bucket: bucket,
+                        createdAt: Date(),
+                        promptID: LearningMaterialPromptRegistry.analysisPromptID
+                    )
+                )
+                guard let profile = try await configurationRepository.loadDefaultProfile(),
+                      let endpoint = profile.textGenerationEndpointInput
+                else {
+                    try recordLearningMaterialFailure(
+                        .providerNotConfigured,
+                        operationID: operationID,
+                        entryID: existingMaterial.entryID,
+                        kind: .analyze,
+                        bucket: bucket,
+                        promptID: LearningMaterialPromptRegistry.analysisPromptID,
+                        repository: learningRepository
+                    )
+                    return .failed(.providerNotConfigured)
+                }
+                let plaintextSecret = try await resolveLearningMaterialSecret(
+                    endpoint: endpoint,
+                    profile: profile,
+                    credentialStore: credentialStore
+                )
+                let service = LearningMaterialGenerationService(
+                    httpClient: URLSessionAIProviderProbeHTTPClient()
+                )
+                let result = try await service.analyze(
+                    LearningMaterialServiceAnalysisRequest(
+                        endpoint: endpoint,
+                        plaintextSecret: plaintextSecret,
+                        input: input,
+                        operationID: operationID,
+                        lengthBucket: bucket
+                    )
+                )
+                let material = try learningRepository.replaceAnalysis(result, materialID: input.materialID)
+                try learningRepository.recordOperation(
+                    LearningMaterialOperationSummary(
+                        operationID: operationID,
+                        entryID: material.entryID,
+                        materialID: material.id,
+                        kind: .analyze,
+                        status: .succeeded,
+                        failureCategory: nil,
+                        promptID: LearningMaterialPromptRegistry.analysisPromptID,
+                        promptVersion: LearningMaterialPromptRegistry.promptVersion,
+                        providerProfileID: material.metadata.providerProfileID,
+                        providerEndpointID: material.metadata.providerEndpointID,
+                        providerPresetID: material.metadata.providerPresetID,
+                        modelName: material.metadata.modelName,
+                        inputKind: material.inputKind,
+                        estimatedTokenBucket: bucket,
+                        durationMilliseconds: nil,
+                        createdAt: material.updatedAt,
+                        completedAt: Date()
+                    )
+                )
+                return .generated(material)
+            } catch let error as LearningMaterialGenerationServiceError {
+                try? recordLearningMaterialFailure(
+                    error.category,
+                    operationID: operationID,
+                    materialID: input.materialID,
+                    kind: .analyze,
+                    bucket: bucket,
+                    promptID: LearningMaterialPromptRegistry.analysisPromptID,
+                    repository: GRDBLearningContentRepository(database: databaseFactory.database())
+                )
+                return .failed(error.category)
+            } catch let error as AIProviderCredentialStoreError {
+                let category: LearningMaterialGenerationFailureCategory
+                switch error {
+                case .missingCredential, .credentialInaccessible, .credentialCorrupted, .userInteractionRequired:
+                    category = .credentialMissing
+                }
+                try? recordLearningMaterialFailure(
+                    category,
+                    operationID: operationID,
+                    materialID: input.materialID,
+                    kind: .analyze,
+                    bucket: bucket,
+                    promptID: LearningMaterialPromptRegistry.analysisPromptID,
+                    repository: GRDBLearningContentRepository(database: databaseFactory.database())
+                )
+                return .failed(category)
+            } catch {
+                try? recordLearningMaterialFailure(
+                    .unknown,
+                    operationID: operationID,
+                    materialID: input.materialID,
+                    kind: .analyze,
+                    bucket: bucket,
+                    promptID: LearningMaterialPromptRegistry.analysisPromptID,
                     repository: GRDBLearningContentRepository(database: databaseFactory.database())
                 )
                 return .failed(.unknown)
@@ -242,19 +370,45 @@ private func resolveLearningMaterialSecret(
 private func recordLearningMaterialFailure(
     _ category: LearningMaterialGenerationFailureCategory,
     operationID: DiagnosticOperationID,
-    input: LearningMaterialGenerationInput,
+    entryID: String,
+    kind: LearningMaterialOperationKind,
     bucket: LearningMaterialEstimatedTokenBucket,
+    promptID: String = LearningMaterialPromptRegistry.generationPromptID,
     repository: GRDBLearningContentRepository
 ) throws {
     try repository.recordOperation(
         .failed(
             operationID: operationID,
-            entryID: input.entryID,
-            kind: .generate,
+            entryID: entryID,
+            kind: kind,
             failureCategory: category,
             bucket: bucket,
-            completedAt: Date()
+            completedAt: Date(),
+            promptID: promptID
         )
+    )
+}
+
+private func recordLearningMaterialFailure(
+    _ category: LearningMaterialGenerationFailureCategory,
+    operationID: DiagnosticOperationID,
+    materialID: String,
+    kind: LearningMaterialOperationKind,
+    bucket: LearningMaterialEstimatedTokenBucket,
+    promptID: String,
+    repository: GRDBLearningContentRepository
+) throws {
+    guard let material = try repository.material(id: materialID) else {
+        return
+    }
+    try recordLearningMaterialFailure(
+        category,
+        operationID: operationID,
+        entryID: material.entryID,
+        kind: kind,
+        bucket: bucket,
+        promptID: promptID,
+        repository: repository
     )
 }
 

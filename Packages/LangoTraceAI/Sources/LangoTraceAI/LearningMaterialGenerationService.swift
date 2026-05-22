@@ -23,6 +23,28 @@ public struct LearningMaterialServiceGenerationRequest: Sendable {
     }
 }
 
+public struct LearningMaterialServiceAnalysisRequest: Sendable {
+    public var endpoint: AIProviderEndpointInput
+    public var plaintextSecret: String?
+    public var input: LearningMaterialAnalysisInput
+    public var operationID: DiagnosticOperationID
+    public var lengthBucket: LearningMaterialEstimatedTokenBucket
+
+    public init(
+        endpoint: AIProviderEndpointInput,
+        plaintextSecret: String?,
+        input: LearningMaterialAnalysisInput,
+        operationID: DiagnosticOperationID,
+        lengthBucket: LearningMaterialEstimatedTokenBucket
+    ) {
+        self.endpoint = endpoint
+        self.plaintextSecret = plaintextSecret
+        self.input = input
+        self.operationID = operationID
+        self.lengthBucket = lengthBucket
+    }
+}
+
 public struct LearningMaterialGenerationServiceError: Error, Equatable, Sendable {
     public var category: LearningMaterialGenerationFailureCategory
 
@@ -46,7 +68,30 @@ public struct LearningMaterialGenerationService: Sendable {
     public func generate(_ request: LearningMaterialServiceGenerationRequest) async throws -> LearningMaterialGenerationResult {
         let endpoint = try normalizedGenerationEndpoint(request.endpoint)
         let prompt = LearningMaterialPromptRegistry.generatePrompt(input: request.input, lengthBucket: request.lengthBucket)
-        let urlRequest = try makeRequest(endpoint: endpoint, secret: request.plaintextSecret, prompt: prompt)
+        let text = try await responseText(endpoint: endpoint, plaintextSecret: request.plaintextSecret, prompt: prompt)
+        return try parseGenerationJSON(
+            text,
+            input: request.input,
+            endpoint: endpoint,
+            prompt: prompt
+        )
+    }
+
+    public func analyze(_ request: LearningMaterialServiceAnalysisRequest) async throws -> LearningMaterialAnalysisResult {
+        let endpoint = try normalizedGenerationEndpoint(request.endpoint)
+        let prompt = LearningMaterialPromptRegistry.analyzePrompt(input: request.input, lengthBucket: request.lengthBucket)
+        let text = try await responseText(endpoint: endpoint, plaintextSecret: request.plaintextSecret, prompt: prompt)
+        return try parseAnalysisJSON(text, input: request.input)
+    }
+}
+
+private extension LearningMaterialGenerationService {
+    func responseText(
+        endpoint: AIProviderEndpointInput,
+        plaintextSecret: String?,
+        prompt: LearningMaterialRenderedPrompt
+    ) async throws -> String {
+        let urlRequest = try makeRequest(endpoint: endpoint, secret: plaintextSecret, prompt: prompt)
         let response: AIProviderProbeHTTPResponse
         do {
             response = try await httpClient.send(urlRequest)
@@ -58,17 +103,9 @@ public struct LearningMaterialGenerationService: Sendable {
         guard (200..<300).contains(response.statusCode) else {
             throw LearningMaterialGenerationServiceError(category: .providerRejected)
         }
-        let text = try parseText(from: response.body, adapterKind: endpoint.adapterKind)
-        return try parseGenerationJSON(
-            text,
-            input: request.input,
-            endpoint: endpoint,
-            prompt: prompt
-        )
+        return try parseText(from: response.body, adapterKind: endpoint.adapterKind)
     }
-}
 
-private extension LearningMaterialGenerationService {
     func normalizedGenerationEndpoint(_ input: AIProviderEndpointInput) throws -> AIProviderEndpointInput {
         let endpoint: AIProviderEndpointInput
         do {
@@ -223,6 +260,28 @@ private extension LearningMaterialGenerationService {
         )
     }
 
+    func parseAnalysisJSON(
+        _ text: String,
+        input: LearningMaterialAnalysisInput
+    ) throws -> LearningMaterialAnalysisResult {
+        guard let data = text.data(using: .utf8) else {
+            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+        }
+        let response: AnalysisOnlyResponse
+        do {
+            response = try JSONDecoder().decode(AnalysisOnlyResponse.self, from: data)
+        } catch {
+            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+        }
+        guard response.schemaVersion == LearningMaterialPromptRegistry.schemaVersion else {
+            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+        }
+        return try LearningMaterialAnalysisResult(
+            materialID: input.materialID,
+            analysis: materialAnalysis(from: response.analysis)
+        )
+    }
+
     func materialAnalysis(from response: AnalysisResponse) throws -> LearningMaterialAnalysis {
         guard !response.sentences.isEmpty else {
             throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
@@ -276,6 +335,16 @@ private extension LearningMaterialGenerationService {
         case .transportUnavailable:
             LearningMaterialGenerationServiceError(category: .networkUnavailable)
         }
+    }
+}
+
+private struct AnalysisOnlyResponse: Decodable {
+    var schemaVersion: String
+    var analysis: AnalysisResponse
+
+    enum CodingKeys: String, CodingKey {
+        case schemaVersion = "schema_version"
+        case analysis
     }
 }
 

@@ -85,6 +85,36 @@ func learningMaterialGenerationServiceParsesTargetWritingRevisionNotes() async t
     #expect(result.revisionSummary.first?.revisedText == "I went to a cafe today.")
 }
 
+@Test("Learning material generation service analyzes current learning text without rewriting it")
+func learningMaterialGenerationServiceAnalyzesCurrentLearningText() async throws {
+    let httpClient = CapturingLearningMaterialHTTPClient(responses: [
+        .success(.init(statusCode: 200, body: chatResponse(analysisJSON()))),
+    ])
+    let service = LearningMaterialGenerationService(httpClient: httpClient)
+
+    let result = try await service.analyze(
+        LearningMaterialServiceAnalysisRequest(
+            endpoint: endpoint(adapterKind: .openAICompatibleChat),
+            plaintextSecret: "sk-test-secret",
+            input: LearningMaterialAnalysisInput(
+                materialID: "material-1",
+                learningText: "I went to a cafe today.",
+                nativeLanguageCode: "zh-Hans",
+                targetLanguageCode: "en",
+                proficiencyLevelCode: "b1"
+            ),
+            operationID: DiagnosticOperationID(rawValue: "op-analyze"),
+            lengthBucket: .short
+        )
+    )
+
+    let requests = await httpClient.requests
+    #expect(requests.count == 1)
+    #expect(requests[0].httpBodyText?.contains("analyze_current_learning_text") == true)
+    #expect(result.materialID == "material-1")
+    #expect(result.analysis.sentences.first?.targetSentence == "I went to a cafe today.")
+}
+
 @Test("Learning material generation service rejects missing analysis fields")
 func learningMaterialGenerationServiceRejectsMissingAnalysisFields() async throws {
     let httpClient = CapturingLearningMaterialHTTPClient(responses: [
@@ -236,4 +266,32 @@ private func generationJSON(inputKind: String) -> String {
       }
     }
     """
+}
+
+private func analysisJSON() -> String {
+    """
+    {
+      "schema_version": "learning_material.v1",
+      "analysis": {
+        "sentences": [
+          {
+            "native_sentence": "我今天去了咖啡馆。",
+            "target_sentence": "I went to a cafe today.",
+            "literal_translation": "I went to cafe today.",
+            "natural_translation": "I went to a cafe today.",
+            "grammar_notes": ["went 是 go 的过去式。"],
+            "key_points": ["went to"]
+          }
+        ],
+        "memory_candidates": [],
+        "practice_candidates": []
+      }
+    }
+    """
+}
+
+private extension URLRequest {
+    var httpBodyText: String? {
+        httpBody.map { String(decoding: $0, as: UTF8.self) }
+    }
 }

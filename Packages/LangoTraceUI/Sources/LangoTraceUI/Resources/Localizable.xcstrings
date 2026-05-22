@@ -7570,6 +7570,74 @@
         }
       }
     },
+    "entry.rendering.learningText.accessibilityLabel": {
+      "comment": "Accessibility label for the editable learning text field.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editable learning text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可编辑学习文本"
+          }
+        }
+      }
+    },
+    "entry.rendering.learningText.save": {
+      "comment": "Button title for saving edited learning text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Changes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存修改"
+          }
+        }
+      }
+    },
+    "entry.rendering.learningText.reanalyze": {
+      "comment": "Button title for rebuilding analysis from edited learning text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanalyze"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新分析"
+          }
+        }
+      }
+    },
+    "entry.rendering.learningText.stale": {
+      "comment": "Status copy shown when edited learning text needs analysis refresh.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text changed. Reanalyze to refresh sentence notes and practice candidates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文本已修改。重新分析后会刷新单句讲解和练习候选。"
+          }
+        }
+      }
+    },
     "entryCard.openDetail.label": {
       "comment": "Entry card accessibility label.",
       "localizations": {

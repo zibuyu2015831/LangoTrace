@@ -86,6 +86,12 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
         }
     }
 
+    public func material(id: String) throws -> LearningMaterial? {
+        try databaseQueue.read { db in
+            try fetchMaterial(id: id, db: db)
+        }
+    }
+
     public func saveGeneratedMaterial(_ result: LearningMaterialGenerationResult, for entryID: String) throws -> LearningMaterial {
         try databaseQueue.write { db in
             guard entryID == result.entryID else {

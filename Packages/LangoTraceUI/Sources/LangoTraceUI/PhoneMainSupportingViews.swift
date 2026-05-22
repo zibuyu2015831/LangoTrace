@@ -72,6 +72,8 @@ struct EntryDetailView: View {
     let practiceItems: [PracticeItem]
     var generationState: LearningMaterialGenerationState = .idle
     var onGenerateLearningMaterial: (() -> Void)?
+    var onUpdateLearningText: ((String, String) -> Void)?
+    var onAnalyzeCurrentLearningText: (() -> Void)?
     let onGenerateLocalPreview: () -> Void
     let onPractice: () -> Void
 
@@ -84,16 +86,31 @@ struct EntryDetailView: View {
                     rendering: rendering
                 )
                 TextPanel(title: localizedString("entry.nativeRecord.title"), text: entry.body)
-                TextPanel(
-                    title: localizedString("entry.targetLanguage.title"),
-                    text: rendering?.targetText ?? localizedString("entry.rendering.pending")
-                )
                 if let rendering {
+                    if let onUpdateLearningText, let onAnalyzeCurrentLearningText {
+                        LearningMaterialEditorView(
+                            rendering: rendering,
+                            generationState: generationState,
+                            onSave: { learningText in
+                                onUpdateLearningText(rendering.id, learningText)
+                            },
+                            onReanalyze: onAnalyzeCurrentLearningText
+                        )
+                    } else {
+                        TextPanel(
+                            title: localizedString("entry.targetLanguage.title"),
+                            text: rendering.targetText
+                        )
+                    }
                     SectionHeader(titleKey: "entryDetail.sentences.title")
                     ForEach(Array(rendering.sentences.enumerated()), id: \.element.id) { index, sentence in
                         SentencePairView(index: index + 1, sentence: sentence, onPractice: onPractice)
                     }
                 } else if let onGenerateLearningMaterial {
+                    TextPanel(
+                        title: localizedString("entry.targetLanguage.title"),
+                        text: localizedString("entry.rendering.pending")
+                    )
                     CapabilityStatusRow(
                         localizedTitleKey: generationTitleKey,
                         localizedSummaryKey: generationSummaryKey,
@@ -102,6 +119,10 @@ struct EntryDetailView: View {
                         action: generationState.isRunning ? nil : onGenerateLearningMaterial
                     )
                 } else {
+                    TextPanel(
+                        title: localizedString("entry.targetLanguage.title"),
+                        text: localizedString("entry.rendering.pending")
+                    )
                     CapabilityStatusRow(
                         localizedTitleKey: "entry.rendering.localPreview.title",
                         localizedSummaryKey: "entry.rendering.localPreview.summary",
@@ -160,6 +181,77 @@ struct EntryDetailView: View {
         case .idle, .generated, .editing, .cancelled, .generating, .analyzing, .blocked:
             .ready
         }
+    }
+}
+
+private struct LearningMaterialEditorView: View {
+    let rendering: LearningRendering
+    let generationState: LearningMaterialGenerationState
+    let onSave: (String) -> Void
+    let onReanalyze: () -> Void
+
+    @State private var draftText: String
+
+    init(
+        rendering: LearningRendering,
+        generationState: LearningMaterialGenerationState,
+        onSave: @escaping (String) -> Void,
+        onReanalyze: @escaping () -> Void
+    ) {
+        self.rendering = rendering
+        self.generationState = generationState
+        self.onSave = onSave
+        self.onReanalyze = onReanalyze
+        _draftText = State(initialValue: rendering.targetText)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(titleKey: "entry.targetLanguage.title")
+            TextEditor(text: $draftText)
+                .frame(minHeight: 150)
+                .padding(10)
+                .background(LangoTraceDesign.ColorToken.surfaceRaised)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .accessibilityLabel(localizedText("entry.rendering.learningText.accessibilityLabel"))
+            HStack(spacing: 10) {
+                Button {
+                    onSave(draftText)
+                } label: {
+                    Label {
+                        localizedText("entry.rendering.learningText.save")
+                    } icon: {
+                        Image(systemName: "square.and.arrow.down")
+                    }
+                }
+                .disabled(!canSave)
+
+                Button {
+                    onReanalyze()
+                } label: {
+                    Label {
+                        localizedText("entry.rendering.learningText.reanalyze")
+                    } icon: {
+                        Image(systemName: "text.magnifyingglass")
+                    }
+                }
+                .disabled(!generationState.analysisIsStale || generationState.isRunning)
+            }
+            if generationState.analysisIsStale {
+                localizedText("entry.rendering.learningText.stale")
+                    .font(.footnote)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+        }
+        .langoPanel()
+        .onChange(of: rendering.targetText) {
+            draftText = rendering.targetText
+        }
+    }
+
+    private var canSave: Bool {
+        let trimmed = draftText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && trimmed != rendering.targetText && !generationState.isRunning
     }
 }
 

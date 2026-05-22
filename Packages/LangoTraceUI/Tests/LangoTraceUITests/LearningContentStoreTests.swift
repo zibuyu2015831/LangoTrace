@@ -114,6 +114,52 @@ struct LearningContentStoreTests {
         #expect(await actionCounter.value == 0)
     }
 
+    @Test("Store edits learning text as stale and refreshes analysis without regenerating text")
+    func storeEditsLearningTextAndRefreshesAnalysis() async {
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let actions = LearningMaterialGenerationActions(
+            generateMaterial: { input, operationID, _ in
+                .generated(sampleLearningMaterial(entryID: input.entryID, operationID: operationID))
+            },
+            updateLearningText: { materialID, learningText in
+                .generated(sampleLearningMaterial(
+                    materialID: materialID,
+                    entryID: "entry-1-en",
+                    learningText: learningText,
+                    analysisStatus: .stale
+                ))
+            },
+            analyzeCurrentText: { input, operationID, _ in
+                .generated(sampleLearningMaterial(
+                    materialID: input.materialID,
+                    entryID: "entry-1-en",
+                    learningText: input.learningText,
+                    operationID: operationID,
+                    analysisStatus: .fresh
+                ))
+            },
+            operationIDGenerator: { DiagnosticOperationID(rawValue: "operation-1") }
+        )
+        let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
+        let entry = store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
+
+        await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
+        await store.updateLearningText(
+            materialID: "material-operation-1",
+            entryID: entry.id,
+            learningText: "I wrote at a cafe today."
+        )
+
+        #expect(store.generationState(for: entry).analysisIsStale == true)
+        #expect(store.rendering(for: entry)?.targetText == "I wrote at a cafe today.")
+
+        await store.analyzeCurrentLearningText(for: entry, languageSpace: sampleLanguageSpace())
+
+        #expect(store.generationState(for: entry).analysisIsStale == false)
+        #expect(store.rendering(for: entry)?.targetText == "I wrote at a cafe today.")
+        #expect(store.rendering(for: entry)?.sentences.first?.targetText == "I wrote at a cafe today.")
+    }
+
     private func sampleLanguageSpace() -> LanguageSpacePreview {
         LanguageSpacePreview(
             id: "en",
@@ -142,25 +188,41 @@ private func sampleLearningMaterial(
     entryID: String,
     operationID: DiagnosticOperationID
 ) -> LearningMaterial {
+    sampleLearningMaterial(
+        materialID: "material-\(operationID.rawValue)",
+        entryID: entryID,
+        learningText: "I went to a cafe today.",
+        operationID: operationID,
+        analysisStatus: .fresh
+    )
+}
+
+private func sampleLearningMaterial(
+    materialID: String,
+    entryID: String,
+    learningText: String,
+    operationID: DiagnosticOperationID = DiagnosticOperationID(rawValue: "operation-1"),
+    analysisStatus: LearningMaterialAnalysisStatus
+) -> LearningMaterial {
     LearningMaterial(
-        id: "material-\(operationID.rawValue)",
+        id: materialID,
         entryID: entryID,
         spaceID: "en",
         inputKind: .nativeRecord,
         promptMode: .automaticLearningMaterial,
-        learningText: "I went to a cafe today.",
+        learningText: learningText,
         originalGeneratedText: "I went to a cafe today.",
         revisionSummary: [],
         analysis: LearningMaterialAnalysis(
-            status: .fresh,
+            status: analysisStatus,
             sourceTextHash: "hash",
             sentences: [
                 LearningSentenceAnalysis(
                     id: "sentence-1",
                     nativeSentence: "我今天去咖啡馆。",
-                    targetSentence: "I went to a cafe today.",
+                    targetSentence: learningText,
                     literalTranslation: "I today went cafe.",
-                    naturalTranslation: "I went to a cafe today.",
+                    naturalTranslation: learningText,
                     grammarNotes: ["went is past tense."],
                     keyPoints: ["went to"],
                     position: 0

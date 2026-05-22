@@ -105,6 +105,18 @@ func editingLearningTextMarksAnalysisStale() throws {
     #expect(try repository.entry(id: entry.id)?.body == "我今天在咖啡馆写了一页日记。")
 }
 
+@Test("Repository loads material by material id for app orchestration")
+func repositoryLoadsMaterialByID() throws {
+    let repository = try makeRepository()
+    let entry = try repository.createEntry(sampleDraft(), in: "space-1")
+    let saved = try repository.saveGeneratedMaterial(sampleGenerationResult(entryID: entry.id, spaceID: "space-1"), for: entry.id)
+
+    let loaded = try repository.material(id: saved.id)
+
+    #expect(loaded?.id == saved.id)
+    #expect(loaded?.entryID == entry.id)
+}
+
 @Test("Replacing analysis keeps edited learning text and refreshes candidates")
 func replacingAnalysisKeepsEditedLearningText() throws {
     let repository = try makeRepository()
