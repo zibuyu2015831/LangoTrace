@@ -38,6 +38,7 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
                 WHERE media_artifacts.artifact_type = ?
                   AND media_artifacts.derivation_kind = ?
                   AND media_artifacts.derivation_key_hash = ?
+                  AND media_artifacts.file_state = 'ready'
                 ORDER BY media_artifacts.invalidated_at IS NULL DESC, media_artifacts.created_at DESC
                 LIMIT 1
                 """,
@@ -66,14 +67,14 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
         }
     }
 
-    public func commitTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifact {
+    public func reserveTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifactCommitReservation {
         try await databaseQueue.write { db in
             if let existing = try activeArtifact(for: input.key, db: db) {
-                return existing
+                return MediaArtifactCommitReservation(artifact: existing, wasCreated: false)
             }
 
             let artifactID = idGenerator()
-            let relativePath = relativePath(for: input.key, artifactID: artifactID)
+            let relativePath = try relativePath(for: input.key, artifactID: artifactID)
             let now = input.createdAt
             let policy = MediaArtifactPolicy.defaultDerivedMediaPolicy
             let ownerColumns = ownerColumns(input.owner)
@@ -84,8 +85,8 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
                     artifact_type, derivation_kind, derivation_key_hash, relative_file_path,
                     mime_type, byte_size, duration_seconds, content_hash, created_at,
                     last_accessed_at, invalidated_at, delete_after, backup_policy,
-                    sync_policy, export_policy
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?)
+                    file_state, sync_policy, export_policy
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?)
                 """,
                 arguments: [
                     artifactID,
@@ -104,6 +105,7 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
                     now.timeIntervalSince1970,
                     now.timeIntervalSince1970,
                     policy.backupPolicy.rawValue,
+                    "pending",
                     policy.syncPolicy.rawValue,
                     policy.exportPolicy.rawValue,
                 ]
@@ -112,7 +114,39 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
             guard let inserted = try activeArtifact(for: input.key, db: db) else {
                 throw MediaArtifactRepositoryError.commitFailed
             }
-            return inserted
+            return MediaArtifactCommitReservation(artifact: inserted, wasCreated: true)
+        }
+    }
+
+    public func commitTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifact {
+        let reservation = try await reserveTTSAudioArtifact(input)
+        try await markArtifactFileReady(artifactID: reservation.artifact.id, at: input.createdAt)
+        return reservation.artifact
+    }
+
+    public func markArtifactFileReady(artifactID: String, at date: Date) async throws {
+        try await databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                UPDATE media_artifacts
+                SET file_state = 'ready', last_accessed_at = ?
+                WHERE id = ? AND invalidated_at IS NULL
+                """,
+                arguments: [date.timeIntervalSince1970, artifactID]
+            )
+        }
+    }
+
+    public func invalidateArtifact(artifactID: String, at date: Date) async throws {
+        try await databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                UPDATE media_artifacts
+                SET invalidated_at = ?
+                WHERE id = ? AND invalidated_at IS NULL
+                """,
+                arguments: [date.timeIntervalSince1970, artifactID]
+            )
         }
     }
 
@@ -285,18 +319,19 @@ private extension GRDBMediaArtifactRepository {
             sql: """
             INSERT INTO tts_audio_artifacts (
                 artifact_id, sentence_source_type, entry_id, learning_material_id,
-                sentence_index, sentence_text_hash, target_language_code,
+                operation_id, sentence_index, sentence_text_hash, target_language_code,
                 provider_profile_id, tts_endpoint_id, tts_voice_profile_id,
                 adapter_kind, adapter_version, model_name, voice_id_hash,
                 output_format, sample_rate, speed, pitch, volume,
                 instructions_hash, provider_parameters_hash, configuration_fingerprint
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             arguments: [
                 artifactID,
                 source.type,
                 source.entryID,
                 source.learningMaterialID,
+                source.operationID,
                 source.sentenceIndex,
                 key.sentenceTextHash,
                 key.targetLanguageCode,
@@ -357,9 +392,28 @@ private extension GRDBMediaArtifactRepository {
         return deleteAfter <= date
     }
 
-    func relativePath(for key: TTSAudioArtifactKey, artifactID: String) -> String {
-        let fileExtension = key.outputFormat.rawValue == "wav" ? "wav" : "mp3"
+    func relativePath(for key: TTSAudioArtifactKey, artifactID: String) throws -> String {
+        let fileExtension = try fileExtension(for: key.outputFormat)
         return "ttsSentenceAudio/\(key.targetLanguageCode)/\(artifactID).\(fileExtension)"
+    }
+
+    func fileExtension(for format: TTSAudioFormat) throws -> String {
+        switch format {
+        case .mp3:
+            "mp3"
+        case .wav:
+            "wav"
+        case .opus:
+            "opus"
+        case .aac:
+            "aac"
+        case .flac:
+            "flac"
+        case .pcm:
+            "pcm"
+        case .mulaw:
+            "mulaw"
+        }
     }
 
     func ownerColumns(_ owner: MediaArtifactOwner) -> MediaArtifactOwnerColumns {
@@ -399,6 +453,7 @@ private extension GRDBMediaArtifactRepository {
                 type: "entry",
                 entryID: id,
                 learningMaterialID: nil,
+                operationID: nil,
                 sentenceIndex: sentenceIndex
             )
         case let .learningMaterialSentence(materialID, sentenceIndex):
@@ -406,13 +461,15 @@ private extension GRDBMediaArtifactRepository {
                 type: "learningMaterialSentence",
                 entryID: nil,
                 learningMaterialID: materialID,
+                operationID: nil,
                 sentenceIndex: sentenceIndex
             )
         case let .temporary(operationID, sentenceIndex):
             TTSSentenceSourceColumns(
                 type: "temporary",
-                entryID: operationID,
+                entryID: nil,
                 learningMaterialID: nil,
+                operationID: operationID,
                 sentenceIndex: sentenceIndex
             )
         }
@@ -429,6 +486,7 @@ private struct TTSSentenceSourceColumns {
     var type: String
     var entryID: String?
     var learningMaterialID: String?
+    var operationID: String?
     var sentenceIndex: Int?
 }
 

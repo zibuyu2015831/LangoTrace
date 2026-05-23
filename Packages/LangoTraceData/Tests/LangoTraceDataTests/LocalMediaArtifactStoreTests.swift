@@ -53,6 +53,34 @@ struct LocalMediaArtifactStoreTests {
         #expect(lookup == .invalidated(.fileMissing))
     }
 
+    @Test("Facade invalidates only the stale artifact when sibling files remain valid")
+    func facadeInvalidatesOnlyStaleArtifactWhenSiblingFilesRemainValid() async throws {
+        let harness = try await FacadeHarness()
+        let firstStaged = try harness.fileStore.writeStagingFile(Data("first".utf8), operationID: "op-1")
+        let firstInput = MediaArtifactTestFixtures.commitInput(
+            key: MediaArtifactTestFixtures.key(sentenceTextHash: "sentence-hash-1"),
+            stagedFile: firstStaged
+        )
+        let secondStaged = try harness.fileStore.writeStagingFile(Data("second".utf8), operationID: "op-2")
+        let secondInput = MediaArtifactTestFixtures.commitInput(
+            key: MediaArtifactTestFixtures.key(sentenceTextHash: "sentence-hash-2"),
+            stagedFile: secondStaged
+        )
+        let first = try await harness.store.commitTTSAudioArtifact(firstInput)
+        let second = try await harness.store.commitTTSAudioArtifact(secondInput)
+        _ = try harness.fileStore.deleteFile(relativePath: first.relativeFilePath)
+
+        let firstLookup = try await harness.store.ttsAudioArtifact(for: firstInput.key)
+        let secondLookup = try await harness.store.ttsAudioArtifact(for: secondInput.key)
+
+        #expect(firstLookup == .invalidated(.fileMissing))
+        guard case let .hit(sibling) = secondLookup else {
+            Issue.record("Expected sibling artifact to remain valid")
+            return
+        }
+        #expect(sibling.id == second.id)
+    }
+
     @Test("Facade cleanup removes files and metadata")
     func facadeCleanupRemovesFilesAndMetadata() async throws {
         let harness = try await FacadeHarness()

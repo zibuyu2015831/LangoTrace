@@ -49,6 +49,30 @@ struct MediaArtifactRepositoryTests {
         #expect(try await MediaArtifactTestFixtures.mediaArtifactCount(in: database) == 1)
     }
 
+    @Test("Repository hides pending artifact metadata from lookup until marked ready")
+    func repositoryHidesPendingArtifactMetadataUntilReady() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        let input = MediaArtifactTestFixtures.commitInput()
+
+        let pending = try await repository.reserveTTSAudioArtifact(input).artifact
+        let pendingLookup = try await repository.ttsAudioArtifactMetadata(for: input.key)
+        try await repository.markArtifactFileReady(artifactID: pending.id, at: Date(timeIntervalSince1970: 450))
+        let readyLookup = try await repository.ttsAudioArtifactMetadata(for: input.key)
+
+        #expect(pendingLookup == .miss)
+        guard case let .hit(ready) = readyLookup else {
+            Issue.record("Expected ready artifact to become visible")
+            return
+        }
+        #expect(ready.id == pending.id)
+    }
+
     @Test("Repository treats changed TTS key fields as cache miss")
     func repositoryTreatsChangedTTSKeyFieldsAsMiss() async throws {
         let database = try AppDatabase.inMemory()
@@ -92,6 +116,94 @@ struct MediaArtifactRepositoryTests {
             try await repository.ttsAudioArtifactMetadata(for: input.key)
                 == .invalidated(.explicitlyInvalidated)
         )
+    }
+
+    @Test("Repository can invalidate one artifact without invalidating sibling cache entries")
+    func repositoryInvalidatesOneArtifactWithoutInvalidatingSiblings() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        let firstInput = MediaArtifactTestFixtures.commitInput(
+            key: MediaArtifactTestFixtures.key(sentenceTextHash: "sentence-hash-1")
+        )
+        let secondInput = MediaArtifactTestFixtures.commitInput(
+            key: MediaArtifactTestFixtures.key(sentenceTextHash: "sentence-hash-2"),
+            stagedFile: MediaArtifactStagedFileReference(
+                relativeStagingPath: "staging/op-2.tmp",
+                byteSize: 128,
+                contentHash: "content-hash-2"
+            )
+        )
+        let first = try await repository.commitTTSAudioArtifact(firstInput)
+        let second = try await repository.commitTTSAudioArtifact(secondInput)
+        try await repository.markArtifactFileReady(artifactID: first.id, at: Date(timeIntervalSince1970: 410))
+        try await repository.markArtifactFileReady(artifactID: second.id, at: Date(timeIntervalSince1970: 420))
+
+        try await repository.invalidateArtifact(artifactID: first.id, at: Date(timeIntervalSince1970: 600))
+
+        #expect(
+            try await repository.ttsAudioArtifactMetadata(for: firstInput.key)
+                == .invalidated(.explicitlyInvalidated)
+        )
+        guard case let .hit(sibling) = try await repository.ttsAudioArtifactMetadata(for: secondInput.key) else {
+            Issue.record("Expected sibling artifact to remain active")
+            return
+        }
+        #expect(sibling.id == second.id)
+    }
+
+    @Test("Repository commits temporary TTS source without requiring an entry row")
+    func repositoryCommitsTemporaryTTSSourceWithoutEntryForeignKey() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        let key = MediaArtifactTestFixtures.key(sentenceSource: .temporary(operationID: "operation-1", sentenceIndex: 0))
+        let input = MediaArtifactTestFixtures.commitInput(
+            key: key,
+            owner: .temporaryOperation(id: "operation-1")
+        )
+
+        let artifact = try await repository.commitTTSAudioArtifact(input)
+
+        #expect(artifact.id == "artifact-1")
+    }
+
+    @Test("Repository maps supported TTS output formats to matching file extensions")
+    func repositoryMapsSupportedTTSOutputFormatsToMatchingExtensions() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+
+        let aac = try await repository.commitTTSAudioArtifact(
+            MediaArtifactTestFixtures.commitInput(
+                key: MediaArtifactTestFixtures.key(sentenceTextHash: "aac-hash", outputFormat: .aac)
+            )
+        )
+        let opus = try await repository.commitTTSAudioArtifact(
+            MediaArtifactTestFixtures.commitInput(
+                key: MediaArtifactTestFixtures.key(sentenceTextHash: "opus-hash", outputFormat: .opus),
+                stagedFile: MediaArtifactStagedFileReference(
+                    relativeStagingPath: "staging/op-2.tmp",
+                    byteSize: 128,
+                    contentHash: "content-hash-2"
+                )
+            )
+        )
+
+        #expect(aac.relativeFilePath.hasSuffix(".aac"))
+        #expect(opus.relativeFilePath.hasSuffix(".opus"))
     }
 
     @Test("Repository cleanup selects invalidated and oldest artifacts without touching files")
@@ -246,11 +358,13 @@ enum MediaArtifactTestFixtures {
     }
 
     static func key(
+        sentenceSource: TTSSentenceSource = .learningMaterialSentence(materialID: "material-1", sentenceIndex: 0),
         sentenceTextHash: String = "sentence-hash-1",
-        modelName: String = "gpt-4o-mini-tts"
+        modelName: String = "gpt-4o-mini-tts",
+        outputFormat: TTSAudioFormat = .mp3
     ) -> TTSAudioArtifactKey {
         TTSAudioArtifactKey(
-            sentenceSource: .learningMaterialSentence(materialID: "material-1", sentenceIndex: 0),
+            sentenceSource: sentenceSource,
             sentenceTextHash: sentenceTextHash,
             targetLanguageCode: "en",
             providerProfileID: "profile-1",
@@ -260,7 +374,7 @@ enum MediaArtifactTestFixtures {
             adapterVersion: "2026-05-23",
             modelName: modelName,
             voiceIDHash: "voice-hash",
-            outputFormat: .mp3,
+            outputFormat: outputFormat,
             sampleRate: nil,
             speed: 1.0,
             pitch: nil,
@@ -273,6 +387,7 @@ enum MediaArtifactTestFixtures {
 
     static func commitInput(
         key: TTSAudioArtifactKey = key(),
+        owner: MediaArtifactOwner = .learningMaterialSentence(materialID: "material-1", sentenceIndex: 0),
         stagedFile: MediaArtifactStagedFileReference = MediaArtifactStagedFileReference(
             relativeStagingPath: "staging/op-1.tmp",
             byteSize: 256,
@@ -282,7 +397,7 @@ enum MediaArtifactTestFixtures {
         TTSAudioArtifactCommitInput(
             key: key,
             languageSpaceID: "space-1",
-            owner: .learningMaterialSentence(materialID: "material-1", sentenceIndex: 0),
+            owner: owner,
             stagedFile: stagedFile,
             mimeType: "audio/mpeg",
             durationSeconds: 1.5,

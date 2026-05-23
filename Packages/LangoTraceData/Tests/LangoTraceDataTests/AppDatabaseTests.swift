@@ -57,6 +57,10 @@ func mediaArtifactMigrationCreatesTablesConstraintsAndActiveKeyUniqueness() thro
         try insertMediaArtifactPrerequisites(db)
         try insertMediaArtifactRow(id: "artifact-1", db: db)
 
+        let columns = try Row.fetchAll(db, sql: "PRAGMA table_info(media_artifacts)")
+            .map { $0["name"] as String }
+        #expect(columns.contains("file_state"))
+
         #expect(throws: DatabaseError.self) {
             try insertMediaArtifactRow(id: "artifact-duplicate", db: db)
         }
@@ -88,13 +92,13 @@ func mediaArtifactMigrationCreatesTablesConstraintsAndActiveKeyUniqueness() thro
             sql: """
             INSERT INTO tts_audio_artifacts (
                 artifact_id, sentence_source_type, entry_id, learning_material_id,
-                sentence_index, sentence_text_hash, target_language_code,
+                operation_id, sentence_index, sentence_text_hash, target_language_code,
                 provider_profile_id, tts_endpoint_id, tts_voice_profile_id,
                 adapter_kind, adapter_version, model_name, voice_id_hash,
                 output_format, sample_rate, speed, pitch, volume,
                 instructions_hash, provider_parameters_hash, configuration_fingerprint
             ) VALUES (
-                'artifact-2', 'learningMaterialSentence', 'entry-1', 'material-1',
+                'artifact-2', 'learningMaterialSentence', 'entry-1', 'material-1', NULL,
                 0, 'sentence-hash', 'en', 'profile-1', 'endpoint-tts',
                 'voice-en', 'openai_audio_speech', '2026-05-23',
                 'gpt-4o-mini-tts', 'voice-hash', 'mp3', NULL, 1.0, NULL,
@@ -112,6 +116,23 @@ func mediaArtifactMigrationCreatesTablesConstraintsAndActiveKeyUniqueness() thro
     }
 }
 
+@Test("Media artifact v8 migration upgrades legacy v7 metadata tables")
+func mediaArtifactV8MigrationUpgradesLegacyV7MetadataTables() throws {
+    let queue = try DatabaseQueue()
+    try migrateMinimalLegacyMediaArtifactV7(queue)
+
+    _ = try AppDatabase(databaseQueue: queue)
+
+    try queue.read { db in
+        let mediaColumns = try Row.fetchAll(db, sql: "PRAGMA table_info(media_artifacts)")
+            .map { $0["name"] as String }
+        let ttsColumns = try Row.fetchAll(db, sql: "PRAGMA table_info(tts_audio_artifacts)")
+            .map { $0["name"] as String }
+        #expect(mediaColumns.contains("file_state"))
+        #expect(ttsColumns.contains("operation_id"))
+    }
+}
+
 private final class FixedClock: @unchecked Sendable {
     private let epochSeconds: TimeInterval
 
@@ -122,6 +143,73 @@ private final class FixedClock: @unchecked Sendable {
     func now() -> Date {
         Date(timeIntervalSince1970: epochSeconds)
     }
+}
+
+private func migrateMinimalLegacyMediaArtifactV7(_ queue: DatabaseQueue) throws {
+    var migrator = DatabaseMigrator()
+    for migration in [
+        "v1_create_language_space_infrastructure",
+        "v2_create_ai_provider_configuration",
+        "v3_create_diagnostic_events",
+        "v4_create_learning_content_infrastructure",
+        "v5_add_learning_material_source_entry_body_hash",
+        "v6_create_ai_provider_tts_configuration",
+    ] {
+        migrator.registerMigration(migration) { _ in }
+    }
+    migrator.registerMigration("v7_create_media_artifact_infrastructure") { db in
+        try db.execute(sql: """
+        CREATE TABLE media_artifacts (
+          id TEXT PRIMARY KEY,
+          language_space_id TEXT NOT NULL,
+          owner_type TEXT NOT NULL,
+          owner_id TEXT NOT NULL,
+          owner_sub_id TEXT,
+          artifact_type TEXT NOT NULL,
+          derivation_kind TEXT NOT NULL,
+          derivation_key_hash TEXT NOT NULL,
+          relative_file_path TEXT NOT NULL,
+          mime_type TEXT NOT NULL,
+          byte_size INTEGER NOT NULL,
+          duration_seconds REAL,
+          content_hash TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          last_accessed_at REAL NOT NULL,
+          invalidated_at REAL,
+          delete_after REAL,
+          backup_policy TEXT NOT NULL,
+          sync_policy TEXT NOT NULL,
+          export_policy TEXT NOT NULL
+        )
+        """)
+        try db.execute(sql: """
+        CREATE TABLE tts_audio_artifacts (
+          artifact_id TEXT PRIMARY KEY REFERENCES media_artifacts(id) ON DELETE CASCADE,
+          sentence_source_type TEXT NOT NULL,
+          entry_id TEXT,
+          learning_material_id TEXT,
+          sentence_index INTEGER,
+          sentence_text_hash TEXT NOT NULL,
+          target_language_code TEXT NOT NULL,
+          provider_profile_id TEXT NOT NULL,
+          tts_endpoint_id TEXT NOT NULL,
+          tts_voice_profile_id TEXT NOT NULL,
+          adapter_kind TEXT NOT NULL,
+          adapter_version TEXT NOT NULL,
+          model_name TEXT NOT NULL,
+          voice_id_hash TEXT NOT NULL,
+          output_format TEXT NOT NULL,
+          sample_rate INTEGER,
+          speed REAL,
+          pitch REAL,
+          volume REAL,
+          instructions_hash TEXT,
+          provider_parameters_hash TEXT,
+          configuration_fingerprint TEXT NOT NULL
+        )
+        """)
+    }
+    try migrator.migrate(queue)
 }
 
 private func insertMediaArtifactPrerequisites(_ db: Database) throws {
@@ -209,10 +297,10 @@ private func insertMediaArtifactRow(
             artifact_type, derivation_kind, derivation_key_hash, relative_file_path,
             mime_type, byte_size, duration_seconds, content_hash, created_at,
             last_accessed_at, invalidated_at, delete_after, backup_policy,
-            sync_policy, export_policy
+            file_state, sync_policy, export_policy
         ) VALUES (?, ?, 'learningMaterialSentence', 'material-1', '0', ?, 'ttsAudio',
             ?, 'ttsSentenceAudio/space-1/artifact.mp3', 'audio/mpeg', 10,
-            1.0, 'content-hash', 1, 1, NULL, NULL, ?, 'localOnly',
+            1.0, 'content-hash', 1, 1, NULL, NULL, ?, 'ready', 'localOnly',
             'excludedByDefault')
         """,
         arguments: [id, languageSpaceID, artifactType, derivationKeyHash, backupPolicy]

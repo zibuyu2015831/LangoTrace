@@ -3,7 +3,7 @@
 状态：Done
 类型：feature
 创建日期：2026-05-23
-最后更新日期：2026-05-23
+最后更新日期：2026-05-24
 
 审核状态：Implemented and Verified
 
@@ -19,6 +19,7 @@
 - 2026-05-23：基于当前代码再次严格复查后修订方案：`AppDatabase` 已存在 `v6_create_ai_provider_tts_configuration`，本方案迁移改为 `v7_create_media_artifact_infrastructure`；`LangoTraceSpeech` 已有 test target、bytes-based `TTSAudioValidationService`、preview store 和 preview playback service，本方案改为在现有 Speech 能力之上新增持久文件验证 seam；明确 Repository 只管 metadata，`LocalMediaArtifactStore` facade 统一编排 file store、repository 和 Core validator protocol；补强 voice profile 绑定、verification script 和三端共享基础设施边界。
 - 2026-05-23：`docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md` 已完整落地并通过验证；TTS Provider 配置、真实 probe、voice profile、配置 fingerprint、短生命周期 preview audio 和 Speech bytes-based 音频校验 seam 已具备。本方案随后成为逐句 TTS 播放链路的下一项前置基础设施任务，并已在用户确认后实施完成。
 - 2026-05-23：用户要求完整执行本方案，且每个阶段都需要测试、检查和 commit。本方案已按 TDD 分阶段落地并提交：Core 契约、Data migration / repository、Data file store / facade / Speech 文件校验 seam、文档收口。
+- 2026-05-24：严格落地检查发现 pending metadata 可被提前 lookup、metadata / 文件不一致时失效范围过大、temporary source 外键映射错误和 TTS 格式扩展名过度回退到 mp3。已补充 TDD 回归并修补：新增 `v8_add_media_artifact_file_state` 迁移，`media_artifacts.file_state` 区分 pending / ready，facade 在文件 move 后 mark ready，lookup 只命中 ready；文件异常按 artifact id 精确失效；temporary TTS source 写入 `operation_id` 而不是伪装成 `entry_id`；输出格式使用显式扩展名映射。
 
 ## 1. 需求描述
 
@@ -318,6 +319,7 @@ Key hash 规则：
 
 ```text
 v7_create_media_artifact_infrastructure
+v8_add_media_artifact_file_state
 ```
 
 通用表：
@@ -342,6 +344,7 @@ CREATE TABLE media_artifacts (
   invalidated_at REAL,
   delete_after REAL,
   backup_policy TEXT NOT NULL,
+  file_state TEXT NOT NULL,
   sync_policy TEXT NOT NULL,
   export_policy TEXT NOT NULL,
   CHECK (byte_size >= 0),
@@ -351,6 +354,7 @@ CREATE TABLE media_artifacts (
     'dictationRecording', 'ocrIntermediate', 'exportTemporary'
   )),
   CHECK (backup_policy IN ('excludedFromSystemBackup', 'includedInSystemBackup')),
+  CHECK (file_state IN ('pending', 'ready')),
   CHECK (sync_policy IN ('localOnly', 'syncCandidate', 'syncManaged')),
   CHECK (export_policy IN ('excludedByDefault', 'includedInUserExport', 'includedInRecoverableBackup'))
 )
@@ -364,6 +368,7 @@ CREATE TABLE tts_audio_artifacts (
   sentence_source_type TEXT NOT NULL,
   entry_id TEXT REFERENCES entries(id) ON DELETE CASCADE,
   learning_material_id TEXT REFERENCES learning_materials(id) ON DELETE CASCADE,
+  operation_id TEXT,
   sentence_index INTEGER,
   sentence_text_hash TEXT NOT NULL,
   target_language_code TEXT NOT NULL,
@@ -410,7 +415,7 @@ Schema 取舍：
 
 - `owner_type + owner_id + owner_sub_id` 是通用 owner 索引，支持 Entry、material、sentence、practice session 和 temporary operation。
 - TTS 专属表可以额外引用 `entries` / `learning_materials`，用于级联删除和查询。
-- `artifact_type + derivation_kind + derivation_key_hash` 在 active artifact 上唯一，防止同一类型同一 derivation key 重复写 ready 记录，同时为未来不同 artifact type 复用同一 hash 算法保留空间。
+- `artifact_type + derivation_kind + derivation_key_hash` 在 active artifact 上唯一，防止同一类型同一 derivation key 重复写入；`file_state = pending` 用于 metadata 预留和文件 move 窗口，lookup 只允许命中 `ready`，避免文件尚未落位时被其他调用当作可播放缓存。
 - `tts_voice_profile_id` 记录当前 endpoint + language code 的 voice profile 生命周期；voice profile 被删除时相关 TTS artifact metadata 级联删除。voice profile 被同 id 更新时，`configuration_fingerprint` 和完整 key hash 负责让旧音频不再命中。
 - `invalidated_at` 不删除历史 metadata 时也能避免旧记录命中；容量清理可以删除 invalidated metadata 和文件。
 
@@ -544,9 +549,9 @@ public struct TTSAudioArtifactCommitInput: Sendable {
 3. File store 计算 content hash 和 byte size。
 4. Repository 在 DB 中检查 active derivation key 是否已存在。
 5. File store 将 staging 文件原子 move 到正式相对路径。
-6. Repository 写入 `media_artifacts` 和 `tts_audio_artifacts` metadata。
-7. 若 metadata 写入失败，删除正式文件。
-8. 若 move 失败，不写 metadata。
+6. Repository 将对应 metadata 从 `pending` 标记为 `ready`。
+7. 若 ready 标记失败，删除本次正式文件并删除本次预留 metadata。
+8. 若 move 失败，删除本次预留 metadata。
 
 `LocalMediaArtifactStore` facade 负责上述顺序，repository 只负责 metadata transaction，file store 只负责路径与文件操作。这样可以让 direct playback coordinator 调用一个基础设施入口，而不是自己编排 DB 与文件系统。
 

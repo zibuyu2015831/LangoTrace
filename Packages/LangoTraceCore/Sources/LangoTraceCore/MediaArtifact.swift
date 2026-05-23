@@ -214,9 +214,22 @@ public struct MediaArtifactCleanupResult: Equatable, Sendable {
     }
 }
 
+public struct MediaArtifactCommitReservation: Equatable, Sendable {
+    public var artifact: MediaArtifact
+    public var wasCreated: Bool
+
+    public init(artifact: MediaArtifact, wasCreated: Bool) {
+        self.artifact = artifact
+        self.wasCreated = wasCreated
+    }
+}
+
 public protocol MediaArtifactRepository: Sendable {
     func ttsAudioArtifactMetadata(for key: TTSAudioArtifactKey) async throws -> MediaArtifactLookupResult
+    func reserveTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifactCommitReservation
     func commitTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifact
+    func markArtifactFileReady(artifactID: String, at date: Date) async throws
+    func invalidateArtifact(artifactID: String, at date: Date) async throws
     func invalidateArtifacts(_ request: MediaArtifactInvalidationRequest) async throws
     func artifactsForCleanup(_ request: MediaArtifactCleanupRequest) async throws -> [MediaArtifact]
     func deleteArtifactMetadata(artifactIDs: [String]) async throws

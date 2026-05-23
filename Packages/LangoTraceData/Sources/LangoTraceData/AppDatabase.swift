@@ -61,6 +61,9 @@ private extension AppDatabase {
         migrator.registerMigration("v7_create_media_artifact_infrastructure") { db in
             try createMediaArtifactInfrastructure(db)
         }
+        migrator.registerMigration("v8_add_media_artifact_file_state") { db in
+            try addMediaArtifactFileState(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
@@ -594,6 +597,18 @@ private extension AppDatabase {
         ON tts_audio_artifacts(
           provider_profile_id, tts_endpoint_id, tts_voice_profile_id, configuration_fingerprint
         )
+        """)
+    }
+
+    static func addMediaArtifactFileState(_ db: Database) throws {
+        try db.execute(sql: """
+        ALTER TABLE media_artifacts
+        ADD COLUMN file_state TEXT NOT NULL DEFAULT 'ready'
+        CHECK (file_state IN ('pending', 'ready'))
+        """)
+        try db.execute(sql: """
+        ALTER TABLE tts_audio_artifacts
+        ADD COLUMN operation_id TEXT
         """)
     }
 

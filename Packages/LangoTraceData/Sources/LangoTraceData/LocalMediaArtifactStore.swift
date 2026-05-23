@@ -71,16 +71,23 @@ public struct LocalMediaArtifactStore: LocalMediaArtifactStoring, Sendable {
             durationSeconds: validation.metadata?.durationSeconds ?? input.durationSeconds,
             createdAt: input.createdAt
         )
-        let artifact = try await repository.commitTTSAudioArtifact(commitInput)
+        let reservation = try await repository.reserveTTSAudioArtifact(commitInput)
+        let artifact = reservation.artifact
         do {
             if try fileStore.fileInfo(relativePath: artifact.relativeFilePath) != nil {
                 _ = try fileStore.deleteFile(relativePath: input.stagedFile.relativeStagingPath)
             } else {
                 try fileStore.moveStagedFile(input.stagedFile, to: artifact.relativeFilePath)
             }
+            try await repository.markArtifactFileReady(artifactID: artifact.id, at: input.createdAt)
             return artifact
         } catch {
-            try await repository.deleteArtifactMetadata(artifactIDs: [artifact.id])
+            if reservation.wasCreated {
+                _ = try? fileStore.deleteFile(relativePath: artifact.relativeFilePath)
+                try await repository.deleteArtifactMetadata(artifactIDs: [artifact.id])
+            } else {
+                _ = try? fileStore.deleteFile(relativePath: input.stagedFile.relativeStagingPath)
+            }
             throw error
         }
     }
@@ -124,13 +131,6 @@ public struct LocalMediaArtifactStore: LocalMediaArtifactStoring, Sendable {
 
 private extension LocalMediaArtifactStore {
     func invalidate(_ artifact: MediaArtifact, reason _: MediaArtifactInvalidationReason) async throws {
-        try await repository.invalidateArtifacts(
-            MediaArtifactInvalidationRequest(
-                languageSpaceID: artifact.languageSpaceID,
-                owner: artifact.owner,
-                artifactType: artifact.type,
-                invalidatedAt: Date()
-            )
-        )
+        try await repository.invalidateArtifact(artifactID: artifact.id, at: Date())
     }
 }

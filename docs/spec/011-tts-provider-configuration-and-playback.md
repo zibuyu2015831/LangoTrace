@@ -333,7 +333,7 @@ Speech playback service -> audio decode / playback lifecycle
 当前已落地边界：
 
 - Core 已定义 `MediaArtifact`、`TTSAudioArtifactKey`、policy、lookup result、commit input、cleanup result、`MediaArtifactRepository`、`LocalMediaArtifactStoring` 和 `TTSAudioFileValidating`。
-- Data 已实现 `v7_create_media_artifact_infrastructure`、`media_artifacts` / `tts_audio_artifacts`、`GRDBMediaArtifactRepository`、`LocalMediaArtifactFileStore` 和 `LocalMediaArtifactStore` facade。
+- Data 已实现 `v7_create_media_artifact_infrastructure`、`media_artifacts` / `tts_audio_artifacts`、`GRDBMediaArtifactRepository`、`LocalMediaArtifactFileStore` 和 `LocalMediaArtifactStore` facade；metadata 使用 pending / ready 文件状态避免文件 move 完成前被 lookup 命中，文件缺失或内容不匹配时按 artifact id 精确失效。
 - Speech 已实现持久 TTS 文件校验 `TTSAudioFileValidator`；设置页短生命周期 bytes validation / preview 与逐句播放持久文件 validation 保持分离。
 - AppEnvironment 尚未装配逐句播放 coordinator；学习页 UI 仍不能直接触发真实 TTS 生成或播放。
 
