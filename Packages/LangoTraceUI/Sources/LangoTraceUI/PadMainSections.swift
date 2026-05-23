@@ -133,24 +133,7 @@ struct PadWorkspaceContentView: View {
     private var workspaceOverview: some View {
         ScrollView {
             if let selectedEntry {
-                VStack(alignment: .leading, spacing: 18) {
-                    EntryDetailHeader(
-                        entry: selectedEntry,
-                        targetLanguage: languageSpace.targetLanguage,
-                        rendering: selectedRendering
-                    )
-                    HStack(alignment: .top, spacing: 14) {
-                        TextPanel(title: localizedString("entry.nativeRecord.title"), text: selectedEntry.body)
-                        TextPanel(
-                            title: localizedString("entry.targetLanguage.title"),
-                            text: selectedRendering?.targetText ?? localizedString("entry.rendering.pending")
-                        )
-                    }
-                    AudioPanel()
-                    sentenceList(for: selectedEntry)
-                }
-                .padding(26)
-                .frame(maxWidth: 820, alignment: .leading)
+                entryDetailView(for: selectedEntry)
             } else {
                 EmptyWorkspacePanel()
                     .padding(26)
@@ -174,22 +157,59 @@ struct PadWorkspaceContentView: View {
     @ViewBuilder
     private func entryDetail(entryID: String) -> some View {
         if let entry = entries.first(where: { $0.id == entryID }) {
-            EntryDetailView(
-                languageSpace: languageSpace,
-                entry: entry,
-                rendering: contentStore.rendering(for: entry),
-                practiceItems: contentStore.practiceItems(for: entry),
-                sourceEntryIsStale: contentStore.sourceEntryIsStale(for: entry),
-                onUpdateEntryBody: { body in
-                    try contentStore.updateEntryBody(entryID: entry.id, body: body)
-                },
-                onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
-                onPractice: { onRoute(.practice(entry.id)) }
-            )
+            entryDetailView(for: entry)
         } else {
             EmptyWorkspacePanel()
                 .padding(26)
         }
+    }
+
+    private func entryDetailView(for entry: LearningEntry) -> some View {
+        EntryDetailView(
+            languageSpace: languageSpace,
+            entry: entry,
+            rendering: contentStore.rendering(for: entry),
+            practiceItems: contentStore.practiceItems(for: entry),
+            generationState: contentStore.generationState(for: entry),
+            sourceEntryIsStale: contentStore.sourceEntryIsStale(for: entry),
+            onGenerateLearningMaterial: {
+                Task {
+                    await contentStore.generateLearningMaterial(
+                        for: entry,
+                        languageSpace: languageSpace
+                    )
+                }
+            },
+            onCancelLearningMaterialGeneration: {
+                Task {
+                    await contentStore.cancelLearningMaterialGeneration(for: entry)
+                }
+            },
+            onUpdateEntryBody: { body in
+                try contentStore.updateEntryBody(entryID: entry.id, body: body)
+            },
+            onUpdateLearningText: { materialID, learningText in
+                Task {
+                    await contentStore.updateLearningText(
+                        materialID: materialID,
+                        entryID: entry.id,
+                        learningText: learningText
+                    )
+                }
+            },
+            onAnalyzeCurrentLearningText: {
+                Task {
+                    await contentStore.analyzeCurrentLearningText(
+                        for: entry,
+                        languageSpace: languageSpace
+                    )
+                }
+            },
+            onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
+            onPractice: { onRoute(.practice(entry.id)) }
+        )
+        .padding(26)
+        .frame(maxWidth: 820, alignment: .leading)
     }
 
     @ViewBuilder

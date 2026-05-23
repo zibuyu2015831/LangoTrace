@@ -68,18 +68,7 @@ struct MacWorkspaceContentView: View {
     private var todayContent: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let selectedEntry {
-                EntryDetailView(
-                    languageSpace: languageSpace,
-                    entry: selectedEntry,
-                    rendering: selectedRendering,
-                    practiceItems: contentStore.practiceItems(for: selectedEntry),
-                    sourceEntryIsStale: contentStore.sourceEntryIsStale(for: selectedEntry),
-                    onUpdateEntryBody: { body in
-                        try contentStore.updateEntryBody(entryID: selectedEntry.id, body: body)
-                    },
-                    onGenerateLocalPreview: { contentStore.generateLocalPreview(for: selectedEntry) },
-                    onPractice: { onRoute(.practice(selectedEntry.id)) }
-                )
+                entryDetailView(for: selectedEntry)
             } else {
                 LocalizedCompactPanel(
                     titleKey: "mac.today.empty.title",
@@ -198,18 +187,7 @@ struct MacWorkspaceContentView: View {
     @ViewBuilder
     private func entryDetail(entryID: String) -> some View {
         if let entry = entries.first(where: { $0.id == entryID }) {
-            EntryDetailView(
-                languageSpace: languageSpace,
-                entry: entry,
-                rendering: contentStore.rendering(for: entry),
-                practiceItems: contentStore.practiceItems(for: entry),
-                sourceEntryIsStale: contentStore.sourceEntryIsStale(for: entry),
-                onUpdateEntryBody: { body in
-                    try contentStore.updateEntryBody(entryID: entry.id, body: body)
-                },
-                onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
-                onPractice: { onRoute(.practice(entry.id)) }
-            )
+            entryDetailView(for: entry)
         } else {
             LocalizedCompactPanel(
                 titleKey: "mac.entryMissing.title",
@@ -217,6 +195,52 @@ struct MacWorkspaceContentView: View {
                 systemImage: "exclamationmark.circle"
             )
         }
+    }
+
+    private func entryDetailView(for entry: LearningEntry) -> some View {
+        EntryDetailView(
+            languageSpace: languageSpace,
+            entry: entry,
+            rendering: contentStore.rendering(for: entry),
+            practiceItems: contentStore.practiceItems(for: entry),
+            generationState: contentStore.generationState(for: entry),
+            sourceEntryIsStale: contentStore.sourceEntryIsStale(for: entry),
+            onGenerateLearningMaterial: {
+                Task {
+                    await contentStore.generateLearningMaterial(
+                        for: entry,
+                        languageSpace: languageSpace
+                    )
+                }
+            },
+            onCancelLearningMaterialGeneration: {
+                Task {
+                    await contentStore.cancelLearningMaterialGeneration(for: entry)
+                }
+            },
+            onUpdateEntryBody: { body in
+                try contentStore.updateEntryBody(entryID: entry.id, body: body)
+            },
+            onUpdateLearningText: { materialID, learningText in
+                Task {
+                    await contentStore.updateLearningText(
+                        materialID: materialID,
+                        entryID: entry.id,
+                        learningText: learningText
+                    )
+                }
+            },
+            onAnalyzeCurrentLearningText: {
+                Task {
+                    await contentStore.analyzeCurrentLearningText(
+                        for: entry,
+                        languageSpace: languageSpace
+                    )
+                }
+            },
+            onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
+            onPractice: { onRoute(.practice(entry.id)) }
+        )
     }
 
     @ViewBuilder

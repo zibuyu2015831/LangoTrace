@@ -50,8 +50,8 @@ struct PhoneIOSConvergenceTests {
         #expect(!supportingViews.contains("entryDetail.practiceEntry.subtitle"))
     }
 
-    @Test("iPhone detail owns real generation entry while iPad and Mac stay unconnected")
-    func iPhoneDetailOwnsRealGenerationEntry() throws {
+    @Test("three platform detail routes own real generation and analysis actions")
+    func threePlatformDetailRoutesOwnRealGenerationAndAnalysisActions() throws {
         let phoneMainView = try String(contentsOf: sourceFileURL(named: "PhoneMainView.swift"), encoding: .utf8)
         let supportingViews = try String(
             contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
@@ -67,8 +67,22 @@ struct PhoneIOSConvergenceTests {
         #expect(phoneMainView.contains("contentStore.generateLearningMaterial"))
         #expect(supportingViews.contains("entry.rendering.generateLearningMaterial.title"))
         #expect(supportingViews.contains("entry.rendering.generateLearningMaterial.summary"))
-        #expect(!padSections.contains("generateLearningMaterial"))
-        #expect(!macWorkspace.contains("generateLearningMaterial"))
+        #expect(padSections.contains("onGenerateLearningMaterial"))
+        #expect(padSections.contains("contentStore.generateLearningMaterial"))
+        #expect(padSections.contains("onCancelLearningMaterialGeneration"))
+        #expect(padSections.contains("contentStore.cancelLearningMaterialGeneration"))
+        #expect(padSections.contains("onUpdateLearningText"))
+        #expect(padSections.contains("contentStore.updateLearningText"))
+        #expect(padSections.contains("onAnalyzeCurrentLearningText"))
+        #expect(padSections.contains("contentStore.analyzeCurrentLearningText"))
+        #expect(macWorkspace.contains("onGenerateLearningMaterial"))
+        #expect(macWorkspace.contains("contentStore.generateLearningMaterial"))
+        #expect(macWorkspace.contains("onCancelLearningMaterialGeneration"))
+        #expect(macWorkspace.contains("contentStore.cancelLearningMaterialGeneration"))
+        #expect(macWorkspace.contains("onUpdateLearningText"))
+        #expect(macWorkspace.contains("contentStore.updateLearningText"))
+        #expect(macWorkspace.contains("onAnalyzeCurrentLearningText"))
+        #expect(macWorkspace.contains("contentStore.analyzeCurrentLearningText"))
     }
 
     @Test("iPhone detail supports editable learning text and reanalysis")
