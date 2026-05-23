@@ -2,7 +2,7 @@
 
 状态：Accepted
 
-适用阶段：TTS Provider 配置、语音生成测试、逐句播放、音频试听、后续音频缓存与播放服务接入。
+适用阶段：TTS Provider 配置、语音生成测试、逐句播放、音频试听、本地媒体派生资产与播放服务接入。
 
 ## 1. 适用范围
 
@@ -38,7 +38,7 @@ TTS 是“用生活记录学习语言”闭环中的辅助能力，目的是让�
 
 - UI 不直接创建 TTS `URLRequest`、拼接 Authorization header、读取 Keychain、解析 Provider 原始错误或管理音频播放生命周期。
 - TTS Provider 网络请求和 validation event 归 AI / Provider 服务层。
-- 音频解码、试听、播放状态和后续 AudioSession 语义归 Speech 模块或明确的音频 helper 层。
+- 音频解码、设置页样例试听、播放状态和后续 AudioSession 语义归 Speech 模块；AI Provider 层只能通过 Core 音频校验协议使用 Speech 注入的能力，不得直接依赖 Speech concrete package。
 - `.tts` endpoint 只保存 Provider、Base URL、model、credential、adapter 等 endpoint 级信息。
 - voice、format、speed、style、instructions 和测试状态按 `endpoint_id + language_code` 保存为 voice profile，不得绑定为 endpoint 全局单行 voice。
 - voice profile 必须同时保存当前配置 fingerprint 和最近一次成功测试的 fingerprint。只保存一个 fingerprint 无法区分“当前配置值”与“上次通过测试的配置值”，不得作为逐句播放可用性依据。
@@ -47,6 +47,9 @@ TTS 是“用生活记录学习语言”闭环中的辅助能力，目的是让�
 - 设置页保持单一主测试入口；语音生成作为同一 capability result panel 中的一行结果，不新增一套独立主测试流程。
 - 学习页只有用户显式点击某句播放时，才能发送该句目标语言文本给已配置 TTS Provider。
 - 页面展示、滚动、进入详情、保存记录、生成学习材料完成、切换句子和批量预生成不得自动触发 TTS 请求。
+- 逐句播放生成的 TTS 音频必须通过本地媒体派生资产基础设施管理，不得写入 SwiftUI 私有状态、临时目录、不可索引文件名或 UI 层 ad hoc 缓存。
+- TTS 音频 metadata 必须绑定 derivation key、文本 hash、目标语言、provider profile、endpoint、adapter kind / version、model、voice、format、参数 hash、configuration fingerprint、文件相对路径、byte size、duration、created / last accessed、失效和清理策略。
+- 第一阶段 TTS 音频默认 `localOnly`、excluded from system backup、excluded by default from export；未来同步、导出、备份或附件化必须单独设计 manifest、加密、删除传播和恢复策略。
 - TTS 请求日志、diagnostic event 和 validation event 不得记录测试文本、用户句子、完整请求体、完整响应体、audio bytes、API Key、Authorization header、完整 Keychain account 或自定义敏感 header。
 
 ## 4. 第一阶段 Provider 边界
@@ -180,7 +183,7 @@ TTS probe 必须按当前语言空间的目标语言选择固定测试文本。�
 - endpoint metadata 至少包含 endpoint id、endpoint purpose、provider preset id、model name、configuration fingerprint。
 - 结果面板不得把 text endpoint 的 model name 当作 TTS row 的 model name。
 
-如果为降低改动选择扩展 `AIProviderConfigurationProbeResult`，也必须满足上述 endpoint metadata 要求。
+如果选择扩展 `AIProviderConfigurationProbeResult`，也必须满足上述 endpoint metadata 要求。
 
 当前代码中的 `AIProviderDraftProbeSnapshot` 和 `AIProviderConfigurationProbeResult` 仍是单 endpoint 形态。接入 TTS 前必须先演进为 profile-level snapshot / result，或在兼容扩展中达到同等语义；不得把 TTS row 的 Provider、model、duration、error category 或 validation event 复用 text endpoint 的字段。
 
@@ -236,6 +239,7 @@ TTS saved probe 不得调用会覆盖 profile 全局最近验证摘要的路径�
 - 上次 TTS 测试成功。
 - 当前配置 fingerprint 与测试成功时一致。
 - 当前 App 版本仍支持该 TTS adapter。
+- 本地媒体派生资产基础设施可用，能查询、写入、解码验证、失效和清理 TTS audio artifact。
 
 `requiresRetest` 必须在以下情况出现：
 
@@ -291,7 +295,7 @@ TTS probe 和后续单句生成还必须设置资源边界：
 
 - request timeout 必须来自 endpoint 配置或安全默认值。
 - response body 必须有最大字节数限制；超过限制按 `invalidAudioResponse` 或等价稳定错误分类处理。
-- audio bytes 只允许短生命周期持有，除非另有音频缓存方案。
+- 设置页 TTS probe 的 preview audio 只允许短生命周期持有，并且只能经 Speech seam 试听；真实逐句播放音频必须写入已定义的本地媒体派生资产基础设施后再复用。
 - 同一 `endpoint_id + language_code` 同一时刻只能有一个 active TTS probe 或 preview 生成；重复点击应取消前一个 operation 或复用当前 in-flight 状态。
 - 用户取消、页面关闭或 profile 切换必须取消未完成 probe，并且 cancelled 结果不得写入 validation event 或可播放状态。
 
@@ -304,7 +308,22 @@ UI -> AIProviderSettingsActions -> AppEnvironment
 AppEnvironment -> AIProviderConfigurationService
 AIProviderConfigurationService -> TTSProviderAdapter for network
 AIProviderConfigurationService -> GRDB repository for validation metadata
+Core TTSAudioValidationService protocol -> injected Speech implementation
 SpeechService / TTSAudioValidator -> audio metadata, decode validation, preview semantics
+```
+
+逐句播放期推荐边界：
+
+```text
+UI -> SentenceAudioPlaybackActions
+SentenceAudioPlaybackActions -> SentenceAudioPlaybackCoordinator
+SentenceAudioPlaybackCoordinator -> TTS availability service
+SentenceAudioPlaybackCoordinator -> AI TTS generation service
+SentenceAudioPlaybackCoordinator -> Data LocalMediaArtifactStore
+SentenceAudioPlaybackCoordinator -> Speech playback service
+Data LocalMediaArtifactStore -> GRDB media artifact metadata repository
+Data LocalMediaArtifactStore -> Application Support media artifact file store
+Speech playback service -> audio decode / playback lifecycle
 ```
 
 禁止：
@@ -312,8 +331,10 @@ SpeechService / TTSAudioValidator -> audio metadata, decode validation, preview 
 - SwiftUI View 直接调用 Provider SDK。
 - SwiftUI View 直接读取 Keychain。
 - SwiftUI View 直接解析音频 bytes。
+- SwiftUI View 直接读写 TTS 音频文件路径或 SQLite media artifact metadata。
 - AI package 持有长期播放状态或 AVAudioPlayer 生命周期。
 - Speech package 直接读取 Provider secret 或拼 Provider HTTP request。
+- Data package 直接发起 Provider 请求或持有 AVAudioPlayer 生命周期。
 
 ## 11. 后续 Provider 扩展规则
 
@@ -342,6 +363,7 @@ Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu 和
 - draft probe 不写 Keychain、SQLite 或 validation event。
 - 日志和 validation event 不包含测试文本、用户句子、请求体、响应体、audio bytes 和密钥。
 - TTS response 超过大小限制、空音频、非音频 bytes、取消和超时都返回稳定错误分类。
+- TTS audio artifact hit / miss / invalidated、原子写入、metadata 文件不一致恢复、LRU 或容量清理、policy 默认值、日志禁区和重复点击 in-flight 复用。
 
 手动验证至少覆盖：
 
@@ -357,7 +379,7 @@ Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu 和
 - Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu、SiliconFlow 接入。
 - 本地 Apple `AVSpeechSynthesizer` 或第三方本地 TTS Provider。
 - 流式 TTS 播放。
-- 音频缓存、过期清理和离线播放。
+- TTS 音频跨设备同步、默认导出、可恢复备份和附件化。
 - 用量估算和费用提示。
 
 这些扩展如果改变隐私边界、同步边界、存储边界或商业模式，应先更新 spec 或 ADR。
@@ -366,3 +388,5 @@ Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu 和
 
 - 2026-05-23：创建第一版 TTS Provider 配置、测试与播放前置规范。原因：语音模型配置与逐句播放前置方案已经跨 AI Provider、Data、Speech、隐私、诊断和设置页交互，必须从 active plan 提升为长期开发规范。影响范围：AI Provider 设置、TTS probe、Speech、Data schema、逐句播放、隐私披露和后续 Provider 扩展。是否需要 ADR：否，沿用 ADR-005 的本地优先和用户自带 Provider；若未来引入官方托管 TTS 或云端同步音频，再评估 ADR。
 - 2026-05-23：补充 TTS probe 必须按当前语言空间目标语言选择固定测试文本，并将测试结果绑定到当前 language code 的 voice profile。原因：用户配置的语音模型或音色可能不支持当前语言空间语种，单一全局 TTS 成功状态会误导逐句播放可用性判断。
+- 2026-05-23：补充逐句 TTS 音频必须通过本地媒体派生资产基础设施管理。原因：逐句播放方案采纳早期基础设施完整建设原则，TTS 音频不应作为临时 UI 缓存落地，而应作为本地优先、隐私敏感、可重建的派生媒体资产，为后续全文朗读、跟读录音、听写录音、音频同步和导出预留一致边界。
+- 2026-05-23：收紧 TTS 音频校验和 preview 边界。原因：早期基础设施原则要求首次落地采用长期可扩展方案；TTS 配置测试不能以 AI 侧轻量响应校验替代音频验收，必须通过 Core 音频校验协议注入 Speech 实现。设置页 preview audio 只作为短生命周期试听资源，真实逐句播放音频复用必须依赖本地媒体派生资产基础设施。

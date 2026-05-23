@@ -17,7 +17,8 @@
 - 2026-05-23：针对“是否具备实施条件”的复审结论为 `Needs Changes`。本次修订补齐与 `011` 规范的差异：双 fingerprint、第一阶段范围收紧、错误枚举落点、profile-level probe 前置、真实代码路径和测试边界。该修订不代表用户已经批准进入代码实施，任务状态仍保持 `Draft`。
 - 2026-05-23：用户补充确认语音模型测试应内置多个语言版本的固定测试文本，点击测试时根据当前语言空间的目标语言自动选择对应文本进行配音，再检查音频返回；该测试结果应绑定当前 language code，用于发现当前模型、voice 或路由不支持该目标语言的情况。
 - 2026-05-23：系统架构师复审后，用户要求立即修订本方案。本次修订明确：TTS adapter kind 的事实源为 TTS settings，不把真实 TTS adapter 强塞进现有 text/chat `AIProviderAdapterKind`；TTS validation 必须新增 endpoint / voice-profile scoped repository API，不得复用会更新 profile 全局摘要的 `recordValidationOutcome(_:)`；`008` 请求预览规则已经完成修订，后续实施只需保持一致；第一阶段必须新增 `unsupportedLanguage` 错误分类。
-- 2026-05-23：系统架构师再次复审后，用户要求立即修订本方案。本次修订明确：`LangoTraceAI` 不得直接依赖 `LangoTraceSpeech`；TTS 音频校验应通过 Core 协议 / AppEnvironment 注入 Speech 实现，或第一版只在 AI 内做不引入 AVFoundation 的轻量响应校验；Custom OpenAI-compatible 不属于第一阶段真实 TTS probe；`005` 规范已完成修订，实施阶段只需一致性检查。
+- 2026-05-23：系统架构师再次复审后，用户要求立即修订本方案。本次修订明确：`LangoTraceAI` 不得直接依赖 `LangoTraceSpeech`；TTS 音频校验应通过 Core 协议 / AppEnvironment 注入 Speech 实现；Custom OpenAI-compatible 不属于第一阶段真实 TTS probe；`005` 规范已完成修订，实施阶段只需一致性检查。后续基础设施原则复审已废弃“仅 AI 侧轻量响应校验可作为第一版音频验收”的可选路径。
+- 2026-05-23：用户补充早期开发与基础设施原则：当前项目可推翻落后设计，不为早期临时代码背历史包袱；基础设施首次实现应采用长期可扩展方案；`docs/` 是 AI 辅助开发控制面，规范可随更优设计演进；暂不实现但影响后续架构的能力必须写入开发备忘录。基于该原则，本方案再次修订：TTS 音频验收不再允许以 AI 侧轻量响应校验替代，必须建立 Core 音频校验协议、Speech 实现和 Speech package 测试 target；设置页样例试听只能经 Speech seam 处理短生命周期 preview audio；真实逐句播放前必须另行完成本地媒体派生资产基础设施 active plan。
 
 ## 2. 需求描述
 
@@ -427,10 +428,10 @@ TTS 配置测试只验证 Provider 能力，不验证真实学习内容。
 
 - TTS 配置保存、Provider adapter request building、HTTP 请求和 validation event 由 `LangoTraceAI` 承担，复用现有 `AIProviderConfigurationService` / `AIProviderSettingsActions` seam。
 - `LangoTraceAI` 不得直接 import 或依赖 `LangoTraceSpeech`。现有模块边界是 `AI -> Core`、`Speech -> Core`，App Shell 负责装配 Data / AI / Speech；TTS probe 不能为了调用音频解码而让 AI package 反向依赖 Speech package。
-- 推荐在 Core 中定义 `TTSAudioValidationService`、`TTSAudioValidationResult` 或等价协议 / value type，由 `LangoTraceSpeech` 提供 AVFoundation / 平台音频实现，再通过 `AppEnvironment` 注入 `AIProviderConfigurationService` 或 `TTSConfigurationProbeService`。这样 AI 层只知道 Core 协议和音频元数据，不知道 Speech concrete 实现。
-- 如果第一版为了降低改动在 `LangoTraceAI` 内做轻量响应校验，只允许校验 HTTP status、Content-Type、byte count、格式声明和大小上限；不得引入 AVFoundation、AVAudioPlayer、试听临时资源、播放状态或长期音频生命周期。此路径不能声称“可解码性已由 Speech 验证”，只能作为真实 Speech decode seam 前的最小响应验收。
-- 音频 bytes 的可解码性校验、试听临时资源、后续播放服务 contract 由 `LangoTraceSpeech` 承担；具体实现通过 Core 协议和 AppEnvironment 注入给 TTS probe 或后续播放服务。
-- `LangoTraceSpeech/Package.swift` 当前没有 test target；若新增音频校验或播放 contract，必须同时新增 `LangoTraceSpeechTests`。
+- 必须在 Core 中定义 `TTSAudioValidationService`、`TTSAudioValidationResult` 或等价协议 / value type，由 `LangoTraceSpeech` 提供 AVFoundation / 平台音频实现，再通过 `AppEnvironment` 注入 `AIProviderConfigurationService` 或 `TTSConfigurationProbeService`。这样 AI 层只知道 Core 协议和音频元数据，不知道 Speech concrete 实现。
+- AI adapter 可以先做 HTTP status、Content-Type、byte count、格式声明和大小上限等响应前置检查，但这些检查不能替代音频验收。TTS probe 成功必须经过 Speech 音频校验 seam；不能把“收到非空音频 bytes”当作可试听或可播放前置。
+- 音频 bytes 的可解码性校验、设置页样例试听、试听临时资源、后续播放服务 contract 由 `LangoTraceSpeech` 承担；具体实现通过 Core 协议和 AppEnvironment 注入给 TTS probe 或后续播放服务。
+- `LangoTraceSpeech/Package.swift` 当前没有 test target；本任务必须新增 `LangoTraceSpeechTests`，并覆盖音频校验、错误归一化和 preview audio 不落持久缓存目录的边界。
 
 ### 8.9 设置页保持单一主测试入口
 
@@ -642,8 +643,8 @@ public protocol TTSConfigurationProbeService: Sendable {
 - status。
 - error category。
 - duration。
-- audio metadata：format、byte count、duration seconds、sample rate。若当前实现只做 AI 侧轻量响应校验，`duration seconds` / `sample rate` 可以为空或标记为未解码；若已注入 Speech audio validator，则必须来自实际解码结果。
-- 可选 preview audio 临时文件或短生命周期 bytes 引用；该能力必须由 Speech seam 或 AppEnvironment 装配，不由 SwiftUI View 或 AI package 管理长期播放生命周期。
+- audio metadata：format、byte count、duration seconds、sample rate。`duration seconds` / `sample rate` 必须来自 Speech audio validator 的实际解码结果；AI adapter 的 HTTP / Content-Type / byte count 前置检查不能替代音频 metadata 验收。
+- 可选 preview audio 临时文件或短生命周期 bytes 引用；该能力必须由 Speech seam 或 AppEnvironment 装配，不由 SwiftUI View 或 AI package 管理长期播放生命周期。设置页 TTS probe 产生的 preview audio 只用于结果面板样例试听，不写入持久媒体资产表，不进入缓存目录，不形成逐句播放可复用音频。
 
 实施约束：
 
@@ -1071,8 +1072,8 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 - Provider quota 不足时返回 quotaExceeded。
 - 非音频 Content-Type 返回 invalidAudioResponse。
 - 空 bytes 返回 invalidAudioResponse。
-- 若 TTS probe 已注入 Core `TTSAudioValidationService` 并由 Speech 实现解码，不可解码 bytes 返回 audioDecodeFailed。
-- 若第一版 AI 侧只实现轻量响应校验，AI package 测试只覆盖非音频 Content-Type、空 bytes、大小上限和格式声明不匹配；不可解码 bytes 必须由 Speech package 测试覆盖，不能在 AI package 中引入 AVFoundation 来满足该用例。
+- TTS probe 必须注入 Core `TTSAudioValidationService` 并由 Speech 实现解码；不可解码 bytes 返回 audioDecodeFailed。
+- AI package 测试只覆盖 adapter request、Provider 错误映射、非音频 Content-Type、空 bytes、大小上限和格式声明不匹配；不可解码 bytes 必须由 Speech package 测试覆盖，不能在 AI package 中引入 AVFoundation 来满足该用例。
 - draft probe 不写 validation event。
 - saved probe 成功写 synthetic_test validation event。
 
@@ -1113,7 +1114,7 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 
 ### 17.6 Speech package 测试
 
-若本任务新增音频解码或试听 seam，需要先给 `Packages/LangoTraceSpeech/Package.swift` 添加 test target，再新增：
+本任务必须先给 `Packages/LangoTraceSpeech/Package.swift` 添加 test target，再新增：
 
 - `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/TTSAudioValidationTests.swift`
 
@@ -1124,6 +1125,7 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 - 支持格式返回稳定 metadata。
 - decode failure 不抛底层 AVFoundation 错误字符串给 UI。
 - 试听临时资源不进入持久缓存目录。
+- 设置页 preview audio 只作为短生命周期资源存在，不写入 `LocalMediaArtifactStore` 或持久音频缓存。
 
 ## 18. 实施步骤
 
@@ -1164,11 +1166,11 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 
 1. 新增 `TTSProviderAdapter` 协议。
 2. 先实现 OpenAI adapter，打通 request、response、audio metadata、draft / saved profile probe 和结果面板。
-3. 新增 Core audio validation 协议和 Speech package audio validation / preview seam；如需 AVFoundation 解码，必须在 Speech 模块实现，并由 AppEnvironment 注入给 TTS probe。AI package 不得直接依赖 Speech package。
+3. 新增 Core audio validation 协议、Speech package audio validation / preview seam 和 `LangoTraceSpeechTests`；AVFoundation 解码必须在 Speech 模块实现，并由 AppEnvironment 注入给 TTS probe。AI package 不得直接依赖 Speech package。
 4. 复用阶段一建立的 profile-level result，确保 speech synthesis row 使用 TTS endpoint metadata，不复用 text endpoint 的 Provider / model。
 5. 在 OpenAI 路径稳定后实现 OpenRouter adapter，并保持 model-dependent 状态和手动 model / voice 配置路径。
 6. 接入 draft / saved profile probe。
-7. 更新结果面板，语音生成从 placeholder 变成真实结果。
+7. 更新结果面板，语音生成从 placeholder 变成真实结果；成功 row 的试听入口必须通过 Speech seam 播放短生命周期 preview audio，UI 不接触音频 bytes、文件路径、AVFoundation 或 Provider response。
 8. OpenAI + OpenRouter 路径验证稳定后，再以独立子阶段接入 Groq、Custom OpenAI-compatible。
 
 ### 阶段五：隐私与文档同步
@@ -1180,12 +1182,13 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 5. 更新 `docs/spec/ui-design/mvp-ui-flow-and-design-system.md` 中“没有真实 TTS”的旧事实。
 6. 后续 Provider、音频缓存、流式播放、本地 TTS、用量估算和音频同步等暂不实施项，实施前必须检查 `docs/architecture/notes/2026-05-23-tts-provider-extension-notes.md`。
 
-### 阶段六：为逐句播放提供前置接口
+### 阶段六：为逐句播放提供配置可用性前置接口
 
 1. 在 `LangoTraceSpeech` 或 AppEnvironment seam 中暴露 TTS 可用性读取接口。
 2. 保证后续记录详情播放按钮能判断 `available / notConfigured / requiresRetest / credentialMissing`。
 3. 可用性读取必须按 language code 命中 voice profile。
 4. 不在本任务中接入记录详情播放 UI。
+5. 不在本任务中实现持久 TTS 音频缓存、`LocalMediaArtifactStore`、播放协调器或媒体资产清理。真实逐句播放进入实施前，必须另行创建或完成本地媒体派生资产基础设施 active plan，至少覆盖 `media_artifacts` metadata、Application Support 文件目录、原子写入、解码验证、失效、清理、backup / sync / export policy 和日志禁区。
 
 ## 19. 复查方法
 
@@ -1194,6 +1197,7 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 - SwiftUI View 是否仍不直接创建 `URLRequest`、读取 Keychain、拼接 Authorization header 或解析音频。
 - TTS network adapter 是否只在 AI / Provider service 层，音频解码 / 试听 / 播放是否只在 Speech 层或明确的音频 helper 层。
 - TTS settings 是否通过 repository 管理，不散落在 UI state。
+- 设置页 preview audio 是否只经 Speech seam 短生命周期播放，不写入持久媒体资产或 SwiftUI 私有文件路径。
 - Provider 专属参数是否有 allowlist。
 - draft probe 是否不写 Keychain / SQLite / validation event。
 - saved probe 是否只写非敏感 validation event。
@@ -1201,6 +1205,7 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 - Provider 矩阵是否与官方资料一致，并在测试中锁定。
 - 语音生成失败是否不会污染文本模型的 profile 全局最近验证状态。
 - 多语言空间是否不会互相覆盖 voice / 测试状态。
+- 本任务是否没有偷做持久音频缓存；若实现逐句播放或缓存，是否已经先完成本地媒体派生资产基础设施方案。
 
 四维切片：
 
@@ -1257,6 +1262,7 @@ git status --short
 - `docs/spec/006-interface-localization-and-language-boundaries.md`
 - `docs/spec/007-data-storage-migration-export-and-attachments.md`
 - `docs/architecture/notes/2026-05-23-tts-provider-extension-notes.md`
+- `docs/architecture/notes/2026-05-23-local-media-artifact-extension-notes.md`
 - `docs/spec/ui-design/mvp-ui-flow-and-design-system.md`
 - `docs/platform-page-inventory.md`
 - `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`
@@ -1271,6 +1277,7 @@ git status --short
 - 设置页能清楚披露单句播放会发送目标语言文本给 TTS Provider。
 - 后续播放服务能读取 `available / requiresRetest / credentialMissing` 等状态。
 - TTS 配置 fingerprint 可用于判断缓存失效。
+- 真实逐句播放所需的持久音频存储、缓存复用和清理必须由本地媒体派生资产基础设施方案提供；本方案只提供配置可用性与短生命周期 preview audio，不提供逐句播放缓存。
 - `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 已精确修订单句外部 TTS 请求预览边界，且本实现没有重新引入逐句播放前的逐次请求预览。
 
 ## 23. 完成标准
@@ -1281,11 +1288,11 @@ git status --short
 - TTS 配置包含 voice、format、speed 和必要的 Provider 专属字段。
 - 保存成功不等于可播放；测试成功才形成可播放前置状态。
 - 测试请求发送固定低敏文本，不发送用户生活记录。
-- 测试成功可试听样例音频。
+- 测试成功可通过 Speech seam 试听短生命周期样例音频；SwiftUI 不接触音频 bytes、真实文件路径、AVFoundation 或 Provider response。
 - 配置变更后状态变为需重测。
 - 结果面板中语音生成状态从占位变成真实 probe 结果。
 - 日志和 validation event 不包含敏感文本、请求体、响应体、audio bytes 或密钥。
-- 相关 Core / AI / Data / UI package 测试通过。
+- 相关 Core / AI / Data / Speech / UI package 测试通过。
 - `scripts/verify.sh` 通过，或记录无法运行的具体原因和剩余风险。
 
 ## 24. 剩余风险
@@ -1308,10 +1315,11 @@ git status --short
 - 2026-05-23：根据用户补充要求修订语言测试边界。TTS probe 必须根据当前语言空间目标语言选择内置固定测试文本，并把结果绑定到当前 language code 的 voice profile；模型、voice 或路由不支持当前语言时应返回稳定错误分类，避免把其他语言的成功测试误当成当前语言可播放。
 - 2026-05-23：根据系统架构师复审继续修订实施级歧义。明确 TTS adapter kind 事实源、TTS validation repository scoped API、`008` 已修订事实、`unsupportedLanguage` 第一阶段错误分类，以及没有 profile-level endpoint metadata 不得先接 OpenAI / OpenRouter TTS 网络请求。
 - 2026-05-23：根据系统架构师再次复审核准实施边界。补充 AI / Speech 依赖方向约束：`LangoTraceAI` 不直接依赖 `LangoTraceSpeech`，音频 decode / preview 通过 Core 协议与 AppEnvironment 注入 Speech 实现；统一 Custom OpenAI-compatible 为后续同构扩展，不纳入第一阶段真实 TTS probe；修正 `005` 为已修订后的实施一致性检查。
+- 2026-05-23：根据早期开发与基础设施优先原则再次完善方案。删除“AI 侧轻量响应校验可作为第一版音频验收”的可选路径，强制建立 Core 音频校验协议、Speech 实现和 Speech package test target；明确设置页 preview audio 只作为短生命周期试听资源，不写入持久媒体资产；真实逐句播放前必须另行完成本地媒体派生资产基础设施 active plan。
 
 ## 26. 系统架构复审结论
 
-状态：Approved With Notes。文档已根据 2026-05-23 实施条件复审完成修订；任务状态仍为 `Draft`，代码实施仍需用户明确批准进入 `User Approved`。
+状态：Approved With Notes。文档已根据 2026-05-23 早期开发与基础设施优先原则完成修订；任务状态仍为 `Draft`，代码实施仍需用户明确批准进入 `User Approved`。
 
 ### 26.1 代码现状准确性
 
@@ -1349,7 +1357,7 @@ git status --short
 
 - 推荐新增 `AIProviderProfileProbeResult`；如选择扩展现有 result，也必须让 capability row 持有 endpoint metadata。
 - TTS adapter kind 第一阶段以 `TTSProviderAdapterKind` / `ai_provider_tts_settings.tts_adapter_kind` 为真实请求 adapter 事实源；现有 text/chat `AIProviderAdapterKind` 不直接驱动 TTS request builder。
-- TTS audio validation / preview seam 进入 `LangoTraceSpeech`，并新增 Speech package test target；AI package 不直接依赖 Speech package，音频校验通过 Core 协议 / AppEnvironment 注入。
+- TTS audio validation / preview seam 强制进入 `LangoTraceSpeech`，并新增 Speech package test target；AI package 不直接依赖 Speech package，音频校验通过 Core 协议 / AppEnvironment 注入。AI 侧轻量响应检查只能作为 adapter 前置检查，不能替代音频验收。
 - voice profile 必须是 language code 级。
 - TTS 测试失败必须与 profile 全局验证摘要隔离，并通过新增 repository scoped API 写 validation event 与 voice profile 状态。
 - 第一阶段 Provider 范围为 OpenAI + OpenRouter。
@@ -1420,13 +1428,14 @@ SpeechService / TTSAudioValidationService -> audio metadata / preview semantics
 
 ### 26.6 已定推荐方案与实施前门槛
 
-- Result model：推荐新增 `AIProviderProfileProbeResult`；若为降低改动选择扩展 `AIProviderConfigurationProbeResult`，也必须让 capability result 持有 endpoint metadata。
+- Result model：推荐新增 `AIProviderProfileProbeResult`；若选择扩展 `AIProviderConfigurationProbeResult`，也必须让 capability result 持有 endpoint metadata。
 - Adapter kind：真实 TTS request adapter 使用 `TTSProviderAdapterKind` / `ai_provider_tts_settings.tts_adapter_kind`；除非同步完成 Core/Data/UI 的 adapter enum 扩展和迁移，否则不得把 TTS request builder 绑定到现有 text/chat `AIProviderAdapterKind`。
 - Data schema：采用 endpoint settings + language voice profile，不采用 endpoint 单行 voice。
 - Data fingerprint：voice profile 必须同时保存当前 `configuration_fingerprint` 和 `last_successful_configuration_fingerprint`；只有最近成功 fingerprint 与当前 fingerprint 一致，才允许逐句播放判定为 available。
 - Validation persistence：TTS 结果不复用会覆盖 profile 全局摘要的 `recordValidationOutcome(_:)`；必须新增 endpoint / voice-profile scoped repository API。
 - Speech package：新增测试 target，音频 validation / preview seam 归 Speech；AI package 不直接依赖 Speech package，必须通过 Core 协议 / AppEnvironment 注入使用音频校验。
 - 第一阶段 Provider：OpenAI + OpenRouter。OpenRouter 维持 model-dependent，以当前 model + voice + route 的真实测试结果作为可用依据；Custom OpenAI-compatible 不进入第一阶段真实 TTS probe。
+- 本任务只提供 TTS 配置可用性、真实 probe、Speech seam 样例试听和逐句播放可用性读取；持久 TTS 音频缓存、`LocalMediaArtifactStore`、播放协调器和媒体资产清理必须在真实逐句播放实施前通过单独 active plan 完成。
 - `docs/spec/005-ai-provider-prompt-and-privacy.md` 的真实 TTS probe 边界已完成修订；实施阶段只需检查实现是否仍遵守该边界，如边界改变再更新。
 - `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 的外部 TTS 请求预览旧规则已完成修订；实施阶段只需检查实现是否仍遵守该边界。
 
@@ -1436,4 +1445,4 @@ SpeechService / TTSAudioValidationService -> audio metadata / preview semantics
 
 - 文档层面：关键架构、第一阶段范围、数据模型、测试路径和边界问题已补齐，可作为实施依据。
 - 流程层面：方案状态仍为 `Draft`；根据项目规则，必须由用户明确确认后改为 `User Approved`，再进入 TDD 实施。
-- 工程层面：实施应先写失败测试，再按阶段一到阶段六推进；不得跳过 profile-level probe contract 直接接 OpenAI TTS 网络请求。
+- 工程层面：实施应先写失败测试，再按阶段一到阶段六推进；不得跳过 profile-level probe contract 直接接 OpenAI TTS 网络请求；不得跳过 Core / Speech 音频校验 seam；不得在本任务中偷做持久音频缓存或逐句播放协调器。

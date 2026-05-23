@@ -96,9 +96,9 @@ voice list 失败不得阻断手动输入 voice id。
 
 ### 4.4 音频缓存与离线播放
 
-逐句播放第一版可以直接生成并播放或只缓存短生命周期样例音频。持久缓存需要单独任务方案。
+逐句播放第一版不得再把生成音频作为临时 UI 缓存或不可索引文件处理。真实逐句播放进入实施前，必须先完成本地媒体派生资产基础设施方案，使 TTS 音频通过统一 metadata、App 管理文件目录、原子写入、解码验证、失效和清理策略落地。设置页 TTS 配置测试可以产生短生命周期 preview audio，但该 preview 不写入 `LocalMediaArtifactStore`，也不能作为逐句播放可复用缓存。
 
-持久缓存前必须决策：
+本地媒体派生资产基础设施必须决策：
 
 - cache key 是否包含 Provider、model、voice profile fingerprint、language code、text hash、format 和 App schema version。
 - audio bytes 存放位置、文件命名、大小限制和清理策略。
