@@ -3,6 +3,8 @@ import LangoTraceAI
 import LangoTraceCore
 import Testing
 
+// swiftlint:disable file_length
+
 @Test("Configuration service loads non secret default profile through Core repository")
 func configurationServiceLoadsNonSecretDefaultProfile() async throws {
     let repository = StubAIProviderConfigurationRepository(
@@ -144,6 +146,31 @@ func configurationServiceSavesProfileWithGeneratedCredentialMetadata() async thr
     #expect(await repository.savedProfile?.id == "id-1")
 }
 
+@Test("Configuration service materializes TTS settings with generated endpoint identity")
+func configurationServiceMaterializesTTSSettingsWithGeneratedEndpointIdentity() async throws {
+    let repository = StubAIProviderConfigurationRepository(profile: nil)
+    let store = TrackingAIProviderCredentialStore()
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        clock: { Date(timeIntervalSince1970: 100) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let profile = try await service.saveDefaultProfile(ttsSaveInput())
+
+    let ttsEndpoint = try #require(profile.endpoints.first { $0.purpose == .tts })
+    #expect(ttsEndpoint.id == "id-4")
+    #expect(await repository.savedTTSSettings?.endpointID == "id-4")
+    #expect(await repository.savedTTSSettings?.adapterKind == .openAIAudioSpeech)
+    let voice = try #require(await repository.savedTTSVoiceProfiles.first)
+    #expect(voice.endpointID == "id-4")
+    #expect(voice.languageCode == "en")
+    #expect(voice.voiceID == "coral")
+    #expect(voice.outputFormat == .mp3)
+    #expect(voice.playbackReadiness == .notTested)
+}
+
 @Test("Configuration service validates saved credentials through Keychain without network")
 func configurationServiceValidatesSavedCredentialsThroughKeychainWithoutNetwork() async throws {
     let repository = try StubAIProviderConfigurationRepository(profile: savedProfile())
@@ -241,6 +268,133 @@ func configurationServiceSavedConfigurationCanIncludeImageUnderstandingProbe() a
     #expect(await repository.recordedValidationOutcomes.first?.status == .succeeded)
     let recordedValidationOutcomes = await repository.recordedValidationOutcomes
     #expect(!String(describing: recordedValidationOutcomes).contains("data:image"))
+}
+
+@Test("Configuration service tests saved TTS voice profile without updating text validation outcome")
+func configurationServiceTestsSavedTTSVoiceProfileWithoutUpdatingTextValidationOutcome() async throws {
+    let savedTTS = try savedProfileWithTTS()
+    let repository = StubAIProviderConfigurationRepository(
+        profile: savedTTS.profile,
+        ttsSettings: savedTTS.settings,
+        ttsVoiceProfile: savedTTS.voiceProfile
+    )
+    let store = TrackingAIProviderCredentialStore()
+    let textHTTPClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"OK"}]}]}"#),
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"{\"ok\":true}"}]}]}"#),
+        .json(openAIOutputTextJSON(languageSupportSampleJSON())),
+    ])
+    let ttsHTTPClient = CapturingProbeHTTPClient(
+        responses: [.http(statusCode: 200, body: Data([0x49, 0x44, 0x33]), contentType: "audio/mpeg")]
+    )
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: AIProviderConfigurationProbeService(httpClient: textHTTPClient),
+        ttsConfigurationProbeService: TTSConfigurationProbeService(
+            httpClient: ttsHTTPClient,
+            audioValidationService: AcceptingTTSAudioValidationService()
+        ),
+        clock: { Date(timeIntervalSince1970: 250) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let result = try await service.testDefaultConfiguration(
+        languageContext: AIProviderProbeLanguageContext(languageCode: "en"),
+        operationID: DiagnosticOperationID(rawValue: "operation-saved-tts-probe")
+    )
+
+    #expect(result.overallStatus == .succeeded)
+    let speechResult = try #require(result.capabilities.first { $0.capability == .speechSynthesis })
+    #expect(speechResult.status == .succeeded)
+    #expect(speechResult.endpointMetadata?.endpointID == "endpoint-tts")
+    #expect(await repository.recordedValidationOutcomes.count == 1)
+    #expect(await repository.recordedTTSVoiceProfileOutcomes.count == 1)
+    #expect(await repository.recordedTTSVoiceProfileOutcomes.first?.endpointID == "endpoint-tts")
+    #expect(await repository.recordedTTSOutcomeLanguageCodes == ["en"])
+}
+
+@Test("Configuration service reports playable TTS only for matching successful fingerprint and language")
+func configurationServiceReportsPlayableTTSOnlyForMatchingSuccessfulFingerprintAndLanguage() async throws {
+    let savedTTS = try savedProfileWithTTS(lastTestStatus: .succeeded, markSuccessfulFingerprint: true)
+    let repository = StubAIProviderConfigurationRepository(
+        profile: savedTTS.profile,
+        ttsSettings: savedTTS.settings,
+        ttsVoiceProfile: savedTTS.voiceProfile
+    )
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: TrackingAIProviderCredentialStore()
+    )
+
+    let available = try await service.loadDefaultPlayableTTSConfiguration(languageCode: "en")
+    guard case let .available(configuration) = available else {
+        Issue.record("Expected available playable TTS configuration")
+        return
+    }
+    #expect(configuration.endpoint.id == "endpoint-tts")
+    #expect(configuration.voiceProfile.languageCode == "en")
+
+    let missingLanguage = try await service.loadDefaultPlayableTTSConfiguration(languageCode: "ja")
+    #expect(missingLanguage == .notConfigured)
+}
+
+@Test("Configuration service reports TTS requires retest when fingerprint changed")
+func configurationServiceReportsTTSRequiresRetestWhenFingerprintChanged() async throws {
+    let savedTTS = try savedProfileWithTTS(lastTestStatus: .succeeded, markSuccessfulFingerprint: false)
+    let repository = StubAIProviderConfigurationRepository(
+        profile: savedTTS.profile,
+        ttsSettings: savedTTS.settings,
+        ttsVoiceProfile: savedTTS.voiceProfile
+    )
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: TrackingAIProviderCredentialStore()
+    )
+
+    let status = try await service.loadDefaultPlayableTTSConfiguration(languageCode: "en")
+
+    #expect(status == .requiresRetest)
+}
+
+@Test("Configuration service reports failed playable TTS with last probe error category")
+func configurationServiceReportsFailedPlayableTTSWithLastProbeErrorCategory() async throws {
+    let savedTTS = try savedProfileWithTTS(
+        lastTestStatus: .failed,
+        lastTestErrorCategory: .invalidVoice,
+        markSuccessfulFingerprint: false
+    )
+    let repository = StubAIProviderConfigurationRepository(
+        profile: savedTTS.profile,
+        ttsSettings: savedTTS.settings,
+        ttsVoiceProfile: savedTTS.voiceProfile
+    )
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: TrackingAIProviderCredentialStore()
+    )
+
+    let status = try await service.loadDefaultPlayableTTSConfiguration(languageCode: "en")
+
+    #expect(status == .failedLastTest(.invalidVoice))
+}
+
+@Test("Configuration service requires resolvable credential before playable TTS is available")
+func configurationServiceRequiresResolvableCredentialBeforePlayableTTSAvailable() async throws {
+    let savedTTS = try savedProfileWithTTS(lastTestStatus: .succeeded, markSuccessfulFingerprint: true)
+    let repository = StubAIProviderConfigurationRepository(
+        profile: savedTTS.profile,
+        ttsSettings: savedTTS.settings,
+        ttsVoiceProfile: savedTTS.voiceProfile
+    )
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: TrackingAIProviderCredentialStore(resolveError: AIProviderCredentialStoreError.missingCredential)
+    )
+
+    let status = try await service.loadDefaultPlayableTTSConfiguration(languageCode: "en")
+
+    #expect(status == .credentialMissing)
 }
 
 @Test("Configuration service does not persist language support failure as global profile failure")
@@ -375,10 +529,102 @@ func configurationServiceDraftConfigurationProbeDoesNotWriteKeychainOrValidation
     #expect(await repository.recordedValidationOutcomes.isEmpty)
 }
 
+@Test("Configuration service merges draft TTS probe into single result without persistence")
+func configurationServiceMergesDraftTTSProbeIntoSingleResultWithoutPersistence() async throws {
+    let repository = StubAIProviderConfigurationRepository(profile: nil)
+    let store = TrackingAIProviderCredentialStore()
+    let textHTTPClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"choices":[{"message":{"content":"OK"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"{\"ok\":true}"}}]}"#),
+    ])
+    let ttsHTTPClient = CapturingProbeHTTPClient(
+        responses: [.http(statusCode: 200, body: Data([0x49, 0x44, 0x33]), contentType: "audio/mpeg")]
+    )
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: AIProviderConfigurationProbeService(httpClient: textHTTPClient),
+        ttsConfigurationProbeService: TTSConfigurationProbeService(
+            httpClient: ttsHTTPClient,
+            audioValidationService: AcceptingTTSAudioValidationService()
+        )
+    )
+    let voiceProfile = try TTSVoiceProfile.make(
+        id: "voice-en",
+        endpointID: "draft-tts-endpoint",
+        languageCode: "en",
+        adapterKind: .openAIAudioSpeech,
+        modelName: "gpt-4o-mini-tts",
+        voiceID: "coral",
+        outputFormat: .mp3,
+        providerParameters: ["response_format": .string("mp3")]
+    )
+
+    let result = try await service.testDraftConfiguration(
+        AIProviderConfigurationProbeDraftInput(
+            endpoint: AIProviderEndpointInput(
+                id: "draft-text-endpoint",
+                profileID: "draft-profile",
+                purpose: .textGeneration,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAICompatibleChat,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-5.2",
+                credentialID: "draft-text-credential",
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+            plaintextSecret: "sk-test",
+            ttsEndpoint: AIProviderEndpointInput(
+                id: "draft-tts-endpoint",
+                profileID: "draft-profile",
+                purpose: .tts,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAICompatibleChat,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-4o-mini-tts",
+                credentialID: "draft-text-credential",
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+            ttsSettings: TTSProviderSettings(endpointID: "draft-tts-endpoint", adapterKind: .openAIAudioSpeech),
+            ttsVoiceProfile: voiceProfile,
+            ttsPlaintextSecret: "sk-test",
+            operationID: DiagnosticOperationID(rawValue: "operation-draft-tts-probe")
+        )
+    )
+
+    #expect(result.overallStatus == .succeeded)
+    #expect(result.capabilities.first { $0.capability == .speechSynthesis }?.status == .succeeded)
+    #expect(
+        result.capabilities.first { $0.capability == .speechSynthesis }?.endpointMetadata?.endpointID ==
+            "draft-tts-endpoint"
+    )
+    #expect(result.persistedValidationEventID == nil)
+    #expect(await repository.recordedValidationOutcomes.isEmpty)
+    #expect(await ttsHTTPClient.requests.count == 1)
+}
+
 private struct StubAIProviderConfigurationRepository: AIProviderConfigurationRepository {
     var profile: AIProviderConfigurationProfile?
     var saveError: (any Error)?
+    var initialTTSSettings: TTSProviderSettings?
+    var initialTTSVoiceProfile: TTSVoiceProfile?
     private let storage = RepositoryStorage()
+
+    init(
+        profile: AIProviderConfigurationProfile?,
+        saveError: (any Error)? = nil,
+        ttsSettings: TTSProviderSettings? = nil,
+        ttsVoiceProfile: TTSVoiceProfile? = nil
+    ) {
+        self.profile = profile
+        self.saveError = saveError
+        initialTTSSettings = ttsSettings
+        initialTTSVoiceProfile = ttsVoiceProfile
+    }
 
     func loadDefaultProfile() async throws -> AIProviderConfigurationProfile? {
         profile
@@ -391,9 +637,33 @@ private struct StubAIProviderConfigurationRepository: AIProviderConfigurationRep
         await storage.setSavedProfile(profile)
     }
 
+    func saveProfile(
+        _ profile: AIProviderConfigurationProfile,
+        ttsSettings: TTSProviderSettings?,
+        ttsVoiceProfiles: [TTSVoiceProfile]
+    ) async throws {
+        if let saveError {
+            throw saveError
+        }
+        await storage.setSavedProfile(profile)
+        await storage.setTTSSettings(ttsSettings, voiceProfiles: ttsVoiceProfiles)
+    }
+
     var savedProfile: AIProviderConfigurationProfile? {
         get async {
             await storage.savedProfile
+        }
+    }
+
+    var savedTTSSettings: TTSProviderSettings? {
+        get async {
+            await storage.savedTTSSettings
+        }
+    }
+
+    var savedTTSVoiceProfiles: [TTSVoiceProfile] {
+        get async {
+            await storage.savedTTSVoiceProfiles
         }
     }
 
@@ -429,16 +699,71 @@ private struct StubAIProviderConfigurationRepository: AIProviderConfigurationRep
             await storage.recordedValidationOutcomes
         }
     }
+
+    func loadTTSSettings(endpointID: AIProviderEndpointID) async throws -> TTSProviderSettings? {
+        if let saved = await storage.savedTTSSettings, saved.endpointID == endpointID {
+            return saved
+        }
+        guard initialTTSSettings?.endpointID == endpointID else {
+            return nil
+        }
+        return initialTTSSettings
+    }
+
+    func loadTTSVoiceProfile(
+        endpointID: AIProviderEndpointID,
+        languageCode: String
+    ) async throws -> TTSVoiceProfile? {
+        if let saved = await storage.savedTTSVoiceProfiles.first(where: {
+            $0.endpointID == endpointID && $0.languageCode == languageCode
+        }) {
+            return saved
+        }
+        guard initialTTSVoiceProfile?.endpointID == endpointID,
+              initialTTSVoiceProfile?.languageCode == languageCode
+        else {
+            return nil
+        }
+        return initialTTSVoiceProfile
+    }
+
+    func recordTTSVoiceProfileProbeOutcome(
+        _ event: AIProviderValidationEvent,
+        languageCode: String
+    ) async throws {
+        await storage.appendTTSVoiceProfileOutcome(event, languageCode: languageCode)
+    }
+
+    var recordedTTSVoiceProfileOutcomes: [AIProviderValidationEvent] {
+        get async {
+            await storage.recordedTTSVoiceProfileOutcomes
+        }
+    }
+
+    var recordedTTSOutcomeLanguageCodes: [String] {
+        get async {
+            await storage.recordedTTSOutcomeLanguageCodes
+        }
+    }
 }
 
 private actor RepositoryStorage {
     var savedProfile: AIProviderConfigurationProfile?
+    var savedTTSSettings: TTSProviderSettings?
+    var savedTTSVoiceProfiles: [TTSVoiceProfile] = []
     var markedCredentialStates: [AIProviderSecretPresence] = []
     var recordedValidationEvents: [AIProviderValidationEvent] = []
     var recordedValidationOutcomes: [AIProviderValidationEvent] = []
+    var recordedTTSVoiceProfileOutcomes: [AIProviderValidationEvent] = []
+    var recordedTTSOutcomeLanguageCodes: [String] = []
 
     func setSavedProfile(_ profile: AIProviderConfigurationProfile) {
         savedProfile = profile
+    }
+
+    func setTTSSettings(_ settings: TTSProviderSettings?, voiceProfiles: [TTSVoiceProfile]) {
+        savedTTSSettings = settings
+        savedTTSVoiceProfiles = voiceProfiles
     }
 
     func appendCredentialState(_ state: AIProviderSecretPresence) {
@@ -451,6 +776,11 @@ private actor RepositoryStorage {
 
     func appendValidationOutcome(_ event: AIProviderValidationEvent) {
         recordedValidationOutcomes.append(event)
+    }
+
+    func appendTTSVoiceProfileOutcome(_ event: AIProviderValidationEvent, languageCode: String) {
+        recordedTTSVoiceProfileOutcomes.append(event)
+        recordedTTSOutcomeLanguageCodes.append(languageCode)
     }
 }
 
@@ -471,21 +801,50 @@ private actor CapturingProbeHTTPClient: AIProviderProbeHTTPClient {
         if let error = response.error {
             throw error
         }
-        return AIProviderProbeHTTPResponse(statusCode: response.statusCode, body: response.body)
+        return AIProviderProbeHTTPResponse(
+            statusCode: response.statusCode,
+            body: response.body,
+            contentType: response.contentType
+        )
     }
 
     struct Response {
         var statusCode: Int
         var body: Data
+        var contentType: String?
         var error: (any Error)?
 
         static func json(_ value: String) -> Response {
             Response(statusCode: 200, body: Data(value.utf8))
         }
 
+        static func http(statusCode: Int, body: Data, contentType: String? = nil) -> Response {
+            Response(statusCode: statusCode, body: body, contentType: contentType)
+        }
+
         static func failure(_ error: any Error) -> Response {
             Response(statusCode: 0, body: Data(), error: error)
         }
+    }
+}
+
+private struct AcceptingTTSAudioValidationService: TTSAudioValidationService {
+    func validateAudio(
+        _ data: Data,
+        declaredFormat: TTSAudioFormat,
+        contentType _: String?,
+        previewPolicy _: TTSAudioPreviewPolicy
+    ) async -> TTSAudioValidationResult {
+        TTSAudioValidationResult(
+            status: .succeeded,
+            metadata: TTSAudioMetadata(
+                format: declaredFormat,
+                byteCount: data.count,
+                durationSeconds: 1,
+                sampleRate: nil
+            ),
+            previewResource: TTSAudioPreviewResource(storage: .memory, byteCount: data.count)
+        )
     }
 }
 
@@ -562,6 +921,58 @@ private func saveInput() -> AIProviderProfileSaveInput {
     )
 }
 
+private func ttsSaveInput() -> AIProviderProfileSaveInput {
+    AIProviderProfileSaveInput(
+        displayName: "Default AI Provider",
+        endpoints: [
+            AIProviderEndpointSaveInput(
+                purpose: .textGeneration,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-5.2",
+                credentialMode: .newSecret(
+                    AIProviderCredentialSecretSaveInput(
+                        kind: .apiKey,
+                        label: "OpenAI API Key",
+                        plaintextSecret: "sk-test"
+                    )
+                ),
+                supportsImageInput: true,
+                imageInputEnabled: false
+            ),
+            AIProviderEndpointSaveInput(
+                purpose: .tts,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-4o-mini-tts",
+                credentialMode: .sharedWithPurpose(.textGeneration),
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+        ],
+        ttsVoiceProfile: TTSVoiceProfileSaveInput(
+            endpointPurpose: .tts,
+            languageCode: "en",
+            adapterKind: .openAIAudioSpeech,
+            voiceID: "coral",
+            voiceDisplayName: "Coral",
+            outputFormat: .mp3,
+            sampleRate: nil,
+            speed: 1.0,
+            volume: nil,
+            pitch: nil,
+            stylePrompt: nil,
+            instructions: "Calm and clear.",
+            streamingMode: false,
+            providerParameters: ["response_format": .string("mp3")]
+        )
+    )
+}
+
 private func savedProfile(imageInputEnabled: Bool = false) throws -> AIProviderConfigurationProfile {
     let now = Date(timeIntervalSince1970: 100)
     let endpoint = try AIProviderEndpointConfiguration(
@@ -601,4 +1012,102 @@ private func savedProfile(imageInputEnabled: Bool = false) throws -> AIProviderC
         endpoints: [endpoint],
         credentials: [credential]
     )
+}
+
+private func savedProfileWithTTS(
+    lastTestStatus: TTSConfigurationStatus = .notTested,
+    lastTestErrorCategory: AIProviderValidationErrorCategory? = nil,
+    markSuccessfulFingerprint: Bool = false
+) throws -> (
+    profile: AIProviderConfigurationProfile,
+    settings: TTSProviderSettings,
+    voiceProfile: TTSVoiceProfile
+) {
+    let now = Date(timeIntervalSince1970: 100)
+    let textEndpoint = try AIProviderEndpointConfiguration(
+        input: AIProviderEndpointInput(
+            id: "endpoint-1",
+            profileID: "profile-1",
+            purpose: .textGeneration,
+            isEnabled: true,
+            providerPresetID: "openai",
+            adapterKind: .openAIResponses,
+            baseURL: "https://api.openai.com/v1",
+            modelName: "gpt-5.2",
+            credentialID: "credential-1",
+            supportsImageInput: true,
+            imageInputEnabled: false
+        ),
+        createdAt: now,
+        updatedAt: now
+    )
+    let ttsEndpoint = try AIProviderEndpointConfiguration(
+        input: AIProviderEndpointInput(
+            id: "endpoint-tts",
+            profileID: "profile-1",
+            purpose: .tts,
+            isEnabled: true,
+            providerPresetID: "openai",
+            adapterKind: .openAIResponses,
+            baseURL: "https://api.openai.com/v1",
+            modelName: "gpt-4o-mini-tts",
+            credentialID: "credential-1",
+            supportsImageInput: false,
+            imageInputEnabled: false
+        ),
+        createdAt: now,
+        updatedAt: now
+    )
+    let credential = AIProviderCredentialMetadata(
+        id: "credential-1",
+        profileID: "profile-1",
+        providerPresetID: "openai",
+        kind: .apiKey,
+        label: "OpenAI API Key",
+        secretPresence: .present,
+        createdAt: now,
+        updatedAt: now
+    )
+    let profile = AIProviderConfigurationProfile(
+        id: "profile-1",
+        displayName: "Default AI Provider",
+        isDefault: true,
+        status: .configured,
+        createdAt: now,
+        updatedAt: now,
+        endpoints: [textEndpoint, ttsEndpoint],
+        credentials: [credential]
+    )
+    let settings = TTSProviderSettings(endpointID: "endpoint-tts", adapterKind: .openAIAudioSpeech)
+    var voiceProfile = try TTSVoiceProfile.make(
+        id: "voice-en",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .openAIAudioSpeech,
+        modelName: "gpt-4o-mini-tts",
+        voiceID: "coral",
+        outputFormat: .mp3,
+        providerParameters: ["response_format": .string("mp3")],
+        lastTestStatus: lastTestStatus,
+        lastTestErrorCategory: lastTestErrorCategory
+    )
+    if markSuccessfulFingerprint {
+        voiceProfile = voiceProfile.withProbeOutcome(TTSConfigurationStatus.succeeded, testedAt: now)
+    }
+    return (profile, settings, voiceProfile)
+}
+
+private func languageSupportSampleJSON() -> String {
+    let sample = [
+        "Today I opened the window before breakfast and wrote a short note about the rain,",
+        "the quiet street, and the warm cup of tea beside my notebook.",
+        "Later, I planned to review the moment in English so the simple details would become useful practice",
+        "for ordinary life.",
+    ].joined(separator: " ")
+    return #"{"sample":"\#(sample)"}"#
+}
+
+private func openAIOutputTextJSON(_ text: String) -> String {
+    let escapedText = text.replacingOccurrences(of: #"""#, with: #"\""#)
+    return #"{"output":[{"type":"message","content":[{"type":"output_text","text":"\#(escapedText)"}]}]}"#
 }

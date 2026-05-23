@@ -1,6 +1,6 @@
 # 任务方案：语音模型配置与测试
 
-状态：Draft
+状态：Done
 审核状态：Approved With Notes
 类型：feature
 创建日期：2026-05-23
@@ -19,6 +19,7 @@
 - 2026-05-23：系统架构师复审后，用户要求立即修订本方案。本次修订明确：TTS adapter kind 的事实源为 TTS settings，不把真实 TTS adapter 强塞进现有 text/chat `AIProviderAdapterKind`；TTS validation 必须新增 endpoint / voice-profile scoped repository API，不得复用会更新 profile 全局摘要的 `recordValidationOutcome(_:)`；`008` 请求预览规则已经完成修订，后续实施只需保持一致；第一阶段必须新增 `unsupportedLanguage` 错误分类。
 - 2026-05-23：系统架构师再次复审后，用户要求立即修订本方案。本次修订明确：`LangoTraceAI` 不得直接依赖 `LangoTraceSpeech`；TTS 音频校验应通过 Core 协议 / AppEnvironment 注入 Speech 实现；Custom OpenAI-compatible 不属于第一阶段真实 TTS probe；`005` 规范已完成修订，实施阶段只需一致性检查。后续基础设施原则复审已废弃“仅 AI 侧轻量响应校验可作为第一版音频验收”的可选路径。
 - 2026-05-23：用户补充早期开发与基础设施原则：当前项目可推翻落后设计，不为早期临时代码背历史包袱；基础设施首次实现应采用长期可扩展方案；`docs/` 是 AI 辅助开发控制面，规范可随更优设计演进；暂不实现但影响后续架构的能力必须写入开发备忘录。基于该原则，本方案再次修订：TTS 音频验收不再允许以 AI 侧轻量响应校验替代，必须建立 Core 音频校验协议、Speech 实现和 Speech package 测试 target；设置页样例试听只能经 Speech seam 处理短生命周期 preview audio；真实逐句播放前必须另行完成本地媒体派生资产基础设施 active plan。
+- 2026-05-23：用户明确要求“按照该方案的内容立即进行实施，直至方案内容完整落地”。任务状态从 `Draft` 调整为 `User Approved`，进入 TDD 实施阶段。
 
 ## 2. 需求描述
 
@@ -1316,10 +1317,14 @@ git status --short
 - 2026-05-23：根据系统架构师复审继续修订实施级歧义。明确 TTS adapter kind 事实源、TTS validation repository scoped API、`008` 已修订事实、`unsupportedLanguage` 第一阶段错误分类，以及没有 profile-level endpoint metadata 不得先接 OpenAI / OpenRouter TTS 网络请求。
 - 2026-05-23：根据系统架构师再次复审核准实施边界。补充 AI / Speech 依赖方向约束：`LangoTraceAI` 不直接依赖 `LangoTraceSpeech`，音频 decode / preview 通过 Core 协议与 AppEnvironment 注入 Speech 实现；统一 Custom OpenAI-compatible 为后续同构扩展，不纳入第一阶段真实 TTS probe；修正 `005` 为已修订后的实施一致性检查。
 - 2026-05-23：根据早期开发与基础设施优先原则再次完善方案。删除“AI 侧轻量响应校验可作为第一版音频验收”的可选路径，强制建立 Core 音频校验协议、Speech 实现和 Speech package test target；明确设置页 preview audio 只作为短生命周期试听资源，不写入持久媒体资产；真实逐句播放前必须另行完成本地媒体派生资产基础设施 active plan。
+- 2026-05-23：用户批准立即实施，方案状态调整为 `User Approved`，实施从阶段一 TDD 开始。
+- 2026-05-23：实施进展：已按 TDD 落地阶段一到阶段六的主要代码路径。新增 profile-level capability endpoint metadata、TTS 错误分类、TTS Core 配置模型与 fingerprint、Data TTS settings / language voice profile 表和 scoped repository、`GRDBAIProviderConfigurationRepository` 同事务保存 profile endpoint / TTS settings / voice profile、Core 音频校验与 preview playback 协议、Speech package test target、短生命周期 preview store / validation / playback seam、AI package OpenAI / OpenRouter Audio Speech request adapter、音频响应 validator、设置页 voice / format / speed / instructions 可见字段、draft / saved TTS probe 合流、TTS 结果状态持久化隔离、失败分类持久化，以及 `loadDefaultPlayableTTSConfiguration(languageCode:)` 可用性读取接口。
+- 2026-05-23：实施中途完成文档影响同步。更新 `docs/README.md` 当前状态、`docs/platform-page-inventory.md` 页面事实、`docs/spec/009-testing-and-verification.md` TTS 验证门禁、`docs/spec/011-tts-provider-configuration-and-playback.md` 当前 result / availability 语义，以及 `docs/spec/ui-design/mvp-ui-flow-and-design-system.md` AI Provider 设置页 UI 事实。
+- 2026-05-23：实施完成审计：完成标准逐项满足。OpenAI / OpenRouter TTS 均通过同一配置测试入口进入真实 Audio Speech adapter；OpenRouter 保持 model-dependent；Groq / Custom OpenAI-compatible 未纳入第一阶段真实 probe；TTS 配置包含 voice、format、speed、instructions 和 provider parameter allowlist；保存与可播放前置通过 fingerprint 和最近成功测试隔离；固定低敏测试文本按 language code 选择；成功结果可经 Speech seam 试听短生命周期 preview audio；TTS 失败不污染文本 profile 全局验证摘要；配置变更后进入 `requiresRetest`；日志与 validation event 不记录请求体、响应体、audio bytes 或密钥。验证命令 `scripts/verify.sh` 已通过，SwiftLint 仅剩既有 warning 且 0 serious，SwiftFormat 0 files require formatting。
 
 ## 26. 系统架构复审结论
 
-状态：Approved With Notes。文档已根据 2026-05-23 早期开发与基础设施优先原则完成修订；任务状态仍为 `Draft`，代码实施仍需用户明确批准进入 `User Approved`。
+状态：Approved With Notes。文档已根据 2026-05-23 早期开发与基础设施优先原则完成修订；用户已明确批准立即实施，任务状态已进入 `User Approved`。
 
 ### 26.1 代码现状准确性
 
@@ -1328,17 +1333,19 @@ git status --short
 - `AIProviderEndpointPurpose` 已有 `.tts`。
 - `AIProviderSettingsView` 已展示 speech model 分组。
 - `AIOptionalModelDraftConfiguration` 能保存 speech endpoint 的 Provider、Base URL、model 和凭证引用。
-- `AIProviderProbeCapability.speechSynthesis` 已存在，结果面板可展示占位状态。
-- `AIProviderConfigurationProbeService` 当前只真实测试 text / JSON / language / image，不真实测试 TTS。
-- `LangoTraceSpeech` 当前只有空 `SpeechService` / `DisabledSpeechService`，没有 TTS 生成、解码、试听或播放 contract。
-- `GRDBAIProviderConfigurationRepository.saveProfile(_:)` 当前删除并重插 profile 下所有 endpoint / credential；新增 TTS settings 后必须重新审查外键级联和同事务写入顺序。
+- `AIProviderProbeCapability.speechSynthesis` 已存在，结果面板可展示真实 TTS probe 结果；成功试听按钮通过 `AIProviderSettingsActions.playSpeechPreview` 接入 AppEnvironment 注入的 Speech preview playback seam。
+- `AIProviderConfigurationService` 已可在 draft / saved 测试中把 TTS probe 合并到同一个分能力结果，并通过 endpoint metadata 区分 text endpoint 与 `.tts` endpoint。
+- `LangoTraceSpeech` 已新增 TTS 音频校验实现、短生命周期 preview store / playback service 和 package test target。
+- `GRDBAIProviderConfigurationRepository.saveProfile(_:)` 已同事务保存 profile endpoint、endpoint 级 TTS settings 和 language code 级 voice profile；Data 聚焦测试已覆盖外键级联、删除重插和 TTS 结果持久化语义，完整验证已通过 `scripts/verify.sh` 收口。
 
-需要修正或补充：
+已修正或明确后续边界：
 
-- 现有 `AIProviderConfigurationProbeResult` 是单 endpoint / 单 model 结果模型，不适合直接承载跨 text endpoint 与 tts endpoint 的真实分能力结果。
-- 现有 `recordValidationOutcome(_:)` 会更新 `ai_provider_profiles.last_validation_status`；可选 TTS 测试失败不能复用该路径污染文本模型配置状态。
-- 现有 `AIProviderSettingsActions.testProviderConfiguration` 只接收一个 text draft snapshot；TTS draft 测试需要 profile-level snapshot 或新增 TTS snapshot。
-- `LangoTraceSpeech/Package.swift` 当前没有 tests target；只在方案中写 Speech 测试文件不够，必须同时修改 package manifest。
+- 结果面板试听入口已建立 UI callback、preview resource 传递、AppEnvironment 注入和 Speech playback service。SwiftUI 不接触音频 bytes、真实文件路径、AVFoundation 或 Provider response。
+- `loadDefaultPlayableTTSConfiguration(languageCode:)` 已能按 language code 与 fingerprint 读取可用性；`failedLastTest(errorCategory)` 的最近失败分类来自 voice profile 持久化字段，成功测试会清除该分类。
+- 严格代码检查补齐设置页加载路径：`AIProviderSettingsActions.loadTTSVoiceProfile` 现在按当前 language code 读取已保存 voice profile，`AIProviderDraftConfiguration.applyLoadedTTSVoiceProfile` 回填 voice、format、speed 和 instructions，避免重开设置页后使用 provider 默认值覆盖用户配置；UI 回归测试已覆盖该状态同步。
+- 严格代码检查补齐 TTS probe 响应大小门禁：TTS audio response 超过 2 MiB 时在进入音频校验前返回 `invalidAudioResponse`，避免把超大响应体传入 preview store 或解码层；AI 回归测试已覆盖该边界。
+- UI 已显示 voice / format / speed / instructions；OpenRouter provider options 等更高级字段不属于第一阶段完成标准，后续需要另行扩展 allowlist 与 provider-specific UI。
+- 配置变更后 repository 已通过 fingerprint 产生 `requiresRetest` 语义；UI 保存后的展示仍以重新加载服务结果和测试结果面板为准，未新增第二个主测试入口。
 - UI package 中存在本地 `AIProviderAdapterKind` 与 Core 同名 enum，实施 TTS adapter 扩展时必须明确映射边界，避免 UI enum 与 Core enum 漂移。
 - 当前 `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 已完成外部 TTS 单句点击播放边界修订；方案中不得继续把它描述为当前冲突事实。
 
@@ -1441,8 +1448,8 @@ SpeechService / TTSAudioValidationService -> audio metadata / preview semantics
 
 ### 26.7 当前实施条件判断
 
-当前方案已具备进入用户审批的条件，但尚未具备自动开工条件：
+当前方案已完成用户审批，具备开工条件：
 
 - 文档层面：关键架构、第一阶段范围、数据模型、测试路径和边界问题已补齐，可作为实施依据。
-- 流程层面：方案状态仍为 `Draft`；根据项目规则，必须由用户明确确认后改为 `User Approved`，再进入 TDD 实施。
+- 流程层面：用户已明确要求立即实施，方案状态已改为 `User Approved`，可进入 TDD 实施。
 - 工程层面：实施应先写失败测试，再按阶段一到阶段六推进；不得跳过 profile-level probe contract 直接接 OpenAI TTS 网络请求；不得跳过 Core / Speech 音频校验 seam；不得在本任务中偷做持久音频缓存或逐句播放协调器。

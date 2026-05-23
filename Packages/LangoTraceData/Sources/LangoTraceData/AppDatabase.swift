@@ -54,6 +54,9 @@ private extension AppDatabase {
         migrator.registerMigration("v5_add_learning_material_source_entry_body_hash") { db in
             try addLearningMaterialSourceEntryBodyHash(db)
         }
+        migrator.registerMigration("v6_create_ai_provider_tts_configuration") { db in
+            try createAIProviderTTSConfiguration(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
@@ -211,6 +214,48 @@ private extension AppDatabase {
             table.column("duration_ms", .integer)
             table.column("created_at", .double).notNull()
         }
+    }
+
+    static func createAIProviderTTSConfiguration(_ db: Database) throws {
+        try db.create(table: "ai_provider_tts_settings") { table in
+            table.column("endpoint_id", .text).primaryKey()
+                .references("ai_provider_endpoints", onDelete: .cascade)
+            table.column("tts_adapter_kind", .text).notNull()
+            table.column("created_at", .double).notNull()
+            table.column("updated_at", .double).notNull()
+        }
+        try db.create(table: "ai_provider_tts_voice_profiles") { table in
+            table.column("id", .text).primaryKey()
+            table.column("endpoint_id", .text).notNull()
+                .references("ai_provider_endpoints", onDelete: .cascade)
+            table.column("language_code", .text).notNull()
+            table.column("tts_adapter_kind", .text).notNull()
+            table.column("model_name", .text).notNull()
+            table.column("voice_id", .text).notNull()
+            table.column("voice_display_name", .text)
+            table.column("output_format", .text).notNull()
+            table.column("sample_rate", .integer)
+            table.column("speed", .double)
+            table.column("volume", .double)
+            table.column("pitch", .double)
+            table.column("style_prompt", .text)
+            table.column("instructions", .text)
+            table.column("streaming_mode", .boolean).notNull()
+            table.column("provider_parameters_json", .text).notNull()
+            table.column("configuration_fingerprint", .text).notNull()
+            table.column("last_successful_configuration_fingerprint", .text)
+            table.column("last_test_status", .text).notNull()
+            table.column("last_test_error_category", .text)
+            table.column("last_tested_at", .double)
+            table.column("created_at", .double).notNull()
+            table.column("updated_at", .double).notNull()
+        }
+        try db.create(
+            index: "idx_ai_provider_tts_voice_profiles_endpoint_language",
+            on: "ai_provider_tts_voice_profiles",
+            columns: ["endpoint_id", "language_code"],
+            unique: true
+        )
     }
 
     static func createDiagnosticEvents(_ db: Database) throws {

@@ -68,6 +68,62 @@ func configurationProbeLanguageContextCarriesOnlyStableLanguageCode() {
     #expect(context.languageCode == "ja")
 }
 
+@Test("Capability probe result carries endpoint metadata for mixed profile probes")
+func capabilityProbeResultCarriesEndpointMetadataForMixedProfileProbes() {
+    let textEndpoint = AIProviderEndpointProbeMetadata(
+        endpointID: "endpoint-text",
+        endpointPurpose: .textGeneration,
+        providerPresetID: "openai",
+        modelName: "gpt-5.2",
+        configurationFingerprint: "text-fingerprint"
+    )
+    let ttsEndpoint = AIProviderEndpointProbeMetadata(
+        endpointID: "endpoint-tts",
+        endpointPurpose: .tts,
+        providerPresetID: "openrouter",
+        modelName: "openai/gpt-4o-mini-tts",
+        configurationFingerprint: "tts-fingerprint"
+    )
+
+    let result = AIProviderProfileProbeResult(
+        source: .draft,
+        overallStatus: .succeeded,
+        profileID: "profile-1",
+        capabilities: [
+            AIProviderProbeCapabilityResult(
+                capability: .textReply,
+                status: .succeeded,
+                errorCategory: nil,
+                durationMilliseconds: 100,
+                endpointMetadata: textEndpoint
+            ),
+            AIProviderProbeCapabilityResult(
+                capability: .speechSynthesis,
+                status: .succeeded,
+                errorCategory: nil,
+                durationMilliseconds: 240,
+                endpointMetadata: ttsEndpoint
+            ),
+        ],
+        persistedValidationEventIDs: []
+    )
+
+    #expect(result.capability(.textReply)?.endpointMetadata == textEndpoint)
+    #expect(result.capability(.speechSynthesis)?.endpointMetadata == ttsEndpoint)
+    #expect(result.capability(.speechSynthesis)?.endpointMetadata?.endpointPurpose == .tts)
+    #expect(result.capability(.speechSynthesis)?.endpointMetadata?.providerPresetID == "openrouter")
+}
+
+@Test("TTS validation error categories expose stable raw values")
+func ttsValidationErrorCategoriesExposeStableRawValues() {
+    #expect(AIProviderValidationErrorCategory.invalidVoice.rawValue == "invalid_voice")
+    #expect(AIProviderValidationErrorCategory.unsupportedLanguage.rawValue == "unsupported_language")
+    #expect(AIProviderValidationErrorCategory.unsupportedAudioFormat.rawValue == "unsupported_audio_format")
+    #expect(AIProviderValidationErrorCategory.audioDecodeFailed.rawValue == "audio_decode_failed")
+    #expect(AIProviderValidationErrorCategory.rateLimited.rawValue == "rate_limited")
+    #expect(AIProviderValidationErrorCategory.quotaExceeded.rawValue == "quota_exceeded")
+}
+
 @Test("Configuration probe diagnostics use typed event names and attributes")
 func configurationProbeDiagnosticsUseTypedEventNamesAndAttributes() {
     #expect(
@@ -99,4 +155,10 @@ func configurationProbeDiagnosticsUseTypedEventNamesAndAttributes() {
     #expect(DiagnosticAttribute.probeCapability(.structuredJSON).key == "probe_capability")
     #expect(DiagnosticAttribute.probeCapabilityStatus(.unsupported).key == "probe_capability_status")
     #expect(DiagnosticAttribute.probeCapabilityStatus(.cancelled).key == "probe_capability_status")
+}
+
+private extension AIProviderProfileProbeResult {
+    func capability(_ capability: AIProviderProbeCapability) -> AIProviderProbeCapabilityResult? {
+        capabilities.first { $0.capability == capability }
+    }
 }

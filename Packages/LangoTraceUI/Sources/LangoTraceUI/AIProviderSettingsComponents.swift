@@ -58,6 +58,18 @@ private extension AIProviderValidationErrorCategory {
             "aiProviderSettings.probeCapabilityError.invalidResponse"
         case .invalidAudioResponse:
             "aiProviderSettings.probeCapabilityError.invalidAudioResponse"
+        case .invalidVoice:
+            "aiProviderSettings.probeCapabilityError.invalidVoice"
+        case .unsupportedLanguage:
+            "aiProviderSettings.probeCapabilityError.unsupportedLanguage"
+        case .unsupportedAudioFormat:
+            "aiProviderSettings.probeCapabilityError.unsupportedAudioFormat"
+        case .audioDecodeFailed:
+            "aiProviderSettings.probeCapabilityError.audioDecodeFailed"
+        case .rateLimited:
+            "aiProviderSettings.probeCapabilityError.rateLimited"
+        case .quotaExceeded:
+            "aiProviderSettings.probeCapabilityError.quotaExceeded"
         case .invalidEmbeddingResponse:
             "aiProviderSettings.probeCapabilityError.invalidEmbeddingResponse"
         }
@@ -71,6 +83,7 @@ struct AIProviderProbeResultPanelContent: View {
     let displayedCapabilities: [AIProviderProbeCapability]
     let onRetry: () -> Void
     let onClose: () -> Void
+    var onPlaySpeechPreview: @MainActor (TTSAudioPreviewResource) -> Void = { _ in }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -97,7 +110,8 @@ struct AIProviderProbeResultPanelContent: View {
                     AIProviderProbeCapabilityRow(
                         capability: capability,
                         result: result?.capabilities.first { $0.capability == capability },
-                        isTesting: isTesting && activeCapabilities.contains(capability)
+                        isTesting: isTesting && activeCapabilities.contains(capability),
+                        onPlaySpeechPreview: onPlaySpeechPreview
                     )
                 }
             }
@@ -169,6 +183,7 @@ private struct AIProviderProbeCapabilityRow: View {
     let capability: AIProviderProbeCapability
     let result: AIProviderProbeCapabilityResult?
     let isTesting: Bool
+    var onPlaySpeechPreview: @MainActor (TTSAudioPreviewResource) -> Void = { _ in }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -181,8 +196,27 @@ private struct AIProviderProbeCapabilityRow: View {
             localizedText(statusKey)
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            if let previewResource = speechPreviewResource {
+                Button {
+                    onPlaySpeechPreview(previewResource)
+                } label: {
+                    Image(systemName: "speaker.wave.2")
+                        .frame(width: 32, height: 32)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(localizedText("aiProviderSettings.probeCapability.speechPreview"))
+            }
         }
         .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+    }
+
+    private var speechPreviewResource: TTSAudioPreviewResource? {
+        guard capability == .speechSynthesis,
+              result?.status == .succeeded
+        else {
+            return nil
+        }
+        return result?.audioPreviewResource
     }
 
     private var titleKey: String {
@@ -293,9 +327,80 @@ struct AIProviderOptionalModelSection: View {
                 if configuration.endpoint.credentialReference == .independent {
                     AIProviderAPIKeyField(text: independentAPIKeyBinding)
                 }
+                if configuration.purpose == .speech {
+                    speechTTSFields
+                }
             }
         }
         .langoPanel()
+    }
+
+    private var speechTTSFields: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            AIProviderSectionTitle("aiProviderSettings.speechModel.parametersTitle")
+            VStack(alignment: .leading, spacing: 10) {
+                speechVoiceControl
+                speechFormatControl
+                speechSpeedControl
+            }
+            AIProviderSettingsTextField(
+                titleKey: "aiProviderSettings.speechModel.instructionsTitle",
+                text: instructionsBinding,
+                keyboardHint: .plain
+            )
+            localizedText("aiProviderSettings.speechModel.instructionsHelp")
+                .font(.footnote)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+        }
+    }
+
+    @ViewBuilder
+    private var speechVoiceControl: some View {
+        if configuration.endpoint.provider == .openAI {
+            TTSMenuSettingRow(
+                titleKey: "aiProviderSettings.speechModel.voiceTitle",
+                detailKey: "aiProviderSettings.speechModel.voiceHelp",
+                value: configuration.voiceID
+            ) {
+                ForEach(openAIVoiceIDs, id: \.self) { voiceID in
+                    Button {
+                        configuration.voiceID = voiceID
+                    } label: {
+                        Text(voiceID)
+                    }
+                }
+            }
+        } else {
+            AIProviderSettingsTextField(
+                titleKey: "aiProviderSettings.speechModel.voiceTitle",
+                text: voiceIDBinding,
+                keyboardHint: .plain
+            )
+        }
+    }
+
+    private var speechFormatControl: some View {
+        TTSMenuSettingRow(
+            titleKey: "aiProviderSettings.speechModel.formatTitle",
+            detailKey: "aiProviderSettings.speechModel.formatHelp",
+            value: configuration.outputFormat.rawValue.uppercased()
+        ) {
+            ForEach(TTSAudioFormat.allCases, id: \.rawValue) { format in
+                Button {
+                    configuration.outputFormat = format
+                } label: {
+                    Text(format.rawValue.uppercased())
+                }
+            }
+        }
+    }
+
+    private var speechSpeedControl: some View {
+        TTSSpeedSettingRow(
+            titleKey: "aiProviderSettings.speechModel.speedTitle",
+            detailKey: "aiProviderSettings.speechModel.speedHelp",
+            speed: speedBinding
+        )
     }
 
     private var credentialReferencePicker: some View {
@@ -349,6 +454,154 @@ struct AIProviderOptionalModelSection: View {
             get: { configuration.endpoint.independentCredential.apiKeyDraft },
             set: { configuration.endpoint.independentCredential.apiKeyDraft = $0 }
         )
+    }
+
+    private var voiceIDBinding: Binding<String> {
+        Binding(
+            get: { configuration.voiceID },
+            set: { configuration.voiceID = $0 }
+        )
+    }
+
+    private var outputFormatBinding: Binding<TTSAudioFormat> {
+        Binding(
+            get: { configuration.outputFormat },
+            set: { configuration.outputFormat = $0 }
+        )
+    }
+
+    private var speedBinding: Binding<Double> {
+        Binding(
+            get: { configuration.speed ?? 1.0 },
+            set: { configuration.speed = $0 }
+        )
+    }
+
+    private var instructionsBinding: Binding<String> {
+        Binding(
+            get: { configuration.instructions ?? "" },
+            set: { configuration.instructions = $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+        )
+    }
+
+    private var openAIVoiceIDs: [String] {
+        [
+            "alloy",
+            "ash",
+            "ballad",
+            "coral",
+            "echo",
+            "fable",
+            "nova",
+            "onyx",
+            "sage",
+            "shimmer",
+            "verse",
+            "marin",
+            "cedar",
+        ]
+    }
+}
+
+private struct TTSMenuSettingRow<MenuContent: View>: View {
+    let titleKey: String
+    let detailKey: String
+    let value: String
+    @ViewBuilder var menuContent: () -> MenuContent
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                localizedText(titleKey)
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+                localizedText(detailKey)
+                    .font(.footnote)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+            Spacer(minLength: 12)
+            Menu {
+                menuContent()
+            } label: {
+                HStack(spacing: 5) {
+                    Text(value)
+                        .font(.callout.monospacedDigit().weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption.weight(.semibold))
+                }
+                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .accessibilityLabel(localizedText(titleKey))
+            .accessibilityValue(Text(value))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
+        .background(LangoTraceDesign.ColorToken.surfaceMuted)
+        .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
+    }
+}
+
+private struct TTSSpeedSettingRow: View {
+    let titleKey: String
+    let detailKey: String
+    @Binding var speed: Double
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                localizedText(titleKey)
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+                localizedText(detailKey)
+                    .font(.footnote)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+            Spacer(minLength: 12)
+            HStack(spacing: 0) {
+                speedButton(systemName: "minus", delta: -0.05)
+                Text(String(format: "%.2fx", speed))
+                    .font(.callout.monospacedDigit().weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+                    .frame(width: 64, height: LangoTraceDesign.Density.minimumTouchTarget)
+                    .accessibilityHidden(true)
+                speedButton(systemName: "plus", delta: 0.05)
+            }
+            .background(LangoTraceDesign.ColorToken.elevatedPaper)
+            .clipShape(Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(LangoTraceDesign.ColorToken.hairline, lineWidth: 1)
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(localizedText(titleKey))
+            .accessibilityValue(Text(String(format: "%.2fx", speed)))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
+        .background(LangoTraceDesign.ColorToken.surfaceMuted)
+        .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
+    }
+
+    private func speedButton(systemName: String, delta: Double) -> some View {
+        Button {
+            speed = min(4.0, max(0.25, ((speed + delta) * 100).rounded() / 100))
+        } label: {
+            Image(systemName: systemName)
+                .font(.callout.weight(.semibold))
+                .frame(
+                    width: LangoTraceDesign.Density.minimumTouchTarget,
+                    height: LangoTraceDesign.Density.minimumTouchTarget
+                )
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(LangoTraceDesign.ColorToken.accent)
     }
 }
 

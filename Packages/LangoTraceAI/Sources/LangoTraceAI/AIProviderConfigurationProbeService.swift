@@ -4,17 +4,29 @@ import LangoTraceCore
 public struct AIProviderConfigurationProbeDraftInput {
     public var endpoint: AIProviderEndpointInput
     public var plaintextSecret: String?
+    public var ttsEndpoint: AIProviderEndpointInput?
+    public var ttsSettings: TTSProviderSettings?
+    public var ttsVoiceProfile: TTSVoiceProfile?
+    public var ttsPlaintextSecret: String?
     public var languageContext: AIProviderProbeLanguageContext?
     public var operationID: DiagnosticOperationID
 
     public init(
         endpoint: AIProviderEndpointInput,
         plaintextSecret: String?,
+        ttsEndpoint: AIProviderEndpointInput? = nil,
+        ttsSettings: TTSProviderSettings? = nil,
+        ttsVoiceProfile: TTSVoiceProfile? = nil,
+        ttsPlaintextSecret: String? = nil,
         languageContext: AIProviderProbeLanguageContext? = nil,
         operationID: DiagnosticOperationID
     ) {
         self.endpoint = endpoint
         self.plaintextSecret = plaintextSecret
+        self.ttsEndpoint = ttsEndpoint
+        self.ttsSettings = ttsSettings
+        self.ttsVoiceProfile = ttsVoiceProfile
+        self.ttsPlaintextSecret = ttsPlaintextSecret
         self.languageContext = languageContext
         self.operationID = operationID
     }

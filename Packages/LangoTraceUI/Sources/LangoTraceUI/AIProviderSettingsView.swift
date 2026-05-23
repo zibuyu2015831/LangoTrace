@@ -53,7 +53,8 @@ struct AIProviderSettingsView: View {
                 activeCapabilities: activeProbeCapabilities,
                 displayedCapabilities: displayedProbeCapabilities,
                 onRetry: validateConfiguration,
-                onClose: { isProbeResultPresented = false }
+                onClose: { isProbeResultPresented = false },
+                onPlaySpeechPreview: playSpeechPreview
             )
             .frame(maxWidth: aiProviderProbeRegularWidth, alignment: .leading)
             .aiProviderProbePresentationStyle(compactWidth: isCompactWidth)
@@ -180,6 +181,18 @@ private extension AIProviderSettingsView {
         }
         let secretsByCredentialID = await resolvedSecretsByCredentialID(for: profile)
         draft.applyLoadedProfile(profile, resolvedSecretsByCredentialID: secretsByCredentialID)
+        await applyLoadedTTSVoiceProfile(from: profile)
+    }
+
+    @MainActor
+    func applyLoadedTTSVoiceProfile(from profile: AIProviderConfigurationProfile) async {
+        guard let languageCode = languageContext?.languageCode,
+              let ttsEndpoint = profile.endpoints.first(where: { $0.purpose == .tts && $0.isEnabled }),
+              let voiceProfile = try? await actions.loadTTSVoiceProfile(ttsEndpoint.id, languageCode)
+        else {
+            return
+        }
+        draft.applyLoadedTTSVoiceProfile(voiceProfile)
     }
 
     func saveConfiguration() {
@@ -195,7 +208,7 @@ private extension AIProviderSettingsView {
             )
             let input: AIProviderProfileSaveInput
             do {
-                input = try draft.makeProfileSaveInput()
+                input = try draft.makeProfileSaveInput(languageContext: languageContext)
             } catch {
                 cancelTransientSaveStatusClear()
                 let failure = AIProviderSaveFailureDisplay(error: error)
@@ -290,6 +303,12 @@ private extension AIProviderSettingsView {
                 draft.testState = .failed(nil, nil)
             }
             scheduleTransientTestStatusClear()
+        }
+    }
+
+    func playSpeechPreview(_ resource: TTSAudioPreviewResource) {
+        Task {
+            await actions.playSpeechPreview(resource)
         }
     }
 

@@ -1,10 +1,13 @@
 import Foundation
 import LangoTraceCore
 
+// swiftlint:disable file_length
+
 public struct AIProviderConfigurationService: Sendable {
     private let repository: any AIProviderConfigurationRepository
     private let credentialStore: (any AIProviderCredentialStore)?
     private let configurationProbeService: AIProviderConfigurationProbeService?
+    private let ttsConfigurationProbeService: TTSConfigurationProbeService?
     private let diagnosticLogger: any DiagnosticLogging
     private let clock: @Sendable () -> Date
     private let idGenerator: @Sendable () -> String
@@ -13,6 +16,7 @@ public struct AIProviderConfigurationService: Sendable {
         self.repository = repository
         credentialStore = nil
         configurationProbeService = nil
+        ttsConfigurationProbeService = nil
         diagnosticLogger = DisabledDiagnosticLogger()
         clock = Date.init
         idGenerator = { UUID().uuidString }
@@ -22,6 +26,7 @@ public struct AIProviderConfigurationService: Sendable {
         repository: any AIProviderConfigurationRepository,
         credentialStore: any AIProviderCredentialStore,
         configurationProbeService: AIProviderConfigurationProbeService? = nil,
+        ttsConfigurationProbeService: TTSConfigurationProbeService? = nil,
         diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
@@ -29,6 +34,7 @@ public struct AIProviderConfigurationService: Sendable {
         self.repository = repository
         self.credentialStore = credentialStore
         self.configurationProbeService = configurationProbeService
+        self.ttsConfigurationProbeService = ttsConfigurationProbeService
         self.diagnosticLogger = diagnosticLogger
         self.clock = clock
         self.idGenerator = idGenerator
@@ -36,6 +42,13 @@ public struct AIProviderConfigurationService: Sendable {
 
     public func loadDefaultProfile() async throws -> AIProviderConfigurationProfile? {
         try await repository.loadDefaultProfile()
+    }
+
+    public func loadTTSVoiceProfile(
+        endpointID: AIProviderEndpointID,
+        languageCode: String
+    ) async throws -> TTSVoiceProfile? {
+        try await repository.loadTTSVoiceProfile(endpointID: endpointID, languageCode: languageCode)
     }
 
     public func validateEndpointInput(
@@ -59,19 +72,21 @@ public struct AIProviderConfigurationService: Sendable {
 
         var createdReferences: [AIProviderCredentialKeychainReference] = []
         do {
-            let profile = try await makeProfile(
+            let materialized = try await makeProfile(
                 from: input,
                 operationID: operationID,
                 credentialStore: credentialStore,
                 createdReferences: &createdReferences
             )
             try await saveProfile(
-                profile,
+                materialized.profile,
+                ttsSettings: materialized.ttsSettings,
+                ttsVoiceProfiles: materialized.ttsVoiceProfiles,
                 operationID: operationID,
                 createdReferences: createdReferences,
                 credentialStore: credentialStore
             )
-            return profile
+            return materialized.profile
         } catch let failure as AIProviderConfigurationSaveFailure {
             if failure.phase == .databaseWrite {
                 throw failure
@@ -160,7 +175,23 @@ public struct AIProviderConfigurationService: Sendable {
         guard let configurationProbeService else {
             throw AIProviderConfigurationError.unsupportedCapabilityForProvider
         }
-        return try await configurationProbeService.probeDraftConfiguration(input)
+        let textResult = try await configurationProbeService.probeDraftConfiguration(input)
+        guard let ttsConfigurationProbeService,
+              let ttsEndpoint = input.ttsEndpoint,
+              let ttsSettings = input.ttsSettings,
+              let ttsVoiceProfile = input.ttsVoiceProfile
+        else {
+            return textResult
+        }
+        let ttsResult = await ttsConfigurationProbeService.probeDraftTTSConfiguration(
+            TTSDraftProbeInput(
+                endpoint: ttsEndpoint,
+                settings: ttsSettings,
+                voiceProfile: ttsVoiceProfile,
+                plaintextSecret: input.ttsPlaintextSecret
+            )
+        )
+        return textResult.replacingCapabilityResult(ttsResult)
     }
 
     public func testDefaultConfiguration(
@@ -215,7 +246,7 @@ public struct AIProviderConfigurationService: Sendable {
             }
         }
 
-        let result = try await configurationProbeService.probeSavedConfiguration(
+        let textResult = try await configurationProbeService.probeSavedConfiguration(
             AIProviderConfigurationProbeSavedInput(
                 endpoint: AIProviderEndpointInput(
                     id: endpoint.id,
@@ -236,7 +267,86 @@ public struct AIProviderConfigurationService: Sendable {
                 operationID: operationID
             )
         )
-        return try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
+        let result = await mergedSavedTTSProbeResult(
+            textResult,
+            profile: profile,
+            credentialsByID: credentialsByID,
+            credentialStore: credentialStore,
+            languageContext: languageContext
+        )
+        let persisted = try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
+        if let speechResult = result.capabilities.first(where: { $0.capability == .speechSynthesis }),
+           let ttsEndpointID = speechResult.endpointMetadata?.endpointID,
+           let languageCode = languageContext?.languageCode,
+           speechResult.status != .notEnabled,
+           speechResult.status != .notConfigured
+        {
+            try await persistTTSProbeResult(
+                speechResult,
+                profileID: profile.id,
+                endpointID: ttsEndpointID,
+                languageCode: languageCode
+            )
+        }
+        return persisted
+    }
+
+    public func loadDefaultPlayableTTSConfiguration(
+        languageCode: String
+    ) async throws -> PlayableTTSConfigurationStatus {
+        guard let credentialStore else {
+            return .credentialMissing
+        }
+        guard let profile = try await repository.loadDefaultProfile(),
+              let endpoint = profile.endpoints.first(where: { $0.purpose == .tts && $0.isEnabled })
+        else {
+            return .notConfigured
+        }
+        guard let settings = try await repository.loadTTSSettings(endpointID: endpoint.id),
+              let voiceProfile = try await repository.loadTTSVoiceProfile(
+                  endpointID: endpoint.id,
+                  languageCode: languageCode
+              )
+        else {
+            return .notConfigured
+        }
+        guard settings.adapterKind == .openAIAudioSpeech || settings.adapterKind == .openRouterAudioSpeech else {
+            return .unsupportedProvider
+        }
+        guard let credentialID = endpoint.credentialID,
+              let credential = profile.credentials.first(where: { $0.id == credentialID })
+        else {
+            return .credentialMissing
+        }
+        do {
+            _ = try await credentialStore.resolveSecret(
+                for: AIProviderCredentialKeychainReference(metadata: credential)
+            )
+        } catch {
+            return .credentialMissing
+        }
+        switch voiceProfile.playbackReadiness {
+        case .succeeded:
+            return .available(
+                PlayableTTSConfiguration(
+                    endpoint: endpoint,
+                    settings: settings,
+                    voiceProfile: voiceProfile
+                )
+            )
+        case .notTested:
+            return .notTested
+        case .requiresRetest:
+            return .requiresRetest
+        case .failed:
+            return .failedLastTest(voiceProfile.lastTestErrorCategory)
+        case .notConfigured:
+            return .notConfigured
+        case .testing:
+            return .notTested
+        case .unsupported:
+            return .unsupportedProvider
+        }
     }
 }
 
@@ -254,7 +364,7 @@ private extension AIProviderConfigurationProbeResult {
     }
 
     var persistableCapabilities: [AIProviderProbeCapabilityResult] {
-        capabilities.filter { $0.capability != .languageSupport }
+        capabilities.filter { $0.capability != .languageSupport && $0.capability != .speechSynthesis }
     }
 
     var persistenceStatus: AIProviderValidationStatus {
@@ -274,6 +384,34 @@ private extension AIProviderConfigurationProbeResult {
             return .failed
         }
         return .succeeded
+    }
+
+    func replacingCapabilityResult(
+        _ replacement: AIProviderProbeCapabilityResult
+    ) -> AIProviderConfigurationProbeResult {
+        var updated = self
+        updated.capabilities = capabilities.map { result in
+            result.capability == replacement.capability ? replacement : result
+        }
+        if !updated.capabilities.contains(where: { $0.capability == replacement.capability }) {
+            updated.capabilities.append(replacement)
+        }
+        updated.overallStatus = updated.mergedOverallStatus
+        return updated
+    }
+
+    var mergedOverallStatus: AIProviderValidationStatus {
+        if capabilities.contains(where: { $0.status == .cancelled }) {
+            return .cancelled
+        }
+        let required: Set<AIProviderProbeCapability> = [.textReply, .structuredJSON, .speechSynthesis]
+        let requiredResults = capabilities.filter { required.contains($0.capability) }
+        guard !requiredResults.contains(where: { $0.status == .failed || $0.status == .unsupported }) else {
+            return requiredResults.contains(where: { $0.status == .succeeded }) ? .failed : .failed
+        }
+        return requiredResults.allSatisfy { result in
+            result.status == .succeeded || result.status == .notEnabled || result.status == .notConfigured
+        } ? .succeeded : .failed
     }
 }
 
@@ -309,6 +447,116 @@ private extension AIProviderConfigurationService {
         var persisted = result
         persisted.persistedValidationEventID = eventID
         return persisted
+    }
+
+    func persistTTSProbeResult(
+        _ result: AIProviderProbeCapabilityResult,
+        profileID: AIProviderProfileID,
+        endpointID: AIProviderEndpointID,
+        languageCode: String
+    ) async throws {
+        guard result.status != .cancelled else {
+            return
+        }
+        let event = AIProviderValidationEvent(
+            id: idGenerator(),
+            profileID: profileID,
+            endpointID: endpointID,
+            eventType: .syntheticTest,
+            status: result.status == .succeeded ? .succeeded : .failed,
+            errorCategory: result.errorCategory,
+            providerPresetID: result.endpointMetadata?.providerPresetID ?? "",
+            modelName: result.endpointMetadata?.modelName,
+            durationMilliseconds: result.durationMilliseconds,
+            createdAt: clock()
+        )
+        try await repository.recordTTSVoiceProfileProbeOutcome(event, languageCode: languageCode)
+    }
+
+    func mergedSavedTTSProbeResult(
+        _ textResult: AIProviderConfigurationProbeResult,
+        profile: AIProviderConfigurationProfile,
+        credentialsByID: [AIProviderCredentialID: AIProviderCredentialMetadata],
+        credentialStore: any AIProviderCredentialStore,
+        languageContext: AIProviderProbeLanguageContext?
+    ) async -> AIProviderConfigurationProbeResult {
+        guard let ttsConfigurationProbeService,
+              let languageCode = languageContext?.languageCode,
+              let ttsEndpoint = profile.endpoints.first(where: { $0.purpose == .tts && $0.isEnabled })
+        else {
+            return textResult
+        }
+        do {
+            guard let settings = try await repository.loadTTSSettings(endpointID: ttsEndpoint.id),
+                  let voiceProfile = try await repository.loadTTSVoiceProfile(
+                      endpointID: ttsEndpoint.id,
+                      languageCode: languageCode
+                  )
+            else {
+                return textResult.replacingCapabilityResult(
+                    AIProviderProbeCapabilityResult(
+                        capability: .speechSynthesis,
+                        status: .notConfigured,
+                        errorCategory: nil,
+                        durationMilliseconds: nil,
+                        endpointMetadata: AIProviderEndpointProbeMetadata(
+                            endpointID: ttsEndpoint.id,
+                            endpointPurpose: .tts,
+                            providerPresetID: ttsEndpoint.providerPresetID,
+                            modelName: ttsEndpoint.modelName
+                        )
+                    )
+                )
+            }
+            let secret = try await resolveSecretForProbe(
+                endpoint: ttsEndpoint,
+                credentialsByID: credentialsByID,
+                credentialStore: credentialStore
+            )
+            let speechResult = await ttsConfigurationProbeService.probeDraftTTSConfiguration(
+                TTSDraftProbeInput(
+                    endpoint: AIProviderEndpointInput(
+                        id: ttsEndpoint.id,
+                        profileID: ttsEndpoint.profileID,
+                        purpose: ttsEndpoint.purpose,
+                        isEnabled: ttsEndpoint.isEnabled,
+                        providerPresetID: ttsEndpoint.providerPresetID,
+                        adapterKind: ttsEndpoint.adapterKind,
+                        baseURL: ttsEndpoint.baseURL,
+                        modelName: ttsEndpoint.modelName,
+                        credentialID: ttsEndpoint.credentialID,
+                        supportsImageInput: ttsEndpoint.supportsImageInput,
+                        imageInputEnabled: ttsEndpoint.imageInputEnabled,
+                        requestTimeoutSeconds: ttsEndpoint.requestTimeoutSeconds
+                    ),
+                    settings: settings,
+                    voiceProfile: voiceProfile,
+                    plaintextSecret: secret
+                )
+            )
+            return textResult.replacingCapabilityResult(speechResult)
+        } catch {
+            return textResult
+        }
+    }
+
+    func resolveSecretForProbe(
+        endpoint: AIProviderEndpointConfiguration,
+        credentialsByID: [AIProviderCredentialID: AIProviderCredentialMetadata],
+        credentialStore: any AIProviderCredentialStore
+    ) async throws -> String? {
+        if endpoint.providerPresetID == "ollama-local" {
+            return nil
+        }
+        guard let credentialID = endpoint.credentialID,
+              let credential = credentialsByID[credentialID]
+        else {
+            return nil
+        }
+        let secret = try await credentialStore.resolveSecret(
+            for: AIProviderCredentialKeychainReference(metadata: credential)
+        )
+        return secret.value
     }
 
     func missingSavedCredentialResult(
@@ -375,12 +623,18 @@ private extension AIProviderConfigurationService {
         )
     }
 
+    struct MaterializedProfileSave {
+        var profile: AIProviderConfigurationProfile
+        var ttsSettings: TTSProviderSettings?
+        var ttsVoiceProfiles: [TTSVoiceProfile]
+    }
+
     func makeProfile(
         from input: AIProviderProfileSaveInput,
         operationID: DiagnosticOperationID,
         credentialStore: any AIProviderCredentialStore,
         createdReferences: inout [AIProviderCredentialKeychainReference]
-    ) async throws -> AIProviderConfigurationProfile {
+    ) async throws -> MaterializedProfileSave {
         let now = clock()
         let profileID = input.profileID ?? idGenerator()
         var credentialsByPurpose: [AIProviderEndpointPurpose: AIProviderCredentialID] = [:]
@@ -410,7 +664,7 @@ private extension AIProviderConfigurationService {
             }
         }
 
-        return AIProviderConfigurationProfile(
+        let profile = AIProviderConfigurationProfile(
             id: profileID,
             displayName: input.displayName,
             isDefault: true,
@@ -420,6 +674,41 @@ private extension AIProviderConfigurationService {
             lastValidationStatus: .notRun,
             endpoints: endpoints,
             credentials: credentials
+        )
+        let ttsEndpoint = endpoints.first { $0.purpose == input.ttsVoiceProfile?.endpointPurpose }
+        let ttsSettings: TTSProviderSettings? = if let ttsVoiceProfile = input.ttsVoiceProfile, let ttsEndpoint {
+            TTSProviderSettings(endpointID: ttsEndpoint.id, adapterKind: ttsVoiceProfile.adapterKind)
+        } else {
+            nil
+        }
+        let ttsVoiceProfiles: [TTSVoiceProfile] = if let ttsVoiceProfile = input.ttsVoiceProfile, let ttsEndpoint {
+            try [
+                TTSVoiceProfile.make(
+                    id: idGenerator(),
+                    endpointID: ttsEndpoint.id,
+                    languageCode: ttsVoiceProfile.languageCode,
+                    adapterKind: ttsVoiceProfile.adapterKind,
+                    modelName: ttsEndpoint.modelName,
+                    voiceID: ttsVoiceProfile.voiceID,
+                    voiceDisplayName: ttsVoiceProfile.voiceDisplayName,
+                    outputFormat: ttsVoiceProfile.outputFormat,
+                    sampleRate: ttsVoiceProfile.sampleRate,
+                    speed: ttsVoiceProfile.speed,
+                    volume: ttsVoiceProfile.volume,
+                    pitch: ttsVoiceProfile.pitch,
+                    stylePrompt: ttsVoiceProfile.stylePrompt,
+                    instructions: ttsVoiceProfile.instructions,
+                    streamingMode: ttsVoiceProfile.streamingMode,
+                    providerParameters: ttsVoiceProfile.providerParameters
+                ),
+            ]
+        } else {
+            []
+        }
+        return MaterializedProfileSave(
+            profile: profile,
+            ttsSettings: ttsSettings,
+            ttsVoiceProfiles: ttsVoiceProfiles
         )
     }
 
@@ -451,6 +740,8 @@ private extension AIProviderConfigurationService {
 
     func saveProfile(
         _ profile: AIProviderConfigurationProfile,
+        ttsSettings: TTSProviderSettings?,
+        ttsVoiceProfiles: [TTSVoiceProfile],
         operationID: DiagnosticOperationID,
         createdReferences: [AIProviderCredentialKeychainReference],
         credentialStore: any AIProviderCredentialStore
@@ -463,7 +754,11 @@ private extension AIProviderConfigurationService {
             operationID: operationID
         )
         do {
-            try await repository.saveProfile(profile)
+            try await repository.saveProfile(
+                profile,
+                ttsSettings: ttsSettings,
+                ttsVoiceProfiles: ttsVoiceProfiles
+            )
         } catch {
             await recordDatabaseWriteFailure(operationID)
             let cleanupFailure = await cleanupCreatedSecrets(

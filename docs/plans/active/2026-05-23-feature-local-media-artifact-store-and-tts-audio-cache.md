@@ -5,7 +5,7 @@
 创建日期：2026-05-23
 最后更新日期：2026-05-23
 
-审核状态：Approved With Notes
+审核状态：Ready for User Review
 
 ## 用户确认记录
 
@@ -16,6 +16,7 @@
 - 2026-05-23：逐句 TTS 播放方案已采纳“本地媒体派生资产基础设施”方向：TTS 逐句音频不是临时 UI 缓存，而是本地优先、隐私敏感、可重建的派生媒体资产。
 - 2026-05-23：用户询问除 TTS Provider 语音模型测试方案外，其他前提条件是否需要创建方案文档。结论：需要创建本方案，作为逐句直接播放 TTS 音频前置方案之一。
 - 2026-05-23：系统架构复查确认，本方案方向符合早期可重做、基础设施完整建设、规范文档演进和未来扩展进入备忘录的原则；复查补强 `LocalMediaArtifactStore` facade、staged file reference、UI 不接触文件路径、并发唯一索引兜底和后续 direct playback 依赖边界。
+- 2026-05-23：基于当前代码再次严格复查后修订方案：`AppDatabase` 已存在 `v6_create_ai_provider_tts_configuration`，本方案迁移改为 `v7_create_media_artifact_infrastructure`；`LangoTraceSpeech` 已有 test target、bytes-based `TTSAudioValidationService`、preview store 和 preview playback service，本方案改为在现有 Speech 能力之上新增持久文件验证 seam；明确 Repository 只管 metadata，`LocalMediaArtifactStore` facade 统一编排 file store、repository 和 Core validator protocol；补强 voice profile 绑定、verification script 和三端共享基础设施边界。
 
 ## 1. 需求描述
 
@@ -39,10 +40,12 @@
 
 当前代码事实：
 
-- `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift` 当前 migration 到 `v5_add_learning_material_source_entry_body_hash`，已有 `language_spaces`、AI Provider 配置、diagnostic events、Entry / LearningMaterial / sentence / candidate / operation 表。
+- `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift` 当前 migration 到 `v6_create_ai_provider_tts_configuration`，已有 `language_spaces`、AI Provider 配置、diagnostic events、Entry / LearningMaterial / sentence / candidate / operation 表，以及 `ai_provider_tts_settings` / `ai_provider_tts_voice_profiles`。
 - 当前没有 `media_artifacts`、`tts_audio_artifacts` 或等价 metadata 表。
 - 当前 `GRDBLearningContentRepository` 已负责 Entry、LearningMaterial、句子分析和 operation 摘要，使用可注入 clock / id generator，Data package 已有 GRDB repository 测试模式可复用。
-- 当前 `Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/SpeechBoundary.swift` 只有空 `SpeechService` 和 `DisabledSpeechService`，`Packages/LangoTraceSpeech/Package.swift` 没有 test target。
+- 当前 `Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/SpeechBoundary.swift` 仍只有空 `SpeechService` 和 `DisabledSpeechService`；但 `Packages/LangoTraceSpeech/Package.swift` 已有 `LangoTraceSpeechTests` test target，`Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/TTSAudioValidationService.swift` 已有面向 TTS Provider 配置测试的 bytes-based `DefaultTTSAudioValidationService`、内存 preview store 和 preview playback service。
+- 当前 `Packages/LangoTraceCore/Sources/LangoTraceCore/TTSAudioValidation.swift` 已定义 `TTSAudioValidationService`、`TTSAudioMetadata`、`TTSAudioPreviewResource`、`TTSAudioPreviewStore` 和 `TTSAudioPreviewPlaybackService`。这些类型服务于设置页短生命周期 preview，不等同于持久 media artifact file validator。
+- 当前 `Packages/LangoTraceCore/Sources/LangoTraceCore/TTSProviderConfiguration.swift` 已定义 `TTSVoiceProfile`、`TTSProviderSettings`、`TTSAudioFormat`、`TTSProviderAdapterKind` 和 configuration fingerprint；本方案必须复用这些已落地类型和 fingerprint 语义，不再重新发明并行配置模型。
 - 当前逐句播放 UI 只在 `SentencePairView` 内用 `isLocalPlaybackActive` 做原位视觉反馈，没有真实音频文件、播放服务或缓存命中能力。
 - 当前 TTS Provider 配置测试方案已有独立文档：`docs/plans/active/2026-05-23-feature-tts-provider-configuration-test.md`。该方案负责配置、测试、voice profile 和 TTS 可用性，不负责真实逐句播放音频文件的本地存储基础设施。
 
@@ -123,6 +126,7 @@
 - `Packages/LangoTraceData/Sources/LangoTraceData/GRDBMediaArtifactRepository.swift`
 - `Packages/LangoTraceData/Sources/LangoTraceData/LocalMediaArtifactStore.swift`
 - `Packages/LangoTraceData/Sources/LangoTraceData/LocalMediaArtifactFileStore.swift`
+- `Packages/LangoTraceCore/Sources/LangoTraceCore/TTSAudioFileValidation.swift`
 - `Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/TTSAudioFileValidator.swift`
 - `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/MediaArtifactTests.swift`
 - `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/TTSAudioFileValidatorTests.swift`
@@ -134,7 +138,8 @@
 
 - `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift`
 - `Packages/LangoTraceData/Tests/LangoTraceDataTests/AppDatabaseTests.swift`
-- `Packages/LangoTraceSpeech/Package.swift`
+- `Packages/LangoTraceSpeech/Package.swift`，仅当需要新增 fixture resources 或测试依赖；当前已有 `LangoTraceSpeechTests` test target，不需要为 test target 本身修改。
+- `scripts/verify.sh`，新增 `swift test --package-path Packages/LangoTraceSpeech`，确保 Speech 基础设施进入完整验证。
 - `LangoTraceApp/AppEnvironment.swift`，仅在后续 direct playback 或 service 装配任务中真正注入；本方案可先不接 UI。
 
 可能修改：
@@ -205,7 +210,7 @@ Data LocalMediaArtifactStore
 Speech TTSAudioFileValidator
 Future SentenceAudioPlaybackCoordinator
   -> Data LocalMediaArtifactStore
-  -> Speech TTSAudioFileValidator / playback service
+  -> Core TTSAudioFileValidating protocol injected with Speech implementation / playback service
   -> AI TTS generation service
 ```
 
@@ -213,7 +218,7 @@ Future SentenceAudioPlaybackCoordinator
 
 - UI 直接拼文件路径或读写 `media_artifacts`。
 - AI package 持有 AVFoundation 播放对象或本地文件生命周期。
-- Speech package 读取 Provider secret、拼 TTS HTTP request 或写 GRDB。
+- Speech package 读取 Provider secret、拼 TTS HTTP request、写 GRDB 或直接管理 media artifact metadata。
 - Data package 发起 Provider 请求或持有 AVAudioPlayer 生命周期。
 - UI、AI 或 Speech package 直接持有正式 media artifact 文件绝对路径。
 - 文件名包含用户文本、Entry 标题、voice 明文、Provider secret、完整 Keychain account 或请求参数明文。
@@ -281,6 +286,7 @@ public struct TTSAudioArtifactKey: Sendable, Equatable {
     public var targetLanguageCode: String
     public var providerProfileID: String
     public var ttsEndpointID: String
+    public var ttsVoiceProfileID: String
     public var adapterKind: String
     public var adapterVersion: String
     public var modelName: String
@@ -302,13 +308,14 @@ Key hash 规则：
 - 使用结构化 JSON 或等价 canonical string 后计算 SHA-256。
 - 不把完整句子文本、voice 明文、instructions 明文、provider parameters 明文写入 key hash 输入之外的持久字段。
 - key hash 可记录，原始敏感输入不进入日志或 diagnostic event。
+- `ttsVoiceProfileID` 用于追踪当前 endpoint + language code 的 voice profile 生命周期；命中仍以 `configurationFingerprint` 和完整 key hash 为准，避免 voice profile 记录被同 id 更新后错误复用旧音频。
 
 ### 10.3 GRDB Schema
 
 新增 migration：
 
 ```text
-v6_create_media_artifact_infrastructure
+v7_create_media_artifact_infrastructure
 ```
 
 通用表：
@@ -360,6 +367,7 @@ CREATE TABLE tts_audio_artifacts (
   target_language_code TEXT NOT NULL,
   provider_profile_id TEXT NOT NULL REFERENCES ai_provider_profiles(id) ON DELETE CASCADE,
   tts_endpoint_id TEXT NOT NULL REFERENCES ai_provider_endpoints(id) ON DELETE CASCADE,
+  tts_voice_profile_id TEXT NOT NULL REFERENCES ai_provider_tts_voice_profiles(id) ON DELETE CASCADE,
   adapter_kind TEXT NOT NULL,
   adapter_version TEXT NOT NULL,
   model_name TEXT NOT NULL,
@@ -380,7 +388,7 @@ CREATE TABLE tts_audio_artifacts (
 
 ```sql
 CREATE UNIQUE INDEX idx_media_artifacts_active_derivation_key
-ON media_artifacts(derivation_key_hash)
+ON media_artifacts(artifact_type, derivation_kind, derivation_key_hash)
 WHERE invalidated_at IS NULL;
 
 CREATE INDEX idx_media_artifacts_language_type_accessed
@@ -393,14 +401,15 @@ CREATE INDEX idx_tts_audio_artifacts_entry_material_sentence
 ON tts_audio_artifacts(entry_id, learning_material_id, sentence_index);
 
 CREATE INDEX idx_tts_audio_artifacts_provider_config
-ON tts_audio_artifacts(provider_profile_id, tts_endpoint_id, configuration_fingerprint);
+ON tts_audio_artifacts(provider_profile_id, tts_endpoint_id, tts_voice_profile_id, configuration_fingerprint);
 ```
 
 Schema 取舍：
 
 - `owner_type + owner_id + owner_sub_id` 是通用 owner 索引，支持 Entry、material、sentence、practice session 和 temporary operation。
 - TTS 专属表可以额外引用 `entries` / `learning_materials`，用于级联删除和查询。
-- `derivation_key_hash` 在 active artifact 上唯一，防止同一 key 重复写 ready 记录。
+- `artifact_type + derivation_kind + derivation_key_hash` 在 active artifact 上唯一，防止同一类型同一 derivation key 重复写 ready 记录，同时为未来不同 artifact type 复用同一 hash 算法保留空间。
+- `tts_voice_profile_id` 记录当前 endpoint + language code 的 voice profile 生命周期；voice profile 被删除时相关 TTS artifact metadata 级联删除。voice profile 被同 id 更新时，`configuration_fingerprint` 和完整 key hash 负责让旧音频不再命中。
 - `invalidated_at` 不删除历史 metadata 时也能避免旧记录命中；容量清理可以删除 invalidated metadata 和文件。
 
 ### 10.4 文件存储
@@ -425,19 +434,58 @@ ttsSentenceAudio/<language_space_id>/<artifact_id>.<extension>
 - `MediaArtifacts` 根目录设置 excluded from backup。
 - iOS 上可沿用 App container 默认保护；如果设置 file protection，应与数据库文件保护策略一致或更严格。
 
-### 10.5 Repository API
+### 10.5 Core 协议与验证边界
 
 Core 协议建议：
 
 ```swift
 public protocol MediaArtifactRepository: Sendable {
+    func ttsAudioArtifactMetadata(for key: TTSAudioArtifactKey) async throws -> MediaArtifactLookupResult
+    func commitTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifact
+    func invalidateArtifacts(_ request: MediaArtifactInvalidationRequest) async throws
+    func artifactsForCleanup(_ request: MediaArtifactCleanupRequest) async throws -> [MediaArtifact]
+    func deleteArtifactMetadata(artifactIDs: [String]) async throws
+    func markAccessed(artifactID: String, at date: Date) async throws
+}
+```
+
+Facade 协议建议：
+
+```swift
+public protocol LocalMediaArtifactStoring: Sendable {
     func ttsAudioArtifact(for key: TTSAudioArtifactKey) async throws -> MediaArtifactLookupResult
     func commitTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifact
     func invalidateArtifacts(_ request: MediaArtifactInvalidationRequest) async throws
     func cleanupArtifacts(_ request: MediaArtifactCleanupRequest) async throws -> MediaArtifactCleanupResult
-    func markAccessed(artifactID: String, at date: Date) async throws
 }
 ```
+
+持久文件验证协议建议：
+
+```swift
+public protocol TTSAudioFileValidating: Sendable {
+    func validateTTSAudioFile(_ input: TTSAudioFileValidationInput) async -> TTSAudioFileValidationResult
+}
+
+public struct TTSAudioFileValidationInput: Sendable, Equatable {
+    public var stagedFile: MediaArtifactStagedFileReference
+    public var declaredFormat: TTSAudioFormat
+    public var mimeType: String
+    public var byteSizeLimit: Int64
+}
+
+public struct TTSAudioFileValidationResult: Sendable, Equatable {
+    public var status: TTSAudioValidationStatus
+    public var metadata: TTSAudioMetadata?
+}
+```
+
+边界规则：
+
+- `TTSAudioValidationService` 继续服务设置页 Provider probe，输入是短生命周期 audio bytes，可返回 memory preview resource。
+- `TTSAudioFileValidating` 服务持久 media artifact 提交，输入是受控 staging reference，不返回 preview resource，不暴露正式绝对路径。
+- `TTSAudioFileValidating` 协议放在 Core；默认实现 `TTSAudioFileValidator` 放在 Speech；Data 的 `LocalMediaArtifactStore` 只依赖 Core 协议，不依赖 Speech package。
+- 如果实现中需要用 AVFoundation 打开文件，真实文件 URL 只在 Speech validator 与 Data file store 的受控 adapter 内短生命周期使用，不进入 UI、AI、Core 业务模型、诊断日志或 metadata。
 
 Lookup result：
 
@@ -469,7 +517,13 @@ public struct TTSAudioArtifactCommitInput: Sendable {
 }
 ```
 
-`MediaArtifactRepository` 是 metadata 边界；真实路径解析只能发生在 Data package 的 `LocalMediaArtifactFileStore`。UI、AI、Speech 和 Core 业务层不得依赖正式文件绝对路径。后续如果实现一个更高层 `LocalMediaArtifactStore` facade，它应组合 repository、file store 和 validator，并只对 coordinator 暴露 hit / stage / validate / commit / cleanup 语义。
+`MediaArtifactRepository` 是 metadata 边界；真实路径解析只能发生在 Data package 的 `LocalMediaArtifactFileStore`。UI、AI、Speech 和 Core 业务层不得依赖正式文件绝对路径。`LocalMediaArtifactStore` facade 必须在本方案内实现，组合 repository、file store 和 Core validator protocol，并只对 coordinator 暴露 hit / stage / validate / commit / cleanup 语义。后续 direct playback coordinator 不得自己编排 DB 与文件系统。
+
+协议职责：
+
+- `MediaArtifactRepository` 只返回 metadata、写 metadata、标记失效、更新时间和选择待清理 metadata。
+- `LocalMediaArtifactStoring` 是后续 coordinator 使用的真实基础设施入口，负责调用 repository、file store 和 validator，并返回包含文件删除数量与 reclaimed bytes 的 cleanup result。
+- `MediaArtifactCleanupResult.deletedFileCount`、`reclaimedBytes` 和 `failedFileCount` 只能由 facade / file store 计算，不能由纯 metadata repository 猜测。
 
 并发边界：
 
@@ -477,6 +531,7 @@ public struct TTSAudioArtifactCommitInput: Sendable {
 - 如果同一 key 已有 active ready metadata 且文件存在，commit 应返回现有 artifact 或显式 `alreadyExists(existingArtifact)`，不得创建重复行。
 - 同一 key 并发 commit 时，唯一索引必须兜底；业务层 coordinator 后续仍应复用 in-flight task，避免重复请求 Provider。
 - 如果两个并发 commit 先后完成文件 move，但其中一个因唯一索引冲突失败，失败方必须删除自己移动出的正式文件，返回现有 artifact 或稳定冲突结果。
+- 由于 Repository 不解析文件路径，“文件存在”与“删除自己移动出的正式文件”由 facade 通过 file store 判断和处理；Repository 只返回 metadata 冲突或现有 active metadata。
 
 ### 10.6 文件与 Metadata 提交顺序
 
@@ -491,7 +546,7 @@ public struct TTSAudioArtifactCommitInput: Sendable {
 7. 若 metadata 写入失败，删除正式文件。
 8. 若 move 失败，不写 metadata。
 
-如果后续实现 `LocalMediaArtifactStore` facade，推荐由 facade 负责上述顺序，repository 只负责 metadata transaction，file store 只负责路径与文件操作。这样可以让 direct playback coordinator 调用一个基础设施入口，而不是自己编排 DB 与文件系统。
+`LocalMediaArtifactStore` facade 负责上述顺序，repository 只负责 metadata transaction，file store 只负责路径与文件操作。这样可以让 direct playback coordinator 调用一个基础设施入口，而不是自己编排 DB 与文件系统。
 
 实现时可根据 GRDB transaction 与文件系统事务不可合一的事实调整顺序，但必须在方案或代码注释中明确失败恢复：
 
@@ -615,8 +670,9 @@ git status --short
 
 - `TTSAudioArtifactKey` 对同字段生成稳定 hash。
 - 字段顺序变化不影响 canonical hash。
-- 句子文本 hash、target language、voice hash、model、format、adapter version、configuration fingerprint 任一变化都会生成不同 key hash。
+- 句子文本 hash、target language、voice profile id、voice hash、model、format、adapter version、configuration fingerprint 任一变化都会生成不同 key hash。
 - 默认 policy 为 local only、excluded from backup、excluded by default from export。
+- `TTSAudioFileValidating` 输入和结果不携带正式绝对路径，也不携带 preview resource。
 
 聚焦命令：
 
@@ -630,6 +686,7 @@ swift test --package-path Packages/LangoTraceCore --filter MediaArtifactTests
 
 - `MediaArtifact.swift`
 - `TTSAudioArtifact.swift`
+- `TTSAudioFileValidation.swift`
 
 要求：
 
@@ -637,6 +694,7 @@ swift test --package-path Packages/LangoTraceCore --filter MediaArtifactTests
 - enum raw value 与 DB CHECK 值一致。
 - hash 计算只依赖 canonical representation。
 - 不在模型中保存完整句子文本、instructions 明文或 provider parameters 明文。
+- `TTSAudioFileValidating` 协议定义在 Core，Data 和 Speech 都依赖该协议而不是彼此依赖。
 
 ### 11.4 测试先行：GRDB Migration
 
@@ -659,7 +717,7 @@ swift test --package-path Packages/LangoTraceData --filter AppDatabaseTests
 
 修改 `AppDatabase.swift`：
 
-- 注册 `v6_create_media_artifact_infrastructure`。
+- 注册 `v7_create_media_artifact_infrastructure`。
 - 新增 `createMediaArtifactInfrastructure(_:)`。
 - 创建通用 metadata 表、TTS 专属表和索引。
 - 维持 `PRAGMA foreign_keys = ON`。
@@ -667,7 +725,7 @@ swift test --package-path Packages/LangoTraceData --filter AppDatabaseTests
 注意：
 
 - 不依赖用户清空容器。
-- 不改变既有 `v1` 到 `v5` migration 名称。
+- 不改变既有 `v1` 到 `v6` migration 名称。
 - 不在 migration 中创建真实媒体目录；目录属于 file store 初始化。
 
 ### 11.6 测试先行：File Store
@@ -720,6 +778,7 @@ swift test --package-path Packages/LangoTraceData --filter LocalMediaArtifactSto
 新增 `LocalMediaArtifactStore.swift`：
 
 - 组合 `GRDBMediaArtifactRepository`、`LocalMediaArtifactFileStore` 和可注入的 audio validator 协议。
+- 实现 Core `LocalMediaArtifactStoring` facade 协议。
 - 对 direct playback coordinator 暴露单一 hit / stage / validate / commit / cleanup 入口。
 - 不发起 Provider 请求。
 - 不播放音频。
@@ -734,12 +793,11 @@ swift test --package-path Packages/LangoTraceData --filter LocalMediaArtifactSto
 - hit 更新 `last_accessed_at`。
 - 同 key 二次 commit 不创建重复 active artifact。
 - key 任一关键字段变化返回 miss。
-- 文件丢失时 lookup 清理 metadata 或返回 invalidated。
-- content hash 不匹配时返回 invalidated。
+- repository 层不读取文件系统；文件丢失和 content hash 不匹配由 `LocalMediaArtifactStoreTests` 覆盖。
 - `invalidateArtifacts` 可按 owner、language space、artifact type、provider profile、endpoint 和 configuration fingerprint 标记失效。
 - 删除 Entry 或 LearningMaterial 后相关 TTS metadata 不再 active hit。
-- cleanup invalidated artifacts 删除 metadata 和文件。
-- cleanup by capacity 使用 LRU 顺序删除最久未访问 artifact。
+- cleanup invalidated artifacts 删除 metadata；文件删除由 facade/file store cleanup 覆盖。
+- cleanup by capacity 选择 LRU 顺序返回待删 artifact 或通过 facade 删除最久未访问 artifact；不得在 repository 内直接拼文件路径。
 
 聚焦命令：
 
@@ -754,14 +812,14 @@ swift test --package-path Packages/LangoTraceData --filter MediaArtifactReposito
 - 实现 Core `MediaArtifactRepository`。
 - 使用 `DatabaseQueue.read` / `write`。
 - 使用可注入 clock 和 id generator。
-- 查询时验证 metadata 与文件状态，必要时清理不一致。
+- 只管理 metadata 查询、写入、失效、访问时间和 cleanup selection；不得直接访问文件系统或解析绝对路径。
 - commit 时处理唯一索引冲突并返回现有 active artifact。
-- cleanup 返回 `MediaArtifactCleanupResult`。
+- cleanup selection 返回待删除 metadata；真实 `MediaArtifactCleanupResult` 由 facade 汇总 file store 删除结果后返回。
 - 诊断输出只使用非敏感分类；如果接入 DiagnosticLogger，必须 best-effort、non-throwing。
 
 ### 11.12 测试先行：Speech 音频验证 Seam
 
-修改 `Packages/LangoTraceSpeech/Package.swift`，新增 test target。新增 `TTSAudioFileValidatorTests`，覆盖：
+`Packages/LangoTraceSpeech/Package.swift` 当前已有 `LangoTraceSpeechTests` test target；仅当新增 fixture resources 或测试依赖时修改 Package.swift。新增 `TTSAudioFileValidatorTests`，覆盖：
 
 - 空文件返回 `audioDecodeFailed` 或等价稳定错误。
 - 非音频 bytes 返回 `audioDecodeFailed`。
@@ -810,6 +868,7 @@ swift test --package-path Packages/LangoTraceSpeech
 - 更新 `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`，把本方案从前置待建改为前置已完成或引用本方案实施结果。
 - 如 AppEnvironment 装配了真实服务，更新 `docs/spec/004-swiftui-architecture.md` 或相关架构说明。
 - 如未装配 UI，明确后续 direct playback 方案负责装配。
+- 更新 `scripts/verify.sh`，将 `swift test --package-path Packages/LangoTraceSpeech` 纳入完整验证。若暂时不修改脚本，必须在实施记录中写明原因和剩余风险；默认推荐修改。
 
 ## 12. 复查方法
 
@@ -888,16 +947,19 @@ git status --short
 
 - Core 已定义媒体派生资产、TTS audio artifact key、policy、lookup result、commit input、cleanup result 和错误类型。
 - Data 已新增 `media_artifacts` 和 `tts_audio_artifacts` migration、repository、file store、`LocalMediaArtifactStore` facade 和清理能力。
-- Speech 已提供 TTS 音频文件验证 seam，并有 test target 或明确的可自动化测试覆盖。
+- Speech 已在现有 `LangoTraceSpeechTests` test target 下提供 TTS 音频文件验证 seam，并有明确的可自动化测试覆盖。
 - TTS audio artifact 可以按 key hit / miss / invalidated。
 - 同 key 重复 commit 不创建重复 active artifact。
 - metadata 与文件不一致时有可测试恢复路径。
 - 文件写入使用 staging 和原子移动，失败时不留下 ready metadata。
 - MediaArtifacts 根目录默认 excluded from backup。
 - policy 默认值为 local only、excluded from system backup、excluded by default from export。
+- TTS metadata 保存 `tts_voice_profile_id`，并以完整 derivation key hash 与 `configuration_fingerprint` 保证 voice profile 更新后旧音频不再命中。
+- `GRDBMediaArtifactRepository` 不访问文件系统；文件验证、路径解析、孤立文件清理和 cleanup result 汇总全部由 `LocalMediaArtifactStore` facade / `LocalMediaArtifactFileStore` 负责。
 - 日志和诊断不包含句子原文、请求体、响应体、audio bytes、API Key、Authorization header、完整 Keychain account、instructions 明文、provider parameters 明文或文件绝对路径。
 - cleanup 支持 invalidated、owner、language space、artifact type、capacity / LRU 和 staging 残留。
 - direct playback coordinator 后续只需要调用 `LocalMediaArtifactStore`，不需要自己拼文件路径、写 metadata 或处理半成品文件。
+- `scripts/verify.sh` 默认纳入 `swift test --package-path Packages/LangoTraceSpeech`，除非实施记录明确说明暂缓原因和剩余风险。
 - 聚焦测试和完整验证通过，或记录无法运行的具体原因和剩余风险。
 - 文档影响检查完成，相关事实源不再把 TTS 音频描述为临时 UI 缓存。
 
@@ -920,6 +982,7 @@ git status --short
 
 - 本方案不只为逐句 TTS 建单点缓存，而是定义通用 media artifact schema、repository、file store、facade、policy、清理、失效、测试和诊断边界。
 - 第一阶段只开放 `ttsSentenceAudio` 写入和查询，但 schema 和 enum 明确预留全文朗读、跟读录音、听写录音、OCR 中间文件和导出临时产物。
+- 本方案将 metadata repository 与文件系统 facade 拆开，避免一开始把数据库、文件路径、音频验证和清理策略混成难以扩展的单体对象。
 
 规范文档可演进：
 

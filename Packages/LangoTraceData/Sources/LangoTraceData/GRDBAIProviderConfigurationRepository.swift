@@ -49,6 +49,14 @@ public struct GRDBAIProviderConfigurationRepository: AIProviderConfigurationRepo
     }
 
     public func saveProfile(_ profile: AIProviderConfigurationProfile) async throws {
+        try await saveProfile(profile, ttsSettings: nil, ttsVoiceProfiles: [])
+    }
+
+    public func saveProfile(
+        _ profile: AIProviderConfigurationProfile,
+        ttsSettings: TTSProviderSettings?,
+        ttsVoiceProfiles: [TTSVoiceProfile]
+    ) async throws {
         try await databaseQueue.write { db in
             try upsert(profile, db: db)
 
@@ -67,7 +75,34 @@ public struct GRDBAIProviderConfigurationRepository: AIProviderConfigurationRepo
             for endpoint in profile.endpoints {
                 try insert(endpoint, db: db)
             }
+            if let ttsSettings {
+                try insert(ttsSettings, db: db)
+            }
+            for voiceProfile in ttsVoiceProfiles {
+                try insert(voiceProfile, db: db)
+            }
         }
+    }
+
+    public func loadTTSSettings(endpointID: AIProviderEndpointID) async throws -> TTSProviderSettings? {
+        try await GRDBTTSProviderSettingsRepository(databaseQueue: databaseQueue)
+            .loadSettings(endpointID: endpointID)
+    }
+
+    public func loadTTSVoiceProfile(
+        endpointID: AIProviderEndpointID,
+        languageCode: String
+    ) async throws -> TTSVoiceProfile? {
+        try await GRDBTTSProviderSettingsRepository(databaseQueue: databaseQueue)
+            .loadVoiceProfile(endpointID: endpointID, languageCode: languageCode)
+    }
+
+    public func recordTTSVoiceProfileProbeOutcome(
+        _ event: AIProviderValidationEvent,
+        languageCode: String
+    ) async throws {
+        try await GRDBTTSProviderSettingsRepository(databaseQueue: databaseQueue)
+            .recordTTSVoiceProfileProbeOutcome(event, languageCode: languageCode)
     }
 
     public func markCredentialState(
@@ -223,6 +258,60 @@ private extension GRDBAIProviderConfigurationRepository {
                 endpoint.createdAt.timeIntervalSince1970,
                 endpoint.updatedAt.timeIntervalSince1970,
                 nil,
+            ]
+        )
+    }
+
+    func insert(_ settings: TTSProviderSettings, db: Database) throws {
+        let now = Date().timeIntervalSince1970
+        try db.execute(
+            sql: """
+            INSERT INTO ai_provider_tts_settings (
+                endpoint_id, tts_adapter_kind, created_at, updated_at
+            ) VALUES (?, ?, ?, ?)
+            """,
+            arguments: [settings.endpointID, settings.adapterKind.rawValue, now, now]
+        )
+    }
+
+    func insert(_ profile: TTSVoiceProfile, db: Database) throws {
+        let data = try JSONEncoder().encode(profile.providerParameters)
+        let json = String(data: data, encoding: .utf8) ?? "{}"
+        let now = Date().timeIntervalSince1970
+        try db.execute(
+            sql: """
+            INSERT INTO ai_provider_tts_voice_profiles (
+                id, endpoint_id, language_code, tts_adapter_kind, model_name,
+                voice_id, voice_display_name, output_format, sample_rate,
+                speed, volume, pitch, style_prompt, instructions, streaming_mode,
+                provider_parameters_json, configuration_fingerprint,
+                last_successful_configuration_fingerprint, last_test_status,
+                last_tested_at, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            arguments: [
+                profile.id,
+                profile.endpointID,
+                profile.languageCode,
+                profile.adapterKind.rawValue,
+                profile.modelName,
+                profile.voiceID,
+                profile.voiceDisplayName,
+                profile.outputFormat.rawValue,
+                profile.sampleRate,
+                profile.speed,
+                profile.volume,
+                profile.pitch,
+                profile.stylePrompt,
+                profile.instructions,
+                profile.streamingMode,
+                json,
+                profile.configurationFingerprint,
+                profile.lastSuccessfulConfigurationFingerprint,
+                profile.lastTestStatus.rawValue,
+                profile.lastTestedAt?.timeIntervalSince1970,
+                now,
+                now,
             ]
         )
     }

@@ -7,10 +7,12 @@ public protocol AIProviderProbeHTTPClient: Sendable {
 public struct AIProviderProbeHTTPResponse: Equatable, Sendable {
     public var statusCode: Int
     public var body: Data
+    public var contentType: String?
 
-    public init(statusCode: Int, body: Data) {
+    public init(statusCode: Int, body: Data, contentType: String? = nil) {
         self.statusCode = statusCode
         self.body = body
+        self.contentType = contentType
     }
 }
 
@@ -30,8 +32,13 @@ public struct URLSessionAIProviderProbeHTTPClient: AIProviderProbeHTTPClient {
     public func send(_ request: URLRequest) async throws -> AIProviderProbeHTTPResponse {
         do {
             let (data, response) = try await session.data(for: request)
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            return AIProviderProbeHTTPResponse(statusCode: statusCode, body: data)
+            let httpResponse = response as? HTTPURLResponse
+            let statusCode = httpResponse?.statusCode ?? 0
+            return AIProviderProbeHTTPResponse(
+                statusCode: statusCode,
+                body: data,
+                contentType: httpResponse?.value(forHTTPHeaderField: "Content-Type")
+            )
         } catch is CancellationError {
             throw AIProviderProbeHTTPClientError.cancelled
         } catch let error as URLError {

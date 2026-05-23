@@ -16,11 +16,15 @@ struct AppEnvironment {
     let speechService: any SpeechService
     let syncService: any SyncService
 
+    // AppEnvironment assembles the cross-package production graph in one place.
+    // swiftlint:disable:next function_body_length
     static func bootstrap() -> AppEnvironment {
         let databaseFactory = SharedAppDatabaseFactory()
         let credentialStore = KeychainAIProviderCredentialStore()
         let diagnosticLogger = makeDiagnosticLogger(databaseFactory: databaseFactory)
         let learningContentRepository = makeLearningContentRepository(databaseFactory: databaseFactory)
+        let ttsPreviewStore = InMemoryTTSAudioPreviewStore()
+        let ttsPreviewPlaybackService = DefaultTTSAudioPreviewPlaybackService(previewStore: ttsPreviewStore)
 
         return AppEnvironment(
             makeLanguageSpaceRepository: {
@@ -38,9 +42,19 @@ struct AppEnvironment {
                     let service = try makeAIProviderConfigurationService(
                         databaseFactory: databaseFactory,
                         credentialStore: credentialStore,
-                        diagnosticLogger: diagnosticLogger
+                        diagnosticLogger: diagnosticLogger,
+                        ttsPreviewStore: ttsPreviewStore
                     )
                     return try await service.loadDefaultProfile()
+                },
+                loadTTSVoiceProfile: { endpointID, languageCode in
+                    let service = try makeAIProviderConfigurationService(
+                        databaseFactory: databaseFactory,
+                        credentialStore: credentialStore,
+                        diagnosticLogger: diagnosticLogger,
+                        ttsPreviewStore: ttsPreviewStore
+                    )
+                    return try await service.loadTTSVoiceProfile(endpointID: endpointID, languageCode: languageCode)
                 },
                 resolveCredentialSecret: { credential in
                     let secret = try await credentialStore.resolveSecret(
@@ -52,7 +66,8 @@ struct AppEnvironment {
                     let service = try makeAIProviderConfigurationService(
                         databaseFactory: databaseFactory,
                         credentialStore: credentialStore,
-                        diagnosticLogger: diagnosticLogger
+                        diagnosticLogger: diagnosticLogger,
+                        ttsPreviewStore: ttsPreviewStore
                     )
                     return try await service.saveDefaultProfile(input, operationID: operationID)
                 },
@@ -60,7 +75,8 @@ struct AppEnvironment {
                     let service = try makeAIProviderConfigurationService(
                         databaseFactory: databaseFactory,
                         credentialStore: credentialStore,
-                        diagnosticLogger: diagnosticLogger
+                        diagnosticLogger: diagnosticLogger,
+                        ttsPreviewStore: ttsPreviewStore
                     )
                     return try await service.validateDefaultProfileCredentials()
                 },
@@ -68,7 +84,8 @@ struct AppEnvironment {
                     let service = try makeAIProviderConfigurationService(
                         databaseFactory: databaseFactory,
                         credentialStore: credentialStore,
-                        diagnosticLogger: diagnosticLogger
+                        diagnosticLogger: diagnosticLogger,
+                        ttsPreviewStore: ttsPreviewStore
                     )
                     switch source {
                     case .draft:
@@ -79,6 +96,10 @@ struct AppEnvironment {
                             AIProviderConfigurationProbeDraftInput(
                                 endpoint: snapshot.endpoint,
                                 plaintextSecret: snapshot.plaintextSecret,
+                                ttsEndpoint: snapshot.ttsEndpoint,
+                                ttsSettings: snapshot.ttsSettings,
+                                ttsVoiceProfile: snapshot.ttsVoiceProfile,
+                                ttsPlaintextSecret: snapshot.ttsPlaintextSecret,
                                 languageContext: snapshot.languageContext,
                                 operationID: operationID
                             )
@@ -89,6 +110,9 @@ struct AppEnvironment {
                             operationID: operationID
                         )
                     }
+                },
+                playSpeechPreview: { resource in
+                    try? await ttsPreviewPlaybackService.playPreview(resource)
                 },
                 recordDiagnosticEvent: { event in
                     await diagnosticLogger.record(event)
@@ -494,7 +518,8 @@ private final class SharedAppDatabaseFactory: @unchecked Sendable {
 private func makeAIProviderConfigurationService(
     databaseFactory: SharedAppDatabaseFactory,
     credentialStore: any AIProviderCredentialStore,
-    diagnosticLogger: any DiagnosticLogging
+    diagnosticLogger: any DiagnosticLogging,
+    ttsPreviewStore: any TTSAudioPreviewStore
 ) throws -> AIProviderConfigurationService {
     try AIProviderConfigurationService(
         repository: GRDBAIProviderConfigurationRepository(database: databaseFactory.database()),
@@ -502,6 +527,10 @@ private func makeAIProviderConfigurationService(
         configurationProbeService: AIProviderConfigurationProbeService(
             httpClient: URLSessionAIProviderProbeHTTPClient(),
             diagnosticLogger: diagnosticLogger
+        ),
+        ttsConfigurationProbeService: TTSConfigurationProbeService(
+            httpClient: URLSessionAIProviderProbeHTTPClient(),
+            audioValidationService: DefaultTTSAudioValidationService(previewStore: ttsPreviewStore)
         ),
         diagnosticLogger: diagnosticLogger
     )

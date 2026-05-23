@@ -127,6 +127,7 @@ voice profile 保存：
 - configuration fingerprint。
 - last successful configuration fingerprint。
 - last test status。
+- last test error category。
 - last tested at。
 
 原因：
@@ -134,6 +135,8 @@ voice profile 保存：
 - LangoTrace 的核心模型是一个语言空间对应一门目标语言。
 - 英语、日语、韩语等语言空间可能需要不同 voice、speed、style 和测试状态。
 - endpoint 全局 voice 会在多语言空间间互相覆盖，后续逐句播放会产生错误音频。
+
+设置页加载已保存配置时，必须在加载 `.tts` endpoint 后继续按当前 `language_code` 读取 voice profile，并回填 voice、format、speed、instructions 等语音字段。只加载 endpoint、model 和 credential secret 会让 UI 回到 provider 默认 voice，后续保存可能覆盖用户对当前语言空间的 voice profile。
 
 ### 5.3 Provider Parameters
 
@@ -185,7 +188,7 @@ TTS probe 必须按当前语言空间的目标语言选择固定测试文本。�
 
 如果选择扩展 `AIProviderConfigurationProbeResult`，也必须满足上述 endpoint metadata 要求。
 
-当前代码中的 `AIProviderDraftProbeSnapshot` 和 `AIProviderConfigurationProbeResult` 仍是单 endpoint 形态。接入 TTS 前必须先演进为 profile-level snapshot / result，或在兼容扩展中达到同等语义；不得把 TTS row 的 Provider、model、duration、error category 或 validation event 复用 text endpoint 的字段。
+当前代码采用兼容扩展路径：`AIProviderDraftProbeSnapshot` 可携带 text endpoint、tts endpoint、TTS settings、当前 language code 的 voice profile 和 transient secret；`AIProviderConfigurationProbeResult` 的 capability result 可携带 endpoint metadata。后续若新增独立 `AIProviderProfileProbeResult`，必须保持同等语义，不得把 TTS row 的 Provider、model、duration、error category 或 validation event 复用 text endpoint 的字段。
 
 ### 6.3 Draft Probe
 
@@ -220,7 +223,7 @@ TTS saved probe 不得调用会覆盖 profile 全局最近验证摘要的路径�
 
 ## 7. 播放前置状态
 
-后续逐句播放功能只能接受以下 TTS 可用性状态：
+TTS Provider 配置可用性读取接口只能返回以下状态：
 
 - `available(configuration)`。
 - `notConfigured`。
@@ -230,7 +233,7 @@ TTS saved probe 不得调用会覆盖 profile 全局最近验证摘要的路径�
 - `credentialMissing`。
 - `unsupportedProvider`。
 
-`available` 必须满足：
+`available` 在 Provider 配置层必须满足：
 
 - 存在启用的 `.tts` endpoint。
 - 存在 endpoint 级 TTS settings。
@@ -239,7 +242,8 @@ TTS saved probe 不得调用会覆盖 profile 全局最近验证摘要的路径�
 - 上次 TTS 测试成功。
 - 当前配置 fingerprint 与测试成功时一致。
 - 当前 App 版本仍支持该 TTS adapter。
-- 本地媒体派生资产基础设施可用，能查询、写入、解码验证、失效和清理 TTS audio artifact。
+
+逐句播放层不得只凭 Provider 配置 `available` 直接播放。真实逐句播放还必须等待本地媒体派生资产基础设施可用，能查询、写入、解码验证、失效和清理 TTS audio artifact。换言之，Provider 配置 `available` 是逐句播放的必要条件，不是完整播放 ready 状态。
 
 `requiresRetest` 必须在以下情况出现：
 
@@ -390,3 +394,5 @@ Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu 和
 - 2026-05-23：补充 TTS probe 必须按当前语言空间目标语言选择固定测试文本，并将测试结果绑定到当前 language code 的 voice profile。原因：用户配置的语音模型或音色可能不支持当前语言空间语种，单一全局 TTS 成功状态会误导逐句播放可用性判断。
 - 2026-05-23：补充逐句 TTS 音频必须通过本地媒体派生资产基础设施管理。原因：逐句播放方案采纳早期基础设施完整建设原则，TTS 音频不应作为临时 UI 缓存落地，而应作为本地优先、隐私敏感、可重建的派生媒体资产，为后续全文朗读、跟读录音、听写录音、音频同步和导出预留一致边界。
 - 2026-05-23：收紧 TTS 音频校验和 preview 边界。原因：早期基础设施原则要求首次落地采用长期可扩展方案；TTS 配置测试不能以 AI 侧轻量响应校验替代音频验收，必须通过 Core 音频校验协议注入 Speech 实现。设置页 preview audio 只作为短生命周期试听资源，真实逐句播放音频复用必须依赖本地媒体派生资产基础设施。
+- 2026-05-23：同步 TTS Provider 配置测试实施事实。原因：当前实现选择兼容扩展 `AIProviderConfigurationProbeResult` 和 `AIProviderDraftProbeSnapshot`，已经具备 endpoint metadata 与 TTS draft snapshot；Speech 层提供短生命周期 preview store / playback seam，voice profile 保留最近失败分类供可用性读取；同时明确 Provider 配置 `available` 只是逐句播放必要条件，完整播放 ready 还依赖本地媒体派生资产基础设施。
+- 2026-05-23：补充设置页加载已保存 voice profile 的状态同步规则。原因：voice profile 是 language code 级状态源，重开设置页必须回填当前语言空间的 voice、format、speed、instructions，避免 UI 默认值覆盖用户配置。

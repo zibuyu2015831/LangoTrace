@@ -85,6 +85,12 @@ public enum AIProviderValidationErrorCategory: String, Codable, CaseIterable, Se
     case unsupportedEndpointPurpose = "unsupported_endpoint_purpose"
     case invalidResponse = "invalid_response"
     case invalidAudioResponse = "invalid_audio_response"
+    case invalidVoice = "invalid_voice"
+    case unsupportedLanguage = "unsupported_language"
+    case unsupportedAudioFormat = "unsupported_audio_format"
+    case audioDecodeFailed = "audio_decode_failed"
+    case rateLimited = "rate_limited"
+    case quotaExceeded = "quota_exceeded"
     case invalidEmbeddingResponse = "invalid_embedding_response"
 }
 
@@ -121,6 +127,28 @@ public enum AIProviderProbeCapabilityStatus: String, Codable, Sendable {
     case notRun = "not_run"
 }
 
+public struct AIProviderEndpointProbeMetadata: Equatable, Sendable {
+    public var endpointID: AIProviderEndpointID
+    public var endpointPurpose: AIProviderEndpointPurpose
+    public var providerPresetID: String
+    public var modelName: String
+    public var configurationFingerprint: String?
+
+    public init(
+        endpointID: AIProviderEndpointID,
+        endpointPurpose: AIProviderEndpointPurpose,
+        providerPresetID: String,
+        modelName: String,
+        configurationFingerprint: String? = nil
+    ) {
+        self.endpointID = endpointID
+        self.endpointPurpose = endpointPurpose
+        self.providerPresetID = providerPresetID
+        self.modelName = modelName
+        self.configurationFingerprint = configurationFingerprint
+    }
+}
+
 public struct AIProviderConfigurationProbeDescriptor: Equatable, Sendable {
     public var source: AIProviderProbeSource
     public var requestedCapabilities: [AIProviderProbeCapability]
@@ -142,17 +170,48 @@ public struct AIProviderProbeCapabilityResult: Equatable, Sendable {
     public var status: AIProviderProbeCapabilityStatus
     public var errorCategory: AIProviderValidationErrorCategory?
     public var durationMilliseconds: Int?
+    public var endpointMetadata: AIProviderEndpointProbeMetadata?
+    public var audioMetadata: TTSAudioMetadata?
+    public var audioPreviewResource: TTSAudioPreviewResource?
 
     public init(
         capability: AIProviderProbeCapability,
         status: AIProviderProbeCapabilityStatus,
         errorCategory: AIProviderValidationErrorCategory?,
-        durationMilliseconds: Int?
+        durationMilliseconds: Int?,
+        endpointMetadata: AIProviderEndpointProbeMetadata? = nil,
+        audioMetadata: TTSAudioMetadata? = nil,
+        audioPreviewResource: TTSAudioPreviewResource? = nil
     ) {
         self.capability = capability
         self.status = status
         self.errorCategory = errorCategory
         self.durationMilliseconds = durationMilliseconds
+        self.endpointMetadata = endpointMetadata
+        self.audioMetadata = audioMetadata
+        self.audioPreviewResource = audioPreviewResource
+    }
+}
+
+public struct AIProviderProfileProbeResult: Equatable, Sendable {
+    public var source: AIProviderProbeSource
+    public var overallStatus: AIProviderValidationStatus
+    public var profileID: AIProviderProfileID?
+    public var capabilities: [AIProviderProbeCapabilityResult]
+    public var persistedValidationEventIDs: [AIProviderValidationEventID]
+
+    public init(
+        source: AIProviderProbeSource,
+        overallStatus: AIProviderValidationStatus,
+        profileID: AIProviderProfileID?,
+        capabilities: [AIProviderProbeCapabilityResult],
+        persistedValidationEventIDs: [AIProviderValidationEventID]
+    ) {
+        self.source = source
+        self.overallStatus = overallStatus
+        self.profileID = profileID
+        self.capabilities = capabilities
+        self.persistedValidationEventIDs = persistedValidationEventIDs
     }
 }
 
@@ -288,15 +347,18 @@ public struct AIProviderProfileSaveInput: Equatable, Sendable {
     public var profileID: AIProviderProfileID?
     public var displayName: String
     public var endpoints: [AIProviderEndpointSaveInput]
+    public var ttsVoiceProfile: TTSVoiceProfileSaveInput?
 
     public init(
         profileID: AIProviderProfileID? = nil,
         displayName: String,
-        endpoints: [AIProviderEndpointSaveInput]
+        endpoints: [AIProviderEndpointSaveInput],
+        ttsVoiceProfile: TTSVoiceProfileSaveInput? = nil
     ) {
         self.profileID = profileID
         self.displayName = displayName
         self.endpoints = endpoints
+        self.ttsVoiceProfile = ttsVoiceProfile
     }
 }
 
@@ -516,16 +578,56 @@ public struct AIProviderValidationEvent: Equatable, Sendable {
 public protocol AIProviderConfigurationRepository: Sendable {
     func loadDefaultProfile() async throws -> AIProviderConfigurationProfile?
     func saveProfile(_ profile: AIProviderConfigurationProfile) async throws
+    func saveProfile(
+        _ profile: AIProviderConfigurationProfile,
+        ttsSettings: TTSProviderSettings?,
+        ttsVoiceProfiles: [TTSVoiceProfile]
+    ) async throws
     func markCredentialState(
         _ state: AIProviderSecretPresence,
         credentialID: AIProviderCredentialID
     ) async throws
     func recordValidationEvent(_ event: AIProviderValidationEvent) async throws
     func recordValidationOutcome(_ event: AIProviderValidationEvent) async throws
+    func loadTTSSettings(endpointID: AIProviderEndpointID) async throws -> TTSProviderSettings?
+    func loadTTSVoiceProfile(
+        endpointID: AIProviderEndpointID,
+        languageCode: String
+    ) async throws -> TTSVoiceProfile?
+    func recordTTSVoiceProfileProbeOutcome(
+        _ event: AIProviderValidationEvent,
+        languageCode: String
+    ) async throws
 }
 
 public extension AIProviderConfigurationRepository {
+    func saveProfile(
+        _ profile: AIProviderConfigurationProfile,
+        ttsSettings _: TTSProviderSettings?,
+        ttsVoiceProfiles _: [TTSVoiceProfile]
+    ) async throws {
+        try await saveProfile(profile)
+    }
+
     func recordValidationOutcome(_ event: AIProviderValidationEvent) async throws {
+        try await recordValidationEvent(event)
+    }
+
+    func loadTTSSettings(endpointID _: AIProviderEndpointID) async throws -> TTSProviderSettings? {
+        nil
+    }
+
+    func loadTTSVoiceProfile(
+        endpointID _: AIProviderEndpointID,
+        languageCode _: String
+    ) async throws -> TTSVoiceProfile? {
+        nil
+    }
+
+    func recordTTSVoiceProfileProbeOutcome(
+        _ event: AIProviderValidationEvent,
+        languageCode _: String
+    ) async throws {
         try await recordValidationEvent(event)
     }
 }

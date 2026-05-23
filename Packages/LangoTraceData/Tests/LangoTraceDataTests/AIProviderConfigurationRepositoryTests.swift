@@ -94,6 +94,45 @@ func aiProviderRepositoryRecordsSyntheticValidationOutcomeAndUpdatesProfileSumma
     #expect(storedEvent?["error_category"] as String? == "invalid_response")
 }
 
+@Test("AI provider repository saves TTS settings in same profile transaction")
+func aiProviderRepositorySavesTTSSettingsInSameProfileTransaction() async throws {
+    let database = try AppDatabase.inMemory()
+    let repository = GRDBAIProviderConfigurationRepository(database: database)
+    let profile = try ttsProfile()
+    let voice = try TTSVoiceProfile.make(
+        id: "voice-en",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .openAIAudioSpeech,
+        modelName: "gpt-4o-mini-tts",
+        voiceID: "coral",
+        outputFormat: .mp3
+    )
+
+    try await repository.saveProfile(
+        profile,
+        ttsSettings: TTSProviderSettings(endpointID: "endpoint-tts", adapterKind: .openAIAudioSpeech),
+        ttsVoiceProfiles: [voice]
+    )
+
+    let stored = try await database.databaseQueue.read { db in
+        try Row.fetchOne(
+            db,
+            sql: """
+            SELECT settings.tts_adapter_kind, voice.voice_id, voice.language_code
+            FROM ai_provider_tts_settings settings
+            JOIN ai_provider_tts_voice_profiles voice ON voice.endpoint_id = settings.endpoint_id
+            WHERE settings.endpoint_id = ?
+            """,
+            arguments: ["endpoint-tts"]
+        )
+    }
+
+    #expect(stored?["tts_adapter_kind"] as String? == "openai_audio_speech")
+    #expect(stored?["voice_id"] as String? == "coral")
+    #expect(stored?["language_code"] as String? == "en")
+}
+
 @Test("AI provider migration enforces active default purpose and Keychain uniqueness")
 func aiProviderMigrationEnforcesActiveDefaultPurposeAndKeychainUniqueness() async throws {
     let database = try AppDatabase.inMemory()
@@ -192,6 +231,64 @@ private func defaultProfile() throws -> AIProviderConfigurationProfile {
         createdAt: now,
         updatedAt: now,
         endpoints: [endpoint],
+        credentials: [credential]
+    )
+}
+
+private func ttsProfile() throws -> AIProviderConfigurationProfile {
+    let now = Date(timeIntervalSince1970: 100)
+    let text = try AIProviderEndpointConfiguration(
+        input: AIProviderEndpointInput(
+            id: "endpoint-1",
+            profileID: "profile-1",
+            purpose: .textGeneration,
+            isEnabled: true,
+            providerPresetID: "openai",
+            adapterKind: .openAIResponses,
+            baseURL: "https://api.openai.com/v1",
+            modelName: "gpt-5.2",
+            credentialID: "credential-1",
+            supportsImageInput: true,
+            imageInputEnabled: false
+        ),
+        createdAt: now,
+        updatedAt: now
+    )
+    let tts = try AIProviderEndpointConfiguration(
+        input: AIProviderEndpointInput(
+            id: "endpoint-tts",
+            profileID: "profile-1",
+            purpose: .tts,
+            isEnabled: true,
+            providerPresetID: "openai",
+            adapterKind: .openAIResponses,
+            baseURL: "https://api.openai.com/v1",
+            modelName: "gpt-4o-mini-tts",
+            credentialID: "credential-1",
+            supportsImageInput: false,
+            imageInputEnabled: false
+        ),
+        createdAt: now,
+        updatedAt: now
+    )
+    let credential = AIProviderCredentialMetadata(
+        id: "credential-1",
+        profileID: "profile-1",
+        providerPresetID: "openai",
+        kind: .apiKey,
+        label: "OpenAI API Key",
+        secretPresence: .present,
+        createdAt: now,
+        updatedAt: now
+    )
+    return AIProviderConfigurationProfile(
+        id: "profile-1",
+        displayName: "Default AI Provider",
+        isDefault: true,
+        status: .configured,
+        createdAt: now,
+        updatedAt: now,
+        endpoints: [text, tts],
         credentials: [credential]
     )
 }

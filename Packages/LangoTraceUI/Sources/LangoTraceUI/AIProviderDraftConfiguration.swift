@@ -20,6 +20,10 @@ public struct AIProviderDraftProbeSnapshot: Sendable {
     public var source: AIProviderProbeSource
     public var endpoint: AIProviderEndpointInput
     public var plaintextSecret: String?
+    public var ttsEndpoint: AIProviderEndpointInput?
+    public var ttsSettings: TTSProviderSettings?
+    public var ttsVoiceProfile: TTSVoiceProfile?
+    public var ttsPlaintextSecret: String?
     public var languageContext: AIProviderProbeLanguageContext?
     public var requestedCapabilities: [AIProviderProbeCapability]
     public var operationID: DiagnosticOperationID
@@ -242,6 +246,11 @@ struct AIOptionalModelDraftConfiguration: Equatable {
     var isEnabled: Bool
     var endpoint: AIProviderEndpointDraftConfiguration
     let purpose: AIOptionalModelPurpose
+    var voiceID: String
+    var voiceDisplayName: String?
+    var outputFormat: TTSAudioFormat
+    var speed: Double?
+    var instructions: String?
 
     init(provider: AIProviderPreset, purpose: AIOptionalModelPurpose) {
         isEnabled = false
@@ -251,6 +260,11 @@ struct AIOptionalModelDraftConfiguration: Equatable {
             model: purpose.defaultModel(for: provider),
             credentialReference: .textModelCredential
         )
+        voiceID = purpose == .speech ? provider.defaultTTSVoiceID : ""
+        voiceDisplayName = nil
+        outputFormat = .mp3
+        speed = purpose == .speech ? 1.0 : nil
+        instructions = nil
     }
 
     var isCompleteWithSharedCredential: Bool {
@@ -260,6 +274,9 @@ struct AIOptionalModelDraftConfiguration: Equatable {
     func isComplete(textCredential: AIProviderCredentialDraftConfiguration) -> Bool {
         guard isEnabled, endpoint.hasBaseURLAndModel else {
             return !isEnabled
+        }
+        if purpose == .speech, voiceID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return false
         }
 
         switch endpoint.credentialReference {
@@ -279,6 +296,13 @@ struct AIOptionalModelDraftConfiguration: Equatable {
             defaultModel: purpose.defaultModel(for: provider),
             credentialReference: shareTextCredentialWhenSameProvider ? .textModelCredential : .independent
         )
+        if purpose == .speech {
+            voiceID = provider.defaultTTSVoiceID
+            voiceDisplayName = nil
+            outputFormat = .mp3
+            speed = 1.0
+            instructions = nil
+        }
     }
 }
 
@@ -350,7 +374,9 @@ struct AIProviderDraftConfiguration: Equatable {
         saveState = .saved
     }
 
-    func makeProfileSaveInput() throws -> AIProviderProfileSaveInput {
+    func makeProfileSaveInput(
+        languageContext: AIProviderProbeLanguageContext? = nil
+    ) throws -> AIProviderProfileSaveInput {
         guard saveReadiness == .readyForRequest else {
             throw AIProviderConfigurationError.missingRequiredEndpointField
         }
@@ -389,7 +415,10 @@ struct AIProviderDraftConfiguration: Equatable {
         return AIProviderProfileSaveInput(
             profileID: profileID,
             displayName: "Default AI Provider",
-            endpoints: endpoints
+            endpoints: endpoints,
+            ttsVoiceProfile: speech.isEnabled ? speech.makeTTSVoiceProfileSaveInput(
+                languageCode: languageContext?.languageCode ?? "en"
+            ) : nil
         )
     }
 
@@ -412,6 +441,8 @@ struct AIProviderDraftConfiguration: Equatable {
         if includePlaceholders {
             capabilities.append(.speechSynthesis)
             capabilities.append(.embedding)
+        } else if speech.isEnabled, speech.isComplete(textCredential: text.endpoint.independentCredential) {
+            capabilities.append(.speechSynthesis)
         }
         return capabilities
     }
@@ -424,6 +455,7 @@ struct AIProviderDraftConfiguration: Equatable {
             throw AIProviderConfigurationError.missingRequiredEndpointField
         }
         let imageInputDecision = text.endpoint.imageInputDecision(purpose: .textGeneration)
+        let ttsEndpointID = speech.endpoint.id ?? "draft-tts-endpoint"
         let endpoint = try AIProviderEndpointInput(
             id: text.endpoint.id ?? "draft-text-endpoint",
             profileID: profileID ?? "draft-profile",
@@ -437,12 +469,21 @@ struct AIProviderDraftConfiguration: Equatable {
             supportsImageInput: imageInputDecision.shouldPersistImageSupport,
             imageInputEnabled: text.imageUnderstandingEnabled && imageInputDecision.canProbe
         ).normalized()
+        let ttsSnapshot = try makeTTSDraftProbeSnapshot(
+            endpointID: ttsEndpointID,
+            profileID: profileID ?? "draft-profile",
+            languageCode: languageContext?.languageCode ?? "en"
+        )
         return AIProviderDraftProbeSnapshot(
             source: .draft,
             endpoint: endpoint,
             plaintextSecret: text.endpoint.independentCredential.requiresAPIKey
                 ? text.endpoint.independentCredential.apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
                 : nil,
+            ttsEndpoint: ttsSnapshot?.endpoint,
+            ttsSettings: ttsSnapshot?.settings,
+            ttsVoiceProfile: ttsSnapshot?.voiceProfile,
+            ttsPlaintextSecret: ttsSnapshot?.plaintextSecret,
             languageContext: languageContext,
             requestedCapabilities: configurationProbeRequestedCapabilities(languageContext: languageContext),
             operationID: operationID
@@ -482,6 +523,7 @@ struct AIProviderDraftConfiguration: Equatable {
                 endpoint: speechEndpoint,
                 sharedCredentialID: textCredentialID
             )
+            speech.voiceID = speech.endpoint.provider.defaultTTSVoiceID
         }
 
         if let embeddingEndpoint {
@@ -497,6 +539,19 @@ struct AIProviderDraftConfiguration: Equatable {
         hasPersistedConfiguration = profile.status == .configured
         saveState = .idle
         testState = .idle
+    }
+
+    mutating func applyLoadedTTSVoiceProfile(_ voiceProfile: TTSVoiceProfile) {
+        guard speech.isEnabled,
+              speech.endpoint.id == voiceProfile.endpointID
+        else {
+            return
+        }
+        speech.voiceID = voiceProfile.voiceID
+        speech.voiceDisplayName = voiceProfile.voiceDisplayName
+        speech.outputFormat = voiceProfile.outputFormat
+        speech.speed = voiceProfile.speed
+        speech.instructions = voiceProfile.instructions
     }
 
     mutating func applyEndpointIdentities(from profile: AIProviderConfigurationProfile) {
@@ -624,6 +679,100 @@ private extension AIProviderEndpointDraftConfiguration {
                 label: "\(provider.displayName) API Key",
                 plaintextSecret: independentCredential.apiKeyDraft
             )
+        )
+    }
+}
+
+private extension AIOptionalModelDraftConfiguration {
+    func makeTTSVoiceProfileSaveInput(languageCode: String) -> TTSVoiceProfileSaveInput? {
+        guard purpose == .speech, let adapterKind = endpoint.provider.defaultTTSAdapterKind else {
+            return nil
+        }
+        return TTSVoiceProfileSaveInput(
+            endpointPurpose: .tts,
+            languageCode: languageCode,
+            adapterKind: adapterKind,
+            voiceID: voiceID.trimmingCharacters(in: .whitespacesAndNewlines),
+            voiceDisplayName: voiceDisplayName,
+            outputFormat: outputFormat,
+            sampleRate: nil,
+            speed: speed,
+            volume: nil,
+            pitch: nil,
+            stylePrompt: nil,
+            instructions: instructions,
+            streamingMode: false,
+            providerParameters: ["response_format": .string(outputFormat.rawValue)]
+        )
+    }
+}
+
+private extension AIProviderDraftConfiguration {
+    struct TTSDraftProbeSnapshotParts {
+        var endpoint: AIProviderEndpointInput
+        var settings: TTSProviderSettings
+        var voiceProfile: TTSVoiceProfile
+        var plaintextSecret: String?
+    }
+
+    func makeTTSDraftProbeSnapshot(
+        endpointID: AIProviderEndpointID,
+        profileID: AIProviderProfileID,
+        languageCode: String
+    ) throws -> TTSDraftProbeSnapshotParts? {
+        guard speech.isEnabled,
+              speech.isComplete(textCredential: text.endpoint.independentCredential),
+              let adapterKind = speech.endpoint.provider.defaultTTSAdapterKind,
+              let voiceInput = speech.makeTTSVoiceProfileSaveInput(languageCode: languageCode)
+        else {
+            return nil
+        }
+        let endpoint = try AIProviderEndpointInput(
+            id: endpointID,
+            profileID: profileID,
+            purpose: .tts,
+            isEnabled: true,
+            providerPresetID: speech.endpoint.provider.id,
+            adapterKind: speech.endpoint.provider.coreAdapterKind,
+            baseURL: speech.endpoint.baseURL,
+            modelName: speech.endpoint.model,
+            credentialID: speech.endpoint.credentialID ?? "draft-tts-credential",
+            supportsImageInput: false,
+            imageInputEnabled: false
+        ).normalized()
+        let voiceProfile = try TTSVoiceProfile.make(
+            id: "draft-tts-voice-\(languageCode)",
+            endpointID: endpoint.id,
+            languageCode: voiceInput.languageCode,
+            adapterKind: adapterKind,
+            modelName: endpoint.modelName,
+            voiceID: voiceInput.voiceID,
+            voiceDisplayName: voiceInput.voiceDisplayName,
+            outputFormat: voiceInput.outputFormat,
+            sampleRate: voiceInput.sampleRate,
+            speed: voiceInput.speed,
+            volume: voiceInput.volume,
+            pitch: voiceInput.pitch,
+            stylePrompt: voiceInput.stylePrompt,
+            instructions: voiceInput.instructions,
+            streamingMode: voiceInput.streamingMode,
+            providerParameters: voiceInput.providerParameters
+        )
+        let plaintextSecret: String? = switch speech.endpoint.credentialReference {
+        case .textModelCredential:
+            text.endpoint.independentCredential.requiresAPIKey
+                ? text.endpoint.independentCredential.apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                : nil
+        case .independent:
+            speech.endpoint.independentCredential.requiresAPIKey
+                ? speech.endpoint.independentCredential.apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                : nil
+        }
+        return TTSDraftProbeSnapshotParts(
+            endpoint: endpoint,
+            settings: TTSProviderSettings(endpointID: endpoint.id, adapterKind: adapterKind),
+            voiceProfile: voiceProfile,
+            plaintextSecret: plaintextSecret
         )
     }
 }

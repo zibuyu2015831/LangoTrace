@@ -68,6 +68,13 @@ enum AIProviderCapabilitySupport: Equatable {
     case adapterUnsupported
 }
 
+enum TTSFirstStageProbeAvailability: Equatable {
+    case realProbe
+    case futureCompatible
+    case futureProviderSpecific
+    case unsupported
+}
+
 struct AIProviderCapabilityPolicy: Equatable {
     var textGeneration: AIProviderCapabilitySupport
     var structuredJSON: AIProviderCapabilitySupport
@@ -436,6 +443,39 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
                 speechSynthesis: .unsupported,
                 embedding: .unsupported
             )
+        }
+    }
+
+    var firstStageTTSProbeAvailability: TTSFirstStageProbeAvailability {
+        switch self {
+        case .openAI, .openRouter:
+            .realProbe
+        case .customOpenAICompatible:
+            .futureCompatible
+        case .gemini, .mistral, .groq, .xAI, .dashScopeQwen, .zhipuGLM, .siliconFlow:
+            .futureProviderSpecific
+        case .anthropic, .deepSeek, .moonshotKimi, .ollamaLocal:
+            .unsupported
+        }
+    }
+
+    var defaultTTSAdapterKind: LangoTraceCore.TTSProviderAdapterKind? {
+        switch self {
+        case .openAI:
+            .openAIAudioSpeech
+        case .openRouter:
+            .openRouterAudioSpeech
+        default:
+            nil
+        }
+    }
+
+    var defaultTTSVoiceID: String {
+        switch self {
+        case .openAI:
+            "coral"
+        default:
+            ""
         }
     }
 
