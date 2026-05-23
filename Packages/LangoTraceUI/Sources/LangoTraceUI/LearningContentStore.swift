@@ -70,6 +70,20 @@ final class LearningContentStore: ObservableObject {
     }
 
     @discardableResult
+    func updateEntryBody(entryID: String, body: String) throws -> LearningEntry {
+        let entry = try repository.updateEntryBody(entryID: entryID, spaceID: spaceID, body: body)
+        reload()
+        return entry
+    }
+
+    func sourceEntryIsStale(for entry: LearningEntry) -> Bool {
+        guard let rendering = rendering(for: entry) else {
+            return false
+        }
+        return rendering.sourceEntryBodyHash != LearningMaterialTextHash.sha256(for: entry.body)
+    }
+
+    @discardableResult
     func generateLocalPreview(for entry: LearningEntry) -> LearningRendering? {
         guard entry.spaceID == spaceID else {
             return nil
@@ -326,6 +340,7 @@ final class LearningContentStore: ObservableObject {
             promptLabel: material.metadata.promptID,
             providerLabel: material.metadata.modelName,
             isMock: false,
+            sourceEntryBodyHash: material.sourceEntryBodyHash,
             sentences: material.analysis.sentences.map { sentence in
                 RenderingSentence(
                     id: sentence.id,

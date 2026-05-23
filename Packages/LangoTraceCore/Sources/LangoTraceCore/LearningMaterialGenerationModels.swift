@@ -222,6 +222,7 @@ public struct LearningMaterial: Equatable, Identifiable, Sendable {
     public var promptMode: LearningMaterialPromptMode
     public var learningText: String
     public var originalGeneratedText: String
+    public var sourceEntryBodyHash: String
     public var revisionSummary: [LearningRevision]
     public var analysis: LearningMaterialAnalysis
     public var metadata: LearningMaterialGenerationMetadata
@@ -237,6 +238,7 @@ public struct LearningMaterial: Equatable, Identifiable, Sendable {
         promptMode: LearningMaterialPromptMode,
         learningText: String,
         originalGeneratedText: String,
+        sourceEntryBodyHash: String,
         revisionSummary: [LearningRevision],
         analysis: LearningMaterialAnalysis,
         metadata: LearningMaterialGenerationMetadata,
@@ -251,6 +253,7 @@ public struct LearningMaterial: Equatable, Identifiable, Sendable {
         self.promptMode = promptMode
         self.learningText = learningText
         self.originalGeneratedText = originalGeneratedText
+        self.sourceEntryBodyHash = sourceEntryBodyHash
         self.revisionSummary = revisionSummary
         self.analysis = analysis
         self.metadata = metadata

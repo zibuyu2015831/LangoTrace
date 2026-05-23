@@ -80,6 +80,30 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
         }
     }
 
+    public func updateEntryBody(entryID: String, body: String) throws -> LearningEntry {
+        let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw LearningContentRepositoryError.emptyEntryBody }
+
+        return try databaseQueue.write { db in
+            guard try fetchActiveEntry(id: entryID, db: db) != nil else {
+                throw LearningContentRepositoryError.entryNotFound
+            }
+            let now = clock().timeIntervalSince1970
+            try db.execute(
+                sql: """
+                UPDATE entries
+                SET body = ?, updated_at = ?
+                WHERE id = ? AND deleted_at IS NULL
+                """,
+                arguments: [trimmed, now, entryID]
+            )
+            guard let entry = try fetchActiveEntry(id: entryID, db: db) else {
+                throw LearningContentRepositoryError.entryNotFound
+            }
+            return entry
+        }
+    }
+
     public func currentMaterial(for entryID: String) throws -> LearningMaterial? {
         try databaseQueue.read { db in
             try fetchCurrentMaterial(entryID: entryID, db: db)
@@ -130,6 +154,7 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
         let now = clock()
         let materialID = idGenerator()
         let analysis = analysisWithFreshHash(result.analysis, learningText: result.learningText)
+        let sourceEntryBodyHash = LearningMaterialTextHash.sha256(for: entry.body)
         try db.execute(
             sql: "UPDATE learning_materials SET is_current = 0, updated_at = ? WHERE entry_id = ? AND deleted_at IS NULL",
             arguments: [now.timeIntervalSince1970, entryID]
@@ -142,6 +167,7 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
             promptMode: result.promptMode,
             learningText: result.learningText,
             originalGeneratedText: result.learningText,
+            sourceEntryBodyHash: sourceEntryBodyHash,
             analysis: analysis,
             metadata: result.metadata,
             isCurrent: true,
@@ -398,6 +424,7 @@ private extension GRDBLearningContentRepository {
         promptMode: LearningMaterialPromptMode,
         learningText: String,
         originalGeneratedText: String,
+        sourceEntryBodyHash: String,
         analysis: LearningMaterialAnalysis,
         metadata: LearningMaterialGenerationMetadata,
         isCurrent: Bool,
@@ -408,10 +435,10 @@ private extension GRDBLearningContentRepository {
             sql: """
             INSERT INTO learning_materials (
                 id, entry_id, space_id, input_kind, prompt_mode, learning_text,
-                original_generated_text, analysis_source_hash, analysis_status,
+                original_generated_text, source_entry_body_hash, analysis_source_hash, analysis_status,
                 prompt_id, prompt_version, provider_profile_id, provider_endpoint_id,
                 provider_preset_id, model_name, is_current, created_at, updated_at, deleted_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
             """,
             arguments: [
                 id,
@@ -421,6 +448,7 @@ private extension GRDBLearningContentRepository {
                 promptMode.rawValue,
                 learningText,
                 originalGeneratedText,
+                sourceEntryBodyHash,
                 analysis.sourceTextHash,
                 analysis.status.rawValue,
                 metadata.promptID,
@@ -600,6 +628,7 @@ private extension GRDBLearningContentRepository {
             promptMode: LearningMaterialPromptMode(rawValue: row["prompt_mode"] as String) ?? .automaticLearningMaterial,
             learningText: row["learning_text"],
             originalGeneratedText: row["original_generated_text"],
+            sourceEntryBodyHash: row["source_entry_body_hash"],
             revisionSummary: revisions,
             analysis: LearningMaterialAnalysis(
                 status: status,

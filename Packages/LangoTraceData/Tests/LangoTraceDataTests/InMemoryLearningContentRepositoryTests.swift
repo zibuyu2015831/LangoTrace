@@ -32,6 +32,42 @@ func creatingEntryStoresItWithoutGeneratedLearningMaterial() throws {
     #expect(repository.memoryItems(for: "en").filter { $0.entryID == entry.id }.isEmpty)
 }
 
+@Test("Updating an in-memory entry body keeps selection and trims persisted text")
+func updatingInMemoryEntryBodyKeepsSelection() throws {
+    let repository = InMemoryLearningContentRepository(seedEntries: [])
+    let entry = try repository.createEntry(
+        spaceID: "en",
+        title: "晚饭散步",
+        body: "晚饭后我绕着小区走了一圈。",
+        source: .typedText
+    )
+
+    let updated = try repository.updateEntryBody(
+        entryID: entry.id,
+        spaceID: "en",
+        body: "  晚饭后我走了更远的一圈。  "
+    )
+
+    #expect(updated.body == "晚饭后我走了更远的一圈。")
+    #expect(repository.selectedEntry(for: "en")?.id == entry.id)
+    #expect(repository.selectedEntry(for: "en")?.body == "晚饭后我走了更远的一圈。")
+    #expect(repository.entries(for: "en").first?.body == "晚饭后我走了更远的一圈。")
+}
+
+@Test("Updating an in-memory entry body rejects empty or foreign entries")
+func updatingInMemoryEntryBodyRejectsInvalidInputs() throws {
+    let repository = InMemoryLearningContentRepository(seedEntries: [])
+    let entry = try repository.createEntry(spaceID: "en", title: "记录", body: "原始内容", source: .typedText)
+
+    #expect(throws: LearningContentRepositoryError.emptyEntryBody) {
+        _ = try repository.updateEntryBody(entryID: entry.id, spaceID: "en", body: " \n ")
+    }
+    #expect(throws: LearningContentRepositoryError.entryNotFound) {
+        _ = try repository.updateEntryBody(entryID: entry.id, spaceID: "ja", body: "新内容")
+    }
+    #expect(repository.selectedEntry(for: "en")?.body == "原始内容")
+}
+
 @Test("Selecting a missing entry keeps the current selection unchanged")
 func selectingMissingEntryKeepsCurrentSelectionUnchanged() {
     let repository = InMemoryLearningContentRepository.seeded(spaceID: "en")

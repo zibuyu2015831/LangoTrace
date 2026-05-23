@@ -1,4 +1,5 @@
 import Foundation
+import LangoTraceCore
 
 enum SeedLearningContent {
     static func entries(spaceID: String) -> [LearningEntry] {
@@ -47,6 +48,7 @@ enum SeedLearningContent {
             promptLabel: "自然表达",
             providerLabel: "LangoTrace Draft",
             isMock: true,
+            sourceEntryBodyHash: LearningMaterialTextHash.sha256(for: "今天在咖啡馆坐了很久。外面一直下小雨，我没有急着回家。"),
             sentences: [
                 RenderingSentence(
                     id: "rain-cafe-en-sentence-1",

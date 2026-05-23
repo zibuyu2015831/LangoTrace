@@ -29,7 +29,7 @@
 - `app_state`：本设备当前空间状态，例如 `current_language_space_id`。该状态用于启动恢复和本机最近上下文，不等同于未来默认跨设备同步对象。
 - 数据库位置：App 私有容器的 `Application Support/LangoTrace/LangoTrace.sqlite`。
 - 删除语义：首版为 soft delete，active 查询、当前空间候选和同名提示排除 deleted 空间；真实 Entry、附件、导出和隐私删除仍需后续任务定义级联行为。
-- 学习内容：`entries` 采用 soft delete；`learning_materials` 支持 current material 唯一约束、学习文本编辑后的 analysis stale 状态、重新分析替换 analysis 和候选内容；memory / practice candidates 的 active 查询必须受 Entry 与 current material 删除状态约束。
+- 学习内容：`entries` 采用 soft delete，并允许在详情页更新 Entry body；该更新只修改 `entries.body` / `updated_at`，不得自动修改或删除派生 `learning_materials`。`learning_materials` 支持 current material 唯一约束、生成时的 `source_entry_body_hash`、学习文本编辑后的 analysis stale 状态、重新分析替换 analysis 和候选内容；memory / practice candidates 的 active 查询必须受 Entry 与 current material 删除状态约束。
 - Operation 摘要：`learning_material_operations` 采用单行 operation 摘要语义，同一 `operation_id` 只保留一行状态，记录 started / succeeded / failed / cancelled、Prompt id / version、Provider / model 非敏感元数据、长度分桶和失败分类，不记录原文、学习文本、Prompt 全文、请求体、响应体、API Key 或 Authorization header。
 - 本地 preflight 阻断也可以写入 failed operation 摘要，典型分类包括 `contentEmpty`、`contentTooLong` 和 `operationInProgress`；这些摘要不得暗示已经发送 Provider 请求。
 
@@ -59,6 +59,8 @@
 - 真实 AI 输出保存为新对象或新版本，不覆盖用户原始 Entry。
 - 练习结果和记忆提取应保留来源引用，用户可以回到原始 Entry 和 Rendering。
 - 学习材料生成成功时，LearningMaterial、analysis、candidate 和 succeeded operation 摘要必须在同一数据库写事务内落库；started、failed 和 cancelled operation 记录不得长时间持有写事务等待网络请求。
+- 学习材料生成落库时必须基于同一事务中读取的 active Entry body 写入 `source_entry_body_hash`，用于后续判断 material 是否基于旧原文；该字段不得由 AI 响应提供。
+- 用户编辑 Entry body 只更新原始 Entry，不自动发送 Provider 请求，不自动把 `analysis_status` 标为 stale。UI / Store 通过当前 Entry body hash 与 current material 的 `source_entry_body_hash` 比较展示“基于旧记录”，并由用户显式触发重新生成。
 - 用户编辑 learning text 只能更新派生 LearningMaterial，不得修改原始 Entry 正文；重新分析只能替换当前 material 的 analysis 和候选内容，不得重新生成 learning text。
 - 普通导出未来可以包含 Entry、LearningMaterial、句子分析、修改说明和候选项；可恢复备份可以包含稳定 ID、soft delete、current version 和非敏感 Prompt / Provider 元数据；两者都不得包含 API Key、完整请求头、完整请求体、完整响应体、完整 system / user prompt 或诊断日志中的敏感字段。
 

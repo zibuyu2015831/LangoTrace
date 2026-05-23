@@ -89,20 +89,30 @@ struct PhoneIOSConvergenceTests {
         #expect(phoneMainView.contains("contentStore.analyzeCurrentLearningText"))
     }
 
-    @Test("iPhone detail uses compact learning material editor")
-    func iPhoneDetailUsesCompactLearningMaterialEditor() throws {
+    @Test("iPhone detail uses dynamic text cards without squeezing reading columns")
+    func iPhoneDetailUsesDynamicTextCardsWithoutSqueezingReadingColumns() throws {
         let supportingViews = try String(
             contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
             encoding: .utf8
         )
+        let phoneMainView = try String(contentsOf: sourceFileURL(named: "PhoneMainView.swift"), encoding: .utf8)
 
+        #expect(supportingViews.contains("private struct EntryDetailTextCard"))
         #expect(supportingViews.contains("private struct LearningMaterialEditorView"))
-        #expect(supportingViews.contains("private var readOnlyLearningText: some View"))
+        #expect(supportingViews.contains("private struct SourceEntryEditorSheet"))
         #expect(supportingViews.contains("private struct LearningMaterialEditorSheet"))
-        #expect(supportingViews.contains("private struct ReadOnlyEntryTextPanel: View"))
-        #expect(supportingViews.contains("ZStack(alignment: .topTrailing)"))
+        #expect(!supportingViews.contains("private struct ReadOnlyEntryTextPanel: View"))
+        #expect(!supportingViews.contains("ZStack(alignment: .topTrailing)"))
+        #expect(!supportingViews.contains("textTrailingPadding"))
         #expect(supportingViews.contains("targetLanguageName: languageSpace.targetLanguage"))
+        #expect(supportingViews.contains("nativeLanguageName: languageSpace.nativeLanguage"))
         #expect(supportingViews.contains("let targetLanguageName: String"))
+        #expect(supportingViews.contains("let nativeLanguageName: String"))
+        #expect(supportingViews.contains("entry.detail.sourceText.titleFormat"))
+        #expect(supportingViews.contains("entry.detail.learningText.titleFormat"))
+        #expect(supportingViews.contains("entry.detail.sourceText.edit"))
+        #expect(supportingViews.contains("entry.detail.learningText.sourceStale"))
+        #expect(supportingViews.contains("entry.detail.learningText.regenerate"))
         #expect(supportingViews.contains("@State private var isEditorPresented = false"))
         #expect(supportingViews.contains(".sheet(isPresented: $isEditorPresented)"))
         #expect(supportingViews.contains(".presentationDetents([.large])"))
@@ -113,7 +123,8 @@ struct PhoneIOSConvergenceTests {
         ))
         #expect(supportingViews.contains("navigationTitle(sheetTitle)"))
         #expect(supportingViews.contains(".langoPanel(padding: 14)"))
-        #expect(supportingViews.contains("ReadOnlyEntryTextPanel(text: entry.body, emphasis: .secondary)"))
+        #expect(phoneMainView.contains("contentStore.updateEntryBody"))
+        #expect(phoneMainView.contains("contentStore.sourceEntryIsStale"))
         #expect(!supportingViews.contains("private var editingLearningText: some View"))
         #expect(!supportingViews.contains("private var actionRow: some View"))
         #expect(!supportingViews.contains("localizedText(\"entry.targetLanguage.title\")"))

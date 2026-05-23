@@ -36,6 +36,19 @@ func learningContentMigrationCreatesTablesAndEnforcesEnumChecks() throws {
     }
 }
 
+@Test("Learning material schema stores the source entry body hash")
+func learningMaterialSchemaStoresSourceEntryBodyHash() throws {
+    let database = try AppDatabase.inMemory()
+
+    try database.databaseQueue.read { db in
+        let columnNames = try Row.fetchAll(db, sql: "PRAGMA table_info(learning_materials)").map { row in
+            row["name"] as String
+        }
+
+        #expect(columnNames.contains("source_entry_body_hash"))
+    }
+}
+
 @Test("Learning content migrates a v3 database built by SQL helper")
 func learningContentMigratesV3DatabaseBuiltBySQLHelper() throws {
     let queue = try DatabaseQueue()
@@ -88,10 +101,46 @@ func savingGeneratedMaterialDoesNotModifyEntryBody() throws {
 
     #expect(material.learningText == "I wrote a page in my journal at a cafe today.")
     #expect(material.analysis.status == .fresh)
+    #expect(material.sourceEntryBodyHash == LearningMaterialTextHash.sha256(for: entry.body))
     #expect(try repository.entry(id: entry.id)?.body == "我今天在咖啡馆写了一页日记。")
     #expect(try repository.currentMaterial(for: entry.id)?.id == material.id)
     #expect(try repository.memoryItems(for: "space-1").map(\.entryID) == [entry.id])
     #expect(try repository.practiceItems(for: entry.id).count == 1)
+}
+
+@Test("Updating entry body persists source changes without mutating current material")
+func updatingEntryBodyPersistsSourceWithoutMutatingMaterial() throws {
+    let repository = try makeRepository()
+    let entry = try repository.createEntry(sampleDraft(body: "我今天在咖啡馆写了一页日记。"), in: "space-1")
+    let material = try repository.saveGeneratedMaterial(
+        sampleGenerationResult(entryID: entry.id, spaceID: "space-1"),
+        for: entry.id
+    )
+
+    let updated = try repository.updateEntryBody(entryID: entry.id, body: "我今天在图书馆写了一页日记。")
+    let currentMaterial = try repository.currentMaterial(for: entry.id)
+
+    #expect(updated.body == "我今天在图书馆写了一页日记。")
+    #expect(updated.createdAt == entry.createdAt)
+    #expect(try repository.entry(id: entry.id)?.body == "我今天在图书馆写了一页日记。")
+    #expect(currentMaterial?.learningText == material.learningText)
+    #expect(currentMaterial?.originalGeneratedText == material.originalGeneratedText)
+    #expect(currentMaterial?.analysis.status == material.analysis.status)
+    #expect(currentMaterial?.analysis.sourceTextHash == material.analysis.sourceTextHash)
+    #expect(currentMaterial?.sourceEntryBodyHash == LearningMaterialTextHash.sha256(for: entry.body))
+    #expect(currentMaterial?.sourceEntryBodyHash != LearningMaterialTextHash.sha256(for: updated.body))
+}
+
+@Test("Updating entry body rejects empty text and preserves the original body")
+func updatingEntryBodyRejectsEmptyText() throws {
+    let repository = try makeRepository()
+    let entry = try repository.createEntry(sampleDraft(body: "原始内容"), in: "space-1")
+
+    #expect(throws: LearningContentRepositoryError.emptyEntryBody) {
+        _ = try repository.updateEntryBody(entryID: entry.id, body: " \n ")
+    }
+
+    #expect(try repository.entry(id: entry.id)?.body == "原始内容")
 }
 
 @Test("Saving generated material can persist succeeded operation in the same repository write")

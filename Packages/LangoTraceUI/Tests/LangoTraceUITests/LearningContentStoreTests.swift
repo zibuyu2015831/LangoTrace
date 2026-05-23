@@ -205,6 +205,79 @@ struct LearningContentStoreTests {
         #expect(store.rendering(for: entry)?.sentences.first?.targetText == "I wrote at a cafe today.")
     }
 
+    @Test("Store updates source entry body and derives stale source material state")
+    func storeUpdatesSourceEntryBodyAndDerivesSourceStaleState() async throws {
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let actions = LearningMaterialGenerationActions(
+            generateMaterial: { input, operationID, _ in
+                .generated(sampleLearningMaterial(
+                    entryID: input.entryID,
+                    operationID: operationID,
+                    sourceEntryBodyHash: LearningMaterialTextHash.sha256(for: input.sourceText)
+                ))
+            },
+            operationIDGenerator: { DiagnosticOperationID(rawValue: "operation-1") }
+        )
+        let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
+        let entry = try store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
+        await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
+
+        let updated = try store.updateEntryBody(entryID: entry.id, body: "今天我去图书馆。")
+
+        #expect(updated.body == "今天我去图书馆。")
+        #expect(store.selectedEntry?.body == "今天我去图书馆。")
+        #expect(store.entries.first?.body == "今天我去图书馆。")
+        #expect(store.sourceEntryIsStale(for: updated))
+        #expect(store.rendering(for: updated)?.targetText == "I went to a cafe today.")
+    }
+
+    @Test("Store regeneration clears source stale while learning text edit only marks analysis stale")
+    func storeRegenerationClearsSourceStaleAndLearningTextEditKeepsSourceFreshness() async throws {
+        let generationText = LearningMaterialGenerationText("I went to a cafe today.")
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let actions = LearningMaterialGenerationActions(
+            generateMaterial: { input, operationID, _ in
+                let text = await generationText.value
+                return .generated(sampleLearningMaterial(
+                    entryID: input.entryID,
+                    learningText: text,
+                    operationID: operationID,
+                    sourceEntryBodyHash: LearningMaterialTextHash.sha256(for: input.sourceText)
+                ))
+            },
+            updateLearningText: { materialID, learningText in
+                .generated(sampleLearningMaterial(
+                    materialID: materialID,
+                    entryID: "entry-1-en",
+                    learningText: learningText,
+                    analysisStatus: .stale,
+                    sourceEntryBodyHash: LearningMaterialTextHash.sha256(for: "今天我去图书馆。")
+                ))
+            },
+            operationIDGenerator: { DiagnosticOperationID(rawValue: "operation-1") }
+        )
+        let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
+        let entry = try store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
+        await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
+        let updated = try store.updateEntryBody(entryID: entry.id, body: "今天我去图书馆。")
+
+        #expect(store.sourceEntryIsStale(for: updated))
+
+        await generationText.update("I went to the library today.")
+        await store.generateLearningMaterial(for: updated, languageSpace: sampleLanguageSpace())
+
+        #expect(!store.sourceEntryIsStale(for: updated))
+
+        await store.updateLearningText(
+            materialID: "material-operation-1",
+            entryID: updated.id,
+            learningText: "I wrote at the library today."
+        )
+
+        #expect(store.generationState(for: updated).analysisIsStale)
+        #expect(!store.sourceEntryIsStale(for: updated))
+    }
+
     @Test("Store keeps stale material retry context when reanalysis fails")
     func storeKeepsStaleMaterialRetryContextWhenReanalysisFails() async throws {
         let repository = InMemoryLearningContentRepository(seedEntries: [])
@@ -340,16 +413,50 @@ private actor LearningMaterialGenerationGate {
     }
 }
 
+private actor LearningMaterialGenerationText {
+    private var text: String
+
+    init(_ text: String) {
+        self.text = text
+    }
+
+    var value: String {
+        text
+    }
+
+    func update(_ text: String) {
+        self.text = text
+    }
+}
+
 private func sampleLearningMaterial(
     entryID: String,
-    operationID: DiagnosticOperationID
+    operationID: DiagnosticOperationID,
+    sourceEntryBodyHash: String = LearningMaterialTextHash.sha256(for: "今天我去咖啡馆。")
 ) -> LearningMaterial {
     sampleLearningMaterial(
         materialID: "material-\(operationID.rawValue)",
         entryID: entryID,
         learningText: "I went to a cafe today.",
         operationID: operationID,
-        analysisStatus: .fresh
+        analysisStatus: .fresh,
+        sourceEntryBodyHash: sourceEntryBodyHash
+    )
+}
+
+private func sampleLearningMaterial(
+    entryID: String,
+    learningText: String,
+    operationID: DiagnosticOperationID,
+    sourceEntryBodyHash: String
+) -> LearningMaterial {
+    sampleLearningMaterial(
+        materialID: "material-\(operationID.rawValue)",
+        entryID: entryID,
+        learningText: learningText,
+        operationID: operationID,
+        analysisStatus: .fresh,
+        sourceEntryBodyHash: sourceEntryBodyHash
     )
 }
 
@@ -358,7 +465,8 @@ private func sampleLearningMaterial(
     entryID: String,
     learningText: String,
     operationID _: DiagnosticOperationID = DiagnosticOperationID(rawValue: "operation-1"),
-    analysisStatus: LearningMaterialAnalysisStatus
+    analysisStatus: LearningMaterialAnalysisStatus,
+    sourceEntryBodyHash: String = LearningMaterialTextHash.sha256(for: "今天我去咖啡馆。")
 ) -> LearningMaterial {
     LearningMaterial(
         id: materialID,
@@ -368,6 +476,7 @@ private func sampleLearningMaterial(
         promptMode: .automaticLearningMaterial,
         learningText: learningText,
         originalGeneratedText: "I went to a cafe today.",
+        sourceEntryBodyHash: sourceEntryBodyHash,
         revisionSummary: [],
         analysis: LearningMaterialAnalysis(
             status: analysisStatus,

@@ -57,6 +57,7 @@ public struct LearningRendering: Equatable, Identifiable, Sendable {
     public let promptLabel: String
     public let providerLabel: String
     public let isMock: Bool
+    public let sourceEntryBodyHash: String
     public let sentences: [RenderingSentence]
 
     public init(
@@ -66,6 +67,7 @@ public struct LearningRendering: Equatable, Identifiable, Sendable {
         promptLabel: String,
         providerLabel: String,
         isMock: Bool,
+        sourceEntryBodyHash: String,
         sentences: [RenderingSentence]
     ) {
         self.id = id
@@ -74,6 +76,7 @@ public struct LearningRendering: Equatable, Identifiable, Sendable {
         self.promptLabel = promptLabel
         self.providerLabel = providerLabel
         self.isMock = isMock
+        self.sourceEntryBodyHash = sourceEntryBodyHash
         self.sentences = sentences
     }
 }

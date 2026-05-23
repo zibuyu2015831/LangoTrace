@@ -84,6 +84,7 @@ struct PhoneMainView: View {
                             rendering: rendering(for: entry),
                             practiceItems: contentStore.practiceItems(for: entry),
                             generationState: contentStore.generationState(for: entry),
+                            sourceEntryIsStale: contentStore.sourceEntryIsStale(for: entry),
                             onGenerateLearningMaterial: {
                                 Task {
                                     await contentStore.generateLearningMaterial(
@@ -96,6 +97,9 @@ struct PhoneMainView: View {
                                 Task {
                                     await contentStore.cancelLearningMaterialGeneration(for: entry)
                                 }
+                            },
+                            onUpdateEntryBody: { body in
+                                try contentStore.updateEntryBody(entryID: entry.id, body: body)
                             },
                             onUpdateLearningText: { materialID, learningText in
                                 Task {

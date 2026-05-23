@@ -73,6 +73,10 @@ struct MacWorkspaceContentView: View {
                     entry: selectedEntry,
                     rendering: selectedRendering,
                     practiceItems: contentStore.practiceItems(for: selectedEntry),
+                    sourceEntryIsStale: contentStore.sourceEntryIsStale(for: selectedEntry),
+                    onUpdateEntryBody: { body in
+                        try contentStore.updateEntryBody(entryID: selectedEntry.id, body: body)
+                    },
                     onGenerateLocalPreview: { contentStore.generateLocalPreview(for: selectedEntry) },
                     onPractice: { onRoute(.practice(selectedEntry.id)) }
                 )
@@ -199,6 +203,10 @@ struct MacWorkspaceContentView: View {
                 entry: entry,
                 rendering: contentStore.rendering(for: entry),
                 practiceItems: contentStore.practiceItems(for: entry),
+                sourceEntryIsStale: contentStore.sourceEntryIsStale(for: entry),
+                onUpdateEntryBody: { body in
+                    try contentStore.updateEntryBody(entryID: entry.id, body: body)
+                },
                 onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
                 onPractice: { onRoute(.practice(entry.id)) }
             )

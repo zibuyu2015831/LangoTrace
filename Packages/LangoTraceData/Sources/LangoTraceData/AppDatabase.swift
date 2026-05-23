@@ -1,5 +1,6 @@
 import Foundation
 import GRDB
+import LangoTraceCore
 
 public struct AppDatabase: @unchecked Sendable {
     let databaseQueue: DatabaseQueue
@@ -49,6 +50,9 @@ private extension AppDatabase {
         }
         migrator.registerMigration("v4_create_learning_content_infrastructure") { db in
             try createLearningContentInfrastructure(db)
+        }
+        migrator.registerMigration("v5_add_learning_material_source_entry_body_hash") { db in
+            try addLearningMaterialSourceEntryBodyHash(db)
         }
         try migrator.migrate(databaseQueue)
     }
@@ -267,6 +271,7 @@ private extension AppDatabase {
           prompt_mode TEXT NOT NULL,
           learning_text TEXT NOT NULL,
           original_generated_text TEXT NOT NULL,
+          source_entry_body_hash TEXT NOT NULL DEFAULT '',
           analysis_source_hash TEXT NOT NULL,
           analysis_status TEXT NOT NULL,
           prompt_id TEXT NOT NULL,
@@ -420,6 +425,37 @@ private extension AppDatabase {
         CREATE UNIQUE INDEX idx_learning_material_operations_operation_id
         ON learning_material_operations(operation_id)
         """)
+    }
+
+    static func addLearningMaterialSourceEntryBodyHash(_ db: Database) throws {
+        let existingColumns = try Row.fetchAll(db, sql: "PRAGMA table_info(learning_materials)").map { row in
+            row["name"] as String
+        }
+        guard !existingColumns.contains("source_entry_body_hash") else {
+            return
+        }
+
+        try db.execute(sql: """
+        ALTER TABLE learning_materials
+        ADD COLUMN source_entry_body_hash TEXT NOT NULL DEFAULT ''
+        """)
+
+        let rows = try Row.fetchAll(
+            db,
+            sql: """
+            SELECT learning_materials.id AS material_id, entries.body AS entry_body
+            FROM learning_materials
+            JOIN entries ON entries.id = learning_materials.entry_id
+            """
+        )
+        for row in rows {
+            let materialID: String = row["material_id"]
+            let entryBody: String = row["entry_body"]
+            try db.execute(
+                sql: "UPDATE learning_materials SET source_entry_body_hash = ? WHERE id = ?",
+                arguments: [LearningMaterialTextHash.sha256(for: entryBody), materialID]
+            )
+        }
     }
 
     static func setFileProtectionIfAvailable(for databaseURL: URL) throws {

@@ -9,6 +9,8 @@ public protocol LearningContentRepository: AnyObject {
     @discardableResult
     func createEntry(spaceID: String, title: String, body: String, source: EntrySource) throws -> LearningEntry
     @discardableResult
+    func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry
+    @discardableResult
     func createMockPhotoWritingEntry(spaceID: String) throws -> LearningEntry
     @discardableResult
     func generateLocalPreview(for entryID: String, spaceID: String) -> LearningRendering?
@@ -110,6 +112,21 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
         entriesBySpace[spaceID, default: []].insert(entry, at: 0)
         selectedEntryIDs[spaceID] = entry.id
         return entry
+    }
+
+    @discardableResult
+    public func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry {
+        let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedBody.isEmpty else { throw LearningContentRepositoryError.emptyEntryBody }
+        guard var entries = entriesBySpace[spaceID],
+              let index = entries.firstIndex(where: { $0.id == entryID })
+        else {
+            throw LearningContentRepositoryError.entryNotFound
+        }
+
+        entries[index].body = trimmedBody
+        entriesBySpace[spaceID] = entries
+        return entries[index]
     }
 
     @discardableResult
@@ -269,6 +286,7 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
             promptLabel: "自然表达",
             providerLabel: "LangoTrace Draft",
             isMock: true,
+            sourceEntryBodyHash: LearningMaterialTextHash.sha256(for: entry.body),
             sentences: [
                 RenderingSentence(
                     id: "\(entry.id)-sentence-1",
@@ -297,6 +315,10 @@ public final class UnavailableLearningContentRepository: LearningContentReposito
     public func selectEntry(id _: String, spaceID _: String) {}
 
     public func createEntry(spaceID _: String, title _: String, body _: String, source _: EntrySource) throws -> LearningEntry {
+        throw LearningContentRepositoryError.databaseUnavailable
+    }
+
+    public func updateEntryBody(entryID _: String, spaceID _: String, body _: String) throws -> LearningEntry {
         throw LearningContentRepositoryError.databaseUnavailable
     }
 
@@ -354,6 +376,7 @@ private enum MockPhotoWritingContent {
             promptLabel: "照片写作预览",
             providerLabel: "LangoTrace Local Preview",
             isMock: true,
+            sourceEntryBodyHash: LearningMaterialTextHash.sha256(for: entry.body),
             sentences: sentences(for: entry)
         )
     }

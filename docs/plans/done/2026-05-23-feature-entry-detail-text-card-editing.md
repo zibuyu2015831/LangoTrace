@@ -1,11 +1,11 @@
 # 任务方案：记录详情双文本卡片与原文编辑
 
-状态：Draft
+状态：Done
 类型：feature
 创建日期：2026-05-23
 最后更新日期：2026-05-23
 
-审核状态：Awaiting User Review
+审核状态：Verified
 
 ## 用户确认记录
 
@@ -14,6 +14,7 @@
 - 2026-05-23：用户强调左侧标题必须随当前语言空间动态变化，不能硬编码为 `英文表达`。
 - 2026-05-23：用户提出母语文本也采用一致卡片设计，并开放母语文本编辑功能。
 - 2026-05-23：当前结论为创建本方案文档，用户审核通过前不开始代码实施。
+- 2026-05-23：用户明确要求提交当前文档改动后立即按本方案完整实施；本方案进入实施。
 
 ## 1. 需求描述
 
@@ -438,6 +439,9 @@ xcrun simctl launch booted com.zibuyu.LangoTrace
 ## 15. 实施记录
 
 - 2026-05-23：创建 Draft 方案，等待用户审核。尚未实施代码。
+- 2026-05-23：实施 Data / Store / UI 变更。`learning_materials` 增加 `source_entry_body_hash`，`LearningContentRepository` / `GRDBLearningContentRepository` / `GRDBLearningContentRepositoryBridge` / `InMemoryLearningContentRepository` 增加 Entry body 更新能力；`LearningContentStore` 增加 `updateEntryBody` 和 `sourceEntryIsStale`；`EntryDetailView` 改为 `EntryDetailTextCard` 顶部工具区，母语原文和目标语言学习文本共享动态标题和全宽正文，原文可编辑，目标文本可编辑 / 重新分析 / 在旧记录状态下重新生成。
+- 2026-05-23：补充并通过聚焦测试：`swift test --package-path Packages/LangoTraceData`、`swift test --package-path Packages/LangoTraceUI`。
+- 2026-05-23：通过完整验证 `scripts/verify.sh`。SwiftLint 输出既有 warning 但 0 serious；SwiftFormat lint 显示 0 files require formatting。方案归档至 `docs/plans/done/`。
 
 ## 16. 完成标准
 

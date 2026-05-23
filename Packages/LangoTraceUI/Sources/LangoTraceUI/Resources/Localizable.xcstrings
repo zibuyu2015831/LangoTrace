@@ -7336,6 +7336,193 @@
         }
       }
     },
+    "entry.detail.sourceText.titleFormat": {
+      "comment": "Entry detail source text card title format. The placeholder is the native language display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@记录"
+          }
+        }
+      }
+    },
+    "entry.detail.sourceText.fallbackTitle": {
+      "comment": "Entry detail source text fallback card title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original Record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始记录"
+          }
+        }
+      }
+    },
+    "entry.detail.sourceText.editTitleFormat": {
+      "comment": "Entry detail source text editor sheet title format. The placeholder is the native language display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit %@ Record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改%@记录"
+          }
+        }
+      }
+    },
+    "entry.detail.sourceText.editFallbackTitle": {
+      "comment": "Entry detail source text editor sheet fallback title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Original Record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改原始记录"
+          }
+        }
+      }
+    },
+    "entry.detail.sourceText.edit": {
+      "comment": "Accessibility label for editing the source entry body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑记录"
+          }
+        }
+      }
+    },
+    "entry.detail.sourceText.accessibilityLabel": {
+      "comment": "Accessibility label for the editable source entry body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editable source record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可编辑原始记录"
+          }
+        }
+      }
+    },
+    "entry.detail.sourceText.saveFailed": {
+      "comment": "Error copy shown when saving source entry text fails locally.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save this record. Try again in a moment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能保存这条记录。稍后再试。"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.titleFormat": {
+      "comment": "Entry detail learning text card title format. The placeholder is the target language display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Expression"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@表达"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.fallbackTitle": {
+      "comment": "Entry detail learning text fallback card title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target Expression"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标语表达"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.sourceStale": {
+      "comment": "Status shown when the learning text was generated from an older source record.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Based on an older record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基于旧记录"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerate": {
+      "comment": "Accessibility label for regenerating learning material from the current source record.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regenerate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新生成"
+          }
+        }
+      }
+    },
     "entry.nativeRecord.title": {
       "comment": "Native language entry panel title.",
       "localizations": {

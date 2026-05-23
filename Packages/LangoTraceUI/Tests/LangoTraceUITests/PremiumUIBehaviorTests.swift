@@ -289,6 +289,7 @@ private extension PremiumUIBehaviorTests {
             promptLabel: "natural",
             providerLabel: isMock ? "Local Mock" : "External Provider",
             isMock: isMock,
+            sourceEntryBodyHash: "hash",
             sentences: []
         )
     }

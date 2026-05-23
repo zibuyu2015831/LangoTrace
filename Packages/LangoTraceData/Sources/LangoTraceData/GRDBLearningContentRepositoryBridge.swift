@@ -41,6 +41,16 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
     }
 
     @discardableResult
+    public func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry {
+        let entry = try repository.updateEntryBody(entryID: entryID, body: body)
+        guard entry.spaceID == spaceID else {
+            throw LearningContentRepositoryError.spaceMismatch
+        }
+        selectedEntryIDs[spaceID] = entry.id
+        return entry
+    }
+
+    @discardableResult
     public func createMockPhotoWritingEntry(spaceID: String) throws -> LearningEntry {
         try createEntry(
             spaceID: spaceID,
@@ -97,6 +107,7 @@ private extension GRDBLearningContentRepositoryBridge {
             promptLabel: material.metadata.promptID,
             providerLabel: material.metadata.modelName,
             isMock: false,
+            sourceEntryBodyHash: material.sourceEntryBodyHash,
             sentences: material.analysis.sentences.map { sentence in
                 RenderingSentence(
                     id: sentence.id,

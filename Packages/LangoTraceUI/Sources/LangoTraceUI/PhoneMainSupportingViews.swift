@@ -71,8 +71,10 @@ struct EntryDetailView: View {
     let rendering: LearningRendering?
     let practiceItems: [PracticeItem]
     var generationState: LearningMaterialGenerationState = .idle
+    var sourceEntryIsStale: Bool = false
     var onGenerateLearningMaterial: (() -> Void)?
     var onCancelLearningMaterialGeneration: (() -> Void)?
+    var onUpdateEntryBody: ((String) throws -> Void)?
     var onUpdateLearningText: ((String, String) -> Void)?
     var onAnalyzeCurrentLearningText: (() -> Void)?
     let onGenerateLocalPreview: () -> Void
@@ -86,29 +88,43 @@ struct EntryDetailView: View {
                     targetLanguage: languageSpace.targetLanguage,
                     rendering: rendering
                 )
-                ReadOnlyEntryTextPanel(text: entry.body, emphasis: .secondary)
+                SourceEntryTextView(
+                    entry: entry,
+                    nativeLanguageName: languageSpace.nativeLanguage,
+                    onSave: onUpdateEntryBody
+                )
                 if let rendering {
                     if let onUpdateLearningText, let onAnalyzeCurrentLearningText {
                         LearningMaterialEditorView(
                             rendering: rendering,
                             generationState: generationState,
                             targetLanguageName: languageSpace.targetLanguage,
+                            sourceEntryIsStale: sourceEntryIsStale,
                             onSave: { learningText in
                                 onUpdateLearningText(rendering.id, learningText)
                             },
-                            onReanalyze: onAnalyzeCurrentLearningText
+                            onReanalyze: onAnalyzeCurrentLearningText,
+                            onRegenerate: onGenerateLearningMaterial
                         )
                     } else {
-                        ReadOnlyEntryTextPanel(text: rendering.targetText, emphasis: .primary)
+                        EntryDetailTextCard(
+                            title: targetTextTitle,
+                            text: rendering.targetText,
+                            textEmphasis: .primary,
+                            statusKey: sourceEntryIsStale ? "entry.detail.learningText.sourceStale" : nil,
+                            accessibilityLabelKey: "entry.rendering.learningText.accessibilityLabel"
+                        )
                     }
                     SectionHeader(titleKey: "entryDetail.sentences.title")
                     ForEach(Array(rendering.sentences.enumerated()), id: \.element.id) { index, sentence in
                         SentencePairView(index: index + 1, sentence: sentence, onPractice: onPractice)
                     }
                 } else if let onGenerateLearningMaterial {
-                    TextPanel(
-                        title: localizedString("entry.targetLanguage.title"),
-                        text: localizedString("entry.rendering.pending")
+                    EntryDetailTextCard(
+                        title: targetTextTitle,
+                        text: localizedString("entry.rendering.pending"),
+                        textEmphasis: .secondary,
+                        accessibilityLabelKey: "entry.rendering.learningText.accessibilityLabel"
                     )
                     CapabilityStatusRow(
                         localizedTitleKey: generationTitleKey,
@@ -120,9 +136,11 @@ struct EntryDetailView: View {
                             : onGenerateLearningMaterial
                     )
                 } else {
-                    TextPanel(
-                        title: localizedString("entry.targetLanguage.title"),
-                        text: localizedString("entry.rendering.pending")
+                    EntryDetailTextCard(
+                        title: targetTextTitle,
+                        text: localizedString("entry.rendering.pending"),
+                        textEmphasis: .secondary,
+                        accessibilityLabelKey: "entry.rendering.learningText.accessibilityLabel"
                     )
                     CapabilityStatusRow(
                         localizedTitleKey: "entry.rendering.localPreview.title",
@@ -183,14 +201,107 @@ struct EntryDetailView: View {
             .ready
         }
     }
+
+    private var targetTextTitle: String {
+        let trimmed = languageSpace.targetLanguage.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return localizedString("entry.detail.learningText.fallbackTitle")
+        }
+        return localizedString("entry.detail.learningText.titleFormat", trimmed)
+    }
+}
+
+private struct SourceEntryTextView: View {
+    let entry: LearningEntry
+    let nativeLanguageName: String
+    let onSave: ((String) throws -> Void)?
+
+    @State private var draftText: String
+    @State private var isEditorPresented = false
+    @State private var saveErrorKey: String?
+
+    init(
+        entry: LearningEntry,
+        nativeLanguageName: String,
+        onSave: ((String) throws -> Void)?
+    ) {
+        self.entry = entry
+        self.nativeLanguageName = nativeLanguageName
+        self.onSave = onSave
+        _draftText = State(initialValue: entry.body)
+    }
+
+    var body: some View {
+        EntryDetailTextCard(
+            title: sourceTextTitle,
+            text: entry.body,
+            textEmphasis: .secondary,
+            accessibilityLabelKey: "entry.detail.sourceText.accessibilityLabel"
+        ) {
+            if onSave != nil {
+                Button {
+                    draftText = entry.body
+                    saveErrorKey = nil
+                    isEditorPresented = true
+                } label: {
+                    Image(systemName: "pencil")
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                .accessibilityLabel(localizedText("entry.detail.sourceText.edit"))
+            }
+        }
+        .onChange(of: entry.body) {
+            draftText = entry.body
+        }
+        .sheet(isPresented: $isEditorPresented) {
+            SourceEntryEditorSheet(
+                draftText: $draftText,
+                sourceLanguageName: nativeLanguageName,
+                canSave: sourceCanSave,
+                saveErrorKey: saveErrorKey,
+                onCancel: {
+                    draftText = entry.body
+                    saveErrorKey = nil
+                    isEditorPresented = false
+                },
+                onSave: {
+                    do {
+                        try onSave?(draftText)
+                        saveErrorKey = nil
+                        isEditorPresented = false
+                    } catch {
+                        saveErrorKey = "entry.detail.sourceText.saveFailed"
+                    }
+                }
+            )
+            .presentationDetents([.large])
+        }
+    }
+
+    private var sourceCanSave: Bool {
+        let trimmed = draftText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && trimmed != entry.body
+    }
+
+    private var sourceTextTitle: String {
+        let trimmed = nativeLanguageName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return localizedString("entry.detail.sourceText.fallbackTitle")
+        }
+        return localizedString("entry.detail.sourceText.titleFormat", trimmed)
+    }
 }
 
 private struct LearningMaterialEditorView: View {
     let rendering: LearningRendering
     let generationState: LearningMaterialGenerationState
     let targetLanguageName: String
+    let sourceEntryIsStale: Bool
     let onSave: (String) -> Void
     let onReanalyze: () -> Void
+    let onRegenerate: (() -> Void)?
 
     @State private var draftText: String
     @State private var isEditorPresented = false
@@ -199,42 +310,59 @@ private struct LearningMaterialEditorView: View {
         rendering: LearningRendering,
         generationState: LearningMaterialGenerationState,
         targetLanguageName: String,
+        sourceEntryIsStale: Bool,
         onSave: @escaping (String) -> Void,
-        onReanalyze: @escaping () -> Void
+        onReanalyze: @escaping () -> Void,
+        onRegenerate: (() -> Void)?
     ) {
         self.rendering = rendering
         self.generationState = generationState
         self.targetLanguageName = targetLanguageName
+        self.sourceEntryIsStale = sourceEntryIsStale
         self.onSave = onSave
         self.onReanalyze = onReanalyze
+        self.onRegenerate = onRegenerate
         _draftText = State(initialValue: rendering.targetText)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            ZStack(alignment: .topTrailing) {
-                readOnlyLearningText
-                    .padding(.trailing, textTrailingPadding)
-                actionOverlay
-            }
-            if let statusMessage {
-                Label {
-                    localizedText(statusMessage.localizedKey)
-                        .font(.footnote)
-                        .foregroundStyle(statusMessage.color)
-                } icon: {
-                    Image(systemName: statusMessage.systemImage)
-                        .foregroundStyle(statusMessage.color)
+        EntryDetailTextCard(
+            title: title,
+            text: rendering.targetText,
+            textEmphasis: .primary,
+            statusKey: statusKey,
+            accessibilityLabelKey: "entry.rendering.learningText.accessibilityLabel"
+        ) {
+            if sourceEntryIsStale, let onRegenerate, !generationState.isRunning {
+                Button(action: onRegenerate) {
+                    Image(systemName: "sparkles")
+                        .frame(minWidth: 44, minHeight: 44)
                 }
-                .accessibilityElement(children: .combine)
+                .buttonStyle(.plain)
+                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                .accessibilityLabel(localizedText("entry.detail.learningText.regenerate"))
             }
-            if generationState.analysisIsStale {
-                localizedText("entry.rendering.learningText.stale")
-                    .font(.footnote)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            if canReanalyze {
+                Button(action: onReanalyze) {
+                    Image(systemName: "text.magnifyingglass")
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                .accessibilityLabel(localizedText("entry.rendering.learningText.reanalyze"))
             }
+            Button {
+                draftText = rendering.targetText
+                isEditorPresented = true
+            } label: {
+                Image(systemName: "pencil")
+                    .frame(minWidth: 44, minHeight: 44)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+            .disabled(generationState.isRunning)
+            .accessibilityLabel(localizedText("entry.rendering.learningText.edit"))
         }
-        .langoPanel(padding: 14)
         .onChange(of: rendering.targetText) {
             draftText = rendering.targetText
         }
@@ -257,45 +385,26 @@ private struct LearningMaterialEditorView: View {
         }
     }
 
-    private var actionOverlay: some View {
-        HStack(spacing: 8) {
-            if canReanalyze {
-                Button {
-                    onReanalyze()
-                } label: {
-                    Image(systemName: "text.magnifyingglass")
-                        .frame(minWidth: 44, minHeight: 44)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
-                .accessibilityLabel(localizedText("entry.rendering.learningText.reanalyze"))
-            }
-
-            Button {
-                draftText = rendering.targetText
-                isEditorPresented = true
-            } label: {
-                Image(systemName: "pencil")
-                    .frame(minWidth: 44, minHeight: 44)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(LangoTraceDesign.ColorToken.accent)
-            .accessibilityLabel(localizedText("entry.rendering.learningText.edit"))
+    private var title: String {
+        let trimmed = targetLanguageName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return localizedString("entry.detail.learningText.fallbackTitle")
         }
+        return localizedString("entry.detail.learningText.titleFormat", trimmed)
     }
 
-    private var readOnlyLearningText: some View {
-        Text(rendering.targetText)
-            .font(.body)
-            .lineSpacing(3)
-            .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityLabel(localizedText("entry.rendering.learningText.accessibilityLabel"))
-    }
-
-    private var textTrailingPadding: CGFloat {
-        canReanalyze ? 104 : 56
+    private var statusKey: String? {
+        if sourceEntryIsStale {
+            return "entry.detail.learningText.sourceStale"
+        }
+        switch generationState {
+        case .analyzing:
+            return "entry.rendering.learningText.analyzing"
+        case .failed:
+            return "entry.rendering.learningText.analysisFailed"
+        default:
+            return generationState.analysisIsStale ? "entry.rendering.learningText.stale" : nil
+        }
     }
 
     private var canSave: Bool {
@@ -306,59 +415,133 @@ private struct LearningMaterialEditorView: View {
     private var canReanalyze: Bool {
         generationState.analysisIsStale && !generationState.isRunning
     }
-
-    private var statusMessage: LearningMaterialEditorStatusMessage? {
-        switch generationState {
-        case .analyzing:
-            LearningMaterialEditorStatusMessage(
-                localizedKey: "entry.rendering.learningText.analyzing",
-                systemImage: "sparkles",
-                color: LangoTraceDesign.ColorToken.accent
-            )
-        case .failed:
-            LearningMaterialEditorStatusMessage(
-                localizedKey: "entry.rendering.learningText.analysisFailed",
-                systemImage: "exclamationmark.triangle",
-                color: LangoTraceDesign.ColorToken.stateError
-            )
-        default:
-            nil
-        }
-    }
 }
 
-private struct LearningMaterialEditorStatusMessage {
-    let localizedKey: String
-    let systemImage: String
-    let color: Color
-}
-
-private struct ReadOnlyEntryTextPanel: View {
+private struct EntryDetailTextCard<ActionContent: View>: View {
     enum Emphasis {
         case primary
         case secondary
     }
 
+    let title: String
     let text: String
-    let emphasis: Emphasis
+    let textEmphasis: Emphasis
+    var statusKey: String?
+    var accessibilityLabelKey: String
+    @ViewBuilder var actions: () -> ActionContent
 
     var body: some View {
-        Text(text)
-            .font(emphasis == .primary ? .body.weight(.medium) : .body)
-            .lineSpacing(4)
-            .foregroundStyle(textColor)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, alignment: .topLeading)
-            .langoPanel()
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.headline)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                    if let statusKey {
+                        localizedText(statusKey)
+                            .font(.footnote.weight(.medium))
+                            .foregroundStyle(statusColor)
+                    }
+                }
+                Spacer(minLength: 12)
+                HStack(spacing: 8) {
+                    actions()
+                }
+            }
+            Text(text)
+                .font(textEmphasis == .primary ? .body.weight(.medium) : .body)
+                .lineSpacing(4)
+                .foregroundStyle(textColor)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .accessibilityLabel(localizedText(accessibilityLabelKey))
+        }
+        .langoPanel(padding: 14)
     }
 
     private var textColor: Color {
-        switch emphasis {
+        switch textEmphasis {
         case .primary:
             LangoTraceDesign.ColorToken.textPrimary
         case .secondary:
             LangoTraceDesign.ColorToken.textSecondary
         }
+    }
+
+    private var statusColor: Color {
+        statusKey == "entry.detail.learningText.sourceStale"
+            ? LangoTraceDesign.ColorToken.stateWarning
+            : LangoTraceDesign.ColorToken.textSecondary
+    }
+}
+
+private extension EntryDetailTextCard where ActionContent == EmptyView {
+    init(
+        title: String,
+        text: String,
+        textEmphasis: Emphasis,
+        statusKey: String? = nil,
+        accessibilityLabelKey: String
+    ) {
+        self.title = title
+        self.text = text
+        self.textEmphasis = textEmphasis
+        self.statusKey = statusKey
+        self.accessibilityLabelKey = accessibilityLabelKey
+        actions = { EmptyView() }
+    }
+}
+
+private struct SourceEntryEditorSheet: View {
+    @Binding var draftText: String
+
+    let sourceLanguageName: String
+    let canSave: Bool
+    let saveErrorKey: String?
+    let onCancel: () -> Void
+    let onSave: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 12) {
+                TextEditor(text: $draftText)
+                    .font(.body)
+                    .lineSpacing(4)
+                    .scrollContentBackground(.hidden)
+                    .padding(16)
+                    .background(LangoTraceDesign.ColorToken.surfaceBase)
+                    .accessibilityLabel(localizedText("entry.detail.sourceText.accessibilityLabel"))
+                if let saveErrorKey {
+                    localizedText(saveErrorKey)
+                        .font(.footnote)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.stateError)
+                }
+            }
+            .padding(20)
+            .navigationTitle(sheetTitle)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(action: onCancel) {
+                        localizedText("common.cancel")
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(action: onSave) {
+                        localizedText("common.save")
+                    }
+                    .disabled(!canSave)
+                }
+            }
+        }
+    }
+
+    private var sheetTitle: String {
+        let trimmed = sourceLanguageName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return localizedString("entry.detail.sourceText.editFallbackTitle")
+        }
+        return localizedString("entry.detail.sourceText.editTitleFormat", trimmed)
     }
 }
 
