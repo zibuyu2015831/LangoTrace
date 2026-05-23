@@ -166,6 +166,10 @@ TTS 启用且配置完整时，`语音生成` row 运行真实 TTS probe。TTS �
 
 文本 probe 失败不得天然阻断 TTS probe。只有 shared credential 缺失、用户取消、全局网络不可用或调用方明确取消整个 operation 时，才允许多个 capability 同时提前结束。否则结果面板必须能表达 text failed、TTS succeeded 或 text succeeded、TTS failed 的 partial 状态。
 
+TTS probe 必须按当前语言空间的目标语言选择固定测试文本。系统应内置多个语言版本的低敏测试文本，例如英语、简体中文、日语、韩语等；用户点击测试时，服务层根据当前 language code 选择对应文本发送给 TTS Provider。测试结果只证明当前 `model + voice + languageCode + route + configurationFingerprint` 可以生成可解码音频，不证明其他语言空间可用，也不证明发音自然度或教学质量。
+
+如果 Provider 明确返回模型、voice 或路由不支持当前语言，必须映射为稳定错误分类。推荐新增 `unsupportedLanguage` 或 `voiceLanguageUnsupported`；如果当前阶段不新增枚举，也必须在实现方案中明确映射到 `unsupportedModel`、`invalidVoice` 或 `providerRejected` 的规则，并让 UI 能提示用户更换支持当前目标语言的模型或音色。
+
 ### 6.2 Result Model
 
 推荐新增 `AIProviderProfileProbeResult`。
@@ -328,6 +332,8 @@ Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu 和
 
 - OpenAI TTS request path、headers、body 和 audio response validation。
 - OpenRouter TTS model-dependent 状态、手动 model / voice 配置和 audio response validation。
+- TTS probe 根据当前 language code 选择对应固定测试文本，并把结果写回该 language code 的 voice profile。
+- 当前语言不被模型、voice 或路由支持时，返回稳定错误分类，不得误标为全局 TTS 可用。
 - profile-level probe snapshot / result 能同时表达 text endpoint 和 TTS endpoint，且 capability row 不复用错误 endpoint metadata。
 - text probe 与 TTS probe 的 partial 状态互不覆盖。
 - language code 级 voice profile 不互相覆盖。
@@ -359,3 +365,4 @@ Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu 和
 ## 14. 变更记录
 
 - 2026-05-23：创建第一版 TTS Provider 配置、测试与播放前置规范。原因：语音模型配置与逐句播放前置方案已经跨 AI Provider、Data、Speech、隐私、诊断和设置页交互，必须从 active plan 提升为长期开发规范。影响范围：AI Provider 设置、TTS probe、Speech、Data schema、逐句播放、隐私披露和后续 Provider 扩展。是否需要 ADR：否，沿用 ADR-005 的本地优先和用户自带 Provider；若未来引入官方托管 TTS 或云端同步音频，再评估 ADR。
+- 2026-05-23：补充 TTS probe 必须按当前语言空间目标语言选择固定测试文本，并将测试结果绑定到当前 language code 的 voice profile。原因：用户配置的语音模型或音色可能不支持当前语言空间语种，单一全局 TTS 成功状态会误导逐句播放可用性判断。

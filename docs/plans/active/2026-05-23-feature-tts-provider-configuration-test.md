@@ -15,6 +15,9 @@
 - 2026-05-23：用户确认前期需要实现 OpenAI 和 OpenRouter 两个 Provider 的语音模型配置与测试。其余架构问题由系统架构复审直接给出推荐方案：采用 language code 级 voice profile、profile-level probe result、TTS 验证状态隔离、AI/Speech 职责拆分和单一测试入口。审核状态从 `Needs Changes` 调整为 `Approved With Notes`，但任务状态仍为 `Draft`，实现前仍需用户确认进入 `User Approved`。
 - 2026-05-23：用户采纳先创建长期规范文档的建议，并确认对暂不实施但会影响后续架构边界的任务项补充备忘录文档。
 - 2026-05-23：针对“是否具备实施条件”的复审结论为 `Needs Changes`。本次修订补齐与 `011` 规范的差异：双 fingerprint、第一阶段范围收紧、错误枚举落点、profile-level probe 前置、真实代码路径和测试边界。该修订不代表用户已经批准进入代码实施，任务状态仍保持 `Draft`。
+- 2026-05-23：用户补充确认语音模型测试应内置多个语言版本的固定测试文本，点击测试时根据当前语言空间的目标语言自动选择对应文本进行配音，再检查音频返回；该测试结果应绑定当前 language code，用于发现当前模型、voice 或路由不支持该目标语言的情况。
+- 2026-05-23：系统架构师复审后，用户要求立即修订本方案。本次修订明确：TTS adapter kind 的事实源为 TTS settings，不把真实 TTS adapter 强塞进现有 text/chat `AIProviderAdapterKind`；TTS validation 必须新增 endpoint / voice-profile scoped repository API，不得复用会更新 profile 全局摘要的 `recordValidationOutcome(_:)`；`008` 请求预览规则已经完成修订，后续实施只需保持一致；第一阶段必须新增 `unsupportedLanguage` 错误分类。
+- 2026-05-23：系统架构师再次复审后，用户要求立即修订本方案。本次修订明确：`LangoTraceAI` 不得直接依赖 `LangoTraceSpeech`；TTS 音频校验应通过 Core 协议 / AppEnvironment 注入 Speech 实现，或第一版只在 AI 内做不引入 AVFoundation 的轻量响应校验；Custom OpenAI-compatible 不属于第一阶段真实 TTS probe；`005` 规范已完成修订，实施阶段只需一致性检查。
 
 ## 2. 需求描述
 
@@ -225,7 +228,7 @@ Ollama 官方 API 文档主要提供本地模型 generate / chat / embeddings �
 - `Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/SpeechBoundary.swift` 当前只有空 `SpeechService` 和 `DisabledSpeechService`。
 - `AppDatabase.createAIProviderEndpoints` 的 `ai_provider_endpoints` 表无法保存 TTS 运行参数。
 - 现有 capability policy 与官方最新 TTS 能力不一致：Gemini、Mistral、Groq、xAI、OpenRouter、DashScope、Zhipu、SiliconFlow 已有官方或官方平台 TTS 能力，但代码多数仍标为不支持或只做文本兼容。
-- `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 当前写有“若使用外部 TTS Provider，必须进入 Provider 请求预览”，与后续“设置页配置测试后，学习页单句点击直接播放”存在规则冲突，需要本任务同步修订为更精确的授权边界。
+- `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 中旧的“若使用外部 TTS Provider，必须进入 Provider 请求预览”规则已经在 2026-05-23 修订为引用 `011` 的低摩擦单句 TTS 边界；后续代码实施不得重新引入逐次请求预览，也不得把该低摩擦边界扩展到照片、音频、OCR、历史记忆、多条 Entry 上下文或批量预生成。
 
 ## 5. 目标
 
@@ -279,14 +282,14 @@ Ollama 官方 API 文档主要提供本地模型 generate / chat / embeddings �
 | Zhipu GLM | unsupported | 官方 GLM-TTS `/audio/speech` | 第二批支持 |
 | SiliconFlow | unsupported | 官方 `/v1/audio/speech`，MOSS-TTSD / CosyVoice | 第二批支持 |
 | Ollama / Local | unsupported | 官方 API 未提供 TTS endpoint | 保持不支持 |
-| Custom OpenAI-compatible | modelDependent | 取决于是否实现 OpenAI Audio Speech 兼容 endpoint | 允许高级用户开启并测试 |
+| Custom OpenAI-compatible | modelDependent | 取决于是否实现 OpenAI Audio Speech 兼容 endpoint | 后续同构扩展；第一阶段不开放真实 TTS probe |
 
 第一阶段建议分成两个实施切片：
 
 1. 最小可用切片：OpenAI。原因是当前代码已有 `defaultSpeechModel = "gpt-4o-mini-tts"`，官方字段稳定，最适合先打通配置、测试、结果面板、状态持久化和后续逐句播放前置接口。
 2. 第一阶段第二切片：OpenRouter。原因是用户明确要求前期支持 OpenRouter，且 OpenRouter 的 TTS endpoint 兼容 OpenAI Audio Speech 形态，但它是聚合 Provider，必须保持 model-dependent 能力语义，要求用户选择或输入支持 speech output modality 的模型和 voice，并以真实测试结果作为唯一可用依据。
 
-同构扩展门槛：Groq、Custom OpenAI-compatible。它们接近 OpenAI Audio Speech 请求形态，但仍有不同模型、voice、格式和兼容风险；只有 OpenAI + OpenRouter 的服务边界、Data 事务和结果模型稳定后才进入后续子阶段。
+同构扩展门槛：Groq、Custom OpenAI-compatible。它们接近 OpenAI Audio Speech 请求形态，但仍有不同模型、voice、格式和兼容风险；只有 OpenAI + OpenRouter 的服务边界、Data 事务和结果模型稳定后才进入后续子阶段。第一阶段不得把 Custom OpenAI-compatible 暴露为可真实测试的 TTS Provider，避免高级 path override、任意兼容服务和 Provider 参数 allowlist 在最小闭环前扩大风险面。
 
 第二批建议：Gemini、Mistral、xAI、DashScope、Zhipu、SiliconFlow。原因是它们需要专属请求体、响应体或更复杂的 voice / format / streaming 语义。
 
@@ -301,6 +304,8 @@ Ollama 官方 API 文档主要提供本地模型 generate / chat / embeddings �
 - 保留 `ai_provider_endpoints` 作为 endpoint 主表。
 - 新增 TTS 专属配置表或等价 repository 模型，例如 `ai_provider_tts_settings`。
 - 通过 `endpoint_id` 一对一关联 `.tts` endpoint。
+- 第一阶段不把真实 TTS adapter case 强塞进当前 `AIProviderAdapterKind`。现有 `AIProviderAdapterKind` 是 text/chat request adapter，继续作为 endpoint 连接层历史字段；`.tts` endpoint 的真实请求 adapter 以 `ai_provider_tts_settings.tts_adapter_kind` / `TTSProviderAdapterKind` 为事实源。
+- 如果实现时选择直接扩展 `AIProviderAdapterKind` 加入 TTS cases，必须同步迁移 UI 本地同名 enum、Core raw value、Data 迁移、adapter capability policy 和所有保存 / 加载测试；不得让 endpoint 的 `adapter_kind` 与 TTS settings 的 `tts_adapter_kind` 同时表达不同事实。
 
 ### 8.2 标准字段 + Provider 专属 allowlist
 
@@ -421,7 +426,10 @@ TTS 配置测试只验证 Provider 能力，不验证真实学习内容。
 决策：
 
 - TTS 配置保存、Provider adapter request building、HTTP 请求和 validation event 由 `LangoTraceAI` 承担，复用现有 `AIProviderConfigurationService` / `AIProviderSettingsActions` seam。
-- 音频 bytes 的可解码性校验、试听临时资源、后续播放服务 contract 由 `LangoTraceSpeech` 承担；如果第一版为了 probe 简化在 AI package 做轻量格式校验，不能在 AI package 引入长期播放状态或 AVAudioPlayer 生命周期。
+- `LangoTraceAI` 不得直接 import 或依赖 `LangoTraceSpeech`。现有模块边界是 `AI -> Core`、`Speech -> Core`，App Shell 负责装配 Data / AI / Speech；TTS probe 不能为了调用音频解码而让 AI package 反向依赖 Speech package。
+- 推荐在 Core 中定义 `TTSAudioValidationService`、`TTSAudioValidationResult` 或等价协议 / value type，由 `LangoTraceSpeech` 提供 AVFoundation / 平台音频实现，再通过 `AppEnvironment` 注入 `AIProviderConfigurationService` 或 `TTSConfigurationProbeService`。这样 AI 层只知道 Core 协议和音频元数据，不知道 Speech concrete 实现。
+- 如果第一版为了降低改动在 `LangoTraceAI` 内做轻量响应校验，只允许校验 HTTP status、Content-Type、byte count、格式声明和大小上限；不得引入 AVFoundation、AVAudioPlayer、试听临时资源、播放状态或长期音频生命周期。此路径不能声称“可解码性已由 Speech 验证”，只能作为真实 Speech decode seam 前的最小响应验收。
+- 音频 bytes 的可解码性校验、试听临时资源、后续播放服务 contract 由 `LangoTraceSpeech` 承担；具体实现通过 Core 协议和 AppEnvironment 注入给 TTS probe 或后续播放服务。
 - `LangoTraceSpeech/Package.swift` 当前没有 test target；若新增音频校验或播放 contract，必须同时新增 `LangoTraceSpeechTests`。
 
 ### 8.9 设置页保持单一主测试入口
@@ -516,6 +524,7 @@ public struct TTSVoiceProfile: Equatable, Sendable {
 说明：
 
 - `TTSProviderSettings` 只保存 endpoint 级 adapter 选择，不保存语言相关 voice。
+- `TTSProviderSettings.adapterKind` 是真实 TTS request adapter 的事实源。第一阶段 `.tts` endpoint 上的 `AIProviderEndpointConfiguration.adapterKind` 只能作为连接层兼容字段存在，不能被 TTS request builder 当作真实语音 adapter 使用，除非本任务同步完成 `AIProviderAdapterKind` 的 TTS case 扩展和迁移。
 - `TTSVoiceProfile` 保存目标语言相关的 voice、format、style 和测试状态。
 - `providerParameters` 只能包含 adapter allowlist key，不能作为无限扩展口。
 - `providerParameters` 的生产代码不应是 `[String: String]`。方案中的代码片段只是结构示意；实际实现应使用 typed JSON value 或强类型枚举，确保数值、布尔和字符串不会被统一降级成字符串后再临时解析。
@@ -592,7 +601,9 @@ CREATE TABLE ai_provider_tts_voice_profiles (
 
 - TTS saved probe 成功或失败可以写 `ai_provider_validation_events`。
 - TTS saved probe 只能更新 `ai_provider_tts_voice_profiles.last_test_status`、`last_tested_at` 和 `last_successful_configuration_fingerprint`。
-- TTS saved probe 不得调用会覆盖 `ai_provider_profiles.last_validation_status` 的 `recordValidationOutcome(_:)`，除非该方法新增 endpoint purpose 隔离语义。
+- TTS saved probe 不得调用会覆盖 `ai_provider_profiles.last_validation_status` 的 `recordValidationOutcome(_:)`。
+- Repository 必须新增明确的 endpoint / voice-profile scoped API，例如 `recordTTSVoiceProfileProbeOutcome(...)` 或 `recordEndpointValidationEventOnly(...)`。该 API 至少要在同一个 GRDB write transaction 中写入非敏感 `ai_provider_validation_events`，并更新当前 `endpoint_id + language_code` voice profile 的 `last_test_status`、`last_tested_at` 和成功 fingerprint；它不得更新 `ai_provider_profiles.last_validation_status`。
+- 只有未来把 `ai_provider_profiles.last_validation_status` 重构为 endpoint / capability aware 摘要后，才允许通过同名或替代 API 写 profile-level summary；第一阶段不得借用现有全局字段表达 TTS 状态。
 - 文本模型、语言支持和图片理解的现有验证摘要规则不得被 TTS 失败破坏。
 
 不记录：
@@ -609,7 +620,7 @@ CREATE TABLE ai_provider_tts_voice_profiles (
 
 ### 10.1 服务边界
 
-在 `LangoTraceAI` 或 `LangoTraceSpeech` 中新增 TTS probe 协议时，应保持 UI 无网络：
+TTS probe 协议归属应保持 UI 无网络、AI 不依赖 Speech concrete package。推荐把输入 / 输出 contract 放在 Core 或 AI 暴露 API 中，把音频校验能力作为 Core 协议注入：
 
 ```swift
 public protocol TTSConfigurationProbeService: Sendable {
@@ -631,15 +642,15 @@ public protocol TTSConfigurationProbeService: Sendable {
 - status。
 - error category。
 - duration。
-- decoded audio metadata：format、byte count、duration seconds、sample rate。
-- 可选 preview audio 临时文件或短生命周期 bytes 引用。
+- audio metadata：format、byte count、duration seconds、sample rate。若当前实现只做 AI 侧轻量响应校验，`duration seconds` / `sample rate` 可以为空或标记为未解码；若已注入 Speech audio validator，则必须来自实际解码结果。
+- 可选 preview audio 临时文件或短生命周期 bytes 引用；该能力必须由 Speech seam 或 AppEnvironment 装配，不由 SwiftUI View 或 AI package 管理长期播放生命周期。
 
 实施约束：
 
 - UI 不直接持有 `TTSConfigurationProbeService`，而是通过 `AIProviderSettingsActions` 进入 App Shell seam。
 - `AIProviderSettingsActions.testProviderConfiguration` 当前只接收一个文本 draft snapshot；实施前必须扩展为 profile-level draft snapshot，或新增明确的 TTS draft snapshot 参数。
 - 如果结果面板继续使用 `AIProviderConfigurationProbeResult`，必须先扩展 result model 以支持分 endpoint metadata。
-- `LangoTraceAI` 可以生成 TTS HTTP request，但不能拥有后续播放状态；`LangoTraceSpeech` 负责 preview playback / decode helper 或提供可测试的 audio validation seam。
+- `LangoTraceAI` 可以生成 TTS HTTP request，但不能拥有后续播放状态，也不能直接依赖 `LangoTraceSpeech`。`LangoTraceSpeech` 负责 preview playback / decode helper 或提供可测试的 audio validation seam；AI 侧通过 Core 协议 / AppEnvironment 注入使用该能力。
 
 ### 10.2 Adapter 分类
 
@@ -768,6 +779,7 @@ Provider voice 依赖账户或模型时：
 - unsupportedEndpointPurpose
 - unsupportedModel
 - invalidVoice
+- unsupportedLanguage
 - invalidAudioResponse
 - unsupportedAudioFormat
 - audioDecodeFailed
@@ -777,12 +789,13 @@ Provider voice 依赖账户或模型时：
 第一阶段必须在 `AIProviderValidationErrorCategory` 中新增稳定 case，至少包含：
 
 - `invalidVoice`
+- `unsupportedLanguage`
 - `unsupportedAudioFormat`
 - `audioDecodeFailed`
 - `rateLimited`
 - `quotaExceeded`
 
-`invalidAudioResponse` 可继续表示空响应、非音频响应或字节超限等通用音频错误；但 Provider 明确返回 voice 不存在、429 限流或 quota 不足时，不应全部折叠为 `providerRejected`。如果实现时选择更少的枚举，也必须在本方案中先说明精确映射规则和 UI 恢复路径。
+`invalidAudioResponse` 可继续表示空响应、非音频响应或字节超限等通用音频错误；但 Provider 明确返回 voice 不存在、当前语言不支持、429 限流或 quota 不足时，不应全部折叠为 `providerRejected`。`unsupportedLanguage` 表示当前 `model + voice + route` 明确不支持当前语言空间的 target language；`invalidVoice` 表示 voice 不存在、无权使用或不被当前 model 接受。UI 必须能分别提示“更换支持当前语言的模型或音色”和“检查音色 ID / 权限”。
 
 ## 12. 测试请求链路
 
@@ -812,9 +825,9 @@ Provider voice 依赖账户或模型时：
 7. 失败后写非敏感失败 event，并更新 voice profile 状态。
 8. 不更新文本模型 profile 的全局最近验证摘要，除非 repository 已提供 endpoint purpose 隔离后的摘要字段。
 
-### 12.3 固定测试文本
+### 12.3 按目标语言选择固定测试文本
 
-测试文本由本机代码根据目标语言 code 选择，不允许用户生活记录参与：
+测试文本由本机代码根据当前语言空间的目标语言 code 自动选择，不允许用户生活记录参与。用户点击设置页主测试入口时，TTS probe 必须读取当前 language code，并使用对应语言版本的固定低敏文本进行配音：
 
 - `en`: `Today I wrote one short sentence for practice.`
 - `zh-Hans`: `今天我写了一句很短的话。`
@@ -823,6 +836,14 @@ Provider voice 依赖账户或模型时：
 - fallback：使用英文测试句。
 
 测试文本不进入日志、validation event、diagnostic event 或数据库。
+
+测试结果必须绑定当前 language code 和当前 voice profile：
+
+- 同一个 Provider profile 在英语空间测试成功，不代表日语、韩语或中文空间可用。
+- 同一个 `.tts` endpoint 下，每个 `endpoint_id + language_code` 的 voice profile 都必须分别保存测试状态、最近测试时间和最近成功 fingerprint。
+- 当前语言空间切换后，如果找不到对应 language code 的成功 voice profile，逐句播放必须返回 `notTested` 或 `requiresRetest`，不得复用其他语言的测试成功状态。
+- 如果 Provider 明确返回模型、voice 或路由不支持该语言，第一阶段必须映射为 `unsupportedLanguage`。若 Provider 只返回 voice 不存在、voice 无权使用或 voice 与 model 不兼容，映射为 `invalidVoice`；若 Provider 只表达模型不支持 speech/TTS 能力，映射为 `unsupportedModel`。只有无法稳定归因时，才允许回退到 `providerRejected`，并且 UI 仍应提示用户检查当前语言、模型和音色组合。
+- 如果 Provider 返回可解码音频，测试只能证明当前 `model + voice + languageCode + route + configurationFingerprint` 可生成音频；它不能证明发音自然度、口音质量、教学质量或未来路由稳定性。UI 文案和结果面板不得过度承诺。
 
 ### 12.4 音频验收
 
@@ -834,6 +855,8 @@ Provider voice 依赖账户或模型时：
 - 音频字节可被 AVFoundation 或轻量 parser 解码。
 - 时长在合理范围，例如 0.2s 到 30s。
 - 格式与请求格式一致或在 adapter 允许的兼容格式内。
+- 当前 language code 对应的 TTS probe 使用了正确语言版本的固定测试文本。
+- 测试结果写回当前 language code 的 voice profile，而不是 endpoint 全局状态。
 
 失败时不得保存 preview audio。
 
@@ -909,7 +932,7 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 
 ### 15.2 请求预览规则修订
 
-当前 `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 写有“若使用外部 TTS Provider，必须进入 Provider 请求预览”。本任务应修订为：
+`docs/spec/008-permissions-local-privacy-and-diagnostics.md` 已在 2026-05-23 修订外部 TTS 请求预览规则。后续实施必须保持以下边界：
 
 - 设置页 TTS 配置、测试和披露完成后，用户在学习页面显式点击单句播放属于低摩擦单句 TTS 请求，不需要逐次请求预览。
 - 页面展示、滚动、进入详情、生成学习材料完成、切换句子、批量预生成都不得自动发送 TTS 请求。
@@ -966,12 +989,14 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 预计新增：
 
 - `Packages/LangoTraceCore/Sources/LangoTraceCore/TTSProviderConfiguration.swift`
+- `Packages/LangoTraceCore/Sources/LangoTraceCore/TTSAudioValidation.swift`
 - `Packages/LangoTraceAI/Sources/LangoTraceAI/TTSConfigurationProbeService.swift`
 - `Packages/LangoTraceAI/Sources/LangoTraceAI/TTSProviderAdapter.swift`
 - `Packages/LangoTraceAI/Sources/LangoTraceAI/TTSAdapters/OpenAIAudioSpeechAdapter.swift`
 - `Packages/LangoTraceAI/Sources/LangoTraceAI/TTSAdapters/OpenRouterAudioSpeechAdapter.swift`
-- `Packages/LangoTraceAI/Sources/LangoTraceAI/TTSAudioProbeValidator.swift`
+- `Packages/LangoTraceAI/Sources/LangoTraceAI/TTSAudioResponseValidator.swift`
 - `Packages/LangoTraceData/Sources/LangoTraceData/GRDBTTSProviderSettingsRepository.swift`
+- `Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/TTSAudioValidationService.swift`
 - `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/TTSAudioValidationTests.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/TTSProviderSettingsModels.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/TTSProviderSettingsSection.swift`
@@ -1031,7 +1056,7 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 
 - `Packages/LangoTraceAI/Tests/LangoTraceAITests/TTSConfigurationProbeServiceTests.swift`
 - `Packages/LangoTraceAI/Tests/LangoTraceAITests/TTSAdapterRequestTests.swift`
-- `Packages/LangoTraceAI/Tests/LangoTraceAITests/TTSAudioProbeValidatorTests.swift`
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/TTSAudioResponseValidatorTests.swift`
 
 覆盖：
 
@@ -1042,10 +1067,12 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 - 401 返回 authenticationFailed。
 - 429 返回 rateLimited。
 - Provider 明确 voice 不存在或不可用时返回 invalidVoice。
+- Provider 明确当前 model / voice / route 不支持当前 language code 时返回 unsupportedLanguage。
 - Provider quota 不足时返回 quotaExceeded。
 - 非音频 Content-Type 返回 invalidAudioResponse。
 - 空 bytes 返回 invalidAudioResponse。
-- 不可解码 bytes 返回 audioDecodeFailed。
+- 若 TTS probe 已注入 Core `TTSAudioValidationService` 并由 Speech 实现解码，不可解码 bytes 返回 audioDecodeFailed。
+- 若第一版 AI 侧只实现轻量响应校验，AI package 测试只覆盖非音频 Content-Type、空 bytes、大小上限和格式声明不匹配；不可解码 bytes 必须由 Speech package 测试覆盖，不能在 AI package 中引入 AVFoundation 来满足该用例。
 - draft probe 不写 validation event。
 - saved probe 成功写 synthetic_test validation event。
 
@@ -1104,12 +1131,14 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 
 1. 先新增 Core / UI / AI 测试锁定 profile-level probe contract：一次主测试可以包含 text endpoint 与 tts endpoint，capability row 必须携带 endpoint metadata，text 与 TTS partial 状态互不覆盖。
 2. 新增或扩展 `AIProviderProfileProbeResult` / endpoint metadata result；如果选择兼容扩展 `AIProviderConfigurationProbeResult`，也必须先满足 `docs/spec/011-tts-provider-configuration-and-playback.md` 的 profile-level 语义。
-3. 新增 TTS 错误分类 case：`invalidVoice`、`unsupportedAudioFormat`、`audioDecodeFailed`、`rateLimited`、`quotaExceeded`，或先在方案中写明等价映射规则。
+3. 新增 TTS 错误分类 case：`invalidVoice`、`unsupportedLanguage`、`unsupportedAudioFormat`、`audioDecodeFailed`、`rateLimited`、`quotaExceeded`。第一阶段不再允许把明确的语言不支持折叠为 `providerRejected`。
 4. 新增测试锁定当前矩阵事实：OpenAI supported，OpenRouter modelDependent 且第一阶段真实 probe，Custom modelDependent 但不开放第一阶段真实 probe，Anthropic / DeepSeek / Kimi / Ollama unsupported，Gemini / Mistral / xAI / DashScope / Zhipu / SiliconFlow 暂不开放第一阶段真实测试入口。
 5. 更新 `AIProviderPreset.capabilityPolicy` 和 adapter capability policy，将 OpenAI 和 OpenRouter 纳入第一阶段可真实 probe；OpenRouter 必须保持 model-dependent，不升级为全局 supported。
-6. 在同一阶段记录 Groq / Custom OpenAI-compatible 的同构扩展意图，但不要求和 OpenAI / OpenRouter 同一次 commit 全部落地。
-7. 保持 Gemini、Mistral、xAI、DashScope、Zhipu、SiliconFlow 的官方能力记录在文档中，但 UI 不出现可用假象；后续支持需新增 adapter 和测试。
-8. 更新 UI tests，防止 unsupported Provider 显示可测试 TTS 主路径。
+6. 明确 adapter kind 落点：第一阶段以 `TTSProviderAdapterKind` / `ai_provider_tts_settings.tts_adapter_kind` 作为真实 TTS adapter 事实源；若决定扩展现有 `AIProviderAdapterKind`，必须先完成 raw value、Data migration、UI 本地 enum 映射和 adapter capability policy 测试。
+7. 在同一阶段记录 Groq / Custom OpenAI-compatible 的同构扩展意图，但不要求和 OpenAI / OpenRouter 同一次 commit 全部落地；第一阶段 UI 不得显示 Custom OpenAI-compatible 可真实测试 TTS。
+8. 保持 Gemini、Mistral、xAI、DashScope、Zhipu、SiliconFlow 的官方能力记录在文档中，但 UI 不出现可用假象；后续支持需新增 adapter 和测试。
+9. 更新 UI tests，防止 unsupported Provider 显示可测试 TTS 主路径。
+10. 阶段一完成前不得实现 OpenAI / OpenRouter TTS 网络请求；没有 endpoint metadata 的 profile-level result 会导致 TTS row 复用 text endpoint 的 Provider / model，必须先阻断。
 
 ### 阶段二：新增 TTS 设置模型和 Data 存储
 
@@ -1119,6 +1148,7 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 4. 添加迁移测试。
 5. 将 `.tts` endpoint、TTS settings 和当前语言 voice profile 在同一保存事务内处理。
 6. 修正 `GRDBAIProviderConfigurationRepository.saveProfile(_:)` 的删除 / 重插入路径，确保 endpoint 替换不会留下孤立 voice profile，也不会因外键顺序导致保存失败。
+7. 新增 endpoint / voice-profile scoped validation repository API，例如 `recordTTSVoiceProfileProbeOutcome(...)` 或 `recordEndpointValidationEventOnly(...)`，并用 Data 测试证明该 API 不更新 `ai_provider_profiles.last_validation_status`。
 
 ### 阶段三：更新设置 UI
 
@@ -1134,7 +1164,7 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 
 1. 新增 `TTSProviderAdapter` 协议。
 2. 先实现 OpenAI adapter，打通 request、response、audio metadata、draft / saved profile probe 和结果面板。
-3. 新增 Speech package audio validation / preview seam；如需 AVFoundation 解码，应在 Speech 模块或明确的跨平台 helper 中完成。
+3. 新增 Core audio validation 协议和 Speech package audio validation / preview seam；如需 AVFoundation 解码，必须在 Speech 模块实现，并由 AppEnvironment 注入给 TTS probe。AI package 不得直接依赖 Speech package。
 4. 复用阶段一建立的 profile-level result，确保 speech synthesis row 使用 TTS endpoint metadata，不复用 text endpoint 的 Provider / model。
 5. 在 OpenAI 路径稳定后实现 OpenRouter adapter，并保持 model-dependent 状态和手动 model / voice 配置路径。
 6. 接入 draft / saved profile probe。
@@ -1144,8 +1174,8 @@ public protocol TTSConfigurationAvailabilityService: Sendable {
 ### 阶段五：隐私与文档同步
 
 1. 先遵守 `docs/spec/011-tts-provider-configuration-and-playback.md`，它是 TTS Provider 配置、测试、voice profile、隐私披露和逐句播放前置状态的长期规范。
-2. 更新 `docs/spec/005-ai-provider-prompt-and-privacy.md`，说明 TTS 配置测试边界和后续单句播放边界。
-3. 更新 `docs/spec/008-permissions-local-privacy-and-diagnostics.md`，修订外部 TTS Provider 请求预览规则。
+2. 检查 `docs/spec/005-ai-provider-prompt-and-privacy.md` 已修订的 TTS 配置测试边界和后续单句播放边界是否仍与本实现一致；如实现边界改变再更新，而不是重复记录已不存在的旧规则。
+3. 检查 `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 已修订的外部 TTS Provider 请求预览规则是否仍与本实现一致；如实现边界改变再更新，而不是重复记录已不存在的旧规则。
 4. 更新 `docs/platform-page-inventory.md`，记录 AI Provider 设置页的 TTS 配置状态。
 5. 更新 `docs/spec/ui-design/mvp-ui-flow-and-design-system.md` 中“没有真实 TTS”的旧事实。
 6. 后续 Provider、音频缓存、流式播放、本地 TTS、用量估算和音频同步等暂不实施项，实施前必须检查 `docs/architecture/notes/2026-05-23-tts-provider-extension-notes.md`。
@@ -1241,7 +1271,7 @@ git status --short
 - 设置页能清楚披露单句播放会发送目标语言文本给 TTS Provider。
 - 后续播放服务能读取 `available / requiresRetest / credentialMissing` 等状态。
 - TTS 配置 fingerprint 可用于判断缓存失效。
-- 旧的“外部 TTS Provider 必须进入请求预览”规则已被精确修订。
+- `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 已精确修订单句外部 TTS 请求预览边界，且本实现没有重新引入逐句播放前的逐次请求预览。
 
 ## 23. 完成标准
 
@@ -1275,6 +1305,9 @@ git status --short
 - 2026-05-23：根据用户确认更新第一阶段 Provider 范围为 OpenAI + OpenRouter。系统架构推荐方案落定：language code 级 voice profile、`AIProviderProfileProbeResult` 优先、TTS validation 与 profile 全局状态隔离、Speech 承接音频 validation / preview、设置页保持单一测试入口。
 - 2026-05-23：新增长期规范 `docs/spec/011-tts-provider-configuration-and-playback.md`，并新增架构备忘录 `docs/architecture/notes/2026-05-23-tts-provider-extension-notes.md`。同时修订 `005` 和 `008` 中与真实 TTS probe、外部 TTS 单句点击播放边界冲突的旧表述。
 - 2026-05-23：根据实施条件复审修订方案。补齐 `lastSuccessfulConfigurationFingerprint` / `last_successful_configuration_fingerprint`，将 profile-level probe contract 调整为阶段一前置，明确 TTS 错误枚举落点，修正不存在的结果面板文件路径，并将 Gemini / Groq / Custom OpenAI-compatible 相关测试移出第一阶段强制验收。
+- 2026-05-23：根据用户补充要求修订语言测试边界。TTS probe 必须根据当前语言空间目标语言选择内置固定测试文本，并把结果绑定到当前 language code 的 voice profile；模型、voice 或路由不支持当前语言时应返回稳定错误分类，避免把其他语言的成功测试误当成当前语言可播放。
+- 2026-05-23：根据系统架构师复审继续修订实施级歧义。明确 TTS adapter kind 事实源、TTS validation repository scoped API、`008` 已修订事实、`unsupportedLanguage` 第一阶段错误分类，以及没有 profile-level endpoint metadata 不得先接 OpenAI / OpenRouter TTS 网络请求。
+- 2026-05-23：根据系统架构师再次复审核准实施边界。补充 AI / Speech 依赖方向约束：`LangoTraceAI` 不直接依赖 `LangoTraceSpeech`，音频 decode / preview 通过 Core 协议与 AppEnvironment 注入 Speech 实现；统一 Custom OpenAI-compatible 为后续同构扩展，不纳入第一阶段真实 TTS probe；修正 `005` 为已修订后的实施一致性检查。
 
 ## 26. 系统架构复审结论
 
@@ -1299,6 +1332,7 @@ git status --short
 - 现有 `AIProviderSettingsActions.testProviderConfiguration` 只接收一个 text draft snapshot；TTS draft 测试需要 profile-level snapshot 或新增 TTS snapshot。
 - `LangoTraceSpeech/Package.swift` 当前没有 tests target；只在方案中写 Speech 测试文件不够，必须同时修改 package manifest。
 - UI package 中存在本地 `AIProviderAdapterKind` 与 Core 同名 enum，实施 TTS adapter 扩展时必须明确映射边界，避免 UI enum 与 Core enum 漂移。
+- 当前 `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 已完成外部 TTS 单句点击播放边界修订；方案中不得继续把它描述为当前冲突事实。
 
 ### 26.2 可行性判断
 
@@ -1308,15 +1342,16 @@ git status --short
 2. 接入 OpenAI TTS，跑通配置、保存、测试、试听和状态持久化。
 3. 在同一结果面板中把 `speechSynthesis` 从 placeholder 升级为真实 row。
 4. 接入 OpenRouter TTS，保持 model-dependent，使用手动 model / voice 配置和真实测试结果判断可用性。
-5. 通过严格测试后，再接 Groq / Custom OpenAI-compatible。
+5. 通过严格测试后，再以独立子阶段接 Groq / Custom OpenAI-compatible；Custom 不属于第一阶段真实 TTS probe。
 6. Gemini、Mistral、xAI、DashScope、Zhipu、SiliconFlow 单独后续方案或本方案后续阶段实现。
 
 本次复审已给出推荐方案，剩余实施前门槛为工程执行门槛，不再是产品 / 架构方向待确认：
 
 - 推荐新增 `AIProviderProfileProbeResult`；如选择扩展现有 result，也必须让 capability row 持有 endpoint metadata。
-- TTS audio validation / preview seam 进入 `LangoTraceSpeech`，并新增 Speech package test target。
+- TTS adapter kind 第一阶段以 `TTSProviderAdapterKind` / `ai_provider_tts_settings.tts_adapter_kind` 为真实请求 adapter 事实源；现有 text/chat `AIProviderAdapterKind` 不直接驱动 TTS request builder。
+- TTS audio validation / preview seam 进入 `LangoTraceSpeech`，并新增 Speech package test target；AI package 不直接依赖 Speech package，音频校验通过 Core 协议 / AppEnvironment 注入。
 - voice profile 必须是 language code 级。
-- TTS 测试失败必须与 profile 全局验证摘要隔离。
+- TTS 测试失败必须与 profile 全局验证摘要隔离，并通过新增 repository scoped API 写 validation event 与 voice profile 状态。
 - 第一阶段 Provider 范围为 OpenAI + OpenRouter。
 
 ### 26.3 决策依据和收益
@@ -1339,7 +1374,7 @@ git status --short
 ### 26.4 四维切片
 
 - 并发 / 性能：必须为每个 endpoint + language code 限制一个 active TTS probe；重复点击测试不应产生并发请求或状态倒写。Preview audio bytes 只能短生命周期持有，不进入缓存目录。
-- 异常边界：必须新增 invalidVoice、audioDecodeFailed、rateLimited、quotaExceeded 或等价错误映射；Provider 原始错误正文不得直接展示或落日志。
+- 异常边界：必须新增 invalidVoice、unsupportedLanguage、audioDecodeFailed、rateLimited、quotaExceeded 或等价错误映射；Provider 原始错误正文不得直接展示或落日志。
 - 状态同步：保存状态、测试状态、configuration fingerprint、validation event、结果面板和 language voice profile 必须一致；切换语言空间时读取对应 language code 配置。
 - 数据一致性：endpoint、tts settings、voice profile 必须同事务写入；Keychain / SQLite 非原子补偿沿用现有规则；TTS optional probe 不覆盖 text profile 全局最近验证摘要。
 
@@ -1376,7 +1411,9 @@ UI -> AIProviderSettingsActions -> AppEnvironment
 AppEnvironment -> AIProviderConfigurationService
 AIProviderConfigurationService -> TTSProviderAdapter for network
 AIProviderConfigurationService -> GRDB repository for validation summary
-SpeechService or TTSAudioValidator -> audio metadata / preview semantics
+AIProviderConfigurationService -> Core TTSAudioValidationService protocol
+AppEnvironment -> injects Speech TTSAudioValidationService implementation when decode validation is needed
+SpeechService / TTSAudioValidationService -> audio metadata / preview semantics
 ```
 
 这比“每个能力独立测试按钮 + endpoint 单行 voice 设置 + 单 endpoint result model”更符合当前代码结构和长期扩展方向。
@@ -1384,13 +1421,14 @@ SpeechService or TTSAudioValidator -> audio metadata / preview semantics
 ### 26.6 已定推荐方案与实施前门槛
 
 - Result model：推荐新增 `AIProviderProfileProbeResult`；若为降低改动选择扩展 `AIProviderConfigurationProbeResult`，也必须让 capability result 持有 endpoint metadata。
+- Adapter kind：真实 TTS request adapter 使用 `TTSProviderAdapterKind` / `ai_provider_tts_settings.tts_adapter_kind`；除非同步完成 Core/Data/UI 的 adapter enum 扩展和迁移，否则不得把 TTS request builder 绑定到现有 text/chat `AIProviderAdapterKind`。
 - Data schema：采用 endpoint settings + language voice profile，不采用 endpoint 单行 voice。
 - Data fingerprint：voice profile 必须同时保存当前 `configuration_fingerprint` 和 `last_successful_configuration_fingerprint`；只有最近成功 fingerprint 与当前 fingerprint 一致，才允许逐句播放判定为 available。
-- Validation persistence：TTS 结果不复用会覆盖 profile 全局摘要的 `recordValidationOutcome(_:)`。
-- Speech package：新增测试 target，音频 validation / preview seam 归 Speech。
-- 第一阶段 Provider：OpenAI + OpenRouter。OpenRouter 维持 model-dependent，以当前 model + voice + route 的真实测试结果作为可用依据。
-- 更新 `docs/spec/005-ai-provider-prompt-and-privacy.md` 中“语音生成不得发真实网络测试请求”的旧规则。
-- 更新 `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 中外部 TTS 必须逐次请求预览的旧规则。
+- Validation persistence：TTS 结果不复用会覆盖 profile 全局摘要的 `recordValidationOutcome(_:)`；必须新增 endpoint / voice-profile scoped repository API。
+- Speech package：新增测试 target，音频 validation / preview seam 归 Speech；AI package 不直接依赖 Speech package，必须通过 Core 协议 / AppEnvironment 注入使用音频校验。
+- 第一阶段 Provider：OpenAI + OpenRouter。OpenRouter 维持 model-dependent，以当前 model + voice + route 的真实测试结果作为可用依据；Custom OpenAI-compatible 不进入第一阶段真实 TTS probe。
+- `docs/spec/005-ai-provider-prompt-and-privacy.md` 的真实 TTS probe 边界已完成修订；实施阶段只需检查实现是否仍遵守该边界，如边界改变再更新。
+- `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 的外部 TTS 请求预览旧规则已完成修订；实施阶段只需检查实现是否仍遵守该边界。
 
 ### 26.7 当前实施条件判断
 
