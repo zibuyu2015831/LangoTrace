@@ -243,7 +243,7 @@ TTS Provider 配置可用性读取接口只能返回以下状态：
 - 当前配置 fingerprint 与测试成功时一致。
 - 当前 App 版本仍支持该 TTS adapter。
 
-逐句播放层不得只凭 Provider 配置 `available` 直接播放。本地媒体派生资产基础设施已经可用，能通过 Core TTS artifact key、`GRDBMediaArtifactRepository`、`LocalMediaArtifactFileStore`、`LocalMediaArtifactStore` facade 和 Speech `TTSAudioFileValidator` 查询、写入、解码验证、失效和清理 TTS audio artifact。换言之，Provider 配置 `available` 加本地媒体派生资产基础设施只是逐句播放的基础条件；完整播放 ready 状态仍需后续 direct playback coordinator、真实 TTS generation service、正式 playback service 和 UI 接入。
+逐句播放层不得只凭 Provider 配置 `available` 直接播放。本地媒体派生资产基础设施已经可用，能通过 Core TTS artifact key、`GRDBMediaArtifactRepository`、`LocalMediaArtifactFileStore`、`LocalMediaArtifactStore` facade 和 Speech `TTSAudioFileValidator` 查询、写入、解码验证、失效和清理 TTS audio artifact。换言之，Provider 配置 `available` 加本地媒体派生资产基础设施只是逐句播放的基础条件；完整播放 ready 状态还必须经过 direct playback coordinator、真实 TTS generation service、正式 playback service 和 UI action contract。
 
 `requiresRetest` 必须在以下情况出现：
 
