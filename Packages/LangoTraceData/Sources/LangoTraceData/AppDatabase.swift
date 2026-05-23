@@ -57,6 +57,9 @@ private extension AppDatabase {
         migrator.registerMigration("v6_create_ai_provider_tts_configuration") { db in
             try createAIProviderTTSConfiguration(db)
         }
+        migrator.registerMigration("v7_create_media_artifact_infrastructure") { db in
+            try createMediaArtifactInfrastructure(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
@@ -501,6 +504,96 @@ private extension AppDatabase {
                 arguments: [LearningMaterialTextHash.sha256(for: entryBody), materialID]
             )
         }
+    }
+
+    // swiftlint:disable:next function_body_length
+    static func createMediaArtifactInfrastructure(_ db: Database) throws {
+        try db.execute(sql: """
+        CREATE TABLE media_artifacts (
+          id TEXT PRIMARY KEY,
+          language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          owner_type TEXT NOT NULL,
+          owner_id TEXT NOT NULL,
+          owner_sub_id TEXT,
+          artifact_type TEXT NOT NULL,
+          derivation_kind TEXT NOT NULL,
+          derivation_key_hash TEXT NOT NULL,
+          relative_file_path TEXT NOT NULL,
+          mime_type TEXT NOT NULL,
+          byte_size INTEGER NOT NULL,
+          duration_seconds REAL,
+          content_hash TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          last_accessed_at REAL NOT NULL,
+          invalidated_at REAL,
+          delete_after REAL,
+          backup_policy TEXT NOT NULL,
+          sync_policy TEXT NOT NULL,
+          export_policy TEXT NOT NULL,
+          CHECK (byte_size >= 0),
+          CHECK (duration_seconds IS NULL OR duration_seconds >= 0),
+          CHECK (artifact_type IN (
+            'ttsSentenceAudio', 'ttsDocumentAudio', 'shadowingRecording',
+            'dictationRecording', 'ocrIntermediate', 'exportTemporary'
+          )),
+          CHECK (derivation_kind IN ('ttsAudio')),
+          CHECK (backup_policy IN ('excludedFromSystemBackup', 'includedInSystemBackup')),
+          CHECK (sync_policy IN ('localOnly', 'syncCandidate', 'syncManaged')),
+          CHECK (export_policy IN (
+            'excludedByDefault', 'includedInUserExport', 'includedInRecoverableBackup'
+          ))
+        )
+        """)
+        try db.execute(sql: """
+        CREATE TABLE tts_audio_artifacts (
+          artifact_id TEXT PRIMARY KEY REFERENCES media_artifacts(id) ON DELETE CASCADE,
+          sentence_source_type TEXT NOT NULL,
+          entry_id TEXT REFERENCES entries(id) ON DELETE CASCADE,
+          learning_material_id TEXT REFERENCES learning_materials(id) ON DELETE CASCADE,
+          sentence_index INTEGER,
+          sentence_text_hash TEXT NOT NULL,
+          target_language_code TEXT NOT NULL,
+          provider_profile_id TEXT NOT NULL REFERENCES ai_provider_profiles(id) ON DELETE CASCADE,
+          tts_endpoint_id TEXT NOT NULL REFERENCES ai_provider_endpoints(id) ON DELETE CASCADE,
+          tts_voice_profile_id TEXT NOT NULL REFERENCES ai_provider_tts_voice_profiles(id) ON DELETE CASCADE,
+          adapter_kind TEXT NOT NULL,
+          adapter_version TEXT NOT NULL,
+          model_name TEXT NOT NULL,
+          voice_id_hash TEXT NOT NULL,
+          output_format TEXT NOT NULL,
+          sample_rate INTEGER,
+          speed REAL,
+          pitch REAL,
+          volume REAL,
+          instructions_hash TEXT,
+          provider_parameters_hash TEXT,
+          configuration_fingerprint TEXT NOT NULL,
+          CHECK (sentence_index IS NULL OR sentence_index >= 0)
+        )
+        """)
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_media_artifacts_active_derivation_key
+        ON media_artifacts(artifact_type, derivation_kind, derivation_key_hash)
+        WHERE invalidated_at IS NULL
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_media_artifacts_language_type_accessed
+        ON media_artifacts(language_space_id, artifact_type, invalidated_at, last_accessed_at)
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_media_artifacts_owner
+        ON media_artifacts(owner_type, owner_id, owner_sub_id, invalidated_at)
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_tts_audio_artifacts_entry_material_sentence
+        ON tts_audio_artifacts(entry_id, learning_material_id, sentence_index)
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_tts_audio_artifacts_provider_config
+        ON tts_audio_artifacts(
+          provider_profile_id, tts_endpoint_id, tts_voice_profile_id, configuration_fingerprint
+        )
+        """)
     }
 
     static func setFileProtectionIfAvailable(for databaseURL: URL) throws {
