@@ -77,6 +77,8 @@ struct EntryDetailView: View {
     var onUpdateEntryBody: ((String) throws -> Void)?
     var onUpdateLearningText: ((String, String) -> Void)?
     var onAnalyzeCurrentLearningText: (() -> Void)?
+    var sentenceAudioPlaybackState: (String) -> SentenceAudioPresentationState = { _ in .idle }
+    var onListenSentence: ((LearningRendering, RenderingSentence, Int) -> Void)?
     let onGenerateLocalPreview: () -> Void
     let onPractice: () -> Void
 
@@ -117,7 +119,15 @@ struct EntryDetailView: View {
                     }
                     SectionHeader(titleKey: "entryDetail.sentences.title")
                     ForEach(Array(rendering.sentences.enumerated()), id: \.element.id) { index, sentence in
-                        SentencePairView(index: index + 1, sentence: sentence, onPractice: onPractice)
+                        SentencePairView(
+                            index: index + 1,
+                            sentence: sentence,
+                            playbackState: sentenceAudioPlaybackState(sentence.id),
+                            onListen: {
+                                onListenSentence?(rendering, sentence, index)
+                            },
+                            onPractice: onPractice
+                        )
                     }
                 } else if let onGenerateLearningMaterial {
                     EntryDetailTextCard(

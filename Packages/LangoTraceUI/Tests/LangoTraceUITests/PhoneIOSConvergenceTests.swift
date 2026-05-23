@@ -177,15 +177,15 @@ struct PhoneIOSConvergenceTests {
             encoding: .utf8
         )
 
-        #expect(components.contains("@State private var isLocalPlaybackActive = false"))
-        #expect(components.contains("isListening: isLocalPlaybackActive"))
-        #expect(components.contains("isLocalPlaybackActive.toggle()"))
+        #expect(components.contains("let playbackState: SentenceAudioPresentationState"))
+        #expect(components.contains("onListen: onListen"))
+        #expect(!components.contains("isLocalPlaybackActive.toggle()"))
         #expect(!components.contains("LocalListeningPreviewView"))
         #expect(!components.contains(".sheet(isPresented: $isListeningPreviewPresented)"))
         #expect(!components.contains("isListeningPreviewPresented"))
-        #expect(controls.contains("let isListening: Bool"))
-        #expect(controls.contains("systemImage: isListening ? \"pause.fill\" : \"speaker.wave.2\""))
-        #expect(controls.contains("titleKey: isListening ? \"common.pause\" : \"common.listen\""))
+        #expect(controls.contains("let playbackState: SentenceAudioPresentationState"))
+        #expect(controls.contains("playbackState.listenButtonSystemImage"))
+        #expect(controls.contains("playbackState.listenButtonTitleKey"))
         #expect(!components.contains("UnavailableCapabilityView(content: ." + "listenOne)"))
     }
 

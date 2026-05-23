@@ -8,6 +8,7 @@ final class LearningContentStore: ObservableObject {
     private let repository: any LearningContentRepository
     private let spaceID: String
     private let generationActions: LearningMaterialGenerationActions
+    private let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
     private var generatedRenderingsByEntryID: [String: LearningRendering] = [:]
     private var runningOperationsByEntryID: [String: RunningLearningMaterialOperation] = [:]
 
@@ -16,15 +17,18 @@ final class LearningContentStore: ObservableObject {
     @Published private(set) var memoryItems: [MemoryItem] = []
     @Published private(set) var settingsCapabilities: [SettingsCapability] = []
     @Published private(set) var generationStates: [String: LearningMaterialGenerationState] = [:]
+    @Published private(set) var sentenceAudioPlaybackStates: [String: SentenceAudioPresentationState] = [:]
 
     init(
         repository: any LearningContentRepository,
         spaceID: String,
-        generationActions: LearningMaterialGenerationActions = .disabled
+        generationActions: LearningMaterialGenerationActions = .disabled,
+        sentenceAudioPlaybackActions: SentenceAudioPlaybackActions = .disabled
     ) {
         self.repository = repository
         self.spaceID = spaceID
         self.generationActions = generationActions
+        self.sentenceAudioPlaybackActions = sentenceAudioPlaybackActions
         reload()
     }
 
@@ -108,6 +112,28 @@ final class LearningContentStore: ObservableObject {
 
     func practiceSession(for entryID: String) -> PracticeSessionState? {
         repository.practiceSession(for: entryID)
+    }
+
+    func sentenceAudioPlaybackState(for sentenceID: String) -> SentenceAudioPresentationState {
+        sentenceAudioPlaybackStates[sentenceID] ?? .idle
+    }
+
+    func handleSentenceAudioTap(
+        rendering: LearningRendering,
+        sentence: RenderingSentence,
+        sentenceIndex: Int,
+        languageSpace: LanguageSpacePreview
+    ) async {
+        let request = SentenceAudioRequest(
+            languageSpaceID: languageSpace.id,
+            owner: .learningMaterialSentence(materialID: rendering.id, sentenceIndex: sentenceIndex),
+            sentenceSource: .learningMaterialSentence(materialID: rendering.id, sentenceIndex: sentenceIndex),
+            sentenceIndex: sentenceIndex,
+            targetText: sentence.targetText,
+            targetLanguageCode: languageSpace.targetLanguageCode
+        )
+        let state = await sentenceAudioPlaybackActions.handleTap(request)
+        sentenceAudioPlaybackStates[sentence.id] = state
     }
 
     func memoryItems(for entry: LearningEntry) -> [MemoryItem] {

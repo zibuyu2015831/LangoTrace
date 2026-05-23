@@ -246,7 +246,8 @@ struct PremiumUIBehaviorTests {
         )
 
         #expect(!learningContentComponents.contains("Button {}"))
-        #expect(learningContentComponents.contains("isLocalPlaybackActive.toggle()"))
+        #expect(learningContentComponents.contains("onListen: onListen"))
+        #expect(!learningContentComponents.contains("isLocalPlaybackActive.toggle()"))
         #expect(!learningContentComponents.contains("LocalListeningPreviewView"))
         #expect(!learningContentComponents.contains(".sheet(isPresented: $isListeningPreviewPresented)"))
         #expect(!learningContentComponents.contains("UnavailableCapabilityView(content: ." + "listenOne)"))

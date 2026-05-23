@@ -118,6 +118,19 @@ struct PhoneMainView: View {
                                     )
                                 }
                             },
+                            sentenceAudioPlaybackState: { sentenceID in
+                                contentStore.sentenceAudioPlaybackState(for: sentenceID)
+                            },
+                            onListenSentence: { rendering, sentence, index in
+                                Task {
+                                    await contentStore.handleSentenceAudioTap(
+                                        rendering: rendering,
+                                        sentence: sentence,
+                                        sentenceIndex: index,
+                                        languageSpace: languageSpace
+                                    )
+                                }
+                            },
                             onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
                             onPractice: { navigationPath.append(.practice(entry.id)) }
                         )

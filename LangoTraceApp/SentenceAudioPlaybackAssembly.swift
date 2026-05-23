@@ -3,6 +3,7 @@ import LangoTraceAI
 import LangoTraceCore
 import LangoTraceData
 import LangoTraceSpeech
+import LangoTraceUI
 
 enum SentenceAudioPlaybackAssembly {
     static func makeCoordinator(
@@ -18,7 +19,7 @@ enum SentenceAudioPlaybackAssembly {
             fileStore: fileStore,
             audioFileValidator: TTSAudioFileValidator(mediaArtifactsRoot: mediaArtifactsRoot)
         )
-        let availabilityService = try AIProviderConfigurationService(
+        let availabilityService = AIProviderConfigurationService(
             repository: GRDBAIProviderConfigurationRepository(database: database),
             credentialStore: credentialStore,
             configurationProbeService: AIProviderConfigurationProbeService(
@@ -60,6 +61,48 @@ enum SentenceAudioPlaybackAssembly {
         return applicationSupport
             .appendingPathComponent("LangoTrace", isDirectory: true)
             .appendingPathComponent("MediaArtifacts", isDirectory: true)
+    }
+}
+
+actor SentenceAudioPlaybackCoordinatorBox {
+    private let makeCoordinator: @Sendable () throws -> SentenceAudioPlaybackCoordinator
+    private var coordinator: SentenceAudioPlaybackCoordinator?
+
+    init(makeCoordinator: @escaping @Sendable () throws -> SentenceAudioPlaybackCoordinator) {
+        self.makeCoordinator = makeCoordinator
+    }
+
+    nonisolated func actions() -> SentenceAudioPlaybackActions {
+        SentenceAudioPlaybackActions(
+            handleTap: { request in
+                do {
+                    let coordinator = try await self.coordinatorInstance()
+                    try await coordinator.handleTap(request)
+                    return await coordinator.presentationState(for: request)
+                } catch let failure as SentenceAudioPlaybackFailure {
+                    return .failed(failure)
+                } catch {
+                    return .failed(.playbackFailed)
+                }
+            },
+            presentationState: { request in
+                do {
+                    let coordinator = try await self.coordinatorInstance()
+                    return await coordinator.presentationState(for: request)
+                } catch {
+                    return .failed(.playbackFailed)
+                }
+            }
+        )
+    }
+
+    private func coordinatorInstance() throws -> SentenceAudioPlaybackCoordinator {
+        if let coordinator {
+            return coordinator
+        }
+        let newCoordinator = try makeCoordinator()
+        coordinator = newCoordinator
+        return newCoordinator
     }
 }
 

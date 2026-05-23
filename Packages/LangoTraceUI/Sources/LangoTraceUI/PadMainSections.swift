@@ -144,12 +144,25 @@ struct PadWorkspaceContentView: View {
     private func sentenceList(for entry: LearningEntry) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionCaption(titleKey: "pad.sentences.title", subtitleKey: "pad.sentences.subtitle")
-            ForEach(Array((selectedRendering?.sentences ?? []).enumerated()), id: \.element.id) { index, sentence in
-                SentencePairView(
-                    index: index + 1,
-                    sentence: sentence,
-                    onPractice: { onRoute(.practice(entry.id)) }
-                )
+            if let rendering = selectedRendering {
+                ForEach(Array(rendering.sentences.enumerated()), id: \.element.id) { index, sentence in
+                    SentencePairView(
+                        index: index + 1,
+                        sentence: sentence,
+                        playbackState: contentStore.sentenceAudioPlaybackState(for: sentence.id),
+                        onListen: {
+                            Task {
+                                await contentStore.handleSentenceAudioTap(
+                                    rendering: rendering,
+                                    sentence: sentence,
+                                    sentenceIndex: index,
+                                    languageSpace: languageSpace
+                                )
+                            }
+                        },
+                        onPractice: { onRoute(.practice(entry.id)) }
+                    )
+                }
             }
         }
     }
@@ -201,6 +214,19 @@ struct PadWorkspaceContentView: View {
                 Task {
                     await contentStore.analyzeCurrentLearningText(
                         for: entry,
+                        languageSpace: languageSpace
+                    )
+                }
+            },
+            sentenceAudioPlaybackState: { sentenceID in
+                contentStore.sentenceAudioPlaybackState(for: sentenceID)
+            },
+            onListenSentence: { rendering, sentence, index in
+                Task {
+                    await contentStore.handleSentenceAudioTap(
+                        rendering: rendering,
+                        sentence: sentence,
+                        sentenceIndex: index,
                         languageSpace: languageSpace
                     )
                 }

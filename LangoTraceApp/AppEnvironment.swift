@@ -12,6 +12,7 @@ struct AppEnvironment {
     let learningContentRepository: any LearningContentRepository
     let learningMaterialGenerationActions: LearningMaterialGenerationActions
     let makeSentenceAudioPlaybackCoordinator: @Sendable () throws -> SentenceAudioPlaybackCoordinator
+    let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
     let aiProviderSettingsActions: AIProviderSettingsActions
     let aiProvider: any AIProvider
     let speechService: any SpeechService
@@ -26,6 +27,15 @@ struct AppEnvironment {
         let learningContentRepository = makeLearningContentRepository(databaseFactory: databaseFactory)
         let ttsPreviewStore = InMemoryTTSAudioPreviewStore()
         let ttsPreviewPlaybackService = DefaultTTSAudioPreviewPlaybackService(previewStore: ttsPreviewStore)
+        let sentenceAudioPlaybackCoordinatorBox = SentenceAudioPlaybackCoordinatorBox {
+            try SentenceAudioPlaybackAssembly.makeCoordinator(
+                database: databaseFactory.database(),
+                mediaArtifactsRoot: SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot(),
+                credentialStore: credentialStore,
+                diagnosticLogger: diagnosticLogger,
+                ttsPreviewStore: ttsPreviewStore
+            )
+        }
 
         return AppEnvironment(
             makeLanguageSpaceRepository: {
@@ -47,6 +57,7 @@ struct AppEnvironment {
                     ttsPreviewStore: ttsPreviewStore
                 )
             },
+            sentenceAudioPlaybackActions: sentenceAudioPlaybackCoordinatorBox.actions(),
             aiProviderSettingsActions: AIProviderSettingsActions(
                 loadDefaultProfile: {
                     let service = try makeAIProviderConfigurationService(

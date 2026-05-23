@@ -1,3 +1,4 @@
+import LangoTraceCore
 import LangoTraceData
 import SwiftUI
 
@@ -103,8 +104,9 @@ struct MemoryLayerSummaryView: View {
 struct SentencePairView: View {
     let index: Int
     let sentence: RenderingSentence
+    let playbackState: SentenceAudioPresentationState
+    let onListen: () -> Void
     let onPractice: () -> Void
-    @State private var isLocalPlaybackActive = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -117,8 +119,8 @@ struct SentencePairView: View {
                     .clipShape(Circle())
                 Spacer(minLength: 12)
                 SentencePairActionRow(
-                    isListening: isLocalPlaybackActive,
-                    onListen: { isLocalPlaybackActive.toggle() },
+                    playbackState: playbackState,
+                    onListen: onListen,
                     onPractice: onPractice
                 )
             }

@@ -18,6 +18,7 @@ public struct LangoTraceRootView: View {
     private let languageSpaces: [LanguageSpace]
     private let learningContentRepository: any LearningContentRepository
     private let learningMaterialGenerationActions: LearningMaterialGenerationActions
+    private let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
     private let interfaceLanguagePreference: InterfaceLanguagePreference
     private let appearancePreference: AppearancePreference
     @Binding private var onboardingDraft: OnboardingDraft
@@ -36,6 +37,7 @@ public struct LangoTraceRootView: View {
         languageSpaces: [LanguageSpace] = [],
         learningContentRepository: any LearningContentRepository,
         learningMaterialGenerationActions: LearningMaterialGenerationActions = .disabled,
+        sentenceAudioPlaybackActions: SentenceAudioPlaybackActions = .disabled,
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         appearancePreference: AppearancePreference = .system,
         onboardingDraft: Binding<OnboardingDraft>,
@@ -53,6 +55,7 @@ public struct LangoTraceRootView: View {
         self.languageSpaces = languageSpaces
         self.learningContentRepository = learningContentRepository
         self.learningMaterialGenerationActions = learningMaterialGenerationActions
+        self.sentenceAudioPlaybackActions = sentenceAudioPlaybackActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
         _onboardingDraft = onboardingDraft
@@ -88,6 +91,7 @@ public struct LangoTraceRootView: View {
                         languageSpaces: languageSpaces,
                         learningContentRepository: learningContentRepository,
                         learningMaterialGenerationActions: learningMaterialGenerationActions,
+                        sentenceAudioPlaybackActions: sentenceAudioPlaybackActions,
                         interfaceLanguagePreference: interfaceLanguagePreference,
                         appearancePreference: appearancePreference,
                         onAddLanguageSpace: onAddLanguageSpace,
@@ -143,6 +147,7 @@ private struct PlatformMainView: View {
     let languageSpace: LanguageSpacePreview
     let languageSpaces: [LanguageSpace]
     let learningMaterialGenerationActions: LearningMaterialGenerationActions
+    let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
@@ -158,6 +163,7 @@ private struct PlatformMainView: View {
         languageSpaces: [LanguageSpace],
         learningContentRepository: any LearningContentRepository,
         learningMaterialGenerationActions: LearningMaterialGenerationActions,
+        sentenceAudioPlaybackActions: SentenceAudioPlaybackActions,
         interfaceLanguagePreference: InterfaceLanguagePreference,
         appearancePreference: AppearancePreference,
         onAddLanguageSpace: @escaping (CreateLanguageSpaceInput) -> Void,
@@ -170,6 +176,7 @@ private struct PlatformMainView: View {
         self.languageSpace = languageSpace
         self.languageSpaces = languageSpaces
         self.learningMaterialGenerationActions = learningMaterialGenerationActions
+        self.sentenceAudioPlaybackActions = sentenceAudioPlaybackActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
         self.onAddLanguageSpace = onAddLanguageSpace
@@ -182,7 +189,8 @@ private struct PlatformMainView: View {
             wrappedValue: LearningContentStore(
                 repository: learningContentRepository,
                 spaceID: languageSpace.id,
-                generationActions: learningMaterialGenerationActions
+                generationActions: learningMaterialGenerationActions,
+                sentenceAudioPlaybackActions: sentenceAudioPlaybackActions
             )
         )
     }

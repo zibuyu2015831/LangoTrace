@@ -74,6 +74,52 @@ struct LearningContentStoreTests {
         #expect(store.selectedEntry?.id == originalSelection)
     }
 
+    @Test("Store routes sentence audio taps through injected action contract")
+    func storeRoutesSentenceAudioTapsThroughActions() async throws {
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let recorder = SentenceAudioPlaybackActionRecorder()
+        let store = LearningContentStore(
+            repository: repository,
+            spaceID: "space-1",
+            sentenceAudioPlaybackActions: SentenceAudioPlaybackActions(
+                handleTap: { request in
+                    await recorder.record(request)
+                    return .playing(SentenceAudioKey(
+                        sentenceSource: request.sentenceSource,
+                        sentenceTextHash: "hash",
+                        targetLanguageCode: request.targetLanguageCode,
+                        configurationFingerprint: "fingerprint"
+                    ))
+                },
+                presentationState: { _ in .idle }
+            )
+        )
+        let entry = try store.createEntry(title: "Walk", body: "I walked home.", source: .typedText)
+        let rendering = try #require(store.generateLocalPreview(for: entry))
+        let sentence = try #require(rendering.sentences.first)
+        let languageSpace = LanguageSpacePreview(
+            id: "space-1",
+            name: "English",
+            nativeLanguage: "zh-Hans",
+            targetLanguage: "English",
+            targetLanguageCode: "en",
+            level: .a1
+        )
+
+        await store.handleSentenceAudioTap(
+            rendering: rendering,
+            sentence: sentence,
+            sentenceIndex: 0,
+            languageSpace: languageSpace
+        )
+
+        let request = try await #require(recorder.requests.first)
+        #expect(request.languageSpaceID == "space-1")
+        #expect(request.sentenceIndex == 0)
+        #expect(request.targetText == sentence.targetText)
+        #expect(store.sentenceAudioPlaybackState(for: sentence.id).activeKey?.targetLanguageCode == "en")
+    }
+
     @Test("Store runs learning material generation action and exposes generated rendering")
     func storeRunsLearningMaterialGenerationAction() async throws {
         let repository = InMemoryLearningContentRepository(seedEntries: [])
@@ -325,6 +371,14 @@ struct LearningContentStoreTests {
             targetLanguageCode: "en",
             level: .b1
         )
+    }
+}
+
+private actor SentenceAudioPlaybackActionRecorder {
+    private(set) var requests: [SentenceAudioRequest] = []
+
+    func record(_ request: SentenceAudioRequest) {
+        requests.append(request)
     }
 }
 
