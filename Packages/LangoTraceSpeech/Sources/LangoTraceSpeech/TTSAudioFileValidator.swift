@@ -5,7 +5,10 @@ public struct TTSAudioFileValidator: TTSAudioFileValidating, Sendable {
     private let mediaArtifactsRoot: URL
     private let bytesValidator: DefaultTTSAudioValidationService
 
-    public init(mediaArtifactsRoot: URL, bytesValidator: DefaultTTSAudioValidationService = DefaultTTSAudioValidationService()) {
+    public init(
+        mediaArtifactsRoot: URL,
+        bytesValidator: DefaultTTSAudioValidationService = DefaultTTSAudioValidationService()
+    ) {
         self.mediaArtifactsRoot = mediaArtifactsRoot
         self.bytesValidator = bytesValidator
     }

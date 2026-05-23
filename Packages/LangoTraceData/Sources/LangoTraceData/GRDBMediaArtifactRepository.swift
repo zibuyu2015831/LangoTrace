@@ -118,7 +118,7 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
 
     public func invalidateArtifacts(_ request: MediaArtifactInvalidationRequest) async throws {
         try await databaseQueue.write { db in
-            var conditions: [String] = ["media_artifacts.invalidated_at IS NULL"]
+            var conditions = ["media_artifacts.invalidated_at IS NULL"]
             var arguments: StatementArguments = [request.invalidatedAt.timeIntervalSince1970]
             if let languageSpaceID = request.languageSpaceID {
                 conditions.append("media_artifacts.language_space_id = ?")
@@ -298,7 +298,8 @@ private extension GRDBMediaArtifactRepository {
 
     func mediaArtifact(from row: Row) throws -> MediaArtifact {
         let policy = MediaArtifactPolicy(
-            backupPolicy: MediaArtifactBackupPolicy(rawValue: row["backup_policy"] as String) ?? .excludedFromSystemBackup,
+            backupPolicy: MediaArtifactBackupPolicy(rawValue: row["backup_policy"] as String)
+                ?? .excludedFromSystemBackup,
             syncPolicy: MediaArtifactSyncPolicy(rawValue: row["sync_policy"] as String) ?? .localOnly,
             exportPolicy: MediaArtifactExportPolicy(rawValue: row["export_policy"] as String) ?? .excludedByDefault
         )
@@ -331,18 +332,18 @@ private extension GRDBMediaArtifactRepository {
         return "ttsSentenceAudio/\(key.targetLanguageCode)/\(artifactID).\(fileExtension)"
     }
 
-    func ownerColumns(_ owner: MediaArtifactOwner) -> (type: String, id: String, subID: String?) {
+    func ownerColumns(_ owner: MediaArtifactOwner) -> MediaArtifactOwnerColumns {
         switch owner {
         case let .entry(id):
-            ("entry", id, nil)
+            MediaArtifactOwnerColumns(type: "entry", id: id, subID: nil)
         case let .learningMaterial(id):
-            ("learningMaterial", id, nil)
+            MediaArtifactOwnerColumns(type: "learningMaterial", id: id, subID: nil)
         case let .learningMaterialSentence(materialID, sentenceIndex):
-            ("learningMaterialSentence", materialID, String(sentenceIndex))
+            MediaArtifactOwnerColumns(type: "learningMaterialSentence", id: materialID, subID: String(sentenceIndex))
         case let .practiceSession(id):
-            ("practiceSession", id, nil)
+            MediaArtifactOwnerColumns(type: "practiceSession", id: id, subID: nil)
         case let .temporaryOperation(id):
-            ("temporaryOperation", id, nil)
+            MediaArtifactOwnerColumns(type: "temporaryOperation", id: id, subID: nil)
         }
     }
 
@@ -361,21 +362,44 @@ private extension GRDBMediaArtifactRepository {
         }
     }
 
-    func sourceColumns(_ source: TTSSentenceSource) -> (
-        type: String,
-        entryID: String?,
-        learningMaterialID: String?,
-        sentenceIndex: Int?
-    ) {
+    func sourceColumns(_ source: TTSSentenceSource) -> TTSSentenceSourceColumns {
         switch source {
         case let .entry(id, sentenceIndex):
-            ("entry", id, nil, sentenceIndex)
+            TTSSentenceSourceColumns(
+                type: "entry",
+                entryID: id,
+                learningMaterialID: nil,
+                sentenceIndex: sentenceIndex
+            )
         case let .learningMaterialSentence(materialID, sentenceIndex):
-            ("learningMaterialSentence", nil, materialID, sentenceIndex)
+            TTSSentenceSourceColumns(
+                type: "learningMaterialSentence",
+                entryID: nil,
+                learningMaterialID: materialID,
+                sentenceIndex: sentenceIndex
+            )
         case let .temporary(operationID, sentenceIndex):
-            ("temporary", operationID, nil, sentenceIndex)
+            TTSSentenceSourceColumns(
+                type: "temporary",
+                entryID: operationID,
+                learningMaterialID: nil,
+                sentenceIndex: sentenceIndex
+            )
         }
     }
+}
+
+private struct MediaArtifactOwnerColumns {
+    var type: String
+    var id: String
+    var subID: String?
+}
+
+private struct TTSSentenceSourceColumns {
+    var type: String
+    var entryID: String?
+    var learningMaterialID: String?
+    var sentenceIndex: Int?
 }
 
 private enum SQLPlaceholders {

@@ -46,7 +46,7 @@ struct TTSAudioFileValidatorTests {
                 contentHash: "hash",
                 declaredFormat: .wav,
                 mimeType: "audio/wav",
-                byteSizeLimit: 10_000
+                byteSizeLimit: 10000
             )
         )
 
@@ -62,7 +62,7 @@ struct TTSAudioFileValidatorTests {
         contentHash: String = "hash",
         declaredFormat: TTSAudioFormat = .mp3,
         mimeType: String = "audio/mpeg",
-        byteSizeLimit: Int64 = 1_000
+        byteSizeLimit: Int64 = 1000
     ) -> TTSAudioFileValidationInput {
         TTSAudioFileValidationInput(
             stagedFile: MediaArtifactStagedFileReference(

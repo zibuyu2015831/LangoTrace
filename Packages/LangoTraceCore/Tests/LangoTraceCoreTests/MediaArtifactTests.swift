@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import LangoTraceCore
+import Testing
 
 @Suite("Media artifact core contracts")
 struct MediaArtifactTests {
@@ -50,7 +50,7 @@ struct MediaArtifactTests {
             ),
             declaredFormat: .mp3,
             mimeType: "audio/mpeg",
-            byteSizeLimit: 1_000
+            byteSizeLimit: 1000
         )
         let result = TTSAudioFileValidationResult(
             status: .succeeded,

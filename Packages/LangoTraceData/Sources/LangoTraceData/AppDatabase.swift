@@ -22,7 +22,8 @@ public struct AppDatabase: @unchecked Sendable {
             at: databaseURL.deletingLastPathComponent(),
             withIntermediateDirectories: true
         )
-        let database = try AppDatabase(databaseQueue: DatabaseQueue(path: databaseURL.path, configuration: configuration()))
+        let databaseQueue = try DatabaseQueue(path: databaseURL.path, configuration: configuration())
+        let database = try AppDatabase(databaseQueue: databaseQueue)
         try setFileProtectionIfAvailable(for: databaseURL)
         return database
     }
