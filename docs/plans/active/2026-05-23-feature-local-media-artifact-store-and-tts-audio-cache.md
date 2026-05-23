@@ -5,7 +5,7 @@
 创建日期：2026-05-23
 最后更新日期：2026-05-23
 
-审核状态：Ready for User Review
+审核状态：Ready for User Confirmation
 
 ## 用户确认记录
 
@@ -17,6 +17,7 @@
 - 2026-05-23：用户询问除 TTS Provider 语音模型测试方案外，其他前提条件是否需要创建方案文档。结论：需要创建本方案，作为逐句直接播放 TTS 音频前置方案之一。
 - 2026-05-23：系统架构复查确认，本方案方向符合早期可重做、基础设施完整建设、规范文档演进和未来扩展进入备忘录的原则；复查补强 `LocalMediaArtifactStore` facade、staged file reference、UI 不接触文件路径、并发唯一索引兜底和后续 direct playback 依赖边界。
 - 2026-05-23：基于当前代码再次严格复查后修订方案：`AppDatabase` 已存在 `v6_create_ai_provider_tts_configuration`，本方案迁移改为 `v7_create_media_artifact_infrastructure`；`LangoTraceSpeech` 已有 test target、bytes-based `TTSAudioValidationService`、preview store 和 preview playback service，本方案改为在现有 Speech 能力之上新增持久文件验证 seam；明确 Repository 只管 metadata，`LocalMediaArtifactStore` facade 统一编排 file store、repository 和 Core validator protocol；补强 voice profile 绑定、verification script 和三端共享基础设施边界。
+- 2026-05-23：`docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md` 已完整落地并通过验证；TTS Provider 配置、真实 probe、voice profile、配置 fingerprint、短生命周期 preview audio 和 Speech bytes-based 音频校验 seam 已具备。本方案成为逐句 TTS 播放链路的下一项前置基础设施任务，但仍等待用户确认后才能从 `Draft` 转入 `User Approved` 并开始实施。
 
 ## 1. 需求描述
 
@@ -47,7 +48,7 @@
 - 当前 `Packages/LangoTraceCore/Sources/LangoTraceCore/TTSAudioValidation.swift` 已定义 `TTSAudioValidationService`、`TTSAudioMetadata`、`TTSAudioPreviewResource`、`TTSAudioPreviewStore` 和 `TTSAudioPreviewPlaybackService`。这些类型服务于设置页短生命周期 preview，不等同于持久 media artifact file validator。
 - 当前 `Packages/LangoTraceCore/Sources/LangoTraceCore/TTSProviderConfiguration.swift` 已定义 `TTSVoiceProfile`、`TTSProviderSettings`、`TTSAudioFormat`、`TTSProviderAdapterKind` 和 configuration fingerprint；本方案必须复用这些已落地类型和 fingerprint 语义，不再重新发明并行配置模型。
 - 当前逐句播放 UI 只在 `SentencePairView` 内用 `isLocalPlaybackActive` 做原位视觉反馈，没有真实音频文件、播放服务或缓存命中能力。
-- 当前 TTS Provider 配置测试方案已有独立文档：`docs/plans/active/2026-05-23-feature-tts-provider-configuration-test.md`。该方案负责配置、测试、voice profile 和 TTS 可用性，不负责真实逐句播放音频文件的本地存储基础设施。
+- 当前 TTS Provider 配置测试方案已有独立完成文档：`docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md`。该方案已负责配置、测试、voice profile、TTS 可用性和设置页短生命周期 preview audio；它不负责真实逐句播放音频文件的本地存储基础设施。
 
 当前文档事实：
 
@@ -88,7 +89,7 @@
 
 本任务不实现以下内容：
 
-- 不实现 TTS Provider 配置页、TTS probe、voice profile 测试或 Provider 错误映射；这些属于 `2026-05-23-feature-tts-provider-configuration-test.md`。
+- 不实现 TTS Provider 配置页、TTS probe、voice profile 测试或 Provider 错误映射；这些已由 `docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md` 落地。
 - 不实现 `SentencePairView` 真实播放 UI 接入；这属于 `2026-05-23-feature-direct-sentence-tts-playback.md`。
 - 不实现真实 Provider 网络请求或请求体构造。
 - 不实现后台播放、锁屏控制、远程控制中心或系统音频中断完整策略。
@@ -139,7 +140,7 @@
 - `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift`
 - `Packages/LangoTraceData/Tests/LangoTraceDataTests/AppDatabaseTests.swift`
 - `Packages/LangoTraceSpeech/Package.swift`，仅当需要新增 fixture resources 或测试依赖；当前已有 `LangoTraceSpeechTests` test target，不需要为 test target 本身修改。
-- `scripts/verify.sh`，新增 `swift test --package-path Packages/LangoTraceSpeech`，确保 Speech 基础设施进入完整验证。
+- `scripts/verify.sh`，当前已包含 `swift test --package-path Packages/LangoTraceSpeech`；本方案实施时必须保持 Speech package 进入完整验证，除非有明确记录说明调整原因和剩余风险。
 - `LangoTraceApp/AppEnvironment.swift`，仅在后续 direct playback 或 service 装配任务中真正注入；本方案可先不接 UI。
 
 可能修改：
@@ -170,7 +171,7 @@
 
 本方案依赖：
 
-- `docs/plans/active/2026-05-23-feature-tts-provider-configuration-test.md`
+- `docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md`
 - `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`
 - `docs/spec/004-swiftui-architecture.md`
 - `docs/spec/007-data-storage-migration-export-and-attachments.md`
@@ -660,6 +661,7 @@ git status --short
 
 人工确认：
 
+- `docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md` 已完成，且当前代码仍具备 TTS 配置可用性读取、真实 TTS probe、voice profile、短生命周期 preview audio 和 Speech bytes-based 音频校验 seam。
 - `docs/spec/007-data-storage-migration-export-and-attachments.md` 中媒体派生资产边界仍为当前规范。
 - `docs/spec/011-tts-provider-configuration-and-playback.md` 中逐句 TTS 音频前置要求仍为当前规范。
 - 本方案仍不实现真实 Provider 请求、逐句 UI 播放和跨设备同步。
@@ -868,7 +870,7 @@ swift test --package-path Packages/LangoTraceSpeech
 - 更新 `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`，把本方案从前置待建改为前置已完成或引用本方案实施结果。
 - 如 AppEnvironment 装配了真实服务，更新 `docs/spec/004-swiftui-architecture.md` 或相关架构说明。
 - 如未装配 UI，明确后续 direct playback 方案负责装配。
-- 更新 `scripts/verify.sh`，将 `swift test --package-path Packages/LangoTraceSpeech` 纳入完整验证。若暂时不修改脚本，必须在实施记录中写明原因和剩余风险；默认推荐修改。
+- 检查 `scripts/verify.sh` 仍将 `swift test --package-path Packages/LangoTraceSpeech` 纳入完整验证；若实施过程中调整脚本，必须在实施记录中写明原因和剩余风险。
 
 ## 12. 复查方法
 
@@ -940,6 +942,7 @@ git status --short
 ## 15. 实施记录
 
 - 2026-05-23：创建方案。当前仅定义本地媒体派生资产存储与 TTS audio artifact 基础设施，不实施代码。该方案是逐句直接播放 TTS 音频的前置方案之一，与 TTS Provider 配置测试方案并列依赖。
+- 2026-05-23：TTS Provider 配置测试方案已移入 `docs/plans/done/` 并完成验证；本方案文档更新为下一项可确认的前置实施任务。当前状态仍为 `Draft`，等待用户确认后再进入 TDD 实施。
 
 ## 16. 完成标准
 
@@ -959,7 +962,7 @@ git status --short
 - 日志和诊断不包含句子原文、请求体、响应体、audio bytes、API Key、Authorization header、完整 Keychain account、instructions 明文、provider parameters 明文或文件绝对路径。
 - cleanup 支持 invalidated、owner、language space、artifact type、capacity / LRU 和 staging 残留。
 - direct playback coordinator 后续只需要调用 `LocalMediaArtifactStore`，不需要自己拼文件路径、写 metadata 或处理半成品文件。
-- `scripts/verify.sh` 默认纳入 `swift test --package-path Packages/LangoTraceSpeech`，除非实施记录明确说明暂缓原因和剩余风险。
+- `scripts/verify.sh` 已纳入 `swift test --package-path Packages/LangoTraceSpeech`；本方案实施时必须保持该完整验证入口有效。
 - 聚焦测试和完整验证通过，或记录无法运行的具体原因和剩余风险。
 - 文档影响检查完成，相关事实源不再把 TTS 音频描述为临时 UI 缓存。
 
