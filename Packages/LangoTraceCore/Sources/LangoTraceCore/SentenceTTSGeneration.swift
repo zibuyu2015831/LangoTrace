@@ -3,16 +3,19 @@ import Foundation
 public struct SentenceTTSGenerationRequest: Equatable, Sendable {
     public var audioRequest: SentenceAudioRequest
     public var artifactKey: TTSAudioArtifactKey
-    public var voiceProfile: TTSVoiceProfile
+    public var playableConfiguration: PlayableTTSConfiguration
+    public var plaintextSecret: String?
 
     public init(
         audioRequest: SentenceAudioRequest,
         artifactKey: TTSAudioArtifactKey,
-        voiceProfile: TTSVoiceProfile
+        playableConfiguration: PlayableTTSConfiguration,
+        plaintextSecret: String?
     ) {
         self.audioRequest = audioRequest
         self.artifactKey = artifactKey
-        self.voiceProfile = voiceProfile
+        self.playableConfiguration = playableConfiguration
+        self.plaintextSecret = plaintextSecret
     }
 }
 

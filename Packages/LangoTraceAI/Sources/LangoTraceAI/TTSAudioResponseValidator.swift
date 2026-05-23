@@ -30,6 +30,22 @@ public struct TTSAudioResponseValidator: Sendable {
             previewPolicy: .shortLived
         )
     }
+
+    public func validate(
+        response: AIProviderHTTPResponse,
+        declaredFormat: TTSAudioFormat,
+        contentType: String?
+    ) async -> TTSAudioValidationResult {
+        await validate(
+            response: AIProviderProbeHTTPResponse(
+                statusCode: response.statusCode,
+                body: response.body,
+                contentType: response.contentType
+            ),
+            declaredFormat: declaredFormat,
+            contentType: contentType
+        )
+    }
 }
 
 private extension TTSAudioResponseValidator {

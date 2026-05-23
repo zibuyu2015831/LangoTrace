@@ -23,31 +23,31 @@ public enum AIProviderProbeHTTPClientError: Error, Equatable, Sendable {
 }
 
 public struct URLSessionAIProviderProbeHTTPClient: AIProviderProbeHTTPClient {
-    private let session: URLSession
+    private let client: any AIProviderHTTPClient
 
     public init(session: URLSession = .shared) {
-        self.session = session
+        client = URLSessionAIProviderHTTPClient(session: session)
+    }
+
+    public init(client: any AIProviderHTTPClient) {
+        self.client = client
     }
 
     public func send(_ request: URLRequest) async throws -> AIProviderProbeHTTPResponse {
         do {
-            let (data, response) = try await session.data(for: request)
-            let httpResponse = response as? HTTPURLResponse
-            let statusCode = httpResponse?.statusCode ?? 0
+            let response = try await client.send(request, maximumResponseBytes: 2 * 1_024 * 1_024)
             return AIProviderProbeHTTPResponse(
-                statusCode: statusCode,
-                body: data,
-                contentType: httpResponse?.value(forHTTPHeaderField: "Content-Type")
+                statusCode: response.statusCode,
+                body: response.body,
+                contentType: response.contentType
             )
-        } catch is CancellationError {
-            throw AIProviderProbeHTTPClientError.cancelled
-        } catch let error as URLError {
-            switch error.code {
-            case .timedOut:
-                throw AIProviderProbeHTTPClientError.timedOut
+        } catch let error as AIProviderHTTPClientError {
+            switch error {
             case .cancelled:
                 throw AIProviderProbeHTTPClientError.cancelled
-            default:
+            case .timedOut:
+                throw AIProviderProbeHTTPClientError.timedOut
+            case .networkUnavailable, .invalidHTTPResponse, .responseTooLarge:
                 throw AIProviderProbeHTTPClientError.transportUnavailable
             }
         }
