@@ -57,6 +57,15 @@ public enum DiagnosticEventName: String, Codable, Sendable {
     case aiProviderConfigurationProbeFailed = "ai_provider_configuration.probe_failed"
     case aiProviderConfigurationProbeUnsupported = "ai_provider_configuration.probe_unsupported"
     case aiProviderConfigurationProbeCancelled = "ai_provider_configuration.probe_cancelled"
+    case sentenceTTSGenerationStarted = "sentence_tts_generation.started"
+    case sentenceTTSGenerationSucceeded = "sentence_tts_generation.succeeded"
+    case sentenceTTSGenerationFailed = "sentence_tts_generation.failed"
+    case sentenceAudioPlaybackStarted = "sentence_audio_playback.started"
+    case sentenceAudioPlaybackPaused = "sentence_audio_playback.paused"
+    case sentenceAudioPlaybackResumed = "sentence_audio_playback.resumed"
+    case sentenceAudioPlaybackStopped = "sentence_audio_playback.stopped"
+    case sentenceAudioPlaybackCompleted = "sentence_audio_playback.completed"
+    case sentenceAudioPlaybackFailed = "sentence_audio_playback.failed"
 }
 
 public enum DiagnosticDomain: String, Codable, Sendable {
@@ -96,6 +105,11 @@ public enum DiagnosticAttribute: Equatable, Sendable {
     case platform(String)
     case appVersion(String)
     case diagnosticsMode(String)
+    case outputFormat(TTSAudioFormat)
+    case textLengthBucket(SentenceAudioTextLengthBucket)
+    case byteSizeBucket(SentenceAudioByteSizeBucket)
+    case durationBucket(SentenceAudioDurationBucket)
+    case cacheResult(SentenceAudioCacheResult)
 
     public var key: String {
         switch self {
@@ -129,6 +143,16 @@ public enum DiagnosticAttribute: Equatable, Sendable {
             "app_version"
         case .diagnosticsMode:
             "diagnostics_mode"
+        case .outputFormat:
+            "output_format"
+        case .textLengthBucket:
+            "text_length_bucket"
+        case .byteSizeBucket:
+            "byte_size_bucket"
+        case .durationBucket:
+            "duration_bucket"
+        case .cacheResult:
+            "cache_result"
         }
     }
 }

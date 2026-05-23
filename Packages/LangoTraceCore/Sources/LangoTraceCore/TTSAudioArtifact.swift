@@ -1,7 +1,7 @@
 import CryptoKit
 import Foundation
 
-public enum TTSSentenceSource: Equatable, Sendable {
+public enum TTSSentenceSource: Equatable, Hashable, Sendable {
     case entry(id: String, sentenceIndex: Int)
     case learningMaterialSentence(materialID: String, sentenceIndex: Int)
     case temporary(operationID: String, sentenceIndex: Int)
