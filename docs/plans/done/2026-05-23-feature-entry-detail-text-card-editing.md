@@ -202,8 +202,9 @@ Today I wrote one very short sentence for practice.
 
 母语原文编辑采用 sheet：
 
-- sheet 标题：`修改{母语显示名}记录`，兜底 `修改原始记录`。
+- sheet 标题：不显示正文标题；用户从对应卡片编辑入口进入，保留取消 / 保存即可维持上下文并降低视觉重量。
 - 内容：大面积 `TextEditor`。
+- 高度：打开时根据初始文本长度选择默认高度；短文本使用较低初始 detent，长文本使用全高 detent，并始终允许上拉到全高。编辑过程中不随输入实时跳动，避免布局不稳定。
 - 顶部工具栏：取消 / 保存。
 - 保存条件：trim 后正文非空，且和原值不同。
 - 保存行为：只更新本地 Entry body 和 updated_at，不自动触发 AI 生成。
@@ -221,6 +222,7 @@ Today I wrote one very short sentence for practice.
 - `analysisIsStale`：左侧 `{目标语言}表达 · 待重新分析`，右侧 `重新分析` 和 `编辑`。
 - `analyzing`：左侧 `{目标语言}表达 · 分析中`，右侧编辑按钮禁用或隐藏，正文仍可读。
 - `failed`：左侧 `{目标语言}表达 · 分析失败`，右侧保留可恢复动作。
+- 编辑 sheet 与母语原文保持一致：不显示正文标题，短文本默认较低高度，长文本默认全高，用户可手动展开到全高。
 
 目标语言学习文本保存后继续调用现有 `updateLearningText`，保持当前分析过期与重新分析行为。
 
@@ -350,6 +352,7 @@ func sourceEntryIsStale(for entry: LearningEntry) -> Bool
 - 保持按钮最小 44pt 触控目标。
 - 保持正文 `.fixedSize(horizontal: false, vertical: true)` 和全宽 frame。
 - 编辑按钮使用 `pencil`，重新分析使用 `text.magnifyingglass`，重新生成使用 `sparkles` 或现有生成学习材料图标。
+- `SourceEntryEditorSheet` 和 `LearningMaterialEditorSheet` 共享 `EntryTextEditorSheetSizing`：初始文本 trim 后不超过 120 字且不超过 3 行时默认 compact detent，否则默认 large detent；可用 detents 固定为 compact + large。
 
 ### 11.5 本地化
 
@@ -357,8 +360,6 @@ func sourceEntryIsStale(for entry: LearningEntry) -> Bool
 
 - 母语卡标题格式。
 - 目标语卡标题格式。
-- 母语编辑 sheet 标题。
-- 目标语编辑 sheet 标题沿用或改名。
 - `基于旧记录`、`待重新分析`、`分析中`、`分析失败` 状态短语。
 - 母语编辑按钮 accessibility label。
 - 重新生成按钮 accessibility label。
@@ -442,6 +443,7 @@ xcrun simctl launch booted com.zibuyu.LangoTrace
 - 2026-05-23：实施 Data / Store / UI 变更。`learning_materials` 增加 `source_entry_body_hash`，`LearningContentRepository` / `GRDBLearningContentRepository` / `GRDBLearningContentRepositoryBridge` / `InMemoryLearningContentRepository` 增加 Entry body 更新能力；`LearningContentStore` 增加 `updateEntryBody` 和 `sourceEntryIsStale`；`EntryDetailView` 改为 `EntryDetailTextCard` 顶部工具区，母语原文和目标语言学习文本共享动态标题和全宽正文，原文可编辑，目标文本可编辑 / 重新分析 / 在旧记录状态下重新生成。
 - 2026-05-23：补充并通过聚焦测试：`swift test --package-path Packages/LangoTraceData`、`swift test --package-path Packages/LangoTraceUI`。
 - 2026-05-23：通过完整验证 `scripts/verify.sh`。SwiftLint 输出既有 warning 但 0 serious；SwiftFormat lint 显示 0 files require formatting。方案归档至 `docs/plans/done/`。
+- 2026-05-23：按人工体验反馈继续收敛编辑 sheet：移除母语和目标语编辑 sheet 正文标题，恢复扁平 TextEditor 表面，并补充短文本 compact / 长文本 large 的自适应初始高度规则。
 
 ## 16. 完成标准
 

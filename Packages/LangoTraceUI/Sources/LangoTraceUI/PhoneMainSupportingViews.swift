@@ -275,7 +275,6 @@ private struct SourceEntryTextView: View {
                     }
                 }
             )
-            .presentationDetents([.large])
         }
     }
 
@@ -379,7 +378,6 @@ private struct LearningMaterialEditorView: View {
                     isEditorPresented = false
                 }
             )
-            .presentationDetents([.large])
         }
     }
 
@@ -493,6 +491,32 @@ private extension EntryDetailTextCard where ActionContent == EmptyView {
     }
 }
 
+enum EntryTextEditorSheetSizing: Equatable {
+    case compact
+    case large
+
+    static let detents: Set<PresentationDetent> = [.fraction(0.42), .large]
+
+    static func preference(for text: String) -> EntryTextEditorSheetSizing {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lineCount = max(1, trimmed.components(separatedBy: .newlines).count)
+
+        if trimmed.count <= 120, lineCount <= 3 {
+            return .compact
+        }
+        return .large
+    }
+
+    var presentationDetent: PresentationDetent {
+        switch self {
+        case .compact:
+            .fraction(0.42)
+        case .large:
+            .large
+        }
+    }
+}
+
 private struct SourceEntryEditorSheet: View {
     @Binding var draftText: String
 
@@ -500,6 +524,25 @@ private struct SourceEntryEditorSheet: View {
     let saveErrorKey: String?
     let onCancel: () -> Void
     let onSave: () -> Void
+
+    @State private var selectedDetent: PresentationDetent
+
+    init(
+        draftText: Binding<String>,
+        canSave: Bool,
+        saveErrorKey: String?,
+        onCancel: @escaping () -> Void,
+        onSave: @escaping () -> Void
+    ) {
+        _draftText = draftText
+        self.canSave = canSave
+        self.saveErrorKey = saveErrorKey
+        self.onCancel = onCancel
+        self.onSave = onSave
+        _selectedDetent = State(
+            initialValue: EntryTextEditorSheetSizing.preference(for: draftText.wrappedValue).presentationDetent
+        )
+    }
 
     var body: some View {
         NavigationStack {
@@ -531,6 +574,7 @@ private struct SourceEntryEditorSheet: View {
                 }
             }
         }
+        .presentationDetents(EntryTextEditorSheetSizing.detents, selection: $selectedDetent)
     }
 }
 
@@ -541,6 +585,25 @@ private struct LearningMaterialEditorSheet: View {
     let isRunning: Bool
     let onCancel: () -> Void
     let onSave: () -> Void
+
+    @State private var selectedDetent: PresentationDetent
+
+    init(
+        draftText: Binding<String>,
+        canSave: Bool,
+        isRunning: Bool,
+        onCancel: @escaping () -> Void,
+        onSave: @escaping () -> Void
+    ) {
+        _draftText = draftText
+        self.canSave = canSave
+        self.isRunning = isRunning
+        self.onCancel = onCancel
+        self.onSave = onSave
+        _selectedDetent = State(
+            initialValue: EntryTextEditorSheetSizing.preference(for: draftText.wrappedValue).presentationDetent
+        )
+    }
 
     var body: some View {
         NavigationStack {
@@ -565,6 +628,7 @@ private struct LearningMaterialEditorSheet: View {
                     }
                 }
         }
+        .presentationDetents(EntryTextEditorSheetSizing.detents, selection: $selectedDetent)
     }
 }
 

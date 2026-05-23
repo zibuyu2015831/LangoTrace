@@ -122,7 +122,11 @@ struct PhoneIOSConvergenceTests {
         #expect(!supportingViews.contains("navigationTitle(sheetTitle)"))
         #expect(supportingViews.contains("@State private var isEditorPresented = false"))
         #expect(supportingViews.contains(".sheet(isPresented: $isEditorPresented)"))
-        #expect(supportingViews.contains(".presentationDetents([.large])"))
+        #expect(!supportingViews.contains(".presentationDetents([.large])"))
+        #expect(supportingViews.contains("EntryTextEditorSheetSizing"))
+        #expect(supportingViews.contains(
+            ".presentationDetents(EntryTextEditorSheetSizing.detents, selection: $selectedDetent)"
+        ))
         #expect(supportingViews.contains("entry.rendering.learningText.edit"))
         #expect(supportingViews.contains(".langoPanel(padding: 14)"))
         #expect(phoneMainView.contains("contentStore.updateEntryBody"))
@@ -136,6 +140,16 @@ struct PhoneIOSConvergenceTests {
         #expect(!supportingViews.contains(".frame(minHeight: 88, maxHeight: 132)"))
         #expect(!supportingViews.contains(".overlay {\n                RoundedRectangle(cornerRadius: 8"))
         #expect(!supportingViews.contains(".frame(minHeight: 150)"))
+    }
+
+    @Test("entry text editor sheet chooses compact initial height only for short text")
+    func entryTextEditorSheetChoosesCompactInitialHeightOnlyForShortText() {
+        #expect(EntryTextEditorSheetSizing.preference(for: "Today I wrote one sentence.") == .compact)
+        #expect(EntryTextEditorSheetSizing.preference(for: "Line 1\nLine 2\nLine 3") == .compact)
+
+        let longSingleParagraph = String(repeating: "A", count: 121)
+        #expect(EntryTextEditorSheetSizing.preference(for: longSingleParagraph) == .large)
+        #expect(EntryTextEditorSheetSizing.preference(for: "Line 1\nLine 2\nLine 3\nLine 4") == .large)
     }
 
     @Test("iPhone sentence listening stays inline instead of opening a sheet")
