@@ -209,7 +209,9 @@ Ollama 官方 API 文档主要提供本地模型 generate / chat / embeddings �
 - `ollamaLocal` 预设应保持 `speechSynthesis: .unsupported`。
 - 未来若接本地 Piper / Kokoro / Coqui / Apple system voice，应作为独立 Local TTS Provider，不伪装成 Ollama endpoint。
 
-## 4. 当前代码现状
+## 4. 实施前代码现状快照
+
+本节记录本任务创建和审核阶段的实施前事实，用于解释当时的设计决策；不要把本节当作当前代码事实源。当前完成状态以本文后部“实施进展”“实施完成审计”和最新代码为准。
 
 ### 4.1 已有能力
 

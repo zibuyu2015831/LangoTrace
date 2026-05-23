@@ -46,6 +46,22 @@ struct TTSAudioValidationTests {
         #expect(metadata.durationSeconds == 0.2)
     }
 
+    @Test("Validator rejects MP3 header bytes that are not decodable audio")
+    func validatorRejectsMP3HeaderBytesThatAreNotDecodableAudio() async {
+        let validator = DefaultTTSAudioValidationService()
+
+        let result = await validator.validateAudio(
+            Data([0x49, 0x44, 0x33]),
+            declaredFormat: .mp3,
+            contentType: "audio/mpeg",
+            previewPolicy: .shortLived
+        )
+
+        #expect(result.status == .failed(.audioDecodeFailed))
+        #expect(result.metadata == nil)
+        #expect(result.previewResource == nil)
+    }
+
     @Test("Short lived preview does not create persistent media artifact URL")
     func shortLivedPreviewDoesNotCreatePersistentMediaArtifactURL() async {
         let validator = DefaultTTSAudioValidationService()

@@ -31,15 +31,9 @@ public struct DefaultTTSAudioValidationService: TTSAudioValidationService {
             }
             return await success(metadata: metadata, bytes: bytes, previewPolicy: previewPolicy)
         case .mp3:
-            guard bytes.starts(with: [0x49, 0x44, 0x33]) || bytes.starts(with: [0xFF]) else {
+            guard let metadata = decodedAudioMetadata(bytes, format: .mp3) else {
                 return failure(.audioDecodeFailed)
             }
-            let metadata = TTSAudioMetadata(
-                format: .mp3,
-                byteCount: bytes.count,
-                durationSeconds: nil,
-                sampleRate: nil
-            )
             return await success(metadata: metadata, bytes: bytes, previewPolicy: previewPolicy)
         default:
             return failure(.unsupportedAudioFormat)
@@ -171,6 +165,30 @@ private extension DefaultTTSAudioValidationService {
             durationSeconds: (duration * 1000).rounded() / 1000,
             sampleRate: sampleRate
         )
+    }
+
+    func decodedAudioMetadata(_ bytes: Data, format: TTSAudioFormat) -> TTSAudioMetadata? {
+        #if canImport(AVFoundation)
+            do {
+                let player = try AVAudioPlayer(data: bytes)
+                guard player.prepareToPlay() else {
+                    return nil
+                }
+                let duration = player.duration.isFinite && player.duration > 0
+                    ? (player.duration * 1000).rounded() / 1000
+                    : nil
+                return TTSAudioMetadata(
+                    format: format,
+                    byteCount: bytes.count,
+                    durationSeconds: duration,
+                    sampleRate: nil
+                )
+            } catch {
+                return nil
+            }
+        #else
+            return nil
+        #endif
     }
 
     func readUInt32(_ bytes: Data, offset: Int) -> UInt32 {
