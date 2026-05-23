@@ -43,6 +43,7 @@
 - [008：权限、本地隐私与诊断日志规范](008-permissions-local-privacy-and-diagnostics.md)
 - [009：测试与验证入口规范](009-testing-and-verification.md)
 - [010：Apple 三端交互与可访问性规范](010-apple-platform-interaction-and-accessibility.md)
+- [011：TTS Provider 配置、测试与播放前置规范](011-tts-provider-configuration-and-playback.md)
 
 当前模块实现地图：
 
@@ -106,4 +107,4 @@ AI 不应在没有读取相关规范的情况下自行发明新的导航模式�
 
 适用阶段：工程初始化前、SwiftUI App Shell、MVP 早期开发。
 
-本目录当前定义 MVP 早期高优先级规范，已覆盖导航、UI、SwiftUI 架构、AI / 隐私、国际化、数据、权限诊断、测试验证和 Apple 三端交互 / 可访问性。随着工程创建、真实代码出现和 MVP 推进，应继续补充发布、StoreKit、同步冲突、真实 AI 学习请求和模块级实现地图。当前项目仍处于起步阶段，spec 会随着功能开发持续总结和完善；如果发现更优设计，或功能开发需要补充模块级不变量、实现地图和验证规则，可以更新对应 spec。
+本目录当前定义 MVP 早期高优先级规范，已覆盖导航、UI、SwiftUI 架构、AI / 隐私、国际化、数据、权限诊断、测试验证、Apple 三端交互 / 可访问性和 TTS Provider 配置 / 播放前置边界。随着工程创建、真实代码出现和 MVP 推进，应继续补充发布、StoreKit、同步冲突、真实 AI 学习请求和模块级实现地图。当前项目仍处于起步阶段，spec 会随着功能开发持续总结和完善；如果发现更优设计，或功能开发需要补充模块级不变量、实现地图和验证规则，可以更新对应 spec。

@@ -172,7 +172,7 @@ Provider 配置页已经从真实级 mock 表单进入本地配置保存和配�
 - 学习材料 Prompt 必须由 `docs/prompts/learning-material/one-tap-learning-material.md` 和 `LearningMaterialPromptRegistry` 登记版本；修改 Prompt id、version、输入变量、schema version 或输出字段时，必须同步更新 Prompt Registry 文档、AI service 测试和 Data 映射测试。
 - 学习材料响应必须是结构化 JSON object。Prompt 和 Provider 原生 JSON Schema 均必须要求纯 JSON；AI service 解析层可以为兼容 OpenAI-compatible Provider 的实际行为剥离包裹整个 JSON object 的常见 Markdown code fence，但剥离后仍必须执行同一 JSON schema / 字段级校验。自然语言前后缀、缺字段、非法枚举、额外不允许字段、数组超限或无法映射的结构必须拒绝，不得把半成品结果写入 Data 层。
 - 学习材料请求和 operation 摘要只允许记录 operation id、Prompt id / version、Provider profile / endpoint / preset、model、长度分桶、input kind、失败分类、耗时和时间戳等非敏感元数据；不得记录用户原文、learning text、sentence / candidate 正文、完整 Prompt、请求体、响应体、API Key、Authorization header 或完整 Keychain account。
-- 语音生成和向量化可以出现在结果面板的分能力状态中，但当前阶段不得为这些能力发真实网络测试请求；应显示未启用、未配置或暂不支持测试。
+- 语音生成和向量化可以出现在结果面板的分能力状态中。向量化当前阶段不得发真实网络测试请求，应显示未启用、未配置或暂不支持测试；语音生成在 `011-tts-provider-configuration-and-playback.md` 约束下允许使用固定低敏测试句进行真实 TTS probe，且必须保持 endpoint metadata、TTS validation 状态和文本模型 profile 全局验证摘要隔离。
 - iPhone、iPad 和 macOS Provider 设置页当前都通过共享 `SettingsCapabilityDetailView` 从当前语言空间传入目标语言 code 并展示 `语言支持` 分项。平台差异只允许体现在承载宽度、导航位置和 presentation 行为；不得为 iPad 或 macOS 复制平台专属 Provider 表单，也不得让任一平台绕过共享 action seam。
 - 未保存 draft 测试必须测试当前屏幕配置，且不得先写入 Keychain、SQLite 或 validation event；已保存且无修改的配置测试由服务层通过 Keychain 引用重新解析密钥。
 - 已保存 profile 的 App 级合成测试可以记录 `synthetic_test` 类型的非敏感 validation event，并在同一 Data 事务内更新最近验证摘要；语言支持结果是语言空间上下文下的适配性提示，不得把 language support 失败写成 Provider profile 全局最近验证失败，也不得写入 Provider profile 静态能力事实。draft 测试只允许记录非敏感 diagnostic event，不得污染持久 profile 事实。取消的测试不得写失败 validation event。
@@ -231,6 +231,7 @@ AI 在实现任何 AI 能力前应先确认：
 
 ## 8. 变更记录
 
+- 2026-05-23：补充 TTS 配置测试边界。原因：语音模型配置与测试方案进入 OpenAI + OpenRouter 第一阶段，需要把旧的“语音生成不得发真实网络测试请求”修订为受 `011` 约束的固定低敏 TTS probe，并明确结果面板、endpoint metadata 和 profile 全局验证摘要隔离。影响范围：AI Provider 设置、LangoTraceAI、LangoTraceData、LangoTraceSpeech、诊断日志和逐句播放前置状态。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-23：补充一键学习材料生成真实请求边界。原因：iOS / iPhone 记录详情已接入当前文本 Entry 的真实 Provider 请求、结构化 Prompt、GRDB 结果保存和非阻断 AI 披露，需要把“真实学习内容请求未接入”的旧边界更新为当前实现事实。影响范围：LangoTraceAI、LangoTraceData、LangoTraceUI、AppEnvironment、Prompt Registry 和页面清单。是否需要 ADR：否，沿用 ADR-005；照片、音频、历史记忆和多 Entry 上下文仍需单独方案。
 - 2026-05-17：创建第一版 AI Provider、Prompt 与隐私规范。
 - 2026-05-17：补充同意级别、结构化输出校验、输出保存边界和失败处理分类。原因：降低 AI 请求隐私、可靠性和数据覆盖风险。影响范围：AI Provider、Prompt、UI 请求预览、数据保存。是否需要 ADR：否。

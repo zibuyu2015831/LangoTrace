@@ -19,7 +19,7 @@ LangoTrace 的信任基础是本地优先。权限和隐私说明不能只在 AI
 - 权限请求必须由用户动作触发，不在首次启动或页面展示时批量弹出。
 - 每个权限请求前，App 自有 UI 必须用当前界面语言说明用途和数据边界。
 - Photos、相机、麦克风、Speech、OCR 和文件访问不得因为用户打开页面而自动读取敏感内容。
-- TTS 播放目标语言文本通常不需要上传内容；若使用外部 TTS Provider，必须进入 Provider 请求预览。
+- TTS 播放目标语言文本不需要系统权限。本地 TTS 不上传内容；外部 TTS Provider 必须遵守 `011-tts-provider-configuration-and-playback.md`：设置页完成配置、测试和披露后，用户在学习页面显式点击单句播放可以直接发送该句目标语言文本，不再逐次弹出请求预览。页面展示、滚动、保存记录、进入详情、批量预生成、照片、音频、OCR、历史记忆或多条 Entry 上下文不得复用该低摩擦边界。
 - OCR、Speech 或图片理解若调用外部 Provider，必须同时遵守 `005` 的请求预览和同意级别。
 - API Key 和外部服务 token 必须存入 Keychain，默认不进入数据库、日志、导出包或同步目录。
 - 诊断日志默认不得包含完整日记、完整 OCR 文本、完整音频转写、照片内容、API Key、请求头或对象存储密钥。
@@ -104,6 +104,7 @@ AI Provider API Key、外部服务 token、自定义敏感请求头、对象存�
 
 ## 8. 变更记录
 
+- 2026-05-23：修订外部 TTS Provider 请求预览边界。原因：TTS Provider 配置与测试方案要求设置页完成披露和真实 probe 后，学习页单句点击播放可直接调用已配置 TTS Provider；旧规则“外部 TTS Provider 必须进入 Provider 请求预览”过宽，会阻断逐句播放交互。影响范围：TTS 设置、逐句播放、隐私披露、诊断日志和发布隐私说明。是否需要 ADR：否，沿用 ADR-005；照片、音频、OCR、历史记忆、多条 Entry 上下文和批量预生成仍需单独授权边界。
 - 2026-05-18：创建权限、本地隐私与诊断日志规范。原因：spec 深审确认 AI 隐私规范已有，但跨 Photos、Speech、OCR、录音、TTS、Keychain、日志和系统权限弹窗缺少统一执行源。影响范围：AI、Speech、Data、UI、Testing、Release 和发布隐私材料。是否需要 ADR：否，沿用本地优先和用户自带 Provider 决策。
 - 2026-05-20：补充 Keychain 与敏感配置边界。原因：AI Provider 配置存储已落地，需要把 ThisDeviceOnly、默认不同步、数据库恢复缺密钥、非敏感 validation event 和 SQLite / Keychain 非原子补偿规则沉淀为长期隐私规范。影响范围：AI Provider、Data、AI、UI、Testing 和后续导出 / 同步。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-20：调整 Provider 配置页已保存密钥读取边界。原因：用户再次打开 Provider 配置页时需要查看和编辑本机保存的 API Key；允许通过服务边界读取 Keychain 并回填短生命周期 UI draft，但仍禁止进入数据库、日志、同步、请求预览或测试输出。影响范围：AI Provider 设置、Keychain、UI draft、隐私验证。是否需要 ADR：否，沿用 ADR-005。
