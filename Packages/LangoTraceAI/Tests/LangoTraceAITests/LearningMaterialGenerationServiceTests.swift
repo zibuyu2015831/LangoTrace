@@ -336,7 +336,7 @@ private extension URLRequest {
         else {
             return nil
         }
-        let value = dottedPath.split(separator: ".").reduce(Optional<Any>(object)) { partial, key in
+        let value = dottedPath.split(separator: ".").reduce(Any?(object)) { partial, key in
             guard let dictionary = partial as? [String: Any] else {
                 return nil
             }
