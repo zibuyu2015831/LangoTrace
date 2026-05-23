@@ -13,7 +13,7 @@ struct MediaArtifactRepositoryTests {
         let repository = GRDBMediaArtifactRepository(
             database: database,
             clock: { Date(timeIntervalSince1970: 500) },
-            idGenerator: IncrementingIDGenerator().next
+            idGenerator: MediaArtifactIDGenerator().next
         )
         let input = MediaArtifactTestFixtures.commitInput()
 
@@ -38,7 +38,7 @@ struct MediaArtifactRepositoryTests {
         let repository = GRDBMediaArtifactRepository(
             database: database,
             clock: { Date(timeIntervalSince1970: 500) },
-            idGenerator: IncrementingIDGenerator().next
+            idGenerator: MediaArtifactIDGenerator().next
         )
         let input = MediaArtifactTestFixtures.commitInput()
 
@@ -56,7 +56,7 @@ struct MediaArtifactRepositoryTests {
         let repository = GRDBMediaArtifactRepository(
             database: database,
             clock: { Date(timeIntervalSince1970: 500) },
-            idGenerator: IncrementingIDGenerator().next
+            idGenerator: MediaArtifactIDGenerator().next
         )
         _ = try await repository.commitTTSAudioArtifact(MediaArtifactTestFixtures.commitInput())
 
@@ -72,7 +72,7 @@ struct MediaArtifactRepositoryTests {
         let repository = GRDBMediaArtifactRepository(
             database: database,
             clock: { Date(timeIntervalSince1970: 500) },
-            idGenerator: IncrementingIDGenerator().next
+            idGenerator: MediaArtifactIDGenerator().next
         )
         let input = MediaArtifactTestFixtures.commitInput()
         _ = try await repository.commitTTSAudioArtifact(input)
@@ -101,7 +101,7 @@ struct MediaArtifactRepositoryTests {
         let repository = GRDBMediaArtifactRepository(
             database: database,
             clock: { Date(timeIntervalSince1970: 500) },
-            idGenerator: IncrementingIDGenerator().next
+            idGenerator: MediaArtifactIDGenerator().next
         )
         let first = try await repository.commitTTSAudioArtifact(MediaArtifactTestFixtures.commitInput())
         _ = try await repository.commitTTSAudioArtifact(
@@ -138,7 +138,7 @@ struct MediaArtifactRepositoryTests {
     }
 }
 
-private final class IncrementingIDGenerator: @unchecked Sendable {
+final class MediaArtifactIDGenerator: @unchecked Sendable {
     private var nextValue = 0
 
     func next() -> String {
@@ -147,7 +147,7 @@ private final class IncrementingIDGenerator: @unchecked Sendable {
     }
 }
 
-private enum MediaArtifactTestFixtures {
+enum MediaArtifactTestFixtures {
     static func seedPrerequisites(in database: AppDatabase) async throws {
         let aiRepository = GRDBAIProviderConfigurationRepository(database: database)
         let ttsRepository = GRDBTTSProviderSettingsRepository(database: database)
