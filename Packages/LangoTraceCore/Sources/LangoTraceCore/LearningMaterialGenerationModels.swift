@@ -38,7 +38,9 @@ public enum LearningMaterialGenerationFailureCategory: String, Codable, CaseIter
     case providerRejected
     case unsupportedProvider
     case unsupportedModel
+    case contentEmpty
     case contentTooLong
+    case operationInProgress
     case invalidStructuredResponse
     case cancelled
     case persistenceFailed
@@ -660,6 +662,37 @@ public struct LearningMaterialOperationSummary: Equatable, Sendable {
             kind: kind,
             status: .failed,
             failureCategory: failureCategory,
+            promptID: promptID,
+            promptVersion: promptVersion,
+            providerProfileID: nil,
+            providerEndpointID: nil,
+            providerPresetID: nil,
+            modelName: nil,
+            inputKind: nil,
+            estimatedTokenBucket: bucket,
+            durationMilliseconds: nil,
+            createdAt: Date(timeIntervalSince1970: 0),
+            completedAt: completedAt
+        )
+    }
+
+    public static func cancelled(
+        operationID: DiagnosticOperationID,
+        entryID: String,
+        materialID: String?,
+        kind: LearningMaterialOperationKind,
+        bucket: LearningMaterialEstimatedTokenBucket,
+        completedAt: Date,
+        promptID: String = "builtin.learning_material.generate.v1",
+        promptVersion: String = "1"
+    ) -> LearningMaterialOperationSummary {
+        LearningMaterialOperationSummary(
+            operationID: operationID,
+            entryID: entryID,
+            materialID: materialID,
+            kind: kind,
+            status: .cancelled,
+            failureCategory: .cancelled,
             promptID: promptID,
             promptVersion: promptVersion,
             providerProfileID: nil,

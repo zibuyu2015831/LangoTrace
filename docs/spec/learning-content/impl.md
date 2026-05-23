@@ -36,7 +36,11 @@
 
 - `LanguageSpaceRepository` 仍是空协议。
 - Settings capability 仍通过 learning content repository 过渡提供；长期应拆为独立 provider，避免内容 repository 承担设置能力来源职责。
-- `GRDBLearningContentRepositoryBridge` 是旧同步 UI 协议到真实 GRDB repository 的过渡层；后续 iPad / macOS 接入和更完整错误恢复时，应继续演进为 async facade。
+- `GRDBLearningContentRepositoryBridge` 是旧同步 UI 协议到真实 GRDB repository 的过渡层；它已经不再返回 `unsaved-*` 内存 Entry，持久化失败会向上抛出。后续 iPad / macOS 接入和更完整错误恢复时，应继续演进为 async facade。
+- iPhone 生成中状态已有取消入口；取消会把当前 operation 标记为 cancelled，并让 Store 丢弃 late result。第一版取消不承诺底层 HTTP task 一定被立即终止。
+- 成功生成和重新分析使用 `GRDBLearningContentRepository` 的组合写入 API，保证 material / analysis / operation succeeded summary 在同一个 `DatabaseQueue.write` 事务内完成。
+- Store 层 `contentEmpty` / `contentTooLong` / `operationInProgress` preflight 阻断会通过 App Shell action 写入本地 failed operation summary，不发送 Provider。
+- App Shell 创建 GRDB bridge 失败时使用显式 unavailable repository，不再 fallback 到 `InMemoryLearningContentRepository(seedEntries: [])`。
 - 当前真实学习材料请求支持 OpenAI Responses / OpenAI-compatible Chat；Anthropic / Gemini 学习材料请求体尚未接入，会按 unsupported provider / model 边界处理。
 - 练习候选仍是候选入口；TTS、录音、真实练习评分、OCR、照片附件和同步尚未接入。
 - 导出、可恢复备份、FTS、向量索引和对象级同步尚未实现。

@@ -94,6 +94,44 @@ func savingGeneratedMaterialDoesNotModifyEntryBody() throws {
     #expect(try repository.practiceItems(for: entry.id).count == 1)
 }
 
+@Test("Saving generated material can persist succeeded operation in the same repository write")
+func savingGeneratedMaterialPersistsSucceededOperationAtomically() throws {
+    let repository = try makeRepository()
+    let entry = try repository.createEntry(sampleDraft(), in: "space-1")
+    let operationID = DiagnosticOperationID(rawValue: "operation-transaction")
+    let result = sampleGenerationResult(entryID: entry.id, spaceID: "space-1")
+
+    let material = try repository.saveGeneratedMaterial(
+        result,
+        for: entry.id,
+        operationSummary: LearningMaterialOperationSummary(
+            operationID: operationID,
+            entryID: entry.id,
+            materialID: nil,
+            kind: .generate,
+            status: .succeeded,
+            failureCategory: nil,
+            promptID: result.metadata.promptID,
+            promptVersion: result.metadata.promptVersion,
+            providerProfileID: result.metadata.providerProfileID,
+            providerEndpointID: result.metadata.providerEndpointID,
+            providerPresetID: result.metadata.providerPresetID,
+            modelName: result.metadata.modelName,
+            inputKind: result.inputKind,
+            estimatedTokenBucket: .short,
+            durationMilliseconds: nil,
+            createdAt: result.metadata.generatedAt,
+            completedAt: Date(timeIntervalSince1970: 101)
+        )
+    )
+
+    let operations = try repository.operations(for: entry.id)
+    #expect(material.id == operations.first?.materialID)
+    #expect(operations.count == 1)
+    #expect(operations.first?.status == .succeeded)
+    #expect(operations.first?.operationID == operationID)
+}
+
 @Test("Editing learning text marks analysis stale without changing entry or generated snapshot")
 func editingLearningTextMarksAnalysisStale() throws {
     let repository = try makeRepository()
@@ -132,6 +170,45 @@ func replacingAnalysisKeepsEditedLearningText() throws {
     #expect(refreshed.learningText == edited.learningText)
     #expect(refreshed.analysis.status == .fresh)
     #expect(refreshed.analysis.sentences.first?.targetSentence == "I wrote in my journal at the cafe today.")
+}
+
+@Test("Replacing analysis can persist succeeded operation in the same repository write")
+func replacingAnalysisPersistsSucceededOperationAtomically() throws {
+    let repository = try makeRepository()
+    let entry = try repository.createEntry(sampleDraft(), in: "space-1")
+    let material = try repository.saveGeneratedMaterial(sampleGenerationResult(entryID: entry.id, spaceID: "space-1"), for: entry.id)
+    let result = sampleAnalysisResult(materialID: material.id)
+    let operationID = DiagnosticOperationID(rawValue: "analysis-transaction")
+
+    let refreshed = try repository.replaceAnalysis(
+        result,
+        materialID: material.id,
+        operationSummary: LearningMaterialOperationSummary(
+            operationID: operationID,
+            entryID: entry.id,
+            materialID: material.id,
+            kind: .analyze,
+            status: .succeeded,
+            failureCategory: nil,
+            promptID: "builtin.learning_material.analyze.v1",
+            promptVersion: "1",
+            providerProfileID: material.metadata.providerProfileID,
+            providerEndpointID: material.metadata.providerEndpointID,
+            providerPresetID: material.metadata.providerPresetID,
+            modelName: material.metadata.modelName,
+            inputKind: material.inputKind,
+            estimatedTokenBucket: .short,
+            durationMilliseconds: nil,
+            createdAt: material.updatedAt,
+            completedAt: Date(timeIntervalSince1970: 101)
+        )
+    )
+
+    let operations = try repository.operations(for: entry.id)
+    #expect(refreshed.analysis.status == .fresh)
+    #expect(operations.count == 1)
+    #expect(operations.first?.materialID == material.id)
+    #expect(operations.first?.status == .succeeded)
 }
 
 @Test("Operation summaries update one row for lifecycle")
@@ -176,7 +253,7 @@ func grdbBridgeExposesPersistedLearningContent() throws {
     let repository = try makeRepository()
     let bridge = GRDBLearningContentRepositoryBridge(repository: repository)
 
-    let entry = bridge.createEntry(
+    let entry = try bridge.createEntry(
         spaceID: "space-1",
         title: "咖啡馆",
         body: "我今天在咖啡馆写了一页日记。",
@@ -208,7 +285,7 @@ func grdbBridgeExposesPersistedLearningContent() throws {
 func grdbBridgeDoesNotSynthesizeLocalPreviewMaterial() throws {
     let repository = try makeRepository()
     let bridge = GRDBLearningContentRepositoryBridge(repository: repository)
-    let entry = bridge.createEntry(
+    let entry = try bridge.createEntry(
         spaceID: "space-1",
         title: "散步",
         body: "晚饭后我散步。",
@@ -219,6 +296,21 @@ func grdbBridgeDoesNotSynthesizeLocalPreviewMaterial() throws {
 
     #expect(preview == nil)
     #expect(try repository.currentMaterial(for: entry.id) == nil)
+}
+
+@Test("GRDB bridge surfaces create failures instead of returning unsaved entries")
+func grdbBridgeSurfacesCreateFailures() throws {
+    let repository = try makeRepository()
+    let bridge = GRDBLearningContentRepositoryBridge(repository: repository)
+
+    #expect(throws: Error.self) {
+        _ = try bridge.createEntry(
+            spaceID: "missing-space",
+            title: "Missing",
+            body: "This should not become an unsaved entry.",
+            source: .typedText
+        )
+    }
 }
 
 private func makeRepository() throws -> GRDBLearningContentRepository {

@@ -7,9 +7,9 @@ public protocol LearningContentRepository: AnyObject {
     func selectedEntry(for spaceID: String) -> LearningEntry?
     func selectEntry(id: String, spaceID: String)
     @discardableResult
-    func createEntry(spaceID: String, title: String, body: String, source: EntrySource) -> LearningEntry
+    func createEntry(spaceID: String, title: String, body: String, source: EntrySource) throws -> LearningEntry
     @discardableResult
-    func createMockPhotoWritingEntry(spaceID: String) -> LearningEntry
+    func createMockPhotoWritingEntry(spaceID: String) throws -> LearningEntry
     @discardableResult
     func generateLocalPreview(for entryID: String, spaceID: String) -> LearningRendering?
     func rendering(for entryID: String) -> LearningRendering?
@@ -90,7 +90,7 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
         title: String,
         body: String,
         source: EntrySource
-    ) -> LearningEntry {
+    ) throws -> LearningEntry {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
         let entryID = "entry-\(nextEntryNumber)-\(spaceID)"
@@ -113,7 +113,7 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
     }
 
     @discardableResult
-    public func createMockPhotoWritingEntry(spaceID: String) -> LearningEntry {
+    public func createMockPhotoWritingEntry(spaceID: String) throws -> LearningEntry {
         let entryID = "photo-writing-\(nextEntryNumber)-\(spaceID)"
         nextEntryNumber += 1
 
@@ -278,6 +278,54 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
                 ),
             ]
         )
+    }
+}
+
+public final class UnavailableLearningContentRepository: LearningContentRepository {
+    public init() {}
+
+    public func ensureSeeded(spaceID _: String) {}
+
+    public func entries(for _: String) -> [LearningEntry] {
+        []
+    }
+
+    public func selectedEntry(for _: String) -> LearningEntry? {
+        nil
+    }
+
+    public func selectEntry(id _: String, spaceID _: String) {}
+
+    public func createEntry(spaceID _: String, title _: String, body _: String, source _: EntrySource) throws -> LearningEntry {
+        throw LearningContentRepositoryError.databaseUnavailable
+    }
+
+    public func createMockPhotoWritingEntry(spaceID _: String) throws -> LearningEntry {
+        throw LearningContentRepositoryError.databaseUnavailable
+    }
+
+    public func generateLocalPreview(for _: String, spaceID _: String) -> LearningRendering? {
+        nil
+    }
+
+    public func rendering(for _: String) -> LearningRendering? {
+        nil
+    }
+
+    public func practiceItems(for _: String) -> [PracticeItem] {
+        []
+    }
+
+    public func memoryItems(for _: String) -> [MemoryItem] {
+        []
+    }
+
+    public func settingsCapabilities(for _: String) -> [SettingsCapability] {
+        []
+    }
+
+    public func practiceSession(for _: String) -> PracticeSessionState? {
+        nil
     }
 }
 

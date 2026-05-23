@@ -1,6 +1,6 @@
 # 外观浅色与深色基础设施方案
 
-状态：Implemented, iPhone Visual QA Passed, iPad/macOS Automated Verification Passed, iPad/macOS Visual QA Pending
+状态：Verified
 类型：feature
 创建日期：2026-05-22
 最后更新日期：2026-05-23
@@ -585,3 +585,4 @@ git status --short
 - 2026-05-23：根据 AI Provider 能力开关深色截图继续复查 switch 控件。结论：开关不是 primary CTA，但开启态若直接继承 `accent #72D2BF`，在深色卡片中仍会形成过亮的浅薄荷色块；已新增 `switchOnFill`，深色为 `#2C8A7B`，并将 AI Provider 能力开关、可选模型开关、Sync scope 开关和 S3 draft 连接开关迁移到该 token。新增 `AppearanceSettingsTests.switchControlsUseDedicatedActiveFillToken` 固定该边界。
 - 2026-05-23：用户确认 iPhone 端视觉测试通过后，继续补齐 iPad 与 macOS 工作台外观实现。复查结论：iPad sidebar 和学习面板已分别使用 `surfaceSidebar` 与 `surfaceInspector`，但 macOS 主工作台 sidebar / inspector 只依赖整页背景，深浅色切换下三栏层级不够明确。已为 macOS sidebar 增加 `surfaceSidebar.opacity(0.72)`，为 macOS inspector 增加 `surfaceInspector.opacity(0.58)`，并新增 `AppearanceSettingsTests.padAndMacWorkbenchesUsePlatformSurfaceTokens` 固定 iPad / macOS 平台 surface token 边界。剩余验证项是 iPad 与 macOS 真实截图或人工视觉验收。
 - 2026-05-23：iPad 与 macOS 外观补齐完成自动化验证。`AppearanceSettingsTests` 11 项通过；iPad Pro 13-inch (M5) Simulator 构建通过；macOS arm64 构建通过；`scripts/verify.sh` 完整通过。SwiftLint 仍有既有普通 warning，但无 serious violation；本轮新增的 line length 与文件长度 warning 已清理。
+- 2026-05-23：归档前复核当前代码与测试，确认外观设置已经按本任务范围完成工程收口。验证：`swift test --package-path Packages/LangoTraceCore --filter AppearancePreferenceTests` 通过 2 项；`swift test --package-path Packages/LangoTraceData` 通过 40 项；`swift test --package-path Packages/LangoTraceUI --filter AppearanceSettingsTests` 通过 11 项；`rg -n "Color\\(red:" Packages/LangoTraceUI/Sources/LangoTraceUI --glob '!LangoTraceDesign.swift'` 无结果；`git diff --check` 通过；文档占位扫描无命中；`scripts/verify.sh` 完整通过。iPad / macOS 发布级截图或真机视觉验收继续作为发布前视觉 QA 风险记录，不阻塞本基础设施方案归档。

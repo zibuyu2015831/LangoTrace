@@ -34,7 +34,7 @@
 
 ## 3. iPhone 页面清单
 
-iPhone 的顶层结构是 `记录 / 练习 / 记忆` 三个 Tab，设置通过顶部 gear 和二级 route 稳定可达。当前代码事实源是 `PhoneMainView.swift`、`PhoneMainSections.swift`、`PhoneMainSupportingViews.swift`、`PhonePhotoWritingPreviewView.swift`、`LocalListeningPreviewView.swift` 和 `PhonePracticeRows.swift`。
+iPhone 的顶层结构是 `记录 / 练习 / 记忆` 三个 Tab，设置通过顶部 gear 和二级 route 稳定可达。当前代码事实源是 `PhoneMainView.swift`、`PhoneMainSections.swift`、`PhoneMainSupportingViews.swift`、`PhonePhotoWritingPreviewView.swift`、`LearningContentComponents.swift`、`SentencePairActionControls.swift` 和 `PhonePracticeRows.swift`。
 
 | 页面 | 用户目的 | 入口 | 当前状态 | 主要代码路径 | 能力边界 | 审查关注点 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -46,7 +46,7 @@ iPhone 的顶层结构是 `记录 / 练习 / 记忆` 三个 Tab，设置通过�
 | 最近记录列表 | 浏览本地生活记录并进入详情 | 记录 Tab 下方列表 | Implemented | `EntryCard` in `PhoneMainSupportingViews.swift` | 展示 seed 和用户本地创建记录 | 卡片密度、目标语言内容和状态 badge 需保持清晰 |
 | 空记录状态 | 没有记录时给出创建入口 | 记录 Tab 无 entries | Implemented | `EmptyEntryPanel` in `PhoneMainSupportingViews.swift` | 只引导创建，不写入数据 | 空状态不能像错误或开发提示 |
 | 记录详情 | 阅读原始记录、生成学习材料、编辑 learning text、重新分析和进入练习候选 | 最近记录、保存后、照片写作创建后 | iOS Implemented / iPad macOS Deferred | `EntryDetailView`、`EntryDetailHeader.swift`、`SentencePairView`、`LearningMaterialGenerationActions` | iPhone 无 material 时只有一个核心 AI 动作 `生成学习材料`；点击后经 App Shell 发送当前文本给已配置 AI Provider 并保存 GRDB LearningMaterial；原始 Entry 正文只读；learning text 可编辑，编辑后可 `重新分析`；iPad / macOS 暂不接入真实生成 UI，等待 iOS 人工测试通过 | 不恢复本地预览主按钮；生成动作必须披露 AI Provider 边界；平台接入时复查共享详情组件和大屏布局 |
-| 听一句预览 | 针对单句进行本地听读练习展示 | 记录详情每句的 `听` | Local Mock | `LocalListeningPreviewView.swift`、`SentencePairView` | 播放按钮只切换本地状态；不接 TTS、不录音、不保存成绩 | 不得回退到 `听力播放规划中`、`待配置` 等工程文案 |
+| 听一句原位反馈 | 针对单句进行本地听读入口反馈 | 记录详情每句的 `听` | Local Mock | `SentencePairView`、`SentencePairActionControls.swift` | 播放按钮只在原位切换播放 / 暂停视觉状态；不弹解释型 sheet，不接 TTS、不录音、不保存成绩 | 不得回退到 `听力播放规划中`、`待配置` 等工程文案；真实 TTS 前不得伪装成已播放真实音频 |
 | 逐句练习入口 | 从单句进入完整练习会话 | 记录详情每句的 `练` | Candidate / Local Practice | `SentencePairView`、`PracticeSessionView` | 句子和 practice candidate 可来自 GRDB LearningMaterial analysis；真实听写、跟读评分和音频仍未接入 | `听` 与 `练` 的职责需清晰，避免重复入口 |
 | 练习 Tab | 从生活记录继续听、读、跟读、回译 | 底部 `练习` Tab | Local Mock | `PracticeView` in `PhoneMainSections.swift`、`PhonePracticeRows.swift` | 练习任务来自本地 rendering 和 practice items | 作为 `听` 的高频承载，不应暴露 TTS 接入计划 |
 | 练习会话 | 展示准备、跟读、对照、完成步骤 | 练习 Tab、记录详情 `练` | Local Mock | `PracticeSessionView`、`PracticeControlBar.swift` | step 切换为本地 UI 状态，不录音、不评分 | 后续真实语音能力接入前，需要单独权限和语音边界方案 |
@@ -75,7 +75,7 @@ iPad 的顶层结构是工作台：顶部工具条、左侧时间线 / 筛选、
 | 工作台概览 / 写作主区 | 展示当前记录、双语正文、音频面板和句子列表 | 默认 route `.workspace` | Local Mock | `PadWorkspaceContentView.workspaceOverview` | `AudioPanel` 是本地 mock UI；句子来自 rendering | 中央主区是视觉焦点；避免卡片套卡片 |
 | iPad 空工作台状态 | 没有选中记录时给出安静的主区占位 | 默认 route 且无 selected entry，或目标 entry 缺失 | Implemented | `EmptyWorkspacePanel` in `PadSidebarControls.swift` | 不创建记录、不生成内容 | 不能显示裸文本或错误式空状态；后续真实空数据需保留创建入口 |
 | 记录详情 | 在主区完整查看单条记录 | 时间线选择或 route `.entryDetail` | Implemented / Platform Follow-up | `EntryDetailView` reused in `PadWorkspaceContentView` | 与 iPhone 共享详情组件；本轮未接入 iPad 真实学习材料生成 UI，等待 iOS 人工测试通过后再推进 | 共享组件改动需同时复查 iPhone 和 iPad；平台接入时复查大屏状态展示 |
-| 听一句预览 | 从句子列表打开本地听读预览 | 句子 `听` | Local Mock | `SentencePairView`、`LocalListeningPreviewView.swift` | 不触发真实 TTS 或录音 | sheet 尺寸和 iPad 阅读宽度需单独检查 |
+| 听一句原位反馈 | 从句子列表切换单句播放入口状态 | 句子 `听` | Local Mock | `SentencePairView`、`SentencePairActionControls.swift` | 不触发真实 TTS 或录音，不打开解释型 sheet | 后续真实语音能力不能直接塞入小 sheet；必须接入 TTS 配置、测试、播放服务和跨句状态协调 |
 | 练习详情 | 在主区进行步骤式练习 | 句子 `练` 或学习面板练习入口 | Local Mock | `PracticeSessionView`、`PracticeControlBar.swift` | 本地 step 状态；无真实语音服务 | 后续语音能力不能直接塞入小 sheet |
 | 设置列表 | 在主区查看能力列表 | 左侧设置、底部设置 | Implemented | `PadWorkspaceContentView.settingsList` | 多数设置为只读说明，界面语言可切换 | iPad 设置应服务当前空间，不变成后台管理；顶部工具条不重复放置设置齿轮 |
 | 设置详情 | 查看单项能力边界 | 设置列表 row、底部 AI / Sync | Implemented / Local Mock / Unavailable | `SettingsCapabilityDetailView.swift`、`SyncSettingsView.swift` | AI Provider 详情共享同一表单并可保存本地 Keychain 配置，配置测试会使用当前语言空间 target language code；外观和界面语言为全局设备级偏好，无语言空间时仍可展示；无真实 sync、export 写入；同步详情使用共享 Local Mock UI，iPad 常规宽度默认进入设置焦点并收起右侧学习面板，窄宽度回退单列 | 与 iPhone 设置详情共享，改动需三端复查；设置焦点是 transient UI state，不进入语言空间、数据库或同步 manifest |
@@ -123,8 +123,7 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 | 组件 / 页面 | 使用平台 | 当前状态 | 主要代码路径 | 影响范围 |
 | --- | --- | --- | --- | --- |
 | `EntryDetailView` | iPhone / iPad / macOS | Implemented / Local Mock | `PhoneMainSupportingViews.swift` | 三端记录详情、逐句练习、未 rendering 状态 |
-| `SentencePairView` | iPhone / iPad / macOS | Local Mock | `LearningContentComponents.swift` | 单句听读预览和练习入口 |
-| `LocalListeningPreviewView` | iPhone / iPad / macOS | Local Mock | `LocalListeningPreviewView.swift` | 逐句听力 sheet；不接真实 TTS |
+| `SentencePairView` | iPhone / iPad / macOS | Local Mock | `LearningContentComponents.swift`、`SentencePairActionControls.swift` | 单句听读原位反馈和练习入口；当前不接真实 TTS、不打开听力解释 sheet |
 | `PracticeSessionView` | iPhone / iPad / macOS | Local Mock | `PhoneMainSupportingViews.swift`、`PracticeControlBar.swift` | 准备、跟读、对照、完成步骤 |
 | `SettingsCapabilityDetailView` | iPhone / iPad / macOS | Implemented / Local Mock / Unavailable | `SettingsCapabilityDetailView.swift` | AI、同步、隐私、导入导出、本地数据、语言空间、界面语言、外观；外观和界面语言支持无语言空间的 global detail，其他空间相关能力保持 no-space boundary；支持 standalone scroll 和 embedded presentation，供 macOS 工作台避免嵌套滚动 |
 | `AIProviderSettingsView` | iPhone / iPad / macOS | Implemented / Configuration Synthetic Probe | `AIProviderSettingsView.swift`、`AIProviderDraftConfiguration.swift`、`AIProviderSettingsActions.swift`、`AIProviderSettingsModels.swift`、`AIProviderSettingsComponents.swift` | 文本模型、语音生成模型、向量模型 endpoint；语音和向量可共享文本模型 API Key 或使用独立 API Key；保存配置写 SQLite / GRDB metadata 与 Keychain secret；加载已保存配置时回填 Keychain secret 到短生命周期 UI draft，默认隐藏；测试按钮走共享 action seam，打开共享分能力结果内容；文本测试 readiness 与保存 readiness 分离；未保存 draft 测当前屏幕配置，已保存且无修改时由服务层重新解析 Keychain；有当前语言空间时三端都会传入 target language code 并请求 `语言支持`；iPhone compact 使用 bottom sheet detents，iPad 常规宽度和 macOS 不强制套用移动端 detents；结果面板内容在大屏使用固定最大宽度；iPad / macOS 由 `SettingsCapabilityDetailView` 负责表单最大内容宽度，不分叉表单组件 |
@@ -164,6 +163,7 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 - iPhone 顶层恢复五 Tab 或把设置作为底部 Tab。
 - iPhone 记录 Hero 恢复 `听` 作为首屏高频入口。
 - iPhone 记录详情默认显示持久 `RequestPreviewCard`。
+- 逐句 `听` 按钮重新打开解释型 sheet 或 `LocalListeningPreviewView`。
 - iPhone 记忆页展示向量索引、embedding 或三层技术基础设施。
 - 任何用户主流程显示 `规划中`、`待配置`、`当前页面只展示入口边界`、`不播放真实 TTS` 这类开发排期文案。
 - 能使用本地模拟做真实级展示的能力，退回到大段 unavailable 说明。
@@ -187,7 +187,7 @@ macOS 的顶层结构是桌面工作台：左侧 Sidebar、中央主区、右侧
 
 ```bash
 rg "struct .*View|enum .*Route|enum .*Sheet|NavigationStack|TabView|sheet\\(|navigationDestination|Settings" Packages/LangoTraceUI/Sources/LangoTraceUI LangoTraceApp -n
-rg "规划中|待配置|当前页面只展示入口边界|不播放真实 TTS|onListen|UnavailableCapabilityView\\(content: \\.listenOne\\)" Packages/LangoTraceUI/Sources Packages/LangoTraceUI/Tests
+rg "规划中|待配置|当前页面只展示入口边界|不播放真实 TTS|LocalListeningPreviewView|isListeningPreviewPresented|UnavailableCapabilityView\\(content: \\.listenOne\\)" Packages/LangoTraceUI/Sources Packages/LangoTraceUI/Tests
 ```
 
 如果页面清单和代码不一致，以代码为当前事实，并在同一任务中修正文档或明确记录偏差。
@@ -214,3 +214,4 @@ rg "规划中|待配置|当前页面只展示入口边界|不播放真实 TTS|on
 - 2026-05-22：补充 iPad / macOS 语言支持入口事实。原因：iOS 人工审核后，iPad / macOS 工作台设置详情和 macOS 原生 Settings scene 通过共享 `SettingsCapabilityDetailView` 注入同一 target language code，不新增平台专属 AI Provider 表单。影响范围：SettingsCapabilityDetailView、AIProviderSettingsView、页面清单和 AI Provider 隐私规范。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-23：更新一键学习材料生成的 iOS 优先落地状态。原因：iPhone 记录详情已从本地预览推进到真实 AI Provider 请求、GRDB LearningMaterial 保存、learning text 编辑和重新分析；iPad / macOS UI 接入按用户确认延后到 iOS 人工测试通过后。影响范围：EntryDetailView、LearningContentStore、LearningMaterialGenerationActions、AppEnvironment、LangoTraceData、LangoTraceAI 和页面清单。是否需要 ADR：否，沿用本地优先与三端共享业务逻辑决策。
 - 2026-05-23：补充外观设置与浅色 / 深色基础设施事实。原因：三端设置列表新增外观能力，App 层通过设备级 `AppearancePreference` 和 `preferredColorScheme` 即时切换浅色 / 深色，`LangoTraceDesign` 已接入 light / dark token；发布级视觉仍需截图或人工验收。影响范围：iPhone / iPad / macOS 设置入口、macOS Settings scene、共享设置详情和设计 token。是否需要 ADR：否，当前只实现系统外观偏好。
+- 2026-05-23：更新逐句听读入口事实。原因：`LocalListeningPreviewView` 已删除，逐句 `听` 按钮不再打开解释型 sheet，只在 `SentencePairView` 内原位切换播放 / 暂停视觉状态；真实 TTS 生成、播放和跨句协调仍等待后续 TTS Provider 配置测试与 Speech 服务边界。影响范围：iPhone / iPad / macOS 共享 `SentencePairView`、页面清单和 UI 交互规范。是否需要 ADR：否，属于当前页面事实与组件交互约束更新。

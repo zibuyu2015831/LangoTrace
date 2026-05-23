@@ -72,6 +72,7 @@ struct EntryDetailView: View {
     let practiceItems: [PracticeItem]
     var generationState: LearningMaterialGenerationState = .idle
     var onGenerateLearningMaterial: (() -> Void)?
+    var onCancelLearningMaterialGeneration: (() -> Void)?
     var onUpdateLearningText: ((String, String) -> Void)?
     var onAnalyzeCurrentLearningText: (() -> Void)?
     let onGenerateLocalPreview: () -> Void
@@ -85,22 +86,20 @@ struct EntryDetailView: View {
                     targetLanguage: languageSpace.targetLanguage,
                     rendering: rendering
                 )
-                TextPanel(title: localizedString("entry.nativeRecord.title"), text: entry.body)
+                ReadOnlyEntryTextPanel(text: entry.body, emphasis: .secondary)
                 if let rendering {
                     if let onUpdateLearningText, let onAnalyzeCurrentLearningText {
                         LearningMaterialEditorView(
                             rendering: rendering,
                             generationState: generationState,
+                            targetLanguageName: languageSpace.targetLanguage,
                             onSave: { learningText in
                                 onUpdateLearningText(rendering.id, learningText)
                             },
                             onReanalyze: onAnalyzeCurrentLearningText
                         )
                     } else {
-                        TextPanel(
-                            title: localizedString("entry.targetLanguage.title"),
-                            text: rendering.targetText
-                        )
+                        ReadOnlyEntryTextPanel(text: rendering.targetText, emphasis: .primary)
                     }
                     SectionHeader(titleKey: "entryDetail.sentences.title")
                     ForEach(Array(rendering.sentences.enumerated()), id: \.element.id) { index, sentence in
@@ -116,7 +115,9 @@ struct EntryDetailView: View {
                         localizedSummaryKey: generationSummaryKey,
                         status: generationStatus,
                         systemImage: "sparkles",
-                        action: generationState.isRunning ? nil : onGenerateLearningMaterial
+                        action: generationState.isRunning
+                            ? onCancelLearningMaterialGeneration
+                            : onGenerateLearningMaterial
                     )
                 } else {
                     TextPanel(
@@ -187,19 +188,23 @@ struct EntryDetailView: View {
 private struct LearningMaterialEditorView: View {
     let rendering: LearningRendering
     let generationState: LearningMaterialGenerationState
+    let targetLanguageName: String
     let onSave: (String) -> Void
     let onReanalyze: () -> Void
 
     @State private var draftText: String
+    @State private var isEditorPresented = false
 
     init(
         rendering: LearningRendering,
         generationState: LearningMaterialGenerationState,
+        targetLanguageName: String,
         onSave: @escaping (String) -> Void,
         onReanalyze: @escaping () -> Void
     ) {
         self.rendering = rendering
         self.generationState = generationState
+        self.targetLanguageName = targetLanguageName
         self.onSave = onSave
         self.onReanalyze = onReanalyze
         _draftText = State(initialValue: rendering.targetText)
@@ -207,8 +212,11 @@ private struct LearningMaterialEditorView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            editorHeader
-            compactTextEditor
+            ZStack(alignment: .topTrailing) {
+                readOnlyLearningText
+                    .padding(.trailing, textTrailingPadding)
+                actionOverlay
+            }
             if let statusMessage {
                 Label {
                     localizedText(statusMessage.localizedKey)
@@ -230,55 +238,64 @@ private struct LearningMaterialEditorView: View {
         .onChange(of: rendering.targetText) {
             draftText = rendering.targetText
         }
+        .sheet(isPresented: $isEditorPresented) {
+            LearningMaterialEditorSheet(
+                draftText: $draftText,
+                targetLanguageName: targetLanguageName,
+                canSave: canSave,
+                isRunning: generationState.isRunning,
+                onCancel: {
+                    draftText = rendering.targetText
+                    isEditorPresented = false
+                },
+                onSave: {
+                    onSave(draftText)
+                    isEditorPresented = false
+                }
+            )
+            .presentationDetents([.large])
+        }
     }
 
-    private var editorHeader: some View {
-        HStack(alignment: .center, spacing: 12) {
-            localizedText("entry.targetLanguage.title")
-                .font(.headline)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-            Spacer(minLength: 8)
-            HStack(spacing: 8) {
-                Button {
-                    onSave(draftText)
-                } label: {
-                    Image(systemName: "square.and.arrow.down")
-                        .frame(minWidth: 36, minHeight: 36)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(saveActionColor)
-                .disabled(!canSave)
-                .accessibilityLabel(localizedText("entry.rendering.learningText.save"))
-
+    private var actionOverlay: some View {
+        HStack(spacing: 8) {
+            if canReanalyze {
                 Button {
                     onReanalyze()
                 } label: {
                     Image(systemName: "text.magnifyingglass")
-                        .frame(minWidth: 36, minHeight: 36)
+                        .frame(minWidth: 44, minHeight: 44)
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(reanalyzeActionColor)
-                .disabled(!canReanalyze)
+                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
                 .accessibilityLabel(localizedText("entry.rendering.learningText.reanalyze"))
             }
+
+            Button {
+                draftText = rendering.targetText
+                isEditorPresented = true
+            } label: {
+                Image(systemName: "pencil")
+                    .frame(minWidth: 44, minHeight: 44)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+            .accessibilityLabel(localizedText("entry.rendering.learningText.edit"))
         }
     }
 
-    private var compactTextEditor: some View {
-        TextEditor(text: $draftText)
+    private var readOnlyLearningText: some View {
+        Text(rendering.targetText)
             .font(.body)
             .lineSpacing(3)
-            .scrollContentBackground(.hidden)
-            .frame(minHeight: 88, maxHeight: 132)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .background(LangoTraceDesign.ColorToken.surfaceRaised.opacity(0.58))
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(LangoTraceDesign.ColorToken.borderSubtle, lineWidth: 1)
-            }
+            .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityLabel(localizedText("entry.rendering.learningText.accessibilityLabel"))
+    }
+
+    private var textTrailingPadding: CGFloat {
+        canReanalyze ? 104 : 56
     }
 
     private var canSave: Bool {
@@ -288,14 +305,6 @@ private struct LearningMaterialEditorView: View {
 
     private var canReanalyze: Bool {
         generationState.analysisIsStale && !generationState.isRunning
-    }
-
-    private var saveActionColor: Color {
-        canSave ? LangoTraceDesign.ColorToken.accent : LangoTraceDesign.ColorToken.textSecondary
-    }
-
-    private var reanalyzeActionColor: Color {
-        canReanalyze ? LangoTraceDesign.ColorToken.accent : LangoTraceDesign.ColorToken.textSecondary
     }
 
     private var statusMessage: LearningMaterialEditorStatusMessage? {
@@ -322,6 +331,75 @@ private struct LearningMaterialEditorStatusMessage {
     let localizedKey: String
     let systemImage: String
     let color: Color
+}
+
+private struct ReadOnlyEntryTextPanel: View {
+    enum Emphasis {
+        case primary
+        case secondary
+    }
+
+    let text: String
+    let emphasis: Emphasis
+
+    var body: some View {
+        Text(text)
+            .font(emphasis == .primary ? .body.weight(.medium) : .body)
+            .lineSpacing(4)
+            .foregroundStyle(textColor)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .langoPanel()
+    }
+
+    private var textColor: Color {
+        switch emphasis {
+        case .primary:
+            LangoTraceDesign.ColorToken.textPrimary
+        case .secondary:
+            LangoTraceDesign.ColorToken.textSecondary
+        }
+    }
+}
+
+private struct LearningMaterialEditorSheet: View {
+    @Binding var draftText: String
+
+    let targetLanguageName: String
+    let canSave: Bool
+    let isRunning: Bool
+    let onCancel: () -> Void
+    let onSave: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            TextEditor(text: $draftText)
+                .font(.body)
+                .lineSpacing(4)
+                .scrollContentBackground(.hidden)
+                .padding(20)
+                .background(LangoTraceDesign.ColorToken.surfaceBase)
+                .accessibilityLabel(localizedText("entry.rendering.learningText.accessibilityLabel"))
+                .navigationTitle(sheetTitle)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(action: onCancel) {
+                            localizedText("common.cancel")
+                        }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(action: onSave) {
+                            localizedText("entry.rendering.learningText.save")
+                        }
+                        .disabled(!canSave || isRunning)
+                    }
+                }
+        }
+    }
+
+    private var sheetTitle: String {
+        localizedString("entry.rendering.learningText.editTitle", targetLanguageName)
+    }
 }
 
 struct PracticeSessionView: View {

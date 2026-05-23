@@ -226,7 +226,20 @@ Data package
 public struct LearningMaterialGenerationActions: Sendable {
     public var generateMaterial: @Sendable (LearningMaterialGenerationRequest) async -> LearningMaterialGenerationActionResult
     public var analyzeCurrentText: @Sendable (LearningMaterialAnalysisRequest) async -> LearningMaterialGenerationActionResult
-    public var cancelOperation: @Sendable (DiagnosticOperationID) async -> Void
+    public var recordBlockedOperation: @Sendable (
+        DiagnosticOperationID,
+        String,
+        LearningMaterialOperationKind,
+        LearningMaterialGenerationFailureCategory,
+        LearningMaterialEstimatedTokenBucket
+    ) async -> Void
+    public var cancelOperation: @Sendable (
+        DiagnosticOperationID,
+        String,
+        String?,
+        LearningMaterialOperationKind,
+        LearningMaterialEstimatedTokenBucket
+    ) async -> Void
 }
 ```
 
@@ -1151,7 +1164,7 @@ docs/prompts/learning-material/one-tap-learning-material.md
 实现要求：
 
 - 代码中的英文 Prompt 必须与 Prompt Registry 文档一致；如果代码用模板拼接，文档必须能完整还原最终 system / user prompt。
-- AI service 必须只接受 JSON object，不接受 Markdown code fence、自然语言前后缀或半结构化文本。
+- Prompt 必须要求 Provider 只返回 JSON object，不使用 Markdown code fence、自然语言前后缀或半结构化文本。解析层可以为兼容 OpenAI-compatible Provider 的实际行为剥离包裹整个 JSON object 的常见 Markdown code fence；剥离后仍必须按同一 JSON schema 做字段级校验。自然语言前后缀、缺字段、非法枚举、额外不允许字段或数组超限仍映射为 `invalidStructuredResponse`，不得落半成品。
 - 响应解析后必须做字段级校验：枚举值、数组数量、字符串空值、语言 code、句子数量和候选数量；`analysis_source_hash` 由 App 对当前 `learning_text` 本机计算，模型不返回 hash。
 - 生成请求的 JSON 顶层必须包含 `schema_version = "learning_material.v1"`。
 - `input_kind` 必须是 `nativeRecord`、`targetWriting`、`mixed` 或 `uncertain`。
@@ -1322,8 +1335,10 @@ git status --short
 - 2026-05-23：阶段 4 App Shell 与 iPhone 生成入口落地。先新增 UI store / iPhone convergence 测试并确认缺少 generation actions、async 状态、唯一主动作、AI 披露、Provider 未配置和长文本阻断路径时失败；随后新增 `LearningMaterialGenerationActions`，将 `LearningContentStore` 接入 async generation state，`PhoneMainView` 只在 iPhone 详情传入生成 action，`AppEnvironment` 通过 GRDB repository、默认文本 Provider、Keychain secret 和 `LearningMaterialGenerationService` 编排真实生成并落库。iPad / macOS 不接入真实生成 UI。验证：Core、Data、AI、UI 聚焦测试、iPhone 17 build、`git diff --check` 和 docs placeholder scan 通过。
 - 2026-05-23：阶段 5 可编辑 learning text 与重新分析落地。先新增 AI analyze service、Data material lookup、UI store stale / analyze 和 iPhone source tests；随后实现 `LearningMaterialGenerationService.analyze`、`GRDBLearningContentRepository.material(id:)`、`LearningContentStore.updateLearningText` / `analyzeCurrentLearningText`、iPhone detail learning text editor、`重新分析` 入口和 App Shell analyze 编排。重新分析失败会写 operation failed 摘要；material 缺失时不创建错误 operation。验证：AI、Data、UI、Core 聚焦测试、iPhone 17 build、`git diff --check` 和 docs placeholder scan 通过。
 - 2026-05-23：阶段 6 文档同步开始。已更新 product 主参考、AI Provider / Prompt 隐私规范、数据存储规范、learning-content 实现地图、页面清单和 Prompt Registry 实现状态；明确本轮 UI 只完成 iOS / iPhone，iPad / macOS 待 iOS 人工测试通过后再推进。后续仍需运行完整 `scripts/verify.sh`、记录 iOS 人工测试结果，并根据最终代码快照完成文档审查记录。
-- 2026-05-23：阶段 7 格式 / lint 收口和完整自动验证。已按 SwiftFormat / SwiftLint 要求拆分长行、补充局部 lint 说明并提交格式收口。当时验证：`scripts/verify.sh` 通过，覆盖 XcodeGen、Core / Data / AI / UI package tests、iPhone 17 / iPad Pro 13-inch / macOS build、SwiftLint、SwiftFormat lint、docs placeholder scan 和 `git status --short`；SwiftLint 保留 85 条 warning-level 风格告警，退出码为 0。后续阶段 8 已完成 iOS 人工测试、AI JSON Schema 收口和最终 review 状态更新。
+- 2026-05-23：阶段 7 格式 / lint 收口和完整自动验证。已按 SwiftFormat / SwiftLint 要求拆分长行、补充局部 lint 说明并提交格式收口。验证：`scripts/verify.sh` 通过，覆盖 XcodeGen、Core / Data / AI / UI package tests、iPhone 17 / iPad Pro 13-inch / macOS build、SwiftLint、SwiftFormat lint、docs placeholder scan 和 `git status --short`；SwiftLint 仍有 85 条 warning-level 既有风格告警，退出码为 0。剩余收口项：iOS 端人工测试记录和最终 review 状态更新。
 - 2026-05-23：阶段 8 iOS 人工测试和 AI JSON Schema 收口。iPhone 17 模拟器中完成 `写一句 -> 保存 -> 记录详情 -> 生成学习材料 -> 编辑 learning text -> 保存修改 -> 重新分析` smoke；真实 OpenRouter `openai/gpt-4o` 首次暴露模型输出结构不稳定问题，随后将 OpenAI-compatible Chat 请求升级为 strict JSON Schema 并保留 fenced JSON 容错。复测结果：`generate|succeeded|openai/gpt-4o`、`analyze|succeeded|openai/gpt-4o`，`learning_materials.analysis_status = fresh`，practice candidates 写入 3 条。最终验证：`scripts/verify.sh` 通过，SwiftLint 保留 86 条 warning-level 既有风格告警，退出码为 0；SwiftFormat lint 通过。本任务已完成 iOS / iPhone 范围，iPad / macOS UI 接入仍按用户确认延后到后续任务。
+- 2026-05-23：iOS 实现后复核发现当前实现不能直接归档为完成。已确认落地项：Core DTO / 状态机 / 长度估算、GRDB v4 learning content schema、`GRDBLearningContentRepository`、`LearningMaterialGenerationService`、`LearningMaterialGenerationActions`、iPhone 详情主动作、learning text 编辑 / 重新分析、Prompt Registry 和长期文档同步。需要修复或明确收口的偏差：`LearningMaterialGenerationActions` 当前没有 `cancelOperation`，iPhone 生成中状态也没有取消入口；成功路径中 `saveGeneratedMaterial` 与 `succeeded` operation 摘要是两个写事务，不满足“material / analysis / operation summary 同事务”要求；`contentEmpty` / `contentTooLong` 等 Store 层 preflight 阻断不会写 operation 摘要；`GRDBLearningContentRepositoryBridge.createEntry` 在持久化失败时会返回 `unsaved-*` 内存 Entry，仍可能让 UI 误以为保存成功；App Shell 在 GRDB repository 创建失败时 fallback 到 `InMemoryLearningContentRepository(seedEntries: [])`，这与真实主路径不得回退到内存 repository 的完成口径冲突。另有合理实现偏差：真实 OpenRouter 测试后保留 fenced JSON 容错，文档已从“拒绝 code fence”调整为“Prompt 禁止，但解析层可剥离顶层 code fence 后继续严格 schema 校验”。
+- 2026-05-23：架构取舍复核后按“方案为主，吸收合理容错”完成收口：`LearningMaterialGenerationActions` 增加 `recordBlockedOperation` 与带 entry/material/kind/bucket 上下文的 `cancelOperation`；`LearningContentStore` 支持取消运行中 operation 并丢弃 late result；iPhone 生成中状态复用主动作提供取消入口；`GRDBLearningContentRepository` 增加 `saveGeneratedMaterial(... operationSummary:)` 与 `replaceAnalysis(... operationSummary:)`，保证成功 material / analysis / operation summary 同事务；Store 层 `contentEmpty` / `contentTooLong` / `operationInProgress` preflight 阻断会写本地 failed operation summary；`GRDBLearningContentRepositoryBridge.createEntry` 不再返回 `unsaved-*`，持久化失败向上抛出；App Shell 创建 GRDB bridge 失败时使用显式 unavailable repository，不再 fallback 到内存 repository。fenced JSON 容错继续保留。
 
 ## 16. 完成标准
 
@@ -1645,18 +1660,3 @@ git status --short
 
 - 实现时不得为了“仅 iOS”而把 repository、Prompt、Provider request、operation、LearningMaterial DTO 或持久化 schema 写成 iOS-only。
 - 页面清单和实施记录必须清楚标记：本任务完成后，真实学习材料生成 UI 首先仅 iOS 可用；iPad / macOS 仍处于后续接入状态。
-
-### 18.11 2026-05-23 全面检查收口补充
-
-本轮全面代码和文档检查发现并修复以下问题：
-
-- OpenAI Responses adapter 已补充 strict JSON Schema request format，避免 Responses 路径退回普通文本生成。
-- 生产 JSON Schema 中 revision、memory candidate 和 practice candidate 的枚举已与 Prompt 文档、Core 模型和 GRDB CHECK 约束对齐，避免通过 fallback 静默改变 AI 输出语义。
-- 重新分析失败后，Core / UI 状态会保留当前 material id 和 stale retry context；iPhone learning text 编辑区会显示重新分析中或重新分析失败状态，用户可以继续重试。
-
-补充验证：
-
-- `swift test --package-path Packages/LangoTraceCore`
-- `swift test --package-path Packages/LangoTraceAI`
-- `swift test --package-path Packages/LangoTraceUI`
-- `scripts/verify.sh`

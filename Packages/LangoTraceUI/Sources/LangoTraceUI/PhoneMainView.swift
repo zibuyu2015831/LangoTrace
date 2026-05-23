@@ -92,6 +92,11 @@ struct PhoneMainView: View {
                                     )
                                 }
                             },
+                            onCancelLearningMaterialGeneration: {
+                                Task {
+                                    await contentStore.cancelLearningMaterialGeneration(for: entry)
+                                }
+                            },
                             onUpdateLearningText: { materialID, learningText in
                                 Task {
                                     await contentStore.updateLearningText(
@@ -155,17 +160,17 @@ struct PhoneMainView: View {
                 switch sheet {
                 case .entryEditor:
                     EntryEditorView(languageSpace: languageSpace) { title, body in
-                        let entry = contentStore.createEntry(
+                        guard let entry = try? contentStore.createEntry(
                             title: title,
                             body: body,
                             source: .typedText
-                        )
+                        ) else { return }
                         presentedSheet = nil
                         navigationPath.append(.entryDetail(entry.id))
                     }
                 case .photoWritingPreview:
                     PhotoWritingPreviewView(languageSpace: languageSpace) {
-                        let entry = contentStore.createMockPhotoWritingEntry()
+                        guard let entry = try? contentStore.createMockPhotoWritingEntry() else { return }
                         presentedSheet = nil
                         navigationPath.append(.entryDetail(entry.id))
                     } onDismiss: {

@@ -14,10 +14,10 @@ func seededRepositoryExposesEntriesForActiveSpace() {
 }
 
 @Test("Creating an entry stores it without generated learning material")
-func creatingEntryStoresItWithoutGeneratedLearningMaterial() {
+func creatingEntryStoresItWithoutGeneratedLearningMaterial() throws {
     let repository = InMemoryLearningContentRepository(seedEntries: [])
 
-    let entry = repository.createEntry(
+    let entry = try repository.createEntry(
         spaceID: "en",
         title: "晚饭散步",
         body: "晚饭后我绕着小区走了一圈。",
@@ -136,10 +136,10 @@ func practiceSessionIsUnavailableWithoutRendering() {
 }
 
 @Test("Created entries receive local preview only after explicit generation")
-func createdEntriesReceiveLocalPreviewOnlyAfterExplicitGeneration() {
+func createdEntriesReceiveLocalPreviewOnlyAfterExplicitGeneration() throws {
     let repository = InMemoryLearningContentRepository(seedEntries: [])
 
-    let entry = repository.createEntry(
+    let entry = try repository.createEntry(
         spaceID: "en",
         title: "晚饭散步",
         body: "晚饭后我绕着小区走了一圈。",
@@ -161,10 +161,10 @@ func createdEntriesReceiveLocalPreviewOnlyAfterExplicitGeneration() {
 }
 
 @Test("Mock photo writing creates complete local learning material")
-func mockPhotoWritingCreatesCompleteLocalLearningMaterial() {
+func mockPhotoWritingCreatesCompleteLocalLearningMaterial() throws {
     let repository = InMemoryLearningContentRepository(seedEntries: [])
 
-    let entry = repository.createMockPhotoWritingEntry(spaceID: "en")
+    let entry = try repository.createMockPhotoWritingEntry(spaceID: "en")
     let rendering = repository.rendering(for: entry.id)
     let practiceItems = repository.practiceItems(for: entry.id)
 

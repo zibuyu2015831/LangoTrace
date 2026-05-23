@@ -104,7 +104,7 @@ struct SentencePairView: View {
     let index: Int
     let sentence: RenderingSentence
     let onPractice: () -> Void
-    @State private var isListeningPreviewPresented = false
+    @State private var isLocalPlaybackActive = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -117,19 +117,14 @@ struct SentencePairView: View {
                     .clipShape(Circle())
                 Spacer(minLength: 12)
                 SentencePairActionRow(
-                    onListen: { isListeningPreviewPresented = true },
+                    isListening: isLocalPlaybackActive,
+                    onListen: { isLocalPlaybackActive.toggle() },
                     onPractice: onPractice
                 )
             }
             sentenceContent
         }
         .langoPanel(padding: 14)
-        .sheet(isPresented: $isListeningPreviewPresented) {
-            LocalListeningPreviewView(sentence: sentence) {
-                isListeningPreviewPresented = false
-            }
-            .presentationDetents([.medium, .large])
-        }
     }
 
     private var sentenceContent: some View {

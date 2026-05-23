@@ -24,7 +24,7 @@ Prompt id：
 输出契约：
 
 - 必须只返回一个 JSON object。
-- 不允许 Markdown、代码围栏、自然语言前后缀或注释。
+- Prompt 不允许 Markdown、代码围栏、自然语言前后缀或注释；生产解析层可以为兼容 OpenAI-compatible Provider 的实际行为剥离包裹整个 JSON object 的常见 Markdown code fence，剥离后仍必须按同一 schema 严格校验。
 - `schema_version` 必须是 `learning_material.v1`。
 - 生成 Prompt 必须返回 `learning_text`、`input_kind`、`revision_notes` 和 `analysis`。
 - 重新分析 Prompt 只返回 `analysis`，不得返回新的学习文本。
@@ -40,7 +40,7 @@ Prompt id：
 - 如果某个 adapter 不支持原生 JSON Schema response format，`LearningMaterialGenerationService` 必须把对应 schema 作为 `response_json_schema` 附加到请求上下文，并在 user prompt 中明确“Use the attached response_json_schema exactly”。
 - 不允许只发送 `Return JSON only`、`只返回 JSON` 或自然语言字段说明作为完成口径。
 - 解析层必须用同一份 schema 或等价 Codable validator 执行字段级校验，覆盖必填字段、`additionalProperties`、枚举、数组数量、字符串空值和长度上限。
-- 如果 Provider 返回 Markdown code fence、自然语言前后缀、额外字段、缺字段、非法枚举或数组超限，应归类为 `invalidStructuredResponse`，不得把半成品结果写入 Data 层。
+- 如果 Provider 返回自然语言前后缀、额外字段、缺字段、非法枚举或数组超限，应归类为 `invalidStructuredResponse`，不得把半成品结果写入 Data 层。只有包裹整个 JSON object 的常见 Markdown code fence 可以被解析层剥离后继续校验。
 - 代码中的 Prompt template、Provider-native schema 和本文档 schema 必须保持同版本一致；修改任一字段时必须同步更新本文档、AI 解析测试和 Data 映射测试。
 
 是否包含用户原文：是。`source_text` 或 `current_learning_text` 会发送给 Provider。

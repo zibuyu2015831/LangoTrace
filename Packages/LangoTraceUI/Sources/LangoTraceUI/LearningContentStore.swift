@@ -9,6 +9,7 @@ final class LearningContentStore: ObservableObject {
     private let spaceID: String
     private let generationActions: LearningMaterialGenerationActions
     private var generatedRenderingsByEntryID: [String: LearningRendering] = [:]
+    private var runningOperationsByEntryID: [String: RunningLearningMaterialOperation] = [:]
 
     @Published private(set) var entries: [LearningEntry] = []
     @Published private(set) var selectedEntry: LearningEntry?
@@ -42,8 +43,8 @@ final class LearningContentStore: ObservableObject {
     }
 
     @discardableResult
-    func createEntry(title: String, body: String, source: EntrySource) -> LearningEntry {
-        let entry = repository.createEntry(
+    func createEntry(title: String, body: String, source: EntrySource) throws -> LearningEntry {
+        let entry = try repository.createEntry(
             spaceID: spaceID,
             title: title,
             body: body,
@@ -54,8 +55,8 @@ final class LearningContentStore: ObservableObject {
     }
 
     @discardableResult
-    func createMockPhotoWritingEntry() -> LearningEntry {
-        let entry = repository.createMockPhotoWritingEntry(spaceID: spaceID)
+    func createMockPhotoWritingEntry() throws -> LearningEntry {
+        let entry = try repository.createMockPhotoWritingEntry(spaceID: spaceID)
         reload()
         return entry
     }
@@ -122,20 +123,29 @@ final class LearningContentStore: ObservableObject {
         }
         guard generationState(for: entry).canStartGeneration else {
             generationStates[entry.id] = .blocked(.operationInProgress)
+            await recordBlockedOperation(for: entry.id, kind: .generate, category: .operationInProgress, bucket: .short)
             return
         }
         let sourceText = entry.body.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !sourceText.isEmpty else {
             generationStates[entry.id] = .blocked(.contentEmpty)
+            await recordBlockedOperation(for: entry.id, kind: .generate, category: .contentEmpty, bucket: .short)
             return
         }
         let lengthBucket = LearningMaterialLengthEstimator.bucket(for: sourceText)
         guard lengthBucket != .tooLong else {
             generationStates[entry.id] = .blocked(.contentTooLong)
+            await recordBlockedOperation(for: entry.id, kind: .generate, category: .contentTooLong, bucket: lengthBucket)
             return
         }
 
         let operationID = generationActions.operationIDGenerator()
+        runningOperationsByEntryID[entry.id] = RunningLearningMaterialOperation(
+            operationID: operationID,
+            materialID: nil,
+            kind: .generate,
+            bucket: lengthBucket
+        )
         generationStates[entry.id] = .generating(operationID: operationID)
         let input = LearningMaterialGenerationInput(
             entryID: entry.id,
@@ -149,6 +159,10 @@ final class LearningContentStore: ObservableObject {
         )
 
         let result = await generationActions.generateMaterial(input, operationID, lengthBucket)
+        guard generationState(for: entry).operationID == operationID else {
+            return
+        }
+        runningOperationsByEntryID[entry.id] = nil
         switch result {
         case let .generated(material):
             generatedRenderingsByEntryID[entry.id] = Self.rendering(from: material)
@@ -194,19 +208,28 @@ final class LearningContentStore: ObservableObject {
         }
         guard generationState(for: entry).canStartGeneration else {
             generationStates[entry.id] = .blocked(.operationInProgress)
+            await recordBlockedOperation(for: entry.id, kind: .analyze, category: .operationInProgress, bucket: .short)
             return
         }
         let learningText = rendering.targetText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !learningText.isEmpty else {
             generationStates[entry.id] = .blocked(.contentEmpty)
+            await recordBlockedOperation(for: entry.id, kind: .analyze, category: .contentEmpty, bucket: .short)
             return
         }
         let lengthBucket = LearningMaterialLengthEstimator.bucket(for: learningText)
         guard lengthBucket != .tooLong else {
             generationStates[entry.id] = .blocked(.contentTooLong)
+            await recordBlockedOperation(for: entry.id, kind: .analyze, category: .contentTooLong, bucket: lengthBucket)
             return
         }
         let operationID = generationActions.operationIDGenerator()
+        runningOperationsByEntryID[entry.id] = RunningLearningMaterialOperation(
+            operationID: operationID,
+            materialID: rendering.id,
+            kind: .analyze,
+            bucket: lengthBucket
+        )
         generationStates[entry.id] = .analyzing(materialID: rendering.id, operationID: operationID)
         let input = LearningMaterialAnalysisInput(
             materialID: rendering.id,
@@ -216,6 +239,10 @@ final class LearningContentStore: ObservableObject {
             proficiencyLevelCode: languageSpace.level.rawValue.lowercased()
         )
         let result = await generationActions.analyzeCurrentText(input, operationID, lengthBucket)
+        guard generationState(for: entry).operationID == operationID else {
+            return
+        }
+        runningOperationsByEntryID[entry.id] = nil
         switch result {
         case let .generated(material):
             generatedRenderingsByEntryID[entry.id] = Self.rendering(from: material)
@@ -233,6 +260,23 @@ final class LearningContentStore: ObservableObject {
         }
     }
 
+    func cancelLearningMaterialGeneration(for entry: LearningEntry) async {
+        guard entry.spaceID == spaceID,
+              let running = runningOperationsByEntryID[entry.id]
+        else {
+            return
+        }
+        runningOperationsByEntryID[entry.id] = nil
+        generationStates[entry.id] = .cancelled(materialID: running.materialID)
+        await generationActions.cancelOperation(
+            running.operationID,
+            entry.id,
+            running.materialID,
+            running.kind,
+            running.bucket
+        )
+    }
+
     func entry(id: String) -> LearningEntry? {
         entries.first { $0.id == id }
     }
@@ -246,6 +290,21 @@ final class LearningContentStore: ObservableObject {
         selectedEntry = repository.selectedEntry(for: spaceID)
         memoryItems = repository.memoryItems(for: spaceID)
         settingsCapabilities = repository.settingsCapabilities(for: spaceID)
+    }
+
+    private func recordBlockedOperation(
+        for entryID: String,
+        kind: LearningMaterialOperationKind,
+        category: LearningMaterialGenerationFailureCategory,
+        bucket: LearningMaterialEstimatedTokenBucket
+    ) async {
+        await generationActions.recordBlockedOperation(
+            generationActions.operationIDGenerator(),
+            entryID,
+            kind,
+            category,
+            bucket
+        )
     }
 
     private func state(for material: LearningMaterial) -> LearningMaterialGenerationState {
@@ -277,4 +336,11 @@ final class LearningContentStore: ObservableObject {
             }
         )
     }
+}
+
+private struct RunningLearningMaterialOperation {
+    var operationID: DiagnosticOperationID
+    var materialID: String?
+    var kind: LearningMaterialOperationKind
+    var bucket: LearningMaterialEstimatedTokenBucket
 }

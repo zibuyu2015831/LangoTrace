@@ -1,14 +1,15 @@
 import SwiftUI
 
 struct SentencePairActionRow: View {
+    let isListening: Bool
     let onListen: () -> Void
     let onPractice: () -> Void
 
     var body: some View {
         HStack(spacing: 8) {
             SentencePairActionButton(
-                titleKey: "common.listen",
-                systemImage: "speaker.wave.2",
+                titleKey: isListening ? "common.pause" : "common.listen",
+                systemImage: isListening ? "pause.fill" : "speaker.wave.2",
                 isPrimary: false,
                 action: onListen
             )

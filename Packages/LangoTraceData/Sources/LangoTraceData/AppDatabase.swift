@@ -405,8 +405,8 @@ private extension AppDatabase {
           CHECK (failure_category IS NULL OR failure_category IN (
             'providerNotConfigured', 'credentialMissing', 'networkUnavailable',
             'timeout', 'providerRejected', 'unsupportedProvider', 'unsupportedModel',
-            'contentTooLong', 'invalidStructuredResponse', 'cancelled',
-            'persistenceFailed', 'unknown'
+            'contentEmpty', 'contentTooLong', 'operationInProgress',
+            'invalidStructuredResponse', 'cancelled', 'persistenceFailed', 'unknown'
           )),
           CHECK (input_kind IS NULL OR input_kind IN ('nativeRecord', 'targetWriting', 'mixed', 'uncertain')),
           CHECK (estimated_token_bucket IN ('short', 'medium', 'tooLong'))

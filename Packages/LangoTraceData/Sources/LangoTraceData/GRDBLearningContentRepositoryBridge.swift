@@ -33,28 +33,16 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
     }
 
     @discardableResult
-    public func createEntry(spaceID: String, title: String, body: String, source: EntrySource) -> LearningEntry {
+    public func createEntry(spaceID: String, title: String, body: String, source: EntrySource) throws -> LearningEntry {
         let draft = NewLearningEntryDraft(title: title, body: body, source: source, scene: "生活记录")
-        do {
-            let entry = try repository.createEntry(draft, in: spaceID)
-            selectedEntryIDs[spaceID] = entry.id
-            return entry
-        } catch {
-            return LearningEntry(
-                id: "unsaved-\(UUID().uuidString)",
-                spaceID: spaceID,
-                title: title.trimmingCharacters(in: .whitespacesAndNewlines),
-                body: body.trimmingCharacters(in: .whitespacesAndNewlines),
-                source: source,
-                scene: "生活记录",
-                createdAt: Date()
-            )
-        }
+        let entry = try repository.createEntry(draft, in: spaceID)
+        selectedEntryIDs[spaceID] = entry.id
+        return entry
     }
 
     @discardableResult
-    public func createMockPhotoWritingEntry(spaceID: String) -> LearningEntry {
-        createEntry(
+    public func createMockPhotoWritingEntry(spaceID: String) throws -> LearningEntry {
+        try createEntry(
             spaceID: spaceID,
             title: "窗边早餐",
             body: "早上在窗边吃早餐，阳光照在桌子上。我突然觉得今天可以慢一点开始。",

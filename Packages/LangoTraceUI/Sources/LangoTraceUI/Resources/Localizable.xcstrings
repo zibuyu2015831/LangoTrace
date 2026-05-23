@@ -495,6 +495,112 @@
         }
       }
     },
+    "entry.rendering.learningText.edit": {
+      "comment": "Button title for entering learning text edit mode.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "編集"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bearbeiten"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "편집"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Изменить"
+          }
+        }
+      }
+    },
+    "entry.rendering.learningText.editTitle": {
+      "comment": "Sheet title for editing generated learning text. First argument is the target language display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit %@ Expression"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改%@表达"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar expresión en %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@の表現を編集"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier l’expression en %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-Ausdruck bearbeiten"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 표현 수정"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Изменить выражение на %@"
+          }
+        }
+      }
+    },
     "common.save": {
       "comment": "Save button title.",
       "localizations": {
@@ -5160,6 +5266,23 @@
         }
       }
     },
+    "common.pause": {
+      "comment": "Short button title for pausing playback.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停"
+          }
+        }
+      }
+    },
     "common.newEntry": {
       "comment": "Button title for creating a new entry.",
       "localizations": {
@@ -5761,183 +5884,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opens listening details for this sentence."
+            "value": "Toggles local playback feedback for this sentence."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开这句话的听力说明。"
-          }
-        }
-      }
-    },
-    "listeningPreview.title": {
-      "comment": "Sentence listening preview sheet title.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Listen to This Sentence"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "听一句"
-          }
-        }
-      }
-    },
-    "listeningPreview.target.title": {
-      "comment": "Listening preview target sentence title.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Target sentence"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目标句"
-          }
-        }
-      }
-    },
-    "listeningPreview.translation.title": {
-      "comment": "Listening preview translation section title.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meaning"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "意思"
-          }
-        }
-      }
-    },
-    "listeningPreview.focus.title": {
-      "comment": "Listening preview focus section title.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Listen for"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "听力重点"
-          }
-        }
-      }
-    },
-    "listeningPreview.focus.body": {
-      "comment": "Listening preview focus section body. Placeholder is the sentence note.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@"
-          }
-        }
-      }
-    },
-    "listeningPreview.routine.title": {
-      "comment": "Listening preview practice routine title.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Practice flow"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "练习方式"
-          }
-        }
-      }
-    },
-    "listeningPreview.routine.body": {
-      "comment": "Listening preview practice routine body.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Listen once for meaning, read once with the rhythm, then repeat it from memory."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "先听意思，再跟着节奏读一遍，最后遮住原句复述。"
-          }
-        }
-      }
-    },
-    "listeningPreview.localBoundary": {
-      "comment": "Listening preview local boundary note.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This practice stays on this device and does not record your voice."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本次练习只在本机进行，不会录音。"
-          }
-        }
-      }
-    },
-    "listeningPreview.action.play": {
-      "comment": "Listening preview play action.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Play Example"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放示例"
-          }
-        }
-      }
-    },
-    "listeningPreview.action.pause": {
-      "comment": "Listening preview pause action.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pause"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂停"
+            "value": "切换这句话的本地播放反馈。"
           }
         }
       }

@@ -31,6 +31,7 @@
 - 删除语义：首版为 soft delete，active 查询、当前空间候选和同名提示排除 deleted 空间；真实 Entry、附件、导出和隐私删除仍需后续任务定义级联行为。
 - 学习内容：`entries` 采用 soft delete；`learning_materials` 支持 current material 唯一约束、学习文本编辑后的 analysis stale 状态、重新分析替换 analysis 和候选内容；memory / practice candidates 的 active 查询必须受 Entry 与 current material 删除状态约束。
 - Operation 摘要：`learning_material_operations` 采用单行 operation 摘要语义，同一 `operation_id` 只保留一行状态，记录 started / succeeded / failed / cancelled、Prompt id / version、Provider / model 非敏感元数据、长度分桶和失败分类，不记录原文、学习文本、Prompt 全文、请求体、响应体、API Key 或 Authorization header。
+- 本地 preflight 阻断也可以写入 failed operation 摘要，典型分类包括 `contentEmpty`、`contentTooLong` 和 `operationInProgress`；这些摘要不得暗示已经发送 Provider 请求。
 
 ## 4. 强制规则
 

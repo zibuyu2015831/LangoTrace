@@ -210,8 +210,8 @@ func learningMaterialGenerationServiceRejectsMissingAnalysisFields() async throw
     ])
     let service = LearningMaterialGenerationService(httpClient: httpClient)
 
-    await #expect(throws: LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)) {
-        try await service.generate(
+    do {
+        _ = try await service.generate(
             LearningMaterialServiceGenerationRequest(
                 endpoint: endpoint(adapterKind: .openAICompatibleChat),
                 plaintextSecret: "sk-test-secret",
@@ -220,6 +220,11 @@ func learningMaterialGenerationServiceRejectsMissingAnalysisFields() async throw
                 lengthBucket: .short
             )
         )
+        Issue.record("Expected invalid structured response error")
+    } catch let error as LearningMaterialGenerationServiceError {
+        #expect(error.category == .invalidStructuredResponse)
+    } catch {
+        Issue.record("Unexpected error: \(error)")
     }
 }
 

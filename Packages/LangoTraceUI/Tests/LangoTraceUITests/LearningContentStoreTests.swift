@@ -8,7 +8,7 @@ import Testing
 @MainActor
 struct LearningContentStoreTests {
     @Test("Store centralizes seed, selection, creation, and derived content reads")
-    func storeCentralizesRepositoryReadsAndMutations() {
+    func storeCentralizesRepositoryReadsAndMutations() throws {
         let repository = InMemoryLearningContentRepository(seedEntries: [])
         let store = LearningContentStore(repository: repository, spaceID: "en")
 
@@ -18,7 +18,7 @@ struct LearningContentStoreTests {
         #expect(originalEntries.count == 3)
         #expect(store.selectedEntry?.id == originalEntries.first?.id)
 
-        let created = store.createEntry(
+        let created = try store.createEntry(
             title: "Evening walk",
             body: "I walked after dinner.",
             source: .typedText
@@ -42,7 +42,7 @@ struct LearningContentStoreTests {
         #expect(store.settingsCapabilities.map(\.kind).contains(.importExport))
         #expect(!store.settingsCapabilities.map(\.kind.title).contains("export"))
 
-        let photoEntry = store.createMockPhotoWritingEntry()
+        let photoEntry = try store.createMockPhotoWritingEntry()
 
         #expect(store.entries.first?.id == photoEntry.id)
         #expect(photoEntry.source == .photoWriting)
@@ -75,7 +75,7 @@ struct LearningContentStoreTests {
     }
 
     @Test("Store runs learning material generation action and exposes generated rendering")
-    func storeRunsLearningMaterialGenerationAction() async {
+    func storeRunsLearningMaterialGenerationAction() async throws {
         let repository = InMemoryLearningContentRepository(seedEntries: [])
         let actions = LearningMaterialGenerationActions(
             generateMaterial: { input, operationID, _ in
@@ -84,7 +84,7 @@ struct LearningContentStoreTests {
             operationIDGenerator: { DiagnosticOperationID(rawValue: "operation-1") }
         )
         let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
-        let entry = store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
+        let entry = try store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
 
         await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
 
@@ -95,27 +95,72 @@ struct LearningContentStoreTests {
     }
 
     @Test("Store blocks overlong learning material generation before action")
-    func storeBlocksOverlongLearningMaterialGeneration() async {
+    func storeBlocksOverlongLearningMaterialGeneration() async throws {
         let actionCounter = LearningMaterialActionCallCounter()
+        let blockedRecorder = LearningMaterialBlockedOperationRecorder()
         let repository = InMemoryLearningContentRepository(seedEntries: [])
         let actions = LearningMaterialGenerationActions(
             generateMaterial: { _, _, _ in
                 await actionCounter.increment()
                 return .failed(.unknown)
-            }
+            },
+            recordBlockedOperation: { operationID, entryID, kind, category, bucket in
+                await blockedRecorder.record(operationID, entryID, kind, category, bucket)
+            },
+            operationIDGenerator: { DiagnosticOperationID(rawValue: "blocked-operation") }
         )
         let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
         let longText = String(repeating: "我", count: 3100)
-        let entry = store.createEntry(title: "Long", body: longText, source: .typedText)
+        let entry = try store.createEntry(title: "Long", body: longText, source: .typedText)
 
         await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
 
         #expect(store.generationState(for: entry) == .blocked(.contentTooLong))
         #expect(await actionCounter.value == 0)
+        #expect(await blockedRecorder.records == [
+            LearningMaterialBlockedOperationRecord(
+                operationID: DiagnosticOperationID(rawValue: "blocked-operation"),
+                entryID: entry.id,
+                kind: .generate,
+                category: .contentTooLong,
+                bucket: .tooLong
+            ),
+        ])
+    }
+
+    @Test("Store cancels running generation and discards late result")
+    func storeCancelsRunningGenerationAndDiscardsLateResult() async throws {
+        let gate = LearningMaterialGenerationGate()
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let actions = LearningMaterialGenerationActions(
+            generateMaterial: { input, operationID, _ in
+                await gate.waitUntilReleased()
+                return .generated(sampleLearningMaterial(entryID: input.entryID, operationID: operationID))
+            },
+            cancelOperation: { operationID, _, _, _, _ in
+                await gate.recordCancelled(operationID)
+            },
+            operationIDGenerator: { DiagnosticOperationID(rawValue: "operation-cancel") }
+        )
+        let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
+        let entry = try store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
+
+        let task = Task {
+            await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
+        }
+        await gate.waitUntilStarted()
+
+        await store.cancelLearningMaterialGeneration(for: entry)
+        await gate.release()
+        await task.value
+
+        #expect(store.generationState(for: entry) == LearningMaterialGenerationState.cancelled(materialID: nil))
+        #expect(store.rendering(for: entry) == nil)
+        #expect(await gate.cancelledOperations == [DiagnosticOperationID(rawValue: "operation-cancel")])
     }
 
     @Test("Store edits learning text as stale and refreshes analysis without regenerating text")
-    func storeEditsLearningTextAndRefreshesAnalysis() async {
+    func storeEditsLearningTextAndRefreshesAnalysis() async throws {
         let repository = InMemoryLearningContentRepository(seedEntries: [])
         let actions = LearningMaterialGenerationActions(
             generateMaterial: { input, operationID, _ in
@@ -141,7 +186,7 @@ struct LearningContentStoreTests {
             operationIDGenerator: { DiagnosticOperationID(rawValue: "operation-1") }
         )
         let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
-        let entry = store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
+        let entry = try store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
 
         await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
         await store.updateLearningText(
@@ -161,7 +206,7 @@ struct LearningContentStoreTests {
     }
 
     @Test("Store keeps stale material retry context when reanalysis fails")
-    func storeKeepsStaleMaterialRetryContextWhenReanalysisFails() async {
+    func storeKeepsStaleMaterialRetryContextWhenReanalysisFails() async throws {
         let repository = InMemoryLearningContentRepository(seedEntries: [])
         let actions = LearningMaterialGenerationActions(
             generateMaterial: { input, operationID, _ in
@@ -181,7 +226,7 @@ struct LearningContentStoreTests {
             operationIDGenerator: { DiagnosticOperationID(rawValue: "operation-1") }
         )
         let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
-        let entry = store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
+        let entry = try store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
 
         await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
         await store.updateLearningText(
@@ -219,6 +264,79 @@ private actor LearningMaterialActionCallCounter {
 
     func increment() {
         callCount += 1
+    }
+}
+
+private struct LearningMaterialBlockedOperationRecord: Equatable {
+    var operationID: DiagnosticOperationID
+    var entryID: String
+    var kind: LearningMaterialOperationKind
+    var category: LearningMaterialGenerationFailureCategory
+    var bucket: LearningMaterialEstimatedTokenBucket
+}
+
+private actor LearningMaterialBlockedOperationRecorder {
+    private var values: [LearningMaterialBlockedOperationRecord] = []
+
+    var records: [LearningMaterialBlockedOperationRecord] {
+        values
+    }
+
+    func record(
+        _ operationID: DiagnosticOperationID,
+        _ entryID: String,
+        _ kind: LearningMaterialOperationKind,
+        _ category: LearningMaterialGenerationFailureCategory,
+        _ bucket: LearningMaterialEstimatedTokenBucket
+    ) {
+        values.append(
+            LearningMaterialBlockedOperationRecord(
+                operationID: operationID,
+                entryID: entryID,
+                kind: kind,
+                category: category,
+                bucket: bucket
+            )
+        )
+    }
+}
+
+private actor LearningMaterialGenerationGate {
+    private var started = false
+    private var released = false
+    private var startContinuations: [CheckedContinuation<Void, Never>] = []
+    private var releaseContinuations: [CheckedContinuation<Void, Never>] = []
+    private var cancellations: [DiagnosticOperationID] = []
+
+    var cancelledOperations: [DiagnosticOperationID] {
+        cancellations
+    }
+
+    func waitUntilStarted() async {
+        if started { return }
+        await withCheckedContinuation { continuation in
+            startContinuations.append(continuation)
+        }
+    }
+
+    func waitUntilReleased() async {
+        started = true
+        startContinuations.forEach { $0.resume() }
+        startContinuations.removeAll()
+        if released { return }
+        await withCheckedContinuation { continuation in
+            releaseContinuations.append(continuation)
+        }
+    }
+
+    func release() {
+        released = true
+        releaseContinuations.forEach { $0.resume() }
+        releaseContinuations.removeAll()
+    }
+
+    func recordCancelled(_ operationID: DiagnosticOperationID) {
+        cancellations.append(operationID)
     }
 }
 

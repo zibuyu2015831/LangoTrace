@@ -97,29 +97,55 @@ struct PhoneIOSConvergenceTests {
         )
 
         #expect(supportingViews.contains("private struct LearningMaterialEditorView"))
-        #expect(supportingViews.contains("private var editorHeader: some View"))
-        #expect(supportingViews.contains("private var compactTextEditor: some View"))
-        #expect(supportingViews.contains(".frame(minHeight: 88, maxHeight: 132)"))
+        #expect(supportingViews.contains("private var readOnlyLearningText: some View"))
+        #expect(supportingViews.contains("private struct LearningMaterialEditorSheet"))
+        #expect(supportingViews.contains("private struct ReadOnlyEntryTextPanel: View"))
+        #expect(supportingViews.contains("ZStack(alignment: .topTrailing)"))
+        #expect(supportingViews.contains("targetLanguageName: languageSpace.targetLanguage"))
+        #expect(supportingViews.contains("let targetLanguageName: String"))
+        #expect(supportingViews.contains("@State private var isEditorPresented = false"))
+        #expect(supportingViews.contains(".sheet(isPresented: $isEditorPresented)"))
+        #expect(supportingViews.contains(".presentationDetents([.large])"))
+        #expect(supportingViews.contains("entry.rendering.learningText.edit"))
+        #expect(supportingViews.contains("entry.rendering.learningText.editTitle"))
+        #expect(supportingViews.contains(
+            "localizedString(\"entry.rendering.learningText.editTitle\", targetLanguageName)"
+        ))
+        #expect(supportingViews.contains("navigationTitle(sheetTitle)"))
         #expect(supportingViews.contains(".langoPanel(padding: 14)"))
+        #expect(supportingViews.contains("ReadOnlyEntryTextPanel(text: entry.body, emphasis: .secondary)"))
+        #expect(!supportingViews.contains("private var editingLearningText: some View"))
+        #expect(!supportingViews.contains("private var actionRow: some View"))
+        #expect(!supportingViews.contains("localizedText(\"entry.targetLanguage.title\")"))
+        #expect(!supportingViews.contains(
+            "TextPanel(title: localizedString(\"entry.nativeRecord.title\"), text: entry.body)"
+        ))
+        #expect(!supportingViews.contains(".frame(minHeight: 88, maxHeight: 132)"))
+        #expect(!supportingViews.contains(".overlay {\n                RoundedRectangle(cornerRadius: 8"))
         #expect(!supportingViews.contains(".frame(minHeight: 150)"))
     }
 
-    @Test("iPhone sentence listening uses local preview instead of development unavailable copy")
-    func iPhoneSentenceListeningUsesLocalPreviewInsteadOfDevelopmentUnavailableCopy() throws {
+    @Test("iPhone sentence listening stays inline instead of opening a sheet")
+    func iPhoneSentenceListeningStaysInlineInsteadOfOpeningSheet() throws {
         let components = try String(
             contentsOf: sourceFileURL(named: "LearningContentComponents.swift"),
             encoding: .utf8
         )
-        let localizations = try String(
-            contentsOf: sourceFileURL(named: "Resources/Localizable.xcstrings"),
+        let controls = try String(
+            contentsOf: sourceFileURL(named: "SentencePairActionControls.swift"),
             encoding: .utf8
         )
 
-        #expect(components.contains("LocalListeningPreviewView"))
+        #expect(components.contains("@State private var isLocalPlaybackActive = false"))
+        #expect(components.contains("isListening: isLocalPlaybackActive"))
+        #expect(components.contains("isLocalPlaybackActive.toggle()"))
+        #expect(!components.contains("LocalListeningPreviewView"))
+        #expect(!components.contains(".sheet(isPresented: $isListeningPreviewPresented)"))
+        #expect(!components.contains("isListeningPreviewPresented"))
+        #expect(controls.contains("let isListening: Bool"))
+        #expect(controls.contains("systemImage: isListening ? \"pause.fill\" : \"speaker.wave.2\""))
+        #expect(controls.contains("titleKey: isListening ? \"common.pause\" : \"common.listen\""))
         #expect(!components.contains("UnavailableCapabilityView(content: ." + "listenOne)"))
-        #expect(!components.contains("isListen" + "UnavailablePresented"))
-        #expect(!localizations.contains("听力播放" + "规划中"))
-        #expect(!localizations.contains("当前页面只展示" + "入口边界"))
     }
 
     @Test("iPhone sentence card keeps actions outside the reading column")

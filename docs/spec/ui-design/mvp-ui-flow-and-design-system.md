@@ -175,7 +175,7 @@ Token 落地顺序：
 
 - `LanguageSpaceSwitcher`：切换或展示当前语言空间；Mock 阶段可只展示，不写入数据。
 - `EntryTimelineRow`：展示 Entry 标题、类型、时间、练习状态和选中状态。
-- `SentencePairView`：展示母语句子、目标语言句子、播放、练习、收藏状态。
+- `SentencePairView`：展示母语句子、目标语言句子、播放、练习、收藏状态；逐句播放按钮必须使用原位反馈，不打开解释型 sheet。
 - `PracticeControlBar`：播放、暂停、速度、跟读、听写、回译入口。
 - `RequestPreviewCard`：展示将发送内容、不会发送内容、Provider 状态和确认动作。
 - `PromptPresetPicker`：选择生成目标语言、自然表达、逐句解释、写作检查等模式。
@@ -190,6 +190,7 @@ Token 落地顺序：
 - 触控设备交互目标不小于 44pt。
 - 不用颜色作为唯一状态表达。
 - 支持浅色和深色设计预留。
+- 高频学习操作应避免弹出说明型 sheet。逐句“听”在真实 TTS 接入前只表达本地播放 / 暂停视觉状态；真实生成、播放、失败和未配置提示需要等待 TTS Provider 配置测试与 Speech 服务边界完成后再接入。
 
 ### 5.4 状态矩阵和 action hierarchy
 

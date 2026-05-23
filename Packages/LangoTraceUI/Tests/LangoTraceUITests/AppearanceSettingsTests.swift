@@ -132,7 +132,6 @@ struct AppearanceSettingsTests {
             "SyncS3DraftView.swift",
             "SyncSettingsView.swift",
             "PracticeControlBar.swift",
-            "LocalListeningPreviewView.swift",
             "PadWorkspaceBar.swift",
             "MacEntryEditorSheet.swift",
         ]

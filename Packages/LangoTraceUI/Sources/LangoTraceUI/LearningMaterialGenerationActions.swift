@@ -21,6 +21,20 @@ public struct LearningMaterialGenerationActions: Sendable {
         DiagnosticOperationID,
         LearningMaterialEstimatedTokenBucket
     ) async -> LearningMaterialGenerationActionResult
+    public var recordBlockedOperation: @Sendable (
+        DiagnosticOperationID,
+        String,
+        LearningMaterialOperationKind,
+        LearningMaterialGenerationFailureCategory,
+        LearningMaterialEstimatedTokenBucket
+    ) async -> Void
+    public var cancelOperation: @Sendable (
+        DiagnosticOperationID,
+        String,
+        String?,
+        LearningMaterialOperationKind,
+        LearningMaterialEstimatedTokenBucket
+    ) async -> Void
     public var operationIDGenerator: @Sendable () -> DiagnosticOperationID
 
     public init(
@@ -38,6 +52,20 @@ public struct LearningMaterialGenerationActions: Sendable {
             DiagnosticOperationID,
             LearningMaterialEstimatedTokenBucket
         ) async -> LearningMaterialGenerationActionResult = { _, _, _ in .failed(.providerNotConfigured) },
+        recordBlockedOperation: @escaping @Sendable (
+            DiagnosticOperationID,
+            String,
+            LearningMaterialOperationKind,
+            LearningMaterialGenerationFailureCategory,
+            LearningMaterialEstimatedTokenBucket
+        ) async -> Void = { _, _, _, _, _ in },
+        cancelOperation: @escaping @Sendable (
+            DiagnosticOperationID,
+            String,
+            String?,
+            LearningMaterialOperationKind,
+            LearningMaterialEstimatedTokenBucket
+        ) async -> Void = { _, _, _, _, _ in },
         operationIDGenerator: @escaping @Sendable () -> DiagnosticOperationID = {
             DiagnosticOperationID(rawValue: UUID().uuidString)
         }
@@ -45,6 +73,8 @@ public struct LearningMaterialGenerationActions: Sendable {
         self.generateMaterial = generateMaterial
         self.updateLearningText = updateLearningText
         self.analyzeCurrentText = analyzeCurrentText
+        self.recordBlockedOperation = recordBlockedOperation
+        self.cancelOperation = cancelOperation
         self.operationIDGenerator = operationIDGenerator
     }
 

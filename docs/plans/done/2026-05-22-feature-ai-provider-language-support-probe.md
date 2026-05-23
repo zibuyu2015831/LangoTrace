@@ -1,6 +1,6 @@
 # AI Provider 语言支持合成测试方案
 
-状态：iOS / iPad / macOS Implementation Complete, Awaiting Final Verification
+状态：Verified
 类型：feature
 创建日期：2026-05-22
 最后更新日期：2026-05-22
@@ -752,6 +752,7 @@ scripts/verify.sh
 - 2026-05-22：iOS 人工测试复现 `语言支持` 显示 `响应异常`。诊断模式下最新事件显示 `text_reply`、`structured_json`、`image_understanding` 均成功，只有 `language_support` 失败；四次 Provider 请求均为 HTTP 200，持久 `synthetic_test` 摘要仍为成功，说明问题不是 Provider 连通性或认证，而是语言支持 smoke test 过窄。已按 TDD 放宽语言支持验收：Prompt 仍要求约 50 字/词，但本机接受 35-140 CJK/日/韩可见字符或 25-120 拉丁语系词；允许从常见 Markdown code fence 中提取 JSON，并忽略 `sample` 之外额外字段；仍拒绝短句、目标脚本不匹配和离线语言识别不匹配。诊断事件补充 capability scoped error category，例如 `language_support:invalid_response`，且不记录 `sample` 原文。验证：`swift test --package-path Packages/LangoTraceAI --filter AIProviderLanguageSupportValidatorTests` 先失败后通过；`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationProbeServiceTests` 通过。
 - 2026-05-22：修复后重新构建并安装 iPhone 17 模拟器，使用同一 OpenRouter `openai/gpt-4o` 配置复测，结果面板显示 `测试成功`，`语言支持` 显示 `可用`；诊断事件 `ai_provider_configuration.probe_succeeded` 中 `language_support=succeeded`，持久 `synthetic_test` 摘要为 `succeeded`。同时复查文档一致性，已同步 `docs/spec/005-ai-provider-prompt-and-privacy.md`、Prompt Registry 和本方案中的验收范围、code fence 容忍和额外字段边界。
 - 2026-05-22：用户完成 iOS 端测试并要求继续 iPad / macOS 对应功能。已按 TDD 将 `SettingsCapabilityDetailView` 的语言上下文注入从 iOS 条件分支提升为三端共享行为，iPad / macOS 工作台和 macOS 原生 Settings scene 继续复用同一 AI Provider 表单、同一 action seam 和同一结果面板宽度规则；不新增平台专属表单，不改变 Provider 保存、Keychain、网络、日志、Prompt 或持久验证摘要边界。验证：`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsLanguageSupportProbeTests` 先失败后通过；`swift test --package-path Packages/LangoTraceUI --filter AIProviderPlatformConsistencyTests` 通过。
+- 2026-05-23：归档前复核当前代码与测试，确认语言支持 probe 已按本任务完成三端共享入口、AI 层校验、Prompt Registry 和持久摘要隔离。验证：`swift test --package-path Packages/LangoTraceCore --filter AIProviderConfigurationProbeTests` 通过 4 项；`swift test --package-path Packages/LangoTraceAI --filter AIProviderLanguageSupportValidatorTests` 通过 7 项；`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationProbeServiceTests` 通过 18 项；`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationServiceTests` 通过 14 项；`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests` 通过 15 项；`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests` 通过 31 项；`git diff --check` 通过；文档占位扫描无命中；`scripts/verify.sh` 完整通过。
 
 ## 19. 完成标准
 

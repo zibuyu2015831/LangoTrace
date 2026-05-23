@@ -94,51 +94,73 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
 
     public func saveGeneratedMaterial(_ result: LearningMaterialGenerationResult, for entryID: String) throws -> LearningMaterial {
         try databaseQueue.write { db in
-            guard entryID == result.entryID else {
-                throw LearningContentRepositoryError.entryMismatch
-            }
-            guard let entry = try fetchActiveEntry(id: entryID, db: db) else {
-                throw LearningContentRepositoryError.entryNotFound
-            }
-            guard entry.spaceID == result.spaceID else {
-                throw LearningContentRepositoryError.spaceMismatch
-            }
+            try saveGeneratedMaterial(result, for: entryID, db: db)
+        }
+    }
 
-            let now = clock()
-            let materialID = idGenerator()
-            let analysis = analysisWithFreshHash(result.analysis, learningText: result.learningText)
-            try db.execute(
-                sql: "UPDATE learning_materials SET is_current = 0, updated_at = ? WHERE entry_id = ? AND deleted_at IS NULL",
-                arguments: [now.timeIntervalSince1970, entryID]
-            )
-            try insertMaterial(
-                id: materialID,
-                entryID: entryID,
-                spaceID: entry.spaceID,
-                inputKind: result.inputKind,
-                promptMode: result.promptMode,
-                learningText: result.learningText,
-                originalGeneratedText: result.learningText,
-                analysis: analysis,
-                metadata: result.metadata,
-                isCurrent: true,
-                now: now,
-                db: db
-            )
-            try replaceAnalysisRows(
-                analysis,
-                revisionSummary: result.revisionSummary,
-                materialID: materialID,
-                entryID: entryID,
-                spaceID: entry.spaceID,
-                now: now,
-                db: db
-            )
-            guard let material = try fetchMaterial(id: materialID, db: db) else {
-                throw LearningContentRepositoryError.materialNotFound
-            }
+    public func saveGeneratedMaterial(
+        _ result: LearningMaterialGenerationResult,
+        for entryID: String,
+        operationSummary: LearningMaterialOperationSummary
+    ) throws -> LearningMaterial {
+        try databaseQueue.write { db in
+            let material = try saveGeneratedMaterial(result, for: entryID, db: db)
+            var summary = operationSummary
+            summary.materialID = material.id
+            try recordOperation(summary, db: db)
             return material
         }
+    }
+
+    private func saveGeneratedMaterial(
+        _ result: LearningMaterialGenerationResult,
+        for entryID: String,
+        db: Database
+    ) throws -> LearningMaterial {
+        guard entryID == result.entryID else {
+            throw LearningContentRepositoryError.entryMismatch
+        }
+        guard let entry = try fetchActiveEntry(id: entryID, db: db) else {
+            throw LearningContentRepositoryError.entryNotFound
+        }
+        guard entry.spaceID == result.spaceID else {
+            throw LearningContentRepositoryError.spaceMismatch
+        }
+
+        let now = clock()
+        let materialID = idGenerator()
+        let analysis = analysisWithFreshHash(result.analysis, learningText: result.learningText)
+        try db.execute(
+            sql: "UPDATE learning_materials SET is_current = 0, updated_at = ? WHERE entry_id = ? AND deleted_at IS NULL",
+            arguments: [now.timeIntervalSince1970, entryID]
+        )
+        try insertMaterial(
+            id: materialID,
+            entryID: entryID,
+            spaceID: entry.spaceID,
+            inputKind: result.inputKind,
+            promptMode: result.promptMode,
+            learningText: result.learningText,
+            originalGeneratedText: result.learningText,
+            analysis: analysis,
+            metadata: result.metadata,
+            isCurrent: true,
+            now: now,
+            db: db
+        )
+        try replaceAnalysisRows(
+            analysis,
+            revisionSummary: result.revisionSummary,
+            materialID: materialID,
+            entryID: entryID,
+            spaceID: entry.spaceID,
+            now: now,
+            db: db
+        )
+        guard let material = try fetchMaterial(id: materialID, db: db) else {
+            throw LearningContentRepositoryError.materialNotFound
+        }
+        return material
     }
 
     public func updateLearningText(materialID: String, learningText: String) throws -> LearningMaterial {
@@ -172,69 +194,69 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
 
     public func replaceAnalysis(_ result: LearningMaterialAnalysisResult, materialID: String) throws -> LearningMaterial {
         try databaseQueue.write { db in
-            guard result.materialID == materialID,
-                  let material = try fetchMaterial(id: materialID, db: db),
-                  let entry = try fetchActiveEntry(id: material.entryID, db: db)
-            else {
-                throw LearningContentRepositoryError.materialNotFound
-            }
-            let now = clock()
-            let analysis = analysisWithFreshHash(result.analysis, learningText: material.learningText)
-            try deleteAnalysisRows(materialID: materialID, db: db)
-            try replaceAnalysisRows(
-                analysis,
-                revisionSummary: material.revisionSummary,
-                materialID: materialID,
-                entryID: entry.id,
-                spaceID: entry.spaceID,
-                now: now,
-                db: db
-            )
-            try db.execute(
-                sql: """
-                UPDATE learning_materials
-                SET analysis_status = ?, analysis_source_hash = ?, updated_at = ?
-                WHERE id = ?
-                """,
-                arguments: [
-                    LearningMaterialAnalysisStatus.fresh.rawValue,
-                    analysis.sourceTextHash,
-                    now.timeIntervalSince1970,
-                    materialID,
-                ]
-            )
-            guard let refreshed = try fetchMaterial(id: materialID, db: db) else {
-                throw LearningContentRepositoryError.materialNotFound
-            }
-            return refreshed
+            try replaceAnalysis(result, materialID: materialID, db: db)
         }
+    }
+
+    public func replaceAnalysis(
+        _ result: LearningMaterialAnalysisResult,
+        materialID: String,
+        operationSummary: LearningMaterialOperationSummary
+    ) throws -> LearningMaterial {
+        try databaseQueue.write { db in
+            let material = try replaceAnalysis(result, materialID: materialID, db: db)
+            var summary = operationSummary
+            summary.materialID = material.id
+            try recordOperation(summary, db: db)
+            return material
+        }
+    }
+
+    private func replaceAnalysis(
+        _ result: LearningMaterialAnalysisResult,
+        materialID: String,
+        db: Database
+    ) throws -> LearningMaterial {
+        guard result.materialID == materialID,
+              let material = try fetchMaterial(id: materialID, db: db),
+              let entry = try fetchActiveEntry(id: material.entryID, db: db)
+        else {
+            throw LearningContentRepositoryError.materialNotFound
+        }
+        let now = clock()
+        let analysis = analysisWithFreshHash(result.analysis, learningText: material.learningText)
+        try deleteAnalysisRows(materialID: materialID, db: db)
+        try replaceAnalysisRows(
+            analysis,
+            revisionSummary: material.revisionSummary,
+            materialID: materialID,
+            entryID: entry.id,
+            spaceID: entry.spaceID,
+            now: now,
+            db: db
+        )
+        try db.execute(
+            sql: """
+            UPDATE learning_materials
+            SET analysis_status = ?, analysis_source_hash = ?, updated_at = ?
+            WHERE id = ?
+            """,
+            arguments: [
+                LearningMaterialAnalysisStatus.fresh.rawValue,
+                analysis.sourceTextHash,
+                now.timeIntervalSince1970,
+                materialID,
+            ]
+        )
+        guard let refreshed = try fetchMaterial(id: materialID, db: db) else {
+            throw LearningContentRepositoryError.materialNotFound
+        }
+        return refreshed
     }
 
     public func recordOperation(_ summary: LearningMaterialOperationSummary) throws {
         try databaseQueue.write { db in
-            try db.execute(
-                sql: """
-                INSERT INTO learning_material_operations (
-                    id, operation_id, entry_id, material_id, operation_kind, status,
-                    failure_category, prompt_id, prompt_version, provider_profile_id,
-                    provider_endpoint_id, provider_preset_id, model_name, input_kind,
-                    estimated_token_bucket, duration_ms, created_at, completed_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(operation_id) DO UPDATE SET
-                    material_id = excluded.material_id,
-                    status = excluded.status,
-                    failure_category = excluded.failure_category,
-                    provider_profile_id = excluded.provider_profile_id,
-                    provider_endpoint_id = excluded.provider_endpoint_id,
-                    provider_preset_id = excluded.provider_preset_id,
-                    model_name = excluded.model_name,
-                    input_kind = excluded.input_kind,
-                    estimated_token_bucket = excluded.estimated_token_bucket,
-                    duration_ms = excluded.duration_ms,
-                    completed_at = excluded.completed_at
-                """,
-                arguments: operationArguments(summary)
-            )
+            try recordOperation(summary, db: db)
         }
     }
 
@@ -304,6 +326,32 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
 }
 
 private extension GRDBLearningContentRepository {
+    func recordOperation(_ summary: LearningMaterialOperationSummary, db: Database) throws {
+        try db.execute(
+            sql: """
+            INSERT INTO learning_material_operations (
+                id, operation_id, entry_id, material_id, operation_kind, status,
+                failure_category, prompt_id, prompt_version, provider_profile_id,
+                provider_endpoint_id, provider_preset_id, model_name, input_kind,
+                estimated_token_bucket, duration_ms, created_at, completed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(operation_id) DO UPDATE SET
+                material_id = excluded.material_id,
+                status = excluded.status,
+                failure_category = excluded.failure_category,
+                provider_profile_id = excluded.provider_profile_id,
+                provider_endpoint_id = excluded.provider_endpoint_id,
+                provider_preset_id = excluded.provider_preset_id,
+                model_name = excluded.model_name,
+                input_kind = excluded.input_kind,
+                estimated_token_bucket = excluded.estimated_token_bucket,
+                duration_ms = excluded.duration_ms,
+                completed_at = excluded.completed_at
+            """,
+            arguments: operationArguments(summary)
+        )
+    }
+
     func activeLanguageSpaceExists(_ id: String, db: Database) throws -> Bool {
         try Bool.fetchOne(
             db,
@@ -698,6 +746,7 @@ private extension GRDBLearningContentRepository {
 }
 
 public enum LearningContentRepositoryError: Error, Equatable, Sendable {
+    case databaseUnavailable
     case emptyEntryBody
     case emptyLearningText
     case languageSpaceNotFound

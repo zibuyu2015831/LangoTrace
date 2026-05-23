@@ -303,11 +303,11 @@ private extension MacMainView {
     }
 
     func saveEntry(title: String, body: String) {
-        let entry = contentStore.createEntry(
+        guard let entry = try? contentStore.createEntry(
             title: title,
             body: body,
             source: .typedText
-        )
+        ) else { return }
         selectedEntryID = entry.id
         selectedSection = .entries
         route = .entryDetail(entry.id)

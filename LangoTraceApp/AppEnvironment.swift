@@ -109,7 +109,7 @@ private func makeLearningContentRepository(
             repository: GRDBLearningContentRepository(database: databaseFactory.database())
         )
     } catch {
-        return InMemoryLearningContentRepository(seedEntries: [])
+        return UnavailableLearningContentRepository()
     }
 }
 
@@ -165,25 +165,26 @@ private func makeLearningMaterialGenerationActions(
                         lengthBucket: bucket
                     )
                 )
-                let material = try learningRepository.saveGeneratedMaterial(result, for: input.entryID)
-                try learningRepository.recordOperation(
-                    LearningMaterialOperationSummary(
+                let material = try learningRepository.saveGeneratedMaterial(
+                    result,
+                    for: input.entryID,
+                    operationSummary: LearningMaterialOperationSummary(
                         operationID: operationID,
                         entryID: input.entryID,
-                        materialID: material.id,
+                        materialID: nil,
                         kind: .generate,
                         status: .succeeded,
                         failureCategory: nil,
-                        promptID: material.metadata.promptID,
-                        promptVersion: material.metadata.promptVersion,
-                        providerProfileID: material.metadata.providerProfileID,
-                        providerEndpointID: material.metadata.providerEndpointID,
-                        providerPresetID: material.metadata.providerPresetID,
-                        modelName: material.metadata.modelName,
-                        inputKind: material.inputKind,
+                        promptID: result.metadata.promptID,
+                        promptVersion: result.metadata.promptVersion,
+                        providerProfileID: result.metadata.providerProfileID,
+                        providerEndpointID: result.metadata.providerEndpointID,
+                        providerPresetID: result.metadata.providerPresetID,
+                        modelName: result.metadata.modelName,
+                        inputKind: result.inputKind,
                         estimatedTokenBucket: bucket,
                         durationMilliseconds: nil,
-                        createdAt: material.createdAt,
+                        createdAt: result.metadata.generatedAt,
                         completedAt: Date()
                     )
                 )
@@ -285,25 +286,26 @@ private func makeLearningMaterialGenerationActions(
                         lengthBucket: bucket
                     )
                 )
-                let material = try learningRepository.replaceAnalysis(result, materialID: input.materialID)
-                try learningRepository.recordOperation(
-                    LearningMaterialOperationSummary(
+                let material = try learningRepository.replaceAnalysis(
+                    result,
+                    materialID: input.materialID,
+                    operationSummary: LearningMaterialOperationSummary(
                         operationID: operationID,
-                        entryID: material.entryID,
-                        materialID: material.id,
+                        entryID: existingMaterial.entryID,
+                        materialID: existingMaterial.id,
                         kind: .analyze,
                         status: .succeeded,
                         failureCategory: nil,
                         promptID: LearningMaterialPromptRegistry.analysisPromptID,
                         promptVersion: LearningMaterialPromptRegistry.promptVersion,
-                        providerProfileID: material.metadata.providerProfileID,
-                        providerEndpointID: material.metadata.providerEndpointID,
-                        providerPresetID: material.metadata.providerPresetID,
-                        modelName: material.metadata.modelName,
-                        inputKind: material.inputKind,
+                        providerProfileID: existingMaterial.metadata.providerProfileID,
+                        providerEndpointID: existingMaterial.metadata.providerEndpointID,
+                        providerPresetID: existingMaterial.metadata.providerPresetID,
+                        modelName: existingMaterial.metadata.modelName,
+                        inputKind: existingMaterial.inputKind,
                         estimatedTokenBucket: bucket,
                         durationMilliseconds: nil,
-                        createdAt: material.updatedAt,
+                        createdAt: existingMaterial.updatedAt,
                         completedAt: Date()
                     )
                 )
@@ -346,6 +348,42 @@ private func makeLearningMaterialGenerationActions(
                 )
                 return .failed(.unknown)
             }
+        },
+        recordBlockedOperation: { operationID, entryID, kind, category, bucket in
+            do {
+                try GRDBLearningContentRepository(database: databaseFactory.database()).recordOperation(
+                    .failed(
+                        operationID: operationID,
+                        entryID: entryID,
+                        kind: kind,
+                        failureCategory: category,
+                        bucket: bucket,
+                        completedAt: Date(),
+                        promptID: kind == .analyze
+                            ? LearningMaterialPromptRegistry.analysisPromptID
+                            : LearningMaterialPromptRegistry.generationPromptID,
+                        promptVersion: LearningMaterialPromptRegistry.promptVersion
+                    )
+                )
+            } catch {}
+        },
+        cancelOperation: { operationID, entryID, materialID, kind, bucket in
+            do {
+                try GRDBLearningContentRepository(database: databaseFactory.database()).recordOperation(
+                    .cancelled(
+                        operationID: operationID,
+                        entryID: entryID,
+                        materialID: materialID,
+                        kind: kind,
+                        bucket: bucket,
+                        completedAt: Date(),
+                        promptID: kind == .analyze
+                            ? LearningMaterialPromptRegistry.analysisPromptID
+                            : LearningMaterialPromptRegistry.generationPromptID,
+                        promptVersion: LearningMaterialPromptRegistry.promptVersion
+                    )
+                )
+            } catch {}
         }
     )
 }

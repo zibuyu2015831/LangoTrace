@@ -170,7 +170,7 @@ Provider 配置页已经从真实级 mock 表单进入本地配置保存和配�
 - 一键学习材料生成不是 Provider 配置测试。它允许发送当前文本 Entry 或当前 learning text，前提是用户在记录详情主动点击 `生成学习材料` 或 `重新分析`。保存 Entry 的本机写入动作不得自动触发 AI 请求，也不得让用户误以为保存已经上传。
 - 一键学习材料生成第一版采用非阻断确认：不弹出请求预览确认 sheet，但按钮附近、生成中状态和结果元数据必须明确表达当前文本会发送给已配置的 AI Provider，结果由 AI 生成，并展示非敏感 Prompt / Provider / model 元数据。照片、音频、OCR、历史记忆、多条 Entry 上下文或附件摘要不得复用该低摩擦边界。
 - 学习材料 Prompt 必须由 `docs/prompts/learning-material/one-tap-learning-material.md` 和 `LearningMaterialPromptRegistry` 登记版本；修改 Prompt id、version、输入变量、schema version 或输出字段时，必须同步更新 Prompt Registry 文档、AI service 测试和 Data 映射测试。
-- 学习材料响应必须是结构化 JSON object。AI service 必须拒绝 Markdown code fence、自然语言前后缀、缺字段、非法枚举、数组超限或无法映射的结构，不得把半成品结果写入 Data 层。
+- 学习材料响应必须是结构化 JSON object。Prompt 和 Provider 原生 JSON Schema 均必须要求纯 JSON；AI service 解析层可以为兼容 OpenAI-compatible Provider 的实际行为剥离包裹整个 JSON object 的常见 Markdown code fence，但剥离后仍必须执行同一 JSON schema / 字段级校验。自然语言前后缀、缺字段、非法枚举、额外不允许字段、数组超限或无法映射的结构必须拒绝，不得把半成品结果写入 Data 层。
 - 学习材料请求和 operation 摘要只允许记录 operation id、Prompt id / version、Provider profile / endpoint / preset、model、长度分桶、input kind、失败分类、耗时和时间戳等非敏感元数据；不得记录用户原文、learning text、sentence / candidate 正文、完整 Prompt、请求体、响应体、API Key、Authorization header 或完整 Keychain account。
 - 语音生成和向量化可以出现在结果面板的分能力状态中，但当前阶段不得为这些能力发真实网络测试请求；应显示未启用、未配置或暂不支持测试。
 - iPhone、iPad 和 macOS Provider 设置页当前都通过共享 `SettingsCapabilityDetailView` 从当前语言空间传入目标语言 code 并展示 `语言支持` 分项。平台差异只允许体现在承载宽度、导航位置和 presentation 行为；不得为 iPad 或 macOS 复制平台专属 Provider 表单，也不得让任一平台绕过共享 action seam。
