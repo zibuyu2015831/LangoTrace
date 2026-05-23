@@ -83,8 +83,25 @@ struct PhoneIOSConvergenceTests {
         #expect(supportingViews.contains("TextEditor(text: $draftText)"))
         #expect(supportingViews.contains("entry.rendering.learningText.save"))
         #expect(supportingViews.contains("entry.rendering.learningText.reanalyze"))
+        #expect(supportingViews.contains("entry.rendering.learningText.analyzing"))
+        #expect(supportingViews.contains("entry.rendering.learningText.analysisFailed"))
         #expect(phoneMainView.contains("contentStore.updateLearningText"))
         #expect(phoneMainView.contains("contentStore.analyzeCurrentLearningText"))
+    }
+
+    @Test("iPhone detail uses compact learning material editor")
+    func iPhoneDetailUsesCompactLearningMaterialEditor() throws {
+        let supportingViews = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
+            encoding: .utf8
+        )
+
+        #expect(supportingViews.contains("private struct LearningMaterialEditorView"))
+        #expect(supportingViews.contains("private var editorHeader: some View"))
+        #expect(supportingViews.contains("private var compactTextEditor: some View"))
+        #expect(supportingViews.contains(".frame(minHeight: 88, maxHeight: 132)"))
+        #expect(supportingViews.contains(".langoPanel(padding: 14)"))
+        #expect(!supportingViews.contains(".frame(minHeight: 150)"))
     }
 
     @Test("iPhone sentence listening uses local preview instead of development unavailable copy")
@@ -103,6 +120,25 @@ struct PhoneIOSConvergenceTests {
         #expect(!components.contains("isListen" + "UnavailablePresented"))
         #expect(!localizations.contains("听力播放" + "规划中"))
         #expect(!localizations.contains("当前页面只展示" + "入口边界"))
+    }
+
+    @Test("iPhone sentence card keeps actions outside the reading column")
+    func iPhoneSentenceCardKeepsActionsOutsideReadingColumn() throws {
+        let components = try String(
+            contentsOf: sourceFileURL(named: "LearningContentComponents.swift"),
+            encoding: .utf8
+        )
+        let controls = try String(
+            contentsOf: sourceFileURL(named: "SentencePairActionControls.swift"),
+            encoding: .utf8
+        )
+
+        #expect(components.contains("SentencePairActionRow("))
+        #expect(controls.contains("SentencePairActionButton("))
+        #expect(controls.contains(".frame(minWidth: 44, minHeight: 44)"))
+        #expect(components.contains(".langoPanel(padding: 14)"))
+        #expect(components.contains(".font(.body.weight(.semibold))"))
+        #expect(!components.contains("Spacer()\n            HStack(spacing: 8)"))
     }
 
     private func sourceFileURL(named fileName: String) -> URL {

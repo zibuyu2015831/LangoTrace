@@ -206,36 +206,19 @@ private struct LearningMaterialEditorView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(titleKey: "entry.targetLanguage.title")
-            TextEditor(text: $draftText)
-                .frame(minHeight: 150)
-                .padding(10)
-                .background(LangoTraceDesign.ColorToken.surfaceRaised)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .accessibilityLabel(localizedText("entry.rendering.learningText.accessibilityLabel"))
-            HStack(spacing: 10) {
-                Button {
-                    onSave(draftText)
-                } label: {
-                    Label {
-                        localizedText("entry.rendering.learningText.save")
-                    } icon: {
-                        Image(systemName: "square.and.arrow.down")
-                    }
+        VStack(alignment: .leading, spacing: 10) {
+            editorHeader
+            compactTextEditor
+            if let statusMessage {
+                Label {
+                    localizedText(statusMessage.localizedKey)
+                        .font(.footnote)
+                        .foregroundStyle(statusMessage.color)
+                } icon: {
+                    Image(systemName: statusMessage.systemImage)
+                        .foregroundStyle(statusMessage.color)
                 }
-                .disabled(!canSave)
-
-                Button {
-                    onReanalyze()
-                } label: {
-                    Label {
-                        localizedText("entry.rendering.learningText.reanalyze")
-                    } icon: {
-                        Image(systemName: "text.magnifyingglass")
-                    }
-                }
-                .disabled(!generationState.analysisIsStale || generationState.isRunning)
+                .accessibilityElement(children: .combine)
             }
             if generationState.analysisIsStale {
                 localizedText("entry.rendering.learningText.stale")
@@ -243,16 +226,102 @@ private struct LearningMaterialEditorView: View {
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
             }
         }
-        .langoPanel()
+        .langoPanel(padding: 14)
         .onChange(of: rendering.targetText) {
             draftText = rendering.targetText
         }
+    }
+
+    private var editorHeader: some View {
+        HStack(alignment: .center, spacing: 12) {
+            localizedText("entry.targetLanguage.title")
+                .font(.headline)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+            Spacer(minLength: 8)
+            HStack(spacing: 8) {
+                Button {
+                    onSave(draftText)
+                } label: {
+                    Image(systemName: "square.and.arrow.down")
+                        .frame(minWidth: 36, minHeight: 36)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(saveActionColor)
+                .disabled(!canSave)
+                .accessibilityLabel(localizedText("entry.rendering.learningText.save"))
+
+                Button {
+                    onReanalyze()
+                } label: {
+                    Image(systemName: "text.magnifyingglass")
+                        .frame(minWidth: 36, minHeight: 36)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(reanalyzeActionColor)
+                .disabled(!canReanalyze)
+                .accessibilityLabel(localizedText("entry.rendering.learningText.reanalyze"))
+            }
+        }
+    }
+
+    private var compactTextEditor: some View {
+        TextEditor(text: $draftText)
+            .font(.body)
+            .lineSpacing(3)
+            .scrollContentBackground(.hidden)
+            .frame(minHeight: 88, maxHeight: 132)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(LangoTraceDesign.ColorToken.surfaceRaised.opacity(0.58))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(LangoTraceDesign.ColorToken.borderSubtle, lineWidth: 1)
+            }
+            .accessibilityLabel(localizedText("entry.rendering.learningText.accessibilityLabel"))
     }
 
     private var canSave: Bool {
         let trimmed = draftText.trimmingCharacters(in: .whitespacesAndNewlines)
         return !trimmed.isEmpty && trimmed != rendering.targetText && !generationState.isRunning
     }
+
+    private var canReanalyze: Bool {
+        generationState.analysisIsStale && !generationState.isRunning
+    }
+
+    private var saveActionColor: Color {
+        canSave ? LangoTraceDesign.ColorToken.accent : LangoTraceDesign.ColorToken.textSecondary
+    }
+
+    private var reanalyzeActionColor: Color {
+        canReanalyze ? LangoTraceDesign.ColorToken.accent : LangoTraceDesign.ColorToken.textSecondary
+    }
+
+    private var statusMessage: LearningMaterialEditorStatusMessage? {
+        switch generationState {
+        case .analyzing:
+            LearningMaterialEditorStatusMessage(
+                localizedKey: "entry.rendering.learningText.analyzing",
+                systemImage: "sparkles",
+                color: LangoTraceDesign.ColorToken.accent
+            )
+        case .failed:
+            LearningMaterialEditorStatusMessage(
+                localizedKey: "entry.rendering.learningText.analysisFailed",
+                systemImage: "exclamationmark.triangle",
+                color: LangoTraceDesign.ColorToken.stateError
+            )
+        default:
+            nil
+        }
+    }
+}
+
+private struct LearningMaterialEditorStatusMessage {
+    let localizedKey: String
+    let systemImage: String
+    let color: Color
 }
 
 struct PracticeSessionView: View {

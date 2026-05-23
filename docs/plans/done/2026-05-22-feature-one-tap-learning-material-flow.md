@@ -1645,3 +1645,18 @@ git status --short
 
 - 实现时不得为了“仅 iOS”而把 repository、Prompt、Provider request、operation、LearningMaterial DTO 或持久化 schema 写成 iOS-only。
 - 页面清单和实施记录必须清楚标记：本任务完成后，真实学习材料生成 UI 首先仅 iOS 可用；iPad / macOS 仍处于后续接入状态。
+
+### 18.11 2026-05-23 全面检查收口补充
+
+本轮全面代码和文档检查发现并修复以下问题：
+
+- OpenAI Responses adapter 已补充 strict JSON Schema request format，避免 Responses 路径退回普通文本生成。
+- 生产 JSON Schema 中 revision、memory candidate 和 practice candidate 的枚举已与 Prompt 文档、Core 模型和 GRDB CHECK 约束对齐，避免通过 fallback 静默改变 AI 输出语义。
+- 重新分析失败后，Core / UI 状态会保留当前 material id 和 stale retry context；iPhone learning text 编辑区会显示重新分析中或重新分析失败状态，用户可以继续重试。
+
+补充验证：
+
+- `swift test --package-path Packages/LangoTraceCore`
+- `swift test --package-path Packages/LangoTraceAI`
+- `swift test --package-path Packages/LangoTraceUI`
+- `scripts/verify.sh`

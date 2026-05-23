@@ -60,9 +60,62 @@ func learningMaterialGenerationServiceBuildsChatRequestAndParsesResponse() async
     #expect(requests[0].value(forHTTPHeaderField: "Authorization") == "Bearer sk-test-secret")
     #expect(requests[0].jsonBodyValue("response_format.type") == "json_schema")
     #expect(requests[0].jsonBodyValue("response_format.json_schema.name") == "learning_material_generation")
+    let revisionCategoryEnum = "response_format.json_schema.schema.properties.revision_notes.items"
+        + ".properties.category.enum"
+    let memoryKindEnum = "response_format.json_schema.schema.properties.analysis"
+        + ".properties.memory_candidates.items.properties.kind.enum"
+    let practiceKindEnum = "response_format.json_schema.schema.properties.analysis"
+        + ".properties.practice_candidates.items.properties.kind.enum"
+    #expect(requests[0].jsonBodyStringArray(revisionCategoryEnum) == [
+        "grammar",
+        "wordChoice",
+        "naturalness",
+        "clarity",
+        "tone",
+        "structure",
+    ])
+    #expect(requests[0].jsonBodyStringArray(memoryKindEnum) == [
+        "word",
+        "phrase",
+        "sentencePattern",
+        "grammarPoint",
+        "errorPattern",
+    ])
+    #expect(requests[0].jsonBodyStringArray(practiceKindEnum) == [
+        "listening",
+        "shadowing",
+        "dictation",
+        "backTranslation",
+    ])
     #expect(result.inputKind == .nativeRecord)
     #expect(result.learningText == "I went to a cafe today.")
     #expect(result.analysis.sentences.first?.targetSentence == "I went to a cafe today.")
+    #expect(result.analysis.memoryCandidates.first?.sentenceID == "sentence-0")
+    #expect(result.analysis.practiceCandidates.first?.sentenceID == "sentence-0")
+}
+
+@Test("Learning material generation service builds Responses request with strict JSON schema")
+func learningMaterialGenerationServiceBuildsResponsesRequestWithStrictJSONSchema() async throws {
+    let httpClient = try CapturingLearningMaterialHTTPClient(responses: [
+        .success(.init(statusCode: 200, body: responsesResponse(generationJSON(inputKind: "nativeRecord")))),
+    ])
+    let service = LearningMaterialGenerationService(httpClient: httpClient)
+
+    let result = try await service.generate(
+        LearningMaterialServiceGenerationRequest(
+            endpoint: endpoint(adapterKind: .openAIResponses),
+            plaintextSecret: "sk-test-secret",
+            input: sampleGenerationInput(sourceText: "今天我去咖啡馆。"),
+            operationID: DiagnosticOperationID(rawValue: "op-responses"),
+            lengthBucket: .short
+        )
+    )
+
+    let requests = await httpClient.requests
+    #expect(requests.count == 1)
+    #expect(requests[0].jsonBodyValue("text.format.type") == "json_schema")
+    #expect(requests[0].jsonBodyValue("text.format.name") == "learning_material_generation")
+    #expect(result.inputKind == .nativeRecord)
 }
 
 @Test("Learning material generation service accepts fenced JSON returned by chat providers")
@@ -187,161 +240,4 @@ func learningMaterialGenerationServiceRejectsUnsupportedAdaptersBeforeHTTP() asy
         )
     }
     #expect(await httpClient.requests.isEmpty)
-}
-
-private actor CapturingLearningMaterialHTTPClient: AIProviderProbeHTTPClient {
-    private(set) var requests: [URLRequest] = []
-    private var responses: [Result<AIProviderProbeHTTPResponse, Error>]
-
-    init(responses: [Result<AIProviderProbeHTTPResponse, Error>]) {
-        self.responses = responses
-    }
-
-    func send(_ request: URLRequest) async throws -> AIProviderProbeHTTPResponse {
-        requests.append(request)
-        guard !responses.isEmpty else {
-            throw AIProviderProbeHTTPClientError.transportUnavailable
-        }
-        let response = responses.removeFirst()
-        switch response {
-        case let .success(response):
-            return response
-        case let .failure(error):
-            throw error
-        }
-    }
-}
-
-private func sampleGenerationInput(sourceText: String) -> LearningMaterialGenerationInput {
-    LearningMaterialGenerationInput(
-        entryID: "entry-1",
-        spaceID: "space-1",
-        sourceText: sourceText,
-        entrySource: .typedText,
-        nativeLanguageCode: "zh-Hans",
-        targetLanguageCode: "en",
-        proficiencyLevelCode: "b1",
-        promptMode: .automaticLearningMaterial
-    )
-}
-
-private func endpoint(adapterKind: AIProviderAdapterKind) -> AIProviderEndpointInput {
-    AIProviderEndpointInput(
-        id: "endpoint-1",
-        profileID: "profile-1",
-        purpose: .textGeneration,
-        isEnabled: true,
-        providerPresetID: "openai",
-        adapterKind: adapterKind,
-        baseURL: "https://api.openai.com/v1",
-        modelName: "gpt-4.1-mini",
-        credentialID: "credential-1",
-        supportsImageInput: false,
-        imageInputEnabled: false,
-        requestTimeoutSeconds: 30
-    )
-}
-
-private func chatResponse(_ content: String) throws -> Data {
-    let object: [String: Any] = [
-        "choices": [
-            [
-                "message": [
-                    "content": content,
-                ],
-            ],
-        ],
-    ]
-    return try JSONSerialization.data(withJSONObject: object)
-}
-
-private func generationJSON(inputKind: String) -> String {
-    """
-    {
-      "schema_version": "learning_material.v1",
-      "input_kind": "\(inputKind)",
-      "learning_text": "I went to a cafe today.",
-      "revision_notes": [
-        {
-          "original_text": "I go cafe today.",
-          "revised_text": "I went to a cafe today.",
-          "reason_native": "用过去式 went，并补充冠词。",
-          "category": "grammar"
-        }
-      ],
-      "analysis": {
-        "sentences": [
-          {
-            "native_sentence": "我今天去了咖啡馆。",
-            "target_sentence": "I went to a cafe today.",
-            "literal_translation": "I went to cafe today.",
-            "natural_translation": "I went to a cafe today.",
-            "grammar_notes": ["went 是 go 的过去式。"],
-            "key_points": ["went to"]
-          }
-        ],
-        "memory_candidates": [
-          {
-            "kind": "phrase",
-            "text": "went to",
-            "explanation_native": "表示去了某处。",
-            "example_target": "I went to a cafe today.",
-            "example_native": "我今天去了咖啡馆。",
-            "difficulty": "easy"
-          }
-        ],
-        "practice_candidates": [
-          {
-            "kind": "backTranslation",
-            "title": "回译",
-            "prompt_text": "我今天去了咖啡馆。",
-            "answer_text": "I went to a cafe today."
-          }
-        ]
-      }
-    }
-    """
-}
-
-private func analysisJSON() -> String {
-    """
-    {
-      "schema_version": "learning_material.v1",
-      "analysis": {
-        "sentences": [
-          {
-            "native_sentence": "我今天去了咖啡馆。",
-            "target_sentence": "I went to a cafe today.",
-            "literal_translation": "I went to cafe today.",
-            "natural_translation": "I went to a cafe today.",
-            "grammar_notes": ["went 是 go 的过去式。"],
-            "key_points": ["went to"]
-          }
-        ],
-        "memory_candidates": [],
-        "practice_candidates": []
-      }
-    }
-    """
-}
-
-private extension URLRequest {
-    var httpBodyText: String? {
-        httpBody.map { String(decoding: $0, as: UTF8.self) }
-    }
-
-    func jsonBodyValue(_ dottedPath: String) -> String? {
-        guard let httpBody,
-              let object = try? JSONSerialization.jsonObject(with: httpBody) as? [String: Any]
-        else {
-            return nil
-        }
-        let value = dottedPath.split(separator: ".").reduce(Any?(object)) { partial, key in
-            guard let dictionary = partial as? [String: Any] else {
-                return nil
-            }
-            return dictionary[String(key)]
-        }
-        return value as? String
-    }
 }

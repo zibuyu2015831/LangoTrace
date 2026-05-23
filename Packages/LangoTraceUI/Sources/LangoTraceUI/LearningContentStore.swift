@@ -174,7 +174,11 @@ final class LearningContentStore: ObservableObject {
             reload()
         case let .failed(category):
             generationStates[entryID] = .failed(
-                LearningMaterialGenerationFailureDisplay(category: category)
+                LearningMaterialGenerationFailureDisplay(
+                    category: category,
+                    materialID: materialID,
+                    analysisIsStale: generationState(for: entryID).analysisIsStale
+                )
             )
         }
     }
@@ -219,7 +223,12 @@ final class LearningContentStore: ObservableObject {
             reload()
         case let .failed(category):
             generationStates[entry.id] = .failed(
-                LearningMaterialGenerationFailureDisplay(category: category, operationID: operationID)
+                LearningMaterialGenerationFailureDisplay(
+                    category: category,
+                    operationID: operationID,
+                    materialID: rendering.id,
+                    analysisIsStale: true
+                )
             )
         }
     }

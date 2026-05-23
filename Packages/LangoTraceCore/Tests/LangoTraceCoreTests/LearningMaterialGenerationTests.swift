@@ -69,6 +69,24 @@ func learningMaterialGenerationStateRepresentsEditingAndAnalysis() {
     #expect(analyzing.materialID == "material-1")
 }
 
+@Test("Learning material failure state can preserve editable material retry context")
+func learningMaterialFailureStatePreservesMaterialRetryContext() {
+    let failed = LearningMaterialGenerationState.failed(
+        LearningMaterialGenerationFailureDisplay(
+            category: .networkUnavailable,
+            operationID: DiagnosticOperationID(rawValue: "op-analyze"),
+            materialID: "material-1",
+            analysisIsStale: true
+        )
+    )
+
+    #expect(!failed.isRunning)
+    #expect(failed.canStartGeneration)
+    #expect(failed.operationID?.rawValue == "op-analyze")
+    #expect(failed.materialID == "material-1")
+    #expect(failed.analysisIsStale)
+}
+
 @Test("Entry source describes capture modality and not AI routing result")
 func entrySourceDoesNotImplyLearningMaterialInputKind() {
     #expect(EntrySource.typedText.rawValue == "typedText")

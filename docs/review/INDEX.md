@@ -59,7 +59,7 @@
 
 | 轮次 | 问题数 | 代码问题记录数 | 新会话可用抽样 |
 | --- | --- | --- | --- |
-| `2026-05-23-one-tap-learning-material-flow` | 5 个文档事实问题，已更新 learning content、AI 隐私、数据存储、页面清单、Prompt Registry 和产品主参考；完整 verify 与 iOS 人工验收已通过 | 2 个代码收口补丁：OpenAI-compatible Chat strict JSON Schema 请求体；fenced JSON 容错解析。后续项为 settings capability 拆分和 iPad/macOS 接入 | 通过：README 覆盖当前事实、iOS-only 范围、真实 Provider 人工测试、完整验证和剩余风险 |
+| `2026-05-23-one-tap-learning-material-flow` | 5 个文档事实问题，已更新 learning content、AI 隐私、数据存储、页面清单、Prompt Registry 和产品主参考；完整 verify 与 iOS 人工验收已通过 | 5 个代码收口补丁：OpenAI-compatible Chat strict JSON Schema 请求体；fenced JSON 容错解析；OpenAI Responses strict JSON Schema；生产 JSON Schema 枚举与 Prompt / Core / Data 对齐；重新分析失败保留 stale retry context。后续项为 settings capability 拆分和 iPad/macOS 接入 | 通过：README 覆盖当前事实、iOS-only 范围、真实 Provider 人工测试、完整验证和剩余风险 |
 | `2026-05-22-doc-system-ai-coding-quality-alignment` | 4 个文档事实 / 规范入口问题，已修正 iPhone 旧五 Tab 口径、测试闭环旧清单、Onboarding 持久化事实和 Apple 三端交互 / 可访问性规范入口 | 0 | 通过：README、产品主参考、页面清单、spec 入口、新增 010 规范和 testing 入口可共同指导 AI 后续开发三端 UI、可访问性和验证边界 |
 | `2026-05-22-ai-provider-language-support-probe` | 4 个文档事实 / 变更记录漂移问题，已修正 README 已完成能力、模块边界 AI 请求事实、UI action seam 边界和 iOS-only 记录 | 0 | 通过：README、架构快照、spec、Prompt Registry 和页面清单均可说明语言支持 probe 是用户触发的固定合成测试，不是真实学习内容请求 |
 | `2026-05-20-diagnostics-provider-save-feedback` | 6 个文档 / 架构事实问题，已修正 AI package 验证缺口、诊断日志隐私边界、Provider 保存诊断、SwiftUI / UI 操作反馈、模块边界快照和诊断 ring buffer 自动保留策略；剩余风险是用户可见诊断设置页、诊断包导出和真实 Provider 合成探测 | 2 个代码边界补丁：输入无效保存路径独立记录 `save_input_invalid`；`diagnostic_events` 写入后同事务应用数量 / 时间保留策略 | 通过：README 覆盖触发原因、当前事实、延期项、验证记录和剩余风险 |

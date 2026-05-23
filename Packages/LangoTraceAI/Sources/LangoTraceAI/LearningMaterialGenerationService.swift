@@ -172,6 +172,7 @@ private extension LearningMaterialGenerationService {
             body = [
                 "model": endpoint.modelName,
                 "temperature": 0.2,
+                "text": responsesTextFormat(for: prompt),
                 "input": [
                     ["role": "system", "content": prompt.system],
                     ["role": "user", "content": prompt.user],
@@ -199,16 +200,39 @@ private extension LearningMaterialGenerationService {
     func responseFormat(for prompt: LearningMaterialRenderedPrompt) -> [String: Any] {
         [
             "type": "json_schema",
-            "json_schema": [
-                "name": prompt.id == LearningMaterialPromptRegistry.analysisPromptID
-                    ? "learning_material_analysis"
-                    : "learning_material_generation",
+            "json_schema": jsonSchemaPayload(for: prompt),
+        ]
+    }
+
+    func responsesTextFormat(for prompt: LearningMaterialRenderedPrompt) -> [String: Any] {
+        [
+            "format": [
+                "type": "json_schema",
+                "name": jsonSchemaName(for: prompt),
                 "strict": true,
-                "schema": prompt.id == LearningMaterialPromptRegistry.analysisPromptID
-                    ? analysisResponseSchema()
-                    : generationResponseSchema(),
+                "schema": jsonSchema(for: prompt),
             ],
         ]
+    }
+
+    func jsonSchemaPayload(for prompt: LearningMaterialRenderedPrompt) -> [String: Any] {
+        [
+            "name": jsonSchemaName(for: prompt),
+            "strict": true,
+            "schema": jsonSchema(for: prompt),
+        ]
+    }
+
+    func jsonSchemaName(for prompt: LearningMaterialRenderedPrompt) -> String {
+        prompt.id == LearningMaterialPromptRegistry.analysisPromptID
+            ? "learning_material_analysis"
+            : "learning_material_generation"
+    }
+
+    func jsonSchema(for prompt: LearningMaterialRenderedPrompt) -> [String: Any] {
+        prompt.id == LearningMaterialPromptRegistry.analysisPromptID
+            ? analysisResponseSchema()
+            : generationResponseSchema()
     }
 
     func generationResponseSchema() -> [String: Any] {
@@ -248,8 +272,9 @@ private extension LearningMaterialGenerationService {
         [
             "type": "object",
             "additionalProperties": false,
-            "required": ["sentences", "memory_candidates", "practice_candidates"],
+            "required": ["analysis_basis", "sentences", "memory_candidates", "practice_candidates"],
             "properties": [
+                "analysis_basis": ["type": "string", "enum": ["learningText"]],
                 "sentences": [
                     "type": "array",
                     "items": sentenceSchema(),
@@ -271,16 +296,39 @@ private extension LearningMaterialGenerationService {
             "type": "object",
             "additionalProperties": false,
             "required": [
-                "native_sentence", "target_sentence", "literal_translation",
+                "position", "native_sentence", "target_sentence", "literal_translation",
                 "natural_translation", "grammar_notes", "key_points",
             ],
             "properties": [
+                "position": ["type": "integer"],
                 "native_sentence": ["type": "string"],
                 "target_sentence": ["type": "string"],
                 "literal_translation": ["type": "string"],
                 "natural_translation": ["type": "string"],
-                "grammar_notes": ["type": "array", "items": ["type": "string"]],
-                "key_points": ["type": "array", "items": ["type": "string"]],
+                "grammar_notes": [
+                    "type": "array",
+                    "items": [
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["point_native", "explanation_native"],
+                        "properties": [
+                            "point_native": ["type": "string"],
+                            "explanation_native": ["type": "string"],
+                        ],
+                    ],
+                ],
+                "key_points": [
+                    "type": "array",
+                    "items": [
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["text", "explanation_native"],
+                        "properties": [
+                            "text": ["type": "string"],
+                            "explanation_native": ["type": "string"],
+                        ],
+                    ],
+                ],
             ],
         ]
     }
@@ -294,7 +342,10 @@ private extension LearningMaterialGenerationService {
                 "original_text": ["type": "string"],
                 "revised_text": ["type": "string"],
                 "reason_native": ["type": "string"],
-                "category": ["type": "string", "enum": ["grammar", "vocabulary", "style", "clarity"]],
+                "category": [
+                    "type": "string",
+                    "enum": ["grammar", "wordChoice", "naturalness", "clarity", "tone", "structure"],
+                ],
             ],
         ]
     }
@@ -305,15 +356,19 @@ private extension LearningMaterialGenerationService {
             "additionalProperties": false,
             "required": [
                 "kind", "text", "explanation_native", "example_target",
-                "example_native", "difficulty",
+                "example_native", "difficulty", "sentence_position",
             ],
             "properties": [
-                "kind": ["type": "string", "enum": ["word", "phrase", "grammar", "expression"]],
+                "kind": [
+                    "type": "string",
+                    "enum": ["word", "phrase", "sentencePattern", "grammarPoint", "errorPattern"],
+                ],
                 "text": ["type": "string"],
                 "explanation_native": ["type": "string"],
                 "example_target": ["type": "string"],
                 "example_native": ["type": "string"],
                 "difficulty": ["type": "string", "enum": ["easy", "medium", "hard"]],
+                "sentence_position": ["type": ["integer", "null"]],
             ],
         ]
     }
@@ -322,12 +377,13 @@ private extension LearningMaterialGenerationService {
         [
             "type": "object",
             "additionalProperties": false,
-            "required": ["kind", "title", "prompt_text", "answer_text"],
+            "required": ["kind", "title_native", "prompt_text", "answer_text", "sentence_position"],
             "properties": [
-                "kind": ["type": "string", "enum": ["shadowing", "dictation", "backTranslation", "writing"]],
-                "title": ["type": "string"],
+                "kind": ["type": "string", "enum": ["listening", "shadowing", "dictation", "backTranslation"]],
+                "title_native": ["type": "string"],
                 "prompt_text": ["type": "string"],
                 "answer_text": ["type": "string"],
+                "sentence_position": ["type": ["integer", "null"]],
             ],
         ]
     }
@@ -456,7 +512,7 @@ private extension LearningMaterialGenerationService {
     }
 
     func materialAnalysis(from response: AnalysisResponse) throws -> LearningMaterialAnalysis {
-        guard !response.sentences.isEmpty else {
+        guard response.analysisBasis == "learningText", !response.sentences.isEmpty else {
             throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
         }
         return LearningMaterialAnalysis(
@@ -469,15 +525,15 @@ private extension LearningMaterialGenerationService {
                     targetSentence: sentence.targetSentence,
                     literalTranslation: sentence.literalTranslation,
                     naturalTranslation: sentence.naturalTranslation,
-                    grammarNotes: sentence.grammarNotes,
-                    keyPoints: sentence.keyPoints,
+                    grammarNotes: sentence.grammarNotes.map(\.displayText),
+                    keyPoints: sentence.keyPoints.map(\.displayText),
                     position: index
                 )
             },
             memoryCandidates: response.memoryCandidates.enumerated().map { index, candidate in
                 LearningMemoryCandidate(
                     id: "memory-\(index)",
-                    sentenceID: nil,
+                    sentenceID: sentenceID(for: candidate.sentencePosition, in: response.sentences),
                     kind: LearningMemoryCandidate.Kind(rawValue: candidate.kind) ?? .phrase,
                     text: candidate.text,
                     explanationNative: candidate.explanationNative,
@@ -489,14 +545,23 @@ private extension LearningMaterialGenerationService {
             practiceCandidates: response.practiceCandidates.enumerated().map { index, candidate in
                 LearningPracticeCandidate(
                     id: "practice-\(index)",
-                    sentenceID: nil,
+                    sentenceID: sentenceID(for: candidate.sentencePosition, in: response.sentences),
                     kind: LearningPracticeCandidate.Kind(rawValue: candidate.kind) ?? .backTranslation,
-                    title: candidate.title,
+                    title: candidate.titleNative,
                     promptText: candidate.promptText,
                     answerText: candidate.answerText
                 )
             }
         )
+    }
+
+    func sentenceID(for position: Int?, in sentences: [SentenceResponse]) -> String? {
+        guard let position,
+              let index = sentences.firstIndex(where: { $0.position == position })
+        else {
+            return nil
+        }
+        return "sentence-\(index)"
     }
 
     func serviceError(for error: AIProviderProbeHTTPClientError) -> LearningMaterialGenerationServiceError {
@@ -552,11 +617,13 @@ private struct RevisionResponse: Decodable {
 }
 
 private struct AnalysisResponse: Decodable {
+    var analysisBasis: String
     var sentences: [SentenceResponse]
     var memoryCandidates: [MemoryCandidateResponse]
     var practiceCandidates: [PracticeCandidateResponse]
 
     enum CodingKeys: String, CodingKey {
+        case analysisBasis = "analysis_basis"
         case sentences
         case memoryCandidates = "memory_candidates"
         case practiceCandidates = "practice_candidates"
@@ -564,20 +631,50 @@ private struct AnalysisResponse: Decodable {
 }
 
 private struct SentenceResponse: Decodable {
+    var position: Int
     var nativeSentence: String
     var targetSentence: String
     var literalTranslation: String
     var naturalTranslation: String
-    var grammarNotes: [String]
-    var keyPoints: [String]
+    var grammarNotes: [GrammarNoteResponse]
+    var keyPoints: [KeyPointResponse]
 
     enum CodingKeys: String, CodingKey {
+        case position
         case nativeSentence = "native_sentence"
         case targetSentence = "target_sentence"
         case literalTranslation = "literal_translation"
         case naturalTranslation = "natural_translation"
         case grammarNotes = "grammar_notes"
         case keyPoints = "key_points"
+    }
+}
+
+private struct GrammarNoteResponse: Decodable {
+    var pointNative: String
+    var explanationNative: String
+
+    var displayText: String {
+        "\(pointNative): \(explanationNative)"
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case pointNative = "point_native"
+        case explanationNative = "explanation_native"
+    }
+}
+
+private struct KeyPointResponse: Decodable {
+    var text: String
+    var explanationNative: String
+
+    var displayText: String {
+        "\(text): \(explanationNative)"
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case text
+        case explanationNative = "explanation_native"
     }
 }
 
@@ -588,6 +685,7 @@ private struct MemoryCandidateResponse: Decodable {
     var exampleTarget: String
     var exampleNative: String
     var difficulty: String
+    var sentencePosition: Int?
 
     enum CodingKeys: String, CodingKey {
         case kind
@@ -596,19 +694,22 @@ private struct MemoryCandidateResponse: Decodable {
         case exampleTarget = "example_target"
         case exampleNative = "example_native"
         case difficulty
+        case sentencePosition = "sentence_position"
     }
 }
 
 private struct PracticeCandidateResponse: Decodable {
     var kind: String
-    var title: String
+    var titleNative: String
     var promptText: String
     var answerText: String
+    var sentencePosition: Int?
 
     enum CodingKeys: String, CodingKey {
         case kind
-        case title
+        case titleNative = "title_native"
         case promptText = "prompt_text"
         case answerText = "answer_text"
+        case sentencePosition = "sentence_position"
     }
 }

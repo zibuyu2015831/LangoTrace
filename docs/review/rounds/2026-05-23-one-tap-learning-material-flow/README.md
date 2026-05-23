@@ -93,6 +93,8 @@
 完整自动验证：
 
 - 2026-05-23：`scripts/verify.sh` 通过，覆盖 XcodeGen、Core / Data / AI / UI package tests、iPhone 17 / iPad Pro 13-inch / macOS build、SwiftLint、SwiftFormat lint、docs placeholder scan 和 `git status --short`。SwiftLint 保留 86 条 warning-level 风格告警，退出码为 0。
+- 2026-05-23：后续全面代码检查发现 3 个收口问题并已修复：OpenAI Responses adapter 未绑定 strict JSON Schema；生产 JSON Schema 的 revision / memory / practice 枚举与 Core / Data / Prompt 文档不一致；`重新分析` 失败后丢失 stale retry context。聚焦验证已通过 `swift test --package-path Packages/LangoTraceCore`、`swift test --package-path Packages/LangoTraceAI`、`swift test --package-path Packages/LangoTraceUI`。
+- 2026-05-23：修复后重新运行 `scripts/verify.sh` 通过，覆盖 XcodeGen、Core / Data / AI / UI package tests、iPhone 17 / iPad Pro 13-inch / macOS build、SwiftLint、SwiftFormat lint、docs placeholder scan 和 `git status --short`。SwiftLint 保持 86 条 warning-level 既有告警，0 serious，退出码为 0。
 
 iOS 人工测试：
 
@@ -100,6 +102,6 @@ iOS 人工测试：
 
 ## 10. 剩余风险
 
-- 当前 Prompt 代码使用紧凑英文模板、strict JSON Schema 请求体和 Codable 校验；后续仍可继续收敛长版 Prompt 与跨 Provider schema 适配，但本轮 OpenAI-compatible Chat 已通过真实 Provider 人工测试。
+- 当前 Prompt 代码使用紧凑英文模板、Chat / Responses strict JSON Schema 请求体和 Codable 校验；后续仍可继续收敛长版 Prompt 与跨 Provider schema 适配，但本轮 OpenAI-compatible Chat 已通过真实 Provider 人工测试。
 - iOS 真实 Provider 人工测试依赖当前可用 API Key / Provider 配置；自动化测试仍使用 mock HTTP response，不能替代后续多 Provider 回归。
 - iPad / macOS 共享 `EntryDetailView` 但未接入真实生成 UI；后续平台接入必须复查大屏布局、状态展示和 AI 披露。

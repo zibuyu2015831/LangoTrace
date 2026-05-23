@@ -62,13 +62,19 @@ public enum LearningMaterialGenerationBlockReason: String, Codable, CaseIterable
 public struct LearningMaterialGenerationFailureDisplay: Equatable, Sendable {
     public var category: LearningMaterialGenerationFailureCategory
     public var operationID: DiagnosticOperationID?
+    public var materialID: String?
+    public var analysisIsStale: Bool
 
     public init(
         category: LearningMaterialGenerationFailureCategory,
-        operationID: DiagnosticOperationID? = nil
+        operationID: DiagnosticOperationID? = nil,
+        materialID: String? = nil,
+        analysisIsStale: Bool = false
     ) {
         self.category = category
         self.operationID = operationID
+        self.materialID = materialID
+        self.analysisIsStale = analysisIsStale
     }
 }
 
@@ -114,7 +120,9 @@ public enum LearningMaterialGenerationState: Equatable, Sendable {
             materialID
         case let .cancelled(materialID):
             materialID
-        case .idle, .generating, .failed, .blocked:
+        case let .failed(display):
+            display.materialID
+        case .idle, .generating, .blocked:
             nil
         }
     }
@@ -123,7 +131,9 @@ public enum LearningMaterialGenerationState: Equatable, Sendable {
         switch self {
         case let .editing(_, analysisIsStale):
             analysisIsStale
-        case .idle, .generating, .generated, .analyzing, .failed, .cancelled, .blocked:
+        case let .failed(display):
+            display.analysisIsStale
+        case .idle, .generating, .generated, .analyzing, .cancelled, .blocked:
             false
         }
     }

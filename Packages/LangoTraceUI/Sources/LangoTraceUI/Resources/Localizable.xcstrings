@@ -7638,6 +7638,40 @@
         }
       }
     },
+    "entry.rendering.learningText.analyzing": {
+      "comment": "Status copy shown while edited learning text is being analyzed.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanalyzing the current learning text."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在重新分析当前学习文本。"
+          }
+        }
+      }
+    },
+    "entry.rendering.learningText.analysisFailed": {
+      "comment": "Status copy shown when reanalysis of edited learning text fails.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanalysis failed. Check AI Provider settings, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新分析失败。检查 AI Provider 设置后可以重试。"
+          }
+        }
+      }
+    },
     "entryCard.openDetail.label": {
       "comment": "Entry card accessibility label.",
       "localizations": {

@@ -59,6 +59,7 @@ Prompt id：
 
 版本记录：
 
+- 2026-05-23：收口生产 JSON Schema 与本文档枚举 / 字段契约。原因：代码中的 Provider-native schema 曾使用 `vocabulary` / `style` / `expression` / `writing` 等不能原样映射到 Core / Data 枚举的值，并且 OpenAI Responses adapter 未绑定 strict JSON Schema。现已统一为 `wordChoice`、`naturalness`、`sentencePattern`、`grammarPoint`、`errorPattern`、`listening`、`backTranslation` 等当前契约值；Responses 和 Chat adapter 均传入 strict JSON Schema，解析层把结构化 grammar / key point 和 sentence position 映射为当前持久化模型。影响范围：LangoTraceAI、Core state、UI reanalysis state、AI tests。是否需要 ADR：否，属于实现与既有 Prompt Registry 契约对齐。
 - 2026-05-23：补充运行时 JSON Schema 绑定要求。原因：仅要求 `Return JSON only` 不能稳定约束深层字段、枚举、数组上限和额外字段；真实实现必须通过 Provider-native schema 或 fallback schema prompt 加解析校验来保证结构化输出质量。影响范围：LangoTraceAI、Prompt Registry、AI tests、Data mapping tests。是否需要 ADR：否，属于既有结构化输出规范的实施细化。
 - 2026-05-23：更新实现状态。原因：一键学习材料生成和重新分析已通过 `LearningMaterialPromptRegistry` / `LearningMaterialGenerationService` 接入生产代码，当前代码采用紧凑英文 Prompt 加 Codable 结构校验，完整 Prompt 设计仍由本文档维护。影响范围：LangoTraceAI、LangoTraceData、LangoTraceUI 和 App Shell。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-23：创建 v1 Prompt 设计。原因：一键生成学习材料方案确认采用完整 GRDB 持久化路径，需要同步明确真实 AI Prompt、结构化输出契约和隐私边界。影响范围：LangoTraceAI、LangoTraceData、LangoTraceUI、Prompt Registry 和 active plan。是否需要 ADR：否，沿用 ADR-005。

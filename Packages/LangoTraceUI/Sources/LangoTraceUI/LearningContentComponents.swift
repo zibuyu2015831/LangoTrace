@@ -107,47 +107,47 @@ struct SentencePairView: View {
     @State private var isListeningPreviewPresented = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            Text("\(index)")
-                .font(.headline)
-                .frame(width: 34, height: 34)
-                .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
-                .clipShape(Circle())
-            VStack(alignment: .leading, spacing: 6) {
-                Text(sentence.translation)
-                    .font(.callout)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                Text(sentence.targetText)
-                    .font(.headline)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 12) {
+                Text("\(index)")
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                Text(sentence.note)
-                    .font(.caption)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    .frame(width: 36, height: 36)
+                    .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
+                    .clipShape(Circle())
+                Spacer(minLength: 12)
+                SentencePairActionRow(
+                    onListen: { isListeningPreviewPresented = true },
+                    onPractice: onPractice
+                )
             }
-            Spacer()
-            HStack(spacing: 8) {
-                Button {
-                    isListeningPreviewPresented = true
-                } label: {
-                    localizedText("common.listen")
-                }
-                .buttonStyle(.bordered)
-                .accessibilityHint(localizedText("practice.listen.hint"))
-                Button(action: onPractice) {
-                    localizedText("common.practice")
-                        .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(LangoTraceDesign.ColorToken.primaryActionFill)
-            }
+            sentenceContent
         }
-        .langoPanel()
+        .langoPanel(padding: 14)
         .sheet(isPresented: $isListeningPreviewPresented) {
             LocalListeningPreviewView(sentence: sentence) {
                 isListeningPreviewPresented = false
             }
             .presentationDetents([.medium, .large])
         }
+    }
+
+    private var sentenceContent: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(sentence.translation)
+                .font(.callout)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(sentence.targetText)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(sentence.note)
+                .font(.footnote)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

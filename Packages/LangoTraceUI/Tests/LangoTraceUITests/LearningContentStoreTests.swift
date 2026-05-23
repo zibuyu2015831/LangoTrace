@@ -160,6 +160,44 @@ struct LearningContentStoreTests {
         #expect(store.rendering(for: entry)?.sentences.first?.targetText == "I wrote at a cafe today.")
     }
 
+    @Test("Store keeps stale material retry context when reanalysis fails")
+    func storeKeepsStaleMaterialRetryContextWhenReanalysisFails() async {
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let actions = LearningMaterialGenerationActions(
+            generateMaterial: { input, operationID, _ in
+                .generated(sampleLearningMaterial(entryID: input.entryID, operationID: operationID))
+            },
+            updateLearningText: { materialID, learningText in
+                .generated(sampleLearningMaterial(
+                    materialID: materialID,
+                    entryID: "entry-1-en",
+                    learningText: learningText,
+                    analysisStatus: .stale
+                ))
+            },
+            analyzeCurrentText: { _, _, _ in
+                .failed(.networkUnavailable)
+            },
+            operationIDGenerator: { DiagnosticOperationID(rawValue: "operation-1") }
+        )
+        let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
+        let entry = store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
+
+        await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
+        await store.updateLearningText(
+            materialID: "material-operation-1",
+            entryID: entry.id,
+            learningText: "I wrote at a cafe today."
+        )
+        await store.analyzeCurrentLearningText(for: entry, languageSpace: sampleLanguageSpace())
+
+        let state = store.generationState(for: entry)
+        #expect(state.materialID == "material-operation-1")
+        #expect(state.analysisIsStale)
+        #expect(state.canStartGeneration)
+        #expect(state.operationID?.rawValue == "operation-1")
+    }
+
     private func sampleLanguageSpace() -> LanguageSpacePreview {
         LanguageSpacePreview(
             id: "en",
