@@ -374,12 +374,173 @@ struct LearningContentStoreTests {
     }
 }
 
+@MainActor
+extension LearningContentStoreTests {
+    @Test("Store clears stale active sentence audio state when another sentence starts")
+    func storeClearsStaleActiveSentenceAudioStateWhenAnotherSentenceStarts() async {
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let store = LearningContentStore(
+            repository: repository,
+            spaceID: "space-1",
+            sentenceAudioPlaybackActions: SentenceAudioPlaybackActions(
+                handleTap: { request in
+                    .playing(SentenceAudioKey(
+                        sentenceSource: request.sentenceSource,
+                        sentenceTextHash: "hash-\(request.sentenceIndex)",
+                        targetLanguageCode: request.targetLanguageCode,
+                        configurationFingerprint: "fingerprint"
+                    ))
+                },
+                presentationState: { _ in .idle }
+            )
+        )
+        let rendering = LearningRendering(
+            id: "material-1",
+            entryID: "entry-1",
+            targetText: "First sentence. Second sentence.",
+            promptLabel: "Local",
+            providerLabel: "Fixture",
+            isMock: false,
+            sourceEntryBodyHash: "hash",
+            sentences: [
+                RenderingSentence(
+                    id: "sentence-1",
+                    translation: "第一句。",
+                    targetText: "First sentence.",
+                    note: ""
+                ),
+                RenderingSentence(
+                    id: "sentence-2",
+                    translation: "第二句。",
+                    targetText: "Second sentence.",
+                    note: ""
+                ),
+            ]
+        )
+        let languageSpace = LanguageSpacePreview(
+            id: "space-1",
+            name: "English",
+            nativeLanguage: "zh-Hans",
+            targetLanguage: "English",
+            targetLanguageCode: "en",
+            level: .a1
+        )
+
+        await store.handleSentenceAudioTap(
+            rendering: rendering,
+            sentence: rendering.sentences[0],
+            sentenceIndex: 0,
+            languageSpace: languageSpace
+        )
+        await store.handleSentenceAudioTap(
+            rendering: rendering,
+            sentence: rendering.sentences[1],
+            sentenceIndex: 1,
+            languageSpace: languageSpace
+        )
+
+        #expect(store.sentenceAudioPlaybackState(for: "sentence-1") == .idle)
+        #expect(store.sentenceAudioPlaybackState(for: "sentence-2").activeKey?.sentenceSource
+            == .learningMaterialSentence(materialID: "material-1", sentenceIndex: 1))
+    }
+
+    @Test("Store applies sentence audio completion updates from action stream")
+    func storeAppliesSentenceAudioCompletionUpdatesFromActionStream() async throws {
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let updates = SentenceAudioPlaybackStateUpdateProbe()
+        let store = LearningContentStore(
+            repository: repository,
+            spaceID: "space-1",
+            sentenceAudioPlaybackActions: SentenceAudioPlaybackActions(
+                handleTap: { request in
+                    .playing(SentenceAudioKey(
+                        sentenceSource: request.sentenceSource,
+                        sentenceTextHash: "hash",
+                        targetLanguageCode: request.targetLanguageCode,
+                        configurationFingerprint: "fingerprint"
+                    ))
+                },
+                presentationState: { _ in .idle },
+                stateUpdates: { _ in
+                    updates.stream()
+                }
+            )
+        )
+        let entry = try store.createEntry(title: "Walk", body: "I walked home.", source: .typedText)
+        let rendering = try #require(store.generateLocalPreview(for: entry))
+        let sentence = try #require(rendering.sentences.first)
+        let languageSpace = LanguageSpacePreview(
+            id: "space-1",
+            name: "English",
+            nativeLanguage: "zh-Hans",
+            targetLanguage: "English",
+            targetLanguageCode: "en",
+            level: .a1
+        )
+
+        await store.handleSentenceAudioTap(
+            rendering: rendering,
+            sentence: sentence,
+            sentenceIndex: 0,
+            languageSpace: languageSpace
+        )
+        #expect(store.sentenceAudioPlaybackState(for: sentence.id).activeKey != nil)
+
+        updates.yield(.idle)
+        let didReset = await waitUntil {
+            store.sentenceAudioPlaybackState(for: sentence.id) == .idle
+        }
+        #expect(didReset)
+    }
+}
+
 private actor SentenceAudioPlaybackActionRecorder {
     private(set) var requests: [SentenceAudioRequest] = []
 
     func record(_ request: SentenceAudioRequest) {
         requests.append(request)
     }
+}
+
+private final class SentenceAudioPlaybackStateUpdateProbe: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: AsyncStream<SentenceAudioPresentationState>.Continuation?
+    private var pendingStates: [SentenceAudioPresentationState] = []
+
+    func stream() -> AsyncStream<SentenceAudioPresentationState> {
+        AsyncStream { continuation in
+            lock.lock()
+            self.continuation = continuation
+            let pendingStates = self.pendingStates
+            self.pendingStates.removeAll()
+            lock.unlock()
+            for state in pendingStates {
+                continuation.yield(state)
+            }
+        }
+    }
+
+    func yield(_ state: SentenceAudioPresentationState) {
+        lock.lock()
+        let continuation = continuation
+        if continuation == nil {
+            pendingStates.append(state)
+        }
+        lock.unlock()
+        continuation?.yield(state)
+    }
+}
+
+@MainActor
+private func waitUntil(
+    timeoutNanoseconds: UInt64 = 1_000_000_000,
+    condition: @escaping () -> Bool
+) async -> Bool {
+    let deadline = ContinuousClock.now + .nanoseconds(Int(timeoutNanoseconds))
+    while !condition(), ContinuousClock.now < deadline {
+        await Task.yield()
+    }
+    return condition()
 }
 
 private actor LearningMaterialActionCallCounter {

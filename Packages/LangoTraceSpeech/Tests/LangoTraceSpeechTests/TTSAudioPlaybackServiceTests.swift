@@ -11,11 +11,17 @@ struct TTSAudioPlaybackServiceTests {
         let service = TTSAudioPlaybackService(engine: engine)
         let source = playbackSource()
 
-        try await service.play(source)
+        let session = try await service.play(source)
         await service.pause()
         try await service.resume()
         await service.stop()
 
+        switch await session.completion() {
+        case .success:
+            break
+        case let .failure(failure):
+            Issue.record("Expected successful playback completion, got \(failure)")
+        }
         #expect(await engine.events == [
             .play(source.fileURL),
             .pause,
@@ -54,11 +60,12 @@ private actor CapturingPlaybackEngine: TTSAudioPlaybackEngine {
         self.error = error
     }
 
-    func play(fileURL: URL) async throws {
+    func play(fileURL: URL) async throws -> TTSAudioPlaybackSession {
         if let error {
             throw error
         }
         events.append(.play(fileURL))
+        return .completed
     }
 
     func pause() async {

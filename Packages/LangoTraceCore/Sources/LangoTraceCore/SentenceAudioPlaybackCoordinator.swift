@@ -14,6 +14,10 @@ public actor SentenceAudioPlaybackCoordinator {
     private let player: any TTSAudioPlaying
     private var state = SentenceAudioPlaybackCoordinatorState()
     private var requestKeyBySummary: [SentenceAudioRequestSummary: SentenceAudioKey] = [:]
+    private var stateObservers: [
+        SentenceAudioRequestSummary: [UUID: AsyncStream<SentenceAudioPresentationState>.Continuation]
+    ] = [:]
+    private var playbackCompletionTask: Task<Void, Never>?
 
     public init(
         availabilityService: any TTSConfigurationAvailabilityService,
@@ -49,7 +53,7 @@ public actor SentenceAudioPlaybackCoordinator {
             configurationFingerprint: artifactKey.configurationFingerprint
         )
         requestKeyBySummary[request.nonSensitiveSummary] = key
-        let effects = state.reduce(.tap(key))
+        let effects = reduceAndNotify(.tap(key))
         for effect in effects {
             try await perform(effect, request: request, artifactKey: artifactKey, configuration: configuration)
         }
@@ -61,9 +65,31 @@ public actor SentenceAudioPlaybackCoordinator {
         }
         return state.presentationState(for: key)
     }
+
+    public func stateUpdates(for request: SentenceAudioRequest) -> AsyncStream<SentenceAudioPresentationState> {
+        let summary = request.nonSensitiveSummary
+        let observerID = UUID()
+        return AsyncStream { continuation in
+            Task {
+                self.addStateObserver(continuation, id: observerID, summary: summary)
+            }
+            continuation.onTermination = { @Sendable _ in
+                Task {
+                    await self.removeStateObserver(id: observerID, summary: summary)
+                }
+            }
+        }
+    }
 }
 
 private extension SentenceAudioPlaybackCoordinator {
+    @discardableResult
+    func reduceAndNotify(_ transition: SentenceAudioPlaybackTransition) -> [SentenceAudioPlaybackEffect] {
+        let effects = state.reduce(transition)
+        notifyStateObservers()
+        return effects
+    }
+
     func perform(
         _ effect: SentenceAudioPlaybackEffect,
         request: SentenceAudioRequest,
@@ -80,6 +106,8 @@ private extension SentenceAudioPlaybackCoordinator {
         case .resume:
             try await player.resume()
         case .stopPlayback:
+            playbackCompletionTask?.cancel()
+            playbackCompletionTask = nil
             await player.stop()
         }
     }
@@ -94,10 +122,10 @@ private extension SentenceAudioPlaybackCoordinator {
         case let .hit(artifact):
             try await play(artifact: artifact, key: key)
         case .miss, .invalidated:
-            _ = state.reduce(.generationStarted(key))
+            _ = reduceAndNotify(.generationStarted(key))
             let secret = try await secretResolver.plaintextSecret(for: configuration)
             guard secret?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
-                _ = state.reduce(.generationFailed(key, .credentialMissing))
+                _ = reduceAndNotify(.generationFailed(key, .credentialMissing))
                 return
             }
             let result = try await generationService.generateSentenceTTS(
@@ -128,8 +156,46 @@ private extension SentenceAudioPlaybackCoordinator {
 
     func play(artifact: MediaArtifact, key: SentenceAudioKey) async throws {
         let source = try await playbackSourceResolver.playbackSource(for: artifact)
-        try await player.play(source)
-        _ = state.reduce(.playbackStarted(key))
+        do {
+            let session = try await player.play(source)
+            _ = reduceAndNotify(.playbackStarted(key))
+            playbackCompletionTask?.cancel()
+            playbackCompletionTask = Task { [self] in
+                let result = await session.completion()
+                guard !Task.isCancelled else {
+                    return
+                }
+                handlePlaybackCompletion(for: key, result: result)
+            }
+        } catch let failure as SentenceAudioPlaybackFailure {
+            _ = reduceAndNotify(.playbackFailed(key, failure))
+            throw failure
+        } catch {
+            _ = reduceAndNotify(.playbackFailed(key, .playbackFailed))
+            throw error
+        }
+    }
+
+    func handlePlaybackCompletion(
+        for key: SentenceAudioKey,
+        result: Result<Void, SentenceAudioPlaybackFailure>
+    ) {
+        defer {
+            playbackCompletionTask = nil
+        }
+        guard state.presentationState(for: key).activeKey == key else {
+            return
+        }
+        switch result {
+        case .success:
+            _ = reduceAndNotify(.playbackCompleted(key))
+        case let .failure(failure):
+            if failure == .cancelled {
+                _ = reduceAndNotify(.playbackCompleted(key))
+            } else {
+                _ = reduceAndNotify(.playbackFailed(key, failure))
+            }
+        }
     }
 
     func setConfigurationState(
@@ -163,6 +229,39 @@ private extension SentenceAudioPlaybackCoordinator {
         )
         requestKeyBySummary[request.nonSensitiveSummary] = key
         state.setPresentationState(.requiresConfiguration(issue), for: key)
+        notifyStateObservers()
+    }
+
+    func presentationState(for summary: SentenceAudioRequestSummary) -> SentenceAudioPresentationState {
+        guard let key = requestKeyBySummary[summary] else {
+            return .idle
+        }
+        return state.presentationState(for: key)
+    }
+
+    func addStateObserver(
+        _ continuation: AsyncStream<SentenceAudioPresentationState>.Continuation,
+        id: UUID,
+        summary: SentenceAudioRequestSummary
+    ) {
+        stateObservers[summary, default: [:]][id] = continuation
+        continuation.yield(presentationState(for: summary))
+    }
+
+    func removeStateObserver(id: UUID, summary: SentenceAudioRequestSummary) {
+        stateObservers[summary]?[id] = nil
+        if stateObservers[summary]?.isEmpty == true {
+            stateObservers[summary] = nil
+        }
+    }
+
+    func notifyStateObservers() {
+        for (summary, observers) in stateObservers {
+            let presentationState = presentationState(for: summary)
+            for continuation in observers.values {
+                continuation.yield(presentationState)
+            }
+        }
     }
 
     static func artifactKey(

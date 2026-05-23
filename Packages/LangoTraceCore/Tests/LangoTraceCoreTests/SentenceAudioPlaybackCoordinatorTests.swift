@@ -66,6 +66,30 @@ struct SentenceAudioPlaybackCoordinatorTests {
         #expect(await player.playedSources.map(\.artifactID) == ["committed-artifact"])
     }
 
+    @Test("Coordinator resets presentation state when playback completes")
+    func coordinatorResetsPresentationStateWhenPlaybackCompletes() async throws {
+        let completion = PlaybackCompletionProbe()
+        let player = FakePlayer(completion: completion.session)
+        let coordinator = try SentenceAudioPlaybackCoordinator(
+            availabilityService: FakeAvailabilityService(status: .available(playableConfiguration())),
+            secretResolver: FakeSecretResolver(secret: "sk-test"),
+            mediaStore: FakeMediaStore(lookup: .hit(mediaArtifact())),
+            generationService: FakeGenerator(),
+            playbackSourceResolver: FakePlaybackSourceResolver(),
+            player: player
+        )
+        let request = sentenceRequest()
+
+        try await coordinator.handleTap(request)
+        #expect(await coordinator.presentationState(for: request).activeKey != nil)
+
+        await completion.complete(.success(()))
+        let didReset = await waitUntil {
+            await coordinator.presentationState(for: request) == .idle
+        }
+        #expect(didReset)
+    }
+
     @Test("Coordinator reports configuration issues without external work")
     func coordinatorReportsConfigurationIssues() async throws {
         let generator = FakeGenerator()
@@ -181,9 +205,15 @@ private struct FakePlaybackSourceResolver: MediaArtifactPlaybackSourceResolving 
 
 private actor FakePlayer: TTSAudioPlaying {
     private(set) var playedSources: [MediaArtifactPlaybackSource] = []
+    private let completion: @Sendable () -> TTSAudioPlaybackSession
 
-    func play(_ source: MediaArtifactPlaybackSource) async throws {
+    init(completion: @escaping @Sendable () -> TTSAudioPlaybackSession = { .completed }) {
+        self.completion = completion
+    }
+
+    func play(_ source: MediaArtifactPlaybackSource) async throws -> TTSAudioPlaybackSession {
         playedSources.append(source)
+        return completion()
     }
 
     func pause() async {}
@@ -191,6 +221,55 @@ private actor FakePlayer: TTSAudioPlaying {
     func resume() async throws {}
 
     func stop() async {}
+}
+
+private actor PlaybackCompletionProbe {
+    private var continuation: CheckedContinuation<Result<Void, SentenceAudioPlaybackFailure>, Never>?
+    private var pendingResult: Result<Void, SentenceAudioPlaybackFailure>?
+
+    nonisolated var session: @Sendable () -> TTSAudioPlaybackSession {
+        { [self] in
+            TTSAudioPlaybackSession {
+                await withCheckedContinuation { continuation in
+                    Task {
+                        await self.store(continuation)
+                    }
+                }
+            }
+        }
+    }
+
+    func complete(_ result: Result<Void, SentenceAudioPlaybackFailure>) {
+        guard let continuation else {
+            pendingResult = result
+            return
+        }
+        continuation.resume(returning: result)
+        self.continuation = nil
+    }
+
+    private func store(_ continuation: CheckedContinuation<Result<Void, SentenceAudioPlaybackFailure>, Never>) {
+        if let pendingResult {
+            self.pendingResult = nil
+            continuation.resume(returning: pendingResult)
+            return
+        }
+        self.continuation = continuation
+    }
+}
+
+private func waitUntil(
+    timeoutNanoseconds: UInt64 = 1_000_000_000,
+    condition: @escaping @Sendable () async -> Bool
+) async -> Bool {
+    let start = ContinuousClock.now
+    while await !condition() {
+        if start.duration(to: ContinuousClock.now) > .nanoseconds(Int64(timeoutNanoseconds)) {
+            return false
+        }
+        await Task.yield()
+    }
+    return true
 }
 
 private func sentenceRequest() -> SentenceAudioRequest {

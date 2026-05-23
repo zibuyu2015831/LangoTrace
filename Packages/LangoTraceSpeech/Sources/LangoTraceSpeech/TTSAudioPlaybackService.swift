@@ -11,7 +11,7 @@ public enum TTSAudioPlaybackEngineError: Error, Equatable, Sendable {
 }
 
 public protocol TTSAudioPlaybackEngine: Sendable {
-    func play(fileURL: URL) async throws
+    func play(fileURL: URL) async throws -> TTSAudioPlaybackSession
     func pause() async
     func resume() async throws
     func stop() async
@@ -24,9 +24,9 @@ public struct TTSAudioPlaybackService: TTSAudioPlaying, Sendable {
         self.engine = engine
     }
 
-    public func play(_ source: MediaArtifactPlaybackSource) async throws {
+    public func play(_ source: MediaArtifactPlaybackSource) async throws -> TTSAudioPlaybackSession {
         do {
-            try await engine.play(fileURL: source.fileURL)
+            return try await engine.play(fileURL: source.fileURL)
         } catch let error as TTSAudioPlaybackEngineError {
             throw playbackFailure(for: error)
         }
@@ -65,15 +65,19 @@ private extension TTSAudioPlaybackService {
 #if canImport(AVFoundation)
     public actor DefaultTTSAudioPlaybackEngine: TTSAudioPlaybackEngine {
         private var player: AVAudioPlayer?
+        private var playbackDelegate: AVAudioPlayerCompletionDelegate?
 
         public init() {}
 
-        public func play(fileURL: URL) async throws {
+        public func play(fileURL: URL) async throws -> TTSAudioPlaybackSession {
             guard FileManager.default.fileExists(atPath: fileURL.path) else {
                 throw TTSAudioPlaybackEngineError.fileUnavailable
             }
             do {
+                playbackDelegate?.complete(.failure(.cancelled))
                 let player = try AVAudioPlayer(contentsOf: fileURL)
+                let playbackDelegate = AVAudioPlayerCompletionDelegate()
+                player.delegate = playbackDelegate
                 guard player.prepareToPlay() else {
                     throw TTSAudioPlaybackEngineError.initializationFailed
                 }
@@ -81,6 +85,10 @@ private extension TTSAudioPlaybackService {
                     throw TTSAudioPlaybackEngineError.playbackFailed
                 }
                 self.player = player
+                self.playbackDelegate = playbackDelegate
+                return TTSAudioPlaybackSession {
+                    await playbackDelegate.result()
+                }
             } catch let error as TTSAudioPlaybackEngineError {
                 throw error
             } catch {
@@ -104,13 +112,55 @@ private extension TTSAudioPlaybackService {
         public func stop() {
             player?.stop()
             player = nil
+            playbackDelegate?.complete(.failure(.cancelled))
+            playbackDelegate = nil
+        }
+    }
+
+    private final class AVAudioPlayerCompletionDelegate: NSObject, AVAudioPlayerDelegate, @unchecked Sendable {
+        private let lock = NSLock()
+        private var storedResult: Result<Void, SentenceAudioPlaybackFailure>?
+        private var continuation: CheckedContinuation<Result<Void, SentenceAudioPlaybackFailure>, Never>?
+
+        func result() async -> Result<Void, SentenceAudioPlaybackFailure> {
+            await withCheckedContinuation { continuation in
+                lock.lock()
+                if let storedResult {
+                    lock.unlock()
+                    continuation.resume(returning: storedResult)
+                    return
+                }
+                self.continuation = continuation
+                lock.unlock()
+            }
+        }
+
+        func audioPlayerDidFinishPlaying(_: AVAudioPlayer, successfully flag: Bool) {
+            complete(flag ? .success(()) : .failure(.playbackFailed))
+        }
+
+        func audioPlayerDecodeErrorDidOccur(_: AVAudioPlayer, error _: (any Error)?) {
+            complete(.failure(.playbackFailed))
+        }
+
+        func complete(_ result: Result<Void, SentenceAudioPlaybackFailure>) {
+            lock.lock()
+            guard storedResult == nil else {
+                lock.unlock()
+                return
+            }
+            storedResult = result
+            let continuation = continuation
+            self.continuation = nil
+            lock.unlock()
+            continuation?.resume(returning: result)
         }
     }
 #else
     public actor DefaultTTSAudioPlaybackEngine: TTSAudioPlaybackEngine {
         public init() {}
 
-        public func play(fileURL _: URL) async throws {
+        public func play(fileURL _: URL) async throws -> TTSAudioPlaybackSession {
             throw TTSAudioPlaybackEngineError.initializationFailed
         }
 

@@ -11,6 +11,7 @@ final class LearningContentStore: ObservableObject {
     private let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
     private var generatedRenderingsByEntryID: [String: LearningRendering] = [:]
     private var runningOperationsByEntryID: [String: RunningLearningMaterialOperation] = [:]
+    private var sentenceAudioPlaybackObservationTasks: [String: Task<Void, Never>] = [:]
 
     @Published private(set) var entries: [LearningEntry] = []
     @Published private(set) var selectedEntry: LearningEntry?
@@ -30,6 +31,12 @@ final class LearningContentStore: ObservableObject {
         self.generationActions = generationActions
         self.sentenceAudioPlaybackActions = sentenceAudioPlaybackActions
         reload()
+    }
+
+    deinit {
+        for task in sentenceAudioPlaybackObservationTasks.values {
+            task.cancel()
+        }
     }
 
     func ensureSeeded() {
@@ -112,28 +119,6 @@ final class LearningContentStore: ObservableObject {
 
     func practiceSession(for entryID: String) -> PracticeSessionState? {
         repository.practiceSession(for: entryID)
-    }
-
-    func sentenceAudioPlaybackState(for sentenceID: String) -> SentenceAudioPresentationState {
-        sentenceAudioPlaybackStates[sentenceID] ?? .idle
-    }
-
-    func handleSentenceAudioTap(
-        rendering: LearningRendering,
-        sentence: RenderingSentence,
-        sentenceIndex: Int,
-        languageSpace: LanguageSpacePreview
-    ) async {
-        let request = SentenceAudioRequest(
-            languageSpaceID: languageSpace.id,
-            owner: .learningMaterialSentence(materialID: rendering.id, sentenceIndex: sentenceIndex),
-            sentenceSource: .learningMaterialSentence(materialID: rendering.id, sentenceIndex: sentenceIndex),
-            sentenceIndex: sentenceIndex,
-            targetText: sentence.targetText,
-            targetLanguageCode: languageSpace.targetLanguageCode
-        )
-        let state = await sentenceAudioPlaybackActions.handleTap(request)
-        sentenceAudioPlaybackStates[sentence.id] = state
     }
 
     func memoryItems(for entry: LearningEntry) -> [MemoryItem] {
@@ -376,6 +361,60 @@ final class LearningContentStore: ObservableObject {
                 )
             }
         )
+    }
+}
+
+extension LearningContentStore {
+    func sentenceAudioPlaybackState(for sentenceID: String) -> SentenceAudioPresentationState {
+        sentenceAudioPlaybackStates[sentenceID] ?? .idle
+    }
+
+    func handleSentenceAudioTap(
+        rendering: LearningRendering,
+        sentence: RenderingSentence,
+        sentenceIndex: Int,
+        languageSpace: LanguageSpacePreview
+    ) async {
+        let request = SentenceAudioRequest(
+            languageSpaceID: languageSpace.id,
+            owner: .learningMaterialSentence(materialID: rendering.id, sentenceIndex: sentenceIndex),
+            sentenceSource: .learningMaterialSentence(materialID: rendering.id, sentenceIndex: sentenceIndex),
+            sentenceIndex: sentenceIndex,
+            targetText: sentence.targetText,
+            targetLanguageCode: languageSpace.targetLanguageCode
+        )
+        let state = await sentenceAudioPlaybackActions.handleTap(request)
+        setSentenceAudioPlaybackState(state, for: sentence.id)
+        observeSentenceAudioPlaybackState(for: sentence.id, request: request)
+    }
+
+    private func observeSentenceAudioPlaybackState(for sentenceID: String, request: SentenceAudioRequest) {
+        sentenceAudioPlaybackObservationTasks[sentenceID]?.cancel()
+        sentenceAudioPlaybackObservationTasks[sentenceID] = Task { [weak self] in
+            guard let self else {
+                return
+            }
+            let stream = await sentenceAudioPlaybackActions.stateUpdates(request)
+            for await state in stream {
+                guard !Task.isCancelled else {
+                    return
+                }
+                await MainActor.run {
+                    self.setSentenceAudioPlaybackState(state, for: sentenceID)
+                }
+            }
+        }
+    }
+
+    private func setSentenceAudioPlaybackState(_ state: SentenceAudioPresentationState, for sentenceID: String) {
+        if state.activeKey != nil {
+            for existingSentenceID in sentenceAudioPlaybackStates.keys where existingSentenceID != sentenceID {
+                if sentenceAudioPlaybackStates[existingSentenceID]?.activeKey != nil {
+                    sentenceAudioPlaybackStates[existingSentenceID] = .idle
+                }
+            }
+        }
+        sentenceAudioPlaybackStates[sentenceID] = state
     }
 }
 

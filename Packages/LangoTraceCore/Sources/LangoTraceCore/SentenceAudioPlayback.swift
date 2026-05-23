@@ -323,8 +323,24 @@ public protocol MediaArtifactPlaybackSourceResolving: Sendable {
     func playbackSource(for artifact: MediaArtifact) async throws -> MediaArtifactPlaybackSource
 }
 
+public struct TTSAudioPlaybackSession: Sendable {
+    private let completionResult: @Sendable () async -> Result<Void, SentenceAudioPlaybackFailure>
+
+    public init(completionResult: @escaping @Sendable () async -> Result<Void, SentenceAudioPlaybackFailure>) {
+        self.completionResult = completionResult
+    }
+
+    public func completion() async -> Result<Void, SentenceAudioPlaybackFailure> {
+        await completionResult()
+    }
+
+    public static let completed = TTSAudioPlaybackSession {
+        .success(())
+    }
+}
+
 public protocol TTSAudioPlaying: Sendable {
-    func play(_ source: MediaArtifactPlaybackSource) async throws
+    func play(_ source: MediaArtifactPlaybackSource) async throws -> TTSAudioPlaybackSession
     func pause() async
     func resume() async throws
     func stop() async

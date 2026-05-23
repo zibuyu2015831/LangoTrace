@@ -4,18 +4,33 @@ import LangoTraceCore
 public struct SentenceAudioPlaybackActions: Sendable {
     public var handleTap: @Sendable (SentenceAudioRequest) async -> SentenceAudioPresentationState
     public var presentationState: @Sendable (SentenceAudioRequest) async -> SentenceAudioPresentationState
+    public var stateUpdates: @Sendable (SentenceAudioRequest) async
+        -> AsyncStream<SentenceAudioPresentationState>
 
     public init(
         handleTap: @escaping @Sendable (SentenceAudioRequest) async -> SentenceAudioPresentationState,
-        presentationState: @escaping @Sendable (SentenceAudioRequest) async -> SentenceAudioPresentationState
+        presentationState: @escaping @Sendable (SentenceAudioRequest) async -> SentenceAudioPresentationState,
+        stateUpdates: @escaping @Sendable (SentenceAudioRequest) async
+            -> AsyncStream<SentenceAudioPresentationState> = { _ in
+                AsyncStream { continuation in
+                    continuation.finish()
+                }
+            }
     ) {
         self.handleTap = handleTap
         self.presentationState = presentationState
+        self.stateUpdates = stateUpdates
     }
 
     public static let disabled = SentenceAudioPlaybackActions(
         handleTap: { _ in .requiresConfiguration(.notConfigured) },
-        presentationState: { _ in .idle }
+        presentationState: { _ in .idle },
+        stateUpdates: { _ in
+            AsyncStream { continuation in
+                continuation.yield(.idle)
+                continuation.finish()
+            }
+        }
     )
 
     public static func coordinator(_ coordinator: SentenceAudioPlaybackCoordinator) -> SentenceAudioPlaybackActions {
@@ -32,6 +47,9 @@ public struct SentenceAudioPlaybackActions: Sendable {
             },
             presentationState: { request in
                 await coordinator.presentationState(for: request)
+            },
+            stateUpdates: { request in
+                await coordinator.stateUpdates(for: request)
             }
         )
     }
