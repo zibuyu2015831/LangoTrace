@@ -136,6 +136,48 @@ struct MediaArtifactRepositoryTests {
         #expect(cleanup.count == 2)
         #expect(try await MediaArtifactTestFixtures.mediaArtifactCount(in: database) == 1)
     }
+
+    @Test("Repository cleanup selects oldest active artifacts until scoped bytes fit capacity")
+    func repositoryCleanupSelectsOldestActiveArtifactsForCapacity() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        let oldest = try await repository.commitTTSAudioArtifact(
+            MediaArtifactTestFixtures.commitInput(
+                stagedFile: MediaArtifactStagedFileReference(
+                    relativeStagingPath: "staging/op-1.tmp",
+                    byteSize: 70,
+                    contentHash: "content-hash-1"
+                )
+            )
+        )
+        _ = try await repository.commitTTSAudioArtifact(
+            MediaArtifactTestFixtures.commitInput(
+                key: MediaArtifactTestFixtures.key(sentenceTextHash: "sentence-hash-2"),
+                stagedFile: MediaArtifactStagedFileReference(
+                    relativeStagingPath: "staging/op-2.tmp",
+                    byteSize: 40,
+                    contentHash: "content-hash-2"
+                )
+            )
+        )
+
+        let cleanup = try await repository.artifactsForCleanup(
+            MediaArtifactCleanupRequest(
+                languageSpaceID: "space-1",
+                artifactType: .ttsSentenceAudio,
+                includeInvalidated: true,
+                now: Date(timeIntervalSince1970: 800),
+                targetMaximumBytes: 40
+            )
+        )
+
+        #expect(cleanup.map(\.id) == [oldest.id])
+    }
 }
 
 final class MediaArtifactIDGenerator: @unchecked Sendable {

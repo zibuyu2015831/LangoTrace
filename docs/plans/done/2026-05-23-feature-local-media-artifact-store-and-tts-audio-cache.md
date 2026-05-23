@@ -948,6 +948,7 @@ git status --short
 - 2026-05-23：阶段 2 Data metadata 已落地并提交 `0f3c8d6 feat: add media artifact metadata store`。新增 `v7_create_media_artifact_infrastructure`、`media_artifacts` / `tts_audio_artifacts`、CHECK / FK / index、`GRDBMediaArtifactRepository` 和 repository / migration tests；Data 包测试通过。
 - 2026-05-23：阶段 3 file store / facade / Speech validator 已落地并提交 `50df229 feat: add local media artifact files`。新增 `LocalMediaArtifactFileStore`、`LocalMediaArtifactStore`、Speech `TTSAudioFileValidator`、file store / facade / file validator tests；Core / Data / Speech 包测试通过。
 - 2026-05-23：阶段 4 文档影响检查已更新 `docs/README.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/011-tts-provider-configuration-and-playback.md`、direct sentence TTS playback 方案和 review index；本方案移动到 done。
+- 2026-05-24：全面复查发现 `MediaArtifactCleanupRequest.targetMaximumBytes` 尚未驱动 capacity / LRU 选择，已补充红绿回归测试 `repositoryCleanupSelectsOldestActiveArtifactsForCapacity` 并修正 `GRDBMediaArtifactRepository.artifactsForCleanup`：有容量目标时按作用域读取全部 artifact，先选择 invalidated / expired，再按 `last_accessed_at` 选择最旧 active artifact，直到剩余 byte size 不超过目标容量。
 
 ## 16. 完成标准
 

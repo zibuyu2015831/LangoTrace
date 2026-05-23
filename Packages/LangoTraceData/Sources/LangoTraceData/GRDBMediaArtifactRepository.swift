@@ -190,12 +190,14 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
                 conditions.append("artifact_type = ?")
                 arguments += [artifactType.rawValue]
             }
-            if request.includeInvalidated {
-                conditions.append("(invalidated_at IS NOT NULL OR delete_after <= ?)")
-                arguments += [request.now.timeIntervalSince1970]
-            } else {
-                conditions.append("delete_after <= ?")
-                arguments += [request.now.timeIntervalSince1970]
+            if request.targetMaximumBytes == nil {
+                if request.includeInvalidated {
+                    conditions.append("(invalidated_at IS NOT NULL OR delete_after <= ?)")
+                    arguments += [request.now.timeIntervalSince1970]
+                } else {
+                    conditions.append("delete_after <= ?")
+                    arguments += [request.now.timeIntervalSince1970]
+                }
             }
 
             let sql = """
@@ -204,7 +206,28 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
             \(conditions.isEmpty ? "" : "WHERE \(conditions.joined(separator: " AND "))")
             ORDER BY last_accessed_at ASC
             """
-            return try Row.fetchAll(db, sql: sql, arguments: arguments).map(mediaArtifact(from:))
+            let scopedArtifacts = try Row.fetchAll(db, sql: sql, arguments: arguments).map(mediaArtifact(from:))
+            guard let targetMaximumBytes = request.targetMaximumBytes else {
+                return scopedArtifacts
+            }
+
+            var selected: [MediaArtifact] = []
+            var selectedIDs = Set<String>()
+            var remainingBytes = scopedArtifacts.reduce(Int64(0)) { $0 + $1.byteSize }
+
+            for artifact in scopedArtifacts where artifact.invalidatedAt != nil || isExpired(artifact, at: request.now) {
+                selected.append(artifact)
+                selectedIDs.insert(artifact.id)
+                remainingBytes -= artifact.byteSize
+            }
+
+            for artifact in scopedArtifacts where remainingBytes > targetMaximumBytes && !selectedIDs.contains(artifact.id) {
+                selected.append(artifact)
+                selectedIDs.insert(artifact.id)
+                remainingBytes -= artifact.byteSize
+            }
+
+            return selected
         }
     }
 
@@ -325,6 +348,13 @@ private extension GRDBMediaArtifactRepository {
             deleteAfter: (row["delete_after"] as Double?).map(Date.init(timeIntervalSince1970:)),
             policy: policy
         )
+    }
+
+    func isExpired(_ artifact: MediaArtifact, at date: Date) -> Bool {
+        guard let deleteAfter = artifact.deleteAfter else {
+            return false
+        }
+        return deleteAfter <= date
     }
 
     func relativePath(for key: TTSAudioArtifactKey, artifactID: String) -> String {
