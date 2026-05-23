@@ -2,11 +2,11 @@
 
 审查类型：专项审查
 日期：2026-05-23
-代码快照：d1f0d52d109be040035943c74545fd052e8a86c1
-状态：In Progress
+代码快照：820f61896d2e105a2cf4fc78b74c973d330f029d
+状态：Verified
 当前事实源：`docs/product-main-reference.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/learning-content/impl.md`、`docs/platform-page-inventory.md`、`docs/prompts/learning-material/one-tap-learning-material.md`
-后续覆盖记录：`docs/plans/active/2026-05-22-feature-one-tap-learning-material-flow.md`
-可作为依据：No
+后续覆盖记录：`docs/plans/done/2026-05-22-feature-one-tap-learning-material-flow.md`
+可作为依据：Yes
 
 ## 1. 触发原因
 
@@ -16,7 +16,7 @@
 
 ## 2. 审查范围
 
-- `docs/plans/active/2026-05-22-feature-one-tap-learning-material-flow.md`
+- `docs/plans/done/2026-05-22-feature-one-tap-learning-material-flow.md`
 - `docs/product-main-reference.md`
 - `docs/spec/005-ai-provider-prompt-and-privacy.md`
 - `docs/spec/007-data-storage-migration-export-and-attachments.md`
@@ -90,17 +90,16 @@
 - `git diff --check`
 - `rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'`
 
-待最终收口：
-
-- iOS 端人工测试记录。
-- 本 review 状态从 `In Progress` 更新为 `Verified`。
-
 完整自动验证：
 
-- 2026-05-23：`scripts/verify.sh` 通过，覆盖 XcodeGen、Core / Data / AI / UI package tests、iPhone 17 / iPad Pro 13-inch / macOS build、SwiftLint、SwiftFormat lint、docs placeholder scan 和 `git status --short`。SwiftLint 保留 85 条 warning-level 风格告警，退出码为 0。
+- 2026-05-23：`scripts/verify.sh` 通过，覆盖 XcodeGen、Core / Data / AI / UI package tests、iPhone 17 / iPad Pro 13-inch / macOS build、SwiftLint、SwiftFormat lint、docs placeholder scan 和 `git status --short`。SwiftLint 保留 86 条 warning-level 风格告警，退出码为 0。
+
+iOS 人工测试：
+
+- 2026-05-23：iPhone 17 模拟器通过 `写一句 -> 保存 -> 记录详情 -> 生成学习材料 -> 编辑 learning text -> 保存修改 -> 重新分析` smoke。真实 Provider 使用 OpenRouter `openai/gpt-4o`；数据库确认最近生成 operation 为 `generate|succeeded`，最近分析 operation 为 `analyze|succeeded`，`learning_materials.analysis_status = fresh`，practice candidates 写入 3 条。
 
 ## 10. 剩余风险
 
-- 当前 Prompt 代码使用紧凑英文模板加 Codable 校验，尚未完整展开本文档中的长版 Prompt 和 Provider-native JSON Schema 绑定；当前可用，但后续应继续收敛为更强结构化输出。
-- iOS 真实 Provider 人工测试依赖可控 API Key / Provider 配置；自动化测试使用 mock HTTP response，不能证明外部 Provider 行为稳定。
+- 当前 Prompt 代码使用紧凑英文模板、strict JSON Schema 请求体和 Codable 校验；后续仍可继续收敛长版 Prompt 与跨 Provider schema 适配，但本轮 OpenAI-compatible Chat 已通过真实 Provider 人工测试。
+- iOS 真实 Provider 人工测试依赖当前可用 API Key / Provider 配置；自动化测试仍使用 mock HTTP response，不能替代后续多 Provider 回归。
 - iPad / macOS 共享 `EntryDetailView` 但未接入真实生成 UI；后续平台接入必须复查大屏布局、状态展示和 AI 披露。
