@@ -17,7 +17,8 @@
 - 2026-05-23：人工测试发现旧 `听一句` sheet 仍会弹出。作为真实 TTS 前置 UI 清理，已允许先删除旧解释型 sheet 路径，改为原位轻量播放 / 暂停反馈；这不等于真实 TTS 直播放能力已完成。
 - 2026-05-23：用户要求先把实际使用时配音后音频如何存储的问题详尽记录到本方案中；后续实施本方案前，再围绕音频缓存、附件、清理、同步和导出边界进行专门讨论和确认。
 - 2026-05-23：用户补充早期开发原则：发现错误或落后框架可以推倒重来，不背历史包袱；基础设施应在首次实现时采用最优完整方案；规范文档可随更优设计演进；后续扩展但暂不实现的架构问题应进入对应开发备忘录。基于该原则，本方案采纳“本地媒体派生资产基础设施”推荐：逐句 TTS 音频不是临时 UI 缓存，而是本地优先、隐私敏感、可重建的派生媒体资产，真实逐句播放必须先建设通用媒体资产 metadata、文件存储、失效、清理和播放协调边界。
-- 2026-05-23：`docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md` 已完整落地。TTS Provider 配置、真实语音模型测试、当前语言空间目标语言测试文本、voice profile、配置 fingerprint、短生命周期 preview audio、Speech bytes-based 音频校验 seam 和可播放配置读取接口已满足；本方案剩余硬性前置是 `docs/plans/active/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md` 的本地媒体派生资产基础设施，以及后续逐句播放协调 / UI 接入边界。
+- 2026-05-23：`docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md` 已完整落地。TTS Provider 配置、真实语音模型测试、当前语言空间目标语言测试文本、voice profile、配置 fingerprint、短生命周期 preview audio、Speech bytes-based 音频校验 seam 和可播放配置读取接口已满足；本方案剩余硬性前置曾是本地媒体派生资产基础设施和逐句播放协调 / UI 接入边界，后续已由本地媒体派生资产方案完成其中基础设施部分。
+- 2026-05-23：`docs/plans/done/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md` 已落地。Core media artifact / TTS artifact key、GRDB metadata、`LocalMediaArtifactFileStore`、`LocalMediaArtifactStore` facade、Speech 持久 TTS 文件校验、命中 / 失效 / 清理测试均已具备；本方案剩余硬性前置收窄为真实 TTS generation service、正式 playback service、跨句播放 coordinator 和 UI 接入。
 
 ## 1. 需求描述
 
@@ -31,7 +32,7 @@
 
 ## 2. 实施前提
 
-本方案不得先于 TTS Provider 配置测试和本地媒体派生资产基础设施实施。当前 TTS Provider 配置测试前置已经完成；本方案仍不得进入真实播放实施，直到本地媒体派生资产基础设施和播放协调边界完成并验证。
+本方案不得先于 TTS Provider 配置测试和本地媒体派生资产基础设施实施。当前 TTS Provider 配置测试和本地媒体派生资产基础设施前置已经完成；本方案仍不得进入真实播放实施，直到真实 TTS generation service、正式 playback service 和跨句播放协调边界完成并验证。
 
 已满足前置：
 
@@ -43,15 +44,18 @@
 6. `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 已接受“设置页完成配置、测试和披露后，学习页面显式点击单句播放可直接发起 TTS 请求”的边界；本方案实施时必须继续遵守该边界，页面展示、滚动、进入详情、保存记录、批量预生成、照片、音频、OCR、历史记忆或多条 Entry 上下文不得自动发送文本。
 7. TTS 请求日志和诊断事件只能记录非敏感元数据，例如 provider id、voice id hash 或分类、文本长度分桶、duration、失败阶段和错误分类，不得记录完整句子文本、API Key、Authorization header、完整请求体、完整响应体或 audio bytes。
 
+已满足的本地媒体派生资产前置：
+
+1. 已生成音频的本地媒体派生资产基础设施已经实现并验证，包含 GRDB metadata、App 管理的 `MediaArtifacts` 文件目录、staging 写入、原子移动、文件 hash / size 校验、失效、清理和 policy 边界，能避免同一句同配置下重复调用 API。
+2. TTS audio artifact key 已由 Core 定义并测试，包含稳定句子来源、文本内容 hash、目标语言 code、provider profile id、endpoint id、voice profile id、adapter kind / version、model / voice hash、format、语速或 style 参数 hash、provider parameters hash 和配置 fingerprint；文本、voice、模型、adapter 或配置变化时不得复用旧音频。
+3. `Packages/LangoTraceData` 已提供 media artifact metadata repository、migration、file store、facade 和 cleanup；文件存储只保存相对路径，完整句子文本、请求体、响应体、API Key、Authorization header 和 audio bytes 不进入 metadata 或 validation event。
+4. `Packages/LangoTraceSpeech` 已提供持久 TTS 文件校验 seam；设置页短生命周期 preview playback 仍不能直接替代逐句正式 playback service。
+
 仍未满足的硬性前置：
 
-1. 已生成音频的本地媒体派生资产基础设施必须实现并验证，至少包含 GRDB metadata、App 管理的文件目录、原子写入、解码验证、失效、清理和诊断边界，能避免同一句同配置下重复调用 API。
-2. TTS audio artifact key 必须由基础设施定义并测试，至少包含稳定句子来源、文本内容 hash、目标语言 code、provider profile id、endpoint id、voice profile id、adapter kind / version、model / voice、format、语速或 style 参数、provider parameters hash 和配置 fingerprint；文本、voice、模型、adapter 或配置变化时不得复用旧音频。
-3. 必须提供跨平台播放服务和句子播放协调边界，能在 iPhone / iPad / macOS 上完成播放、暂停、停止、切换句子时取消或降级上一句、生成完成后的 active key 校验、App 进入后台 / 页面销毁时释放播放资源。
-4. `Packages/LangoTraceSpeech` 或等价服务层必须提供真实 playback / persistent file validation seam，并通过 `LangoTraceApp/AppEnvironment.swift` 或后续 coordinator 注入到 UI；设置页短生命周期 preview playback 不能直接替代逐句播放服务。
-5. `Packages/LangoTraceData` 必须提供媒体派生资产 metadata repository、迁移和清理查询；文件存储只保存相对路径，完整句子文本、请求体、响应体、API Key、Authorization header 和 audio bytes 不进入日志或 validation event。
-6. `Packages/LangoTraceUI` 不得直接依赖网络、Keychain、文件系统细节、SQLite / GRDB 或 AVFoundation 具体实现；UI 只能调用由 App Shell 注入的 action / service 协议。
-7. `docs/plans/active/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md` 必须先经用户确认、实施完成并通过验证；实施完成后本方案再进入最终实施审查。
+1. 必须提供跨平台播放服务和句子播放协调边界，能在 iPhone / iPad / macOS 上完成播放、暂停、停止、切换句子时取消或降级上一句、生成完成后的 active key 校验、App 进入后台 / 页面销毁时释放播放资源。
+2. 必须提供真实 TTS generation service，把已测试可用的 TTS Provider 配置、目标句文本和 `LocalMediaArtifactStore` 串联起来；本地媒体派生资产基础设施本身不发起 Provider 请求。
+3. `Packages/LangoTraceUI` 不得直接依赖网络、Keychain、文件系统细节、SQLite / GRDB 或 AVFoundation 具体实现；UI 只能调用由 App Shell 注入的 action / service 协议。
 
 若上述任一条件未满足，本方案保持 Draft，不进入实现。
 
@@ -65,10 +69,10 @@
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/SentencePairActionControls.swift` 中的听一句按钮仍是 44pt 圆形图标按钮，具备直接播放动作的视觉基础，并能根据 `isListening` 切换 `speaker.wave.2` / `pause.fill` 图标。
 - AI Provider 设置页已经具备 TTS 配置、voice / format / speed / instructions 字段、真实 TTS probe、当前语言空间目标语言测试文本、结果面板短生命周期试听入口和可播放配置读取接口。
 - `Packages/LangoTraceAI` 已提供 OpenAI / OpenRouter Audio Speech adapter、TTS response validator 和 TTS configuration probe service；AI package 不直接依赖 `LangoTraceSpeech`，音频校验通过 Core 协议注入。
-- `Packages/LangoTraceData` 已能同事务保存 profile endpoint、endpoint 级 TTS settings 和 language code 级 voice profile，并记录 TTS probe 结果；但尚未提供 `media_artifacts` / `tts_audio_artifacts`、持久音频文件 store 或 media artifact cleanup。
-- `Packages/LangoTraceSpeech` 已提供 bytes-based `DefaultTTSAudioValidationService`、短生命周期 preview store / preview playback service 和 `LangoTraceSpeechTests`；但尚未提供逐句播放需要的持久文件级 validator、正式音频播放 coordinator 或缓存命中服务。
-- `LangoTraceApp/AppEnvironment.swift` 已能为设置页 TTS probe / preview 装配 Speech seam；但尚未装配逐句播放所需的 `LocalMediaArtifactStore`、TTS generation + playback coordinator。
-- 当前已完成 TTS 真实配置测试、短生命周期 preview audio、语音 Provider 验证结果持久化和可播放配置读取；尚未完成真实逐句播放、本地媒体派生资产基础设施、持久音频播放服务和跨句播放协调器。
+- `Packages/LangoTraceData` 已能同事务保存 profile endpoint、endpoint 级 TTS settings 和 language code 级 voice profile，并记录 TTS probe 结果；同时已提供 `media_artifacts` / `tts_audio_artifacts`、`GRDBMediaArtifactRepository`、`LocalMediaArtifactFileStore`、`LocalMediaArtifactStore` facade 和 cleanup。
+- `Packages/LangoTraceSpeech` 已提供 bytes-based `DefaultTTSAudioValidationService`、短生命周期 preview store / preview playback service、持久文件级 `TTSAudioFileValidator` 和 `LangoTraceSpeechTests`；但尚未提供正式音频 playback coordinator。
+- `LangoTraceApp/AppEnvironment.swift` 已能为设置页 TTS probe / preview 装配 Speech seam；但尚未装配逐句播放所需的 TTS generation + playback coordinator。
+- 当前已完成 TTS 真实配置测试、短生命周期 preview audio、语音 Provider 验证结果持久化、可播放配置读取和本地媒体派生资产基础设施；尚未完成真实逐句播放、正式音频播放服务和跨句播放协调器。
 
 当前文档事实：
 
@@ -192,7 +196,7 @@
 
 仍待完成前置：
 
-- `docs/plans/active/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md`
+- `docs/plans/done/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md`
 
 本方案实施前必须继续确认：
 
@@ -228,7 +232,7 @@ git status --short
 
 - TTS 配置与测试任务已经完成并验证通过；当前依据为 `docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md`。
 - TTS 设置页已经承担播放授权说明，并且 `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 已不再要求用户每次点击单句播放都进入请求预览。
-- `docs/plans/active/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md` 已完成并移入 done，且提供可调用的本地媒体派生资产查询 / 写入 / 失效 / 清理接口。
+- `docs/plans/done/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md` 已完成并移入 done，且提供可调用的本地媒体派生资产查询 / 写入 / 失效 / 清理接口。
 - 前置任务或本任务新增 coordinator 已给出可调用的 TTS 配置状态、单句生成和播放 / 暂停 / 停止接口。
 
 ### 11.2 测试先行
@@ -500,7 +504,7 @@ TTS artifact key 必须绑定所有会影响音频内容、合规性或可用性
 
 进入真实逐句播放实施前，必须形成以下确认产物：
 
-- 已创建前置 active plan：`docs/plans/active/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md`，专门定义本地媒体派生资产、TTS audio artifact、metadata schema、迁移、文件目录、清理、失效和测试；该方案是当前 direct playback 前的下一项待确认实施任务，本方案真实实施前必须等待它完成并验证。
+- 已完成前置方案：`docs/plans/done/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md`，已定义并实现本地媒体派生资产、TTS audio artifact、metadata schema、迁移、文件目录、清理、失效和测试。本方案真实实施前仍必须补齐 TTS generation service、正式 playback service 和跨句 playback coordinator。
 - 更新 `docs/spec/007-data-storage-migration-export-and-attachments.md`，把 media artifact / derived media asset 作为数据与附件规范的一等规则，而不是留在单个 TTS 方案中。
 - 更新 `docs/spec/011-tts-provider-configuration-and-playback.md`，把 TTS 音频存储从可演进部分提升为逐句播放前置基础设施。
 - 已创建 `docs/architecture/notes/2026-05-23-local-media-artifact-extension-notes.md`，覆盖全文朗读、跟读录音、听写录音、音频同步、音频导出和批量预生成的扩展提醒。后续任务若采纳其中内容，必须提升到 active plan、正式 spec、architecture 文档或 ADR。
@@ -606,7 +610,7 @@ git status --short
 
 状态：Needs Changes，不具备立即实施条件。
 
-当前结论更新：TTS Provider 配置与测试前置已经满足；本方案仍不具备立即实施条件，因为本地媒体派生资产基础设施、持久音频播放服务和跨句播放协调器尚未完成。
+当前结论更新：TTS Provider 配置与测试前置、本地媒体派生资产基础设施均已满足；本方案仍不具备立即实施条件，因为真实 TTS generation service、持久音频播放服务和跨句播放协调器尚未完成。
 
 ### 18.1 代码现状准确性
 
@@ -627,13 +631,13 @@ git status --short
 
 交互方向可行：删除 sheet、点击即播放或生成并播放，符合逐句听读的高频动作语义。
 
-系统实现当前仍不可行：TTS 可用性状态和配置测试已经具备，但仍缺少本地媒体派生资产基础设施、持久音频播放服务和跨句协调器。若强行先改 UI，只能得到一个没有真实持久行为的按钮，或者把文件 / 播放细节塞进 SwiftUI，都会破坏当前模块边界。
+系统实现当前仍不可行：TTS 可用性状态、配置测试和本地媒体派生资产基础设施已经具备，但仍缺少真实 TTS generation service、正式音频播放服务和跨句协调器。若强行先改 UI，只能得到一个没有真实生成 / 播放行为的按钮，或者把 Provider / 播放细节塞进 SwiftUI，都会破坏当前模块边界。
 
 推荐架构顺序：
 
 1. 已完成：TTS Provider 配置测试和规范修订。
-2. 下一步：完成 `LocalMediaArtifactStore` / TTS audio artifact 的 metadata、文件存储、失效、清理和诊断基础设施。
-3. 再完成 `LangoTraceSpeech` 或等价服务层的 TTS generation / audio playback / playback coordinator contract。
+2. 已完成：`LocalMediaArtifactStore` / TTS audio artifact 的 metadata、文件存储、失效、清理和诊断基础设施。
+3. 下一步：完成 TTS generation service、正式 audio playback service / playback coordinator contract。
 4. 再实施本方案的 UI 直接播放接入；旧 sheet 删除已经作为 UI 前置清理完成，后续必须保持不回归。
 
 ### 18.3 四维切片
@@ -669,10 +673,10 @@ git status --short
 
 - 已满足：TTS 设置页能保存并测试 speech endpoint，测试结果覆盖真实音频响应。
 - 已满足：`docs/spec/008-permissions-local-privacy-and-diagnostics.md` 和 `docs/spec/005-ai-provider-prompt-and-privacy.md` 已接受“设置页授权说明 + 单句显式点击播放免逐次确认”的边界。
-- 待满足：`LocalMediaArtifactStore` / TTS audio artifact 已有可测试的 metadata、文件存储、失效、清理和诊断协议。
-- 待满足：`LangoTraceSpeech` 或等价服务层已有可测试的生成、播放和跨句协调协议。
+- 已满足：`LocalMediaArtifactStore` / TTS audio artifact 已有可测试的 metadata、文件存储、失效、清理和诊断协议。
+- 待满足：`LangoTraceSpeech` 或等价服务层已有可测试的生成、播放和跨句协调协议；当前只具备持久文件校验 seam，不具备正式 playback coordinator。
 - UI 测试已先改为禁止旧 sheet，并覆盖直接播放状态。
-- 已满足一部分：前置 TTS 配置方案已经定义配置 fingerprint、失败分类、诊断字段和配置变更重测规则；artifact key、持久文件 metadata 和 cleanup 规则仍由本地媒体派生资产方案补齐。
+- 已满足：前置 TTS 配置方案已经定义配置 fingerprint、失败分类、诊断字段和配置变更重测规则；本地媒体派生资产方案已经补齐 artifact key、持久文件 metadata、命中校验、失效和 cleanup 规则。
 
 ### 18.5 更优设计
 

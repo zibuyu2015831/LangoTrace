@@ -1,11 +1,11 @@
 # 任务方案：本地媒体派生资产存储与 TTS 音频缓存基础设施
 
-状态：Draft
+状态：Done
 类型：feature
 创建日期：2026-05-23
 最后更新日期：2026-05-23
 
-审核状态：Ready for User Confirmation
+审核状态：Implemented and Verified
 
 ## 用户确认记录
 
@@ -17,7 +17,8 @@
 - 2026-05-23：用户询问除 TTS Provider 语音模型测试方案外，其他前提条件是否需要创建方案文档。结论：需要创建本方案，作为逐句直接播放 TTS 音频前置方案之一。
 - 2026-05-23：系统架构复查确认，本方案方向符合早期可重做、基础设施完整建设、规范文档演进和未来扩展进入备忘录的原则；复查补强 `LocalMediaArtifactStore` facade、staged file reference、UI 不接触文件路径、并发唯一索引兜底和后续 direct playback 依赖边界。
 - 2026-05-23：基于当前代码再次严格复查后修订方案：`AppDatabase` 已存在 `v6_create_ai_provider_tts_configuration`，本方案迁移改为 `v7_create_media_artifact_infrastructure`；`LangoTraceSpeech` 已有 test target、bytes-based `TTSAudioValidationService`、preview store 和 preview playback service，本方案改为在现有 Speech 能力之上新增持久文件验证 seam；明确 Repository 只管 metadata，`LocalMediaArtifactStore` facade 统一编排 file store、repository 和 Core validator protocol；补强 voice profile 绑定、verification script 和三端共享基础设施边界。
-- 2026-05-23：`docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md` 已完整落地并通过验证；TTS Provider 配置、真实 probe、voice profile、配置 fingerprint、短生命周期 preview audio 和 Speech bytes-based 音频校验 seam 已具备。本方案成为逐句 TTS 播放链路的下一项前置基础设施任务，但仍等待用户确认后才能从 `Draft` 转入 `User Approved` 并开始实施。
+- 2026-05-23：`docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md` 已完整落地并通过验证；TTS Provider 配置、真实 probe、voice profile、配置 fingerprint、短生命周期 preview audio 和 Speech bytes-based 音频校验 seam 已具备。本方案随后成为逐句 TTS 播放链路的下一项前置基础设施任务，并已在用户确认后实施完成。
+- 2026-05-23：用户要求完整执行本方案，且每个阶段都需要测试、检查和 commit。本方案已按 TDD 分阶段落地并提交：Core 契约、Data migration / repository、Data file store / facade / Speech 文件校验 seam、文档收口。
 
 ## 1. 需求描述
 
@@ -42,12 +43,12 @@
 当前代码事实：
 
 - `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift` 当前 migration 到 `v6_create_ai_provider_tts_configuration`，已有 `language_spaces`、AI Provider 配置、diagnostic events、Entry / LearningMaterial / sentence / candidate / operation 表，以及 `ai_provider_tts_settings` / `ai_provider_tts_voice_profiles`。
-- 当前没有 `media_artifacts`、`tts_audio_artifacts` 或等价 metadata 表。
+- 当前已新增 `media_artifacts`、`tts_audio_artifacts` metadata 表和 active derivation key 唯一索引。
 - 当前 `GRDBLearningContentRepository` 已负责 Entry、LearningMaterial、句子分析和 operation 摘要，使用可注入 clock / id generator，Data package 已有 GRDB repository 测试模式可复用。
 - 当前 `Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/SpeechBoundary.swift` 仍只有空 `SpeechService` 和 `DisabledSpeechService`；但 `Packages/LangoTraceSpeech/Package.swift` 已有 `LangoTraceSpeechTests` test target，`Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/TTSAudioValidationService.swift` 已有面向 TTS Provider 配置测试的 bytes-based `DefaultTTSAudioValidationService`、内存 preview store 和 preview playback service。
 - 当前 `Packages/LangoTraceCore/Sources/LangoTraceCore/TTSAudioValidation.swift` 已定义 `TTSAudioValidationService`、`TTSAudioMetadata`、`TTSAudioPreviewResource`、`TTSAudioPreviewStore` 和 `TTSAudioPreviewPlaybackService`。这些类型服务于设置页短生命周期 preview，不等同于持久 media artifact file validator。
 - 当前 `Packages/LangoTraceCore/Sources/LangoTraceCore/TTSProviderConfiguration.swift` 已定义 `TTSVoiceProfile`、`TTSProviderSettings`、`TTSAudioFormat`、`TTSProviderAdapterKind` 和 configuration fingerprint；本方案必须复用这些已落地类型和 fingerprint 语义，不再重新发明并行配置模型。
-- 当前逐句播放 UI 只在 `SentencePairView` 内用 `isLocalPlaybackActive` 做原位视觉反馈，没有真实音频文件、播放服务或缓存命中能力。
+- 当前逐句播放 UI 只在 `SentencePairView` 内用 `isLocalPlaybackActive` 做原位视觉反馈；本方案已提供真实音频文件基础设施和缓存命中能力，但尚未接入正式 playback coordinator 或 UI。
 - 当前 TTS Provider 配置测试方案已有独立完成文档：`docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md`。该方案已负责配置、测试、voice profile、TTS 可用性和设置页短生命周期 preview audio；它不负责真实逐句播放音频文件的本地存储基础设施。
 
 当前文档事实：
@@ -167,7 +168,7 @@
 
 本方案创建：
 
-- `docs/plans/active/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md`
+- `docs/plans/done/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md`
 
 本方案依赖：
 
@@ -942,7 +943,11 @@ git status --short
 ## 15. 实施记录
 
 - 2026-05-23：创建方案。当前仅定义本地媒体派生资产存储与 TTS audio artifact 基础设施，不实施代码。该方案是逐句直接播放 TTS 音频的前置方案之一，与 TTS Provider 配置测试方案并列依赖。
-- 2026-05-23：TTS Provider 配置测试方案已移入 `docs/plans/done/` 并完成验证；本方案文档更新为下一项可确认的前置实施任务。当前状态仍为 `Draft`，等待用户确认后再进入 TDD 实施。
+- 2026-05-23：TTS Provider 配置测试方案已移入 `docs/plans/done/` 并完成验证；本方案文档更新为下一项可确认的前置实施任务，随后经用户确认进入 TDD 实施。
+- 2026-05-23：阶段 1 Core 契约已落地并提交 `7e8fb31 feat: add media artifact core contracts`。新增 `MediaArtifact`、owner/type/policy、lookup / cleanup / repository / facade 协议、`TTSAudioArtifactKey`、`TTSAudioFileValidating` 和 `MediaArtifactTests`；聚焦和 Core 包测试通过。
+- 2026-05-23：阶段 2 Data metadata 已落地并提交 `0f3c8d6 feat: add media artifact metadata store`。新增 `v7_create_media_artifact_infrastructure`、`media_artifacts` / `tts_audio_artifacts`、CHECK / FK / index、`GRDBMediaArtifactRepository` 和 repository / migration tests；Data 包测试通过。
+- 2026-05-23：阶段 3 file store / facade / Speech validator 已落地并提交 `50df229 feat: add local media artifact files`。新增 `LocalMediaArtifactFileStore`、`LocalMediaArtifactStore`、Speech `TTSAudioFileValidator`、file store / facade / file validator tests；Core / Data / Speech 包测试通过。
+- 2026-05-23：阶段 4 文档影响检查已更新 `docs/README.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/011-tts-provider-configuration-and-playback.md`、direct sentence TTS playback 方案和 review index；本方案移动到 done。
 
 ## 16. 完成标准
 

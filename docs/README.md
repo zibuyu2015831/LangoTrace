@@ -106,6 +106,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - AI Provider 本地配置保存，非敏感配置进入 SQLite / GRDB，API Key 进入 Keychain。
 - AI Provider 配置合成测试，覆盖文本回复、JSON 输出、当前语言空间上下文下的语言支持、用户显式启用后的内置图片理解 probe，以及启用且配置完整时的 OpenAI / OpenRouter TTS 固定低敏 probe。
 - TTS Provider 配置基础设施，包含 endpoint 级 TTS settings、language code 级 voice profile、TTS 配置 fingerprint、TTS 结果持久化隔离、Core 音频校验 / preview playback 协议、Speech package 音频校验 test target 和设置页短生命周期样例试听 seam。
+- 本地媒体派生资产与 TTS 音频缓存基础设施，包含 Core media artifact / TTS artifact key 契约、`media_artifacts` / `tts_audio_artifacts` GRDB migration、metadata repository、App 管理的 `MediaArtifacts` 文件目录、staging 写入、原子移动、命中校验、失效、清理、默认 local-only / excluded-from-backup / excluded-from-export policy，以及 Speech 持久 TTS 文件校验 seam。
 - Core、Data、AI、Speech 和 UI package 的首批单元测试；UI package 已开始按功能子目录组织 AI Provider 测试。
 - 统一验证脚本 `scripts/verify.sh`。
 
@@ -115,7 +116,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - Entry、Rendering、Practice、Memory 的真实数据库 schema。
 - FTS、附件存储、导出和可恢复备份。
 - AI Provider 请求预览、请求日志、Prompt Preset 执行链路，以及 Anthropic / Gemini 学习内容请求和图片 probe。
-- 逐句播放、持久音频缓存、Embedding / 向量化处理、对象存储等真实配置和敏感凭证安全存储。
+- 逐句播放 coordinator、正式音频播放 UI 接入、Embedding / 向量化处理、对象存储等真实配置和敏感凭证安全存储。
 - Prompt Preset 的真实渲染和执行链路。
 - 录音、Speech、OCR、照片和权限接入。
 - 同步引擎。
