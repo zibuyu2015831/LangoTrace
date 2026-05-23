@@ -17,6 +17,7 @@
 - 2026-05-23：用户确认本轮实现先完成 iOS / iPhone 端；iPad 和 macOS 端待 iOS 端人工测试通过后再另行推进。底层 Core / Data / AI / App Shell 仍按三端可复用边界建设，但本轮 UI 可交付范围只包含 iOS。
 - 2026-05-23：用户确认“该方案审核通过”，并要求根据该方案开始实施，直至方案完整落地；每个阶段均需检查、测试和 commit。
 - 2026-05-23：iOS 人工测试通过后，用户要求继续按本方案和 iOS 实现完成 iPad / macOS 记录详情页对应接入；本次追加完成三端共享 `EntryDetailView` 的真实生成、取消、learning text 编辑和重新分析 action wiring，并单独测试和 commit。
+- 2026-05-23：后续 `记录详情双文本卡片与原文编辑` 任务经用户体验反馈确认并落地：保存后的 Entry 正文允许在详情页手动修正，但只更新本地 Entry，不自动发送 Provider 请求；已有学习材料通过 `source_entry_body_hash` 展示“基于旧记录”，并要求用户显式重新生成。该后续决策替代本方案早期“保存后正文不可直接编辑”的交互口径。
 
 ## 1. 需求描述
 
@@ -1349,7 +1350,7 @@ git status --short
 - 用户已确认本方案进入实现。
 - 记录详情页只有一个核心 AI 动作 `生成学习材料`。
 - iPhone / iPad / macOS 记录详情页均已通过共享 `EntryDetailView` 接入真实学习材料生成、取消、learning text 编辑和重新分析 action；iPad / macOS 创建入口 async 保存状态和平台人工验收仍作为后续收口项。
-- 原始 Entry 正文保存后不可直接编辑。
+- 原始 Entry 正文不会被 AI 生成、learning text 编辑或重新分析覆盖；后续记录详情文本卡片任务已允许用户手动编辑原文正文，保存只更新本地 Entry，并通过 `source_entry_body_hash` 显示既有学习材料是否基于旧记录。
 - 学习材料生成通过 `LearningMaterialGenerationActions` 或等价 use case 编排，SwiftUI View 不直接访问 AI service、Keychain、`DatabaseQueue` 或 Provider SDK。
 - `LearningContentStore` 已迁移到 async GRDB facade 或有明确过渡 bridge，真实生成结果不进入内存 repository。
 - Settings capability 已从 learning content repository 长期职责中拆出，或实施记录明确过渡兼容期限和后续拆分任务。
@@ -1371,7 +1372,7 @@ git status --short
 - AI 自动判断母语记录和目标语言写作可能误判，尤其是短文本、混合语言和初学者错误文本。第一版通过结构化 `inputKind`、判断说明和可编辑学习文本降低风险。
 - 一次请求同时生成文本和分析，响应可能较慢。第一版通过长度阈值和中等文本输出降级控制体验。
 - 不设置阻断式确认会提高主流程效率，但也要求按钮、加载状态和 Provider 设置清楚表达 AI 调用。涉及照片、音频、历史记忆或多条记录上下文时，不能复用本任务的非确认边界。
-- 原始 Entry 不可编辑可能让误保存用户感到受限。第一版保留保存前编辑、删除重建和未来复制为新记录的扩展空间。
+- 原始 Entry 手动编辑会影响既有学习材料与来源文本的一致性。当前通过持久化 `source_entry_body_hash` 标记“基于旧记录”，但不保存旧原文快照或 diff；未来若需要历史版本对比，应另立 Entry revision / material source snapshot 方案。
 - 当前真实 Entry / Rendering 持久化 schema 尚未完成，因此本任务必须先落地完整 GRDB learning content infrastructure，不能以 `InMemoryLearningContentRepository` 原型作为完成口径；如需分期 prototype，必须另开任务并改变完成标准。
 
 ## 18. 严格方案审核记录

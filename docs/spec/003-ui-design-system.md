@@ -220,7 +220,7 @@ iPad 和 macOS 上，语言空间和设置入口默认属于 Sidebar 底部工�
 
 Action hierarchy：
 
-- Primary action：创建 Entry、生成本地预览、继续练习等主路径动作；每个主区域同时只保留少量主动作。
+- Primary action：创建 Entry、生成学习材料、继续练习等主路径动作；每个主区域同时只保留少量主动作。本地预览只能作为开发期 seed / mock 状态，不应在真实记录详情中替代 `生成学习材料` 主动作。
 - Welcome、Onboarding、iPhone 主学习页、AI Provider 保存、同步关闭、练习继续、新建记录等 filled primary CTA 默认使用更沉稳的主操作填充色；深色下不得直接用 `#72D2BF` 或继承全局高亮 tint 作为 filled primary CTA 底色。
 - Secondary action：筛选、查看详情、打开设置说明、切换面板。
 - Switch：能力启用、同步 scope 和连接选项等二元开关使用系统 switch 形态，但开启态 tint 走 `switchOnFill`；不要直接继承全局 `accent`，避免在深色面板中出现过亮的浅薄荷色块。

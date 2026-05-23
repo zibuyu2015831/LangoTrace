@@ -163,10 +163,10 @@ Entry 保存只创建用户原始记录，不应自动补齐完整 Rendering、P
 推荐边界：
 
 - Seed 数据可以携带本地示例 Rendering、Practice 和 Memory，用于展示产品闭环。
-- 用户新建 Entry 默认只显示原始记录、Rendering 状态区和显式本地预览入口。
-- 本地预览通过 repository / store 的显式方法触发，并清楚标记为 local preview，不触发真实 AI、TTS、同步或外部请求。
+- 用户新建 Entry 默认只显示原始记录、LearningMaterial / Rendering 状态区和显式 `生成学习材料` 入口。
+- `生成学习材料` 通过 App Shell 注入的 `LearningMaterialGenerationActions` 进入 AI Provider / Prompt / GRDB 持久化路径；SwiftUI View 不直接访问 Provider、Keychain、网络或数据库。开发期本地预览只能作为测试替身或 seed preview，不得作为真实用户路径的主按钮回退。
 - Practice 和 Memory 可以从已有 Rendering 或 seed 数据展示；缺少 Rendering 时应显示 unavailable / next action，而不是默默生成假数据。
-- 真实 AI Provider、Prompt 渲染、请求日志和失败重试接入前，不得把保存 Entry 描述成已经生成学习材料。
+- 保存 Entry 不得被描述成已经生成学习材料；只有用户在详情页显式触发 `生成学习材料` 或 `重新生成` 时才发送当前文本给已配置 Provider。iPhone / iPad / macOS 可复用同一内容视图和 action seam，但平台外壳仍负责各自导航、窗口、sheet 和后续人工验收。
 
 ## 5. 可演进部分
 
@@ -215,3 +215,4 @@ AI 在写 SwiftUI 代码前应先回答：
 - 2026-05-19：补充大型页面文件治理规则。原因：Welcome 三端优化后将布局 helper、叶子组件和回归测试按职责拆分，并用源码组织测试防止 SwiftLint 长度 warning 复发；该经验应成为后续 SwiftUI 页面迭代规则。影响范围：LangoTraceUI 页面文件、平台布局 helper、叶子组件和 UI package 测试组织。是否需要 ADR：否。
 - 2026-05-20：补充管理页与编辑器拆分规则。原因：语言空间管理页新增编辑 sheet 后触发文件长度 warning，最终将列表管理与多字段编辑器拆分为 `LanguageSpaceManagementView` 和 `LanguageSpaceEditorView`，该模式应复用于后续 Provider、同步和记录编辑类页面。影响范围：LangoTraceUI 管理页、editor sheet、源码组织测试和 SwiftLint 文件长度治理。是否需要 ADR：否。
 - 2026-05-20：补充保存类异步操作和诊断关联规则。原因：AI Provider 配置保存现在跨 UI、AI service、Keychain、Data repository 和诊断日志，需要明确 input invalid、真实失败、operation id 和 best-effort logging 的职责边界。影响范围：SwiftUI 保存入口、AI Provider 设置、后续同步 / 导出 / AI 请求状态机。是否需要 ADR：否。
+- 2026-05-23：更新 Entry / LearningMaterial 生成边界。原因：一键学习材料生成已从本地预览推进到三端共享 `EntryDetailView` 的真实 AI Provider action seam，且用户保存 Entry 后仍需显式触发生成；规范不应继续把本地预览描述为真实主路径。影响范围：PhoneMainView、PadMainSections、MacWorkspaceContentView、EntryDetailView、LearningContentStore、AppEnvironment。是否需要 ADR：否，沿用本地优先和三端共享业务逻辑决策。

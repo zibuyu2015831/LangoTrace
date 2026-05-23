@@ -30,23 +30,23 @@
 当前已经具备：
 
 - Welcome / Onboarding / Main 启动路由。
-- 内存语言空间 preview；当前还不是可持久化 Space。
+- 语言空间已通过 SQLite / GRDB repository 持久化，启动恢复、添加、切换、重命名和删除 fallback 已接入三端共享会话状态。
 - iPhone `记录 / 练习 / 记忆` 三个主 Tab；设置通过 toolbar gear 或配置 route 稳定可达。
-- 本地内存学习内容 repository 已通过 `LearningContentRepository` 和 `LearningContentStore` 暴露给 UI；View 不直接依赖 concrete repository。
-- Entry 保存只创建原始记录；Rendering local preview 必须由用户显式触发，不再在 `createEntry` 后自动生成 Practice 和 Memory。
-- iPhone 记录创建 sheet、Entry 保存后详情导航、Entry detail、本地预览入口、mock practice session 和 Memory 三层摘要。
+- 学习内容已通过 `LearningContentRepository` 和 `LearningContentStore` 暴露给 UI；App Shell 主路径使用 GRDB learning content repository，内存 repository 只作为测试替身和开发期 seed preview。
+- Entry 保存只创建原始记录；真实学习材料必须由用户在详情页显式点击 `生成学习材料` 或 `重新生成` 触发，不再在 `createEntry` 后自动生成 Practice 和 Memory。
+- iPhone 记录创建 sheet、Entry 保存后详情导航、三端共享 Entry detail、真实学习材料生成入口、mock practice session 和 Memory 三层摘要。
 - iPad 三栏工作台、响应式宽度布局、时间线和学习面板收起/展开、Settings / Search / New Entry 稳定入口、基础 pointer / keyboard / context menu。
 - macOS Sidebar / 主区 / Inspector 工作台骨架、Settings scene、菜单 commands 和关键快捷键。
 - `LanguageSpaceFooter`、能力状态图标、面板切换按钮、状态矩阵和基础设计 token。
 
 当前缺口：
 
-- `LangoTraceData` 的 `LanguageSpaceRepository` 仍由独立语言空间持久化方案承接；语言空间添加、切换、删除和最后空间回退尚未实现。
-- 现有 Entry 创建、编辑、保存和详情路由仍是内存 mock，不具备真实持久化、启动恢复、编辑后保存到长期 repository 或附件关联。
-- 没有 Rendering 请求预览、生成结果、失败状态和重试路径。
+- Entry、LearningMaterial、analysis、memory candidate、practice candidate 和 operation summary 已进入 GRDB 主路径；附件、FTS、导出、可恢复备份、同步和向量索引尚未实现。
+- iPad / macOS 记录详情 action wiring 已接入真实生成路径，但仍需后续人工验收大屏布局、AI Provider 披露和创建入口保存失败恢复。
+- 请求预览、请求日志、Prompt Preset 自定义执行和跨 Provider 请求体尚未完整接入；基础生成结果、失败分类、取消和重试入口已由 LearningMaterial generation state 承载。
 - 没有真实 TTS、播放、跟读、听写、回译和练习结果。
 - 没有 Memory 提取、收藏、复习队列和回到原始上下文。
-- 没有 SQLite / GRDB Repository、附件存储和启动恢复。
+- 附件存储、FTS、导出、可恢复备份、同步和向量索引尚未实现。
 - 设计系统已有第一轮 token 和状态矩阵，但仍缺少完整深色模式、高对比、截图矩阵和真实错误 / 权限 / 同步流程样板。
 
 ## 3. 产品对象边界
@@ -61,13 +61,13 @@
 
 每个主数据对象必须归属于一个 `Space`。任何创建主数据的页面在缺少语言空间时不得写入。
 
-第一阶段可以用内存实现，但不能继续把页面数据写死在 View 内。最低要求是：
+当前真实主路径应使用 repository / store seam，不能把页面数据写死在 View 内。最低要求是：
 
 - `Entry`、`Rendering`、`Practice`、`Memory` 有轻量模型或可测试的 preview model。
-- Repository 至少支持当前语言空间内的列表、选择、创建和保存。
-- Mock Rendering 明确标记为本地 mock，不触发网络请求。
-- 用户新建 Entry 后不会自动创建 Rendering、Practice 或 Memory；本地预览是显式动作。
-- Request Preview 可以先确认 mock 请求，但 UI 必须清楚表达真实 Provider 未配置时不会发送内容。
+- Repository 至少支持当前语言空间内的列表、选择、创建、保存和真实 LearningMaterial 持久化。
+- Mock Rendering / seed preview 必须明确标记为本地 mock，不触发网络请求，也不得替代真实用户路径。
+- 用户新建 Entry 后不会自动创建 Rendering、Practice 或 Memory；学习材料生成是详情页中的显式动作。
+- Request Preview 后续接入时必须清楚表达将发送和不会发送的内容；真实 Provider 未配置时不能暗示内容已经发送到外部服务。
 
 ## 4. MVP 页面地图
 
@@ -75,7 +75,7 @@
 
 iPhone 保持三个主 Tab：
 
-- 记录：主入口，承载“记录一点生活”、最近记录、当前 Entry 状态、本地预览入口和必要的隐私 / AI 边界轻提示。
+- 记录：主入口，承载“记录一点生活”、最近记录、当前 Entry 状态、`生成学习材料` 入口和必要的隐私 / AI 边界轻提示。
 - 练习：按当前语言空间聚合跟读、听写、回译和写作检查。
 - 记忆：内容记忆、语言记忆、学习记忆三层摘要，后续扩展为词句、整句表达、错误模式、相似生活片段和复习入口。
 
@@ -84,7 +84,7 @@ iPhone 保持三个主 Tab：
 必须补齐的子页面：
 
 - `EntryEditorView`：创建或编辑生活记录。
-- `EntryDetailView`：展示母语记录、目标语言 Rendering 状态、本地预览入口、句子对照和练习入口；缺少 Rendering 时必须显示明确状态。
+- `EntryDetailView`：展示母语记录、目标语言 LearningMaterial / Rendering 状态、`生成学习材料` 入口、句子对照和练习入口；缺少 LearningMaterial 时必须显示明确状态和 AI Provider 边界披露。
 - `RequestPreviewView`：展示即将发送与不会发送的内容；真实 Provider 未配置时只能执行 mock 生成或提示配置，不得暗示已经发送到外部服务。
 - `PracticeSessionView`：承载跟读、听写或回译中的一种练习会话。
 - `MemoryItemDetailView`：展示词句来源、例句、原始 Entry 和复习状态。
@@ -198,7 +198,7 @@ Token 落地顺序：
 
 Action hierarchy：
 
-- Primary：创建 Entry、生成本地预览、继续练习。
+- Primary：创建 Entry、生成学习材料、继续练习。
 - Secondary：筛选、查看设置详情、切换面板、查看不可用说明。
 - Tertiary：播放、收藏、更多、AI / Sync / gear 状态图标。
 - Destructive：删除语言空间、删除 Entry、清空数据；必须有确认、导出或可恢复方案，本规格当前不实现真实语言空间删除。
@@ -217,7 +217,7 @@ Action hierarchy：
 - 同步未启用：表达为正常状态，不使用错误视觉。
 - 同步冲突：必须进入用户确认或可恢复路径。
 - 向量索引未建立：表达为可重建派生数据，不影响原始记录。
-- 本地预览：表达为可替换的本地示例，不触发真实 AI、TTS、同步或外部请求。
+- 本地预览：只作为 seed preview 或测试替身表达为可替换的本地示例，不触发真实 AI、TTS、同步或外部请求，不作为真实记录详情主路径。
 
 Memory 页面第一轮至少表达三层：
 
@@ -234,16 +234,16 @@ Memory 页面第一轮至少表达三层：
    - 抽取 `EntryTimelineRow`、`SentencePairView`、`RequestPreviewCard`。
    - 为组件补 SwiftUI preview 和轻量测试可验证的模型状态。
 
-2. 最小模型和内存 repository：
-   - 为 `Entry`、`Rendering`、`Practice`、`Memory` 增加第一版 preview model 或测试模型。
-   - 增加当前语言空间内的 in-memory repository，支持列表、选择、创建、保存和显式 local preview rendering。
-   - 继续保持 SQLite / GRDB 为后续阶段，不在本批次引入真实数据库迁移。
+2. 学习内容 repository：
+   - 保留 `Entry`、`Rendering`、`Practice`、`Memory` 的 preview / 测试模型。
+   - App Shell 主路径使用 GRDB learning content repository，支持 Entry 创建、更新、LearningMaterial 保存、analysis 替换、候选项和 operation 摘要。
+   - in-memory repository 只作为测试替身和开发期 seed preview，不承载真实用户学习闭环。
 
 3. iPhone 记录闭环：
    - 让“写一句”进入 `EntryEditorView`。
-   - 保存到内存 repository。
+   - 保存到 GRDB learning content repository。
    - 进入 `EntryDetailView`。
-   - 保存后先进入原始 Entry 详情，再由用户显式生成 local preview，展示双语对照和句子练习入口。
+   - 保存后先进入原始 Entry 详情，再由用户显式点击 `生成学习材料`，展示双语对照和句子练习入口。
 
 4. iPad 详情工作台：
    - 时间线选择驱动中栏 Entry。
@@ -276,9 +276,9 @@ scripts/verify.sh
 
 手动验证至少覆盖：
 
-- iPhone：onboarding、三个 Tab、记录创建、记录详情、本地预览、练习入口、设置入口。
-- iPad：面板展开/收起、时间线选择、Entry 详情、学习面板、请求预览。
-- macOS：窗口最小尺寸、Sidebar/Inspector 切换、新建记录入口不会造成假写入。
+- iPhone：onboarding、三个 Tab、记录创建、记录详情、生成学习材料、练习入口、设置入口。
+- iPad：面板展开/收起、时间线选择、Entry 详情、生成学习材料、学习面板、请求预览。
+- macOS：窗口最小尺寸、Sidebar/Inspector 切换、新建记录入口、Entry Detail 生成学习材料不会造成假写入或假生成。
 - Accessibility：主要图标按钮有可读 label，面板状态有 value，Reduce Motion 生效。
 
 视觉截图验证至少覆盖：
@@ -303,8 +303,8 @@ scripts/verify.sh
 
 本规格对应的 MVP UI 通过标准：
 
-- 用户能在 iPhone 完成从创建 Entry 到显式生成 local preview Rendering 并进入练习入口的闭环。
-- iPad 能用时间线选择 Entry，并在中栏与右栏展示不同学习上下文。
+- 用户能在 iPhone 完成从创建 Entry 到显式生成真实 LearningMaterial 并进入练习入口的闭环。
+- iPad 能用时间线选择 Entry，并在中栏与右栏展示不同学习上下文；记录详情应复用真实生成 action seam，而不是退回本地预览主按钮。
 - 所有主页面都有明确 empty / unavailable / request preview 状态。
 - AI Provider 未配置时，页面不会暗示已经能自动生成内容或自动发送数据。
 - 新组件使用稳定 token，不在页面中继续扩散临时颜色、圆角和状态样式。
@@ -315,3 +315,4 @@ scripts/verify.sh
 - 2026-05-18：同步第一轮 UI 收敛后的页面地图和状态边界。原因：iPhone 已收敛为记录、练习、记忆三主 Tab；Entry 保存与 local preview 生成已分离；iPad / macOS 已补基础响应式和命令入口；Memory 已出现内容、语言、学习三层表达。影响范围：MVP 页面地图、状态矩阵、设计系统后续实施顺序和手动验证清单。
 - 2026-05-20：同步 AI Provider 设置页从占位 / mock 进入本地配置保存阶段的事实。原因：AI Provider 已落地 SQLite / GRDB metadata、Keychain secret、本地凭证验证和已保存 API Key 短生命周期回显；同步和本地数据设置仍未进入真实写入阶段。影响范围：设置闭环、AI Provider 设置 UI、文档一致性。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-21：同步 AI Provider 设置页从本地凭证验证推进到配置合成测试的事实。原因：测试请求已可对文本回复、JSON 输出和用户显式启用后的内置图片理解 probe 发起固定低敏 Provider 请求。影响范围：设置闭环、AI Provider 设置 UI、图片输入边界和文档一致性。是否需要 ADR：否，沿用 ADR-005；真实学习内容请求和用户照片请求仍需单独方案。
+- 2026-05-23：同步学习内容主路径和三端记录详情事实。原因：Entry / LearningMaterial 已进入 GRDB 主路径，一键学习材料生成已通过共享 `EntryDetailView` 接入 iPhone / iPad / macOS，规范不应继续以 in-memory repository 或 local preview 作为真实学习闭环口径。影响范围：MVP 页面地图、手动验证清单、通过标准和后续 UI 任务入口。是否需要 ADR：否，沿用 SQLite / GRDB 主存储和三端共享业务逻辑决策。

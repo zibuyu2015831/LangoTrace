@@ -18,6 +18,8 @@
 - 学习材料生成 Core 契约：`Packages/LangoTraceCore/Sources/LangoTraceCore/LearningMaterialGenerationModels.swift`
 - 学习材料 AI service 与 Prompt Registry：`Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialGenerationService.swift`、`Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialPromptRegistry.swift`
 - iPhone 记录创建和详情：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainView.swift`
+- iPad 记录详情承载：`Packages/LangoTraceUI/Sources/LangoTraceUI/PadMainSections.swift`
+- macOS 记录详情承载：`Packages/LangoTraceUI/Sources/LangoTraceUI/MacWorkspaceContentView.swift`
 - Entry editor、detail 和 mock practice supporting views：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSupportingViews.swift`
 - App Shell 装配：`LangoTraceApp/AppEnvironment.swift`
 
@@ -28,12 +30,12 @@
 - App Shell 已将真实 learning content repository 装配为 `GRDBLearningContentRepositoryBridge`，不再把用户创建的真实 Entry 和生成结果落入内存 repository。
 - iPhone 可通过记录创建 sheet 保存到 GRDB repository，并进入详情。
 - `LearningContentRepository` 已提供 Entry body 更新能力；iPhone / iPad / macOS 复用的 `EntryDetailView` 可以从详情页编辑母语原文。保存原文只更新本地 `entries.body` / `updated_at`，不自动触发 AI Provider 请求。
-- iPhone 记录详情在无学习材料时显示一个核心动作 `生成学习材料`；点击后经 `LearningMaterialGenerationActions` 进入 App Shell 编排，读取默认文本 Provider、解析 Keychain secret、调用 `LearningMaterialGenerationService`，再保存到 GRDB。
+- iPhone / iPad / macOS 记录详情在无学习材料时显示一个核心动作 `生成学习材料`；点击后经 `LearningMaterialGenerationActions` 进入 App Shell 编排，读取默认文本 Provider、解析 Keychain secret、调用 `LearningMaterialGenerationService`，再保存到 GRDB。
 - `learning_materials.source_entry_body_hash` 记录当前 material 生成时对应的 Entry body hash；Store 通过当前 Entry body hash 与 rendering/material hash 比较推导 `sourceEntryIsStale`。原文编辑后已有学习材料显示“基于旧记录”，用户显式点击重新生成后才会发送当前原文给 Provider。
 - 学习文本可编辑；编辑后 analysis 进入 stale 状态；用户可点击 `重新分析`，仅重建当前学习文本的 analysis，不改原始 Entry 或重新生成 learning text。
 - 记录详情中的母语原文和目标语言学习文本使用 `EntryDetailTextCard` 顶部工具区；动态标题来自当前语言空间显示名，不硬编码具体语种，正文全宽展示，不再使用右上角悬浮按钮挤压文本列。
 - 长文本在 UI / Store 层按 `LearningMaterialLengthEstimator` 阻断，避免直接发送给 Provider。
-- iPad / macOS 仍未接入真实学习材料生成 UI；本轮只完成 iOS / iPhone，待 iOS 人工测试通过后再推进平台接入。
+- iPad `workspaceOverview` / route detail 和 macOS Today / Entries detail 均复用共享 `EntryDetailView` helper，注入与 iPhone 一致的生成、取消、learning text 保存、重新分析、原文更新和练习入口。iPad / macOS 仍需后续人工验收大屏布局、AI Provider 披露和创建入口保存失败恢复。
 
 ## 3. 已知偏差
 
