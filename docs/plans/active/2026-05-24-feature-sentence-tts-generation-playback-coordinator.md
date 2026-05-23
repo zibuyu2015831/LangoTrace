@@ -1,11 +1,11 @@
 # 任务方案：逐句 TTS 生成、播放与跨句协调基础设施
 
-状态：Draft
+状态：User Approved
 类型：feature
 创建日期：2026-05-24
 最后更新日期：2026-05-24
 
-审核状态：Reviewed - Ready for User Approval
+审核状态：Approved
 
 ## 用户确认记录
 
@@ -15,6 +15,7 @@
 - 2026-05-24：用户询问剩余 generation / playback / coordinator 是否应创建新的独立方案文档。结论：应独立创建，因为该任务是跨 AI / Speech / Data / AppEnvironment / UI action contract 的服务层基础设施，不应继续膨胀 direct playback UI 方案。
 - 2026-05-24：用户要求立即创建本独立方案文档。本方案仅创建实施方案，不实施代码；进入实现前仍需用户确认状态从 `Draft` 进入 `User Approved`。
 - 2026-05-24：严格方案复查确认：当前方案方向正确，但必须按早期基础设施长期正确原则修订 AI / Data staging 边界、生产 HTTP client、secret resolver、coordinator 测试落点、ready artifact resolver、diagnostic allowlist 和后续扩展备忘录引用后，才具备实施条件。
+- 2026-05-24：用户确认本方案审核通过，可在后续会话中作为第一顺位实施方案。
 
 ## 1. 需求描述
 

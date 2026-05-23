@@ -1,11 +1,11 @@
 # 任务方案：逐句分析直接播放 TTS 音频
 
-状态：Draft
+状态：User Approved
 类型：feature
 创建日期：2026-05-23
-最后更新日期：2026-05-23
+最后更新日期：2026-05-24
 
-审核状态：Needs Changes
+审核状态：Approved - Implement After Prerequisite Plan
 
 ## 用户确认记录
 
@@ -19,6 +19,7 @@
 - 2026-05-23：用户补充早期开发原则：发现错误或落后框架可以推倒重来，不背历史包袱；基础设施应在首次实现时采用最优完整方案；规范文档可随更优设计演进；后续扩展但暂不实现的架构问题应进入对应开发备忘录。基于该原则，本方案采纳“本地媒体派生资产基础设施”推荐：逐句 TTS 音频不是临时 UI 缓存，而是本地优先、隐私敏感、可重建的派生媒体资产，真实逐句播放必须先建设通用媒体资产 metadata、文件存储、失效、清理和播放协调边界。
 - 2026-05-23：`docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md` 已完整落地。TTS Provider 配置、真实语音模型测试、当前语言空间目标语言测试文本、voice profile、配置 fingerprint、短生命周期 preview audio、Speech bytes-based 音频校验 seam 和可播放配置读取接口已满足；本方案剩余硬性前置曾是本地媒体派生资产基础设施和逐句播放协调 / UI 接入边界，后续已由本地媒体派生资产方案完成其中基础设施部分。
 - 2026-05-23：`docs/plans/done/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md` 已落地。Core media artifact / TTS artifact key、GRDB metadata、`LocalMediaArtifactFileStore`、`LocalMediaArtifactStore` facade、Speech 持久 TTS 文件校验、命中 / 失效 / 清理测试均已具备；本方案剩余硬性前置收窄为真实 TTS generation service、正式 playback service、跨句播放 coordinator 和 UI 接入。
+- 2026-05-24：用户确认本方案审核通过；实施顺序仍必须排在 `docs/plans/active/2026-05-24-feature-sentence-tts-generation-playback-coordinator.md` 完成并验证之后，本方案届时只负责 direct playback UI 接入。
 
 ## 1. 需求描述
 
