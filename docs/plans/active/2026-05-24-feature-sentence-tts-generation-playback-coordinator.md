@@ -16,6 +16,7 @@
 - 2026-05-24：用户要求立即创建本独立方案文档。本方案仅创建实施方案，不实施代码；进入实现前仍需用户确认状态从 `Draft` 进入 `User Approved`。
 - 2026-05-24：严格方案复查确认：当前方案方向正确，但必须按早期基础设施长期正确原则修订 AI / Data staging 边界、生产 HTTP client、secret resolver、coordinator 测试落点、ready artifact resolver、diagnostic allowlist 和后续扩展备忘录引用后，才具备实施条件。
 - 2026-05-24：用户确认本方案审核通过，可在后续会话中作为第一顺位实施方案。
+- 2026-05-24：根据用户再次强调的早期基础设施原则复审实施决策：本任务不再把 App test target 作为可选项。Coordinator 状态机核心仍必须放在 package 中测试，但本任务还应新增轻量 `LangoTraceAppTests`，覆盖 AppEnvironment / assembly smoke，并将该测试入口写入 `project.yml` 和 `scripts/verify.sh`，避免跨包生产装配长期只靠 build 间接覆盖。
 
 ## 1. 需求描述
 
@@ -133,7 +134,7 @@
 - `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/TTSAudioPlaybackServiceTests.swift`
 - `Packages/LangoTraceData/Tests/LangoTraceDataTests/MediaArtifactPlaybackSourceResolverTests.swift`
 - `Packages/LangoTraceUI/Tests/LangoTraceUITests/SentenceAudioPlaybackCoordinatorModelTests.swift`，若 coordinator 状态机核心放在 UI package；若放在 Core package，则对应测试放入 `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/`。
-- `LangoTraceAppTests/SentenceAudioPlaybackAssemblyTests.swift`，仅当本任务同步新增可运行 App test target；否则不得把关键状态机覆盖依赖 App target 测试。
+- `LangoTraceAppTests/SentenceAudioPlaybackAssemblyTests.swift`，作为本任务新增的轻量 App assembly test target 覆盖，不承载核心状态机测试。
 
 预计修改：
 
@@ -144,8 +145,8 @@
 - `Packages/LangoTraceCore/Sources/LangoTraceCore/DiagnosticEvent.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/LearningContentStore.swift`，仅用于暴露 UI action contract 所需的 store seam，不接真实按钮。
 - `LangoTraceApp/AppEnvironment.swift`
-- `project.yml`，仅当新增 App test target 或需要把 coordinator 文件纳入 target。
-- `scripts/verify.sh`，仅当新增可运行测试 target 后需要加入完整验证入口。
+- `project.yml`，新增 `LangoTraceAppTests` 或等价 App assembly test target，并接入对应 scheme test action。
+- `scripts/verify.sh`，加入新增 App assembly test target 的验证命令。
 
 可能修改：
 
@@ -489,7 +490,7 @@ rg -n "SentenceAudio|TTSAudio|TTSProvider|LocalMediaArtifactStore|SpeechService|
 - 本地媒体派生资产方案仍在 `docs/plans/done/`，且 `LocalMediaArtifactStore` 可查询、提交、失效和清理 TTS audio artifact。
 - `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 仍保持单句显式点击低摩擦边界。
 - `docs/architecture/notes/2026-05-23-local-media-artifact-extension-notes.md`、`docs/architecture/notes/2026-05-23-tts-provider-extension-notes.md` 和 `docs/architecture/notes/2026-05-24-sentence-tts-playback-infrastructure-extension-notes.md` 已被读取；本方案实施记录必须写明采纳了哪些提醒，哪些暂不采纳。
-- 当前 `project.yml` 是否已有 App test target；若没有，必须选择“新增 App test target”或“把 coordinator 核心下沉到 package tests”中的一种，不能留下未测试核心逻辑。
+- 当前 `project.yml` 尚无 App test target 时，本任务必须新增轻量 App assembly test target；同时 coordinator 核心仍要下沉到 package tests，不能把状态机测试转移到 App test target。
 
 ### 10.2 TDD 步骤
 
@@ -500,7 +501,8 @@ rg -n "SentenceAudio|TTSAudio|TTSProvider|LocalMediaArtifactStore|SpeechService|
 5. Data 先写 playback source resolver tests，覆盖 ready artifact source 解析、relative path 防穿越、文件缺失、content hash mismatch、invalidated artifact 和 mark accessed。
 6. Speech 先写 `TTSAudioPlaybackServiceTests`，通过 fake audio engine 或 protocol seam 覆盖 play / pause / resume / stop / completion / failure，不依赖真实扬声器。
 7. 再实现最小生产代码，使每组聚焦测试通过。
-8. 最后装配 `AppEnvironment` production graph，但不接 `SentencePairView`。
+8. 新增轻量 `LangoTraceAppTests`，覆盖 `SentenceAudioPlaybackAssembly` / `AppEnvironment` production graph 可构造、核心依赖非 disabled、direct playback UI 尚未接入按钮。
+9. 最后装配 `AppEnvironment` production graph，但不接 `SentencePairView`。
 
 ### 10.3 分阶段提交建议
 
@@ -511,7 +513,7 @@ rg -n "SentenceAudio|TTSAudio|TTSProvider|LocalMediaArtifactStore|SpeechService|
 3. Data staging writer / playback source resolver and tests。
 4. Speech persistent playback service and tests。
 5. Coordinator state machine and tests。
-6. AppEnvironment assembly and documentation updates。
+6. AppEnvironment assembly, App assembly test target and documentation updates。
 
 ## 11. 复查方法
 
@@ -524,6 +526,7 @@ rg -n "SentenceAudio|TTSAudio|TTSProvider|LocalMediaArtifactStore|SpeechService|
 - plaintext secret 是否只存在于用户点击后的短生命周期 service call 中，不进入 config model、日志、数据库或 UI state。
 - playback service 是否只播放 App 管理目录下 ready artifact resolver 产出的 source，不接受任意 UI 路径。
 - coordinator 是否是唯一 active sentence 状态源。
+- coordinator 核心状态机是否通过 package tests 覆盖；App test target 是否只覆盖 production assembly smoke，不承担核心业务状态机测试。
 - cache hit 是否不发起 Provider 请求。
 - miss / invalidated 是否只在用户显式点击后发起请求。
 - 生成完成后 active key 已变化时是否不会抢占播放。
@@ -545,6 +548,7 @@ swift test --package-path Packages/LangoTraceData --filter LocalMediaArtifactSto
 swift test --package-path Packages/LangoTraceData --filter MediaArtifactPlaybackSourceResolverTests
 swift test --package-path Packages/LangoTraceUI --filter PhoneIOSConvergenceTests
 swift test --package-path Packages/LangoTraceUI --filter SentenceAudioPlaybackCoordinatorModelTests
+xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
 
 完整验证：
@@ -561,7 +565,7 @@ git diff --check
 git status --short
 ```
 
-如果新增 App test target，必须同步更新 `project.yml` 和 `scripts/verify.sh`，并在本方案实施记录中写明新 target 的运行命令和结果。
+新增 App test target 后，必须同步更新 `project.yml` 和 `scripts/verify.sh`，并在本方案实施记录中写明新 target 的运行命令和结果。
 
 ## 13. 文档影响检查
 
@@ -589,8 +593,9 @@ git status --short
 - Data 已实现 staging writer 和 ready artifact playback source resolver，能校验 ready artifact、relative path、文件存在性、byte size、content hash 和 last accessed。
 - Speech 已有正式持久音频 playback service，能 play / pause / resume / stop，并隔离 AVFoundation 具体实现。
 - Coordinator 能处理 cache hit、miss、invalidated、生成、commit、播放、暂停、切句、取消、active key 校验和失败状态。
-- Coordinator 状态机核心已通过 package-level 单元测试覆盖，不依赖未建立的 App test target。
+- Coordinator 状态机核心已通过 package-level 单元测试覆盖；新增 App test target 只覆盖 AppEnvironment / production assembly smoke。
 - AppEnvironment 已能装配生产 coordinator 所需依赖，但 direct playback UI 方案尚未接入按钮。
+- `project.yml` 和 `scripts/verify.sh` 已纳入新增 App assembly test target。
 - 单元测试覆盖并发、取消、错误、状态同步、缓存一致性和隐私日志禁区。
 - `scripts/verify.sh` 通过，或记录无法运行的具体原因和剩余风险。
 - 文档影响检查完成，`011` 和 direct playback active plan 不再描述本方案能力为缺失。
@@ -600,6 +605,6 @@ git status --short
 - 第一版只做前台播放，不处理后台播放、锁屏控制、远程控制中心和完整音频中断恢复；后续若进入这些能力，需要独立方案。
 - 第一版只做 production-safe non-streamed request；如果后续接入 streaming TTS，需要重新设计 partial audio、播放开始延迟、取消和缓存策略。
 - OpenAI / OpenRouter 以外 Provider 不在本任务范围内；后续 Provider 扩展必须先更新能力矩阵和 adapter tests。
-- 如果 App test target 仍未建立，AppEnvironment 装配只能通过 package tests + 构建验证间接覆盖；核心 coordinator 状态机不得因此缺少自动化测试。
+- App test target 只覆盖 production assembly smoke，不替代 package-level 状态机、AI、Data、Speech 单元测试；如果 assembly smoke 因平台环境限制无法稳定运行，必须在实施记录中写明失败原因并补充等价可重复验证，而不能静默删除该目标。
 - TTS 外部请求可能产生费用和速率限制；本任务只保证用户显式点击、缓存优先和重复点击不重复请求，不实现额度预算 UI。
 - 真实播放 UI 尚不在本任务范围内；本方案完成后仍需执行 direct playback UI 方案，才能让用户在 `SentencePairView` 中实际触发播放。

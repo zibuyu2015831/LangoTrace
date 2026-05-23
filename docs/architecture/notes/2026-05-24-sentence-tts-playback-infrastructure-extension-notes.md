@@ -47,6 +47,8 @@ Speech package 可以使用 AVFoundation 或等价音频引擎播放文件，但
 
 后续应优先把 transition reducer / coordinator core 放入 Core package；如果需要 `@MainActor ObservableObject` presentation model，可放入 UI package，但底层状态转换仍应保持纯 Swift 可测试。App Shell 只做 production assembly。
 
+App Shell 的 production assembly 也不能长期只靠 build 间接覆盖。逐句 TTS generation / playback / coordinator 基础设施首次落地时，应同步建立轻量 App test target，用于验证 `AppEnvironment` / assembly 能构造真实依赖图、不会回退到 disabled service、且 direct playback UI 尚未越界接入底层 concrete。该 App test target 不承载核心状态机测试；核心状态机仍属于 package-level tests。
+
 ### 5. Typed diagnostics
 
 逐句 TTS 诊断需要覆盖 generation 和 playback lifecycle，但不得记录用户句子、完整请求体、完整响应体、audio bytes、API Key、Authorization header、完整 Keychain account、完整文件路径或完整 voice id。
