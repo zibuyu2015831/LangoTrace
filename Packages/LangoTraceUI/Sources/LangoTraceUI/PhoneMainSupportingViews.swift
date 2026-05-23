@@ -432,11 +432,11 @@ private struct EntryDetailTextCard<ActionContent: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 12) {
+            HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(.headline)
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                         .accessibilityAddTraits(.isHeader)
                     if let statusKey {
                         localizedText(statusKey)
@@ -444,10 +444,12 @@ private struct EntryDetailTextCard<ActionContent: View>: View {
                             .foregroundStyle(statusColor)
                     }
                 }
+                .frame(minHeight: 44, alignment: .center)
                 Spacer(minLength: 12)
                 HStack(spacing: 8) {
                     actions()
                 }
+                .frame(minHeight: 44, alignment: .center)
             }
             Text(text)
                 .font(textEmphasis == .primary ? .body.weight(.medium) : .body)
@@ -505,13 +507,10 @@ private struct SourceEntryEditorSheet: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 12) {
-                TextEditor(text: $draftText)
-                    .font(.body)
-                    .lineSpacing(4)
-                    .scrollContentBackground(.hidden)
-                    .padding(16)
-                    .background(LangoTraceDesign.ColorToken.surfaceBase)
-                    .accessibilityLabel(localizedText("entry.detail.sourceText.accessibilityLabel"))
+                EntryTextEditorSurface(
+                    text: $draftText,
+                    accessibilityLabelKey: "entry.detail.sourceText.accessibilityLabel"
+                )
                 if let saveErrorKey {
                     localizedText(saveErrorKey)
                         .font(.footnote)
@@ -556,32 +555,55 @@ private struct LearningMaterialEditorSheet: View {
 
     var body: some View {
         NavigationStack {
-            TextEditor(text: $draftText)
-                .font(.body)
-                .lineSpacing(4)
-                .scrollContentBackground(.hidden)
-                .padding(20)
-                .background(LangoTraceDesign.ColorToken.surfaceBase)
-                .accessibilityLabel(localizedText("entry.rendering.learningText.accessibilityLabel"))
-                .navigationTitle(sheetTitle)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button(action: onCancel) {
-                            localizedText("common.cancel")
-                        }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button(action: onSave) {
-                            localizedText("entry.rendering.learningText.save")
-                        }
-                        .disabled(!canSave || isRunning)
+            EntryTextEditorSurface(
+                text: $draftText,
+                accessibilityLabelKey: "entry.rendering.learningText.accessibilityLabel"
+            )
+            .padding(20)
+            .navigationTitle(sheetTitle)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(action: onCancel) {
+                        localizedText("common.cancel")
                     }
                 }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(action: onSave) {
+                        localizedText("entry.rendering.learningText.save")
+                    }
+                    .disabled(!canSave || isRunning)
+                }
+            }
         }
     }
 
     private var sheetTitle: String {
         localizedString("entry.rendering.learningText.editTitle", targetLanguageName)
+    }
+}
+
+private struct EntryTextEditorSurface: View {
+    @Binding var text: String
+
+    let accessibilityLabelKey: String
+
+    var body: some View {
+        TextEditor(text: $text)
+            .font(.body)
+            .lineSpacing(4)
+            .scrollContentBackground(.hidden)
+            .padding(16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(LangoTraceDesign.ColorToken.surfaceRaised)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(LangoTraceDesign.ColorToken.hairline, lineWidth: 1)
+            }
+            .accessibilityLabel(localizedText(accessibilityLabelKey))
     }
 }
 
