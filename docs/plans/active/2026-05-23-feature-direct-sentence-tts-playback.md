@@ -193,13 +193,15 @@
 已完成前置：
 
 - `docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md`
+- `docs/plans/done/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md`
 
 仍待完成前置：
 
-- `docs/plans/done/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md`
+- `docs/plans/active/2026-05-24-feature-sentence-tts-generation-playback-coordinator.md`：真实 TTS generation service、正式 audio playback service 和跨句 playback coordinator / action contract。
 
 本方案实施前必须继续确认：
 
+- `docs/plans/active/2026-05-24-feature-sentence-tts-generation-playback-coordinator.md`
 - `docs/spec/008-permissions-local-privacy-and-diagnostics.md`
 - `docs/spec/005-ai-provider-prompt-and-privacy.md`
 - `docs/spec/006-interface-localization-and-language-boundaries.md`
@@ -578,7 +580,9 @@ git status --short
 - 2026-05-23：按人工测试反馈先完成旧 sheet 路径清理：`SentencePairView` 删除 `isListeningPreviewPresented` 和 `.sheet`，删除 `LocalListeningPreviewView.swift`，清理 `listeningPreview.*` 本地化文案，并把源码约束测试改为禁止旧 sheet。当前只提供原位播放 / 暂停视觉反馈，不触发 TTS 请求，也不代表本方案真实播放链路已完成。
 - 2026-05-23：根据用户要求补充“音频存储问题记录”。本次只详尽记录后续真实逐句播放实施前必须确认的缓存位置、metadata、cache key、写入一致性、失效清理、隐私、同步、导出和用户交互边界，不直接确定最终存储方案；进入真实实施前必须单独讨论并确认。
 - 2026-05-23：根据用户补充的早期开发和基础设施原则，采纳“本地媒体派生资产基础设施”作为逐句 TTS 音频存储方向；重写 11.6，将音频从临时缓存提升为可重建、隐私敏感、App 管理的派生媒体资产，并要求真实逐句播放前先形成 LocalMediaArtifactStore / TTS audio artifact 的前置 active plan、spec 更新和架构开发备忘录。
-- 2026-05-23：TTS Provider 配置测试方案已完成并移入 `docs/plans/done/`。本方案更新实施前提：TTS 配置、真实 probe、语言测试文本、voice profile、短生命周期 preview audio 和可播放配置读取接口已满足；剩余阻塞项是本地媒体派生资产基础设施、持久音频播放服务和跨句播放协调器。
+- 2026-05-23：TTS Provider 配置测试方案已完成并移入 `docs/plans/done/`。本方案更新实施前提：TTS 配置、真实 probe、语言测试文本、voice profile、短生命周期 preview audio 和可播放配置读取接口已满足；当时剩余阻塞项是本地媒体派生资产基础设施、持久音频播放服务和跨句播放协调器。
+- 2026-05-24：本地媒体派生资产基础设施方案已完成并移入 `docs/plans/done/`。当前剩余阻塞项收窄为真实 TTS generation service、正式 audio playback service 和跨句 playback coordinator / action contract。
+- 2026-05-24：创建独立前置方案 `docs/plans/active/2026-05-24-feature-sentence-tts-generation-playback-coordinator.md`，用于承接上述服务层基础设施；本方案保留为后续 direct playback UI 接入方案。
 
 ## 16. 完成标准
 
@@ -624,7 +628,7 @@ git status --short
 需要补强：
 
 - AI Provider 设置页已经不再只是 speech endpoint 保存路径；当前已有 TTS 配置测试、音频响应解码校验和短生命周期 preview 试听。但这些能力只服务配置页测试，不等同于逐句播放的持久缓存与播放协调。
-- `LangoTraceSpeech` 已具备 bytes-based TTS audio validation 和 preview playback seam；但尚未具备逐句播放需要的持久文件 validator、正式音频播放 coordinator、跨句互斥状态和 media artifact 文件生命周期。
+- `LangoTraceSpeech` 已具备 bytes-based TTS audio validation、preview playback seam 和持久 TTS 文件校验 seam；但尚未具备逐句播放需要的正式音频播放 coordinator、跨句互斥状态和 playback lifecycle。
 - 原有测试中有多处显式要求 `LocalListeningPreviewView` 存在；2026-05-23 UI 前置清理已迁移为禁止旧 sheet 的源码约束测试。
 
 ### 18.2 架构可行性
