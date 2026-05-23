@@ -86,24 +86,17 @@ struct AIProviderProbeResultPanelContent: View {
     var onPlaySpeechPreview: @MainActor (TTSAudioPreviewResource) -> Void = { _ in }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 12) {
-                Image(systemName: iconName)
-                    .foregroundStyle(tone)
-                    .frame(width: 28, height: 28)
-                localizedText(titleKey)
-                    .font(.headline)
-                Spacer(minLength: 0)
-                Button(action: onClose) {
-                    Image(systemName: "xmark")
-                        .frame(
-                            width: LangoTraceDesign.Density.minimumTouchTarget,
-                            height: LangoTraceDesign.Density.minimumTouchTarget
-                        )
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(localizedText("aiProviderSettings.probeResult.close"))
-            }
+        VStack(alignment: .leading, spacing: 16) {
+            AIProviderProbeResultSheetHandle()
+
+            AIProviderProbeResultHeaderRow(
+                titleKey: titleKey,
+                iconName: iconName,
+                tone: tone,
+                onClose: onClose
+            )
+
+            Divider()
 
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(displayedCapabilities, id: \.rawValue) { capability in
@@ -129,7 +122,9 @@ struct AIProviderProbeResultPanelContent: View {
             .tint(LangoTraceDesign.ColorToken.primaryActionFill)
             .disabled(isTesting)
         }
-        .padding(20)
+        .padding(.top, 12)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -176,6 +171,51 @@ struct AIProviderProbeResultPanelContent: View {
             return LangoTraceDesign.ColorToken.warning
         }
         return LangoTraceDesign.ColorToken.danger
+    }
+}
+
+private struct AIProviderProbeResultSheetHandle: View {
+    var body: some View {
+        Capsule()
+            .fill(LangoTraceDesign.ColorToken.hairline)
+            .frame(width: 56, height: 5)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.bottom, 2)
+            .accessibilityHidden(true)
+    }
+}
+
+private struct AIProviderProbeResultHeaderRow: View {
+    let titleKey: String
+    let iconName: String
+    let tone: Color
+    let onClose: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: iconName)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(tone)
+                .frame(width: 28, height: 28)
+            localizedText(titleKey)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.86)
+            Spacer(minLength: 0)
+            Button(action: onClose) {
+                Image(systemName: "xmark")
+                    .font(.headline.weight(.semibold))
+                    .frame(
+                        width: LangoTraceDesign.Density.minimumTouchTarget,
+                        height: LangoTraceDesign.Density.minimumTouchTarget
+                    )
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+            .accessibilityLabel(localizedText("aiProviderSettings.probeResult.close"))
+        }
+        .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
     }
 }
 

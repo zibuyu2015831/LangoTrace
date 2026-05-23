@@ -164,6 +164,7 @@ private extension View {
         #if os(iOS)
             if compactWidth {
                 presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.hidden)
             } else {
                 self
             }

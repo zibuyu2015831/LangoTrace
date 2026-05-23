@@ -237,6 +237,8 @@ struct AIProviderSettingsProbeTests {
         )
 
         #expect(source.contains("struct AIProviderProbeResultPanelContent"))
+        #expect(source.contains("AIProviderProbeResultSheetHandle"))
+        #expect(source.contains("AIProviderProbeResultHeaderRow"))
         #expect(source.contains("displayedCapabilities"))
         #expect(source.contains("activeCapabilities"))
         #expect(!source.contains("capability == .textReply || capability == .structuredJSON"))
@@ -248,6 +250,7 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("aiProviderSettings.probeCapability.embedding"))
         #expect(source.contains("aiProviderSettings.testState.cancelled"))
         #expect(source.contains("aiProviderSettings.probeCapabilityStatus.cancelled"))
+        #expect(source.contains("Divider()"))
         #expect(!source.contains(".sheet("))
         #expect(!source.contains("presentationDetents"))
     }
@@ -260,6 +263,7 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("private let aiProviderProbeRegularWidth"))
         #expect(source.contains(".frame(maxWidth: aiProviderProbeRegularWidth, alignment: .leading)"))
         #expect(source.contains("presentationDetents([.medium, .large])"))
+        #expect(source.contains(".presentationDragIndicator(.hidden)"))
         #expect(source.contains("#if os(iOS)"))
         #expect(source.contains("if compactWidth"))
         #expect(!source.contains("aiProviderProbePresentationDetents"))
