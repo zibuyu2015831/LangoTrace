@@ -101,6 +101,80 @@ func ttsResponseValidatorMapsFailuresAndDelegatesAudioDecode() async {
     #expect(decode.status == .failed(.audioDecodeFailed))
 }
 
+@Test("TTS response validator maps provider error bodies to stable TTS categories")
+func ttsResponseValidatorMapsProviderErrorBodiesToStableTTSCategories() async {
+    let validator = TTSAudioResponseValidator(audioValidationService: RecordingAudioValidationService(
+        result: TTSAudioValidationResult(status: .failed(.audioDecodeFailed), metadata: nil, previewResource: nil)
+    ))
+
+    let invalidVoice = await validator.validate(
+        response: AIProviderProbeHTTPResponse(
+            statusCode: 400,
+            body: Data(#"{"error":"voice coral is not available"}"#.utf8)
+        ),
+        declaredFormat: .mp3,
+        contentType: "application/json"
+    )
+    let unsupportedLanguage = await validator.validate(
+        response: AIProviderProbeHTTPResponse(
+            statusCode: 400,
+            body: Data(#"{"error":"language ja is unsupported for this route"}"#.utf8)
+        ),
+        declaredFormat: .mp3,
+        contentType: "application/json"
+    )
+    let quotaExceeded = await validator.validate(
+        response: AIProviderProbeHTTPResponse(
+            statusCode: 429,
+            body: Data(#"{"error":"quota exceeded"}"#.utf8)
+        ),
+        declaredFormat: .mp3,
+        contentType: "application/json"
+    )
+
+    #expect(invalidVoice.status == .failed(.invalidVoice))
+    #expect(unsupportedLanguage.status == .failed(.unsupportedLanguage))
+    #expect(quotaExceeded.status == .failed(.quotaExceeded))
+}
+
+@Test("TTS response validator rejects empty audio before decode")
+func ttsResponseValidatorRejectsEmptyAudioBeforeDecode() async {
+    let audioValidation = CountingAudioValidationService()
+    let validator = TTSAudioResponseValidator(audioValidationService: audioValidation)
+
+    let result = await validator.validate(
+        response: AIProviderProbeHTTPResponse(statusCode: 200, body: Data(), contentType: "audio/mpeg"),
+        declaredFormat: .mp3,
+        contentType: "audio/mpeg"
+    )
+
+    #expect(result.status == .failed(.invalidAudioResponse))
+    #expect(await audioValidation.validationCount == 0)
+}
+
+@Test("TTS response validator forwards audio metadata boundary to Core validation service")
+func ttsResponseValidatorForwardsAudioMetadataBoundaryToCoreValidationService() async throws {
+    let audioValidation = CapturingAudioValidationService()
+    let validator = TTSAudioResponseValidator(audioValidationService: audioValidation)
+
+    let result = await validator.validate(
+        response: AIProviderProbeHTTPResponse(
+            statusCode: 200,
+            body: Data([0x49, 0x44, 0x33]),
+            contentType: "text/plain"
+        ),
+        declaredFormat: .mp3,
+        contentType: "text/plain"
+    )
+
+    let call = try await #require(audioValidation.lastCall)
+    #expect(result.status == .failed(.invalidAudioResponse))
+    #expect(call.data == Data([0x49, 0x44, 0x33]))
+    #expect(call.declaredFormat == .mp3)
+    #expect(call.contentType == "text/plain")
+    #expect(call.previewPolicy == .shortLived)
+}
+
 private struct RecordingAudioValidationService: TTSAudioValidationService {
     var result: TTSAudioValidationResult
 
@@ -111,5 +185,45 @@ private struct RecordingAudioValidationService: TTSAudioValidationService {
         previewPolicy _: TTSAudioPreviewPolicy
     ) async -> TTSAudioValidationResult {
         result
+    }
+}
+
+private actor CountingAudioValidationService: TTSAudioValidationService {
+    private(set) var validationCount = 0
+
+    func validateAudio(
+        _: Data,
+        declaredFormat _: TTSAudioFormat,
+        contentType _: String?,
+        previewPolicy _: TTSAudioPreviewPolicy
+    ) async -> TTSAudioValidationResult {
+        validationCount += 1
+        return TTSAudioValidationResult(status: .failed(.audioDecodeFailed), metadata: nil, previewResource: nil)
+    }
+}
+
+private actor CapturingAudioValidationService: TTSAudioValidationService {
+    private(set) var lastCall: Call?
+
+    struct Call {
+        var data: Data
+        var declaredFormat: TTSAudioFormat
+        var contentType: String?
+        var previewPolicy: TTSAudioPreviewPolicy
+    }
+
+    func validateAudio(
+        _ data: Data,
+        declaredFormat: TTSAudioFormat,
+        contentType: String?,
+        previewPolicy: TTSAudioPreviewPolicy
+    ) async -> TTSAudioValidationResult {
+        lastCall = Call(
+            data: data,
+            declaredFormat: declaredFormat,
+            contentType: contentType,
+            previewPolicy: previewPolicy
+        )
+        return TTSAudioValidationResult(status: .failed(.invalidAudioResponse), metadata: nil, previewResource: nil)
     }
 }
