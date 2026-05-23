@@ -17,7 +17,7 @@ public enum LocalMediaArtifactFileStoreError: Error, Equatable, Sendable {
     case missingStagedFile
 }
 
-public struct LocalMediaArtifactFileStore: @unchecked Sendable {
+public struct LocalMediaArtifactFileStore: TTSAudioStagingWriting, @unchecked Sendable {
     public let rootDirectory: URL
     private let fileManager: FileManager
 
@@ -33,6 +33,22 @@ public struct LocalMediaArtifactFileStore: @unchecked Sendable {
 
     public func writeStagingFile(_ data: Data, operationID: String) throws -> MediaArtifactStagedFileReference {
         let relativePath = "staging/\(operationID).tmp"
+        let url = try url(for: relativePath)
+        try fileManager.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try data.write(to: url, options: .atomic)
+        return MediaArtifactStagedFileReference(
+            relativeStagingPath: relativePath,
+            byteSize: Int64(data.count),
+            contentHash: Self.sha256Hex(data)
+        )
+    }
+
+    public func writeTTSAudioToStaging(
+        _ data: Data,
+        preferredExtension: String
+    ) async throws -> MediaArtifactStagedFileReference {
+        let safeExtension = Self.safeFileExtension(preferredExtension)
+        let relativePath = "staging/\(UUID().uuidString).\(safeExtension)"
         let url = try url(for: relativePath)
         try fileManager.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try data.write(to: url, options: .atomic)
@@ -140,5 +156,12 @@ private extension LocalMediaArtifactFileStore {
 
     static func sha256Hex(_ data: Data) -> String {
         SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
+    static func safeFileExtension(_ value: String) -> String {
+        let sanitized = value
+            .lowercased()
+            .filter { $0.isLetter || $0.isNumber }
+        return sanitized.isEmpty ? "audio" : String(sanitized.prefix(12))
     }
 }

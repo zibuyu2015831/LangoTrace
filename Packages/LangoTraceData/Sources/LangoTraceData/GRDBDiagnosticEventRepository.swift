@@ -166,6 +166,16 @@ private extension GRDBDiagnosticEventRepository {
             .appVersion(value)
         case "diagnostics_mode":
             .diagnosticsMode(value)
+        case "output_format":
+            TTSAudioFormat(rawValue: value).map(DiagnosticAttribute.outputFormat)
+        case "text_length_bucket":
+            SentenceAudioTextLengthBucket(rawValue: value).map(DiagnosticAttribute.textLengthBucket)
+        case "byte_size_bucket":
+            SentenceAudioByteSizeBucket(rawValue: value).map(DiagnosticAttribute.byteSizeBucket)
+        case "duration_bucket":
+            SentenceAudioDurationBucket(rawValue: value).map(DiagnosticAttribute.durationBucket)
+        case "cache_result":
+            SentenceAudioCacheResult(rawValue: value).map(DiagnosticAttribute.cacheResult)
         default:
             nil
         }
@@ -195,6 +205,16 @@ private extension GRDBDiagnosticEventRepository {
         case let .probeCapability(value):
             value.rawValue
         case let .probeCapabilityStatus(value):
+            value.rawValue
+        case let .outputFormat(value):
+            value.rawValue
+        case let .textLengthBucket(value):
+            value.rawValue
+        case let .byteSizeBucket(value):
+            value.rawValue
+        case let .durationBucket(value):
+            value.rawValue
+        case let .cacheResult(value):
             value.rawValue
         }
     }
