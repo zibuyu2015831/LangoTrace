@@ -16,6 +16,7 @@
 - 2026-05-23：代码复核后补充应用编排层、`LearningContentStore` async 迁移、settings capability 解耦、`EntrySource` / `inputKind` 语义分层、Prompt 一致性测试、hash / JSON schema version 和 v3 fixture 迁移测试约束。
 - 2026-05-23：用户确认本轮实现先完成 iOS / iPhone 端；iPad 和 macOS 端待 iOS 端人工测试通过后再另行推进。底层 Core / Data / AI / App Shell 仍按三端可复用边界建设，但本轮 UI 可交付范围只包含 iOS。
 - 2026-05-23：用户确认“该方案审核通过”，并要求根据该方案开始实施，直至方案完整落地；每个阶段均需检查、测试和 commit。
+- 2026-05-23：iOS 人工测试通过后，用户要求继续按本方案和 iOS 实现完成 iPad / macOS 记录详情页对应接入；本次追加完成三端共享 `EntryDetailView` 的真实生成、取消、learning text 编辑和重新分析 action wiring，并单独测试和 commit。
 
 ## 1. 需求描述
 
@@ -65,7 +66,7 @@
 本任务范围：
 
 - iPhone 记录详情页的一键学习材料生成入口。
-- 本轮 UI 可交付范围仅限 iOS / iPhone；iPad / macOS 的入口、状态展示和平台适配待 iOS 端人工测试通过后另行制定或开启后续任务。
+- 初始实现阶段 UI 可交付范围先限 iOS / iPhone；iOS 人工测试通过后，后续追加完成 iPad / macOS 记录详情页入口、状态展示和 action wiring 接入。
 - 底层 Core / Data / AI / App Shell 仍按三端可复用边界建设，避免为 iOS 写入平台专属数据模型、Prompt、Provider 或 repository 逻辑。
 - 学习材料生成的 Core / Data / AI / UI 模型边界。
 - Prompt Preset 注册与结构化输出契约。
@@ -86,7 +87,7 @@
 - 不在点击 `生成学习材料` 后再弹出阻断式确认。
 - 不把语言检测结果作为不可纠正的绝对事实；AI 输出必须携带输入类型判断和置信提示。
 - 不把 UI 文案、语言空间展示名或本地化字符串作为 Prompt 语言事实源。
-- 本轮不实现 iPad / macOS 记录详情页的学习材料生成 UI 接入、创建入口 async 保存状态、平台适配和人工验收；这些工作必须等 iOS 端人工测试通过后再推进。
+- 初始 iOS 阶段不实现 iPad / macOS 记录详情页的学习材料生成 UI 接入、创建入口 async 保存状态、平台适配和人工验收；iOS 人工测试通过后，本方案后续追加完成 iPad / macOS 记录详情页真实生成 UI action 接入。创建入口 async 保存状态和平台人工验收仍不在本次追加范围。
 
 ## 6. 证据与决策依据
 
@@ -1339,6 +1340,7 @@ git status --short
 - 2026-05-23：阶段 8 iOS 人工测试和 AI JSON Schema 收口。iPhone 17 模拟器中完成 `写一句 -> 保存 -> 记录详情 -> 生成学习材料 -> 编辑 learning text -> 保存修改 -> 重新分析` smoke；真实 OpenRouter `openai/gpt-4o` 首次暴露模型输出结构不稳定问题，随后将 OpenAI-compatible Chat 请求升级为 strict JSON Schema 并保留 fenced JSON 容错。复测结果：`generate|succeeded|openai/gpt-4o`、`analyze|succeeded|openai/gpt-4o`，`learning_materials.analysis_status = fresh`，practice candidates 写入 3 条。最终验证：`scripts/verify.sh` 通过，SwiftLint 保留 86 条 warning-level 既有风格告警，退出码为 0；SwiftFormat lint 通过。本任务已完成 iOS / iPhone 范围，iPad / macOS UI 接入仍按用户确认延后到后续任务。
 - 2026-05-23：iOS 实现后复核发现当前实现不能直接归档为完成。已确认落地项：Core DTO / 状态机 / 长度估算、GRDB v4 learning content schema、`GRDBLearningContentRepository`、`LearningMaterialGenerationService`、`LearningMaterialGenerationActions`、iPhone 详情主动作、learning text 编辑 / 重新分析、Prompt Registry 和长期文档同步。需要修复或明确收口的偏差：`LearningMaterialGenerationActions` 当前没有 `cancelOperation`，iPhone 生成中状态也没有取消入口；成功路径中 `saveGeneratedMaterial` 与 `succeeded` operation 摘要是两个写事务，不满足“material / analysis / operation summary 同事务”要求；`contentEmpty` / `contentTooLong` 等 Store 层 preflight 阻断不会写 operation 摘要；`GRDBLearningContentRepositoryBridge.createEntry` 在持久化失败时会返回 `unsaved-*` 内存 Entry，仍可能让 UI 误以为保存成功；App Shell 在 GRDB repository 创建失败时 fallback 到 `InMemoryLearningContentRepository(seedEntries: [])`，这与真实主路径不得回退到内存 repository 的完成口径冲突。另有合理实现偏差：真实 OpenRouter 测试后保留 fenced JSON 容错，文档已从“拒绝 code fence”调整为“Prompt 禁止，但解析层可剥离顶层 code fence 后继续严格 schema 校验”。
 - 2026-05-23：架构取舍复核后按“方案为主，吸收合理容错”完成收口：`LearningMaterialGenerationActions` 增加 `recordBlockedOperation` 与带 entry/material/kind/bucket 上下文的 `cancelOperation`；`LearningContentStore` 支持取消运行中 operation 并丢弃 late result；iPhone 生成中状态复用主动作提供取消入口；`GRDBLearningContentRepository` 增加 `saveGeneratedMaterial(... operationSummary:)` 与 `replaceAnalysis(... operationSummary:)`，保证成功 material / analysis / operation summary 同事务；Store 层 `contentEmpty` / `contentTooLong` / `operationInProgress` preflight 阻断会写本地 failed operation summary；`GRDBLearningContentRepositoryBridge.createEntry` 不再返回 `unsaved-*`，持久化失败向上抛出；App Shell 创建 GRDB bridge 失败时使用显式 unavailable repository，不再 fallback 到内存 repository。fenced JSON 容错继续保留。
+- 2026-05-23：阶段 9 iPad / macOS 记录详情页接入。先更新 UI convergence 测试并确认 `swift test --package-path Packages/LangoTraceUI --filter PhoneIOSConvergenceTests/threePlatformDetailRoutesOwnRealGenerationAndAnalysisActions` 因 iPad / macOS 缺少 `onGenerateLearningMaterial`、`cancelLearningMaterialGeneration`、`updateLearningText` 和 `analyzeCurrentLearningText` action wiring 失败；随后将 iPad `workspaceOverview` / route detail 和 macOS Today / Entries detail 统一通过共享 helper 组装 `EntryDetailView`，注入与 iPhone 一致的生成、取消、learning text 保存、重新分析、原文更新和练习入口。验证：上述聚焦测试通过，`swift test --package-path Packages/LangoTraceUI` 通过，`git diff --check` 通过。提交：`a508ccc Implement iPad and Mac learning material actions`。
 
 ## 16. 完成标准
 
@@ -1346,7 +1348,7 @@ git status --short
 
 - 用户已确认本方案进入实现。
 - 记录详情页只有一个核心 AI 动作 `生成学习材料`。
-- 本轮仅要求 iOS / iPhone 端记录详情页完成该入口和状态闭环；iPad / macOS 端保持不接入真实学习材料生成 UI，待 iOS 端人工测试通过后另行推进。
+- iPhone / iPad / macOS 记录详情页均已通过共享 `EntryDetailView` 接入真实学习材料生成、取消、learning text 编辑和重新分析 action；iPad / macOS 创建入口 async 保存状态和平台人工验收仍作为后续收口项。
 - 原始 Entry 正文保存后不可直接编辑。
 - 学习材料生成通过 `LearningMaterialGenerationActions` 或等价 use case 编排，SwiftUI View 不直接访问 AI service、Keychain、`DatabaseQueue` 或 Provider SDK。
 - `LearningContentStore` 已迁移到 async GRDB facade 或有明确过渡 bridge，真实生成结果不进入内存 repository。
@@ -1360,7 +1362,7 @@ git status --short
 - Core、Data、AI、UI 聚焦测试通过。
 - Prompt rendering snapshot、`analysis_source_hash`、JSON blob schema version 和 v3 -> v4 迁移 fixture / SQL builder 测试通过。
 - `scripts/verify.sh` 通过，或记录无法运行的具体原因和剩余风险。
-- iOS 端人工测试通过并记录结果；iPad / macOS 未接入状态必须在实施记录和页面清单中标明为后续任务，不得误标为三端完成。
+- iOS 端人工测试通过并记录结果；iPad / macOS 记录详情 action wiring 已追加接入并在实施记录和页面清单中标明当前边界。
 - 相关长期文档已经同步更新。
 - `docs/spec/007-data-storage-migration-export-and-attachments.md` 和 `docs/spec/learning-content/impl.md` 已按真实落地状态更新，且没有继续把 learning content 描述为纯内存 mock。
 
