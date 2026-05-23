@@ -117,6 +117,32 @@ targets:
       - package: LangoTraceSync
         product: LangoTraceSync
 
+  LangoTraceAppTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: LangoTraceAppTests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/LangoTrace.app/Contents/MacOS/LangoTrace"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+    dependencies:
+      - target: LangoTrace-macOS
+      - package: LangoTraceCore
+        product: LangoTraceCore
+      - package: LangoTraceUI
+        product: LangoTraceUI
+      - package: LangoTraceData
+        product: LangoTraceData
+      - package: LangoTraceAI
+        product: LangoTraceAI
+      - package: LangoTraceSpeech
+        product: LangoTraceSpeech
+      - package: LangoTraceSync
+        product: LangoTraceSync
+
 schemes:
   LangoTrace-iOS:
     build:
@@ -137,3 +163,5 @@ schemes:
     test:
       config: Debug
       gatherCoverageData: true
+      targets:
+        - LangoTraceAppTests

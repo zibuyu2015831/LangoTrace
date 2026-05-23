@@ -11,6 +11,7 @@ struct AppEnvironment {
     let makeLanguageSpaceRepository: @Sendable () throws -> any LanguageSpaceRepository
     let learningContentRepository: any LearningContentRepository
     let learningMaterialGenerationActions: LearningMaterialGenerationActions
+    let makeSentenceAudioPlaybackCoordinator: @Sendable () throws -> SentenceAudioPlaybackCoordinator
     let aiProviderSettingsActions: AIProviderSettingsActions
     let aiProvider: any AIProvider
     let speechService: any SpeechService
@@ -37,6 +38,15 @@ struct AppEnvironment {
                 databaseFactory: databaseFactory,
                 credentialStore: credentialStore
             ),
+            makeSentenceAudioPlaybackCoordinator: {
+                try SentenceAudioPlaybackAssembly.makeCoordinator(
+                    database: databaseFactory.database(),
+                    mediaArtifactsRoot: SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot(),
+                    credentialStore: credentialStore,
+                    diagnosticLogger: diagnosticLogger,
+                    ttsPreviewStore: ttsPreviewStore
+                )
+            },
             aiProviderSettingsActions: AIProviderSettingsActions(
                 loadDefaultProfile: {
                     let service = try makeAIProviderConfigurationService(

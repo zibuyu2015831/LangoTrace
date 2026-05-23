@@ -350,6 +350,8 @@ public struct AIProviderConfigurationService: Sendable {
     }
 }
 
+extension AIProviderConfigurationService: TTSConfigurationAvailabilityService {}
+
 private extension AIProviderConfigurationProbeResult {
     var firstFailureCategory: AIProviderValidationErrorCategory? {
         persistableCapabilities.first { $0.errorCategory != nil }?.errorCategory

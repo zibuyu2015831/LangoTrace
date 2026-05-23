@@ -13,6 +13,7 @@ swift test --package-path Packages/LangoTraceUI
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
 xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
+xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests
 swiftlint --no-cache
 swiftformat --lint . --cache ignore
 if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'; then

@@ -53,7 +53,7 @@ public struct SentenceAudioRequest: Equatable, Sendable {
     }
 }
 
-public struct SentenceAudioRequestSummary: Equatable, Sendable, CustomStringConvertible {
+public struct SentenceAudioRequestSummary: Equatable, Hashable, Sendable, CustomStringConvertible {
     public var languageSpaceID: String
     public var sentenceIndex: Int
     public var targetLanguageCode: String
@@ -221,6 +221,10 @@ public struct SentenceAudioPlaybackCoordinatorState: Equatable, Sendable {
 
     public func presentationState(for key: SentenceAudioKey) -> SentenceAudioPresentationState {
         states[key] ?? .idle
+    }
+
+    public mutating func setPresentationState(_ presentationState: SentenceAudioPresentationState, for key: SentenceAudioKey) {
+        states[key] = presentationState
     }
 
     public mutating func reduce(_ transition: SentenceAudioPlaybackTransition) -> [SentenceAudioPlaybackEffect] {

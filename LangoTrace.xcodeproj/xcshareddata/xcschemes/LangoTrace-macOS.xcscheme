@@ -38,6 +38,17 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "6BC5ED5F7762A7150372EFA8"
+               BuildableName = "LangoTraceAppTests.xctest"
+               BlueprintName = "LangoTraceAppTests"
+               ReferencedContainer = "container:LangoTrace.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
