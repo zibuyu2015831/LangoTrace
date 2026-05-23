@@ -254,7 +254,7 @@ Memory 页面第一轮至少表达三层：
    - AI Provider 已支持本地配置保存、Keychain secret、已保存凭证读取，以及配置合成测试。
    - 同步和本地数据设置仍保持只读说明或 Mock 配置页。
    - AI Provider 测试请求当前会触发固定低敏合成请求，覆盖文本回复、JSON 输出，以及用户显式启用后的内置图片理解 probe；它不发送生活记录、用户照片、音频、历史记忆或 Prompt Preset 内容。
-   - AI Provider 测试结果 sheet 顶部必须有独立的面板层级：紧凑宽度下隐藏系统 drag indicator，使用面板内自定义 handle、标题行、关闭按钮和分隔线，避免标题区与背景模糊内容混在一起。
+   - AI Provider 测试结果 sheet 必须采用 Apple 风格的状态面板：紧凑宽度下隐藏系统 drag indicator，顶部使用克制 handle、居中状态标题、右上关闭按钮；测试中用小号 `ProgressView` 表达进度，不显示禁用的大号重试按钮；能力结果使用 grouped card 和细分隔，不使用整行高亮来表达状态。
 
 ## 8. 测试与验证要求
 
@@ -319,4 +319,5 @@ scripts/verify.sh
 - 2026-05-23：同步学习内容主路径和三端记录详情事实。原因：Entry / LearningMaterial 已进入 GRDB 主路径，一键学习材料生成已通过共享 `EntryDetailView` 接入 iPhone / iPad / macOS，规范不应继续以 in-memory repository 或 local preview 作为真实学习闭环口径。影响范围：MVP 页面地图、手动验证清单、通过标准和后续 UI 任务入口。是否需要 ADR：否，沿用 SQLite / GRDB 主存储和三端共享业务逻辑决策。
 - 2026-05-23：同步 AI Provider 设置页 TTS 配置测试事实。原因：语音生成模型分组已从占位推进到 voice / format / speed / instructions 配置、单一测试入口中的 TTS capability row、OpenAI / OpenRouter 固定低敏 probe 和 Speech preview playback seam；UI 仍必须保持单一主测试入口，试听按钮只能通过 Speech seam 播放短生命周期 preview audio。影响范围：设置闭环、AI Provider 设置 UI、TTS 结果面板、三端设置详情和后续逐句播放前置。是否需要 ADR：否，沿用 ADR-005 和 011 规范。
 - 2026-05-23：补充 TTS 参数设置区表达规则。原因：语音生成模型中的音色、格式、语速和朗读风格属于可见配置项，不能只显示裸菜单值或系统 stepper；应以带标题、简短说明、统一背景和 44pt 触控目标的设置行呈现。“朗读风格”用于面向用户解释可选的语气、节奏和朗读方式，不再使用含义较工程化的“朗读指令”。影响范围：AI Provider 设置页、String Catalog、TTS voice profile UI 和后续 Provider-specific 参数行。是否需要 ADR：否。
-- 2026-05-23：补充 AI Provider 测试结果面板顶部样式规则。原因：半高 sheet 中系统 drag indicator、标题行和背景模糊容易形成拥挤顶部；结果面板应隐藏系统 drag indicator，改用自定义 handle、独立标题行和分隔线。影响范围：AI Provider 设置页测试结果 sheet、source-boundary UI 测试和后续能力结果面板。是否需要 ADR：否。
+- 2026-05-23：补充 AI Provider 测试结果面板 Apple 风格设计规则。原因：半高 sheet 中左侧大图标标题、表格式能力列表和测试中禁用大按钮会形成调试工具感；结果面板应使用居中状态 chrome、grouped capability card、细分隔和完成后才出现的底部操作。影响范围：AI Provider 设置页测试结果 sheet、source-boundary UI 测试和后续能力结果面板。是否需要 ADR：否。
+- 2026-05-23：将 AI Provider 测试结果面板归入状态反馈 sheet 规范。原因：不是所有 sheet 都需要页面式标题；任务型 sheet 需要对象 / 流程标题，反馈型 sheet 需要状态 chrome。影响范围：AI Provider 测试结果、保存 / 导出 / 同步反馈和后续 sheet 设计判断。是否需要 ADR：否。

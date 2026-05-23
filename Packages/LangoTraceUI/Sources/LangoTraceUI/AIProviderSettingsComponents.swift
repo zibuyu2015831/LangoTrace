@@ -86,46 +86,45 @@ struct AIProviderProbeResultPanelContent: View {
     var onPlaySpeechPreview: @MainActor (TTSAudioPreviewResource) -> Void = { _ in }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            AIProviderProbeResultSheetHandle()
-
-            AIProviderProbeResultHeaderRow(
+        VStack(alignment: .leading, spacing: 20) {
+            AIProviderProbeResultChrome(
                 titleKey: titleKey,
                 iconName: iconName,
                 tone: tone,
+                isTesting: isTesting,
                 onClose: onClose
             )
 
-            Divider()
+            AIProviderProbeCapabilityList(
+                result: result,
+                isTesting: isTesting,
+                activeCapabilities: activeCapabilities,
+                displayedCapabilities: displayedCapabilities,
+                onPlaySpeechPreview: onPlaySpeechPreview
+            )
 
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(displayedCapabilities, id: \.rawValue) { capability in
-                    AIProviderProbeCapabilityRow(
-                        capability: capability,
-                        result: result?.capabilities.first { $0.capability == capability },
-                        isTesting: isTesting && activeCapabilities.contains(capability),
-                        onPlaySpeechPreview: onPlaySpeechPreview
-                    )
-                }
+            if !isTesting {
+                retryButton
             }
-
-            Button(action: onRetry) {
-                Label {
-                    localizedText("aiProviderSettings.probeResult.retry")
-                } icon: {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
-                .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
-            .disabled(isTesting)
         }
-        .padding(.top, 12)
+        .padding(.top, 10)
         .padding(.horizontal, 20)
-        .padding(.bottom, 20)
+        .padding(.bottom, isTesting ? 24 : 20)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var retryButton: some View {
+        Button(action: onRetry) {
+            Label {
+                localizedText("aiProviderSettings.probeResult.retry")
+            } icon: {
+                Image(systemName: "arrow.clockwise")
+            }
+            .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
+            .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(LangoTraceDesign.ColorToken.primaryActionFill)
     }
 
     private var titleKey: String {
@@ -174,48 +173,89 @@ struct AIProviderProbeResultPanelContent: View {
     }
 }
 
-private struct AIProviderProbeResultSheetHandle: View {
-    var body: some View {
-        Capsule()
-            .fill(LangoTraceDesign.ColorToken.hairline)
-            .frame(width: 56, height: 5)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.bottom, 2)
-            .accessibilityHidden(true)
-    }
-}
-
-private struct AIProviderProbeResultHeaderRow: View {
+private struct AIProviderProbeResultChrome: View {
     let titleKey: String
     let iconName: String
     let tone: Color
+    let isTesting: Bool
     let onClose: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: iconName)
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(tone)
-                .frame(width: 28, height: 28)
-            localizedText(titleKey)
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-                .lineLimit(1)
-                .minimumScaleFactor(0.86)
-            Spacer(minLength: 0)
-            Button(action: onClose) {
-                Image(systemName: "xmark")
-                    .font(.headline.weight(.semibold))
-                    .frame(
-                        width: LangoTraceDesign.Density.minimumTouchTarget,
-                        height: LangoTraceDesign.Density.minimumTouchTarget
-                    )
+        VStack(spacing: 12) {
+            Capsule()
+                .fill(LangoTraceDesign.ColorToken.hairline)
+                .frame(width: 42, height: 5)
+                .accessibilityHidden(true)
+
+            ZStack {
+                HStack {
+                    Spacer(minLength: 0)
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.headline.weight(.semibold))
+                            .frame(
+                                width: LangoTraceDesign.Density.minimumTouchTarget,
+                                height: LangoTraceDesign.Density.minimumTouchTarget
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+                    .accessibilityLabel(localizedText("aiProviderSettings.probeResult.close"))
+                }
+
+                HStack(spacing: 8) {
+                    if isTesting {
+                        ProgressView()
+                            .controlSize(.small)
+                            .tint(tone)
+                    } else {
+                        Image(systemName: iconName)
+                            .font(.callout.weight(.semibold))
+                            .foregroundStyle(tone)
+                    }
+                    localizedText(titleKey)
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.86)
+                }
+                .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-            .accessibilityLabel(localizedText("aiProviderSettings.probeResult.close"))
         }
-        .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+        .frame(maxWidth: .infinity)
+    }
+}
+
+private struct AIProviderProbeCapabilityList: View {
+    let result: AIProviderConfigurationProbeResult?
+    let isTesting: Bool
+    let activeCapabilities: [AIProviderProbeCapability]
+    let displayedCapabilities: [AIProviderProbeCapability]
+    var onPlaySpeechPreview: @MainActor (TTSAudioPreviewResource) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(displayedCapabilities.enumerated()), id: \.element.rawValue) { index, capability in
+                AIProviderProbeCapabilityRow(
+                    capability: capability,
+                    result: result?.capabilities.first { $0.capability == capability },
+                    isTesting: isTesting && activeCapabilities.contains(capability),
+                    onPlaySpeechPreview: onPlaySpeechPreview
+                )
+                if index < displayedCapabilities.count - 1 {
+                    Divider()
+                        .padding(.leading, 40)
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(LangoTraceDesign.ColorToken.surfaceRaised)
+        .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.panel, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.panel, style: .continuous)
+                .stroke(LangoTraceDesign.ColorToken.hairline, lineWidth: 1)
+        }
     }
 }
 
@@ -226,12 +266,14 @@ private struct AIProviderProbeCapabilityRow: View {
     var onPlaySpeechPreview: @MainActor (TTSAudioPreviewResource) -> Void = { _ in }
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Image(systemName: iconName)
+                .font(.callout.weight(.semibold))
                 .foregroundStyle(tone)
                 .frame(width: 24, height: 24)
             localizedText(titleKey)
                 .font(.callout.weight(.semibold))
+                .foregroundStyle(LangoTraceDesign.ColorToken.ink)
             Spacer(minLength: 0)
             localizedText(statusKey)
                 .font(.footnote.weight(.semibold))
@@ -247,7 +289,7 @@ private struct AIProviderProbeCapabilityRow: View {
                 .accessibilityLabel(localizedText("aiProviderSettings.probeCapability.speechPreview"))
             }
         }
-        .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+        .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
     }
 
     private var speechPreviewResource: TTSAudioPreviewResource? {

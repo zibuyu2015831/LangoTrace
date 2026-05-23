@@ -123,6 +123,15 @@ MVP 早期的配置路由可以先做只读说明页。AI Provider、同步、�
 
 不要把长时间写作、完整练习或复杂设置塞进小型 Sheet。
 
+Sheet 是否需要标题取决于承载职责，而不是取决于它是不是 `.sheet`：
+
+- 任务型 sheet 需要标题：创建、编辑、重命名、配置、选择对象、权限解释、同步草稿等有明确对象或流程边界的 sheet，应使用 `NavigationStack`、`navigationTitle`、取消 / 保存或关闭操作，让用户知道正在处理哪个对象。
+- 状态反馈 sheet 不使用页面式标题：保存结果、Provider 测试结果、导出结果、同步运行结果等反馈面板，应使用状态 chrome 表达 succeeded / running / failed / partial / cancelled，不再叠加一个导航标题。此类 sheet 可有 handle、居中状态标题、右上关闭按钮、结果分组和底部恢复操作。
+- 说明型 unavailable sheet 可以有标题，但标题应是能力名或状态名，不应伪装成已进入真实功能页面。
+- 高频操作不应为了展示状态而打开 sheet，例如逐句播放、暂停、继续、练习步骤切换等应优先在原位反馈。
+
+如果一个 sheet 同时像任务流程又像结果反馈，应优先拆分职责：流程用标题，结果用状态面板；不要在同一顶部同时出现系统导航标题、面板内大标题和状态图标。
+
 ### 4.7 辅助面板展开状态
 
 iPad 和 macOS 的左右辅助面板属于主工作区的可召回上下文，不属于业务路由。
@@ -217,3 +226,4 @@ iPad 和 macOS 的左右辅助面板属于主工作区的可召回上下文，�
 - 2026-05-20：更新 iPhone 语言空间入口事实。原因：语言空间数据基础设施已接入 iPhone 设置页管理入口，原“只展示 Space summary / lifecycle 说明”的描述已过期。影响范围：iPhone 设置导航、语言空间管理页、无空间路由保护和后续 iPad/macOS 扩展。是否需要 ADR：否，延续语言空间核心模型和三端分平台 UI 决策。
 - 2026-05-20：更新 iPad / macOS 语言空间入口事实。原因：语言空间管理从 iPhone 扩展到 iPad 工作台主区、macOS 工作台 Settings route 和原生 Settings scene，iPad / macOS 不再使用 summary-only route 作为管理入口。影响范围：iPad / macOS route、Sidebar footer、设置列表、macOS Settings scene 和 App Shell action 注入。是否需要 ADR：否，未改变语言空间核心模型或三端分平台 UI 决策。
 - 2026-05-21：更新 iPhone 顶部语言空间入口事实。原因：顶部语言空间 pill 已从只读 summary sheet 调整为快速切换 sheet，支持切换 active 空间、添加学习语言和进入完整管理页。影响范围：iPhone 顶部语言空间入口、`PhoneSheet`、语言空间管理路径和页面清单。是否需要 ADR：否，未改变语言空间核心模型或多空间数据策略。
+- 2026-05-23：补充 sheet 标题分类规则。原因：AI Provider 测试结果面板暴露了规范缺口，反馈型 sheet 不应误套任务型 sheet 的导航标题结构。影响范围：iPhone sheet、AI Provider 测试结果、保存 / 导出 / 同步结果面板和后续状态反馈。是否需要 ADR：否。

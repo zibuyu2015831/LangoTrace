@@ -237,8 +237,10 @@ struct AIProviderSettingsProbeTests {
         )
 
         #expect(source.contains("struct AIProviderProbeResultPanelContent"))
-        #expect(source.contains("AIProviderProbeResultSheetHandle"))
-        #expect(source.contains("AIProviderProbeResultHeaderRow"))
+        #expect(source.contains("AIProviderProbeResultChrome"))
+        #expect(source.contains("AIProviderProbeCapabilityList"))
+        #expect(source.contains("ProgressView()"))
+        #expect(source.contains("if !isTesting"))
         #expect(source.contains("displayedCapabilities"))
         #expect(source.contains("activeCapabilities"))
         #expect(!source.contains("capability == .textReply || capability == .structuredJSON"))
@@ -251,6 +253,8 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("aiProviderSettings.testState.cancelled"))
         #expect(source.contains("aiProviderSettings.probeCapabilityStatus.cancelled"))
         #expect(source.contains("Divider()"))
+        #expect(source.contains(".background(LangoTraceDesign.ColorToken.surfaceRaised)"))
+        #expect(source.contains(".clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.panel"))
         #expect(!source.contains(".sheet("))
         #expect(!source.contains("presentationDetents"))
     }
