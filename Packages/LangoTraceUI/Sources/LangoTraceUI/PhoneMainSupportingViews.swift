@@ -258,7 +258,6 @@ private struct SourceEntryTextView: View {
         .sheet(isPresented: $isEditorPresented) {
             SourceEntryEditorSheet(
                 draftText: $draftText,
-                sourceLanguageName: nativeLanguageName,
                 canSave: sourceCanSave,
                 saveErrorKey: saveErrorKey,
                 onCancel: {
@@ -369,7 +368,6 @@ private struct LearningMaterialEditorView: View {
         .sheet(isPresented: $isEditorPresented) {
             LearningMaterialEditorSheet(
                 draftText: $draftText,
-                targetLanguageName: targetLanguageName,
                 canSave: canSave,
                 isRunning: generationState.isRunning,
                 onCancel: {
@@ -498,7 +496,6 @@ private extension EntryDetailTextCard where ActionContent == EmptyView {
 private struct SourceEntryEditorSheet: View {
     @Binding var draftText: String
 
-    let sourceLanguageName: String
     let canSave: Bool
     let saveErrorKey: String?
     let onCancel: () -> Void
@@ -507,18 +504,19 @@ private struct SourceEntryEditorSheet: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 12) {
-                EntryTextEditorSurface(
-                    text: $draftText,
-                    accessibilityLabelKey: "entry.detail.sourceText.accessibilityLabel"
-                )
+                TextEditor(text: $draftText)
+                    .font(.body)
+                    .lineSpacing(4)
+                    .scrollContentBackground(.hidden)
+                    .padding(20)
+                    .background(LangoTraceDesign.ColorToken.surfaceBase)
+                    .accessibilityLabel(localizedText("entry.detail.sourceText.accessibilityLabel"))
                 if let saveErrorKey {
                     localizedText(saveErrorKey)
                         .font(.footnote)
                         .foregroundStyle(LangoTraceDesign.ColorToken.stateError)
                 }
             }
-            .padding(20)
-            .navigationTitle(sheetTitle)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(action: onCancel) {
@@ -534,20 +532,11 @@ private struct SourceEntryEditorSheet: View {
             }
         }
     }
-
-    private var sheetTitle: String {
-        let trimmed = sourceLanguageName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            return localizedString("entry.detail.sourceText.editFallbackTitle")
-        }
-        return localizedString("entry.detail.sourceText.editTitleFormat", trimmed)
-    }
 }
 
 private struct LearningMaterialEditorSheet: View {
     @Binding var draftText: String
 
-    let targetLanguageName: String
     let canSave: Bool
     let isRunning: Bool
     let onCancel: () -> Void
@@ -555,55 +544,27 @@ private struct LearningMaterialEditorSheet: View {
 
     var body: some View {
         NavigationStack {
-            EntryTextEditorSurface(
-                text: $draftText,
-                accessibilityLabelKey: "entry.rendering.learningText.accessibilityLabel"
-            )
-            .padding(20)
-            .navigationTitle(sheetTitle)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(action: onCancel) {
-                        localizedText("common.cancel")
+            TextEditor(text: $draftText)
+                .font(.body)
+                .lineSpacing(4)
+                .scrollContentBackground(.hidden)
+                .padding(20)
+                .background(LangoTraceDesign.ColorToken.surfaceBase)
+                .accessibilityLabel(localizedText("entry.rendering.learningText.accessibilityLabel"))
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(action: onCancel) {
+                            localizedText("common.cancel")
+                        }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(action: onSave) {
+                            localizedText("entry.rendering.learningText.save")
+                        }
+                        .disabled(!canSave || isRunning)
                     }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(action: onSave) {
-                        localizedText("entry.rendering.learningText.save")
-                    }
-                    .disabled(!canSave || isRunning)
-                }
-            }
         }
-    }
-
-    private var sheetTitle: String {
-        localizedString("entry.rendering.learningText.editTitle", targetLanguageName)
-    }
-}
-
-private struct EntryTextEditorSurface: View {
-    @Binding var text: String
-
-    let accessibilityLabelKey: String
-
-    var body: some View {
-        TextEditor(text: $text)
-            .font(.body)
-            .lineSpacing(4)
-            .scrollContentBackground(.hidden)
-            .padding(16)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(LangoTraceDesign.ColorToken.surfaceRaised)
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(LangoTraceDesign.ColorToken.hairline, lineWidth: 1)
-            }
-            .accessibilityLabel(localizedText(accessibilityLabelKey))
     }
 }
 
