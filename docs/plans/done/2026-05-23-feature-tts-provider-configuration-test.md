@@ -1268,7 +1268,7 @@ git status --short
 - `docs/architecture/notes/2026-05-23-local-media-artifact-extension-notes.md`
 - `docs/spec/ui-design/mvp-ui-flow-and-design-system.md`
 - `docs/platform-page-inventory.md`
-- `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`
+- `docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md`
 
 若实际实现改变长期 Provider 抽象或隐私授权边界，需要评估是否更新 ADR-005 或新增 ADR。当前方案沿用“用户自带 Provider、本地优先、敏感凭证 Keychain”的既有 ADR，不要求新增 ADR。
 

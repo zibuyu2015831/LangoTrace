@@ -1,11 +1,11 @@
 # 任务方案：逐句 TTS 生成、播放与跨句协调基础设施
 
-状态：User Approved
+状态：Done
 类型：feature
 创建日期：2026-05-24
 最后更新日期：2026-05-24
 
-审核状态：Approved
+审核状态：Implemented
 
 ## 用户确认记录
 
@@ -17,10 +17,11 @@
 - 2026-05-24：严格方案复查确认：当前方案方向正确，但必须按早期基础设施长期正确原则修订 AI / Data staging 边界、生产 HTTP client、secret resolver、coordinator 测试落点、ready artifact resolver、diagnostic allowlist 和后续扩展备忘录引用后，才具备实施条件。
 - 2026-05-24：用户确认本方案审核通过，可在后续会话中作为第一顺位实施方案。
 - 2026-05-24：根据用户再次强调的早期基础设施原则复审实施决策：本任务不再把 App test target 作为可选项。Coordinator 状态机核心仍必须放在 package 中测试，但本任务还应新增轻量 `LangoTraceAppTests`，覆盖 AppEnvironment / assembly smoke，并将该测试入口写入 `project.yml` 和 `scripts/verify.sh`，避免跨包生产装配长期只靠 build 间接覆盖。
+- 2026-05-24：本方案已完成实施并验证。落地内容包括 Core contracts / coordinator、AI production HTTP client 和 sentence TTS generation service、Data staging writer 与 playback source resolver、Speech persistent playback service、AppEnvironment production assembly、`LangoTraceAppTests` assembly smoke、`project.yml` / `scripts/verify.sh` 验证入口，以及供 direct playback UI 接入的 `SentenceAudioPlaybackActions`。
 
 ## 1. 需求描述
 
-`docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md` 的真实播放实现还缺少三个硬性前置：
+`docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md` 的真实播放实现曾缺少三个硬性前置：
 
 1. 真实 TTS generation service：读取已测试可用的 TTS Provider 配置，使用用户显式点击的单句目标语言文本发起 TTS 请求，拿到音频 bytes 后交给本地媒体派生资产基础设施保存。
 2. 正式 audio playback service：播放 App 管理目录中的持久 TTS 音频文件，支持播放、暂停、恢复、停止、生命周期释放和播放失败分类。
@@ -44,16 +45,16 @@
 - `LangoTraceApp/AppEnvironment.swift` 已为设置页 TTS probe / preview 装配 `DefaultTTSAudioValidationService`、`InMemoryTTSAudioPreviewStore` 和 `DefaultTTSAudioPreviewPlaybackService`。
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/LearningContentComponents.swift` 中 `SentencePairView` 已删除旧 sheet，只保留 `isLocalPlaybackActive.toggle()` 的临时原位反馈。
 
-当前缺口：
+本方案实施前缺口：
 
 - `LangoTraceAI` 没有正式单句 TTS generation service；现有 adapter 只构造请求，probe service 只服务设置页测试。
 - `LangoTraceAI` 当前 `loadDefaultPlayableTTSConfiguration(languageCode:)` 只验证 Keychain secret 可解析并返回 configuration status，不返回短生命周期 plaintext secret；逐句 generation 必须新增明确的 secret resolver / generation input 边界。
 - `LangoTraceAI` 当前 HTTP client 只有 `AIProviderProbeHTTPClient`，真实逐句 TTS 请求需要通用生产 client contract，不能继续以 probe-only 类型承载生产能力。
 - `LangoTraceSpeech` 没有正式播放 App 管理目录中持久音频文件的 service；`DefaultTTSAudioPreviewPlaybackService` 只适用于设置页短生命周期 preview。
-- `LangoTraceCore` 尚未定义逐句播放请求、presentation state、coordinator 协议和稳定错误分类。
-- `LangoTraceCore` 尚未定义 AI generation 与 Data staging 之间的抽象协议；若 AI service 直接使用 `LocalMediaArtifactFileStore` 会反向依赖 Data concrete。
-- `LangoTraceApp` 尚未装配 generation service、media artifact store、playback service 和 coordinator；当前也没有稳定 App test target，不能把全部状态机只留在 App target 中测试。
-- UI action contract 尚未存在，后续 direct playback UI 无法在不越界的情况下调用真实生成 / 播放。
+- 当时 `LangoTraceCore` 尚未定义逐句播放请求、presentation state、coordinator 协议和稳定错误分类；当前已由本方案实现。
+- 当时 `LangoTraceCore` 尚未定义 AI generation 与 Data staging 之间的抽象协议；当前已通过 Core staging writer / playback source resolver 协议解耦。
+- 当时 `LangoTraceApp` 尚未装配 generation service、media artifact store、playback service 和 coordinator，也没有稳定 App test target；当前已装配并新增 `LangoTraceAppTests`。
+- 当时 UI action contract 尚未存在；当前已通过 `SentenceAudioPlaybackActions` 提供给 direct playback UI。
 
 ## 3. 目标
 
@@ -86,7 +87,7 @@
 
 本任务不做：
 
-- 不把 `SentencePairView` 听一句按钮接入真实播放；这属于 `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md` 后续 UI 实施。
+- 不把 `SentencePairView` 听一句按钮接入真实播放；这属于 `docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md` 后续 UI 实施，当前已同日完成。
 - 不改变 TTS Provider 设置页、voice profile 表单或 probe 结果 UI。
 - 不新增 Provider 支持范围；第一阶段只复用已落地的 OpenAI / OpenRouter Audio Speech adapter。
 - 不实现后台播放、锁屏控制、远程控制中心、音频 session 完整策略或系统中断完整恢复。
@@ -175,14 +176,14 @@
 
 本方案创建：
 
-- `docs/plans/active/2026-05-24-feature-sentence-tts-generation-playback-coordinator.md`
+- `docs/plans/done/2026-05-24-feature-sentence-tts-generation-playback-coordinator.md`
 - `docs/architecture/notes/2026-05-24-sentence-tts-playback-infrastructure-extension-notes.md`
 
 本方案依赖：
 
 - `docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md`
 - `docs/plans/done/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md`
-- `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`
+- `docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md`
 - `docs/spec/004-swiftui-architecture.md`
 - `docs/spec/005-ai-provider-prompt-and-privacy.md`
 - `docs/spec/007-data-storage-migration-export-and-attachments.md`
@@ -198,7 +199,7 @@
 本任务实施完成后按影响更新：
 
 - `docs/spec/011-tts-provider-configuration-and-playback.md`
-- `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`
+- `docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md`
 - `docs/platform-page-inventory.md`，仅当可见页面能力边界发生变化。
 - `docs/testing/README.md`，仅当新增正式手动播放验证入口。
 - `docs/review/INDEX.md` 或专项审查记录，若 Provider、隐私、包边界、验证脚本或 AppEnvironment 装配发生高风险变更。
@@ -501,7 +502,7 @@ rg -n "SentenceAudio|TTSAudio|TTSProvider|LocalMediaArtifactStore|SpeechService|
 5. Data 先写 playback source resolver tests，覆盖 ready artifact source 解析、relative path 防穿越、文件缺失、content hash mismatch、invalidated artifact 和 mark accessed。
 6. Speech 先写 `TTSAudioPlaybackServiceTests`，通过 fake audio engine 或 protocol seam 覆盖 play / pause / resume / stop / completion / failure，不依赖真实扬声器。
 7. 再实现最小生产代码，使每组聚焦测试通过。
-8. 新增轻量 `LangoTraceAppTests`，覆盖 `SentenceAudioPlaybackAssembly` / `AppEnvironment` production graph 可构造、核心依赖非 disabled、direct playback UI 尚未接入按钮。
+8. 新增轻量 `LangoTraceAppTests`，覆盖 `SentenceAudioPlaybackAssembly` / `AppEnvironment` production graph 可构造、核心依赖非 disabled；本方案实施时 direct playback UI 尚未接入按钮，后续同日已由 direct playback 方案接入。
 9. 最后装配 `AppEnvironment` production graph，但不接 `SentencePairView`。
 
 ### 10.3 分阶段提交建议
@@ -571,10 +572,10 @@ git status --short
 
 本任务涉及 AI Provider、TTS、隐私、媒体派生资产、AppEnvironment 和包边界。实施完成后必须检查：
 
-- `docs/spec/011-tts-provider-configuration-and-playback.md` 是否从“尚未装配逐句播放 coordinator”更新为当前事实。
-- `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md` 是否把本方案标记为已完成前置，并保留 UI 接入剩余范围。
+- `docs/spec/011-tts-provider-configuration-and-playback.md` 是否从“尚未装配逐句播放 coordinator”更新为当前事实；当前已更新。
+- `docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md` 是否把本方案标记为已完成前置，并保留 UI 接入实施记录。
 - `docs/spec/008-permissions-local-privacy-and-diagnostics.md` 是否仍准确表达单句显式点击边界。
-- `docs/platform-page-inventory.md` 是否需要记录学习页仍未接 UI，或后续接入后记录新能力。
+- `docs/platform-page-inventory.md` 是否需要记录学习页仍未接 UI，或后续接入后记录新能力；当前已记录 direct playback UI 新能力。
 - `docs/review/INDEX.md` 是否需要新增专项审查记录；若 AppEnvironment、包边界或验证脚本发生实际变更，应触发文档影响检查。
 - `docs/architecture/notes/2026-05-24-sentence-tts-playback-infrastructure-extension-notes.md` 是否仍准确；若本任务把其中某条提升为正式实现，必须同步写入 `docs/spec/011-tts-provider-configuration-and-playback.md` 或正式 architecture 文档。
 
@@ -582,6 +583,12 @@ git status --short
 
 - 2026-05-24：创建方案。当前仅记录 generation / playback / coordinator 基础设施边界，不实施代码。进入实现前需要用户确认方案状态进入 `User Approved`。
 - 2026-05-24：根据严格架构复查修订方案。补充早期基础设施长期正确原则下的重构要求：AI / Data staging 通过 Core 协议解耦，probe HTTP client 升级为生产级通用 client，secret 解析采用短生命周期 resolver，coordinator 状态机核心必须放入可测试 package，playback 只接受 ready artifact resolver 产物，逐句 TTS 诊断必须走 typed allowlist，并新增架构备忘录记录暂不实现但会影响后续边界的后台播放、AudioSession、同步导出、批量预生成和成本预算问题。
+- 2026-05-24：完成 Core contracts、typed diagnostics 和 coordinator 状态机，提交 `4f2cb90 feat: add sentence audio core contracts`。聚焦测试覆盖逐句请求摘要、配置问题、presentation state、cache hit / miss / invalidated、取消、切句、生成完成 active key 校验、commit / playback 失败和日志禁区。
+- 2026-05-24：完成 AI production HTTP client 和 sentence TTS generation service，提交 `21f8ddb feat: add sentence tts generation service`。落地 OpenAI / OpenRouter request 构造、短生命周期 secret 注入、响应大小限制、非音频响应和错误分类；设置页 probe 继续复用通用 HTTP client。
+- 2026-05-24：完成 Data staging writer 与 ready playback source resolver，提交 `cdd2a11 feat: resolve tts media playback sources`。解析时校验 App 管理目录、relative path、ready 状态、文件存在性、byte size 和 content hash。
+- 2026-05-24：完成 Speech persistent playback service，提交 `b913d04 feat: add tts audio playback service`。播放服务通过 engine seam 隔离 AVFoundation，测试覆盖 play / pause / resume / stop / completion / failure。
+- 2026-05-24：完成 App production assembly 和轻量 App test target，提交 `998045a feat: assemble sentence audio playback coordinator`。`project.yml` 与 `scripts/verify.sh` 已纳入 `LangoTraceAppTests`；assembly smoke 只覆盖生产装配可构造，核心逻辑仍保留在 package tests。
+- 2026-05-24：同日 direct playback UI 方案接入 `SentenceAudioPlaybackActions`，提交 `db156b7 feat: connect sentence audio playback actions`。本方案的服务层前置已被真实 UI 使用。
 
 ## 15. 完成标准
 
@@ -594,7 +601,7 @@ git status --short
 - Speech 已有正式持久音频 playback service，能 play / pause / resume / stop，并隔离 AVFoundation 具体实现。
 - Coordinator 能处理 cache hit、miss、invalidated、生成、commit、播放、暂停、切句、取消、active key 校验和失败状态。
 - Coordinator 状态机核心已通过 package-level 单元测试覆盖；新增 App test target 只覆盖 AppEnvironment / production assembly smoke。
-- AppEnvironment 已能装配生产 coordinator 所需依赖，但 direct playback UI 方案尚未接入按钮。
+- AppEnvironment 已能装配生产 coordinator 所需依赖，且 direct playback UI 方案已接入按钮。
 - `project.yml` 和 `scripts/verify.sh` 已纳入新增 App assembly test target。
 - 单元测试覆盖并发、取消、错误、状态同步、缓存一致性和隐私日志禁区。
 - `scripts/verify.sh` 通过，或记录无法运行的具体原因和剩余风险。
@@ -607,4 +614,4 @@ git status --short
 - OpenAI / OpenRouter 以外 Provider 不在本任务范围内；后续 Provider 扩展必须先更新能力矩阵和 adapter tests。
 - App test target 只覆盖 production assembly smoke，不替代 package-level 状态机、AI、Data、Speech 单元测试；如果 assembly smoke 因平台环境限制无法稳定运行，必须在实施记录中写明失败原因并补充等价可重复验证，而不能静默删除该目标。
 - TTS 外部请求可能产生费用和速率限制；本任务只保证用户显式点击、缓存优先和重复点击不重复请求，不实现额度预算 UI。
-- 真实播放 UI 尚不在本任务范围内；本方案完成后仍需执行 direct playback UI 方案，才能让用户在 `SentencePairView` 中实际触发播放。
+- 真实播放 UI 不属于本任务原始范围；本方案完成后已同日执行 direct playback UI 方案，让用户在 `SentencePairView` 中实际触发播放。

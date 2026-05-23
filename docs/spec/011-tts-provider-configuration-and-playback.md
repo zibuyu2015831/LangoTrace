@@ -335,7 +335,12 @@ Speech playback service -> audio decode / playback lifecycle
 - Core 已定义 `MediaArtifact`、`TTSAudioArtifactKey`、policy、lookup result、commit input、cleanup result、`MediaArtifactRepository`、`LocalMediaArtifactStoring` 和 `TTSAudioFileValidating`。
 - Data 已实现 `v7_create_media_artifact_infrastructure`、`media_artifacts` / `tts_audio_artifacts`、`GRDBMediaArtifactRepository`、`LocalMediaArtifactFileStore` 和 `LocalMediaArtifactStore` facade；metadata 使用 pending / ready 文件状态避免文件 move 完成前被 lookup 命中，文件缺失或内容不匹配时按 artifact id 精确失效。
 - Speech 已实现持久 TTS 文件校验 `TTSAudioFileValidator`；设置页短生命周期 bytes validation / preview 与逐句播放持久文件 validation 保持分离。
-- AppEnvironment 尚未装配逐句播放 coordinator；学习页 UI 仍不能直接触发真实 TTS 生成或播放。
+- Core 已定义逐句音频请求、presentation state、配置问题、失败分类、generation input / result、staging writer、playback source resolver、playback service 和 typed diagnostic allowlist contract。
+- AI 已实现生产级 `AIProviderHTTPClient`、`SentenceTTSGenerationService` 和 OpenAI / OpenRouter 单句 TTS 生成路径；设置页 probe 继续复用通用 HTTP client。
+- Data 已实现 `LocalMediaArtifactFileStore` 的 TTS staging writer 协议和 ready artifact playback source resolver，解析时校验 App 管理目录、relative path、文件存在性、byte size、content hash 和 ready 状态。
+- Speech 已实现持久 TTS 音频 playback service，并通过 playback engine seam 隔离 AVFoundation lifecycle。
+- AppEnvironment 已装配 `SentenceAudioPlaybackCoordinator` 和 `SentenceAudioPlaybackActions`；iPhone / iPad / macOS 共享记录详情中的逐句 `听` 按钮只通过 UI action contract 触发真实单句播放或生成后播放。
+- App 层新增轻量 `LangoTraceAppTests` assembly smoke，`project.yml` 和 `scripts/verify.sh` 已纳入该验证；核心状态机、AI、Data、Speech 和 UI 行为仍由 package tests 覆盖。
 
 禁止：
 
@@ -404,3 +409,4 @@ Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu 和
 - 2026-05-23：同步 TTS Provider 配置测试实施事实。原因：当前实现选择兼容扩展 `AIProviderConfigurationProbeResult` 和 `AIProviderDraftProbeSnapshot`，已经具备 endpoint metadata 与 TTS draft snapshot；Speech 层提供短生命周期 preview store / playback seam，voice profile 保留最近失败分类供可用性读取；同时明确 Provider 配置 `available` 只是逐句播放必要条件，不等于完整播放 ready 状态。
 - 2026-05-23：同步本地媒体派生资产基础设施实施事实。原因：本地媒体派生资产与 TTS 音频缓存方案已落地 Core / Data / Speech 基础设施和测试；逐句播放规范需要把 media artifact 从“待建前置”更新为“已具备基础设施，但仍缺 playback coordinator / generation / UI 接入”。影响范围：Data、Speech、direct playback 方案、缓存命中、失效清理和隐私日志边界。是否需要 ADR：否，沿用 ADR-005；未来若默认同步、备份或导出音频再评估 ADR。
 - 2026-05-23：补充设置页加载已保存 voice profile 的状态同步规则。原因：voice profile 是 language code 级状态源，重开设置页必须回填当前语言空间的 voice、format、speed、instructions，避免 UI 默认值覆盖用户配置。
+- 2026-05-24：同步逐句 TTS generation / playback / coordinator 和 direct playback UI 接入实施事实。原因：真实单句 TTS 生成、持久音频播放、缓存优先、跨句协调、AppEnvironment 装配和共享 UI action contract 已落地；规范需从“播放前置缺失”更新为“第一阶段真实逐句播放已具备”。影响范围：Core、AI、Data、Speech、UI、AppEnvironment、project.yml、scripts/verify.sh 和页面清单。是否需要 ADR：否，沿用 ADR-005；后台播放、锁屏控制、批量预生成、同步导出和费用预算仍需独立方案。

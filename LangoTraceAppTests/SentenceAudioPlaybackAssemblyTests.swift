@@ -1,8 +1,8 @@
+@testable import LangoTrace
 import LangoTraceAI
 import LangoTraceCore
 import LangoTraceData
 import LangoTraceSpeech
-@testable import LangoTrace
 import XCTest
 
 final class SentenceAudioPlaybackAssemblyTests: XCTestCase {

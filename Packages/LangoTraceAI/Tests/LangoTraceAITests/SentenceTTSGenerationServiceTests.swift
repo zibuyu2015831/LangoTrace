@@ -51,7 +51,7 @@ struct SentenceTTSGenerationServiceTests {
         )
 
         await #expect(throws: SentenceAudioPlaybackFailure.quotaExceeded) {
-            _ = try await service.generateSpeech(try generationRequest(text: "Hello"))
+            _ = try await service.generateSpeech(generationRequest(text: "Hello"))
         }
         #expect(await stagingWriter.writes.isEmpty)
     }
@@ -68,7 +68,7 @@ struct SentenceTTSGenerationServiceTests {
         )
 
         await #expect(throws: SentenceAudioPlaybackFailure.cancelled) {
-            _ = try await service.generateSpeech(try generationRequest(text: "Hello"))
+            _ = try await service.generateSpeech(generationRequest(text: "Hello"))
         }
         #expect(await stagingWriter.writes.isEmpty)
     }

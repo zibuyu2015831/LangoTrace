@@ -35,7 +35,7 @@ public struct URLSessionAIProviderProbeHTTPClient: AIProviderProbeHTTPClient {
 
     public func send(_ request: URLRequest) async throws -> AIProviderProbeHTTPResponse {
         do {
-            let response = try await client.send(request, maximumResponseBytes: 2 * 1_024 * 1_024)
+            let response = try await client.send(request, maximumResponseBytes: 2 * 1024 * 1024)
             return AIProviderProbeHTTPResponse(
                 statusCode: response.statusCode,
                 body: response.body,

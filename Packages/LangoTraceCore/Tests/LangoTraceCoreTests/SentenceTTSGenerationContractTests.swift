@@ -8,13 +8,13 @@ struct SentenceTTSGenerationContractTests {
     func generationResultCarriesArtifactSafeMetadata() {
         let staged = MediaArtifactStagedFileReference(
             relativeStagingPath: "staging/operation-1.tmp",
-            byteSize: 2_048,
+            byteSize: 2048,
             contentHash: String(repeating: "b", count: 64)
         )
         let result = SentenceTTSGenerationResult(
             stagedFile: staged,
             mimeType: "audio/mpeg",
-            byteSize: 2_048,
+            byteSize: 2048,
             durationSeconds: 1.4,
             diagnostics: SentenceTTSGenerationDiagnostics(
                 providerPresetID: "openai",

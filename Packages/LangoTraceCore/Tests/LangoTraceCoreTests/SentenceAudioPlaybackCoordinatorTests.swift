@@ -10,8 +10,8 @@ struct SentenceAudioPlaybackCoordinatorTests {
         let mediaStore = FakeMediaStore(lookup: .hit(artifact))
         let generator = FakeGenerator()
         let player = FakePlayer()
-        let coordinator = SentenceAudioPlaybackCoordinator(
-            availabilityService: FakeAvailabilityService(status: .available(try playableConfiguration())),
+        let coordinator = try SentenceAudioPlaybackCoordinator(
+            availabilityService: FakeAvailabilityService(status: .available(playableConfiguration())),
             secretResolver: FakeSecretResolver(secret: "sk-test"),
             mediaStore: mediaStore,
             generationService: generator,
@@ -50,8 +50,8 @@ struct SentenceAudioPlaybackCoordinatorTests {
             )
         ))
         let player = FakePlayer()
-        let coordinator = SentenceAudioPlaybackCoordinator(
-            availabilityService: FakeAvailabilityService(status: .available(try playableConfiguration())),
+        let coordinator = try SentenceAudioPlaybackCoordinator(
+            availabilityService: FakeAvailabilityService(status: .available(playableConfiguration())),
             secretResolver: FakeSecretResolver(secret: "sk-test"),
             mediaStore: mediaStore,
             generationService: generator,

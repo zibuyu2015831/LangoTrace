@@ -11,7 +11,7 @@ public struct SentenceTTSGenerationService: SentenceTTSGenerating {
         httpClient: any AIProviderHTTPClient,
         responseValidator: TTSAudioResponseValidator,
         stagingWriter: any TTSAudioStagingWriting,
-        maximumResponseBytes: Int = 10 * 1_024 * 1_024
+        maximumResponseBytes: Int = 10 * 1024 * 1024
     ) {
         self.httpClient = httpClient
         self.responseValidator = responseValidator
@@ -56,7 +56,7 @@ public struct SentenceTTSGenerationService: SentenceTTSGenerating {
             httpResponse.body,
             preferredExtension: request.artifactKey.outputFormat.rawValue
         )
-        let elapsedMilliseconds = Int(startedAt.duration(to: ContinuousClock.now).components.seconds * 1_000)
+        let elapsedMilliseconds = Int(startedAt.duration(to: ContinuousClock.now).components.seconds * 1000)
         let byteSize = Int64(httpResponse.body.count)
         return SentenceTTSGenerationResult(
             stagedFile: stagedFile,

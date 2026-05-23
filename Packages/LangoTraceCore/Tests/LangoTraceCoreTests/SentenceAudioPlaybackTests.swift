@@ -65,13 +65,13 @@ struct SentenceAudioPlaybackTests {
             artifactID: "artifact-1",
             fileURL: URL(fileURLWithPath: "/tmp/MediaArtifacts/tts/artifact.mp3"),
             mimeType: "audio/mpeg",
-            byteSize: 1_024,
+            byteSize: 1024,
             contentHash: String(repeating: "a", count: 64)
         )
 
         #expect(source.artifactID == "artifact-1")
         #expect(source.fileURL.isFileURL)
-        #expect(source.byteSize == 1_024)
+        #expect(source.byteSize == 1024)
         #expect(source.contentHash.count == 64)
     }
 

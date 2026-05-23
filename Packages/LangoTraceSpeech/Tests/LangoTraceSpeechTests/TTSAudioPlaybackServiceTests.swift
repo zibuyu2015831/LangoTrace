@@ -79,7 +79,7 @@ private func playbackSource() -> MediaArtifactPlaybackSource {
         artifactID: "artifact-1",
         fileURL: URL(fileURLWithPath: "/tmp/MediaArtifacts/tts/artifact.mp3"),
         mimeType: "audio/mpeg",
-        byteSize: 1_024,
+        byteSize: 1024,
         contentHash: String(repeating: "a", count: 64)
     )
 }

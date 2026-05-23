@@ -23,7 +23,7 @@
 
 ## 1. 需求描述
 
-`docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md` 要求用户在逐句分析中点击听一句时：
+`docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md` 要求用户在逐句分析中点击听一句时：
 
 1. 已生成音频时直接播放本地音频。
 2. 未生成音频时调用已测试通过的 TTS Provider 生成，成功后自动播放。
@@ -174,7 +174,7 @@
 本方案依赖：
 
 - `docs/plans/done/2026-05-23-feature-tts-provider-configuration-test.md`
-- `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`
+- `docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md`
 - `docs/spec/004-swiftui-architecture.md`
 - `docs/spec/007-data-storage-migration-export-and-attachments.md`
 - `docs/spec/011-tts-provider-configuration-and-playback.md`
@@ -873,7 +873,7 @@ swift test --package-path Packages/LangoTraceSpeech
 
 - 更新 `docs/spec/007-data-storage-migration-export-and-attachments.md` 的“当前代码已有”事实，说明 media artifact schema 已落地。
 - 更新 `docs/spec/011-tts-provider-configuration-and-playback.md` 的播放前置状态，说明本地媒体派生资产基础设施已具备。
-- 更新 `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`，把本方案从前置待建改为前置已完成或引用本方案实施结果。
+- 更新 `docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md`，把本方案从前置待建改为前置已完成或引用本方案实施结果。
 - 如 AppEnvironment 装配了真实服务，更新 `docs/spec/004-swiftui-architecture.md` 或相关架构说明。
 - 如未装配 UI，明确后续 direct playback 方案负责装配。
 - 检查 `scripts/verify.sh` 仍将 `swift test --package-path Packages/LangoTraceSpeech` 纳入完整验证；若实施过程中调整脚本，必须在实施记录中写明原因和剩余风险。
@@ -940,7 +940,7 @@ git status --short
 - `docs/spec/004-swiftui-architecture.md`
 - `docs/spec/008-permissions-local-privacy-and-diagnostics.md`
 - `docs/architecture/notes/2026-05-23-local-media-artifact-extension-notes.md`
-- `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`
+- `docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md`
 - `docs/review/INDEX.md`
 
 若后续决定把 TTS 音频纳入同步、导出、备份、官方服务或用户可见资产管理，必须新增或更新对应 ADR / spec / architecture 文档。

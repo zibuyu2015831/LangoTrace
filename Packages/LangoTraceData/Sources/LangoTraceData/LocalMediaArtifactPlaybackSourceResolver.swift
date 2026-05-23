@@ -17,9 +17,9 @@ public struct LocalMediaArtifactPlaybackSourceResolver: MediaArtifactPlaybackSou
         else {
             throw LocalMediaArtifactStoreError.metadataFileMismatch(.contentMismatch)
         }
-        return MediaArtifactPlaybackSource(
+        return try MediaArtifactPlaybackSource(
             artifactID: artifact.id,
-            fileURL: try fileStore.absoluteURLForInternalUse(relativePath: artifact.relativeFilePath),
+            fileURL: fileStore.absoluteURLForInternalUse(relativePath: artifact.relativeFilePath),
             mimeType: artifact.mimeType,
             byteSize: artifact.byteSize,
             contentHash: artifact.contentHash

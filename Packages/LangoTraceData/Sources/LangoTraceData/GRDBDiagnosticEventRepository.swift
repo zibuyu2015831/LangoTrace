@@ -72,6 +72,31 @@ public struct GRDBDiagnosticEventRepository: DiagnosticEventRepository, @uncheck
 }
 
 private extension GRDBDiagnosticEventRepository {
+    static let attributeDecoders: [String: @Sendable (String) -> DiagnosticAttribute?] = [
+        "operation_id": { .operationID(DiagnosticOperationID(rawValue: $0)) },
+        "provider_preset_id": { .providerPresetID($0) },
+        "endpoint_purpose": { AIProviderEndpointPurpose(rawValue: $0).map(DiagnosticAttribute.endpointPurpose) },
+        "endpoint_count": { Int($0).map(DiagnosticAttribute.endpointCount) },
+        "enabled_endpoint_count": { Int($0).map(DiagnosticAttribute.enabledEndpointCount) },
+        "model_name": { .modelName($0) },
+        "duration_ms": { Int($0).map(DiagnosticAttribute.durationMilliseconds) },
+        "error_category": { .errorCategory($0) },
+        "failure_phase": { .failurePhase($0) },
+        "adapter_kind": { AIProviderAdapterKind(rawValue: $0).map(DiagnosticAttribute.adapterKind) },
+        "probe_capability": { AIProviderProbeCapability(rawValue: $0).map(DiagnosticAttribute.probeCapability) },
+        "probe_capability_status": {
+            AIProviderProbeCapabilityStatus(rawValue: $0).map(DiagnosticAttribute.probeCapabilityStatus)
+        },
+        "platform": { .platform($0) },
+        "app_version": { .appVersion($0) },
+        "diagnostics_mode": { .diagnosticsMode($0) },
+        "output_format": { TTSAudioFormat(rawValue: $0).map(DiagnosticAttribute.outputFormat) },
+        "text_length_bucket": { SentenceAudioTextLengthBucket(rawValue: $0).map(DiagnosticAttribute.textLengthBucket) },
+        "byte_size_bucket": { SentenceAudioByteSizeBucket(rawValue: $0).map(DiagnosticAttribute.byteSizeBucket) },
+        "duration_bucket": { SentenceAudioDurationBucket(rawValue: $0).map(DiagnosticAttribute.durationBucket) },
+        "cache_result": { SentenceAudioCacheResult(rawValue: $0).map(DiagnosticAttribute.cacheResult) },
+    ]
+
     func prune(_ db: Database, keepingMostRecent count: Int, newerThan cutoff: Date) throws {
         try db.execute(
             sql: "DELETE FROM diagnostic_events WHERE created_at < ?",
@@ -135,50 +160,7 @@ private extension GRDBDiagnosticEventRepository {
     }
 
     func attribute(key: String, value: String) -> DiagnosticAttribute? {
-        switch key {
-        case "operation_id":
-            .operationID(DiagnosticOperationID(rawValue: value))
-        case "provider_preset_id":
-            .providerPresetID(value)
-        case "endpoint_purpose":
-            AIProviderEndpointPurpose(rawValue: value).map(DiagnosticAttribute.endpointPurpose)
-        case "endpoint_count":
-            Int(value).map(DiagnosticAttribute.endpointCount)
-        case "enabled_endpoint_count":
-            Int(value).map(DiagnosticAttribute.enabledEndpointCount)
-        case "model_name":
-            .modelName(value)
-        case "duration_ms":
-            Int(value).map(DiagnosticAttribute.durationMilliseconds)
-        case "error_category":
-            .errorCategory(value)
-        case "failure_phase":
-            .failurePhase(value)
-        case "adapter_kind":
-            AIProviderAdapterKind(rawValue: value).map(DiagnosticAttribute.adapterKind)
-        case "probe_capability":
-            AIProviderProbeCapability(rawValue: value).map(DiagnosticAttribute.probeCapability)
-        case "probe_capability_status":
-            AIProviderProbeCapabilityStatus(rawValue: value).map(DiagnosticAttribute.probeCapabilityStatus)
-        case "platform":
-            .platform(value)
-        case "app_version":
-            .appVersion(value)
-        case "diagnostics_mode":
-            .diagnosticsMode(value)
-        case "output_format":
-            TTSAudioFormat(rawValue: value).map(DiagnosticAttribute.outputFormat)
-        case "text_length_bucket":
-            SentenceAudioTextLengthBucket(rawValue: value).map(DiagnosticAttribute.textLengthBucket)
-        case "byte_size_bucket":
-            SentenceAudioByteSizeBucket(rawValue: value).map(DiagnosticAttribute.byteSizeBucket)
-        case "duration_bucket":
-            SentenceAudioDurationBucket(rawValue: value).map(DiagnosticAttribute.durationBucket)
-        case "cache_result":
-            SentenceAudioCacheResult(rawValue: value).map(DiagnosticAttribute.cacheResult)
-        default:
-            nil
-        }
+        Self.attributeDecoders[key]?(value)
     }
 
     func value(from attribute: DiagnosticAttribute) -> String {

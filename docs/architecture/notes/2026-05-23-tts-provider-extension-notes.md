@@ -182,6 +182,6 @@ TTS 配置测试和逐句播放可能产生外部 Provider 费用。第一阶段
 
 - `docs/spec/011-tts-provider-configuration-and-playback.md`
 - `docs/plans/active/2026-05-23-feature-tts-provider-configuration-test.md`
-- `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`
+- `docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md`
 - `docs/spec/005-ai-provider-prompt-and-privacy.md`
 - `docs/spec/008-permissions-local-privacy-and-diagnostics.md`

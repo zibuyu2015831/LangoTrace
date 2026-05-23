@@ -7,7 +7,7 @@
 
 本备忘录适用于逐句 TTS generation、持久音频 playback、跨句 playback coordinator、AudioSession、后台播放、流式 TTS、批量预生成、TTS artifact 同步导出和成本预算相关后续设计。
 
-当前触发任务是 `docs/plans/active/2026-05-24-feature-sentence-tts-generation-playback-coordinator.md` 的严格架构复查。本备忘录不是该任务的实施记录，也不替代 `docs/spec/011-tts-provider-configuration-and-playback.md`、正式架构文档或 ADR。后续任务采纳其中任一提醒时，必须写回对应 active plan、spec、architecture 或 ADR。
+当前触发任务是 `docs/plans/done/2026-05-24-feature-sentence-tts-generation-playback-coordinator.md` 的严格架构复查。本备忘录不是该任务的实施记录，也不替代 `docs/spec/011-tts-provider-configuration-and-playback.md`、正式架构文档或 ADR。后续任务采纳其中任一提醒时，必须写回对应 active plan、spec、architecture 或 ADR。
 
 ## 目的
 
@@ -130,8 +130,8 @@ App Shell 的 production assembly 也不能长期只靠 build 间接覆盖。逐
 
 ## 关联文档
 
-- `docs/plans/active/2026-05-24-feature-sentence-tts-generation-playback-coordinator.md`
-- `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md`
+- `docs/plans/done/2026-05-24-feature-sentence-tts-generation-playback-coordinator.md`
+- `docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md`
 - `docs/spec/011-tts-provider-configuration-and-playback.md`
 - `docs/spec/004-swiftui-architecture.md`
 - `docs/spec/008-permissions-local-privacy-and-diagnostics.md`

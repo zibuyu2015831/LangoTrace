@@ -12,7 +12,7 @@ struct AIProviderHTTPClientTests {
             body: Data(repeating: 1, count: 8)
         )
         let client = URLSessionAIProviderHTTPClient(session: Self.stubbedSession(URLProtocolOversizedStub.self))
-        let request = URLRequest(url: try #require(URL(string: "https://example.test/audio/speech")))
+        let request = try URLRequest(url: #require(URL(string: "https://example.test/audio/speech")))
 
         await #expect(throws: AIProviderHTTPClientError.responseTooLarge) {
             _ = try await client.send(request, maximumResponseBytes: 4)
@@ -28,7 +28,7 @@ struct AIProviderHTTPClientTests {
     func urlSessionClientMapsTransportErrors() async throws {
         URLProtocolTransportErrorStub.error = URLError(.timedOut)
         let client = URLSessionAIProviderHTTPClient(session: Self.stubbedSession(URLProtocolTransportErrorStub.self))
-        let request = URLRequest(url: try #require(URL(string: "https://example.test/audio/speech")))
+        let request = try URLRequest(url: #require(URL(string: "https://example.test/audio/speech")))
 
         await #expect(throws: AIProviderHTTPClientError.timedOut) {
             _ = try await client.send(request, maximumResponseBytes: 16)

@@ -15,7 +15,7 @@
 
 ## 已有设计留下的扩展点
 
-- `docs/plans/active/2026-05-23-feature-direct-sentence-tts-playback.md` 已采纳 `LocalMediaArtifactStore` 方向：TTS 音频不是临时 UI 缓存，而是本地优先、隐私敏感、可重建的派生媒体资产。
+- `docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md` 已采纳 `LocalMediaArtifactStore` 方向：TTS 音频不是临时 UI 缓存，而是本地优先、隐私敏感、可重建的派生媒体资产。
 - 第一阶段推荐将媒体文件放在 App 管理的 `Application Support/LangoTrace/MediaArtifacts/` 或等价目录，并默认排除系统备份。
 - 文件名和目录名不得包含原文、Entry 标题、用户输入短语、Provider secret、完整 Keychain account 或其他可读敏感信息。
 - 媒体文件必须通过 GRDB / SQLite metadata 引用，不允许 SwiftUI View 拼接真实文件路径。
