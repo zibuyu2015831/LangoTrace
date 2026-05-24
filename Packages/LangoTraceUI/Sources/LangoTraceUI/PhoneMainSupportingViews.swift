@@ -77,7 +77,7 @@ struct EntryDetailView: View {
     var onUpdateEntryBody: ((String) throws -> Void)?
     var onUpdateLearningText: ((String, String) -> Void)?
     var onAnalyzeCurrentLearningText: (() -> Void)?
-    var sentenceAudioPlaybackState: (String) -> SentenceAudioPresentationState = { _ in .idle }
+    var sentenceAudioPlaybackStates: [String: SentenceAudioPresentationState] = [:]
     var onListenSentence: ((LearningRendering, RenderingSentence, Int) -> Void)?
     let onGenerateLocalPreview: () -> Void
     let onPractice: () -> Void
@@ -122,7 +122,7 @@ struct EntryDetailView: View {
                         SentencePairView(
                             index: index + 1,
                             sentence: sentence,
-                            playbackState: sentenceAudioPlaybackState(sentence.id),
+                            playbackState: sentenceAudioPlaybackStates[sentence.id] ?? .idle,
                             onListen: {
                                 onListenSentence?(rendering, sentence, index)
                             },

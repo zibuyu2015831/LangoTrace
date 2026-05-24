@@ -94,7 +94,7 @@ struct PadWorkspaceContentView: View {
     let memoryItems: [MemoryItem]
     let languageSpaces: [LanguageSpace]
     let settingsCapabilities: [SettingsCapability]
-    let contentStore: LearningContentStore
+    @ObservedObject var contentStore: LearningContentStore
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
@@ -218,9 +218,7 @@ struct PadWorkspaceContentView: View {
                     )
                 }
             },
-            sentenceAudioPlaybackState: { sentenceID in
-                contentStore.sentenceAudioPlaybackState(for: sentenceID)
-            },
+            sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates,
             onListenSentence: { rendering, sentence, index in
                 Task {
                     await contentStore.handleSentenceAudioTap(

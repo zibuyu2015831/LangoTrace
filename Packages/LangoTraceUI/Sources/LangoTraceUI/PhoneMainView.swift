@@ -118,9 +118,7 @@ struct PhoneMainView: View {
                                     )
                                 }
                             },
-                            sentenceAudioPlaybackState: { sentenceID in
-                                contentStore.sentenceAudioPlaybackState(for: sentenceID)
-                            },
+                            sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates,
                             onListenSentence: { rendering, sentence, index in
                                 Task {
                                     await contentStore.handleSentenceAudioTap(

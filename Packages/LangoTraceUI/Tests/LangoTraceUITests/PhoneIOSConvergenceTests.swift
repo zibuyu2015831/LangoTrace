@@ -189,6 +189,43 @@ struct PhoneIOSConvergenceTests {
         #expect(!components.contains("UnavailableCapabilityView(content: ." + "listenOne)"))
     }
 
+    @Test("Sentence audio playback state is a SwiftUI observed detail input")
+    func sentenceAudioPlaybackStateIsSwiftUIObservedDetailInput() throws {
+        let supportingViews = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
+            encoding: .utf8
+        )
+        let phoneMainView = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainView.swift"),
+            encoding: .utf8
+        )
+        let padSections = try String(
+            contentsOf: sourceFileURL(named: "PadMainSections.swift"),
+            encoding: .utf8
+        )
+        let macWorkspace = try String(
+            contentsOf: sourceFileURL(named: "MacWorkspaceContentView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(
+            supportingViews.contains(
+                "var sentenceAudioPlaybackStates: [String: SentenceAudioPresentationState] = [:]"
+            )
+        )
+        #expect(supportingViews.contains("playbackState: sentenceAudioPlaybackStates[sentence.id] ?? .idle"))
+        #expect(
+            !supportingViews.contains(
+                "var sentenceAudioPlaybackState: (String) -> SentenceAudioPresentationState"
+            )
+        )
+        #expect(phoneMainView.contains("sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates"))
+        #expect(padSections.contains("@ObservedObject var contentStore: LearningContentStore"))
+        #expect(padSections.contains("sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates"))
+        #expect(macWorkspace.contains("@ObservedObject var contentStore: LearningContentStore"))
+        #expect(macWorkspace.contains("sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates"))
+    }
+
     @Test("iPhone sentence card keeps actions outside the reading column")
     func iPhoneSentenceCardKeepsActionsOutsideReadingColumn() throws {
         let components = try String(
