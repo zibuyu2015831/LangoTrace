@@ -281,7 +281,7 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("makeConfigurationProbeDraftSnapshot"))
         #expect(source.contains("draft.configurationProbeRequestedCapabilities"))
         #expect(!source.contains("makeTextProbeDraftSnapshot"))
-        #expect(source.contains("AIProviderProbeResultPanelContent"))
+        #expect(source.contains("AIProviderProbeResultPanelSheet"))
         #expect(source.contains(".sheet(isPresented: $isProbeResultPresented)"))
         #expect(source.contains("aiProviderProbePresentationStyle(compactWidth: isCompactWidth)"))
         #expect(source.contains("horizontalSizeClass == .compact"))
@@ -329,18 +329,31 @@ struct AIProviderSettingsProbeTests {
         #expect(!source.contains("presentationDetents"))
     }
 
-    @Test("Probe result sheet has a large platform width rule without applying compact detents everywhere")
-    func probeResultSheetHasLargePlatformWidthRuleWithoutApplyingCompactDetentsEverywhere() throws {
-        let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+    @Test("Probe result sheet uses fitted sizing on regular width and compact detents only on compact width")
+    func probeResultSheetUsesFittedSizingOnRegularWidthAndCompactDetentsOnlyOnCompactWidth() throws {
+        let viewSource = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+        let componentSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
+            encoding: .utf8
+        )
 
-        #expect(source.contains("aiProviderProbePresentationStyle(compactWidth: isCompactWidth)"))
-        #expect(source.contains("private let aiProviderProbeRegularWidth"))
-        #expect(source.contains(".frame(maxWidth: aiProviderProbeRegularWidth, alignment: .leading)"))
-        #expect(source.contains("presentationDetents([.medium, .large])"))
-        #expect(source.contains(".presentationDragIndicator(.hidden)"))
-        #expect(source.contains("#if os(iOS)"))
-        #expect(source.contains("if compactWidth"))
-        #expect(!source.contains("aiProviderProbePresentationDetents"))
+        #expect(viewSource.contains("AIProviderProbeResultPanelSheet("))
+        #expect(viewSource.contains("usesRegularWidth: usesRegularProbeWidth"))
+        #expect(viewSource.contains("aiProviderProbePresentationStyle(compactWidth: isCompactWidth)"))
+        #expect(viewSource.contains("presentationSizing(.fitted)"))
+        #expect(viewSource.contains("presentationDetents([.medium, .large])"))
+        #expect(viewSource.contains(".presentationDragIndicator(.hidden)"))
+        #expect(viewSource.contains("#if os(iOS)"))
+        #expect(viewSource.contains("if compactWidth"))
+        #expect(viewSource.contains("else"))
+        #expect(componentSource.contains("struct AIProviderProbeResultPanelSheet"))
+        #expect(componentSource.contains("let aiProviderProbeRegularWidth: CGFloat = 520"))
+        #expect(componentSource.contains("let usesRegularWidth: Bool"))
+        #expect(componentSource.contains(".frame(width: usesRegularWidth ? aiProviderProbeRegularWidth : nil"))
+        #expect(componentSource.contains(".fixedSize(horizontal: false, vertical: true)"))
+        #expect(!viewSource.contains(".frame(maxWidth: aiProviderProbeRegularWidth, alignment: .leading)"))
+        #expect(!viewSource.contains("private let aiProviderProbeRegularWidth"))
+        #expect(!viewSource.contains("aiProviderProbePresentationDetents"))
     }
 
     @Test("Unsupported optional capabilities do not mask authentication failure")

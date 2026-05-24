@@ -2,8 +2,6 @@ import Foundation
 import LangoTraceCore
 import SwiftUI
 
-private let aiProviderProbeRegularWidth: CGFloat = 520
-
 struct AIProviderSettingsView: View {
     @Environment(\.aiProviderSettingsActions) private var actions
     #if os(iOS)
@@ -47,16 +45,16 @@ struct AIProviderSettingsView: View {
             transientTestStatusClearTask?.cancel()
         }
         .sheet(isPresented: $isProbeResultPresented) {
-            AIProviderProbeResultPanelContent(
+            AIProviderProbeResultPanelSheet(
                 result: latestProbeResult,
                 isTesting: isTesting,
                 activeCapabilities: activeProbeCapabilities,
                 displayedCapabilities: displayedProbeCapabilities,
+                usesRegularWidth: usesRegularProbeWidth,
                 onRetry: validateConfiguration,
                 onClose: { isProbeResultPresented = false },
                 onPlaySpeechPreview: playSpeechPreview
             )
-            .frame(maxWidth: aiProviderProbeRegularWidth, alignment: .leading)
             .aiProviderProbePresentationStyle(compactWidth: isCompactWidth)
         }
     }
@@ -64,6 +62,14 @@ struct AIProviderSettingsView: View {
     private var isCompactWidth: Bool {
         #if os(iOS)
             horizontalSizeClass == .compact
+        #else
+            false
+        #endif
+    }
+
+    private var usesRegularProbeWidth: Bool {
+        #if os(iOS)
+            horizontalSizeClass != .compact
         #else
             false
         #endif
@@ -166,7 +172,7 @@ private extension View {
                 presentationDetents([.medium, .large])
                     .presentationDragIndicator(.hidden)
             } else {
-                self
+                presentationSizing(.fitted)
             }
         #else
             self

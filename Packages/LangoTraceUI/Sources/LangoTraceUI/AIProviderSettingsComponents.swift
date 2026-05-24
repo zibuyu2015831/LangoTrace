@@ -1,6 +1,8 @@
 import LangoTraceCore
 import SwiftUI
 
+let aiProviderProbeRegularWidth: CGFloat = 520
+
 extension AIProviderConfigurationProbeResult {
     var textProbeCapabilityResults: [AIProviderProbeCapabilityResult] {
         capabilities.filter { capability in
@@ -161,6 +163,31 @@ struct AIProviderProbeResultPanelContent: View {
             return LangoTraceDesign.ColorToken.warning
         }
         return LangoTraceDesign.ColorToken.danger
+    }
+}
+
+struct AIProviderProbeResultPanelSheet: View {
+    let result: AIProviderConfigurationProbeResult?
+    let isTesting: Bool
+    let activeCapabilities: [AIProviderProbeCapability]
+    let displayedCapabilities: [AIProviderProbeCapability]
+    let usesRegularWidth: Bool
+    let onRetry: () -> Void
+    let onClose: () -> Void
+    var onPlaySpeechPreview: @MainActor (TTSAudioPreviewResource) -> Void = { _ in }
+
+    var body: some View {
+        AIProviderProbeResultPanelContent(
+            result: result,
+            isTesting: isTesting,
+            activeCapabilities: activeCapabilities,
+            displayedCapabilities: displayedCapabilities,
+            onRetry: onRetry,
+            onClose: onClose,
+            onPlaySpeechPreview: onPlaySpeechPreview
+        )
+        .frame(width: usesRegularWidth ? aiProviderProbeRegularWidth : nil, alignment: .top)
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 
