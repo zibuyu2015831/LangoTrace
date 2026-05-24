@@ -572,6 +572,20 @@ struct AIProviderPlatformConsistencyTests {
         #expect(!detailSource.contains("MacAIProviderSettingsView"))
     }
 
+    @Test("AI provider detail keeps system settings chrome without language-space header")
+    func aiProviderDetailKeepsSystemSettingsChromeWithoutLanguageSpaceHeader() throws {
+        let detailSource = try String(
+            contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(detailSource.contains("showsCapabilityHeader"))
+        #expect(detailSource.contains("case .aiProvider:"))
+        #expect(detailSource.contains("case .aiProvider:\n            false"))
+        #expect(detailSource.contains("if showsCapabilityHeader {"))
+        #expect(detailSource.contains("AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)"))
+    }
+
     private func sourceFileURL(named fileName: String) -> URL {
         langoTraceUISourceFileURL(named: fileName)
     }

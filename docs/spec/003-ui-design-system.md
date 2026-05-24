@@ -356,6 +356,7 @@ iPhone 上的管理类 sheet 常用于创建、编辑、重命名、配置少量
 - Local Mock、未配置、未接入和不可用状态必须使用一致的能力状态表达，不能混用“已连接”“已生成”“可同步”等真实能力文案。
 - unavailable 页面应包含当前边界、后续接入条件和不会发生的副作用；文案要简洁，避免把说明页做成营销介绍。
 - iPad 筛选 pill、macOS Sidebar item、设置能力 row 和导入导出入口必须是可访问的交互控件，选中态不能只靠颜色表达。
+- 系统级设置详情不应在内容区重复导航标题，也不应把当前语言空间方向和等级显示成页面归属。AI Provider 这类跨语言空间配置页应直接进入表单主内容；当前语言空间如果只用于测试、预览或语音 profile 上下文，应留在服务输入或结果语义中，而不是作为页面 header。
 - iPad regular width 可以保持较高信息密度；compact width、Split View、Slide Over 和 Stage Manager 窄窗口必须优先保障主内容可读。
 - macOS 可以更紧凑，但仍要支持窗口缩放、键盘焦点、指针反馈和上下文 Inspector；未实现的快捷键或菜单命令不能以已完成形式出现。
 - 视觉优化必须等完整页面地图和截图清单形成后统一处理，避免某一个端或某一个页面先行美化造成风格分裂。
@@ -442,3 +443,4 @@ AI 在创建或修改 UI 前应先确认：
 - 2026-05-23：补充 iPhone 状态反馈 sheet 规则。原因：AI Provider 测试结果面板曾误套任务型 sheet 的标题结构，造成顶部拥挤、调试表格感和禁用主按钮噪声；规范明确反馈型 sheet 用状态 chrome、grouped result card 和状态可用操作。影响范围：AI Provider 测试结果、保存 / 导出 / 同步结果反馈和后续状态面板。是否需要 ADR：否。
 - 2026-05-24：补充 AI Provider 测试结果完成态标题规则。原因：人工截图复查发现测试完成后把 `测试成功` 作为 sheet 顶部标题会显得局促且层级不稳；完成态应回到中性面板标题，具体可用性由 grouped capability rows 表达。影响范围：`AIProviderProbeResultPanelContent`、AI Provider 测试结果 sheet 和后续状态反馈面板。是否需要 ADR：否。
 - 2026-05-24：补充状态反馈 sheet 成功态操作权重规则。原因：AI Provider 测试成功后底部 prominent `重新测试` 按钮不是主路径，却增加高度并挤压顶部 chrome；成功态隐藏该按钮，非成功态保留重试恢复操作。影响范围：AI Provider 测试结果 sheet、保存 / 导出 / 同步反馈和后续状态反馈面板。是否需要 ADR：否。
+- 2026-05-24：补充系统级设置详情标题规则。原因：AI Provider 配置属于跨语言空间系统级设置，内容区重复 `AI Provider` 和当前语言空间方向会误导归属并浪费首屏空间；导航标题保留，内容区直接进入表单。影响范围：`SettingsCapabilityDetailView`、AI Provider 设置页和后续系统级配置页。是否需要 ADR：否。

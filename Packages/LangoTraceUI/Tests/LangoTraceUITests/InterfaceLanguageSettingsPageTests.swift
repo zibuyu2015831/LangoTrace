@@ -8,7 +8,8 @@ struct InterfaceLanguageSettingsPageTests {
     func detailUsesChoiceFirstLayoutWithoutPersistentExplanationCards() throws {
         let source = try String(contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"), encoding: .utf8)
 
-        #expect(source.contains("capability.kind != .interfaceLanguage, capability.kind != .appearance"))
+        #expect(source.contains("case .interfaceLanguage, .appearance:"))
+        #expect(source.contains("showsCapabilityHeader"))
         #expect(source.contains("header"))
         #expect(source.contains("interfaceLanguageSettingsContent"))
         #expect(source.contains("interfaceLanguageOptionRow"))

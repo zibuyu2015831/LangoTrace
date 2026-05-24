@@ -56,7 +56,7 @@ struct SettingsCapabilityDetailView: View {
         return VStack(alignment: .leading, spacing: 18) {
             if capability.requiresLanguageSpaceContext, languageSpace == nil {
                 noLanguageSpaceBoundaryContent(localizationKeys: localizationKeys)
-            } else if capability.kind != .interfaceLanguage, capability.kind != .appearance {
+            } else if showsCapabilityHeader {
                 header
             }
 
@@ -75,6 +75,17 @@ struct SettingsCapabilityDetailView: View {
             }
         }
         .padding(20)
+    }
+
+    private var showsCapabilityHeader: Bool {
+        switch capability.kind {
+        case .aiProvider:
+            false
+        case .interfaceLanguage, .appearance:
+            false
+        default:
+            true
+        }
     }
 
     private var header: some View {
