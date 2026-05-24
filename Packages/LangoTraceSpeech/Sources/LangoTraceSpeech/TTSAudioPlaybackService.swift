@@ -86,6 +86,7 @@ private extension TTSAudioPlaybackService {
                 }
                 self.player = player
                 self.playbackDelegate = playbackDelegate
+                playbackDelegate.completeAfterPlaybackDuration(player.duration)
                 return TTSAudioPlaybackSession {
                     await playbackDelegate.result()
                 }
@@ -97,6 +98,9 @@ private extension TTSAudioPlaybackService {
         }
 
         public func pause() {
+            if player != nil {
+                playbackDelegate?.cancelFallbackCompletion()
+            }
             player?.pause()
         }
 
@@ -107,6 +111,7 @@ private extension TTSAudioPlaybackService {
             guard player.play() else {
                 throw TTSAudioPlaybackEngineError.playbackFailed
             }
+            playbackDelegate?.completeAfterPlaybackDuration(player.duration - player.currentTime)
         }
 
         public func stop() {
@@ -117,10 +122,15 @@ private extension TTSAudioPlaybackService {
         }
     }
 
-    private final class AVAudioPlayerCompletionDelegate: NSObject, AVAudioPlayerDelegate, @unchecked Sendable {
+    class TTSAudioPlaybackCompletionMonitor: NSObject, @unchecked Sendable {
         private let lock = NSLock()
         private var storedResult: Result<Void, SentenceAudioPlaybackFailure>?
         private var continuation: CheckedContinuation<Result<Void, SentenceAudioPlaybackFailure>, Never>?
+        private var fallbackTask: Task<Void, Never>?
+
+        deinit {
+            fallbackTask?.cancel()
+        }
 
         func result() async -> Result<Void, SentenceAudioPlaybackFailure> {
             await withCheckedContinuation { continuation in
@@ -135,14 +145,6 @@ private extension TTSAudioPlaybackService {
             }
         }
 
-        func audioPlayerDidFinishPlaying(_: AVAudioPlayer, successfully flag: Bool) {
-            complete(flag ? .success(()) : .failure(.playbackFailed))
-        }
-
-        func audioPlayerDecodeErrorDidOccur(_: AVAudioPlayer, error _: (any Error)?) {
-            complete(.failure(.playbackFailed))
-        }
-
         func complete(_ result: Result<Void, SentenceAudioPlaybackFailure>) {
             lock.lock()
             guard storedResult == nil else {
@@ -152,8 +154,51 @@ private extension TTSAudioPlaybackService {
             storedResult = result
             let continuation = continuation
             self.continuation = nil
+            fallbackTask?.cancel()
+            fallbackTask = nil
             lock.unlock()
             continuation?.resume(returning: result)
+        }
+
+        func completeAfterPlaybackDuration(_ duration: TimeInterval, grace: TimeInterval = 0.5) {
+            let delay = max(0, duration + grace)
+            fallbackTask?.cancel()
+            fallbackTask = Task { [weak self] in
+                let nanoseconds = UInt64(delay * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: nanoseconds)
+                guard !Task.isCancelled else {
+                    return
+                }
+                self?.complete(.success(()))
+            }
+        }
+
+        func cancelFallbackCompletion() {
+            lock.lock()
+            fallbackTask?.cancel()
+            fallbackTask = nil
+            lock.unlock()
+        }
+
+        var hasCompleted: Bool {
+            lock.lock()
+            defer {
+                lock.unlock()
+            }
+            return storedResult != nil
+        }
+    }
+
+    private final class AVAudioPlayerCompletionDelegate: TTSAudioPlaybackCompletionMonitor,
+        AVAudioPlayerDelegate,
+        @unchecked Sendable
+    {
+        func audioPlayerDidFinishPlaying(_: AVAudioPlayer, successfully flag: Bool) {
+            complete(flag ? .success(()) : .failure(.playbackFailed))
+        }
+
+        func audioPlayerDecodeErrorDidOccur(_: AVAudioPlayer, error _: (any Error)?) {
+            complete(.failure(.playbackFailed))
         }
     }
 #else

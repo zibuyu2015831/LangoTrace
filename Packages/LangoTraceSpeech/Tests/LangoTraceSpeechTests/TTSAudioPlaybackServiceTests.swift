@@ -1,6 +1,6 @@
 import Foundation
 import LangoTraceCore
-import LangoTraceSpeech
+@testable import LangoTraceSpeech
 import Testing
 
 @Suite("TTS audio playback service")
@@ -42,6 +42,46 @@ struct TTSAudioPlaybackServiceTests {
         await #expect(throws: SentenceAudioPlaybackFailure.playbackFailed) {
             try await failedPlayback.play(source)
         }
+    }
+
+    @Test("Playback completion monitor falls back after expected audio duration")
+    func playbackCompletionMonitorFallsBackAfterExpectedDuration() async {
+        let monitor = TTSAudioPlaybackCompletionMonitor()
+
+        monitor.completeAfterPlaybackDuration(0.001, grace: 0.001)
+
+        switch await monitor.result() {
+        case .success:
+            break
+        case let .failure(failure):
+            Issue.record("Expected fallback success, got \(failure)")
+        }
+    }
+
+    @Test("Playback completion monitor keeps explicit result ahead of fallback")
+    func playbackCompletionMonitorKeepsExplicitResultAheadOfFallback() async {
+        let monitor = TTSAudioPlaybackCompletionMonitor()
+
+        monitor.completeAfterPlaybackDuration(10, grace: 0)
+        monitor.complete(.failure(.cancelled))
+
+        switch await monitor.result() {
+        case .success:
+            Issue.record("Expected explicit cancellation to win")
+        case let .failure(failure):
+            #expect(failure == .cancelled)
+        }
+    }
+
+    @Test("Playback completion monitor can cancel duration fallback while paused")
+    func playbackCompletionMonitorCanCancelDurationFallbackWhilePaused() async throws {
+        let monitor = TTSAudioPlaybackCompletionMonitor()
+
+        monitor.completeAfterPlaybackDuration(0.001, grace: 0.001)
+        monitor.cancelFallbackCompletion()
+        try await Task.sleep(nanoseconds: 5_000_000)
+
+        #expect(!monitor.hasCompleted)
     }
 }
 
