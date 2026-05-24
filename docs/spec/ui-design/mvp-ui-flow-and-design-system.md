@@ -254,7 +254,7 @@ Memory 页面第一轮至少表达三层：
    - AI Provider 已支持本地配置保存、Keychain secret、已保存凭证读取，以及配置合成测试。
    - 同步和本地数据设置仍保持只读说明或 Mock 配置页。
    - AI Provider 测试请求当前会触发固定低敏合成请求，覆盖文本回复、JSON 输出，以及用户显式启用后的内置图片理解 probe；它不发送生活记录、用户照片、音频、历史记忆或 Prompt Preset 内容。
-   - AI Provider 测试结果 sheet 必须采用 Apple 风格的状态面板：紧凑宽度下隐藏系统 drag indicator，顶部使用克制 handle、测试中居中状态标题、完成后中性面板标题和右上关闭按钮；测试中用小号 `ProgressView` 表达进度，不显示禁用的大号重试按钮；能力结果使用 grouped card 和细分隔，不使用整行高亮来表达状态。
+   - AI Provider 测试结果 sheet 必须采用 Apple 风格的状态面板：紧凑宽度下隐藏系统 drag indicator，顶部使用克制 handle、测试中居中状态标题、完成后中性面板标题和右上关闭按钮；测试中用小号 `ProgressView` 表达进度，不显示禁用的大号重试按钮；成功态不显示底部 prominent `重新测试` 按钮，失败、部分可用、取消或不支持状态才保留重试恢复操作；能力结果使用 grouped card 和细分隔，不使用整行高亮来表达状态。
 
 ## 8. 测试与验证要求
 
@@ -322,3 +322,4 @@ scripts/verify.sh
 - 2026-05-23：补充 AI Provider 测试结果面板 Apple 风格设计规则。原因：半高 sheet 中左侧大图标标题、表格式能力列表和测试中禁用大按钮会形成调试工具感；结果面板应使用居中状态 chrome、grouped capability card、细分隔和完成后才出现的底部操作。影响范围：AI Provider 设置页测试结果 sheet、source-boundary UI 测试和后续能力结果面板。是否需要 ADR：否。
 - 2026-05-23：将 AI Provider 测试结果面板归入状态反馈 sheet 规范。原因：不是所有 sheet 都需要页面式标题；任务型 sheet 需要对象 / 流程标题，反馈型 sheet 需要状态 chrome。影响范围：AI Provider 测试结果、保存 / 导出 / 同步反馈和后续 sheet 设计判断。是否需要 ADR：否。
 - 2026-05-24：补充 AI Provider 测试结果完成态标题规则。原因：完成后顶部直接显示 `测试成功` 会显得局促且像临时提示；完成态顶部改为中性面板标题，分能力 grouped card 继续表达可用性。影响范围：AI Provider 测试结果 sheet、source-boundary UI 测试和后续状态反馈面板。是否需要 ADR：否。
+- 2026-05-24：补充 AI Provider 测试成功态重试按钮层级规则。原因：成功后底部 prominent `重新测试` 不是主路径，会增加 sheet 高度并挤压标题区域；成功态隐藏该按钮，非成功态保留重试恢复操作。影响范围：AI Provider 测试结果 sheet、source-boundary UI 测试和后续状态反馈面板。是否需要 ADR：否。

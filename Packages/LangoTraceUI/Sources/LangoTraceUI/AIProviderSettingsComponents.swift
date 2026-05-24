@@ -87,7 +87,7 @@ struct AIProviderProbeResultPanelContent: View {
                 onPlaySpeechPreview: onPlaySpeechPreview
             )
 
-            if !isTesting {
+            if showsRetryButton {
                 retryButton
             }
         }
@@ -109,6 +109,13 @@ struct AIProviderProbeResultPanelContent: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(LangoTraceDesign.ColorToken.primaryActionFill)
+    }
+
+    private var showsRetryButton: Bool {
+        guard !isTesting else {
+            return false
+        }
+        return result?.overallStatus != .succeeded
     }
 
     private var titleKey: String {
