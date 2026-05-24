@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import LangoTraceCore
 import LangoTraceData
@@ -491,6 +492,82 @@ extension LearningContentStoreTests {
             store.sentenceAudioPlaybackState(for: sentence.id) == .idle
         }
         #expect(didReset)
+    }
+
+    @Test("Store publishes sentence audio completion updates for visible detail views")
+    func storePublishesSentenceAudioCompletionUpdatesForVisibleDetailViews() async throws {
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let updates = SentenceAudioPlaybackStateUpdateProbe()
+        let store = LearningContentStore(
+            repository: repository,
+            spaceID: "space-1",
+            sentenceAudioPlaybackActions: SentenceAudioPlaybackActions(
+                handleTap: { request in
+                    .playing(SentenceAudioKey(
+                        sentenceSource: request.sentenceSource,
+                        sentenceTextHash: "hash",
+                        targetLanguageCode: request.targetLanguageCode,
+                        configurationFingerprint: "fingerprint"
+                    ))
+                },
+                presentationState: { _ in .idle },
+                stateUpdates: { _ in
+                    updates.stream()
+                }
+            )
+        )
+        let changeCounter = PublishedChangeCounter()
+        let cancellable = store.objectWillChange.sink {
+            changeCounter.increment()
+        }
+        defer {
+            cancellable.cancel()
+        }
+        let entry = try store.createEntry(title: "Walk", body: "I walked home.", source: .typedText)
+        let rendering = try #require(store.generateLocalPreview(for: entry))
+        let sentence = try #require(rendering.sentences.first)
+
+        await store.handleSentenceAudioTap(
+            rendering: rendering,
+            sentence: sentence,
+            sentenceIndex: 0,
+            languageSpace: LanguageSpacePreview(
+                id: "space-1",
+                name: "English",
+                nativeLanguage: "zh-Hans",
+                targetLanguage: "English",
+                targetLanguageCode: "en",
+                level: .a1
+            )
+        )
+        let countAfterPlaying = changeCounter.value
+
+        updates.yield(.idle)
+        let didPublishIdle = await waitUntil {
+            store.sentenceAudioPlaybackState(for: sentence.id) == .idle
+                && changeCounter.value > countAfterPlaying
+        }
+
+        #expect(didPublishIdle)
+    }
+}
+
+private final class PublishedChangeCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+
+    var value: Int {
+        lock.lock()
+        defer {
+            lock.unlock()
+        }
+        return count
+    }
+
+    func increment() {
+        lock.lock()
+        count += 1
+        lock.unlock()
     }
 }
 

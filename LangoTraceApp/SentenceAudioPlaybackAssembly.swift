@@ -92,6 +92,17 @@ actor SentenceAudioPlaybackCoordinatorBox {
                 } catch {
                     return .failed(.playbackFailed)
                 }
+            },
+            stateUpdates: { request in
+                do {
+                    let coordinator = try await self.coordinatorInstance()
+                    return await coordinator.stateUpdates(for: request)
+                } catch {
+                    return AsyncStream { continuation in
+                        continuation.yield(.failed(.playbackFailed))
+                        continuation.finish()
+                    }
+                }
             }
         )
     }

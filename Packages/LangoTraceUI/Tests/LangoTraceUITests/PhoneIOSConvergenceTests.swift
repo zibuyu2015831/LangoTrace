@@ -63,26 +63,19 @@ struct PhoneIOSConvergenceTests {
             encoding: .utf8
         )
 
-        #expect(phoneMainView.contains("onGenerateLearningMaterial"))
-        #expect(phoneMainView.contains("contentStore.generateLearningMaterial"))
+        #expect(phoneMainView.contains("EntryDetailStoreView("))
+        #expect(supportingViews.contains("onGenerateLearningMaterial"))
+        #expect(supportingViews.contains("contentStore.generateLearningMaterial"))
         #expect(supportingViews.contains("entry.rendering.generateLearningMaterial.title"))
         #expect(supportingViews.contains("entry.rendering.generateLearningMaterial.summary"))
-        #expect(padSections.contains("onGenerateLearningMaterial"))
-        #expect(padSections.contains("contentStore.generateLearningMaterial"))
-        #expect(padSections.contains("onCancelLearningMaterialGeneration"))
-        #expect(padSections.contains("contentStore.cancelLearningMaterialGeneration"))
-        #expect(padSections.contains("onUpdateLearningText"))
-        #expect(padSections.contains("contentStore.updateLearningText"))
-        #expect(padSections.contains("onAnalyzeCurrentLearningText"))
-        #expect(padSections.contains("contentStore.analyzeCurrentLearningText"))
-        #expect(macWorkspace.contains("onGenerateLearningMaterial"))
-        #expect(macWorkspace.contains("contentStore.generateLearningMaterial"))
-        #expect(macWorkspace.contains("onCancelLearningMaterialGeneration"))
-        #expect(macWorkspace.contains("contentStore.cancelLearningMaterialGeneration"))
-        #expect(macWorkspace.contains("onUpdateLearningText"))
-        #expect(macWorkspace.contains("contentStore.updateLearningText"))
-        #expect(macWorkspace.contains("onAnalyzeCurrentLearningText"))
-        #expect(macWorkspace.contains("contentStore.analyzeCurrentLearningText"))
+        #expect(supportingViews.contains("onCancelLearningMaterialGeneration"))
+        #expect(supportingViews.contains("contentStore.cancelLearningMaterialGeneration"))
+        #expect(supportingViews.contains("onUpdateLearningText"))
+        #expect(supportingViews.contains("contentStore.updateLearningText"))
+        #expect(supportingViews.contains("onAnalyzeCurrentLearningText"))
+        #expect(supportingViews.contains("contentStore.analyzeCurrentLearningText"))
+        #expect(padSections.contains("EntryDetailStoreView("))
+        #expect(macWorkspace.contains("EntryDetailStoreView("))
     }
 
     @Test("iPhone detail supports editable learning text and reanalysis")
@@ -99,8 +92,9 @@ struct PhoneIOSConvergenceTests {
         #expect(supportingViews.contains("entry.rendering.learningText.reanalyze"))
         #expect(supportingViews.contains("entry.rendering.learningText.analyzing"))
         #expect(supportingViews.contains("entry.rendering.learningText.analysisFailed"))
-        #expect(phoneMainView.contains("contentStore.updateLearningText"))
-        #expect(phoneMainView.contains("contentStore.analyzeCurrentLearningText"))
+        #expect(phoneMainView.contains("EntryDetailStoreView("))
+        #expect(supportingViews.contains("contentStore.updateLearningText"))
+        #expect(supportingViews.contains("contentStore.analyzeCurrentLearningText"))
     }
 
     @Test("iPhone detail uses dynamic text cards without squeezing reading columns")
@@ -143,8 +137,9 @@ struct PhoneIOSConvergenceTests {
         ))
         #expect(supportingViews.contains("entry.rendering.learningText.edit"))
         #expect(supportingViews.contains(".langoPanel(padding: 14)"))
-        #expect(phoneMainView.contains("contentStore.updateEntryBody"))
-        #expect(phoneMainView.contains("contentStore.sourceEntryIsStale"))
+        #expect(phoneMainView.contains("EntryDetailStoreView("))
+        #expect(supportingViews.contains("contentStore.updateEntryBody"))
+        #expect(supportingViews.contains("contentStore.sourceEntryIsStale"))
         #expect(!supportingViews.contains("private var editingLearningText: some View"))
         #expect(!supportingViews.contains("private var actionRow: some View"))
         #expect(!supportingViews.contains("localizedText(\"entry.targetLanguage.title\")"))
@@ -189,7 +184,7 @@ struct PhoneIOSConvergenceTests {
         #expect(!components.contains("UnavailableCapabilityView(content: ." + "listenOne)"))
     }
 
-    @Test("Sentence audio playback state is a SwiftUI observed detail input")
+    @Test("Sentence audio playback state is observed by the visible detail route")
     func sentenceAudioPlaybackStateIsSwiftUIObservedDetailInput() throws {
         let supportingViews = try String(
             contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
@@ -219,11 +214,17 @@ struct PhoneIOSConvergenceTests {
                 "var sentenceAudioPlaybackState: (String) -> SentenceAudioPresentationState"
             )
         )
-        #expect(phoneMainView.contains("sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates"))
+        #expect(supportingViews.contains("struct EntryDetailStoreView: View"))
+        #expect(supportingViews.contains("@ObservedObject var contentStore: LearningContentStore"))
+        #expect(supportingViews.contains("sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates"))
+        #expect(phoneMainView.contains("EntryDetailStoreView("))
+        #expect(!phoneMainView.contains("sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates"))
         #expect(padSections.contains("@ObservedObject var contentStore: LearningContentStore"))
-        #expect(padSections.contains("sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates"))
+        #expect(padSections.contains("EntryDetailStoreView("))
+        #expect(!padSections.contains("sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates"))
         #expect(macWorkspace.contains("@ObservedObject var contentStore: LearningContentStore"))
-        #expect(macWorkspace.contains("sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates"))
+        #expect(macWorkspace.contains("EntryDetailStoreView("))
+        #expect(!macWorkspace.contains("sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates"))
     }
 
     @Test("iPhone sentence card keeps actions outside the reading column")

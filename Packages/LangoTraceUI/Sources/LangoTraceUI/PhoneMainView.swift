@@ -78,58 +78,10 @@ struct PhoneMainView: View {
                 switch route {
                 case let .entryDetail(entryID):
                     if let entry = entry(id: entryID) {
-                        EntryDetailView(
+                        EntryDetailStoreView(
                             languageSpace: languageSpace,
-                            entry: entry,
-                            rendering: rendering(for: entry),
-                            practiceItems: contentStore.practiceItems(for: entry),
-                            generationState: contentStore.generationState(for: entry),
-                            sourceEntryIsStale: contentStore.sourceEntryIsStale(for: entry),
-                            onGenerateLearningMaterial: {
-                                Task {
-                                    await contentStore.generateLearningMaterial(
-                                        for: entry,
-                                        languageSpace: languageSpace
-                                    )
-                                }
-                            },
-                            onCancelLearningMaterialGeneration: {
-                                Task {
-                                    await contentStore.cancelLearningMaterialGeneration(for: entry)
-                                }
-                            },
-                            onUpdateEntryBody: { body in
-                                try contentStore.updateEntryBody(entryID: entry.id, body: body)
-                            },
-                            onUpdateLearningText: { materialID, learningText in
-                                Task {
-                                    await contentStore.updateLearningText(
-                                        materialID: materialID,
-                                        entryID: entry.id,
-                                        learningText: learningText
-                                    )
-                                }
-                            },
-                            onAnalyzeCurrentLearningText: {
-                                Task {
-                                    await contentStore.analyzeCurrentLearningText(
-                                        for: entry,
-                                        languageSpace: languageSpace
-                                    )
-                                }
-                            },
-                            sentenceAudioPlaybackStates: contentStore.sentenceAudioPlaybackStates,
-                            onListenSentence: { rendering, sentence, index in
-                                Task {
-                                    await contentStore.handleSentenceAudioTap(
-                                        rendering: rendering,
-                                        sentence: sentence,
-                                        sentenceIndex: index,
-                                        languageSpace: languageSpace
-                                    )
-                                }
-                            },
-                            onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
+                            entryID: entry.id,
+                            contentStore: contentStore,
                             onPractice: { navigationPath.append(.practice(entry.id)) }
                         )
                     }
