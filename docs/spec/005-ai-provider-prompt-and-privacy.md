@@ -150,7 +150,7 @@ UI 可用简洁文案展示，但服务层应保留可诊断错误类型。
 
 Provider 配置页已经从真实级 mock 表单进入本地配置保存和配置合成测试阶段：非敏感 Provider profile、endpoint、credential metadata 和 validation event 进入 SQLite / GRDB，API Key 写入 Keychain；测试请求可以通过 Provider 层对文本 endpoint 发送固定文本、JSON、当前语言空间上下文下的语言支持和可选内置图片合成探测。
 
-真实文本 Entry 的一键学习材料生成已在 iOS / iPhone 记录详情接入：用户点击 `生成学习材料` 时，App Shell 通过 `LearningMaterialGenerationActions` 读取默认文本 endpoint、解析 Keychain secret、调用 `LearningMaterialGenerationService`，并将 LearningMaterial、analysis、candidate 和 operation 摘要写入 GRDB。该能力第一版只发送当前 Entry 文本或用户编辑后的当前 learning text，不发送照片、音频、OCR、附件摘要、历史记忆或多条 Entry 上下文；iPad / macOS UI 入口待 iOS 人工测试通过后再接入。后续实现必须遵守以下边界：
+真实文本 Entry 的一键学习材料生成已通过共享 `EntryDetailView` 接入 iPhone / iPad / macOS 记录详情：用户点击 `生成学习材料` 时，App Shell 通过 `LearningMaterialGenerationActions` / `LearningContentStore` 读取默认文本 endpoint、解析 Keychain secret、调用 `LearningMaterialGenerationService`，并将 LearningMaterial、analysis、candidate 和 operation 摘要写入 GRDB。该能力第一版只发送当前 Entry 文本或用户编辑后的当前 learning text，不发送照片、音频、OCR、附件摘要、历史记忆或多条 Entry 上下文；三端平台差异只体现在承载位置和布局，不分叉 AI 请求、Prompt、Keychain 或 Data 写入路径。后续实现必须遵守以下边界：
 
 - API Key 输入只能作为当前页面的短生命周期明文草稿。保存成功后应清空本次新输入草稿；用户主动再次打开 Provider 配置页时，可以通过服务边界从 Keychain 解析已保存密钥并回填到输入框，默认仍以隐藏态展示。该回填只允许存在于当前 UI draft，不得写入 SQLite、诊断日志、同步目录、请求预览或测试输出。
 - 非敏感配置和敏感凭证必须分层。Provider、Base URL、模型名属于普通表单配置；请求格式、认证方式和自定义请求头等技术信息应默认收起或进入高级配置，不应挤占首屏主路径。API Key、外部服务 token、自定义请求头中的密钥属于敏感凭证。
@@ -233,6 +233,7 @@ AI 在实现任何 AI 能力前应先确认：
 
 - 2026-05-23：补充 TTS 配置测试边界。原因：语音模型配置与测试方案进入 OpenAI + OpenRouter 第一阶段，需要把旧的“语音生成不得发真实网络测试请求”修订为受 `011` 约束的固定低敏 TTS probe，并明确结果面板、endpoint metadata 和 profile 全局验证摘要隔离。影响范围：AI Provider 设置、LangoTraceAI、LangoTraceData、LangoTraceSpeech、诊断日志和逐句播放前置状态。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-23：补充一键学习材料生成真实请求边界。原因：iOS / iPhone 记录详情已接入当前文本 Entry 的真实 Provider 请求、结构化 Prompt、GRDB 结果保存和非阻断 AI 披露，需要把“真实学习内容请求未接入”的旧边界更新为当前实现事实。影响范围：LangoTraceAI、LangoTraceData、LangoTraceUI、AppEnvironment、Prompt Registry 和页面清单。是否需要 ADR：否，沿用 ADR-005；照片、音频、历史记忆和多 Entry 上下文仍需单独方案。
+- 2026-05-24：修正一键学习材料生成三端入口事实。原因：iPad / macOS 记录详情已通过共享 `EntryDetailView` 接入同一 `LearningMaterialGenerationActions` / `LearningContentStore` action seam，AI 请求、Keychain 解析和 GRDB 写入路径不再是 iPhone-only；隐私边界仍限制为当前 Entry 文本或当前 learning text。影响范围：AI Provider 请求边界、三端记录详情和页面清单。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-17：创建第一版 AI Provider、Prompt 与隐私规范。
 - 2026-05-17：补充同意级别、结构化输出校验、输出保存边界和失败处理分类。原因：降低 AI 请求隐私、可靠性和数据覆盖风险。影响范围：AI Provider、Prompt、UI 请求预览、数据保存。是否需要 ADR：否。
 - 2026-05-19：补充 Provider 配置页边界。原因：AI Provider 设置页开始从静态说明改为真实级 mock 配置页，需要把安全配置草稿、保存配置、测试请求、能力矩阵和聚合 provider 提示沉淀为长期约束。影响范围：AI Provider 设置、隐私文案、后续 Keychain 和真实请求测试。是否需要 ADR：否。
