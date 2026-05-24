@@ -27,6 +27,7 @@
 		779E2CB4ED20A3EC5D8C26A8 /* LangoTraceData in Frameworks */ = {isa = PBXBuildFile; productRef = F966AE715CF1A24F8BED2712 /* LangoTraceData */; };
 		7F23FD5F12487CD0E8CCC1DC /* LangoTraceSync in Frameworks */ = {isa = PBXBuildFile; productRef = 6A92F5CC68F9FD853A10B295 /* LangoTraceSync */; };
 		8344B208A01F2D16111E6340 /* LangoTraceUI in Frameworks */ = {isa = PBXBuildFile; productRef = 21B649020088C2342C0F48EC /* LangoTraceUI */; };
+		98B78634BCD319D36E6DFE20 /* AppEnvironmentBootstrapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A2E07C01D4B9943496D86F /* AppEnvironmentBootstrapTests.swift */; };
 		9D2EF9D0EDA8A1F0A943EE3D /* LangoTraceAI in Frameworks */ = {isa = PBXBuildFile; productRef = 210415632B487DCC91FBBFFF /* LangoTraceAI */; };
 		A57D50A677888CF71C6C6DC0 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DEC98F7EDDE5BB1EDA5D6D02 /* AppIntents.framework */; };
 		AA1CB673BA6891C34FA32E27 /* LangoTraceSync in Frameworks */ = {isa = PBXBuildFile; productRef = 378EDEB396E0A2055B2870EA /* LangoTraceSync */; };
@@ -53,6 +54,7 @@
 		0BD74C1C1EDA24BFA2EB4389 /* Info-macOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Info-macOS.plist"; sourceTree = "<group>"; };
 		15333DB5BBFBBE7F424C2E04 /* LangoTraceUI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceUI; path = Packages/LangoTraceUI; sourceTree = SOURCE_ROOT; };
 		15672F8764491AF8A4DF489E /* LangoTraceCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceCore; path = Packages/LangoTraceCore; sourceTree = SOURCE_ROOT; };
+		34A2E07C01D4B9943496D86F /* AppEnvironmentBootstrapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironmentBootstrapTests.swift; sourceTree = "<group>"; };
 		439399545C2315CD0BE79530 /* LangoTrace-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "LangoTrace-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5379E4455B97A67E96A20D30 /* LangoTraceAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LangoTraceAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		55AB1C12E4A7F5AD1D8D6EF5 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
@@ -161,6 +163,7 @@
 		9A6F3E3006E92032A32CE27E /* LangoTraceAppTests */ = {
 			isa = PBXGroup;
 			children = (
+				34A2E07C01D4B9943496D86F /* AppEnvironmentBootstrapTests.swift */,
 				B826F72799A4E311DF21F745 /* SentenceAudioPlaybackAssemblyTests.swift */,
 			);
 			path = LangoTraceAppTests;
@@ -357,6 +360,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				98B78634BCD319D36E6DFE20 /* AppEnvironmentBootstrapTests.swift in Sources */,
 				0D1B986E71942D918731541D /* SentenceAudioPlaybackAssemblyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

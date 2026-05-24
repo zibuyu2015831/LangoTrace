@@ -362,17 +362,61 @@ private extension GRDBLearningContentRepository {
                 estimated_token_bucket, duration_ms, created_at, completed_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(operation_id) DO UPDATE SET
-                material_id = excluded.material_id,
-                status = excluded.status,
-                failure_category = excluded.failure_category,
-                provider_profile_id = excluded.provider_profile_id,
-                provider_endpoint_id = excluded.provider_endpoint_id,
-                provider_preset_id = excluded.provider_preset_id,
-                model_name = excluded.model_name,
-                input_kind = excluded.input_kind,
-                estimated_token_bucket = excluded.estimated_token_bucket,
-                duration_ms = excluded.duration_ms,
-                completed_at = excluded.completed_at
+                material_id = CASE
+                    WHEN learning_material_operations.status = 'cancelled'
+                    THEN learning_material_operations.material_id
+                    ELSE excluded.material_id
+                END,
+                status = CASE
+                    WHEN learning_material_operations.status = 'cancelled'
+                    THEN learning_material_operations.status
+                    ELSE excluded.status
+                END,
+                failure_category = CASE
+                    WHEN learning_material_operations.status = 'cancelled'
+                    THEN learning_material_operations.failure_category
+                    ELSE excluded.failure_category
+                END,
+                provider_profile_id = CASE
+                    WHEN learning_material_operations.status = 'cancelled'
+                    THEN learning_material_operations.provider_profile_id
+                    ELSE excluded.provider_profile_id
+                END,
+                provider_endpoint_id = CASE
+                    WHEN learning_material_operations.status = 'cancelled'
+                    THEN learning_material_operations.provider_endpoint_id
+                    ELSE excluded.provider_endpoint_id
+                END,
+                provider_preset_id = CASE
+                    WHEN learning_material_operations.status = 'cancelled'
+                    THEN learning_material_operations.provider_preset_id
+                    ELSE excluded.provider_preset_id
+                END,
+                model_name = CASE
+                    WHEN learning_material_operations.status = 'cancelled'
+                    THEN learning_material_operations.model_name
+                    ELSE excluded.model_name
+                END,
+                input_kind = CASE
+                    WHEN learning_material_operations.status = 'cancelled'
+                    THEN learning_material_operations.input_kind
+                    ELSE excluded.input_kind
+                END,
+                estimated_token_bucket = CASE
+                    WHEN learning_material_operations.status = 'cancelled'
+                    THEN learning_material_operations.estimated_token_bucket
+                    ELSE excluded.estimated_token_bucket
+                END,
+                duration_ms = CASE
+                    WHEN learning_material_operations.status = 'cancelled'
+                    THEN learning_material_operations.duration_ms
+                    ELSE excluded.duration_ms
+                END,
+                completed_at = CASE
+                    WHEN learning_material_operations.status = 'cancelled'
+                    THEN learning_material_operations.completed_at
+                    ELSE excluded.completed_at
+                END
             """,
             arguments: operationArguments(summary)
         )

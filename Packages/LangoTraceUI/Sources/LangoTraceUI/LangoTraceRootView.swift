@@ -101,6 +101,7 @@ public struct LangoTraceRootView: View {
                         onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
                         onAppearancePreferenceChange: onAppearancePreferenceChange
                     )
+                    .id(languageSpace.id)
                 } else {
                     OnboardingView(
                         draft: $onboardingDraft,

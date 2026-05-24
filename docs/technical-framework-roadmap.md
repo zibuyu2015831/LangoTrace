@@ -854,11 +854,12 @@ LangoTraceApp
 当前进度：
 
 - 已完成 SwiftUI 三端工程壳、XcodeGen 工程定义和本地 package 边界。
-- 已完成 Welcome / Onboarding / Main 启动路由、内存语言空间 preview、iPhone / iPad / macOS 产品体验骨架、隐私状态图标和 iPad 面板手势 helper。
-- 已建立 Core / UI 的首批单元测试和 `scripts/verify.sh` 统一验证入口。
-- 尚未完成 SQLite / GRDB 数据模型验证、本地附件存储、真实 OpenAI-compatible Provider、Prompt Preset 执行、系统 TTS 播放和记录生成目标语言并播放的闭环。
+- 已完成 Welcome / Onboarding / Main 启动路由、真实语言空间 SQLite / GRDB 持久化、iPhone / iPad / macOS 产品体验骨架、隐私状态图标和 iPad 面板手势 helper。
+- 已建立 Core / Data / AI / Speech / Sync / UI 的首批单元测试和 `scripts/verify.sh` 统一验证入口。
+- 已完成 GRDB learning content 主路径、OpenAI-compatible 学习材料生成 / 分析 service、TTS Provider 配置、逐句 TTS 生成 / 缓存 / 播放前置，以及一条记录在用户显式触发后生成目标语言材料并逐句播放的基础闭环。
+- 尚未完成完整生活记录时间线、本地图片 / 音频附件主数据、Prompt Preset 自定义执行、真实练习录音 / 评分、FTS / 导出 / 可恢复备份、真实同步、StoreKit 和发布验证。
 
-因此，当前项目处于 Phase 0 的前半段：平台和产品骨架已经可运行，数据层、AI、TTS 和核心学习闭环仍待单独设计与实现。
+因此，当前项目处于 Phase 0 后半段：平台、语言空间、learning content、AI 生成和 TTS 播放前置已经可运行；完整记录、练习、附件、同步、付费和发布仍待单独设计与实现。
 
 ### Phase 1：iPhone + iPad MVP
 

@@ -75,9 +75,9 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 
 ## 2. 项目当前状态
 
-当前仓库已经完成 SwiftUI Multiplatform 工程初始化，并从纯 App Shell 推进到产品体验骨架阶段。现有实现可以展示 Welcome / Onboarding / Main 启动路由、真实语言空间 SQLite / GRDB 持久化、iPhone 语言空间管理页、iPhone / iPad / macOS 分平台主界面、Mock 学习内容、隐私状态图标、iPad 侧栏折叠和边缘手势。
+当前仓库已经完成 SwiftUI Multiplatform 工程初始化，并从纯 App Shell 推进到产品体验骨架和首批真实学习内容基础设施阶段。现有实现可以展示 Welcome / Onboarding / Main 启动路由、真实语言空间 SQLite / GRDB 持久化、iPhone 语言空间管理页、iPhone / iPad / macOS 分平台主界面、文本记录写入 GRDB learning content repository、显式触发的学习材料生成 / 重新分析、逐句 TTS 播放前置、隐私状态图标、iPad 侧栏折叠和边缘手势。
 
-当前仍处于真实数据、真实 AI、真实语音、真实同步和 StoreKit 之前的早期阶段。现有页面和状态用于验证产品方向、平台结构和工程边界，不代表核心学习闭环已经可用。
+当前仍处于完整生活记录时间线、练习录音 / 评分、真实同步和 StoreKit 之前的早期阶段。已有真实数据 / AI / TTS 路径均限定在用户显式触发、Provider 自带配置和本地优先边界内；现有页面和状态用于验证产品方向、平台结构和工程边界，不代表完整学习闭环、同步或发布能力已经可用。
 
 已完成：
 
@@ -107,16 +107,18 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - AI Provider 配置合成测试，覆盖文本回复、JSON 输出、当前语言空间上下文下的语言支持、用户显式启用后的内置图片理解 probe，以及启用且配置完整时的 OpenAI / OpenRouter TTS 固定低敏 probe。
 - TTS Provider 配置基础设施，包含 endpoint 级 TTS settings、language code 级 voice profile、TTS 配置 fingerprint、TTS 结果持久化隔离、Core 音频校验 / preview playback 协议、Speech package 音频校验 test target 和设置页短生命周期样例试听 seam。
 - 本地媒体派生资产与 TTS 音频缓存基础设施，包含 Core media artifact / TTS artifact key 契约、`media_artifacts` / `tts_audio_artifacts` GRDB migration、metadata repository、App 管理的 `MediaArtifacts` 文件目录、staging 写入、原子移动、命中校验、失效、清理、默认 local-only / excluded-from-backup / excluded-from-export policy，以及 Speech 持久 TTS 文件校验 seam。
-- Core、Data、AI、Speech 和 UI package 的首批单元测试；UI package 已开始按功能子目录组织 AI Provider 测试。
+- Entry、LearningMaterial、句子分析、修改说明、memory candidate、practice candidate 和 learning material operation 摘要的 GRDB learning content 主路径。
+- 三端记录详情共享真实 `生成学习材料` / `重新分析` action seam，取消会终止当前 store 启动的生成 / 分析任务并保持取消状态。
+- 逐句 `听` 按钮通过 `SentenceAudioPlaybackActions` 接入 TTS 生成、local artifact cache 和播放 coordinator；页面展示、滚动和进入详情不会自动触发 TTS。
+- Core、Data、AI、Speech、Sync 和 UI package 的首批单元测试；UI package 已开始按功能子目录组织 AI Provider 测试。
 - 统一验证脚本 `scripts/verify.sh`。
 
 尚未完成：
 
-- 真实生活记录创建、时间线选择和本地记录闭环。
-- Entry、Rendering、Practice、Memory 的真实数据库 schema。
-- FTS、附件存储、导出和可恢复备份。
+- 完整生活记录时间线、跨端筛选和本地记录闭环。
+- 照片 / 音频附件主数据、FTS、导出和可恢复备份。
 - AI Provider 请求预览、请求日志、Prompt Preset 执行链路，以及 Anthropic / Gemini 学习内容请求和图片 probe。
-- 逐句播放 coordinator、正式音频播放 UI 接入、Embedding / 向量化处理、对象存储等真实配置和敏感凭证安全存储。
+- 练习录音、跟读评分、听写、回译完成态、Embedding / 向量化处理、对象存储等真实配置和敏感凭证安全存储。
 - Prompt Preset 的真实渲染和执行链路。
 - 录音、Speech、OCR、照片和权限接入。
 - 同步引擎。
@@ -464,10 +466,15 @@ xcodegen generate
 xcodebuild -list -project LangoTrace.xcodeproj
 swift test --package-path Packages/LangoTraceCore
 swift test --package-path Packages/LangoTraceData
+swift test --package-path Packages/LangoTraceAI
+swift test --package-path Packages/LangoTraceSpeech
+swift test --package-path Packages/LangoTraceSync
 swift test --package-path Packages/LangoTraceUI
+python3 -m unittest Tests/Tooling/test_probe_openai_compatible_api.py
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
 xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
+xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests
 swiftlint --no-cache
 swiftformat --lint . --cache ignore
 if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'; then

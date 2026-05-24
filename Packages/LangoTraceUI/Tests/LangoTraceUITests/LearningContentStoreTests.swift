@@ -721,7 +721,7 @@ private actor LearningMaterialGenerationText {
     }
 }
 
-private func sampleLearningMaterial(
+func sampleLearningMaterial(
     entryID: String,
     operationID: DiagnosticOperationID,
     sourceEntryBodyHash: String = LearningMaterialTextHash.sha256(for: "今天我去咖啡馆。")
@@ -736,7 +736,7 @@ private func sampleLearningMaterial(
     )
 }
 
-private func sampleLearningMaterial(
+func sampleLearningMaterial(
     entryID: String,
     learningText: String,
     operationID: DiagnosticOperationID,
@@ -752,7 +752,7 @@ private func sampleLearningMaterial(
     )
 }
 
-private func sampleLearningMaterial(
+func sampleLearningMaterial(
     materialID: String,
     entryID: String,
     learningText: String,

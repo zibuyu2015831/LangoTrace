@@ -9,7 +9,9 @@ swift test --package-path Packages/LangoTraceCore
 swift test --package-path Packages/LangoTraceData
 swift test --package-path Packages/LangoTraceAI
 swift test --package-path Packages/LangoTraceSpeech
+swift test --package-path Packages/LangoTraceSync
 swift test --package-path Packages/LangoTraceUI
+python3 -m unittest Tests/Tooling/test_probe_openai_compatible_api.py
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
 xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build

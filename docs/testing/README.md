@@ -21,6 +21,8 @@
 - `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/`：领域模型、路由、隐私状态、诊断事件和核心枚举。
 - `Packages/LangoTraceData/Tests/LangoTraceDataTests/`：SQLite / GRDB repository、migration、local state 和非敏感诊断持久化。
 - `Packages/LangoTraceAI/Tests/LangoTraceAITests/`：AI Provider 配置服务、Keychain 引用、网络 probe 和错误映射。
+- `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/`：音频格式校验、TTS preview / playback seam 和系统播放前置。
+- `Packages/LangoTraceSync/Tests/LangoTraceSyncTests/`：同步包边界、disabled sync service 和后续 Sync domain contract。
 - `Packages/LangoTraceUI/Tests/LangoTraceUITests/`：SwiftUI 状态、presentation model、本地化 key、source-boundary 和页面 helper。
 - `Tests/Tooling/`：项目级开发脚本的 Python 单元测试；这些测试不替代 package XCTest，只覆盖宿主机诊断工具。
 
@@ -177,9 +179,9 @@ Apple 三端交互、Dynamic Type、VoiceOver、键盘、指针、菜单命令�
 iPhone 手动验证：
 
 - `记录 / 练习 / 记忆` 三个 Tab 均可进入；设置通过顶部 gear 或二级 route 稳定可达，不作为底部 Tab。
-- `写一句` 打开本地记录编辑 sheet，保存后进入记录详情；当前 Entry / Rendering / Practice / Memory 仍是内存学习内容 repository，不代表本地记录闭环已持久化。
+- `写一句` 打开本地记录编辑 sheet，保存后进入记录详情；文本 Entry、LearningMaterial、句子分析、practice candidate 和 memory candidate 经 GRDB learning content repository 持久化，完整时间线、照片 / 音频附件、FTS、导出和同步仍未接入。
 - `用照片开始` 打开照片写作本地预览，不访问 Photos、Camera、OCR、AI Provider、网络、同步服务或导出文件。
-- 记录详情的 `听` 打开本地听读预览，只切换本地播放状态，不触发 TTS、录音、Speech 或练习成绩保存。
+- 记录详情的 `听` 不会在页面展示、滚动或进入详情时自动触发；用户点击单句后，通过已配置且测试可用的 TTS Provider、local artifact cache、Speech playback seam 和 playback coordinator 执行逐句生成 / 播放，并应验证未配置、失败、取消和缓存命中状态。
 - 记录详情和练习 Tab 可进入 mock 练习会话。
 - 语言空间设置入口已访问本地 SQLite / GRDB repository，用于新增、切换、重命名和删除语言空间。
 - AI Provider 设置页可保存非敏感配置到 SQLite / GRDB、保存 API Key 到 Keychain，并通过用户主动触发的配置合成测试显示文本回复、JSON 输出、语言支持和可选内置图片理解结果；不得发送生活记录、用户照片、音频、历史记忆或 Prompt Preset 内容。

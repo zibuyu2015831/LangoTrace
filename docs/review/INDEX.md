@@ -4,15 +4,16 @@
 
 ## 最新状态摘要
 
-- 最近审查轮次：`2026-05-23-one-tap-learning-material-flow`。
-- 最近完成时间：2026-05-23。
+- 最近审查轮次：`2026-05-24-project-wide-code-doc-test-audit`。
+- 最近完成时间：2026-05-24。
 - 待用户澄清的问题数：0。
-- 延后项：0。
+- 延后项：4。
 
 ## 轮次索引
 
 | 轮次 ID | 类型 | 启动时间 | 完成时间 | 状态 | 当前事实源 | 后续覆盖记录 | 可作为依据 | 链接 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `2026-05-24-project-wide-code-doc-test-audit` | 项目级复杂审查 | 2026-05-24 | 2026-05-24 | Verified | `docs/review/rounds/2026-05-24-project-wide-code-doc-test-audit/` | `docs/plans/done/2026-05-24-bug-learning-content-store-language-space-switch.md`、`docs/plans/done/2026-05-24-bug-learning-material-cancel-provider-request.md`、`docs/plans/done/2026-05-24-chore-project-wide-audit-remediation.md` | Yes | [README](rounds/2026-05-24-project-wide-code-doc-test-audit/README.md) |
 | `2026-05-23-one-tap-learning-material-flow` | 专项审查 | 2026-05-23 | 2026-05-23 | Verified | `docs/product-main-reference.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/learning-content/impl.md`、`docs/platform-page-inventory.md`、`docs/prompts/learning-material/one-tap-learning-material.md` | `docs/plans/done/2026-05-22-feature-one-tap-learning-material-flow.md` | Yes | [README](rounds/2026-05-23-one-tap-learning-material-flow/README.md) |
 | `2026-05-22-doc-system-ai-coding-quality-alignment` | 专项审查 | 2026-05-22 | 2026-05-22 | Verified | `docs/README.md`、`docs/product-main-reference.md`、`docs/platform-page-inventory.md`、`docs/spec/README.md`、`docs/spec/010-apple-platform-interaction-and-accessibility.md`、`docs/testing/README.md` | `docs/plans/done/2026-05-22-docs-doc-system-ai-coding-quality-alignment.md` | Yes | [README](rounds/2026-05-22-doc-system-ai-coding-quality-alignment/README.md) |
 | `2026-05-22-ai-provider-language-support-probe` | 专项审查 | 2026-05-22 | 2026-05-22 | Verified | `docs/README.md`、`docs/architecture/001-initial-module-boundaries.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/006-interface-localization-and-language-boundaries.md`、`docs/platform-page-inventory.md`、`docs/prompts/ai-provider/provider-configuration-probe.md` | none | Yes | [README](rounds/2026-05-22-ai-provider-language-support-probe/README.md) |
@@ -60,6 +61,7 @@
 
 | 轮次 | 问题数 | 代码问题记录数 | 新会话可用抽样 |
 | --- | --- | --- | --- |
+| `2026-05-24-project-wide-code-doc-test-audit` | 9 个 P1 / P2 问题：AI 取消语义、语言空间 content store 绑定、Sync test target、AppEnvironment 集成测试、README / 技术路线 / testing 事实漂移、Sync domain model 前置、统一验证门禁；其中除真实 Sync domain model 和 SwiftLint warning 策略外均已完成集中整改 | 3 个 done plan 已完成：AI 取消传播、语言空间 store identity、项目级测试 / 验证 / 文档状态整改；真实 Sync domain model 仍为后续同步前置任务 | 通过：round README、六份报告、一致性检查、整改路线、后续任务拆分和 3 个 done plan 可恢复本轮项目级审查与修复结论 |
 | `2026-05-23-one-tap-learning-material-flow` | 5 个文档事实问题，已更新 learning content、AI 隐私、数据存储、页面清单、Prompt Registry 和产品主参考；完整 verify 与 iOS 人工验收已通过 | 5 个代码收口补丁：OpenAI-compatible Chat strict JSON Schema 请求体；fenced JSON 容错解析；OpenAI Responses strict JSON Schema；生产 JSON Schema 枚举与 Prompt / Core / Data 对齐；重新分析失败保留 stale retry context。后续项为 settings capability 拆分和 iPad/macOS 接入 | 通过：README 覆盖当前事实、iOS-only 范围、真实 Provider 人工测试、完整验证和剩余风险 |
 | `2026-05-22-doc-system-ai-coding-quality-alignment` | 4 个文档事实 / 规范入口问题，已修正 iPhone 旧五 Tab 口径、测试闭环旧清单、Onboarding 持久化事实和 Apple 三端交互 / 可访问性规范入口 | 0 | 通过：README、产品主参考、页面清单、spec 入口、新增 010 规范和 testing 入口可共同指导 AI 后续开发三端 UI、可访问性和验证边界 |
 | `2026-05-22-ai-provider-language-support-probe` | 4 个文档事实 / 变更记录漂移问题，已修正 README 已完成能力、模块边界 AI 请求事实、UI action seam 边界和 iOS-only 记录 | 0 | 通过：README、架构快照、spec、Prompt Registry 和页面清单均可说明语言支持 probe 是用户触发的固定合成测试，不是真实学习内容请求 |

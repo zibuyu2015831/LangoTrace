@@ -31,7 +31,7 @@
 - 任何完成声明前必须有本轮新运行的验证证据。
 - 文档任务至少运行入口文档列出的四个文档检查命令。
 - 涉及 Swift 工程状态的任务，收尾优先运行 `scripts/verify.sh`；无法运行时必须说明原因和剩余风险。
-- `scripts/verify.sh` 是 Swift 工程收尾门禁，至少覆盖 XcodeGen、Xcode project list、Core/Data/AI/UI package 测试、iPhone build、iPad build、macOS build、SwiftLint、SwiftFormat 和文档占位扫描。
+- `scripts/verify.sh` 是 Swift 工程收尾门禁，至少覆盖 XcodeGen、Xcode project list、Core/Data/AI/Speech/Sync/UI package 测试、Python tooling tests、iPhone build、iPad build、macOS build、SwiftLint、SwiftFormat 和文档占位扫描。
 - 涉及 UI 的任务不能只靠编译通过；需要按 `docs/testing/README.md` 做三端页面、截图或手动验证。
 - 涉及隐私、权限、AI 请求、日志、导出或同步的任务必须检查敏感数据不会出现在日志、导出包或未经确认的外部请求中。
 - 涉及 AI Provider 保存、Keychain、诊断日志或请求边界的任务，必须至少运行 Core、Data、AI、UI 中受影响 package 的测试，并执行敏感字段扫描；收尾再运行 `scripts/verify.sh`。
@@ -54,3 +54,4 @@
 - 2026-05-20：补充 AI package 与诊断隐私验证门禁。原因：AI Provider 配置保存链路已经跨 Core/Data/AI/UI，统一验证脚本必须覆盖 `Packages/LangoTraceAI`，隐私敏感任务也需要敏感字段扫描。影响范围：`scripts/verify.sh`、任务方案验证记录、AI Provider、诊断日志和后续权限 / 请求任务。是否需要 ADR：否。
 - 2026-05-20：补充 iOS / iPadOS Keychain 模拟器签名验证规则。原因：AI Provider 保存失败排查确认完全禁用 code signing 的模拟器产物无法可靠验证 Keychain 写入。影响范围：`project.yml`、XcodeGen、AI Provider 保存验证和后续权限 / Keychain 任务。是否需要 ADR：否。
 - 2026-05-23：补充 TTS Provider 配置测试验证门禁。原因：TTS 配置测试跨 Core 配置模型、Data voice profile、AI Provider 请求、Speech 音频校验和 UI 结果面板，不能只用 AI HTTP 响应测试代表音频可用性。影响范围：TTS Provider 配置、Speech package test target、逐句播放前置和后续媒体资产基础设施任务。是否需要 ADR：否，沿用 011 规范。
+- 2026-05-24：补充 Sync package 和 Python tooling 进入统一验证门禁。原因：项目级审查确认 Sync package 已进入工程依赖图但缺 test target，Python tooling tests 也未进入 `scripts/verify.sh`。影响范围：`scripts/verify.sh`、Sync package、工具脚本测试和后续同步开发。是否需要 ADR：否。

@@ -283,6 +283,37 @@ func operationSummariesUpdateOneRowForLifecycle() throws {
     #expect(operations.first?.failureCategory == .timeout)
 }
 
+@Test("Operation summaries keep cancelled as terminal status")
+func operationSummariesKeepCancelledAsTerminalStatus() throws {
+    let repository = try makeRepository()
+    let entry = try repository.createEntry(sampleDraft(), in: "space-1")
+    let operationID = DiagnosticOperationID(rawValue: "operation-cancelled")
+
+    try repository.recordOperation(.started(operationID: operationID, entryID: entry.id, kind: .generate, bucket: .short))
+    try repository.recordOperation(.cancelled(
+        operationID: operationID,
+        entryID: entry.id,
+        materialID: nil,
+        kind: .generate,
+        bucket: .short,
+        completedAt: Date(timeIntervalSince1970: 200)
+    ))
+    try repository.recordOperation(.failed(
+        operationID: operationID,
+        entryID: entry.id,
+        kind: .generate,
+        failureCategory: .cancelled,
+        bucket: .short,
+        completedAt: Date(timeIntervalSince1970: 201)
+    ))
+
+    let operations = try repository.operations(for: entry.id)
+    #expect(operations.count == 1)
+    #expect(operations.first?.operationID == operationID)
+    #expect(operations.first?.status == .cancelled)
+    #expect(operations.first?.failureCategory == .cancelled)
+}
+
 @Test("Deleting entry hides current material memory and practice candidates")
 func deletingEntryHidesActiveLearningContent() throws {
     let repository = try makeRepository()

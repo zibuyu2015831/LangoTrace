@@ -34,6 +34,9 @@ final class LearningContentStore: ObservableObject {
     }
 
     deinit {
+        for runningOperation in runningOperationsByEntryID.values {
+            runningOperation.task.cancel()
+        }
         for task in sentenceAudioPlaybackObservationTasks.values {
             task.cancel()
         }
@@ -165,13 +168,6 @@ final class LearningContentStore: ObservableObject {
         }
 
         let operationID = generationActions.operationIDGenerator()
-        runningOperationsByEntryID[entry.id] = RunningLearningMaterialOperation(
-            operationID: operationID,
-            materialID: nil,
-            kind: .generate,
-            bucket: lengthBucket
-        )
-        generationStates[entry.id] = .generating(operationID: operationID)
         let input = LearningMaterialGenerationInput(
             entryID: entry.id,
             spaceID: spaceID,
@@ -183,7 +179,18 @@ final class LearningContentStore: ObservableObject {
             promptMode: .automaticLearningMaterial
         )
 
-        let result = await generationActions.generateMaterial(input, operationID, lengthBucket)
+        let task = Task {
+            await generationActions.generateMaterial(input, operationID, lengthBucket)
+        }
+        runningOperationsByEntryID[entry.id] = RunningLearningMaterialOperation(
+            operationID: operationID,
+            materialID: nil,
+            kind: .generate,
+            bucket: lengthBucket,
+            task: task
+        )
+        generationStates[entry.id] = .generating(operationID: operationID)
+        let result = await task.value
         guard generationState(for: entry).operationID == operationID else {
             return
         }
@@ -249,13 +256,6 @@ final class LearningContentStore: ObservableObject {
             return
         }
         let operationID = generationActions.operationIDGenerator()
-        runningOperationsByEntryID[entry.id] = RunningLearningMaterialOperation(
-            operationID: operationID,
-            materialID: rendering.id,
-            kind: .analyze,
-            bucket: lengthBucket
-        )
-        generationStates[entry.id] = .analyzing(materialID: rendering.id, operationID: operationID)
         let input = LearningMaterialAnalysisInput(
             materialID: rendering.id,
             learningText: learningText,
@@ -263,7 +263,18 @@ final class LearningContentStore: ObservableObject {
             targetLanguageCode: languageSpace.targetLanguageCode,
             proficiencyLevelCode: languageSpace.level.rawValue.lowercased()
         )
-        let result = await generationActions.analyzeCurrentText(input, operationID, lengthBucket)
+        let task = Task {
+            await generationActions.analyzeCurrentText(input, operationID, lengthBucket)
+        }
+        runningOperationsByEntryID[entry.id] = RunningLearningMaterialOperation(
+            operationID: operationID,
+            materialID: rendering.id,
+            kind: .analyze,
+            bucket: lengthBucket,
+            task: task
+        )
+        generationStates[entry.id] = .analyzing(materialID: rendering.id, operationID: operationID)
+        let result = await task.value
         guard generationState(for: entry).operationID == operationID else {
             return
         }
@@ -291,6 +302,7 @@ final class LearningContentStore: ObservableObject {
         else {
             return
         }
+        running.task.cancel()
         runningOperationsByEntryID[entry.id] = nil
         generationStates[entry.id] = .cancelled(materialID: running.materialID)
         await generationActions.cancelOperation(
@@ -423,4 +435,5 @@ private struct RunningLearningMaterialOperation {
     var materialID: String?
     var kind: LearningMaterialOperationKind
     var bucket: LearningMaterialEstimatedTokenBucket
+    var task: Task<LearningMaterialGenerationActionResult, Never>
 }
