@@ -65,6 +65,7 @@ private func packageRootURL() -> URL {
 }
 
 @Suite("AI provider settings probe flow")
+// swiftlint:disable:next type_body_length
 struct AIProviderSettingsProbeTests {
     @Test("Draft model separates save readiness from configuration probe readiness")
     func draftModelSeparatesSaveReadinessFromConfigurationProbeReadiness() throws {
@@ -88,7 +89,7 @@ struct AIProviderSettingsProbeTests {
         #expect(snapshot.endpoint.providerPresetID == "openai")
         #expect(snapshot.plaintextSecret == "sk-local-draft")
         #expect(snapshot.languageContext == AIProviderProbeLanguageContext(languageCode: "en"))
-        #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON, .languageSupport])
+        #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON, .languageSupport, .speechSynthesis])
     }
 
     @Test("Draft configuration probe snapshot includes image capability only when enabled and supported")
@@ -147,6 +148,69 @@ struct AIProviderSettingsProbeTests {
         #expect(snapshot.endpoint.supportsImageInput)
         #expect(!snapshot.endpoint.imageInputEnabled)
         #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON])
+    }
+
+    @Test("Enabled incomplete speech probe stays visible as not configured")
+    func enabledIncompleteSpeechProbeStaysVisibleAsNotConfigured() {
+        var draft = AIProviderDraftConfiguration(provider: .openRouter)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
+        draft.speech.isEnabled = true
+        draft.speech.endpoint.model = ""
+
+        #expect(draft.configurationProbeRequestedCapabilities(
+            languageContext: AIProviderProbeLanguageContext(languageCode: "en")
+        ) == [.textReply, .structuredJSON, .languageSupport, .speechSynthesis])
+
+        let textOnlyResult = AIProviderConfigurationProbeResult(
+            source: .draft,
+            overallStatus: .succeeded,
+            providerPresetID: "openrouter",
+            modelName: "openai/gpt-5.4",
+            capabilities: [
+                .init(capability: .textReply, status: .succeeded, errorCategory: nil, durationMilliseconds: 10),
+                .init(capability: .structuredJSON, status: .succeeded, errorCategory: nil, durationMilliseconds: 12),
+                .init(capability: .languageSupport, status: .succeeded, errorCategory: nil, durationMilliseconds: 14),
+                .init(capability: .imageUnderstanding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+                .init(capability: .speechSynthesis, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+                .init(capability: .embedding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+            ],
+            persistedValidationEventID: nil
+        )
+
+        let displayedResult = draft.applyingLocalProbeCapabilityOverrides(
+            to: textOnlyResult,
+            languageContext: AIProviderProbeLanguageContext(languageCode: "en")
+        )
+
+        #expect(displayedResult.capabilities.first { $0.capability == .speechSynthesis }?.status == .notConfigured)
+    }
+
+    @Test("Saved speech probe result is not downgraded by local draft completeness")
+    func savedSpeechProbeResultIsNotDowngradedByLocalDraftCompleteness() {
+        var draft = AIProviderDraftConfiguration(provider: .openRouter)
+        draft.speech.isEnabled = true
+        draft.speech.endpoint.model = ""
+
+        let savedResult = AIProviderConfigurationProbeResult(
+            source: .savedProfile,
+            overallStatus: .succeeded,
+            providerPresetID: "openrouter",
+            modelName: "openai/gpt-4o",
+            capabilities: [
+                .init(capability: .textReply, status: .succeeded, errorCategory: nil, durationMilliseconds: 10),
+                .init(capability: .structuredJSON, status: .succeeded, errorCategory: nil, durationMilliseconds: 12),
+                .init(capability: .languageSupport, status: .succeeded, errorCategory: nil, durationMilliseconds: 14),
+                .init(capability: .speechSynthesis, status: .succeeded, errorCategory: nil, durationMilliseconds: 120),
+            ],
+            persistedValidationEventID: "event-saved"
+        )
+
+        let displayedResult = draft.applyingLocalProbeCapabilityOverrides(
+            to: savedResult,
+            languageContext: AIProviderProbeLanguageContext(languageCode: "en")
+        )
+
+        #expect(displayedResult.capabilities.first { $0.capability == .speechSynthesis }?.status == .succeeded)
     }
 
     @Test("Loaded profile image state is downgraded by live resolver instead of persisted support")

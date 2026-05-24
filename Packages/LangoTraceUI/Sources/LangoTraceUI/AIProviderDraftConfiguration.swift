@@ -188,6 +188,10 @@ struct AIProviderEndpointDraftConfiguration: Equatable {
             !model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    var hasUsableCredential: Bool {
+        independentCredential.isComplete || credentialID != nil
+    }
+
     mutating func updateProvider(
         _ provider: AIProviderPreset,
         defaultModel: String,
@@ -213,7 +217,7 @@ struct AITextModelDraftConfiguration: Equatable {
     }
 
     var isComplete: Bool {
-        endpoint.hasBaseURLAndModel && endpoint.independentCredential.isComplete
+        endpoint.hasBaseURLAndModel && endpoint.hasUsableCredential
     }
 
     mutating func updateProvider(_ provider: AIProviderPreset) {
@@ -271,7 +275,10 @@ struct AIOptionalModelDraftConfiguration: Equatable {
         !isEnabled || endpoint.hasBaseURLAndModel
     }
 
-    func isComplete(textCredential: AIProviderCredentialDraftConfiguration) -> Bool {
+    func isComplete(
+        textCredential: AIProviderCredentialDraftConfiguration,
+        textCredentialID: AIProviderCredentialID?
+    ) -> Bool {
         guard isEnabled, endpoint.hasBaseURLAndModel else {
             return !isEnabled
         }
@@ -281,9 +288,9 @@ struct AIOptionalModelDraftConfiguration: Equatable {
 
         switch endpoint.credentialReference {
         case .textModelCredential:
-            return textCredential.isComplete
+            return textCredential.isComplete || textCredentialID != nil
         case .independent:
-            return endpoint.independentCredential.isComplete
+            return endpoint.hasUsableCredential
         }
     }
 
@@ -328,8 +335,14 @@ struct AIProviderDraftConfiguration: Equatable {
     var saveReadiness: AIProviderTestReadiness {
         let textCredential = text.endpoint.independentCredential
         let allEnabledConfigurationsComplete = text.isComplete &&
-            speech.isComplete(textCredential: textCredential) &&
-            embedding.isComplete(textCredential: textCredential)
+            speech.isComplete(
+                textCredential: textCredential,
+                textCredentialID: text.endpoint.credentialID
+            ) &&
+            embedding.isComplete(
+                textCredential: textCredential,
+                textCredentialID: text.endpoint.credentialID
+            )
 
         return allEnabledConfigurationsComplete ? .readyForRequest : .missingRequiredFields
     }
@@ -341,7 +354,7 @@ struct AIProviderDraftConfiguration: Equatable {
         if textProbeSource == .savedProfile {
             return .readyForRequest
         }
-        return text.endpoint.independentCredential.isComplete ? .readyForRequest : .missingRequiredFields
+        return text.endpoint.hasUsableCredential ? .readyForRequest : .missingRequiredFields
     }
 
     var textProbeSource: AIProviderTextProbeSource {
@@ -441,10 +454,32 @@ struct AIProviderDraftConfiguration: Equatable {
         if includePlaceholders {
             capabilities.append(.speechSynthesis)
             capabilities.append(.embedding)
-        } else if speech.isEnabled, speech.isComplete(textCredential: text.endpoint.independentCredential) {
+        } else if speech.isEnabled {
             capabilities.append(.speechSynthesis)
         }
         return capabilities
+    }
+
+    func applyingLocalProbeCapabilityOverrides(
+        to result: AIProviderConfigurationProbeResult,
+        languageContext _: AIProviderProbeLanguageContext?
+    ) -> AIProviderConfigurationProbeResult {
+        guard result.source == .draft,
+              speech.isEnabled,
+              !speech.isComplete(
+                  textCredential: text.endpoint.independentCredential,
+                  textCredentialID: text.endpoint.credentialID
+              )
+        else {
+            return result
+        }
+
+        return result.replacingLocalCapabilityResult(.init(
+            capability: .speechSynthesis,
+            status: .notConfigured,
+            errorCategory: nil,
+            durationMilliseconds: nil
+        ))
     }
 
     func makeConfigurationProbeDraftSnapshot(
@@ -490,10 +525,11 @@ struct AIProviderDraftConfiguration: Equatable {
         )
     }
 
-    mutating func applySavedProfile(_ profile: AIProviderConfigurationProfile) {
-        profileID = profile.id
-        applyEndpointIdentities(from: profile)
-        clearPlaintextSecrets()
+    mutating func applySavedProfile(
+        _ profile: AIProviderConfigurationProfile,
+        resolvedSecretsByCredentialID: [AIProviderCredentialID: String] = [:]
+    ) {
+        applyLoadedProfile(profile, resolvedSecretsByCredentialID: resolvedSecretsByCredentialID)
         hasPersistedConfiguration = true
         saveState = .saved
         testState = .idle
@@ -608,6 +644,21 @@ struct AIProviderDraftConfiguration: Equatable {
     }
 }
 
+private extension AIProviderConfigurationProbeResult {
+    func replacingLocalCapabilityResult(
+        _ replacement: AIProviderProbeCapabilityResult
+    ) -> AIProviderConfigurationProbeResult {
+        var updated = self
+        updated.capabilities = capabilities.map { result in
+            result.capability == replacement.capability ? replacement : result
+        }
+        if !updated.capabilities.contains(where: { $0.capability == replacement.capability }) {
+            updated.capabilities.append(replacement)
+        }
+        return updated
+    }
+}
+
 private extension AIProviderEndpointDraftConfiguration {
     mutating func apply(
         endpoint: AIProviderEndpointConfiguration,
@@ -673,6 +724,11 @@ private extension AIProviderEndpointDraftConfiguration {
         guard independentCredential.requiresAPIKey else {
             return .none
         }
+        if independentCredential.apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+           let credentialID
+        {
+            return .existing(credentialID)
+        }
         return .newSecret(
             AIProviderCredentialSecretSaveInput(
                 kind: .apiKey,
@@ -721,7 +777,10 @@ private extension AIProviderDraftConfiguration {
         languageCode: String
     ) throws -> TTSDraftProbeSnapshotParts? {
         guard speech.isEnabled,
-              speech.isComplete(textCredential: text.endpoint.independentCredential),
+              speech.isComplete(
+                  textCredential: text.endpoint.independentCredential,
+                  textCredentialID: text.endpoint.credentialID
+              ),
               let adapterKind = speech.endpoint.provider.defaultTTSAdapterKind,
               let voiceInput = speech.makeTTSVoiceProfileSaveInput(languageCode: languageCode)
         else {

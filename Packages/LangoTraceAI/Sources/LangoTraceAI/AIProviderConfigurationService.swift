@@ -631,6 +631,14 @@ private extension AIProviderConfigurationService {
         var ttsVoiceProfiles: [TTSVoiceProfile]
     }
 
+    struct CredentialMaterializationContext {
+        var profileID: AIProviderProfileID
+        var date: Date
+        var operationID: DiagnosticOperationID
+        var credentialStore: any AIProviderCredentialStore
+        var existingCredentialsByID: [AIProviderCredentialID: AIProviderCredentialMetadata]
+    }
+
     func makeProfile(
         from input: AIProviderProfileSaveInput,
         operationID: DiagnosticOperationID,
@@ -639,20 +647,29 @@ private extension AIProviderConfigurationService {
     ) async throws -> MaterializedProfileSave {
         let now = clock()
         let profileID = input.profileID ?? idGenerator()
+        let existingCredentialsByID = try await repository.loadDefaultProfile()?.credentials.reduce(
+            into: [AIProviderCredentialID: AIProviderCredentialMetadata]()
+        ) { partialResult, credential in
+            partialResult[credential.id] = credential
+        } ?? [:]
         var credentialsByPurpose: [AIProviderEndpointPurpose: AIProviderCredentialID] = [:]
         var credentials: [AIProviderCredentialMetadata] = []
         var endpoints: [AIProviderEndpointConfiguration] = []
+        let credentialContext = CredentialMaterializationContext(
+            profileID: profileID,
+            date: now,
+            operationID: operationID,
+            credentialStore: credentialStore,
+            existingCredentialsByID: existingCredentialsByID
+        )
 
         for endpointInput in input.endpoints {
             let credentialID = try await credentialID(
                 for: endpointInput,
-                profileID: profileID,
-                at: now,
+                context: credentialContext,
                 credentialsByPurpose: credentialsByPurpose,
                 credentials: &credentials,
-                createdReferences: &createdReferences,
-                operationID: operationID,
-                credentialStore: credentialStore
+                createdReferences: &createdReferences
             )
             let endpoint = try endpointConfiguration(
                 from: endpointInput,
@@ -834,18 +851,20 @@ private extension AIProviderConfigurationService {
 
     func credentialID(
         for endpointInput: AIProviderEndpointSaveInput,
-        profileID: AIProviderProfileID,
-        at date: Date,
+        context: CredentialMaterializationContext,
         credentialsByPurpose: [AIProviderEndpointPurpose: AIProviderCredentialID],
         credentials: inout [AIProviderCredentialMetadata],
-        createdReferences: inout [AIProviderCredentialKeychainReference],
-        operationID: DiagnosticOperationID,
-        credentialStore: any AIProviderCredentialStore
+        createdReferences: inout [AIProviderCredentialKeychainReference]
     ) async throws -> AIProviderCredentialID? {
         switch endpointInput.credentialMode {
         case .none:
             return nil
         case let .existing(credentialID):
+            if let credential = context.existingCredentialsByID[credentialID],
+               !credentials.contains(where: { $0.id == credentialID })
+            {
+                credentials.append(credential)
+            }
             return credentialID
         case let .sharedWithPurpose(purpose):
             return credentialsByPurpose[purpose]
@@ -857,13 +876,13 @@ private extension AIProviderConfigurationService {
             let credentialID = idGenerator()
             let metadata = AIProviderCredentialMetadata(
                 id: credentialID,
-                profileID: profileID,
+                profileID: context.profileID,
                 providerPresetID: endpointInput.providerPresetID,
                 kind: secretInput.kind,
                 label: secretInput.label,
                 secretPresence: .present,
-                createdAt: date,
-                updatedAt: date
+                createdAt: context.date,
+                updatedAt: context.date
             )
             let reference = AIProviderCredentialKeychainReference(metadata: metadata)
             await record(
@@ -871,10 +890,10 @@ private extension AIProviderConfigurationService {
                 domain: .aiProviderSettings,
                 level: .debug,
                 outcome: .started,
-                operationID: operationID
+                operationID: context.operationID
             )
             do {
-                try await credentialStore.upsertSecret(
+                try await context.credentialStore.upsertSecret(
                     AIProviderSecretInput(value: secret),
                     for: reference
                 )
@@ -884,14 +903,14 @@ private extension AIProviderConfigurationService {
                     domain: .aiProviderSettings,
                     level: .error,
                     outcome: .failed,
-                    operationID: operationID,
+                    operationID: context.operationID,
                     attributes: [
                         .failurePhase(AIProviderConfigurationSavePhase.keychainWrite.rawValue),
                         .errorCategory(AIProviderConfigurationSaveFailureCategory.keychainWriteFailed.rawValue),
                     ]
                 )
                 throw AIProviderConfigurationSaveFailure(
-                    operationID: operationID,
+                    operationID: context.operationID,
                     phase: .keychainWrite,
                     category: .keychainWriteFailed
                 )
@@ -901,7 +920,7 @@ private extension AIProviderConfigurationService {
                 domain: .aiProviderSettings,
                 level: .debug,
                 outcome: .succeeded,
-                operationID: operationID
+                operationID: context.operationID
             )
             createdReferences.append(reference)
             credentials.append(metadata)

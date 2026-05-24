@@ -29,6 +29,7 @@ private func langoTraceAppSourceFileURL(named fileName: String, currentFilePath:
 }
 
 @Suite("AI provider settings")
+// swiftlint:disable:next type_body_length
 struct AIProviderSettingsTests {
     @Test("Provider presets expose the complete first-run set")
     func providerPresetsExposeCompleteFirstRunSet() {
@@ -228,6 +229,42 @@ struct AIProviderSettingsTests {
         #expect(draft.text.endpoint.independentCredential.apiKeyDraft.isEmpty)
         #expect(draft.embedding.endpoint.independentCredential.apiKeyDraft.isEmpty)
         #expect(draft.saveState == .saved)
+    }
+
+    @Test("Saved profile applies returned credential IDs so later edits remain saveable")
+    func savedProfileAppliesReturnedCredentialIDsSoLaterEditsRemainSaveable() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "text-secret"
+        draft.speech.isEnabled = true
+        draft.speech.endpoint.credentialReference = .textModelCredential
+
+        let savedProfile = try loadedProfile()
+        draft.applySavedProfile(savedProfile)
+
+        #expect(draft.text.endpoint.credentialID == "credential-1")
+        #expect(draft.speech.endpoint.credentialID == "credential-1")
+        #expect(draft.speech.endpoint.credentialReference == .textModelCredential)
+        #expect(draft.text.endpoint.independentCredential.apiKeyDraft.isEmpty)
+        #expect(draft.saveReadiness == .readyForRequest)
+
+        draft.text.endpoint.model = "gpt-5.3"
+        let input = try draft.makeProfileSaveInput()
+        #expect(input.endpoints.first?.credentialMode == .existing("credential-1"))
+    }
+
+    @Test("Saved profile can restore resolved API key without marking unsaved")
+    func savedProfileCanRestoreResolvedAPIKeyWithoutMarkingUnsaved() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "text-secret"
+
+        try draft.applySavedProfile(
+            loadedProfile(),
+            resolvedSecretsByCredentialID: ["credential-1": "text-secret"]
+        )
+
+        #expect(draft.text.endpoint.independentCredential.apiKeyDraft == "text-secret")
+        #expect(draft.saveState == .saved)
+        #expect(draft.saveReadiness == .readyForRequest)
     }
 
     @Test("Loaded profile restores non secret endpoint fields without API key plaintext")
@@ -687,6 +724,39 @@ struct AIProviderLoadedSecretRepairTests {
         #expect(draft.text.endpoint.independentCredential.apiKeyDraft == "sk-saved")
         #expect(draft.saveReadiness == .readyForRequest)
         #expect(draft.saveState == .idle)
+    }
+
+    @Test("Loaded profile can resave non secret edits with existing credential")
+    func loadedProfileCanResaveNonSecretEditsWithExistingCredential() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+
+        try draft.applyLoadedProfile(loadedProfile())
+        draft.text.endpoint.model = "gpt-5.3"
+
+        let input = try draft.makeProfileSaveInput()
+
+        #expect(draft.saveReadiness == .readyForRequest)
+        #expect(input.endpoints.first?.credentialMode == .existing("credential-1"))
+    }
+
+    @Test("Loaded text credential can be shared by newly enabled speech without plaintext")
+    func loadedTextCredentialCanBeSharedByNewlyEnabledSpeechWithoutPlaintext() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+
+        try draft.applyLoadedProfile(loadedProfile())
+        draft.speech.isEnabled = true
+        draft.speech.endpoint.provider = .openAI
+        draft.speech.endpoint.baseURL = "https://api.openai.com/v1"
+        draft.speech.endpoint.model = "gpt-4o-mini-tts"
+        draft.speech.endpoint.credentialReference = .textModelCredential
+        draft.speech.voiceID = "nova"
+
+        let input = try draft.makeProfileSaveInput()
+
+        #expect(draft.text.endpoint.independentCredential.apiKeyDraft.isEmpty)
+        #expect(draft.saveReadiness == .readyForRequest)
+        #expect(input.endpoints.first { $0.purpose == .textGeneration }?.credentialMode == .existing("credential-1"))
+        #expect(input.endpoints.first { $0.purpose == .tts }?.credentialMode == .sharedWithPurpose(.textGeneration))
     }
 
     @Test("Unchanged field write does not mark loaded configuration unsaved")

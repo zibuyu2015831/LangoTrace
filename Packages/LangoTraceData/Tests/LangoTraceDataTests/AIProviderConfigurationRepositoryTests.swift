@@ -133,6 +133,48 @@ func aiProviderRepositorySavesTTSSettingsInSameProfileTransaction() async throws
     #expect(stored?["language_code"] as String? == "en")
 }
 
+@Test("AI provider repository can resave TTS settings for the same endpoint")
+func aiProviderRepositoryCanResaveTTSSettingsForSameEndpoint() async throws {
+    let database = try AppDatabase.inMemory()
+    let repository = GRDBAIProviderConfigurationRepository(database: database)
+    let profile = try ttsProfile()
+    let firstVoice = try TTSVoiceProfile.make(
+        id: "voice-en-1",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .openAIAudioSpeech,
+        modelName: "gpt-4o-mini-tts",
+        voiceID: "coral",
+        outputFormat: .mp3
+    )
+    let updatedVoice = try TTSVoiceProfile.make(
+        id: "voice-en-2",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .openAIAudioSpeech,
+        modelName: "gpt-4o-mini-tts",
+        voiceID: "nova",
+        outputFormat: .wav
+    )
+
+    try await repository.saveProfile(
+        profile,
+        ttsSettings: TTSProviderSettings(endpointID: "endpoint-tts", adapterKind: .openAIAudioSpeech),
+        ttsVoiceProfiles: [firstVoice]
+    )
+    try await repository.saveProfile(
+        profile,
+        ttsSettings: TTSProviderSettings(endpointID: "endpoint-tts", adapterKind: .openAIAudioSpeech),
+        ttsVoiceProfiles: [updatedVoice]
+    )
+
+    let loaded = try await repository.loadTTSVoiceProfile(endpointID: "endpoint-tts", languageCode: "en")
+
+    #expect(loaded?.id == "voice-en-2")
+    #expect(loaded?.voiceID == "nova")
+    #expect(loaded?.outputFormat == .wav)
+}
+
 @Test("AI provider migration enforces active default purpose and Keychain uniqueness")
 func aiProviderMigrationEnforcesActiveDefaultPurposeAndKeychainUniqueness() async throws {
     let database = try AppDatabase.inMemory()

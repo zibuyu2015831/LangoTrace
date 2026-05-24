@@ -58,6 +58,29 @@ struct TTSProviderSettingsTests {
         #expect(AIProviderPreset.customOpenAICompatible.defaultTTSAdapterKind == nil)
     }
 
+    @Test("OpenRouter speech defaults make an enabled TTS draft saveable and probeable")
+    func openRouterSpeechDefaultsMakeEnabledTTSDraftSaveableAndProbeable() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openRouter)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-openrouter"
+        draft.speech.isEnabled = true
+
+        #expect(draft.speech.endpoint.model == "openai/gpt-4o-mini-tts-2025-12-15")
+        #expect(draft.speech.voiceID == "nova")
+        #expect(draft.saveReadiness == .readyForRequest)
+
+        let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
+            operationID: DiagnosticOperationID(rawValue: "operation-openrouter-tts"),
+            languageContext: AIProviderProbeLanguageContext(languageCode: "en")
+        )
+
+        #expect(snapshot.requestedCapabilities.contains(.speechSynthesis))
+        #expect(snapshot.ttsEndpoint?.providerPresetID == "openrouter")
+        #expect(snapshot.ttsEndpoint?.modelName == "openai/gpt-4o-mini-tts-2025-12-15")
+        #expect(snapshot.ttsSettings?.adapterKind == .openRouterAudioSpeech)
+        #expect(snapshot.ttsVoiceProfile?.voiceID == "nova")
+        #expect(snapshot.ttsPlaintextSecret == "sk-openrouter")
+    }
+
     @Test("Draft save input includes current language TTS voice profile")
     func draftSaveInputIncludesCurrentLanguageTTSVoiceProfile() throws {
         var draft = AIProviderDraftConfiguration(provider: .openAI)

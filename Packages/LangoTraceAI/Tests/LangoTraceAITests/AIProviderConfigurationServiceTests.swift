@@ -146,6 +146,41 @@ func configurationServiceSavesProfileWithGeneratedCredentialMetadata() async thr
     #expect(await repository.savedProfile?.id == "id-1")
 }
 
+@Test("Configuration service preserves existing credential metadata when resaving profile")
+func configurationServicePreservesExistingCredentialMetadataWhenResavingProfile() async throws {
+    let repository = try StubAIProviderConfigurationRepository(profile: savedProfile())
+    let store = TrackingAIProviderCredentialStore()
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        clock: { Date(timeIntervalSince1970: 140) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let profile = try await service.saveDefaultProfile(AIProviderProfileSaveInput(
+        profileID: "profile-1",
+        displayName: "Default AI Provider",
+        endpoints: [
+            AIProviderEndpointSaveInput(
+                id: "endpoint-1",
+                purpose: .textGeneration,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-5.3",
+                credentialMode: .existing("credential-1"),
+                supportsImageInput: true,
+                imageInputEnabled: false
+            ),
+        ]
+    ))
+
+    #expect(profile.credentials.first?.id == "credential-1")
+    #expect(profile.endpoints.first?.credentialID == "credential-1")
+    #expect(await store.upsertedAccounts.isEmpty)
+}
+
 @Test("Configuration service materializes TTS settings with generated endpoint identity")
 func configurationServiceMaterializesTTSSettingsWithGeneratedEndpointIdentity() async throws {
     let repository = StubAIProviderConfigurationRepository(profile: nil)

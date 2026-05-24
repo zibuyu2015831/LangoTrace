@@ -341,6 +341,8 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
         switch self {
         case .openAI:
             "gpt-4o-mini-tts"
+        case .openRouter:
+            "openai/gpt-4o-mini-tts-2025-12-15"
         default:
             ""
         }
@@ -474,6 +476,8 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
         switch self {
         case .openAI:
             "coral"
+        case .openRouter:
+            "nova"
         default:
             ""
         }

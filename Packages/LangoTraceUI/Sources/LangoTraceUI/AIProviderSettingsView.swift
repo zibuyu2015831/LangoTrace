@@ -234,7 +234,9 @@ private extension AIProviderSettingsView {
                     operationID: operationID
                 )
                 let profile = try await actions.saveDefaultProfile(input, operationID)
-                draft.applySavedProfile(profile)
+                let secretsByCredentialID = await resolvedSecretsByCredentialID(for: profile)
+                draft.applySavedProfile(profile, resolvedSecretsByCredentialID: secretsByCredentialID)
+                await applyLoadedTTSVoiceProfile(from: profile)
                 await recordSaveEvent(
                     .aiProviderSettingsSaveSucceeded,
                     outcome: .succeeded,
@@ -296,9 +298,13 @@ private extension AIProviderSettingsView {
                     languageContext,
                     operationID
                 )
-                latestProbeResult = result
+                let displayResult = draft.applyingLocalProbeCapabilityOverrides(
+                    to: result,
+                    languageContext: languageContext
+                )
+                latestProbeResult = displayResult
                 activeProbeCapabilities = []
-                draft.testState = testState(for: result)
+                draft.testState = testState(for: displayResult)
             } catch {
                 activeProbeCapabilities = []
                 draft.testState = .failed(nil, nil)
