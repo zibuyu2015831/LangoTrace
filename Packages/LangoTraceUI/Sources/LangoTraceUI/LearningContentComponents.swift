@@ -196,6 +196,7 @@ struct CapabilityStatusRow: View {
     let localizedSummaryKey: String?
     let status: CapabilityStatus
     let systemImage: String
+    let showsStatusBadge: Bool
     let action: (() -> Void)?
 
     init(
@@ -203,6 +204,7 @@ struct CapabilityStatusRow: View {
         summary: String,
         status: CapabilityStatus,
         systemImage: String,
+        showsStatusBadge: Bool = true,
         action: (() -> Void)?
     ) {
         self.title = title
@@ -211,6 +213,7 @@ struct CapabilityStatusRow: View {
         localizedSummaryKey = nil
         self.status = status
         self.systemImage = systemImage
+        self.showsStatusBadge = showsStatusBadge
         self.action = action
     }
 
@@ -219,6 +222,7 @@ struct CapabilityStatusRow: View {
         summary: String,
         status: CapabilityStatus,
         systemImage: String,
+        showsStatusBadge: Bool = true,
         action: (() -> Void)?
     ) {
         title = localizedTitleKey
@@ -227,6 +231,7 @@ struct CapabilityStatusRow: View {
         localizedSummaryKey = nil
         self.status = status
         self.systemImage = systemImage
+        self.showsStatusBadge = showsStatusBadge
         self.action = action
     }
 
@@ -235,6 +240,7 @@ struct CapabilityStatusRow: View {
         localizedSummaryKey: String,
         status: CapabilityStatus,
         systemImage: String,
+        showsStatusBadge: Bool = true,
         action: (() -> Void)?
     ) {
         title = localizedTitleKey
@@ -243,6 +249,7 @@ struct CapabilityStatusRow: View {
         self.localizedSummaryKey = localizedSummaryKey
         self.status = status
         self.systemImage = systemImage
+        self.showsStatusBadge = showsStatusBadge
         self.action = action
     }
 
@@ -251,6 +258,7 @@ struct CapabilityStatusRow: View {
         localizedSummaryKey: String,
         status: CapabilityStatus,
         systemImage: String,
+        showsStatusBadge: Bool = true,
         action: (() -> Void)?
     ) {
         self.title = title
@@ -259,6 +267,7 @@ struct CapabilityStatusRow: View {
         self.localizedSummaryKey = localizedSummaryKey
         self.status = status
         self.systemImage = systemImage
+        self.showsStatusBadge = showsStatusBadge
         self.action = action
     }
 
@@ -291,7 +300,9 @@ struct CapabilityStatusRow: View {
                     titleText
                         .font(.headline)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                    CapabilityStatusBadge(status: status)
+                    if showsStatusBadge {
+                        CapabilityStatusBadge(status: status)
+                    }
                 }
                 summaryText
                     .font(.callout)
@@ -327,7 +338,7 @@ struct CapabilityStatusRow: View {
     }
 
     private var accessibilityLabelText: Text {
-        titleText + Text("，") + localizedText(status.localizedTitleKey)
+        showsStatusBadge ? titleText + Text("，") + localizedText(status.localizedTitleKey) : titleText
     }
 
     private var statusColor: Color {

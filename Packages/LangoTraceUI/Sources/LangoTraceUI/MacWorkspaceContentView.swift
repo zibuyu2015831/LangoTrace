@@ -161,6 +161,7 @@ struct MacWorkspaceContentView: View {
                     localizedSummaryKey: settingsCapabilityDetailLocalizationKeys(for: capability.kind).summary,
                     status: capability.status,
                     systemImage: capability.kind.systemImage,
+                    showsStatusBadge: false,
                     action: {
                         if capability.kind == .languageSpace {
                             onRoute(.languageSpaceManagement)

@@ -159,6 +159,7 @@ struct SettingsView: View {
                     localizedSummaryKey: settingsCapabilityDetailLocalizationKeys(for: capability.kind).summary,
                     status: capability.status,
                     systemImage: capability.kind.systemImage,
+                    showsStatusBadge: false,
                     action: { onSelectCapability(capability.kind) }
                 )
             }

@@ -80,6 +80,7 @@ public struct LangoTraceSettingsSceneView: View {
                     localizedSummaryKey: settingsCapabilityDetailLocalizationKeys(for: capability.kind).summary,
                     status: capability.status,
                     systemImage: capability.kind.systemImage,
+                    showsStatusBadge: false,
                     action: {
                         if capability.kind == .languageSpace {
                             selection = .languageSpaces

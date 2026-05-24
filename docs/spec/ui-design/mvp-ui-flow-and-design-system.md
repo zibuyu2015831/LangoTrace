@@ -253,6 +253,7 @@ Memory 页面第一轮至少表达三层：
 5. 设置闭环：
    - AI Provider 已支持本地配置保存、Keychain secret、已保存凭证读取，以及配置合成测试。
    - AI Provider 设置详情属于系统级配置页；内容区不重复显示 `AI Provider` 或当前语言空间方向 / 等级，语言空间只作为测试请求、语言支持和 voice profile 的上下文。
+   - 设置主列表不得显示开发阶段 `可用` / `本地优先` / `待配置` 角标。设置 row 默认只保留图标、标题、摘要和进入详情 chevron；未来真实 `未配置`、`需重测`、`失败` 等用户可行动状态必须通过独立 settings status projection 设计后再展示。
    - 同步和本地数据设置仍保持只读说明或 Mock 配置页。
    - AI Provider 测试请求当前会触发固定低敏合成请求，覆盖文本回复、JSON 输出，以及用户显式启用后的内置图片理解 probe；它不发送生活记录、用户照片、音频、历史记忆或 Prompt Preset 内容。
    - AI Provider 测试结果 sheet 必须采用 Apple 风格的状态面板：紧凑宽度下隐藏系统 drag indicator，顶部使用克制 handle、测试中居中状态标题、完成后中性面板标题和右上关闭按钮；测试中用小号 `ProgressView` 表达进度，不显示禁用的大号重试按钮；成功态不显示底部 prominent `重新测试` 按钮，失败、部分可用、取消或不支持状态才保留重试恢复操作；能力结果使用 grouped card 和细分隔，不使用整行高亮来表达状态。
@@ -325,3 +326,4 @@ scripts/verify.sh
 - 2026-05-24：补充 AI Provider 测试结果完成态标题规则。原因：完成后顶部直接显示 `测试成功` 会显得局促且像临时提示；完成态顶部改为中性面板标题，分能力 grouped card 继续表达可用性。影响范围：AI Provider 测试结果 sheet、source-boundary UI 测试和后续状态反馈面板。是否需要 ADR：否。
 - 2026-05-24：补充 AI Provider 测试成功态重试按钮层级规则。原因：成功后底部 prominent `重新测试` 不是主路径，会增加 sheet 高度并挤压标题区域；成功态隐藏该按钮，非成功态保留重试恢复操作。影响范围：AI Provider 测试结果 sheet、source-boundary UI 测试和后续状态反馈面板。是否需要 ADR：否。
 - 2026-05-24：补充 AI Provider 系统级设置页信息层级规则。原因：Provider profile 和凭证是跨语言空间配置，内容区不应重复显示页面标题或把当前语言方向 / 等级呈现为归属信息；语言空间只作为测试与 voice profile 上下文。影响范围：AI Provider 设置页、SettingsCapabilityDetailView、页面清单和后续设置详情设计。是否需要 ADR：否，沿用 ADR-005。
+- 2026-05-24：补充设置主列表状态角标规则。原因：`可用`、`本地优先`、`待配置` 等角标来自早期 UI 开发进度标注，不是面向用户的信息；设置主列表应避免变成开发状态看板。影响范围：iPhone 设置列表、iPad 设置列表、macOS 工作台设置列表、macOS Settings scene 和未来 settings status projection。是否需要 ADR：否，属于 UI 信息层级与组件使用规范。
