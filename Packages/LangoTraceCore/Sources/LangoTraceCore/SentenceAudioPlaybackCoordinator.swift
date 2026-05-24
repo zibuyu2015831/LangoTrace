@@ -18,6 +18,10 @@ public actor SentenceAudioPlaybackCoordinator {
         SentenceAudioRequestSummary: [UUID: AsyncStream<SentenceAudioPresentationState>.Continuation]
     ] = [:]
     private var playbackCompletionTask: Task<Void, Never>?
+    private var playbackDurationFallbackTask: Task<Void, Never>?
+    private var activePlaybackKey: SentenceAudioKey?
+    private var activePlaybackRemainingSeconds: TimeInterval?
+    private var activePlaybackStartedAt: Date?
 
     public init(
         availabilityService: any TTSConfigurationAvailabilityService,
@@ -101,13 +105,14 @@ private extension SentenceAudioPlaybackCoordinator {
             try await start(key: key, request: request, artifactKey: artifactKey, configuration: configuration)
         case .cancelGeneration:
             break
-        case .pause:
+        case let .pause(key):
+            pausePlaybackDurationFallback(for: key)
             await player.pause()
-        case .resume:
+        case let .resume(key):
             try await player.resume()
+            resumePlaybackDurationFallback(for: key)
         case .stopPlayback:
-            playbackCompletionTask?.cancel()
-            playbackCompletionTask = nil
+            clearPlaybackCompletionTracking()
             await player.stop()
         }
     }
@@ -159,7 +164,10 @@ private extension SentenceAudioPlaybackCoordinator {
         do {
             let session = try await player.play(source)
             _ = reduceAndNotify(.playbackStarted(key))
-            playbackCompletionTask?.cancel()
+            clearPlaybackCompletionTracking()
+            activePlaybackKey = key
+            activePlaybackRemainingSeconds = playbackDurationFallbackSeconds(for: artifact)
+            schedulePlaybackDurationFallbackIfNeeded(for: key)
             playbackCompletionTask = Task { [self] in
                 let result = await session.completion()
                 guard !Task.isCancelled else {
@@ -181,7 +189,7 @@ private extension SentenceAudioPlaybackCoordinator {
         result: Result<Void, SentenceAudioPlaybackFailure>
     ) {
         defer {
-            playbackCompletionTask = nil
+            clearPlaybackCompletionTracking()
         }
         guard state.presentationState(for: key).activeKey == key else {
             return
@@ -196,6 +204,61 @@ private extension SentenceAudioPlaybackCoordinator {
                 _ = reduceAndNotify(.playbackFailed(key, failure))
             }
         }
+    }
+
+    func clearPlaybackCompletionTracking() {
+        playbackCompletionTask?.cancel()
+        playbackCompletionTask = nil
+        playbackDurationFallbackTask?.cancel()
+        playbackDurationFallbackTask = nil
+        activePlaybackKey = nil
+        activePlaybackRemainingSeconds = nil
+        activePlaybackStartedAt = nil
+    }
+
+    func pausePlaybackDurationFallback(for key: SentenceAudioKey) {
+        guard activePlaybackKey == key else {
+            return
+        }
+        playbackDurationFallbackTask?.cancel()
+        playbackDurationFallbackTask = nil
+        if let startedAt = activePlaybackStartedAt, let remaining = activePlaybackRemainingSeconds {
+            activePlaybackRemainingSeconds = max(0, remaining - Date().timeIntervalSince(startedAt))
+        }
+        activePlaybackStartedAt = nil
+    }
+
+    func resumePlaybackDurationFallback(for key: SentenceAudioKey) {
+        guard activePlaybackKey == key else {
+            return
+        }
+        schedulePlaybackDurationFallbackIfNeeded(for: key)
+    }
+
+    func schedulePlaybackDurationFallbackIfNeeded(for key: SentenceAudioKey) {
+        guard let remaining = activePlaybackRemainingSeconds else {
+            return
+        }
+        playbackDurationFallbackTask?.cancel()
+        activePlaybackStartedAt = Date()
+        playbackDurationFallbackTask = Task { [self] in
+            let nanoseconds = UInt64(max(0, remaining) * 1_000_000_000)
+            try? await Task.sleep(nanoseconds: nanoseconds)
+            guard !Task.isCancelled else {
+                return
+            }
+            handlePlaybackCompletion(for: key, result: .success(()))
+        }
+    }
+
+    func playbackDurationFallbackSeconds(for artifact: MediaArtifact) -> TimeInterval? {
+        guard let durationSeconds = artifact.durationSeconds,
+              durationSeconds.isFinite,
+              durationSeconds >= 0
+        else {
+            return nil
+        }
+        return durationSeconds + 0.5
     }
 
     func setConfigurationState(

@@ -90,6 +90,78 @@ struct SentenceAudioPlaybackCoordinatorTests {
         #expect(didReset)
     }
 
+    @Test("Coordinator resets playback state using artifact duration when player completion is missing")
+    func coordinatorResetsPlaybackStateUsingArtifactDurationFallback() async throws {
+        let completion = PlaybackCompletionProbe()
+        let player = FakePlayer(completion: completion.session)
+        let coordinator = try SentenceAudioPlaybackCoordinator(
+            availabilityService: FakeAvailabilityService(status: .available(playableConfiguration())),
+            secretResolver: FakeSecretResolver(secret: "sk-test"),
+            mediaStore: FakeMediaStore(lookup: .hit(mediaArtifact(durationSeconds: 0.001))),
+            generationService: FakeGenerator(),
+            playbackSourceResolver: FakePlaybackSourceResolver(),
+            player: player
+        )
+        let request = sentenceRequest()
+
+        try await coordinator.handleTap(request)
+        #expect(await coordinator.presentationState(for: request).activeKey != nil)
+
+        let didReset = await waitUntil(timeoutNanoseconds: 2_000_000_000) {
+            await coordinator.presentationState(for: request) == .idle
+        }
+        #expect(didReset)
+    }
+
+    @Test("Coordinator publishes idle update when duration fallback completes playback")
+    func coordinatorPublishesIdleUpdateWhenDurationFallbackCompletesPlayback() async throws {
+        let completion = PlaybackCompletionProbe()
+        let player = FakePlayer(completion: completion.session)
+        let coordinator = try SentenceAudioPlaybackCoordinator(
+            availabilityService: FakeAvailabilityService(status: .available(playableConfiguration())),
+            secretResolver: FakeSecretResolver(secret: "sk-test"),
+            mediaStore: FakeMediaStore(lookup: .hit(mediaArtifact(durationSeconds: 0.001))),
+            generationService: FakeGenerator(),
+            playbackSourceResolver: FakePlaybackSourceResolver(),
+            player: player
+        )
+        let request = sentenceRequest()
+        let stream = await coordinator.stateUpdates(for: request)
+        let updates = StateUpdateCollector(stream: stream)
+
+        try await coordinator.handleTap(request)
+
+        let didPublishIdle = await waitUntil(timeoutNanoseconds: 2_000_000_000) {
+            let values = updates.values
+            let state = await coordinator.presentationState(for: request)
+            return values.contains(.idle) && state == .idle
+        }
+        updates.cancel()
+        #expect(didPublishIdle)
+    }
+
+    @Test("Coordinator keeps paused playback paused when duration fallback would have fired")
+    func coordinatorKeepsPausedPlaybackPausedWhenDurationFallbackWouldHaveFired() async throws {
+        let completion = PlaybackCompletionProbe()
+        let player = FakePlayer(completion: completion.session)
+        let coordinator = try SentenceAudioPlaybackCoordinator(
+            availabilityService: FakeAvailabilityService(status: .available(playableConfiguration())),
+            secretResolver: FakeSecretResolver(secret: "sk-test"),
+            mediaStore: FakeMediaStore(lookup: .hit(mediaArtifact(durationSeconds: 0.001))),
+            generationService: FakeGenerator(),
+            playbackSourceResolver: FakePlaybackSourceResolver(),
+            player: player
+        )
+        let request = sentenceRequest()
+
+        try await coordinator.handleTap(request)
+        try await coordinator.handleTap(request)
+        try await Task.sleep(nanoseconds: 700_000_000)
+
+        #expect(await coordinator.presentationState(for: request).activeKey != nil)
+        #expect(await player.pauseCount == 1)
+    }
+
     @Test("Coordinator reports configuration issues without external work")
     func coordinatorReportsConfigurationIssues() async throws {
         let generator = FakeGenerator()
@@ -205,6 +277,7 @@ private struct FakePlaybackSourceResolver: MediaArtifactPlaybackSourceResolving 
 
 private actor FakePlayer: TTSAudioPlaying {
     private(set) var playedSources: [MediaArtifactPlaybackSource] = []
+    private(set) var pauseCount = 0
     private let completion: @Sendable () -> TTSAudioPlaybackSession
 
     init(completion: @escaping @Sendable () -> TTSAudioPlaybackSession = { .completed }) {
@@ -216,7 +289,9 @@ private actor FakePlayer: TTSAudioPlaying {
         return completion()
     }
 
-    func pause() async {}
+    func pause() async {
+        pauseCount += 1
+    }
 
     func resume() async throws {}
 
@@ -255,6 +330,41 @@ private actor PlaybackCompletionProbe {
             return
         }
         self.continuation = continuation
+    }
+}
+
+private final class StateUpdateCollector: @unchecked Sendable {
+    private let lock = NSLock()
+    private var task: Task<Void, Never>?
+    private var collectedValues: [SentenceAudioPresentationState] = []
+
+    init(stream: AsyncStream<SentenceAudioPresentationState>) {
+        task = Task {
+            for await value in stream {
+                self.append(value)
+            }
+        }
+    }
+
+    var values: [SentenceAudioPresentationState] {
+        lock.lock()
+        defer {
+            lock.unlock()
+        }
+        return collectedValues
+    }
+
+    func cancel() {
+        task?.cancel()
+        task = nil
+    }
+
+    private func append(_ value: SentenceAudioPresentationState) {
+        lock.lock()
+        defer {
+            lock.unlock()
+        }
+        collectedValues.append(value)
     }
 }
 
@@ -317,7 +427,7 @@ private func playableConfiguration() throws -> PlayableTTSConfiguration {
     )
 }
 
-private func mediaArtifact(id: String = "artifact-1") -> MediaArtifact {
+private func mediaArtifact(id: String = "artifact-1", durationSeconds: Double? = 0.4) -> MediaArtifact {
     MediaArtifact(
         id: id,
         languageSpaceID: "space-1",
@@ -328,7 +438,7 @@ private func mediaArtifact(id: String = "artifact-1") -> MediaArtifact {
         relativeFilePath: "tts/\(id).mp3",
         mimeType: "audio/mpeg",
         byteSize: 3,
-        durationSeconds: 0.4,
+        durationSeconds: durationSeconds,
         contentHash: String(repeating: "a", count: 64),
         createdAt: Date(timeIntervalSince1970: 0),
         lastAccessedAt: Date(timeIntervalSince1970: 0)
