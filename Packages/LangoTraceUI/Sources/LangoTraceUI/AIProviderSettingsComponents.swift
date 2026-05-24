@@ -17,22 +17,6 @@ extension AIProviderConfigurationProbeResult {
         textProbeCapabilityResults.first { $0.errorCategory != nil }?.errorCategory
             ?? capabilities.first { $0.errorCategory != nil }?.errorCategory
     }
-
-    var probePanelTitleKey: String {
-        if overallStatus == .succeeded {
-            return "aiProviderSettings.testState.succeeded"
-        }
-        if overallStatus == .cancelled {
-            return "aiProviderSettings.testState.cancelled"
-        }
-        if capabilities.contains(where: { $0.status == .succeeded }) {
-            return "aiProviderSettings.testState.partial"
-        }
-        if isUnsupportedTextProbeResult {
-            return "aiProviderSettings.testState.unsupportedProvider"
-        }
-        return "aiProviderSettings.testState.failed"
-    }
 }
 
 private extension AIProviderValidationErrorCategory {
@@ -131,7 +115,7 @@ struct AIProviderProbeResultPanelContent: View {
         if isTesting {
             return "aiProviderSettings.testState.testing"
         }
-        return result?.probePanelTitleKey ?? "aiProviderSettings.probeResult.title"
+        return "aiProviderSettings.probeResult.title"
     }
 
     private var iconName: String {

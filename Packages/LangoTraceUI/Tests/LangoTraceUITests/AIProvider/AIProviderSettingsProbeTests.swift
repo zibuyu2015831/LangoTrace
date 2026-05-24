@@ -240,6 +240,10 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("AIProviderProbeResultChrome"))
         #expect(source.contains("AIProviderProbeCapabilityList"))
         #expect(source.contains("ProgressView()"))
+        #expect(source.contains("return \"aiProviderSettings.testState.testing\""))
+        #expect(source.contains("return \"aiProviderSettings.probeResult.title\""))
+        #expect(!source.contains("return result?.probePanelTitleKey"))
+        #expect(!source.contains("var probePanelTitleKey"))
         #expect(source.contains("if !isTesting"))
         #expect(source.contains("displayedCapabilities"))
         #expect(source.contains("activeCapabilities"))
@@ -250,7 +254,6 @@ struct AIProviderSettingsProbeTests {
         #expect(source.contains("aiProviderSettings.probeCapability.imageUnderstanding"))
         #expect(source.contains("aiProviderSettings.probeCapability.speechSynthesis"))
         #expect(source.contains("aiProviderSettings.probeCapability.embedding"))
-        #expect(source.contains("aiProviderSettings.testState.cancelled"))
         #expect(source.contains("aiProviderSettings.probeCapabilityStatus.cancelled"))
         #expect(source.contains("Divider()"))
         #expect(source.contains(".background(LangoTraceDesign.ColorToken.surfaceRaised)"))
@@ -302,7 +305,6 @@ struct AIProviderSettingsProbeTests {
 
         #expect(!result.isUnsupportedTextProbeResult)
         #expect(result.primaryProbeFailureCategory == AIProviderValidationErrorCategory.authenticationFailed)
-        #expect(result.probePanelTitleKey == "aiProviderSettings.testState.failed")
     }
 
     @Test("Text probe unsupported result remains unsupported provider")
@@ -336,7 +338,6 @@ struct AIProviderSettingsProbeTests {
         )
 
         #expect(result.isUnsupportedTextProbeResult)
-        #expect(result.probePanelTitleKey == "aiProviderSettings.testState.unsupportedProvider")
     }
 
     @Test("Draft probe snapshot is not equatable codable or a profile save input")

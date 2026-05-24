@@ -338,13 +338,13 @@ iPhone 上的管理类 sheet 常用于创建、编辑、重命名、配置少量
 
 设计要求：
 
-- 顶部使用状态 chrome，而不是页面标题。推荐结构是小 handle、居中状态标题、右上关闭按钮；不要同时出现系统导航标题、面板内大标题和大号状态图标。
+- 顶部使用状态 chrome，而不是页面标题。推荐结构是小 handle、居中运行状态或中性面板标题、右上关闭按钮；不要同时出现系统导航标题、面板内大标题和大号状态图标。
 - running / testing 状态使用 `ProgressView`、状态标题和分能力行状态表达；不要显示禁用的大号主按钮来占据底部空间。
-- 成功、失败、部分成功和取消状态应通过图标、文案和 tone 共同表达，不能只靠颜色。
+- 成功、失败、部分成功和取消状态应通过分项图标、文案和 tone 共同表达，不能只靠颜色；完成态不要把 `测试成功`、`部分可用` 或 `测试失败` 这类 overall status 当作 sheet 顶部标题。
 - 分项结果优先使用 grouped card 或平台原生分组列表，行间用细分隔；不要使用整行高亮表达当前测试项，除非该行真的可选中或可操作。
 - 底部操作只保留当前状态下真实可用的恢复路径，例如“重新测试”“重试保存”“查看详情”；不可用操作应隐藏或降级为说明，不应作为 disabled primary CTA 常驻。
 - 需要用户继续编辑、选择或保存的任务应回到任务型 sheet 或原页面，不要把表单输入塞进状态反馈 sheet。
-- AI Provider 测试结果面板属于状态反馈 sheet：compact iPhone 使用 bottom sheet detents 和隐藏系统 drag indicator，面板内使用居中状态 chrome、grouped capability card、成功 TTS 试听按钮和完成后才出现的重试按钮。
+- AI Provider 测试结果面板属于状态反馈 sheet：compact iPhone 使用 bottom sheet detents 和隐藏系统 drag indicator，面板内测试中使用居中 `ProgressView` 状态 chrome，完成后使用中性 `测试请求` 顶部标题、grouped capability card、成功 TTS 试听按钮和完成后才出现的重试按钮。
 
 ### 4.17 页面闭环先于整体视觉升级
 
@@ -440,3 +440,4 @@ AI 在创建或修改 UI 前应先确认：
 - 2026-05-23：更新记录详情双文本卡片规则。原因：人工测试继续发现右上角悬浮编辑按钮会让长目标文本阅读列变窄；实现已改为 `EntryDetailTextCard` 顶部工具区，母语原文和目标语言学习文本共享动态标题、全宽正文和 sheet 编辑，原文变更后的目标文本通过“基于旧记录”提示和显式重新生成入口处理。影响范围：`EntryDetailView`、`LearningMaterialEditorView`、原文编辑 sheet、动态语言标题和可访问性标签。是否需要 ADR：否，属于页面交互和数据派生状态展示约束。
 - 2026-05-23：补充记录详情文本编辑 sheet 高度规则。原因：短文本编辑 sheet 默认全高会造成过度留白，正文标题在进入编辑后也重复抢占视觉层级；规范明确 sheet 不重复显示正文标题，并按初始文本长度选择 compact / large 初始高度，同时允许展开到全高。影响范围：`SourceEntryEditorSheet`、`LearningMaterialEditorSheet` 和后续 iPhone 轻量文本编辑 sheet。是否需要 ADR：否，属于组件交互细化。
 - 2026-05-23：补充 iPhone 状态反馈 sheet 规则。原因：AI Provider 测试结果面板曾误套任务型 sheet 的标题结构，造成顶部拥挤、调试表格感和禁用主按钮噪声；规范明确反馈型 sheet 用状态 chrome、grouped result card 和状态可用操作。影响范围：AI Provider 测试结果、保存 / 导出 / 同步结果反馈和后续状态面板。是否需要 ADR：否。
+- 2026-05-24：补充 AI Provider 测试结果完成态标题规则。原因：人工截图复查发现测试完成后把 `测试成功` 作为 sheet 顶部标题会显得局促且层级不稳；完成态应回到中性面板标题，具体可用性由 grouped capability rows 表达。影响范围：`AIProviderProbeResultPanelContent`、AI Provider 测试结果 sheet 和后续状态反馈面板。是否需要 ADR：否。
