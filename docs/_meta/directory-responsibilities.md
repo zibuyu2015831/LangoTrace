@@ -19,6 +19,7 @@
 | `docs/plans/active/` | 进行中任务方案 | 执行中任务记录 | 新功能、bug、重构、文档治理等任务实现前创建 | 不存放已完成任务 |
 | `docs/plans/done/` | 已完成任务方案 | 历史任务记录 | 验证完成后从 active 移入 | 不作为当前实现事实直接引用 |
 | `docs/plans/examples/` | 任务方案模板 | 模板 | 任务方案字段规则变化时更新 | 不存放真实任务 |
+| `docs/workflows/` | 高频高风险开发动作手册 | 执行手册 | 新增或调整 Provider、TTS、数据迁移、平台页面、Prompt 等动作流程时更新 | 不作为产品决策源、架构事实源或实现事实源 |
 | `docs/prompts/` | Prompt Registry | Prompt 规则和索引 | 代码中出现真实 Prompt 或 Prompt Preset 时补文档 | 不只写摘要，不省略中英版本 |
 | `docs/reference/` | 外部参考入口、本地源码软链接、功能参考映射、许可证边界和研究资料 | 外部参考资料 | 新增外部参考项目、研究入口、许可证快照或功能参考映射时更新 | 不作为产品决策源、架构事实源或实现事实源 |
 | `docs/reference/projects/` | 本地参考项目源码软链接 | 阅读入口 | 只登记已进入 `docs/reference/README.md` 的参考项目软链接 | 不放入 LangoTrace 源码或未登记项目 |
@@ -44,6 +45,7 @@
 ## 3. 写入门禁
 
 - 新功能、bug 修复、架构调整、数据、AI、隐私、同步、权限、付费、发布或文档体系变化，先写 `docs/plans/active/` 任务方案。
+- AI Provider、TTS Provider、数据迁移、平台页面或 Prompt 等高风险动作，应先读取 `docs/workflows/` 中对应手册；手册只能作为执行顺序，不替代任务方案确认。
 - 改变核心产品模型、技术路线、隐私边界、同步策略或付费策略，必须新增或更新 `docs/decisions/`。
 - 改变开发一致性规则，更新 `docs/spec/`，并检查是否需要 ADR。
 - 代码中新增真实 Prompt 时，同步更新 `docs/prompts/`，并保存英文版本和中文版本。
@@ -57,13 +59,14 @@
 
 ```bash
 find docs -maxdepth 4 -type f | sort
-rg "docs/guidelines|guidelines/" docs
-rg "docs/superpowers|superpowers/" docs
-rg "docs/worklogs|worklogs/" docs
-rg "docs/resear[ch]|research/open-source-reference[s]" docs --glob '!plans/done/*'
+scripts/check-docs.sh
+test ! -d docs/guidelines
+test ! -d docs/superpowers
+test ! -d docs/worklogs
+test ! -d research
 rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
 git diff --check
 git status --short
 ```
 
-如果仅历史归档或迁移清单中出现旧路径，需要确认它不会作为新任务入口。
+文本中允许出现历史归档、迁移清单和“已退出目录”说明中的旧路径；验证重点是这些目录不能作为当前目录重新出现。

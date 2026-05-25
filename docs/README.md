@@ -22,6 +22,7 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 8. 如果当前任务明确不实现某个未来能力，但当前设计会影响该未来能力，或讨论形成了跨任务复用的架构风险、候选方案、边界提醒，应主动创建或更新对应领域的开发备忘录；架构级备忘录写入 [架构开发备忘录目录](architecture/notes/README.md)。
 9. 新功能、bug 修复、架构调整和行为变化默认采用测试驱动开发：先在所属 Swift Package 的 `Tests` 目录中创建或更新能失败的单元测试，再实施最小代码变更，最后运行聚焦测试和完整验证。只有纯文档、纯视觉文案或无法自动化的手动验证项可以在方案中说明跳过单元测试的原因。
 10. 运行期问题、模拟器人工验证失败或 AI 辅助排查需要日志时，优先运行 `scripts/capture-runtime-log --last 30m` 采集到本地 `logs/latest.log`；`logs/` 只作为被 Git 忽略的宿主机诊断目录，App 不得直接写仓库目录。
+11. 对于高频高风险开发动作，例如新增 AI Provider、TTS Provider、数据迁移、平台页面或 Prompt，应先读取对应 [开发 Workflow 手册](workflows/README.md)。Workflow 只提供执行顺序和检查清单，不替代 spec、ADR、architecture、review 或 task plan 的权威关系。
 
 ### 1.1 早期开发阶段的重构原则
 
@@ -267,6 +268,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 优先读取：
 
 - [任务方案文档规范](plans/README.md)
+- [开发 Workflow 手册](workflows/README.md) 中与 AI Provider、TTS Provider 或 Prompt 相关的条目
 - [产品主参考文档](product-main-reference.md) 的第 9、10 节
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 7、8 节
 - [初始模块边界](architecture/001-initial-module-boundaries.md)
@@ -347,6 +349,28 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - 文档审查 round、里程碑审查或阶段性收口记录必须写入当时的 `git rev-parse HEAD` 结果。
 - 后续判断文档是否需要复查时，以最近一次可作为依据的 `Verified` 审查 round 记录的代码快照和当前 `HEAD` 对比；如果期间发生数据、AI、权限、同步、StoreKit、发布验证、ADR、启动闭环、语言空间闭环、本地记录闭环、验证脚本、XcodeGen、包边界或 App 启动结构变化，应触发文档影响检查。
 
+### 5.9 开发 Workflow 执行手册
+
+优先读取：
+
+- [开发 Workflow 手册](workflows/README.md)
+- 当前任务对应的 workflow：
+  - [新增 AI Provider 或 AI 能力](workflows/add-ai-provider.md)
+  - [新增 TTS Provider 或逐句播放能力](workflows/add-tts-provider.md)
+  - [新增数据存储或迁移](workflows/add-storage-migration.md)
+  - [新增三端平台页面或入口](workflows/add-platform-screen.md)
+  - [新增 Prompt 或 Prompt Preset](workflows/add-prompt.md)
+
+适用任务：
+
+- 任务已经有明确类型，但需要快速确认读哪些权威文档、改哪些落点、跑哪些验证。
+- 需要避免高风险动作遗漏 Keychain、请求预览、migration、三端共享 seam、Prompt Registry 或专项审查。
+
+使用要求：
+
+- Workflow 是执行手册，不是事实源。若 workflow 与 spec、ADR、architecture、review 或 task plan 冲突，以权威文档为准，并在当前任务方案中记录修正。
+- Workflow 只能帮助拆解动作，不能替代 `docs/plans/active/` 的用户确认链路。
+
 ## 6. 文档更新落点
 
 形成新结论时，按以下规则写回：
@@ -358,6 +382,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - 模块边界、数据流、Provider、Sync、StoreKit 架构：新增或更新 `docs/architecture/`。
 - 导航、UI、SwiftUI 架构、AI 请求路径等开发一致性约束：新增或更新 `docs/spec/`。
 - 具体实施步骤：写入 `docs/plans/active/`。
+- 开发动作顺序和检查清单：写入 `docs/workflows/`，并引用原始权威文档。
 - 大功能规格和长期规范：写入 `docs/spec/`；如果只是一次性任务执行方案，写入 `docs/plans/active/`。
 - 验证流程和手动测试：写入 `docs/testing/`。
 - App Store、TestFlight、StoreKit 和隐私标签：写入 `docs/release/`。
@@ -391,6 +416,7 @@ docs/
     active/
     done/
     examples/
+  workflows/
   prompts/
   reference/
     README.md
@@ -415,6 +441,7 @@ docs/
 - `archive/`：历史参考和已退出目录内容，不作为新任务入口。
 - `decisions/`：架构决策记录，采用 ADR 风格，记录重要取舍、背景、结论和复审条件；不维护 implementation 文档或阶段执行细节。
 - `plans/`：统一任务方案目录；一项需求、一个 bug 或一次文档治理只维护一份方案，按 active/done 管理生命周期。
+- `workflows/`：高频高风险开发动作手册，记录读文档、改文件、跑验证的顺序；不作为产品决策源、架构事实源或实现事实源。
 - `prompts/`：Prompt Registry，记录真实代码 Prompt 的英文版本、中文版本、输入变量、输出契约和隐私边界。
 - `reference/`：外部参考和研究资料入口，包含本地参考项目软链接、功能参考映射、许可证边界和研究材料；功能设计和模块实现讨论时应主动检索对应参考项目，但它不是产品决策源、架构事实源或实现事实源。
 - `spec/`：开发一致性规范和实现地图，记录导航、UI、SwiftUI 架构、AI Provider、隐私等具体开发约束；模块级 `impl.md` 放在这里而不是 `decisions/`。
@@ -441,6 +468,7 @@ docs/
 
 ```bash
 find docs -maxdepth 3 -type f | sort
+scripts/check-docs.sh
 rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
 git diff --check
 git status --short

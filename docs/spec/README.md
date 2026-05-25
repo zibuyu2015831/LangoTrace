@@ -59,14 +59,47 @@
 docs/spec/<module>/
   spec.md
   impl.md
+  decisions/
 ```
 
 - `spec.md`：定义模块规范、边界、不变量、状态流、反例和验证要求。
 - `impl.md`：描述当前实现地图，包括代码文件、核心类型、关键流程、测试覆盖和已知偏差。
+- `decisions/`：记录模块内低于 ADR 级别、但会影响后续实现的局部选择；若决策影响产品核心模型、数据、隐私、同步或付费，必须提升到 `docs/decisions/`。
 
 `impl.md` 只描述当前实现，不定义新规范、不替代 ADR、不承载产品决策。如果实现地图暴露规范缺口，应更新对应 `spec.md`、平铺 spec 或 ADR。
 
 实现地图模板见 [impl-template.md](examples/impl-template.md)。
+
+后续高风险模块优先采用该结构：
+
+- AI Provider。
+- TTS Provider 与逐句播放。
+- Storage、migration、attachments、export、backup。
+- Sync Engine 和 Adapter。
+- Permissions、diagnostics、runtime logs。
+- Prompt execution。
+- StoreKit、release 和隐私标签。
+
+当前顶层 spec 不要求一次性迁移。只有当模块继续扩展、实现地图变长、故障恢复路径增多或需要模块级局部决策时，才通过任务方案逐步拆分。
+
+## 4. 故障与恢复路径矩阵
+
+参考 VMark `dev-docs/error-recovery.md` 的经验，高风险模块的 `spec.md` 或 `impl.md` 应在能力稳定后补充故障与恢复路径矩阵。
+
+建议字段：
+
+| 故障模式 | 恢复路径 | 自动化覆盖 | 测试文件或手动验证 | 剩余风险 |
+| --- | --- | --- | --- | --- |
+
+适用模块：
+
+- 数据迁移、Repository、导出、备份和附件。
+- AI Provider、Prompt、结构化输出、请求预览和请求日志。
+- TTS Provider、音频缓存、播放 coordinator。
+- 权限、诊断日志、runtime log capture。
+- 同步冲突、对象存储和 Keychain 缺失恢复。
+
+故障矩阵不替代测试。若某项恢复路径无法自动化，应在任务方案、testing 文档或 review 记录中说明手动验证方式和剩余风险。
 
 后续建议补充：
 
@@ -74,7 +107,7 @@ docs/spec/<module>/
 - 错误、空状态和加载状态规范。
 - 错误状态与恢复路径的模块化实现地图。
 
-## 4. AI 开发使用方式
+## 5. AI 开发使用方式
 
 后续 AI 会话如果涉及具体开发，应先阅读：
 
@@ -92,7 +125,7 @@ docs/spec/<module>/
 
 AI 不应在没有读取相关规范的情况下自行发明新的导航模式、组件风格、Provider 调用路径或数据边界。
 
-## 5. 变更规则
+## 6. 变更规则
 
 规范允许演进，但需要遵守以下规则：
 
@@ -101,7 +134,7 @@ AI 不应在没有读取相关规范的情况下自行发明新的导航模式�
 - 影响产品核心模型、技术路线、数据边界、隐私边界或商业模式：必须新增或更新 ADR。
 - 如果规范与实际代码不一致，应明确是“代码需要修正”还是“规范需要更新”。
 
-## 6. 当前状态
+## 7. 当前状态
 
 状态：Accepted
 

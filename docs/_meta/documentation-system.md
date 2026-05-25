@@ -119,6 +119,7 @@ docs/development/environment.md
 - 帮助后续 AI 会话保持实现风格一致，避免每个功能重新定义局部架构。
 - 标注哪些规则是强制的，哪些是默认推荐，哪些可以在开发过程中演进。
 - 后续模块可以在本目录下形成 `spec.md` 和 `impl.md`，让模块规范与当前实现地图保持同目录。
+- 高风险模块可以补充故障与恢复路径矩阵，明确已知失败模式、恢复行为、测试覆盖和剩余风险。
 
 当前核心规范入口以 `docs/spec/README.md` 为准。现有高优先级规范包括：
 
@@ -205,6 +206,23 @@ docs/plans/done/YYYY-MM-DD-<type>-<short-topic>.md
 
 具体 Prompt 文档在功能落地时创建。当前阶段只维护 `docs/prompts/README.md` 规则，不预先创建具体 Prompt 文档。
 
+### 2.7.2 开发 Workflow
+
+位置：`docs/workflows/`
+
+用途：
+
+- 保存高频、高风险开发动作的执行手册。
+- 帮助后续 AI 会话快速确认某类任务应读取哪些权威文档、修改哪些代码和文档落点、运行哪些验证。
+- 承接参考项目中可复用的工程执行经验，例如新增 Provider、TTS、数据迁移、平台页面和 Prompt 的动作清单。
+
+边界：
+
+- Workflow 不是产品决策源、架构事实源或实现事实源。
+- Workflow 不能复制长期规则正文；应链接到 `docs/spec/`、`docs/architecture/`、`docs/decisions/`、`docs/review/` 或 `docs/prompts/`。
+- 具体任务仍必须写入 `docs/plans/active/` 并经用户确认。
+- 如果 workflow 与权威文档冲突，应优先更新权威文档或当前任务方案，而不是让 workflow 成为第二事实源。
+
 ### 2.8 发布文档
 
 位置：`docs/release/`
@@ -287,6 +305,7 @@ docs/review/
 - 开发规范变化，例如新增导航模式、UI 组件体系、SwiftUI 状态管理方式或 AI 请求路径。
 - 数据边界变化，例如哪些数据是主数据、哪些是可重建派生数据。
 - 隐私边界变化，例如哪些内容会发送给 AI Provider。
+- Workflow 规则变化，例如新增高风险开发动作手册、改变必读文档顺序或改变完成前检查口径。
 - 同步方案变化，例如新增 WebDAV / S3 / R2 同步。
 - 付费策略变化，例如买断制、内购、订阅、试用。
 - 发布流程变化，例如 TestFlight、App Store 审核和隐私标签。
@@ -389,6 +408,7 @@ docs/review/
 - 做页面路由前读导航与路由规范。
 - 做 SwiftUI 组件前读 UI 设计系统规范和 SwiftUI 架构规范。
 - 做 AI 请求前读 AI Provider、Prompt 与隐私规范。
+- 做 AI Provider、TTS Provider、数据迁移、平台页面或 Prompt 前读对应 `docs/workflows/` 手册。
 
 如果规范与实际实现冲突，应先明确是更新规范还是修正实现，不能让两套模式并存。
 
@@ -458,6 +478,7 @@ docs/review/
 - 权限说明。
 - StoreKit 恢复购买。
 - 崩溃和失败状态处理。
+- 高风险能力的故障与恢复路径矩阵。
 - 手动测试清单。
 
 ## 5. 新文档写作规范
@@ -487,6 +508,7 @@ docs/review/
 ```bash
 git status --short
 find docs -maxdepth 3 -type f | sort
+scripts/check-docs.sh
 git diff --check
 ```
 

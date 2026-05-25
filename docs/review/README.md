@@ -158,6 +158,24 @@ docs/review/rounds/YYYY-MM-DD-<topic>/README.md
 - 新建治理任务前必须搜索 `docs/plans/active/`、`docs/plans/done/` 和 `docs/review/INDEX.md`；已有 active plan 时优先追加，已完成任务复发时新建任务并引用旧记录。
 - 后续如增加自动扫描工具，只能先作为报告器使用，不能自动删除或自动改写长期文档。
 
+### 4.5 周期性文档健康检查
+
+参考 VMark `dev-docs/house-cleaning/` 的经验，LangoTrace 可以采用轻量周期性检查，但必须保持与现有 review 和 plan 生命周期一致。
+
+推荐分层：
+
+| 层级 | 触发 | 输出 |
+| --- | --- | --- |
+| T1 结构检查 | 每次文档体系变更或收尾前 | `scripts/check-docs.sh`、占位符扫描、`git diff --check` |
+| T2 专项抽查 | 高风险功能完成、连续出现同类文档问题或用户要求 | 对应任务方案的文档影响检查，必要时创建专项 review round |
+| T3 里程碑轻量全审 | MVP、数据层、AI 层、同步层、付费发布层阶段结束 | `docs/review/rounds/YYYY-MM-DD-<topic>/README.md` 和 `docs/review/INDEX.md` |
+
+边界：
+
+- 周期性检查不新增 `docs/audit/` 或 `docs/house-cleaning/` 目录。
+- 结构脚本只能报告低争议问题，不能自动删除、自动重写 ADR、自动改写历史记录或把语义判断伪装成机器结论。
+- 同一问题连续两次在 T2 / T3 中出现时，应分流为 `docs/plans/active/` 下的 bug、chore、docs 或 refactor 任务，而不是长期留在审查记录中。
+
 ## 5. 审查产物
 
 ### 5.1 普通 Round
