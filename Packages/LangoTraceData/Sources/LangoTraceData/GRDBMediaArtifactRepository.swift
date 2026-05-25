@@ -26,8 +26,10 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
         self.clock = clock
         self.idGenerator = idGenerator
     }
+}
 
-    public func ttsAudioArtifactMetadata(for key: TTSAudioArtifactKey) async throws -> MediaArtifactLookupResult {
+public extension GRDBMediaArtifactRepository {
+    func ttsAudioArtifactMetadata(for key: TTSAudioArtifactKey) async throws -> MediaArtifactLookupResult {
         try await databaseQueue.write { db in
             guard let row = try Row.fetchOne(
                 db,
@@ -67,7 +69,50 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
         }
     }
 
-    public func reserveTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifactCommitReservation {
+    func practiceRecordingArtifactMetadata(
+        for key: PracticeRecordingArtifactKey
+    ) async throws -> MediaArtifactLookupResult {
+        try await databaseQueue.write { db in
+            guard let row = try Row.fetchOne(
+                db,
+                sql: """
+                SELECT media_artifacts.*
+                FROM media_artifacts
+                JOIN practice_recording_artifacts
+                  ON practice_recording_artifacts.artifact_id = media_artifacts.id
+                WHERE media_artifacts.artifact_type = ?
+                  AND media_artifacts.derivation_kind = ?
+                  AND media_artifacts.derivation_key_hash = ?
+                  AND media_artifacts.file_state = 'ready'
+                ORDER BY media_artifacts.invalidated_at IS NULL DESC, media_artifacts.created_at DESC
+                LIMIT 1
+                """,
+                arguments: [
+                    MediaArtifactType.shadowingRecording.rawValue,
+                    key.derivationKind.rawValue,
+                    key.derivationKeyHash,
+                ]
+            ) else {
+                return .miss
+            }
+
+            let artifact = try mediaArtifact(from: row)
+            guard artifact.invalidatedAt == nil else {
+                return .invalidated(.explicitlyInvalidated)
+            }
+
+            let accessedAt = clock()
+            try db.execute(
+                sql: "UPDATE media_artifacts SET last_accessed_at = ? WHERE id = ?",
+                arguments: [accessedAt.timeIntervalSince1970, artifact.id]
+            )
+            var accessed = artifact
+            accessed.lastAccessedAt = accessedAt
+            return .hit(accessed)
+        }
+    }
+
+    func reserveTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifactCommitReservation {
         try await databaseQueue.write { db in
             if let existing = try activeArtifact(for: input.key, db: db) {
                 return MediaArtifactCommitReservation(artifact: existing, wasCreated: false)
@@ -118,13 +163,87 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
         }
     }
 
-    public func commitTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifact {
+    func reservePracticeRecordingArtifact(
+        _ input: PracticeRecordingArtifactCommitInput
+    ) async throws -> MediaArtifactCommitReservation {
+        try await databaseQueue.write { db in
+            if let existing = try activePracticeRecordingArtifact(for: input.key, db: db) {
+                return MediaArtifactCommitReservation(artifact: existing, wasCreated: false)
+            }
+
+            let artifactID = idGenerator()
+            let relativePath = relativePath(for: input.key, artifactID: artifactID)
+            let now = input.createdAt
+            let policy = MediaArtifactPolicy.defaultDerivedMediaPolicy
+            let ownerColumns = ownerColumns(.practiceSession(id: input.sessionID))
+            try db.execute(
+                sql: """
+                INSERT INTO media_artifacts (
+                    id, language_space_id, owner_type, owner_id, owner_sub_id,
+                    artifact_type, derivation_kind, derivation_key_hash, relative_file_path,
+                    mime_type, byte_size, duration_seconds, content_hash, created_at,
+                    last_accessed_at, invalidated_at, delete_after, backup_policy,
+                    file_state, sync_policy, export_policy
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?)
+                """,
+                arguments: [
+                    artifactID,
+                    input.languageSpaceID,
+                    ownerColumns.type,
+                    ownerColumns.id,
+                    ownerColumns.subID,
+                    MediaArtifactType.shadowingRecording.rawValue,
+                    input.key.derivationKind.rawValue,
+                    input.key.derivationKeyHash,
+                    relativePath,
+                    input.mimeType,
+                    input.stagedFile.byteSize,
+                    input.durationSeconds,
+                    input.stagedFile.contentHash,
+                    now.timeIntervalSince1970,
+                    now.timeIntervalSince1970,
+                    policy.backupPolicy.rawValue,
+                    "pending",
+                    policy.syncPolicy.rawValue,
+                    policy.exportPolicy.rawValue,
+                ]
+            )
+            try insertPracticeRecording(input, artifactID: artifactID, db: db)
+            try insertPracticeRecordingArtifact(input, artifactID: artifactID, db: db)
+            guard let inserted = try activePracticeRecordingArtifact(for: input.key, db: db) else {
+                throw MediaArtifactRepositoryError.commitFailed
+            }
+            return MediaArtifactCommitReservation(artifact: inserted, wasCreated: true)
+        }
+    }
+
+    func commitTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifact {
         let reservation = try await reserveTTSAudioArtifact(input)
         try await markArtifactFileReady(artifactID: reservation.artifact.id, at: input.createdAt)
         return reservation.artifact
     }
 
-    public func markArtifactFileReady(artifactID: String, at date: Date) async throws {
+    func commitPracticeRecordingArtifact(_ input: PracticeRecordingArtifactCommitInput) async throws -> MediaArtifact {
+        let reservation = try await reservePracticeRecordingArtifact(input)
+        try await markArtifactFileReady(artifactID: reservation.artifact.id, at: input.createdAt)
+        try await databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                UPDATE practice_recordings
+                SET status = 'ready', ready_at = ?
+                WHERE id = ? AND media_artifact_id = ?
+                """,
+                arguments: [
+                    input.createdAt.timeIntervalSince1970,
+                    input.recordingID,
+                    reservation.artifact.id,
+                ]
+            )
+        }
+        return reservation.artifact
+    }
+
+    func markArtifactFileReady(artifactID: String, at date: Date) async throws {
         try await databaseQueue.write { db in
             try db.execute(
                 sql: """
@@ -137,7 +256,7 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
         }
     }
 
-    public func invalidateArtifact(artifactID: String, at date: Date) async throws {
+    func invalidateArtifact(artifactID: String, at date: Date) async throws {
         try await databaseQueue.write { db in
             try db.execute(
                 sql: """
@@ -150,7 +269,7 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
         }
     }
 
-    public func invalidateArtifacts(_ request: MediaArtifactInvalidationRequest) async throws {
+    func invalidateArtifacts(_ request: MediaArtifactInvalidationRequest) async throws {
         try await databaseQueue.write { db in
             var conditions = ["media_artifacts.invalidated_at IS NULL"]
             var arguments: StatementArguments = [request.invalidatedAt.timeIntervalSince1970]
@@ -202,7 +321,7 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
         }
     }
 
-    public func artifactsForCleanup(_ request: MediaArtifactCleanupRequest) async throws -> [MediaArtifact] {
+    func artifactsForCleanup(_ request: MediaArtifactCleanupRequest) async throws -> [MediaArtifact] {
         try await databaseQueue.read { db in
             var conditions: [String] = []
             var arguments: StatementArguments = []
@@ -224,6 +343,18 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
                 conditions.append("artifact_type = ?")
                 arguments += [artifactType.rawValue]
             }
+            conditions.append(
+                """
+                NOT EXISTS (
+                    SELECT 1
+                    FROM practice_recordings
+                    JOIN practice_sessions
+                      ON practice_sessions.completed_recording_id = practice_recordings.id
+                    WHERE practice_recordings.media_artifact_id = media_artifacts.id
+                      AND practice_sessions.soft_deleted_at IS NULL
+                )
+                """
+            )
             if request.targetMaximumBytes == nil {
                 if request.includeInvalidated {
                     conditions.append("(invalidated_at IS NOT NULL OR delete_after <= ?)")
@@ -265,7 +396,7 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
         }
     }
 
-    public func deleteArtifactMetadata(artifactIDs: [String]) async throws {
+    func deleteArtifactMetadata(artifactIDs: [String]) async throws {
         guard !artifactIDs.isEmpty else {
             return
         }
@@ -277,7 +408,7 @@ public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked S
         }
     }
 
-    public func markAccessed(artifactID: String, at date: Date) async throws {
+    func markAccessed(artifactID: String, at date: Date) async throws {
         try await databaseQueue.write { db in
             try db.execute(
                 sql: "UPDATE media_artifacts SET last_accessed_at = ? WHERE id = ?",
@@ -307,6 +438,28 @@ private extension GRDBMediaArtifactRepository {
             """,
             arguments: [
                 MediaArtifactType.ttsSentenceAudio.rawValue,
+                key.derivationKind.rawValue,
+                key.derivationKeyHash,
+            ]
+        ).map(mediaArtifact(from:))
+    }
+
+    func activePracticeRecordingArtifact(for key: PracticeRecordingArtifactKey, db: Database) throws -> MediaArtifact? {
+        try Row.fetchOne(
+            db,
+            sql: """
+            SELECT media_artifacts.*
+            FROM media_artifacts
+            JOIN practice_recording_artifacts
+              ON practice_recording_artifacts.artifact_id = media_artifacts.id
+            WHERE media_artifacts.artifact_type = ?
+              AND media_artifacts.derivation_kind = ?
+              AND media_artifacts.derivation_key_hash = ?
+              AND media_artifacts.invalidated_at IS NULL
+            LIMIT 1
+            """,
+            arguments: [
+                MediaArtifactType.shadowingRecording.rawValue,
                 key.derivationKind.rawValue,
                 key.derivationKeyHash,
             ]
@@ -354,6 +507,63 @@ private extension GRDBMediaArtifactRepository {
         )
     }
 
+    func insertPracticeRecording(
+        _ input: PracticeRecordingArtifactCommitInput,
+        artifactID: String,
+        db: Database
+    ) throws {
+        try db.execute(
+            sql: """
+            INSERT INTO practice_recordings (
+                id, session_id, language_space_id, media_artifact_id, attempt_number,
+                status, duration_seconds, byte_size, content_hash, created_at,
+                ready_at, invalidated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL)
+            """,
+            arguments: [
+                input.recordingID,
+                input.sessionID,
+                input.languageSpaceID,
+                artifactID,
+                input.attemptNumber,
+                "pending",
+                input.durationSeconds,
+                input.stagedFile.byteSize,
+                input.stagedFile.contentHash,
+                input.createdAt.timeIntervalSince1970,
+            ]
+        )
+    }
+
+    func insertPracticeRecordingArtifact(
+        _ input: PracticeRecordingArtifactCommitInput,
+        artifactID: String,
+        db: Database
+    ) throws {
+        try db.execute(
+            sql: """
+            INSERT INTO practice_recording_artifacts (
+                artifact_id, session_id, recording_id, attempt_number,
+                target_text_hash, target_language_code, recording_format,
+                sample_rate, channel_count, duration_seconds, content_hash
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            arguments: [
+                artifactID,
+                input.sessionID,
+                input.recordingID,
+                input.attemptNumber,
+                input.key.targetTextHash,
+                input.key.targetLanguageCode,
+                input.key.recordingFormat.rawValue,
+                input.sampleRate,
+                input.channelCount,
+                input.durationSeconds,
+                input.stagedFile.contentHash,
+            ]
+        )
+    }
+
     func mediaArtifact(from row: Row) throws -> MediaArtifact {
         let policy = MediaArtifactPolicy(
             backupPolicy: MediaArtifactBackupPolicy(rawValue: row["backup_policy"] as String)
@@ -395,6 +605,10 @@ private extension GRDBMediaArtifactRepository {
     func relativePath(for key: TTSAudioArtifactKey, artifactID: String) throws -> String {
         let fileExtension = try fileExtension(for: key.outputFormat)
         return "ttsSentenceAudio/\(key.targetLanguageCode)/\(artifactID).\(fileExtension)"
+    }
+
+    func relativePath(for key: PracticeRecordingArtifactKey, artifactID: String) -> String {
+        "shadowingRecording/\(key.targetLanguageCode)/\(artifactID).\(key.recordingFormat.rawValue)"
     }
 
     func fileExtension(for format: TTSAudioFormat) throws -> String {

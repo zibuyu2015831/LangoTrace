@@ -1,6 +1,6 @@
 # 任务方案：练习模块跟读录音完成闭环
 
-状态：Approved
+状态：Done
 类型：feature
 创建日期：2026-05-25
 最后更新日期：2026-05-26
@@ -14,7 +14,7 @@
 2026-05-26：根据系统架构师再次严格代码审查修订方案：补充练习句子内容快照、历史 sentence reference / FK 删除语义、完成态录音 retention / cleanup policy，以及实施前必须先完成的通用 MediaArtifact API review 阶段。明确完成态录音不是普通 LRU cache，不能被容量清理静默删除；历史练习读取不能依赖 current LearningMaterial 仍存在。
 2026-05-26：用户确认本方案审核通过，要求先将状态改为 Approved，并针对本方案文档改动单独提交 commit；随后立即按方案进入开发，直至完整落地。
 
-当前方案已批准进入实现。实施仍需按本文档阶段顺序、TDD、文档影响检查和验证命令推进。
+当前方案已完成实施并移入 done；后续评分、ASR、听写、回译、单词本、练习录音同步 / 导出 / 可恢复备份和真实设备麦克风人工验收仍需独立任务。
 
 ## 1. 需求或 bug 描述
 
@@ -461,6 +461,11 @@ git status --short
 2026-05-26：根据系统架构严格审查继续修订：补充 `exercise_type`、`completed_recording_id`、通用 MediaArtifact commit / resolver contract、practice recording typed extension metadata、前台音频协调服务、route seed identity、权限文案本地化、typed diagnostics、发布隐私影响、pending artifact recovery 和系统音频中断 / 后台 / 磁盘空间异常边界。尚未实施代码。
 2026-05-26：根据系统架构师再次严格代码审查修订：补充 `PracticeSentenceSnapshot` / 句子内容快照要求，明确历史 session 不依赖 current LearningMaterial；补充 `sentence_id` nullable soft reference / `ON DELETE SET NULL` 方向；补充 completed recording retention policy，禁止完成态录音被普通 LRU / cache cleanup 静默删除；新增阶段零 MediaArtifact API review。尚未实施代码。
 2026-05-26：用户确认审核通过并批准进入实现；状态已从 `Draft` 改为 `Approved`。接下来先单独提交本方案文档改动，再按方案从阶段零开始实施。
+2026-05-26：阶段零 MediaArtifact API review 已完成并写入 `docs/spec/media-artifacts/impl.md`。冻结结论：`media_artifacts` 是通用主表；TTS 和 practice recording 通过 typed extension metadata 分离；现有 public facade 仍偏 TTS，练习录音实现前必须提升通用 commit / lookup / resolver contract；`derivation_kind` 需新增 `practiceRecording`；被完成态引用的用户录音不得被普通 LRU / TTS cache cleanup 静默删除，文件缺失时保留 completed session 并标记 playback source unavailable。
+2026-05-26：实施完成 Core 练习领域模型、`PracticeSessionReducer`、前台音频协调状态、practice recording artifact key；Data 新增 `v9_create_practice_recording_infrastructure` migration、`GRDBPracticeRepository`、practice recording typed metadata、completed recording cleanup exclusion；Speech 新增 `PracticeRecordingService`；App 新增 `PracticeActionsAssembly`、`AppPracticeRecordingEngine`、iOS / macOS microphone purpose string 和 macOS audio input entitlement；UI 将练习 Tab 改为记录卡片 -> 句子列表 -> 单句跟读录音完成闭环，三端共享 `PracticeSessionRouteSeed`、`PracticeActions` 和 `PracticeSessionViewModel`。
+2026-05-26：文档同步完成。更新 `docs/README.md`、`docs/platform-page-inventory.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`、`docs/spec/media-artifacts/impl.md`、`docs/architecture/002-system-map.md`、`docs/testing/README.md`、`docs/release/README.md`，并新增 `docs/architecture/notes/2026-05-26-practice-recording-sync-export-notes.md` 记录录音同步 / 导出 / 可恢复备份的后续决策边界。
+2026-05-26：聚焦验证通过：`swift test --package-path Packages/LangoTraceCore --filter 'PracticeSessionReducerTests|PracticeAudioCoordinationTests'`、`swift test --package-path Packages/LangoTraceData --filter 'GRDBPracticeRepositoryTests|MediaArtifactRepositoryTests|practiceRecordingMigrationCreatesSnapshotSessionsRecordingsAndTypedArtifactMetadata'`、`swift test --package-path Packages/LangoTraceSpeech --filter PracticeRecordingServiceTests`、`swift test --package-path Packages/LangoTraceUI --filter 'PracticeSessionViewModelTests|PracticeRouteSeedTests|PhoneIOSConvergenceTests'`、`xcodegen generate && xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests/PracticeRecordingConfigurationTests -only-testing:LangoTraceAppTests/AppEnvironmentPracticeBootstrapTests`。
+2026-05-26：完整验证通过：`scripts/verify.sh` 成功完成 XcodeGen、package tests、工具测试、iPhone / iPad / macOS build、macOS app tests、SwiftLint、SwiftFormat 和文档 placeholder 扫描。真实 iPhone 麦克风人工验证未在本自动化会话中执行，剩余风险保留在第 17 节。
 
 ## 16. 完成标准
 

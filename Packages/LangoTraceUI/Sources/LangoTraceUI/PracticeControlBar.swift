@@ -1,53 +1,94 @@
-import LangoTraceData
+import LangoTraceCore
 import SwiftUI
 
 struct PracticeControlBar: View {
-    let steps: [PracticeSessionStep]
-    let currentStep: PracticeSessionStep
-    let onSelectStep: (PracticeSessionStep) -> Void
-    let onNext: () -> Void
+    let session: PracticeSession
+    let isRecording: Bool
+    let onStartRecording: () -> Void
+    let onStopRecording: () -> Void
+    let onComplete: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
-                ForEach(steps, id: \.self) { step in
-                    Button {
-                        onSelectStep(step)
-                    } label: {
-                        Text(step.displayTitle)
-                            .font(.caption.weight(.semibold))
-                            .frame(maxWidth: .infinity, minHeight: 36)
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(step == currentStep ? .white : LangoTraceDesign.ColorToken.accent)
-                    .background(
-                        step == currentStep
-                            ? LangoTraceDesign.ColorToken.accent
-                            : LangoTraceDesign.ColorToken.surfaceAccentMuted
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .accessibilityLabel(step.displayTitle)
-                    .accessibilityValue(accessibilityValue(for: step))
-                }
+                phasePill(.shadowing)
+                phasePill(.recording)
+                phasePill(.completion)
             }
-            Button(action: onNext) {
+            Button(action: primaryAction) {
                 Label {
-                    localizedText(currentStep == .completed ? "common.keepCompleted" : "common.nextStep")
+                    Text(primaryTitle)
                 } icon: {
-                    Image(systemName: "arrow.right")
+                    Image(systemName: primaryIcon)
                 }
                 .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
-                .frame(maxWidth: .infinity, minHeight: 44)
+                .frame(maxWidth: .infinity, minHeight: 48)
             }
             .buttonStyle(.borderedProminent)
             .tint(LangoTraceDesign.ColorToken.primaryActionFill)
+            .disabled(primaryDisabled)
         }
         .langoPanel(padding: 14)
     }
 
-    private func accessibilityValue(for step: PracticeSessionStep) -> Text {
-        step == currentStep
-            ? localizedText("common.currentStep")
-            : localizedText("common.switchable")
+    private func phasePill(_ phase: PracticeSessionPhase) -> some View {
+        Text(title(for: phase))
+            .font(.caption.weight(.semibold))
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .foregroundStyle(phase == session.currentStep ? .white : LangoTraceDesign.ColorToken.accent)
+            .background(
+                phase == session.currentStep
+                    ? LangoTraceDesign.ColorToken.accent
+                    : LangoTraceDesign.ColorToken.surfaceAccentMuted
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    private func title(for phase: PracticeSessionPhase) -> String {
+        switch phase {
+        case .shadowing:
+            localizedString("practiceStep.shadow")
+        case .recording:
+            localizedString("practiceStep.record")
+        case .completion:
+            localizedString("practiceStep.completed")
+        }
+    }
+
+    private var primaryTitle: String {
+        if isRecording {
+            return localizedString("practice.recording.stop")
+        }
+        if session.status == .completed {
+            return localizedString("common.keepCompleted")
+        }
+        if session.latestReadyRecordingID != nil {
+            return localizedString("practiceStep.completed")
+        }
+        return localizedString("practice.recording.start")
+    }
+
+    private var primaryIcon: String {
+        if isRecording {
+            return "stop.fill"
+        }
+        if session.latestReadyRecordingID != nil {
+            return "checkmark"
+        }
+        return "record.circle"
+    }
+
+    private var primaryDisabled: Bool {
+        session.status == .completed
+    }
+
+    private func primaryAction() {
+        if isRecording {
+            onStopRecording()
+        } else if session.latestReadyRecordingID != nil {
+            onComplete()
+        } else {
+            onStartRecording()
+        }
     }
 }

@@ -50,6 +50,7 @@
 - [interface-localization 实现地图](interface-localization/impl.md)
 - [navigation 实现地图](navigation/impl.md)
 - [learning-content 实现地图](learning-content/impl.md)
+- [media-artifacts 实现地图](media-artifacts/impl.md)
 
 ## 3. 模块化 spec 与实现地图
 

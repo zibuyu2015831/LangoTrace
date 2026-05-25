@@ -65,7 +65,15 @@ private actor FakeMediaStore: LocalMediaArtifactStoring {
         .miss
     }
 
+    func practiceRecordingArtifact(for _: PracticeRecordingArtifactKey) async throws -> MediaArtifactLookupResult {
+        .miss
+    }
+
     func commitTTSAudioArtifact(_: TTSAudioArtifactCommitInput) async throws -> MediaArtifact {
+        throw SentenceAudioPlaybackFailure.playbackFailed
+    }
+
+    func commitPracticeRecordingArtifact(_: PracticeRecordingArtifactCommitInput) async throws -> MediaArtifact {
         throw SentenceAudioPlaybackFailure.playbackFailed
     }
 

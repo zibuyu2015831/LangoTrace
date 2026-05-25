@@ -31,7 +31,7 @@ struct PadLearningPanelView: View {
     @ViewBuilder
     private var panelContent: some View {
         switch route {
-        case .workspace, .entryDetail, .practice:
+        case .workspace, .entryDetail, .practiceSentenceList, .practiceSentence:
             SectionCaption(titleKey: "pad.learningPanel.title", subtitleKey: "pad.learningPanel.subtitle")
             if let selectedEntry {
                 entryLearningContent(selectedEntry)
@@ -129,7 +129,7 @@ struct PadLearningPanelView: View {
                 summary: practiceSummary(for: entry),
                 status: contentStore.practiceItems(for: entry).isEmpty ? .unavailable : .mockOnly,
                 systemImage: "waveform",
-                action: contentStore.practiceItems(for: entry).isEmpty ? nil : { onRoute(.practice(entry.id)) }
+                action: contentStore.practiceItems(for: entry).isEmpty ? nil : { onRoute(.practiceSentenceList(entry.id)) }
             )
             CapabilityStatusRow(
                 localizedTitleKey: "pad.spaceSettings.title",

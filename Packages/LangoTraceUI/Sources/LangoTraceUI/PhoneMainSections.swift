@@ -45,6 +45,7 @@ struct PracticeView: View {
     let languageSpace: LanguageSpacePreview
     let entries: [LearningEntry]
     let contentStore: LearningContentStore
+    let renderingForEntry: (LearningEntry) -> LearningRendering?
     let onLanguageSpaceAction: () -> Void
     var onSettingsAction: (() -> Void)?
     let onPractice: (LearningEntry) -> Void
@@ -56,7 +57,6 @@ struct PracticeView: View {
             onLanguageSpaceAction: onLanguageSpaceAction,
             onSettingsAction: onSettingsAction
         ) {
-            SectionHeader(titleKey: "phone.practice.fromLife.title")
             if entries.isEmpty {
                 LocalizedCompactPanel(
                     titleKey: "phone.practice.empty.title",
@@ -64,48 +64,28 @@ struct PracticeView: View {
                     systemImage: "waveform"
                 )
             } else {
-                if let firstPracticeEntry {
-                    PracticeContinuePanel(entry: firstPracticeEntry, action: { onPractice(firstPracticeEntry) })
-                }
                 ForEach(entries) { entry in
-                    let items = contentStore.practiceItems(for: entry)
-                    if items.isEmpty {
-                        PracticeTaskRow(
-                            title: entry.title,
-                            summary: localizedString("practice.empty.summary"),
-                            systemImage: "text.badge.plus",
-                            action: nil
-                        )
-                    } else {
-                        ForEach(items) { item in
-                            PracticeTaskRow(
-                                title: item.title,
-                                summary: "\(entry.title) · \(item.summary)",
-                                systemImage: icon(for: item.kind),
-                                action: { onPractice(entry) }
-                            )
-                        }
-                    }
+                    PracticeEntryCard(
+                        projection: projection(for: entry),
+                        action: { onPractice(entry) }
+                    )
                 }
             }
         }
     }
 
-    private var firstPracticeEntry: LearningEntry? {
-        entries.first { !contentStore.practiceItems(for: $0).isEmpty }
-    }
-
-    private func icon(for kind: PracticeItem.Kind) -> String {
-        switch kind {
-        case .listening:
-            "ear"
-        case .shadowing:
-            "waveform"
-        case .dictation:
-            "character.cursor.ibeam"
-        case .backTranslation:
-            "arrow.left.arrow.right"
-        }
+    private func projection(for entry: LearningEntry) -> PracticeEntryCardProjection {
+        let rendering = renderingForEntry(entry)
+        let sentenceCount = rendering?.sentences.count ?? 0
+        let targetPreview = rendering?.sentences.first?.targetText ?? entry.practiceSummary
+        return PracticeEntryCardProjection(
+            title: entry.title,
+            targetPreview: targetPreview,
+            sentenceCount: sentenceCount,
+            completedCount: 0,
+            problemCount: 0,
+            statusText: entry.practiceSummary
+        )
     }
 }
 

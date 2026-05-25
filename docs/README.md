@@ -76,9 +76,9 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 
 ## 2. 项目当前状态
 
-当前仓库已经完成 SwiftUI Multiplatform 工程初始化，并从纯 App Shell 推进到产品体验骨架和首批真实学习内容基础设施阶段。现有实现可以展示 Welcome / Onboarding / Main 启动路由、真实语言空间 SQLite / GRDB 持久化、iPhone 语言空间管理页、iPhone / iPad / macOS 分平台主界面、文本记录写入 GRDB learning content repository、显式触发的学习材料生成 / 重新分析、逐句 TTS 播放前置、隐私状态图标、iPad 侧栏折叠和边缘手势。
+当前仓库已经完成 SwiftUI Multiplatform 工程初始化，并从纯 App Shell 推进到产品体验骨架和首批真实学习内容基础设施阶段。现有实现可以展示 Welcome / Onboarding / Main 启动路由、真实语言空间 SQLite / GRDB 持久化、iPhone 语言空间管理页、iPhone / iPad / macOS 分平台主界面、文本记录写入 GRDB learning content repository、显式触发的学习材料生成 / 重新分析、逐句 TTS 播放、单句跟读录音完成闭环、隐私状态图标、iPad 侧栏折叠和边缘手势。
 
-当前仍处于完整生活记录时间线、练习录音 / 评分、真实同步和 StoreKit 之前的早期阶段。已有真实数据 / AI / TTS 路径均限定在用户显式触发、Provider 自带配置和本地优先边界内；现有页面和状态用于验证产品方向、平台结构和工程边界，不代表完整学习闭环、同步或发布能力已经可用。
+当前仍处于完整生活记录时间线、跟读评分、听写、回译、真实同步和 StoreKit 之前的早期阶段。已有真实数据 / AI / TTS / 练习录音路径均限定在用户显式触发、Provider 自带配置和本地优先边界内；现有页面和状态用于验证产品方向、平台结构和工程边界，不代表完整学习闭环、同步或发布能力已经可用。
 
 已完成：
 
@@ -107,10 +107,11 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - AI Provider 本地配置保存，非敏感配置进入 SQLite / GRDB，API Key 进入 Keychain。
 - AI Provider 配置合成测试，覆盖文本回复、JSON 输出、当前语言空间上下文下的语言支持、用户显式启用后的内置图片理解 probe，以及启用且配置完整时的 OpenAI / OpenRouter TTS 固定低敏 probe。
 - TTS Provider 配置基础设施，包含 endpoint 级 TTS settings、language code 级 voice profile、TTS 配置 fingerprint、TTS 结果持久化隔离、Core 音频校验 / preview playback 协议、Speech package 音频校验 test target 和设置页短生命周期样例试听 seam。
-- 本地媒体派生资产与 TTS 音频缓存基础设施，包含 Core media artifact / TTS artifact key 契约、`media_artifacts` / `tts_audio_artifacts` GRDB migration、metadata repository、App 管理的 `MediaArtifacts` 文件目录、staging 写入、原子移动、命中校验、失效、清理、默认 local-only / excluded-from-backup / excluded-from-export policy，以及 Speech 持久 TTS 文件校验 seam。
+- 本地媒体派生资产、TTS 音频缓存和练习录音 artifact 基础设施，包含 Core media artifact / TTS artifact / practice recording artifact key 契约、`media_artifacts` / `tts_audio_artifacts` / `practice_recording_artifacts` GRDB migration、metadata repository、App 管理的 `MediaArtifacts` 文件目录、staging 写入、原子移动、命中校验、失效、清理、默认 local-only / excluded-from-backup / excluded-from-export policy，以及 Speech 持久 TTS 文件校验 seam。
 - Entry、LearningMaterial、句子分析、修改说明、memory candidate、practice candidate 和 learning material operation 摘要的 GRDB learning content 主路径。
 - 三端记录详情共享真实 `生成学习材料` / `重新分析` action seam，取消会终止当前 store 启动的生成 / 分析任务并保持取消状态。
 - 逐句 `听` 按钮通过 `SentenceAudioPlaybackActions` 接入 TTS 生成、local artifact cache 和播放 coordinator；页面展示、滚动和进入详情不会自动触发 TTS。
+- 练习 Tab 已从任务类型 mock 改为记录卡片 -> 句子列表 -> 单句跟读录音完成闭环；三端共享 `PracticeSessionRouteSeed`、`PracticeActions`、GRDB practice session / recording metadata、麦克风权限配置和本地媒体资产写入。练习录音默认本机保存，不自动发送 AI Provider、不默认导出、不同步。
 - Core、Data、AI、Speech、Sync 和 UI package 的首批单元测试；UI package 已开始按功能子目录组织 AI Provider 测试。
 - 统一验证脚本 `scripts/verify.sh`。
 
@@ -119,9 +120,9 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - 完整生活记录时间线、跨端筛选和本地记录闭环。
 - 照片 / 音频附件主数据、FTS、导出和可恢复备份。
 - AI Provider 请求预览、请求日志、Prompt Preset 执行链路，以及 Anthropic / Gemini 学习内容请求和图片 probe。
-- 练习录音、跟读评分、听写、回译完成态、Embedding / 向量化处理、对象存储等真实配置和敏感凭证安全存储。
+- 跟读评分、听写、回译完成态、Embedding / 向量化处理、对象存储等真实配置和敏感凭证安全存储。
 - Prompt Preset 的真实渲染和执行链路。
-- 录音、Speech、OCR、照片和权限接入。
+- Speech Recognition、OCR、照片、相机和完整权限接入。
 - 同步引擎。
 - Sync Adapter、冲突处理和对象存储配置。
 - StoreKit 配置。

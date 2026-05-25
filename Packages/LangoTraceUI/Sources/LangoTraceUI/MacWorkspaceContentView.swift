@@ -14,6 +14,7 @@ struct MacWorkspaceContentView: View {
     let languageSpaces: [LanguageSpace]
     let settingsCapabilities: [SettingsCapability]
     @ObservedObject var contentStore: LearningContentStore
+    let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
@@ -36,8 +37,14 @@ struct MacWorkspaceContentView: View {
             overviewContent
         case let .entryDetail(entryID):
             entryDetail(entryID: entryID)
-        case let .practice(entryID):
-            practice(entryID: entryID)
+        case let .practiceSentenceList(entryID):
+            practiceSentenceList(entryID: entryID)
+        case let .practiceSentence(seed):
+            PracticeSessionView(
+                languageSpaceID: languageSpace.id,
+                routeSeed: seed,
+                actions: practiceActions
+            )
         case let .settings(kind):
             settingDetail(kind: kind)
         case .languageSpaceManagement:
@@ -136,7 +143,7 @@ struct MacWorkspaceContentView: View {
                 summary: "\(entry.title) · \(item.summary)",
                 status: .mockOnly,
                 systemImage: "waveform",
-                action: { onRoute(.practice(entry.id)) }
+                action: { onRoute(.practiceSentenceList(entry.id)) }
             )
         }
     }
@@ -203,17 +210,29 @@ struct MacWorkspaceContentView: View {
             languageSpace: languageSpace,
             entryID: entry.id,
             contentStore: contentStore,
-            onPractice: { onRoute(.practice(entry.id)) }
+            onPracticeSentence: { onRoute(.practiceSentence($0)) }
         )
     }
 
     @ViewBuilder
-    private func practice(entryID: String) -> some View {
+    private func practiceSentenceList(entryID: String) -> some View {
         if let entry = entries.first(where: { $0.id == entryID }) {
-            PracticeSessionView(
+            PracticeSentenceListView(
                 entry: entry,
                 rendering: contentStore.rendering(for: entry),
-                session: contentStore.practiceSession(for: entry)
+                languageSpace: languageSpace,
+                sentenceAudioPlaybackStates: sentenceAudioStates,
+                onListenSentence: { rendering, sentence, index in
+                    Task {
+                        await contentStore.handleSentenceAudioTap(
+                            rendering: rendering,
+                            sentence: sentence,
+                            sentenceIndex: index,
+                            languageSpace: languageSpace
+                        )
+                    }
+                },
+                onPracticeSentence: { onRoute(.practiceSentence($0)) }
             )
         } else {
             LocalizedCompactPanel(
@@ -248,5 +267,9 @@ struct MacWorkspaceContentView: View {
     private func macUnavailableView(kind: String) -> some View {
         let content = MacUnavailableContent(kind: kind)
         return UnavailableCapabilityView(content: content.content)
+    }
+
+    private var sentenceAudioStates: [String: SentenceAudioPresentationState] {
+        contentStore.sentenceAudioPlaybackStates
     }
 }

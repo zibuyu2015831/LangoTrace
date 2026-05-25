@@ -95,6 +95,7 @@ struct PadWorkspaceContentView: View {
     let languageSpaces: [LanguageSpace]
     let settingsCapabilities: [SettingsCapability]
     @ObservedObject var contentStore: LearningContentStore
+    let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
@@ -112,8 +113,14 @@ struct PadWorkspaceContentView: View {
                 workspaceOverview
             case let .entryDetail(entryID):
                 entryDetail(entryID: entryID)
-            case let .practice(entryID):
-                practice(entryID: entryID)
+            case let .practiceSentenceList(entryID):
+                practiceSentenceList(entryID: entryID)
+            case let .practiceSentence(seed):
+                PracticeSessionView(
+                    languageSpaceID: languageSpace.id,
+                    routeSeed: seed,
+                    actions: practiceActions
+                )
             case let .settings(kind):
                 settingDetail(kind: kind)
             case .settingsList:
@@ -160,7 +167,20 @@ struct PadWorkspaceContentView: View {
                                 )
                             }
                         },
-                        onPractice: { onRoute(.practice(entry.id)) }
+                        onPractice: {
+                            onRoute(
+                                .practiceSentence(
+                                    PracticeSessionRouteSeed(
+                                        entry: entry,
+                                        rendering: rendering,
+                                        sentence: sentence,
+                                        sentenceIndex: index,
+                                        targetLanguageCode: languageSpace.targetLanguageCode,
+                                        capturedAt: Date()
+                                    )
+                                )
+                            )
+                        }
                     )
                 }
             }
@@ -182,19 +202,31 @@ struct PadWorkspaceContentView: View {
             languageSpace: languageSpace,
             entryID: entry.id,
             contentStore: contentStore,
-            onPractice: { onRoute(.practice(entry.id)) }
+            onPracticeSentence: { onRoute(.practiceSentence($0)) }
         )
         .padding(26)
         .frame(maxWidth: 820, alignment: .leading)
     }
 
     @ViewBuilder
-    private func practice(entryID: String) -> some View {
+    private func practiceSentenceList(entryID: String) -> some View {
         if let entry = entries.first(where: { $0.id == entryID }) {
-            PracticeSessionView(
+            PracticeSentenceListView(
                 entry: entry,
                 rendering: contentStore.rendering(for: entry),
-                session: contentStore.practiceSession(for: entry)
+                languageSpace: languageSpace,
+                sentenceAudioPlaybackStates: sentenceAudioStates,
+                onListenSentence: { rendering, sentence, index in
+                    Task {
+                        await contentStore.handleSentenceAudioTap(
+                            rendering: rendering,
+                            sentence: sentence,
+                            sentenceIndex: index,
+                            languageSpace: languageSpace
+                        )
+                    }
+                },
+                onPracticeSentence: { onRoute(.practiceSentence($0)) }
             )
         } else {
             EmptyWorkspacePanel()
@@ -277,5 +309,9 @@ struct PadWorkspaceContentView: View {
             onDelete: onDeleteLanguageSpace
         )
         .frame(maxWidth: 820, alignment: .leading)
+    }
+
+    private var sentenceAudioStates: [String: SentenceAudioPresentationState] {
+        contentStore.sentenceAudioPlaybackStates
     }
 }

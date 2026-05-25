@@ -6,6 +6,7 @@ struct MacMainView: View {
     let languageSpace: LanguageSpacePreview
     let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
+    let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
@@ -241,6 +242,7 @@ private extension MacMainView {
                 languageSpaces: languageSpaces,
                 settingsCapabilities: settingsCapabilities,
                 contentStore: contentStore,
+                practiceActions: practiceActions,
                 interfaceLanguagePreference: interfaceLanguagePreference,
                 appearancePreference: appearancePreference,
                 onAddLanguageSpace: onAddLanguageSpace,

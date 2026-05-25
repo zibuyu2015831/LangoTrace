@@ -13,6 +13,7 @@ struct AppEnvironment {
     let learningMaterialGenerationActions: LearningMaterialGenerationActions
     let makeSentenceAudioPlaybackCoordinator: @Sendable () throws -> SentenceAudioPlaybackCoordinator
     let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
+    let practiceActions: PracticeActions
     let aiProviderSettingsActions: AIProviderSettingsActions
     let aiProvider: any AIProvider
     let speechService: any SpeechService
@@ -58,6 +59,12 @@ struct AppEnvironment {
                 )
             },
             sentenceAudioPlaybackActions: sentenceAudioPlaybackCoordinatorBox.actions(),
+            practiceActions: (
+                try? PracticeActionsAssembly.makeActions(
+                    database: databaseFactory.database(),
+                    mediaArtifactsRoot: SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot()
+                )
+            ) ?? .disabled,
             aiProviderSettingsActions: AIProviderSettingsActions(
                 loadDefaultProfile: {
                     let service = try makeAIProviderConfigurationService(

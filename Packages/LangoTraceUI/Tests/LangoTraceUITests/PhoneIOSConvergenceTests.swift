@@ -32,8 +32,10 @@ struct PhoneIOSConvergenceTests {
         #expect(photoWritingPreview.contains("PhotoWritingPreviewView"))
         #expect(supportingViews.contains("photoWriting.startWithPhoto"))
         #expect(!supportingViews.contains(#"SecondaryActionChip(titleKey: "common.listen""#))
-        #expect(practiceRows.contains("PracticeContinuePanel"))
-        #expect(sections.contains("PracticeContinuePanel"))
+        #expect(practiceRows.contains("PracticeEntryCard"))
+        #expect(sections.contains("PracticeEntryCard"))
+        #expect(!sections.contains(#"SectionHeader(titleKey: "phone.practice.fromLife.title")"#))
+        #expect(!sections.contains("PracticeTaskRow("))
     }
 
     @Test("iPhone default learning flow does not show persistent request previews")

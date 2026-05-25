@@ -27,7 +27,7 @@ struct MacInspectorContent: View {
             } else {
                 LocalizedTextPanel(titleKey: "mac.inspector.noEntry.title", textKey: "mac.inspector.noEntry.body")
             }
-        case .practice:
+        case .practiceSentenceList, .practiceSentence:
             LocalizedTextPanel(
                 titleKey: "mac.inspector.practiceStatus.title",
                 textKey: "mac.inspector.practiceStatus.body"

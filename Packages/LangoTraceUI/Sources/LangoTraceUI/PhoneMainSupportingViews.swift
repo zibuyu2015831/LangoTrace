@@ -80,7 +80,7 @@ struct EntryDetailView: View {
     var sentenceAudioPlaybackStates: [String: SentenceAudioPresentationState] = [:]
     var onListenSentence: ((LearningRendering, RenderingSentence, Int) -> Void)?
     let onGenerateLocalPreview: () -> Void
-    let onPractice: () -> Void
+    let onPracticeSentence: (LearningRendering, RenderingSentence, Int) -> Void
 
     var body: some View {
         ScrollView {
@@ -126,7 +126,9 @@ struct EntryDetailView: View {
                             onListen: {
                                 onListenSentence?(rendering, sentence, index)
                             },
-                            onPractice: onPractice
+                            onPractice: {
+                                onPracticeSentence(rendering, sentence, index)
+                            }
                         )
                     }
                 } else if let onGenerateLearningMaterial {
@@ -225,7 +227,7 @@ struct EntryDetailStoreView: View {
     let languageSpace: LanguageSpacePreview
     let entryID: String
     @ObservedObject var contentStore: LearningContentStore
-    let onPractice: () -> Void
+    let onPracticeSentence: (PracticeSessionRouteSeed) -> Void
 
     var body: some View {
         if let entry = contentStore.entry(id: entryID) {
@@ -281,7 +283,18 @@ struct EntryDetailStoreView: View {
                     }
                 },
                 onGenerateLocalPreview: { contentStore.generateLocalPreview(for: entry) },
-                onPractice: onPractice
+                onPracticeSentence: { rendering, sentence, index in
+                    onPracticeSentence(
+                        PracticeSessionRouteSeed(
+                            entry: entry,
+                            rendering: rendering,
+                            sentence: sentence,
+                            sentenceIndex: index,
+                            targetLanguageCode: languageSpace.targetLanguageCode,
+                            capturedAt: Date()
+                        )
+                    )
+                }
             )
         }
     }
@@ -705,111 +718,6 @@ private struct LearningMaterialEditorSheet: View {
                 }
         }
         .presentationDetents(EntryTextEditorSheetSizing.detents, selection: $selectedDetent)
-    }
-}
-
-struct PracticeSessionView: View {
-    let entry: LearningEntry
-    let rendering: LearningRendering?
-    let session: PracticeSessionState?
-
-    @State private var currentStep: PracticeSessionStep = .prepare
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                SectionHeader(titleKey: "practice.shadowing.title", subtitle: entry.title)
-                if let session {
-                    PracticeControlBar(
-                        steps: session.steps,
-                        currentStep: currentStep,
-                        onSelectStep: { currentStep = $0 },
-                        onNext: { currentStep = session.nextStep(after: currentStep) }
-                    )
-                    PracticeStepPanel(
-                        step: currentStep,
-                        targetText: session.targetText,
-                        providerLabel: session.providerLabel
-                    )
-                } else {
-                    CapabilityStatusRow(
-                        localizedTitleKey: "practice.noContent.title",
-                        localizedSummaryKey: "practice.noContent.summary",
-                        status: .unavailable,
-                        systemImage: "waveform",
-                        action: nil
-                    )
-                }
-            }
-            .padding(20)
-        }
-        .navigationTitle(localizedText("practice.title"))
-        .langoPageBackground()
-    }
-}
-
-private struct PracticeStepPanel: View {
-    let step: PracticeSessionStep
-    let targetText: String
-    let providerLabel: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Label {
-                localizedText(labelTitleKey)
-            } icon: {
-                Image(systemName: labelIcon)
-            }
-            .font(.headline)
-            Text(mainText)
-                .font(.title3.weight(.semibold))
-                .lineSpacing(5)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(localizedString("practice.sourceBoundary", providerLabel))
-                .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .langoPanel()
-    }
-
-    private var labelTitleKey: String {
-        switch step {
-        case .prepare:
-            "practiceStep.prepareMaterial"
-        case .shadow:
-            "practiceStep.shadow"
-        case .compare:
-            "practiceStep.compare"
-        case .completed:
-            "practiceStep.completed"
-        }
-    }
-
-    private var labelIcon: String {
-        switch step {
-        case .prepare:
-            "text.magnifyingglass"
-        case .shadow:
-            "waveform"
-        case .compare:
-            "checklist"
-        case .completed:
-            "checkmark.circle"
-        }
-    }
-
-    private var mainText: String {
-        switch step {
-        case .prepare:
-            localizedString("practiceStep.prepare.body")
-        case .shadow:
-            targetText
-        case .compare:
-            localizedString("practiceStep.compare.body")
-        case .completed:
-            localizedString("practiceStep.completed.body")
-        }
     }
 }
 

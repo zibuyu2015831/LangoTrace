@@ -86,6 +86,10 @@ private actor FakeMediaStore: LocalMediaArtifactStoring {
         lookup
     }
 
+    func practiceRecordingArtifact(for _: PracticeRecordingArtifactKey) async throws -> MediaArtifactLookupResult {
+        .miss
+    }
+
     func commitTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifact {
         MediaArtifact(
             id: "committed-artifact",
@@ -99,6 +103,26 @@ private actor FakeMediaStore: LocalMediaArtifactStoring {
             byteSize: input.stagedFile.byteSize,
             durationSeconds: input.durationSeconds,
             contentHash: input.stagedFile.contentHash,
+            createdAt: Date(timeIntervalSince1970: 0),
+            lastAccessedAt: Date(timeIntervalSince1970: 0),
+            invalidatedAt: nil,
+            policy: .defaultDerivedMediaPolicy
+        )
+    }
+
+    func commitPracticeRecordingArtifact(_: PracticeRecordingArtifactCommitInput) async throws -> MediaArtifact {
+        MediaArtifact(
+            id: "committed-practice-artifact",
+            languageSpaceID: "space-1",
+            owner: .practiceSession(id: "session-1"),
+            type: .shadowingRecording,
+            derivationKind: .practiceRecording,
+            derivationKeyHash: "practice-key",
+            relativeFilePath: "practice/session-1/recording.m4a",
+            mimeType: "audio/mp4",
+            byteSize: 3,
+            durationSeconds: 0.4,
+            contentHash: String(repeating: "c", count: 64),
             createdAt: Date(timeIntervalSince1970: 0),
             lastAccessedAt: Date(timeIntervalSince1970: 0),
             invalidatedAt: nil,

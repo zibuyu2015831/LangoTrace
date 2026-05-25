@@ -1,3 +1,4 @@
+import LangoTraceCore
 import LangoTraceData
 
 enum MacWorkspaceSection: CaseIterable, Hashable {
@@ -63,7 +64,8 @@ enum MacWorkspaceSection: CaseIterable, Hashable {
 enum MacWorkspaceRoute: Equatable {
     case overview
     case entryDetail(String)
-    case practice(String)
+    case practiceSentenceList(String)
+    case practiceSentence(PracticeSessionRouteSeed)
     case settings(SettingsCapability.Kind)
     case languageSpaceManagement
     case unavailable(String)
@@ -72,7 +74,7 @@ enum MacWorkspaceRoute: Equatable {
         switch self {
         case .languageSpaceManagement:
             true
-        case .overview, .entryDetail, .practice, .settings, .unavailable:
+        case .overview, .entryDetail, .practiceSentenceList, .practiceSentence, .settings, .unavailable:
             false
         }
     }

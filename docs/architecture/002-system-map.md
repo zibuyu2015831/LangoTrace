@@ -1,8 +1,8 @@
 # LangoTrace 系统地图
 
 状态：Accepted
-最后核对：2026-05-25
-代码快照：36f45a074cb6b2f2abb33e0110853b9714060d0b
+最后核对：2026-05-26
+代码快照：94919d3bc7823f127979e6c455dbc2f8165fd5f9
 
 本文档是当前工程结构的快速地图，吸收 VMark `dev-docs/architecture.md` 的短路径系统视图，但不替代 ADR、spec、任务方案或代码。本文档只描述当前代码和已明确标记的未来能力；如果代码继续演进，必须更新 `最后核对` 和 `代码快照`。
 
@@ -16,15 +16,15 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - `Packages/LangoTraceCore/`：领域模型、协议、状态枚举、故障分类和与平台无关的业务契约。
 - `Packages/LangoTraceData/`：SQLite / GRDB、Repository、migration、本地媒体派生资产和设置能力数据。
 - `Packages/LangoTraceAI/`：AI Provider 配置服务、Keychain credential store、Provider probe、学习材料生成和 TTS 生成适配。
-- `Packages/LangoTraceSpeech/`：TTS 音频校验、preview playback 和系统播放边界。
+- `Packages/LangoTraceSpeech/`：TTS 音频校验、preview playback、系统播放边界和前台练习录音 service。
 - `Packages/LangoTraceSync/`：同步包边界和 disabled sync service；真实同步仍未实现。
 - `Packages/LangoTraceUI/`：共享 SwiftUI 页面、三端布局、状态 store、设置页、AI Provider UI 和 TTS 播放 action seam。
 - `LangoTraceAppTests/`、`Packages/*/Tests/`、`Tests/Tooling/`：App 装配、package 单元测试和宿主机工具测试。
 
 当前真实能力边界：
 
-- 已实现：首次启动路由、语言空间 SQLite / GRDB 持久化、AI Provider 本地配置和 Keychain secret 分离、AI Provider 合成 probe、learning content GRDB 主路径、TTS 配置和逐句播放 coordinator、local media artifact / TTS audio cache。
-- 未完成：完整生活记录时间线、照片 / 音频附件主数据、FTS、导出、真实同步、权限接入、StoreKit、发布材料、练习录音和完整 Prompt Preset 执行链路。
+- 已实现：首次启动路由、语言空间 SQLite / GRDB 持久化、AI Provider 本地配置和 Keychain secret 分离、AI Provider 合成 probe、learning content GRDB 主路径、TTS 配置和逐句播放 coordinator、local media artifact / TTS audio cache、单句跟读 practice session / recording metadata 和前台麦克风录音保存。
+- 未完成：完整生活记录时间线、照片 / 音频附件主数据、FTS、导出、真实同步、Photos / Camera / Speech Recognition / OCR 权限接入、StoreKit、发布材料、发音评分、听写、回译和完整 Prompt Preset 执行链路。
 
 ## 2. App 和 Package 入口点
 
@@ -32,8 +32,9 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 | --- | --- | --- |
 | Xcode 工程 | `project.yml` | 定义 iOS、macOS、App tests、package 依赖、本地化清单和 schemes。 |
 | App 入口 | `LangoTraceApp/LangoTraceApp.swift` | 启动 SwiftUI App，注入 `AppEnvironment` 和 session state。 |
-| 环境装配 | `LangoTraceApp/AppEnvironment.swift` | 装配 database、repositories、AI credential store、Provider actions、learning material actions、TTS playback coordinator、Speech / Sync disabled service。 |
+| 环境装配 | `LangoTraceApp/AppEnvironment.swift` | 装配 database、repositories、AI credential store、Provider actions、learning material actions、TTS playback coordinator、practice recording actions、Speech / Sync disabled service。 |
 | TTS 装配 | `LangoTraceApp/SentenceAudioPlaybackAssembly.swift` | 组装 TTS 配置、生成、artifact cache、playback source resolver 和 player。 |
+| 练习录音装配 | `LangoTraceApp/PracticeActionsAssembly.swift` | 组装 practice repository、recording service、App practice recording engine 和 local media artifact store，向 UI 暴露 `PracticeActions`。 |
 | Core | `Packages/LangoTraceCore/Sources/LangoTraceCore/` | 定义跨包共享模型、协议和失败分类。 |
 | Data | `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift` | 统一 SQLite / GRDB 打开、migration 注册和测试数据库初始化。 |
 | AI | `Packages/LangoTraceAI/Sources/LangoTraceAI/AIProviderConfigurationService.swift` | 保存 Provider profile、endpoint、Keychain reference、probe 和 TTS 设置。 |
@@ -54,6 +55,10 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - `LearningMaterialGenerationService`：用户显式触发的学习材料生成 / 重新分析服务；仍不是后台自动 AI 请求。
 - `SentenceAudioPlaybackCoordinator`：逐句 TTS 生成、artifact cache、播放和取消的协调器。
 - `LearningContentStore`：UI 层学习内容状态和生成 / 重新分析 / 逐句音频 action 编排。
+- `GRDBPracticeRepository`：单句跟读 session、句子快照、录音 attempt、完成态和问题标记的本地 repository。
+- `PracticeRecordingService`：练习录音生命周期 actor，负责 start / stop、权限错误映射、录音时长和文件大小边界，不负责业务完成态。
+- `AppPracticeRecordingEngine`：App target 内的 AVFoundation 录音实现，处理 iOS / macOS 麦克风权限、audio session / capture authorization、staging 文件和录音结果。
+- `PracticeActions` / `PracticeSessionViewModel`：UI 与 App 组装层之间的练习 action seam；SwiftUI 不直接持有 recorder、GRDB queue、绝对文件路径或 AVFoundation concrete。
 
 ## 4. 关键数据流
 
@@ -173,13 +178,46 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/TTSAudioPlaybackServiceTests.swift`
 - `LangoTraceAppTests/SentenceAudioPlaybackAssemblyTests.swift`
 
-### 4.6 未来同步、导出、权限和 StoreKit
+### 4.6 单句跟读练习录音和完成态
+
+1. 用户从练习 Tab 记录卡片或记录详情逐句 `练` 进入句子列表 / 单句练习页。
+2. UI 创建 `PracticeSessionRouteSeed`，携带 entry、learning material、sentence identity、sentence index、target text hash、target language code 和句子快照。
+3. `PracticeSessionViewModel` 通过 `PracticeActions` 调用 App 层，`GRDBPracticeRepository` 创建或恢复 shadowing session，并保存 `PracticeSentenceSnapshot`。
+4. 用户显式点击开始录音后，`PracticeRecordingService` 调用 `AppPracticeRecordingEngine` 请求麦克风权限并写入 staging 文件。
+5. 停止录音后，App 层经 `LocalMediaArtifactStore` 提交 practice recording artifact，`GRDBMediaArtifactRepository` 写入 `practice_recording_artifacts` typed metadata；ready recording 回写 session attempt。
+6. 用户点击完成时，repository 在事务中校验 ready recording，并把 `practice_sessions.completed_recording_id` 固定到该次录音，后续重录不会自动漂移完成证据。
+
+关键文件：
+
+- `LangoTraceApp/PracticeActionsAssembly.swift`
+- `LangoTraceApp/AppPracticeRecordingEngine.swift`
+- `Packages/LangoTraceCore/Sources/LangoTraceCore/PracticeSession.swift`
+- `Packages/LangoTraceCore/Sources/LangoTraceCore/PracticeRecordingArtifact.swift`
+- `Packages/LangoTraceData/Sources/LangoTraceData/GRDBPracticeRepository.swift`
+- `Packages/LangoTraceData/Sources/LangoTraceData/GRDBMediaArtifactRepository.swift`
+- `Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/PracticeRecordingService.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/PracticeRouting.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/PracticeSessionViewModel.swift`
+
+测试入口：
+
+- `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/PracticeSessionReducerTests.swift`
+- `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/PracticeAudioCoordinationTests.swift`
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/GRDBPracticeRepositoryTests.swift`
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/MediaArtifactRepositoryTests.swift`
+- `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/PracticeRecordingServiceTests.swift`
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/PracticeRouteSeedTests.swift`
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/PracticeSessionViewModelTests.swift`
+- `LangoTraceAppTests/PracticeRecordingConfigurationTests.swift`
+- `LangoTraceAppTests/AppEnvironmentPracticeBootstrapTests.swift`
+
+### 4.7 未来同步、导出、权限和 StoreKit
 
 这些能力目前是未完成或 disabled / unavailable 状态：
 
 - Sync：`Packages/LangoTraceSync/` 只有包边界和 disabled service，尚无 Sync Engine、Adapter、冲突处理或对象存储配置。
 - 导出：设置入口可以表达边界，但完整导出、可恢复备份和附件导出尚未实现。
-- 权限：Speech、OCR、Photos、麦克风和相机权限尚未接入真实授权流程。
+- 权限：练习录音已经接入麦克风权限；Speech Recognition、OCR、Photos 和相机权限尚未接入真实授权流程。
 - StoreKit：买断制购买、恢复购买、App Store 发布材料和隐私标签尚未实现。
 
 这些能力不得在当前文档、UI 或计划中写成已完成。
@@ -226,8 +264,12 @@ Sync -> Core
 | Artifact cache miss / corrupt | 本地文件缺失、格式不符、metadata 与文件不一致 | 重新生成或标记 artifact unavailable；损坏文件不当作命中 | 单句播放重试生成或显示失败 | media artifact state；cleanup result | Yes | `LocalMediaArtifactStoreTests.swift`、`MediaArtifactPlaybackSourceResolverTests.swift`、`TTSAudioFileValidatorTests.swift` | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
 | 播放取消和重试 | 用户取消、播放器失败、playback source 不可用 | coordinator 取消当前任务；后续点击可重新开始 | 单句状态回到取消 / 失败 / 可重试 | playback failure category | Yes | `SentenceAudioPlaybackCoordinatorTests.swift`、`TTSAudioPlaybackServiceTests.swift`、`LearningContentStoreSentenceAudioCoordinatorTests.swift` | `docs/spec/011-tts-provider-configuration-and-playback.md` |
 | 媒体派生资产 staging / atomic move / cleanup | staging 写入失败、move 失败、cleanup 部分失败 | 不提交 ready metadata；cleanup result 记录失败文件数 | 用户不看到伪成功 artifact | cleanup result；file state | Yes | `LocalMediaArtifactFileStoreTests.swift`、`LocalMediaArtifactStoreTests.swift`、`MediaArtifactRepositoryTests.swift` | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
+| 练习 session 创建 / 恢复 | current material 变化、sentence soft reference 丢失或重复进入同一句 | repository 按 language space / material / sentence / exercise type 创建或恢复，并依赖 session snapshot 回读历史内容 | 用户仍能看到练习时的句子快照；悬空 current sentence 不作为 active 入口 | 不记录完整句子或 Entry 正文 | Yes | `GRDBPracticeRepositoryTests.swift`、`PracticeRouteSeedTests.swift` | `docs/plans/done/2026-05-25-feature-practice-shadowing-recording-completion.md` |
+| 麦克风权限拒绝或不可用 | 用户拒绝、受限、设备不可用或 sandbox entitlement 缺失 | 录音 service 返回稳定 failure，不创建 ready recording，不标记完成 | 单句页显示可恢复失败；其他学习功能可继续使用 | permission status / failure category，不记录音频 | Partial | `PracticeRecordingServiceTests.swift`、`PracticeRecordingConfigurationTests.swift`；真实设备需人工验收 | `docs/spec/008-permissions-local-privacy-and-diagnostics.md` |
+| 练习录音提交失败 | recording stop 失败、文件缺失、文件过大、hash mismatch、metadata ready 标记失败 | 清理 staging 或保持 pending 待 recovery；不把失败 attempt 暴露为 ready；完成操作只接受 ready recording | 用户可重新录音，不显示完成成功 | duration / byte size bucket 和 failure category；无绝对路径 | Partial | `GRDBPracticeRepositoryTests.swift`、`MediaArtifactRepositoryTests.swift`、`PracticeRecordingServiceTests.swift` | `docs/spec/media-artifacts/impl.md` |
+| 完成态录音缺失或被清理误选 | completed recording 文件缺失、hash mismatch 或普通 cleanup 候选误包含 | session 保持 completed；playback source 标为 unavailable；completed recording 不进入普通 TTS / capacity cleanup | 用户看到完成记录存在但录音不可播放或需重新录制 | artifact state / failure category；不记录路径 | Partial | `MediaArtifactRepositoryTests.swift`、`GRDBPracticeRepositoryTests.swift`；playback source UI 需后续补强 | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
 | 未来 Sync | sync engine / adapter / conflict 未实现 | 保持 disabled / unavailable，不承诺同步 | 设置页显示未启用或不可用 | 无真实同步日志 | No | `SyncBoundaryTests.swift` 只覆盖 disabled boundary | `docs/technical-framework-roadmap.md` |
-| 未来权限 | Photos / microphone / Speech / OCR 未接入 | 保持未实现说明，真实权限任务另建 plan | 不弹出真实权限或误导为已授权 | 无真实权限日志 | No | 当前无完整权限测试 | `docs/spec/008-permissions-local-privacy-and-diagnostics.md` |
+| 未来权限 | Photos / Camera / Speech Recognition / OCR 未接入 | 保持未实现说明，真实权限任务另建 plan | 不弹出真实权限或误导为已授权 | 无真实权限日志 | No | 当前无完整权限测试 | `docs/spec/008-permissions-local-privacy-and-diagnostics.md` |
 | 未来导出 | 完整导出和可恢复备份未实现 | 保持 unavailable / future capability | 设置页不能写成已导出 | 无真实导出日志 | No | 当前无完整导出测试 | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
 | 未来 StoreKit | 买断制购买 / 恢复购买未实现 | 保持未实现，发布前另建 StoreKit plan | 不显示已购买或可恢复购买 | 无 StoreKit 日志 | No | 当前无 StoreKit 测试 | `docs/release/README.md` |
 

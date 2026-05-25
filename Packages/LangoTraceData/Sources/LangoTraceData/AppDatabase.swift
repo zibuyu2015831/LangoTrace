@@ -64,6 +64,9 @@ private extension AppDatabase {
         migrator.registerMigration("v8_add_media_artifact_file_state") { db in
             try addMediaArtifactFileState(db)
         }
+        migrator.registerMigration("v9_create_practice_recording_infrastructure") { db in
+            try createPracticeRecordingInfrastructure(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
@@ -540,7 +543,7 @@ private extension AppDatabase {
             'ttsSentenceAudio', 'ttsDocumentAudio', 'shadowingRecording',
             'dictationRecording', 'ocrIntermediate', 'exportTemporary'
           )),
-          CHECK (derivation_kind IN ('ttsAudio')),
+          CHECK (derivation_kind IN ('ttsAudio', 'practiceRecording')),
           CHECK (backup_policy IN ('excludedFromSystemBackup', 'includedInSystemBackup')),
           CHECK (sync_policy IN ('localOnly', 'syncCandidate', 'syncManaged')),
           CHECK (export_policy IN (
@@ -609,6 +612,99 @@ private extension AppDatabase {
         try db.execute(sql: """
         ALTER TABLE tts_audio_artifacts
         ADD COLUMN operation_id TEXT
+        """)
+    }
+
+    static func createPracticeRecordingInfrastructure(_ db: Database) throws {
+        try db.execute(sql: """
+        CREATE TABLE practice_sessions (
+          id TEXT PRIMARY KEY,
+          language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          entry_id TEXT NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+          learning_material_id TEXT NOT NULL REFERENCES learning_materials(id) ON DELETE CASCADE,
+          sentence_id TEXT REFERENCES learning_material_sentences(id) ON DELETE SET NULL,
+          sentence_index INTEGER NOT NULL,
+          target_text_snapshot TEXT NOT NULL,
+          translation_snapshot TEXT,
+          note_snapshot TEXT,
+          target_text_hash TEXT NOT NULL,
+          target_language_code TEXT NOT NULL,
+          source_entry_body_hash TEXT,
+          material_analysis_source_hash TEXT,
+          exercise_type TEXT NOT NULL,
+          status TEXT NOT NULL,
+          problem_marked INTEGER NOT NULL,
+          completed_recording_id TEXT REFERENCES practice_recordings(id) ON DELETE SET NULL,
+          completed_at REAL,
+          created_at REAL NOT NULL,
+          updated_at REAL NOT NULL,
+          soft_deleted_at REAL,
+          CHECK (sentence_index >= 0),
+          CHECK (length(trim(target_text_snapshot)) > 0),
+          CHECK (exercise_type IN ('shadowing')),
+          CHECK (status IN ('inProgress', 'completed')),
+          CHECK (problem_marked IN (0, 1))
+        )
+        """)
+        try db.execute(sql: """
+        CREATE TABLE practice_recordings (
+          id TEXT PRIMARY KEY,
+          session_id TEXT NOT NULL REFERENCES practice_sessions(id) ON DELETE CASCADE,
+          language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          media_artifact_id TEXT NOT NULL REFERENCES media_artifacts(id) ON DELETE RESTRICT,
+          attempt_number INTEGER NOT NULL,
+          status TEXT NOT NULL,
+          duration_seconds REAL,
+          byte_size INTEGER NOT NULL,
+          content_hash TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          ready_at REAL,
+          invalidated_at REAL,
+          CHECK (attempt_number >= 1),
+          CHECK (duration_seconds IS NULL OR duration_seconds >= 0),
+          CHECK (byte_size >= 0),
+          CHECK (status IN ('pending', 'ready', 'failed', 'cancelled', 'invalidated'))
+        )
+        """)
+        try db.execute(sql: """
+        CREATE TABLE practice_recording_artifacts (
+          artifact_id TEXT PRIMARY KEY REFERENCES media_artifacts(id) ON DELETE CASCADE,
+          session_id TEXT NOT NULL REFERENCES practice_sessions(id) ON DELETE CASCADE,
+          recording_id TEXT NOT NULL REFERENCES practice_recordings(id) ON DELETE CASCADE,
+          attempt_number INTEGER NOT NULL,
+          target_text_hash TEXT NOT NULL,
+          target_language_code TEXT NOT NULL,
+          recording_format TEXT NOT NULL,
+          sample_rate INTEGER,
+          channel_count INTEGER,
+          duration_seconds REAL,
+          content_hash TEXT NOT NULL,
+          CHECK (attempt_number >= 1),
+          CHECK (sample_rate IS NULL OR sample_rate > 0),
+          CHECK (channel_count IS NULL OR channel_count > 0),
+          CHECK (duration_seconds IS NULL OR duration_seconds >= 0)
+        )
+        """)
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_practice_sessions_sentence_exercise
+        ON practice_sessions(learning_material_id, sentence_id, sentence_index, exercise_type)
+        WHERE soft_deleted_at IS NULL
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_practice_sessions_entry_status
+        ON practice_sessions(entry_id, status, updated_at DESC)
+        """)
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_practice_recordings_session_attempt
+        ON practice_recordings(session_id, attempt_number)
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_practice_recordings_session_status
+        ON practice_recordings(session_id, status, ready_at DESC)
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_practice_recording_artifacts_recording
+        ON practice_recording_artifacts(recording_id)
         """)
     }
 

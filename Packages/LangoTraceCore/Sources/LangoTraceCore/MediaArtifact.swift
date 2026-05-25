@@ -74,6 +74,7 @@ public enum MediaArtifactType: String, CaseIterable, Sendable {
 
 public enum MediaArtifactDerivationKind: String, CaseIterable, Sendable {
     case ttsAudio
+    case practiceRecording
 }
 
 public struct MediaArtifactPolicy: Equatable, Sendable {
@@ -226,8 +227,11 @@ public struct MediaArtifactCommitReservation: Equatable, Sendable {
 
 public protocol MediaArtifactRepository: Sendable {
     func ttsAudioArtifactMetadata(for key: TTSAudioArtifactKey) async throws -> MediaArtifactLookupResult
+    func practiceRecordingArtifactMetadata(for key: PracticeRecordingArtifactKey) async throws -> MediaArtifactLookupResult
     func reserveTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifactCommitReservation
+    func reservePracticeRecordingArtifact(_ input: PracticeRecordingArtifactCommitInput) async throws -> MediaArtifactCommitReservation
     func commitTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifact
+    func commitPracticeRecordingArtifact(_ input: PracticeRecordingArtifactCommitInput) async throws -> MediaArtifact
     func markArtifactFileReady(artifactID: String, at date: Date) async throws
     func invalidateArtifact(artifactID: String, at date: Date) async throws
     func invalidateArtifacts(_ request: MediaArtifactInvalidationRequest) async throws
@@ -238,7 +242,9 @@ public protocol MediaArtifactRepository: Sendable {
 
 public protocol LocalMediaArtifactStoring: Sendable {
     func ttsAudioArtifact(for key: TTSAudioArtifactKey) async throws -> MediaArtifactLookupResult
+    func practiceRecordingArtifact(for key: PracticeRecordingArtifactKey) async throws -> MediaArtifactLookupResult
     func commitTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifact
+    func commitPracticeRecordingArtifact(_ input: PracticeRecordingArtifactCommitInput) async throws -> MediaArtifact
     func invalidateArtifacts(_ request: MediaArtifactInvalidationRequest) async throws
     func cleanupArtifacts(_ request: MediaArtifactCleanupRequest) async throws -> MediaArtifactCleanupResult
 }

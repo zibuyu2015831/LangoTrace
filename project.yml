@@ -52,6 +52,7 @@ targets:
           - de
           - ko
           - ru
+        NSMicrophoneUsageDescription: Record your voice for local shadowing practice. Recordings stay on this device and are not sent to AI automatically.
         UILaunchStoryboardName: LaunchScreen
     settings:
       base:
@@ -96,8 +97,10 @@ targets:
           - de
           - ko
           - ru
+        NSMicrophoneUsageDescription: Record your voice for local shadowing practice. Recordings stay on this Mac and are not sent to AI automatically.
     settings:
       base:
+        CODE_SIGN_ENTITLEMENTS: LangoTraceApp/Supporting/LangoTrace-macOS.entitlements
         PRODUCT_BUNDLE_IDENTIFIER: com.zibuyu.LangoTrace.mac
         PRODUCT_NAME: LangoTrace
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

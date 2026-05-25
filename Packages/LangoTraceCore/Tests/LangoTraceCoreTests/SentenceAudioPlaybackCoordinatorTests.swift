@@ -218,9 +218,17 @@ private actor FakeMediaStore: LocalMediaArtifactStoring {
         lookup
     }
 
+    func practiceRecordingArtifact(for _: PracticeRecordingArtifactKey) async throws -> MediaArtifactLookupResult {
+        .miss
+    }
+
     func commitTTSAudioArtifact(_ input: TTSAudioArtifactCommitInput) async throws -> MediaArtifact {
         committedInputs.append(input)
         return mediaArtifact(id: "committed-artifact")
+    }
+
+    func commitPracticeRecordingArtifact(_: PracticeRecordingArtifactCommitInput) async throws -> MediaArtifact {
+        mediaArtifact(id: "committed-practice-artifact")
     }
 
     func invalidateArtifacts(_: MediaArtifactInvalidationRequest) async throws {}

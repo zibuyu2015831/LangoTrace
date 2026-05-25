@@ -18,12 +18,12 @@
 
 当前单元测试落点：
 
-- `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/`：领域模型、路由、隐私状态、诊断事件和核心枚举。
-- `Packages/LangoTraceData/Tests/LangoTraceDataTests/`：SQLite / GRDB repository、migration、local state 和非敏感诊断持久化。
+- `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/`：领域模型、路由、隐私状态、诊断事件、练习状态机、前台音频协调和核心枚举。
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/`：SQLite / GRDB repository、migration、local state、practice session / recording metadata、media artifact cleanup 和非敏感诊断持久化。
 - `Packages/LangoTraceAI/Tests/LangoTraceAITests/`：AI Provider 配置服务、Keychain 引用、网络 probe 和错误映射。
-- `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/`：音频格式校验、TTS preview / playback seam 和系统播放前置。
+- `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/`：音频格式校验、TTS preview / playback seam、系统播放前置和练习录音 service 生命周期。
 - `Packages/LangoTraceSync/Tests/LangoTraceSyncTests/`：同步包边界、disabled sync service 和后续 Sync domain contract。
-- `Packages/LangoTraceUI/Tests/LangoTraceUITests/`：SwiftUI 状态、presentation model、本地化 key、source-boundary 和页面 helper。
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/`：SwiftUI 状态、presentation model、本地化 key、source-boundary、practice route seed / view model 和页面 helper。
 - `Tests/Tooling/`：项目级开发脚本的 Python 单元测试；这些测试不替代 package XCTest，只覆盖宿主机诊断工具。
 
 同一功能有多个测试文件或预计继续扩展时，应在对应 package test target 内创建功能子目录，例如 `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProvider/`。这样既保持 SwiftPM / XcodeGen 的测试发现机制，也避免测试文件在单一目录下平铺失控。
@@ -145,9 +145,9 @@ Apple 三端交互、Dynamic Type、VoiceOver、键盘、指针、菜单命令�
 
 - iPhone 设置：进入设置后，语言空间进入真实管理页，AI Provider、同步、本地数据、隐私边界和导出每一项都能进入二级说明页或对应配置页。
 - iPhone 设置二级页：每页必须显示当前状态、当前边界、后续接入条件和“不会发生”的副作用说明。
-- iPhone 练习：练习 Tab 中可从已有记录进入本地 mock 练习会话。
-- iPhone 练习会话：准备、跟读、对照、完成四个步骤可以切换；下一步按钮不会触发音频、录音、AI 请求或持久化。
-- iPhone 记录详情：逐句练习入口仍能进入同一 mock 练习会话。
+- iPhone 练习：练习 Tab 中以记录卡片列表进入句子练习列表；首层不显示“从生活进入练习”标题，不混排听写 / 回译等未完成任务类型。
+- iPhone 练习会话：单句页可创建或恢复 shadowing session，显式点击后请求麦克风录音，停止后写入本地 practice recording metadata，完成态重启后可读取；未授权、失败或无 ready recording 时不能标记完成。
+- iPhone 记录详情：逐句练习入口携带 sentence identity 和 snapshot 进入同一单句练习闭环，而不是 Entry 级隐式练习。
 - 不可用状态：无 rendering 的记录应显示不可用说明，而不是空白或误导性按钮。
 - 隐私表达：AI Provider 未配置、同步未启用、导出未实现时，不得出现“已连接”“已同步”“已生成真实结果”等文案。
 
@@ -190,7 +190,7 @@ iPhone 手动验证：
 - `写一句` 打开本地记录编辑 sheet，保存后进入记录详情；文本 Entry、LearningMaterial、句子分析、practice candidate 和 memory candidate 经 GRDB learning content repository 持久化，完整时间线、照片 / 音频附件、FTS、导出和同步仍未接入。
 - `用照片开始` 打开照片写作本地预览，不访问 Photos、Camera、OCR、AI Provider、网络、同步服务或导出文件。
 - 记录详情的 `听` 不会在页面展示、滚动或进入详情时自动触发；用户点击单句后，通过已配置且测试可用的 TTS Provider、local artifact cache、Speech playback seam 和 playback coordinator 执行逐句生成 / 播放，并应验证未配置、失败、取消和缓存命中状态。
-- 记录详情和练习 Tab 可进入 mock 练习会话。
+- 记录详情和练习 Tab 可进入单句跟读录音会话；录音必须由用户显式点击触发，不得自动发送给 AI Provider。
 - 语言空间设置入口已访问本地 SQLite / GRDB repository，用于新增、切换、重命名和删除语言空间。
 - AI Provider 设置页可保存非敏感配置到 SQLite / GRDB、保存 API Key 到 Keychain，并通过用户主动触发的配置合成测试显示文本回复、JSON 输出、语言支持和可选内置图片理解结果；不得发送生活记录、用户照片、音频、历史记忆或 Prompt Preset 内容。
 - 同步、本地数据、隐私和导入导出等未完成真实能力的设置项应显示当前边界、本地 mock 或 unavailable 状态，不能写成真实同步、导出或外部请求已经完成。
@@ -203,7 +203,7 @@ iPad 手动验证：
 - 记录选择会更新主内容和学习面板。
 - 新建记录打开 sheet，保存后选中新记录并进入详情。
 - 筛选按钮可切换全部记录、照片写作、待练习和已入记忆；选中态有可访问状态，不只靠颜色表达。
-- 练习会话、设置详情和请求预览可从当前记录或面板进入。
+- 练习句子列表、单句跟读录音会话、设置详情和请求预览可从当前记录或面板进入。
 - Split View、Slide Over 或 Stage Manager 窄窗口下，主内容仍可读，辅助面板不把主内容挤压到不可用。
 
 macOS 手动验证：
@@ -213,7 +213,34 @@ macOS 手动验证：
 - 新建记录打开 mock 编辑 sheet，保存后进入对应记录详情。
 - Inspector 内容随记录详情、练习、设置、导入导出或 overview 变化。
 - Sidebar 和 Inspector 可独立隐藏，窗口缩放后主内容仍可操作。
-- 导入导出、向量索引、真实 AI、同步和快捷键未实现时，页面明确显示 unavailable 或 Local Mock，不写成真实能力。
+- 导入导出、向量索引、同步、练习录音导出 / 同步和快捷键未实现时，页面明确显示 unavailable 或 Local Mock，不写成真实能力。
+
+## 练习录音验证清单
+
+自动化最低要求：
+
+- Core：`PracticeSessionReducerTests` 覆盖三步状态、ready recording、完成态和失败事件；`PracticeAudioCoordinationTests` 覆盖示范播放、录音和回放互斥边界。
+- Data：`AppDatabaseTests` 覆盖 practice session / recording / typed artifact migration；`GRDBPracticeRepositoryTests` 覆盖句子快照、session 恢复、ready recording、完成态引用和完成态不漂移；`MediaArtifactRepositoryTests` 覆盖 practice recording artifact lookup / cleanup exclusion。
+- Speech：`PracticeRecordingServiceTests` 覆盖 start / stop、权限拒绝、文件大小或停止失败边界；测试使用 fake recorder，不依赖真实麦克风。
+- UI：`PracticeRouteSeedTests` 覆盖 route seed 必须包含 sentence identity；`PracticeSessionViewModelTests` 覆盖 create / record / complete action seam；`PhoneIOSConvergenceTests` 覆盖练习 Tab 不展示未实现任务类型。
+- App：`PracticeRecordingConfigurationTests` 覆盖 iOS / macOS purpose string 和 macOS audio input entitlement；`AppEnvironmentPracticeBootstrapTests` 覆盖 production assembly 未回退到 disabled practice seam。
+
+聚焦命令：
+
+```bash
+swift test --package-path Packages/LangoTraceCore --filter 'PracticeSessionReducerTests|PracticeAudioCoordinationTests'
+swift test --package-path Packages/LangoTraceData --filter 'GRDBPracticeRepositoryTests|MediaArtifactRepositoryTests|practiceRecordingMigrationCreatesSnapshotSessionsRecordingsAndTypedArtifactMetadata'
+swift test --package-path Packages/LangoTraceSpeech --filter PracticeRecordingServiceTests
+swift test --package-path Packages/LangoTraceUI --filter 'PracticeSessionViewModelTests|PracticeRouteSeedTests|PhoneIOSConvergenceTests'
+xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests/PracticeRecordingConfigurationTests -only-testing:LangoTraceAppTests/AppEnvironmentPracticeBootstrapTests
+```
+
+手动验证至少覆盖：
+
+- iOS Simulator：进入练习 Tab -> 记录卡片 -> 句子列表 -> 单句页；拒绝 / 允许麦克风权限；开始 / 停止录音；完成后返回再进入可看到完成状态。
+- 真实 iPhone：重复 iOS Simulator 主路径，确认系统麦克风弹窗、录音文件生成、停止时长和前后台切换行为；模拟器不能替代真实设备验收。
+- macOS：首次录音弹出麦克风授权；拒绝后不创建 ready recording；允许后可完成单句 session；App Sandbox audio input entitlement 生效。
+- 隐私扫描：日志、测试输出和诊断事件不得包含完整句子、Entry 正文、音频 bytes、波形、绝对路径、API Key 或 Provider 请求体。
 - 未接线菜单、Command Palette、多窗口和快捷键不作为已完成项验收。
 
 ## 界面国际化基础验证清单

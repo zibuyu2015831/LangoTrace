@@ -12,7 +12,7 @@
 
 语迹是本地优先的个人语言记忆系统。真实记录、AI 生成材料、练习结果和记忆沉淀都必须先有清晰的本地数据边界，再接入 AI、Speech、OCR、同步或 StoreKit。
 
-当前代码已有 SQLite / GRDB 语言空间基础设施，用于持久化 `language_spaces`、本地 `app_state.current_language_space_id`、启动恢复和语言空间管理。Entry、LearningMaterial、句子分析、修改说明、memory candidate、practice candidate 和 learning material operation 摘要已经通过 `GRDBLearningContentRepository` 进入真实本地持久化路径；`InMemoryLearningContentRepository` 只作为测试替身和开发期 seed preview，不再是 App Shell 的真实 learning content 主路径。媒体派生资产基础设施已经落地 `media_artifacts` / `tts_audio_artifacts` metadata、`GRDBMediaArtifactRepository`、`LocalMediaArtifactFileStore`、`LocalMediaArtifactStore` facade 和 Speech TTS 文件校验 seam，第一阶段服务 TTS 逐句音频缓存前置；后续附件、FTS、导出和同步仍应沿用 SQLite / GRDB 主存储路线；SwiftData 只能作为备选或局部原型方案。
+当前代码已有 SQLite / GRDB 语言空间基础设施，用于持久化 `language_spaces`、本地 `app_state.current_language_space_id`、启动恢复和语言空间管理。Entry、LearningMaterial、句子分析、修改说明、memory candidate、practice candidate 和 learning material operation 摘要已经通过 `GRDBLearningContentRepository` 进入真实本地持久化路径；`InMemoryLearningContentRepository` 只作为测试替身和开发期 seed preview，不再是 App Shell 的真实 learning content 主路径。媒体派生资产基础设施已经落地 `media_artifacts` / `tts_audio_artifacts` metadata、`GRDBMediaArtifactRepository`、`LocalMediaArtifactFileStore`、`LocalMediaArtifactStore` facade 和 Speech TTS 文件校验 seam，第一阶段服务 TTS 逐句音频缓存前置；当前实现地图见 `docs/spec/media-artifacts/impl.md`。后续附件、FTS、导出和同步仍应沿用 SQLite / GRDB 主存储路线；SwiftData 只能作为备选或局部原型方案。
 
 ## 3. 数据分层
 
@@ -46,6 +46,8 @@
 - 附件不得散落在临时目录中成为事实主存储；必须通过附件 manifest 或数据库引用关联到主数据。
 - 媒体派生资产不得散落在临时目录、SwiftUI 私有状态或不可索引文件名规则中成为事实主存储；必须通过 GRDB / SQLite metadata 或等价 repository 引用文件，并定义 owner、artifact type、derivation key、相对路径、byte size、duration、created / last accessed、失效、清理、backup policy、sync policy 和 export policy。
 - 可重建但隐私敏感的媒体派生资产，例如 TTS 音频，默认不是用户主数据，也不是普通系统缓存；第一阶段应使用 App 管理目录，默认 local only、excluded from system backup、excluded by default from export，后续同步、备份或导出必须单独设计 manifest、加密、删除传播和恢复策略。
+- 被练习完成态引用的用户录音不是可重建缓存，必须按练习证据处理。普通 LRU、TTS cache cleanup 或派生缓存清理不得静默删除 `practice_sessions.completed_recording_id` 引用的 recording artifact；文件缺失或 hash mismatch 时应保留 completed session，并把 playback source 标为 unavailable / missing。
+- 媒体资产扩展必须采用通用主表加 typed metadata extension table 的形态。TTS typed metadata 属于 `tts_audio_artifacts`；练习录音不得复用 TTS key、TTS extension table 或 TTS 专属 commit method 承载用户录音。
 - 删除主数据时必须定义附件、派生索引、AI 请求元数据和同步 tombstone 的处理方式。
 - 导出必须区分用户可读包和可恢复备份包；两者不能混为一个含义。
 - API Key、对象存储密钥和外部 Provider token 不得进入普通数据库导出包。
@@ -95,6 +97,7 @@
 
 ## 8. 变更记录
 
+- 2026-05-26：新增 media-artifacts 实现地图并冻结练习录音前置 API review 结论。原因：跟读录音完成闭环需要把现有 TTS-oriented media artifact facade 提升为通用 commit / resolver / cleanup contract，并明确 completed practice recording retention。影响范围：Core、Data、Speech、Practice session schema、导出 / 备份 / 同步后续边界。是否需要 ADR：否，沿用本地优先和 SQLite / GRDB 主存储决策；若未来默认同步或备份用户录音，再评估 ADR。
 - 2026-05-23：更新 learning content GRDB 落地事实。原因：一键生成学习材料任务已将 Entry、LearningMaterial、analysis、candidate 和 operation 摘要接入真实 GRDB repository，并由 App Shell 装配为 iOS 主路径；数据规范需要从“纯内存 mock”更新为真实本地主数据边界。影响范围：LangoTraceData、LangoTraceAI、LangoTraceUI、AppEnvironment、导出/备份/删除/同步前置边界。是否需要 ADR：否，沿用 ADR-005 和 SQLite / GRDB 主存储决策。
 - 2026-05-23：同步本地媒体派生资产基础设施落地事实。原因：`2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache` 已实现 Core 契约、GRDB metadata、file store、facade、Speech 文件校验和聚焦测试，数据规范需要从“应建设”更新为“第一阶段已落地”。影响范围：Data、Speech、TTS direct playback 前置、导出 / 备份 / 同步后续边界和诊断日志。是否需要 ADR：否，沿用本地优先和用户自带 Provider；未来若默认同步或备份音频，再评估 ADR。
 - 2026-05-23：补充媒体派生资产边界。原因：逐句 TTS 播放方案确认 TTS 音频不能按临时 UI 缓存落地，应作为本地优先、隐私敏感、可重建的媒体派生资产处理，并为后续全文朗读、跟读录音、听写录音、音频同步和导出预留一致基础设施。影响范围：Data、Speech、AI Provider、附件、导出、备份、同步前置设计和诊断日志。是否需要 ADR：否，沿用本地优先和用户自带 Provider；若未来引入官方托管音频或默认跨设备音频同步，再评估 ADR。

@@ -1,3 +1,4 @@
+import LangoTraceCore
 import LangoTraceData
 
 enum PadFilter: String, CaseIterable, Equatable {
@@ -36,7 +37,8 @@ enum PadFilter: String, CaseIterable, Equatable {
 enum PadWorkspaceRoute: Equatable {
     case workspace
     case entryDetail(String)
-    case practice(String)
+    case practiceSentenceList(String)
+    case practiceSentence(PracticeSessionRouteSeed)
     case settingsList
     case settings(SettingsCapability.Kind)
     case memory
@@ -49,7 +51,7 @@ enum PadWorkspaceRoute: Equatable {
             "pad.route.workspace"
         case .entryDetail:
             "entryDetail.title"
-        case .practice:
+        case .practiceSentenceList, .practiceSentence:
             "tab.practice"
         case .settingsList, .settings:
             "tab.settings"

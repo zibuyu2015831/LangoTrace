@@ -290,6 +290,64 @@ struct MediaArtifactRepositoryTests {
 
         #expect(cleanup.map(\.id) == [oldest.id])
     }
+
+    @Test("Repository reserves and looks up ready practice recording artifacts by key")
+    func repositoryReservesAndLooksUpReadyPracticeRecordingArtifactsByKey() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        try await MediaArtifactTestFixtures.seedPracticeSession(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        let input = MediaArtifactTestFixtures.practiceRecordingCommitInput()
+
+        let reserved = try await repository.reservePracticeRecordingArtifact(input).artifact
+        let pendingLookup = try await repository.practiceRecordingArtifactMetadata(for: input.key)
+        try await repository.markArtifactFileReady(artifactID: reserved.id, at: Date(timeIntervalSince1970: 450))
+        let readyLookup = try await repository.practiceRecordingArtifactMetadata(for: input.key)
+
+        #expect(reserved.type == .shadowingRecording)
+        #expect(reserved.derivationKind == .practiceRecording)
+        #expect(pendingLookup == .miss)
+        guard case let .hit(ready) = readyLookup else {
+            Issue.record("Expected ready practice recording artifact to become visible")
+            return
+        }
+        #expect(ready.id == reserved.id)
+    }
+
+    @Test("Repository cleanup does not select completed practice recording artifacts")
+    func repositoryCleanupDoesNotSelectCompletedPracticeRecordingArtifacts() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        try await MediaArtifactTestFixtures.seedPracticeSession(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        let input = MediaArtifactTestFixtures.practiceRecordingCommitInput()
+
+        let artifact = try await repository.commitPracticeRecordingArtifact(input)
+        try await MediaArtifactTestFixtures.seedReadyPracticeRecording(
+            artifactID: artifact.id,
+            in: database
+        )
+
+        let cleanup = try await repository.artifactsForCleanup(
+            MediaArtifactCleanupRequest(
+                languageSpaceID: "space-1",
+                artifactType: .shadowingRecording,
+                includeInvalidated: true,
+                now: Date(timeIntervalSince1970: 800),
+                targetMaximumBytes: 0
+            )
+        )
+
+        #expect(cleanup.isEmpty)
+    }
 }
 
 final class MediaArtifactIDGenerator: @unchecked Sendable {
@@ -408,6 +466,99 @@ enum MediaArtifactTestFixtures {
     static func mediaArtifactCount(in database: AppDatabase) async throws -> Int {
         try await database.databaseQueue.read { db in
             try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM media_artifacts") ?? -1
+        }
+    }
+
+    static func practiceRecordingKey(
+        recordingID: String = "recording-1",
+        attemptNumber: Int = 1,
+        targetTextHash: String = "target-hash-1"
+    ) -> PracticeRecordingArtifactKey {
+        PracticeRecordingArtifactKey(
+            sessionID: "session-1",
+            recordingID: recordingID,
+            attemptNumber: attemptNumber,
+            targetTextHash: targetTextHash,
+            targetLanguageCode: "en",
+            recordingFormat: .m4a,
+            createdAtBucket: "2026-05-26T00"
+        )
+    }
+
+    static func practiceRecordingCommitInput(
+        key: PracticeRecordingArtifactKey = practiceRecordingKey(),
+        stagedFile: MediaArtifactStagedFileReference = MediaArtifactStagedFileReference(
+            relativeStagingPath: "staging/practice-recording.tmp",
+            byteSize: 512,
+            contentHash: "practice-content-hash"
+        )
+    ) -> PracticeRecordingArtifactCommitInput {
+        PracticeRecordingArtifactCommitInput(
+            key: key,
+            languageSpaceID: "space-1",
+            sessionID: "session-1",
+            recordingID: key.recordingID,
+            attemptNumber: key.attemptNumber,
+            stagedFile: stagedFile,
+            mimeType: "audio/mp4",
+            durationSeconds: 1.4,
+            sampleRate: 44100,
+            channelCount: 1,
+            createdAt: Date(timeIntervalSince1970: 400)
+        )
+    }
+
+    static func seedPracticeSession(in database: AppDatabase) async throws {
+        try await database.databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                INSERT INTO learning_material_sentences (
+                    id, material_id, position, native_sentence, target_sentence,
+                    literal_translation, natural_translation, grammar_notes_json,
+                    key_points_json, created_at, updated_at
+                ) VALUES (
+                    'sentence-1', 'material-1', 0, '我今天早上订了火车票。',
+                    'I booked the train this morning.', 'I booked the train this morning.',
+                    '我今天早上订了火车票。', '[]', '[]', 1, 1
+                )
+                """
+            )
+            try db.execute(
+                sql: """
+                INSERT INTO practice_sessions (
+                    id, language_space_id, entry_id, learning_material_id, sentence_id,
+                    sentence_index, target_text_snapshot, translation_snapshot, note_snapshot,
+                    target_text_hash, target_language_code, source_entry_body_hash,
+                    material_analysis_source_hash, exercise_type, status, problem_marked,
+                    completed_recording_id, completed_at, created_at, updated_at, soft_deleted_at
+                ) VALUES (
+                    'session-1', 'space-1', 'entry-1', 'material-1', 'sentence-1',
+                    0, 'I booked the train this morning.', '我今天早上订了火车票。',
+                    'booked 表示已经完成预订。', 'target-hash-1', 'en', 'source-hash',
+                    'analysis-hash', 'shadowing', 'inProgress', 0, NULL, NULL, 10, 10, NULL
+                )
+                """
+            )
+        }
+    }
+
+    static func seedReadyPracticeRecording(artifactID: String, in database: AppDatabase) async throws {
+        try await database.databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                UPDATE practice_recordings
+                SET status = 'ready', ready_at = 402
+                WHERE id = 'recording-1' AND media_artifact_id = ?
+                """,
+                arguments: [artifactID]
+            )
+            try db.execute(
+                sql: """
+                UPDATE practice_sessions
+                SET status = 'completed', completed_recording_id = 'recording-1', completed_at = 403
+                WHERE id = 'session-1'
+                """
+            )
         }
     }
 

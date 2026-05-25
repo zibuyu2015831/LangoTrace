@@ -7234,6 +7234,23 @@
         }
       }
     },
+    "practiceStep.record": {
+      "comment": "Practice step title for the recording phase.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录音"
+          }
+        }
+      }
+    },
     "practiceStep.compare": {
       "comment": "Practice step title.",
       "localizations": {
@@ -7332,6 +7349,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "本次练习已完成。你可以复习想保留的词句。"
+          }
+        }
+      }
+    },
+    "practice.recording.start": {
+      "comment": "Primary button title for starting a practice recording.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Recording"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始录音"
+          }
+        }
+      }
+    },
+    "practice.recording.stop": {
+      "comment": "Primary button title for stopping a practice recording.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Recording"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止录音"
+          }
+        }
+      }
+    },
+    "practice.recording.inProgress": {
+      "comment": "Practice recording status text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording in progress..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在录音..."
+          }
+        }
+      }
+    },
+    "practice.recording.guidance": {
+      "comment": "Practice recording helper text before completion.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record one attempt, review it, then mark this sentence complete."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录下一次跟读，回听后再标记本句完成。"
+          }
+        }
+      }
+    },
+    "practice.recording.completedLocal": {
+      "comment": "Practice recording helper text after completion.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed recording saved locally."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成的录音保存在本机。"
           }
         }
       }

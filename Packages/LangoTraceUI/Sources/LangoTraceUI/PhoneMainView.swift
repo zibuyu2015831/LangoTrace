@@ -6,6 +6,7 @@ struct PhoneMainView: View {
     let languageSpace: LanguageSpacePreview
     let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
+    let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
@@ -45,9 +46,10 @@ struct PhoneMainView: View {
                     languageSpace: languageSpace,
                     entries: entries,
                     contentStore: contentStore,
+                    renderingForEntry: rendering(for:),
                     onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
                     onSettingsAction: { navigationPath.append(.settingsList) },
-                    onPractice: { entry in navigationPath.append(.practice(entry.id)) }
+                    onPractice: { entry in navigationPath.append(.practiceSentenceList(entry.id)) }
                 )
                 .tabItem {
                     Label {
@@ -82,17 +84,35 @@ struct PhoneMainView: View {
                             languageSpace: languageSpace,
                             entryID: entry.id,
                             contentStore: contentStore,
-                            onPractice: { navigationPath.append(.practice(entry.id)) }
+                            onPracticeSentence: { seed in navigationPath.append(.practiceSentence(seed)) }
                         )
                     }
-                case let .practice(entryID):
+                case let .practiceSentenceList(entryID):
                     if let entry = entry(id: entryID) {
-                        PracticeSessionView(
+                        PracticeSentenceListView(
                             entry: entry,
                             rendering: rendering(for: entry),
-                            session: contentStore.practiceSession(for: entry)
+                            languageSpace: languageSpace,
+                            sentenceAudioPlaybackStates: sentenceAudioStates,
+                            onListenSentence: { rendering, sentence, index in
+                                Task {
+                                    await contentStore.handleSentenceAudioTap(
+                                        rendering: rendering,
+                                        sentence: sentence,
+                                        sentenceIndex: index,
+                                        languageSpace: languageSpace
+                                    )
+                                }
+                            },
+                            onPracticeSentence: { seed in navigationPath.append(.practiceSentence(seed)) }
                         )
                     }
+                case let .practiceSentence(seed):
+                    PracticeSessionView(
+                        languageSpaceID: languageSpace.id,
+                        routeSeed: seed,
+                        actions: practiceActions
+                    )
                 case .settings(.languageSpace):
                     LanguageSpaceManagementView(
                         spaces: languageSpaces,
@@ -191,6 +211,10 @@ struct PhoneMainView: View {
         contentStore.entry(id: id)
     }
 
+    private var sentenceAudioStates: [String: SentenceAudioPresentationState] {
+        contentStore.sentenceAudioPlaybackStates
+    }
+
     private func rendering(for entry: LearningEntry) -> LearningRendering? {
         contentStore.rendering(for: entry)
     }
@@ -207,7 +231,8 @@ struct PhoneMainView: View {
 
 private enum PhoneRoute: Hashable {
     case entryDetail(String)
-    case practice(String)
+    case practiceSentenceList(String)
+    case practiceSentence(PracticeSessionRouteSeed)
     case settings(SettingsCapability.Kind)
     case settingsList
 }

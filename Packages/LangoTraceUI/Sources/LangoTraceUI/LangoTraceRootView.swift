@@ -19,6 +19,7 @@ public struct LangoTraceRootView: View {
     private let learningContentRepository: any LearningContentRepository
     private let learningMaterialGenerationActions: LearningMaterialGenerationActions
     private let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
+    private let practiceActions: PracticeActions
     private let interfaceLanguagePreference: InterfaceLanguagePreference
     private let appearancePreference: AppearancePreference
     @Binding private var onboardingDraft: OnboardingDraft
@@ -38,6 +39,7 @@ public struct LangoTraceRootView: View {
         learningContentRepository: any LearningContentRepository,
         learningMaterialGenerationActions: LearningMaterialGenerationActions = .disabled,
         sentenceAudioPlaybackActions: SentenceAudioPlaybackActions = .disabled,
+        practiceActions: PracticeActions = .disabled,
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         appearancePreference: AppearancePreference = .system,
         onboardingDraft: Binding<OnboardingDraft>,
@@ -56,6 +58,7 @@ public struct LangoTraceRootView: View {
         self.learningContentRepository = learningContentRepository
         self.learningMaterialGenerationActions = learningMaterialGenerationActions
         self.sentenceAudioPlaybackActions = sentenceAudioPlaybackActions
+        self.practiceActions = practiceActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
         _onboardingDraft = onboardingDraft
@@ -92,6 +95,7 @@ public struct LangoTraceRootView: View {
                         learningContentRepository: learningContentRepository,
                         learningMaterialGenerationActions: learningMaterialGenerationActions,
                         sentenceAudioPlaybackActions: sentenceAudioPlaybackActions,
+                        practiceActions: practiceActions,
                         interfaceLanguagePreference: interfaceLanguagePreference,
                         appearancePreference: appearancePreference,
                         onAddLanguageSpace: onAddLanguageSpace,
@@ -149,6 +153,7 @@ private struct PlatformMainView: View {
     let languageSpaces: [LanguageSpace]
     let learningMaterialGenerationActions: LearningMaterialGenerationActions
     let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
+    let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
@@ -165,6 +170,7 @@ private struct PlatformMainView: View {
         learningContentRepository: any LearningContentRepository,
         learningMaterialGenerationActions: LearningMaterialGenerationActions,
         sentenceAudioPlaybackActions: SentenceAudioPlaybackActions,
+        practiceActions: PracticeActions,
         interfaceLanguagePreference: InterfaceLanguagePreference,
         appearancePreference: AppearancePreference,
         onAddLanguageSpace: @escaping (CreateLanguageSpaceInput) -> Void,
@@ -178,6 +184,7 @@ private struct PlatformMainView: View {
         self.languageSpaces = languageSpaces
         self.learningMaterialGenerationActions = learningMaterialGenerationActions
         self.sentenceAudioPlaybackActions = sentenceAudioPlaybackActions
+        self.practiceActions = practiceActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
         self.onAddLanguageSpace = onAddLanguageSpace
@@ -203,6 +210,7 @@ private struct PlatformMainView: View {
                     languageSpace: languageSpace,
                     languageSpaces: languageSpaces,
                     contentStore: contentStore,
+                    practiceActions: practiceActions,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     appearancePreference: appearancePreference,
                     onAddLanguageSpace: onAddLanguageSpace,
@@ -217,6 +225,7 @@ private struct PlatformMainView: View {
                     languageSpace: languageSpace,
                     languageSpaces: languageSpaces,
                     contentStore: contentStore,
+                    practiceActions: practiceActions,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     appearancePreference: appearancePreference,
                     onAddLanguageSpace: onAddLanguageSpace,
@@ -232,6 +241,7 @@ private struct PlatformMainView: View {
                 languageSpace: languageSpace,
                 languageSpaces: languageSpaces,
                 contentStore: contentStore,
+                practiceActions: practiceActions,
                 interfaceLanguagePreference: interfaceLanguagePreference,
                 appearancePreference: appearancePreference,
                 onAddLanguageSpace: onAddLanguageSpace,

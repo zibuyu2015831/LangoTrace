@@ -23,6 +23,15 @@ public struct LocalMediaArtifactStore: LocalMediaArtifactStoring, Sendable {
 
     public func ttsAudioArtifact(for key: TTSAudioArtifactKey) async throws -> MediaArtifactLookupResult {
         let lookup = try await repository.ttsAudioArtifactMetadata(for: key)
+        return try await verifiedLookup(lookup)
+    }
+
+    public func practiceRecordingArtifact(for key: PracticeRecordingArtifactKey) async throws -> MediaArtifactLookupResult {
+        let lookup = try await repository.practiceRecordingArtifactMetadata(for: key)
+        return try await verifiedLookup(lookup)
+    }
+
+    private func verifiedLookup(_ lookup: MediaArtifactLookupResult) async throws -> MediaArtifactLookupResult {
         guard case let .hit(artifact) = lookup else {
             return lookup
         }
@@ -81,6 +90,32 @@ public struct LocalMediaArtifactStore: LocalMediaArtifactStoring, Sendable {
             }
             try await repository.markArtifactFileReady(artifactID: artifact.id, at: input.createdAt)
             return artifact
+        } catch {
+            if reservation.wasCreated {
+                _ = try? fileStore.deleteFile(relativePath: artifact.relativeFilePath)
+                try await repository.deleteArtifactMetadata(artifactIDs: [artifact.id])
+            } else {
+                _ = try? fileStore.deleteFile(relativePath: input.stagedFile.relativeStagingPath)
+            }
+            throw error
+        }
+    }
+
+    public func commitPracticeRecordingArtifact(_ input: PracticeRecordingArtifactCommitInput) async throws -> MediaArtifact {
+        if case let .hit(existing) = try await practiceRecordingArtifact(for: input.key) {
+            _ = try fileStore.deleteFile(relativePath: input.stagedFile.relativeStagingPath)
+            return existing
+        }
+
+        let reservation = try await repository.reservePracticeRecordingArtifact(input)
+        let artifact = reservation.artifact
+        do {
+            if try fileStore.fileInfo(relativePath: artifact.relativeFilePath) != nil {
+                _ = try fileStore.deleteFile(relativePath: input.stagedFile.relativeStagingPath)
+            } else {
+                try fileStore.moveStagedFile(input.stagedFile, to: artifact.relativeFilePath)
+            }
+            return try await repository.commitPracticeRecordingArtifact(input)
         } catch {
             if reservation.wasCreated {
                 _ = try? fileStore.deleteFile(relativePath: artifact.relativeFilePath)

@@ -133,6 +133,46 @@ func mediaArtifactV8MigrationUpgradesLegacyV7MetadataTables() throws {
     }
 }
 
+@Test("Practice recording migration creates snapshot sessions recordings and typed artifact metadata")
+func practiceRecordingMigrationCreatesSnapshotSessionsRecordingsAndTypedArtifactMetadata() throws {
+    let database = try AppDatabase.inMemory()
+
+    try database.databaseQueue.write { db in
+        let tables = try String.fetchAll(db, sql: "SELECT name FROM sqlite_master WHERE type = 'table'")
+        #expect(tables.contains("practice_sessions"))
+        #expect(tables.contains("practice_recordings"))
+        #expect(tables.contains("practice_recording_artifacts"))
+
+        try insertMediaArtifactPrerequisites(db)
+        try insertLearningMaterialSentence(db)
+        try insertPracticeSession(db)
+        try insertMediaArtifactRow(
+            id: "artifact-practice-1",
+            artifactType: "shadowingRecording",
+            derivationKind: "practiceRecording",
+            derivationKeyHash: "practice-recording-key",
+            db: db
+        )
+        try insertPracticeRecording(db)
+        try db.execute(
+            sql: """
+            UPDATE practice_sessions
+            SET completed_recording_id = 'recording-1', status = 'completed', completed_at = 20
+            WHERE id = 'session-1'
+            """
+        )
+        try insertPracticeRecordingArtifact(db)
+
+        try db.execute(sql: "DELETE FROM learning_material_sentences WHERE id = 'sentence-1'")
+        let session = try Row.fetchOne(db, sql: "SELECT * FROM practice_sessions WHERE id = 'session-1'")
+
+        #expect(session?["sentence_id"] as String? == nil)
+        #expect(session?["target_text_snapshot"] as String? == "I booked the train this morning.")
+        #expect(session?["exercise_type"] as String? == "shadowing")
+        #expect(session?["completed_recording_id"] as String? == "recording-1")
+    }
+}
+
 private final class FixedClock: @unchecked Sendable {
     private let epochSeconds: TimeInterval
 
@@ -286,6 +326,7 @@ private func insertMediaArtifactRow(
     id: String,
     languageSpaceID: String = "space-1",
     artifactType: String = "ttsSentenceAudio",
+    derivationKind: String = "ttsAudio",
     backupPolicy: String = "excludedFromSystemBackup",
     derivationKeyHash: String = "derivation-hash",
     db: Database
@@ -298,11 +339,76 @@ private func insertMediaArtifactRow(
             mime_type, byte_size, duration_seconds, content_hash, created_at,
             last_accessed_at, invalidated_at, delete_after, backup_policy,
             file_state, sync_policy, export_policy
-        ) VALUES (?, ?, 'learningMaterialSentence', 'material-1', '0', ?, 'ttsAudio',
+        ) VALUES (?, ?, 'learningMaterialSentence', 'material-1', '0', ?, ?,
             ?, 'ttsSentenceAudio/space-1/artifact.mp3', 'audio/mpeg', 10,
             1.0, 'content-hash', 1, 1, NULL, NULL, ?, 'ready', 'localOnly',
             'excludedByDefault')
         """,
-        arguments: [id, languageSpaceID, artifactType, derivationKeyHash, backupPolicy]
+        arguments: [id, languageSpaceID, artifactType, derivationKind, derivationKeyHash, backupPolicy]
+    )
+}
+
+private func insertLearningMaterialSentence(_ db: Database) throws {
+    try db.execute(
+        sql: """
+        INSERT INTO learning_material_sentences (
+            id, material_id, position, native_sentence, target_sentence,
+            literal_translation, natural_translation, grammar_notes_json,
+            key_points_json, created_at, updated_at
+        ) VALUES (
+            'sentence-1', 'material-1', 0, '我今天早上订了火车票。',
+            'I booked the train this morning.', 'I booked the train this morning.',
+            '我今天早上订了火车票。', '[]', '[]', 1, 1
+        )
+        """
+    )
+}
+
+private func insertPracticeSession(_ db: Database) throws {
+    try db.execute(
+        sql: """
+        INSERT INTO practice_sessions (
+            id, language_space_id, entry_id, learning_material_id, sentence_id,
+            sentence_index, target_text_snapshot, translation_snapshot, note_snapshot,
+            target_text_hash, target_language_code, source_entry_body_hash,
+            material_analysis_source_hash, exercise_type, status, problem_marked,
+            completed_recording_id, completed_at, created_at, updated_at, soft_deleted_at
+        ) VALUES (
+            'session-1', 'space-1', 'entry-1', 'material-1', 'sentence-1',
+            0, 'I booked the train this morning.', '我今天早上订了火车票。',
+            'booked 表示已经完成预订。', 'target-hash-1', 'en', 'source-hash',
+            'analysis-hash', 'shadowing', 'inProgress', 0, NULL, NULL, 10, 10, NULL
+        )
+        """
+    )
+}
+
+private func insertPracticeRecording(_ db: Database) throws {
+    try db.execute(
+        sql: """
+        INSERT INTO practice_recordings (
+            id, session_id, language_space_id, media_artifact_id, attempt_number,
+            status, duration_seconds, byte_size, content_hash, created_at,
+            ready_at, invalidated_at
+        ) VALUES (
+            'recording-1', 'session-1', 'space-1', 'artifact-practice-1',
+            1, 'ready', 1.4, 10, 'content-hash', 11, 12, NULL
+        )
+        """
+    )
+}
+
+private func insertPracticeRecordingArtifact(_ db: Database) throws {
+    try db.execute(
+        sql: """
+        INSERT INTO practice_recording_artifacts (
+            artifact_id, session_id, recording_id, attempt_number,
+            target_text_hash, target_language_code, recording_format,
+            sample_rate, channel_count, duration_seconds, content_hash
+        ) VALUES (
+            'artifact-practice-1', 'session-1', 'recording-1', 1,
+            'target-hash-1', 'en', 'm4a', 44100, 1, 1.4, 'content-hash'
+        )
+        """
     )
 }
