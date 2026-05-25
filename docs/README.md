@@ -405,6 +405,7 @@ docs/
   platform-page-inventory.md
   technical-framework-roadmap.md
   architecture/
+    002-system-map.md
   decisions/
   development/
     README.md
@@ -423,10 +424,12 @@ docs/
     projects/
     research/
       README.md
+      spikes/
   spec/
   review/
     README.md
     INDEX.md
+    health-ledger.md
     rounds/
   release/
   testing/
@@ -435,6 +438,7 @@ docs/
 ## 8. 目录职责
 
 - `architecture/`：工程架构、模块边界、数据模型、同步模型、AI Provider、长期记忆和安全边界。
+- `architecture/002-system-map.md`：当前系统地图，记录系统形态、App / Package 入口点、关键数据流、模块依赖方向和故障恢复矩阵索引；不替代 ADR、spec 或任务方案。
 - `architecture/notes/`：架构级开发备忘录，记录尚未进入正式方案、spec 或 ADR 的跨任务扩展提醒；创建相关任务方案前应主动检查，但不能把其中内容直接当作已接受实现事实。
 - `platform-page-inventory.md`：三端页面清单和当前页面事实源，记录 iPhone、iPad、macOS 页面、入口、实现状态、能力边界、代码路径和审查关注点。
 - `_meta/`：文档体系自身规则，记录目录职责、权威类型、写入规则和退出目录。
@@ -444,8 +448,10 @@ docs/
 - `workflows/`：高频高风险开发动作手册，记录读文档、改文件、跑验证的顺序；不作为产品决策源、架构事实源或实现事实源。
 - `prompts/`：Prompt Registry，记录真实代码 Prompt 的英文版本、中文版本、输入变量、输出契约和隐私边界。
 - `reference/`：外部参考和研究资料入口，包含本地参考项目软链接、功能参考映射、许可证边界和研究材料；功能设计和模块实现讨论时应主动检索对应参考项目，但它不是产品决策源、架构事实源或实现事实源。
+- `reference/research/spikes/`：spike、probe、fixture 和 evidence 的研究落点规则；只保存证据材料和可保留研究上下文，不作为当前事实源。
 - `spec/`：开发一致性规范和实现地图，记录导航、UI、SwiftUI 架构、AI Provider、隐私等具体开发约束；模块级 `impl.md` 放在这里而不是 `decisions/`。
 - `review/`：文档一致性治理机制、审查轮次索引、专项审查和里程碑轻量全审记录。
+- `review/health-ledger.md`：轻量文档健康趋势记录，只保存可机械采集指标、verdict 和 notes，不替代 review round 或 active plan。
 - `development/`：阶段级开发 runbook、工程初始化记录和跨任务工程路线；不存放单项需求或 bug 的实施方案。
 - `release/`：买断制、StoreKit、App Store、TestFlight、版本策略和发布检查清单。
 - `testing/`：测试策略、手动测试流程、回归用例、模拟器与真机验证记录。

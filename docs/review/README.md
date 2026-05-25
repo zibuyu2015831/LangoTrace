@@ -174,7 +174,10 @@ docs/review/rounds/YYYY-MM-DD-<topic>/README.md
 
 - 周期性检查不新增 `docs/audit/` 或 `docs/house-cleaning/` 目录。
 - 结构脚本只能报告低争议问题，不能自动删除、自动重写 ADR、自动改写历史记录或把语义判断伪装成机器结论。
-- 同一问题连续两次在 T2 / T3 中出现时，应分流为 `docs/plans/active/` 下的 bug、chore、docs 或 refactor 任务，而不是长期留在审查记录中。
+- `docs/review/health-ledger.md` 是轻量趋势记录，只保存日期、commit、trigger、metrics、verdict 和 notes；它不替代 review round、active plan 或文档影响检查。
+- health ledger 指标必须可机械采集、方向明确、能指导行动，避免 raw LOC、总提交数等 vanity metrics。
+- 同一问题连续三次在 health ledger、T2 或 T3 中出现且没有改善时，应分流为 `docs/plans/active/` 下的 bug、chore、docs、refactor 任务、专项 review round，或显式接受风险，而不是长期留在趋势记录中。
+- 每条发现必须有 verdict，例如已修、转为 active plan、明确接受、延后原因或由某个 review round 承接。
 
 ## 5. 审查产物
 

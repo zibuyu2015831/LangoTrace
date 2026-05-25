@@ -15,12 +15,36 @@ fail() {
 [[ -L AGENTS.md ]] || fail "AGENTS.md must be a symlink"
 [[ "$(readlink AGENTS.md)" == "docs/README.md" ]] || fail "AGENTS.md must point to docs/README.md"
 
+if git ls-files 'docs/.DS_Store' '**/.DS_Store' | rg -q '.'; then
+  fail ".DS_Store must not be tracked"
+fi
+
 [[ -f docs/workflows/README.md ]] || fail "docs/workflows/README.md is required"
+for workflow in \
+  docs/workflows/add-ai-provider.md \
+  docs/workflows/add-platform-screen.md \
+  docs/workflows/add-prompt.md \
+  docs/workflows/add-storage-migration.md \
+  docs/workflows/add-tts-provider.md; do
+  [[ -f "$workflow" ]] || fail "required workflow is missing: $workflow"
+done
+
+[[ -f docs/architecture/002-system-map.md ]] || fail "docs/architecture/002-system-map.md is required"
+[[ -f docs/reference/research/spikes/README.md ]] || fail "docs/reference/research/spikes/README.md is required"
+[[ -f docs/review/health-ledger.md ]] || fail "docs/review/health-ledger.md is required"
+rg -q "^## 最新状态摘要$" docs/review/INDEX.md || fail "docs/review/INDEX.md must include latest status summary"
+rg -q "^## 2\\. Ledger$" docs/review/health-ledger.md || fail "docs/review/health-ledger.md must include ledger section"
+rg -q "日期.*Commit.*Trigger.*Metrics.*Verdict.*Notes" docs/review/health-ledger.md \
+  || fail "docs/review/health-ledger.md must include date/commit/trigger/metrics/verdict/notes columns"
 
 while IFS= read -r file; do
   name="$(basename "$file")"
   [[ "$name" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-(feature|bug|refactor|research|chore|docs)-[a-z0-9][a-z0-9-]*\.md$ ]] \
     || fail "invalid active plan filename: $file"
+  rg -q "^状态：" "$file" || fail "active plan is missing 状态: $file"
+  rg -q "^类型：" "$file" || fail "active plan is missing 类型: $file"
+  rg -q "^创建日期：" "$file" || fail "active plan is missing 创建日期: $file"
+  rg -q "^最后更新日期：" "$file" || fail "active plan is missing 最后更新日期: $file"
 done < <(find docs/plans/active -maxdepth 1 -type f -name '*.md' | sort)
 
 while IFS= read -r file; do

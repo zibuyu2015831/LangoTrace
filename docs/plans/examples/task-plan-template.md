@@ -35,6 +35,15 @@
 
 如任务属于 AI Provider、TTS Provider、数据迁移、平台页面或 Prompt 等高风险动作，应引用对应 `docs/workflows/` 手册，并说明采纳或偏离原因。
 
+高风险或研究性任务补充：
+
+```text
+是否需要 spike / probe / fixture / evidence：
+需要时的落点：
+是否包含真实用户敏感内容：
+如何验证和清理：
+```
+
 ## 7. 涉及的代码文件路径
 
 列出预计修改的代码文件；文档-only 任务写“无”。

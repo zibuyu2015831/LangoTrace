@@ -28,6 +28,14 @@
 
 同一功能有多个测试文件或预计继续扩展时，应在对应 package test target 内创建功能子目录，例如 `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProvider/`。这样既保持 SwiftPM / XcodeGen 的测试发现机制，也避免测试文件在单一目录下平铺失控。
 
+## Fixture 与 Probe 规则
+
+- 自动化测试依赖的长期 fixture 优先靠近对应 package test target，例如 `Packages/LangoTraceAI/Tests/LangoTraceAITests/` 或 `Packages/LangoTraceData/Tests/LangoTraceDataTests/`。
+- 项目级宿主机工具 fixture 或诊断脚本测试可放在 `Tests/Tooling/`。
+- 外部格式样本、参考项目研究样本或不直接参与测试发现的研究材料，可放入 `docs/reference/research/`，并在被采纳后提升到测试、spec、architecture 或任务方案。
+- fixture 不得包含真实用户敏感内容、API Key、Authorization header、请求体、响应体、照片、音频或转写全文。
+- 临时 probe 通过后默认删除或归档为 historical-only 过程证据；若保留为长期开发工具，必须写明运行命令、输入边界、跳过条件和失败含义。
+
 ## TDD 要求
 
 新功能、bug 修复、架构调整和可观察行为变化默认采用测试驱动开发：

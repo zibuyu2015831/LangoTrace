@@ -39,6 +39,7 @@
 用途：
 
 - 记录模块边界、依赖方向和核心数据流。
+- 记录当前系统地图、关键入口点、运行时对象、关键数据流、模块依赖方向和故障恢复矩阵索引。
 - 记录数据模型、SQLite schema、迁移策略、Repository 设计和索引策略。
 - 记录 AI Provider、Prompt Preset、TTS、OCR、Speech、Sync Engine 和 StoreKit 的技术边界。
 - `docs/architecture/notes/` 保存架构级开发备忘录，用于记录尚未进入正式架构文档、spec、ADR 或任务方案的跨任务扩展提醒。
@@ -120,6 +121,7 @@ docs/development/environment.md
 - 标注哪些规则是强制的，哪些是默认推荐，哪些可以在开发过程中演进。
 - 后续模块可以在本目录下形成 `spec.md` 和 `impl.md`，让模块规范与当前实现地图保持同目录。
 - 高风险模块可以补充故障与恢复路径矩阵，明确已知失败模式、恢复行为、测试覆盖和剩余风险。
+- `docs/architecture/002-system-map.md` 是当前工程结构的快速入口；它不替代 ADR、spec 或任务方案，更新时必须刷新代码快照和最后核对日期。
 
 当前核心规范入口以 `docs/spec/README.md` 为准。现有高优先级规范包括：
 
@@ -252,7 +254,15 @@ docs/release/003-privacy-labels-and-permissions.md
 - `docs/reference/README.md` 作为外部参考项目总入口，记录本地源码软链接、功能参考映射、项目阅读顺序和许可证边界。
 - `docs/reference/projects/` 只放当前已登记参考项目的本地源码软链接，不作为 LangoTrace 当前代码事实源。
 - `docs/reference/research/` 记录参考项目研究、竞品分析、设计研究、技术调研和许可证分析。
+- `docs/reference/research/spikes/` 记录 spike / probe / fixture / evidence 的研究落点规则，以及需要保留的短期验证上下文。
 - 参考和研究资料不作为最终产品决策、架构事实或实现事实；被采纳的结论必须同步到主参考文档、`docs/spec/`、`docs/architecture/` 或 `docs/decisions/`。
+
+spike / probe / fixture / evidence 的边界：
+
+- spike 是实现前的短期可行性验证，默认写入当前任务方案；需要保留研究上下文时放入 `docs/reference/research/spikes/`。
+- probe 是可重复运行的小型验证脚本或样例；长期保留时应进入 `scripts/`、`Tests/Tooling/`、package tests 或 reference research，并写明运行方式、跳过条件和剩余风险。
+- fixture 是自动化测试或研究依赖的稳定样本，优先靠近对应 test target；外部格式研究样本可放入 reference research，但不得包含真实用户敏感内容。
+- evidence 是审查 round 的命令输出、截图、日志和手动验证记录，归入 `docs/review/rounds/<round>/`。
 
 ### 2.10 历史规格与计划目录
 

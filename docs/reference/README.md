@@ -4,6 +4,8 @@
 
 `docs/reference/` 是外部参考和研究资料入口，不是产品决策源、架构事实源或实现事实源。研究结论如果被采纳，必须同步写回 `docs/product-main-reference.md`、`docs/spec/`、`docs/architecture/` 或 `docs/decisions/`。
 
+研究性 spike、probe、fixture 和审查 evidence 的落点规则见 [Spike / Probe / Fixture 研究入口](research/spikes/README.md)。这些材料只能作为证据和过程记录；被采纳后必须回写到对应权威文档。
+
 ## 0. 使用规则
 
 - 只参考产品结构、交互逻辑、数据模型和技术路线。

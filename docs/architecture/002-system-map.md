@@ -1,0 +1,255 @@
+# LangoTrace 系统地图
+
+状态：Accepted
+最后核对：2026-05-25
+代码快照：36f45a074cb6b2f2abb33e0110853b9714060d0b
+
+本文档是当前工程结构的快速地图，吸收 VMark `dev-docs/architecture.md` 的短路径系统视图，但不替代 ADR、spec、任务方案或代码。本文档只描述当前代码和已明确标记的未来能力；如果代码继续演进，必须更新 `最后核对` 和 `代码快照`。
+
+## 1. 系统形态
+
+LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode 工程，面向 iPhone、iPad 和 macOS 三端。
+
+当前工程由一个 App target 和多个本地 Swift Package 组成：
+
+- `LangoTraceApp/`：App 入口、环境装配、启动状态和跨 package action 组装。
+- `Packages/LangoTraceCore/`：领域模型、协议、状态枚举、故障分类和与平台无关的业务契约。
+- `Packages/LangoTraceData/`：SQLite / GRDB、Repository、migration、本地媒体派生资产和设置能力数据。
+- `Packages/LangoTraceAI/`：AI Provider 配置服务、Keychain credential store、Provider probe、学习材料生成和 TTS 生成适配。
+- `Packages/LangoTraceSpeech/`：TTS 音频校验、preview playback 和系统播放边界。
+- `Packages/LangoTraceSync/`：同步包边界和 disabled sync service；真实同步仍未实现。
+- `Packages/LangoTraceUI/`：共享 SwiftUI 页面、三端布局、状态 store、设置页、AI Provider UI 和 TTS 播放 action seam。
+- `LangoTraceAppTests/`、`Packages/*/Tests/`、`Tests/Tooling/`：App 装配、package 单元测试和宿主机工具测试。
+
+当前真实能力边界：
+
+- 已实现：首次启动路由、语言空间 SQLite / GRDB 持久化、AI Provider 本地配置和 Keychain secret 分离、AI Provider 合成 probe、learning content GRDB 主路径、TTS 配置和逐句播放 coordinator、local media artifact / TTS audio cache。
+- 未完成：完整生活记录时间线、照片 / 音频附件主数据、FTS、导出、真实同步、权限接入、StoreKit、发布材料、练习录音和完整 Prompt Preset 执行链路。
+
+## 2. App 和 Package 入口点
+
+| 边界 | 当前入口 | 作用 |
+| --- | --- | --- |
+| Xcode 工程 | `project.yml` | 定义 iOS、macOS、App tests、package 依赖、本地化清单和 schemes。 |
+| App 入口 | `LangoTraceApp/LangoTraceApp.swift` | 启动 SwiftUI App，注入 `AppEnvironment` 和 session state。 |
+| 环境装配 | `LangoTraceApp/AppEnvironment.swift` | 装配 database、repositories、AI credential store、Provider actions、learning material actions、TTS playback coordinator、Speech / Sync disabled service。 |
+| TTS 装配 | `LangoTraceApp/SentenceAudioPlaybackAssembly.swift` | 组装 TTS 配置、生成、artifact cache、playback source resolver 和 player。 |
+| Core | `Packages/LangoTraceCore/Sources/LangoTraceCore/` | 定义跨包共享模型、协议和失败分类。 |
+| Data | `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift` | 统一 SQLite / GRDB 打开、migration 注册和测试数据库初始化。 |
+| AI | `Packages/LangoTraceAI/Sources/LangoTraceAI/AIProviderConfigurationService.swift` | 保存 Provider profile、endpoint、Keychain reference、probe 和 TTS 设置。 |
+| Speech | `Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/` | TTS audio validation、preview playback 和系统音频播放实现边界。 |
+| Sync | `Packages/LangoTraceSync/Sources/LangoTraceSync/SyncBoundary.swift` | 当前只表达同步服务边界和 disabled 状态。 |
+| UI | `Packages/LangoTraceUI/Sources/LangoTraceUI/LangoTraceRootView.swift` | Welcome / Onboarding / Main 路由和三端主界面入口。 |
+| 验证 | `scripts/verify.sh` | 当前完整工程验证入口。 |
+
+## 3. 关键运行时对象
+
+- `AppEnvironment`：App 层依赖装配中心；负责把 Data、AI、Speech、Sync 的实现组合为 UI 可调用 action，不把 SQLite、Keychain 或网络细节直接暴露给 SwiftUI 页面。
+- `AppSessionState`：启动和语言空间 session 状态；负责恢复当前语言空间、新增、切换、重命名、删除 fallback，并维护 `welcome` / `onboarding` / `main` 路由。
+- `LaunchRoute`：无语言空间时回到 onboarding，有语言空间时进入 main。
+- `AppDatabase`：SQLite / GRDB 数据库边界；统一 migration 和 repository 访问。
+- `GRDBLanguageSpaceRepository`、`GRDBLearningContentRepository`、`GRDBAIProviderConfigurationRepository`、`GRDBMediaArtifactRepository`、`GRDBTTSProviderSettingsRepository`：当前主要本地持久化 repository。
+- `AIProviderConfigurationService`：Provider 配置保存、credential reference、probe 和 TTS 设置服务。
+- `KeychainAIProviderCredentialStore`：API Key 等敏感配置存储边界；数据库只保存 Keychain reference 和非敏感元数据。
+- `LearningMaterialGenerationService`：用户显式触发的学习材料生成 / 重新分析服务；仍不是后台自动 AI 请求。
+- `SentenceAudioPlaybackCoordinator`：逐句 TTS 生成、artifact cache、播放和取消的协调器。
+- `LearningContentStore`：UI 层学习内容状态和生成 / 重新分析 / 逐句音频 action 编排。
+
+## 4. 关键数据流
+
+### 4.1 App 启动和语言空间恢复
+
+1. SwiftUI App 启动并创建 `AppEnvironment`。
+2. `AppEnvironment.bootstrap()` 打开默认数据库位置并创建 repository factory。
+3. `AppSessionState.restoreLanguageSpace()` 读取当前语言空间和 active list。
+4. `LaunchRoute.route(hasLanguageSpace:)` 决定进入 onboarding 或 main。
+5. 如果 repository 或读取失败，`recoveryState` 记录失败，当前语言空间置空，路由回到 onboarding。
+
+关键文件：
+
+- `LangoTraceApp/AppEnvironment.swift`
+- `Packages/LangoTraceCore/Sources/LangoTraceCore/LaunchRoute.swift`
+- `Packages/LangoTraceData/Sources/LangoTraceData/GRDBLanguageSpaceRepository.swift`
+- `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift`
+
+测试入口：
+
+- `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/LaunchFlowTests.swift`
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/LanguageSpaceRepositoryTests.swift`
+- `LangoTraceAppTests/AppEnvironmentBootstrapTests.swift`
+
+### 4.2 语言空间新增、切换、重命名、删除 fallback
+
+1. Onboarding 或管理页通过 UI action 调用 `AppSessionState`。
+2. `AppSessionState` 调用 `LanguageSpaceRepository` 创建、选择、更新或软删除语言空间。
+3. 删除当前语言空间后，repository 返回 fallback current space。
+4. session 刷新 active list；若没有 fallback，路由回 onboarding。
+
+关键文件：
+
+- `LangoTraceApp/AppEnvironment.swift`
+- `Packages/LangoTraceCore/Sources/LangoTraceCore/LanguageSpace.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/LanguageSpaceManagementView.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/LanguageSpaceSwitcherSheet.swift`
+
+测试入口：
+
+- `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/LanguageSpaceTests.swift`
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/LanguageSpaceRepositoryTests.swift`
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/LanguageSpaceManagementTests.swift`
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/LanguageSpaceSwitcherTests.swift`
+
+### 4.3 Entry 写入和 LearningMaterial 生成 / 重新分析
+
+1. 三端 UI 通过共享 entry editor / detail action 写入文本记录。
+2. `GRDBLearningContentRepository` 持久化 Entry、LearningMaterial、句子分析、修改说明、practice candidate、memory candidate 和 operation summary。
+3. 用户显式点击生成或重新分析后，`LearningContentStore` 调用 `LearningMaterialGenerationActions`。
+4. App 层读取已保存 Provider 配置和 Keychain secret，构造固定 Prompt Registry 请求。
+5. 成功结果写回 repository；失败或取消写入稳定 operation 状态。
+
+关键文件：
+
+- `LangoTraceApp/AppEnvironment.swift`
+- `Packages/LangoTraceData/Sources/LangoTraceData/GRDBLearningContentRepository.swift`
+- `Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialGenerationService.swift`
+- `Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialPromptRegistry.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/LearningContentStore.swift`
+
+测试入口：
+
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/GRDBLearningContentRepositoryTests.swift`
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/LearningMaterialGenerationServiceTests.swift`
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/LearningContentStoreTests.swift`
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/LearningContentStoreCancellationTests.swift`
+
+### 4.4 AI Provider 配置、Keychain secret 和固定 probe
+
+1. 用户在 AI Provider 设置页输入 profile、endpoint、model 和 secret。
+2. UI draft 通过 `AIProviderSettingsActions` 调用 App 层 service。
+3. 非敏感配置写入 SQLite / GRDB；API Key 写入 Keychain；数据库只保存 credential metadata / reference。
+4. 用户显式触发 probe 时，服务发送固定低敏请求，例如文本回复、JSON 输出、语言支持、图片理解和 TTS probe。
+5. probe 结果写入 validation event 和 UI 结果状态。
+
+关键文件：
+
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsView.swift`
+- `Packages/LangoTraceAI/Sources/LangoTraceAI/AIProviderConfigurationService.swift`
+- `Packages/LangoTraceAI/Sources/LangoTraceAI/KeychainAIProviderCredentialStore.swift`
+- `Packages/LangoTraceData/Sources/LangoTraceData/GRDBAIProviderConfigurationRepository.swift`
+
+测试入口：
+
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/AIProviderConfigurationServiceTests.swift`
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/AIProviderConfigurationProbeServiceTests.swift`
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/KeychainAIProviderCredentialStoreTests.swift`
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/AIProviderConfigurationRepositoryTests.swift`
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProvider/AIProviderSettingsTests.swift`
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProvider/AIProviderSettingsProbeTests.swift`
+
+### 4.5 TTS 生成、local artifact cache 和播放 coordinator
+
+1. 用户点击单句 `听`。
+2. UI 通过 `SentenceAudioPlaybackActions` 调用 `SentenceAudioPlaybackCoordinator`。
+3. coordinator 读取默认可播放 TTS 配置和 Keychain secret。
+4. 如命中有效本地 TTS artifact，直接解析 playback source 并播放。
+5. 如 cache miss 或 artifact 损坏，调用 TTS 生成服务，校验音频，写入 local media artifact，再播放。
+6. 取消会停止当前播放 / 生成链路并更新 UI 状态。
+
+关键文件：
+
+- `LangoTraceApp/SentenceAudioPlaybackAssembly.swift`
+- `Packages/LangoTraceCore/Sources/LangoTraceCore/SentenceAudioPlaybackCoordinator.swift`
+- `Packages/LangoTraceData/Sources/LangoTraceData/LocalMediaArtifactStore.swift`
+- `Packages/LangoTraceAI/Sources/LangoTraceAI/SentenceTTSGenerationService.swift`
+- `Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/TTSAudioPlaybackService.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/SentenceAudioPlaybackActions.swift`
+
+测试入口：
+
+- `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/SentenceAudioPlaybackCoordinatorTests.swift`
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/SentenceTTSGenerationServiceTests.swift`
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/LocalMediaArtifactStoreTests.swift`
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/MediaArtifactPlaybackSourceResolverTests.swift`
+- `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/TTSAudioPlaybackServiceTests.swift`
+- `LangoTraceAppTests/SentenceAudioPlaybackAssemblyTests.swift`
+
+### 4.6 未来同步、导出、权限和 StoreKit
+
+这些能力目前是未完成或 disabled / unavailable 状态：
+
+- Sync：`Packages/LangoTraceSync/` 只有包边界和 disabled service，尚无 Sync Engine、Adapter、冲突处理或对象存储配置。
+- 导出：设置入口可以表达边界，但完整导出、可恢复备份和附件导出尚未实现。
+- 权限：Speech、OCR、Photos、麦克风和相机权限尚未接入真实授权流程。
+- StoreKit：买断制购买、恢复购买、App Store 发布材料和隐私标签尚未实现。
+
+这些能力不得在当前文档、UI 或计划中写成已完成。
+
+## 5. 模块依赖方向
+
+当前依赖方向：
+
+```text
+App Shell -> UI -> Core
+App Shell -> Data / AI / Speech / Sync
+Data -> Core
+AI -> Core
+Speech -> Core
+Sync -> Core
+```
+
+当前 App target 通过 `project.yml` 依赖所有本地 package；package 之间仍应保持 Core 向下无依赖、具体实现由 App 组装。
+
+## 6. 禁止反向依赖
+
+- Core 不依赖 SwiftUI、GRDB、Keychain、URLSession Provider 实现、AVFoundation 或 Sync Adapter。
+- UI 不直接访问 SQLite、Keychain、对象存储、真实网络 Provider、文件系统 artifact path 或同步密钥。
+- Data 不引入 SwiftUI 页面状态，也不保存 API Key 明文、密文、hash、尾号、请求体或响应体。
+- AI 不把真实用户生活记录、照片、音频或 Prompt Preset 内容用于配置 probe。
+- Speech 不决定 Provider 配置存储和 Keychain 读取策略。
+- Sync 未实现前不得把主数据、派生数据和 cache 的同步边界写成已落地。
+- Workflow、review、plan、reference research 不得覆盖 ADR、spec 或 architecture 的权威关系。
+
+## 7. 已知故障与恢复路径索引
+
+本节是异常路径和测试覆盖视图，不替代 bug plan、spec 或 review round。发现真实缺陷时，仍应在 `docs/plans/active/` 创建对应任务。
+
+| 能力 / 边界 | Failure mode | Recovery path | User-visible result | Diagnostics / log | Test status | Test file or verification | Current owner document |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| App 启动和语言空间恢复 | 数据库或 repository 读取失败 | `AppSessionState` 清空当前空间，记录 `recoveryState`，路由回 onboarding | 用户重新进入 onboarding 或看到语言空间缺失状态 | App session recovery state；运行期问题可用 `scripts/capture-runtime-log` | Partial | `LaunchFlowTests.swift`、`LanguageSpaceRepositoryTests.swift`、`AppEnvironmentBootstrapTests.swift` | 本文档；`docs/spec/002-navigation-and-routing.md` |
+| 语言空间删除 fallback | 删除当前空间后无 fallback | repository 返回空 fallback，session 刷新列表并回 onboarding | 不停留在悬空当前空间 | repository error / session recovery state | Yes | `LanguageSpaceRepositoryTests.swift`、`LanguageSpaceManagementTests.swift` | 本文档；`docs/spec/navigation/impl.md` |
+| GRDB migration / repository 写入 | migration 失败、写入失败、唯一约束或软删除冲突 | repository 抛出稳定错误；UI / App 层按当前 action 显示失败或保持旧状态 | 保存失败，不伪装成功 | Data repository error；必要时 runtime log | Partial | `AppDatabaseTests.swift`、`LanguageSpaceRepositoryTests.swift`、`GRDBLearningContentRepositoryTests.swift`、`AIProviderConfigurationRepositoryTests.swift` | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
+| AI Provider 配置缺失 | 未配置 profile / endpoint / model / secret | 配置 service 返回 input invalid 或 missing credential；probe / 生成不继续发送真实请求 | 设置页显示未配置或输入无效 | validation event / diagnostic event，不含 secret | Yes | `AIProviderConfigurationServiceTests.swift`、`AIProviderSettingsTests.swift` | `docs/spec/005-ai-provider-prompt-and-privacy.md` |
+| Keychain 读取失败 | secret 缺失、拒绝、不可用或 decode 失败 | 映射为稳定 credential error；数据库不回填明文；生成 / probe 失败收口 | 用户看到凭证相关失败，需要重新保存或检查系统 Keychain | diagnostic event 只记录阶段和分类 | Partial | `KeychainAIProviderCredentialStoreTests.swift`、`AIProviderCredentialReferenceTests.swift` | `docs/spec/008-permissions-local-privacy-and-diagnostics.md` |
+| Provider probe 失败或取消 | 网络失败、401、模型不存在、超时、用户取消 | probe result 记录 capability status；取消不当作 validation failure | 设置页显示对应失败或取消状态 | validation event；固定低敏请求 | Yes | `AIProviderConfigurationProbeServiceTests.swift`、`AIProviderSettingsProbeTests.swift`、`Tests/Tooling/test_probe_openai_compatible_api.py` | `docs/prompts/ai-provider/provider-configuration-probe.md` |
+| 学习材料生成 / 重新分析失败 | Provider 错误、结构化输出非法、secret 缺失、取消 | 写入 operation failure / cancelled summary；取消保持终态，不覆盖为成功 | 记录详情显示失败、取消或可重试状态 | operation summary；diagnostic event 分类 | Partial | `LearningMaterialGenerationServiceTests.swift`、`GRDBLearningContentRepositoryTests.swift`、`LearningContentStoreCancellationTests.swift` | `docs/spec/learning-content/impl.md` |
+| TTS 生成失败 | Provider HTTP 失败、空音频、格式无效、配置不支持 | 映射为稳定 TTS failure；不写入 ready artifact | 单句播放显示失败或可重试 | TTS failure category；不记录请求体 / 响应体 | Yes | `SentenceTTSGenerationServiceTests.swift`、`TTSAdapterRequestTests.swift`、`TTSAudioValidationTests.swift` | `docs/spec/011-tts-provider-configuration-and-playback.md` |
+| Artifact cache miss / corrupt | 本地文件缺失、格式不符、metadata 与文件不一致 | 重新生成或标记 artifact unavailable；损坏文件不当作命中 | 单句播放重试生成或显示失败 | media artifact state；cleanup result | Yes | `LocalMediaArtifactStoreTests.swift`、`MediaArtifactPlaybackSourceResolverTests.swift`、`TTSAudioFileValidatorTests.swift` | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
+| 播放取消和重试 | 用户取消、播放器失败、playback source 不可用 | coordinator 取消当前任务；后续点击可重新开始 | 单句状态回到取消 / 失败 / 可重试 | playback failure category | Yes | `SentenceAudioPlaybackCoordinatorTests.swift`、`TTSAudioPlaybackServiceTests.swift`、`LearningContentStoreSentenceAudioCoordinatorTests.swift` | `docs/spec/011-tts-provider-configuration-and-playback.md` |
+| 媒体派生资产 staging / atomic move / cleanup | staging 写入失败、move 失败、cleanup 部分失败 | 不提交 ready metadata；cleanup result 记录失败文件数 | 用户不看到伪成功 artifact | cleanup result；file state | Yes | `LocalMediaArtifactFileStoreTests.swift`、`LocalMediaArtifactStoreTests.swift`、`MediaArtifactRepositoryTests.swift` | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
+| 未来 Sync | sync engine / adapter / conflict 未实现 | 保持 disabled / unavailable，不承诺同步 | 设置页显示未启用或不可用 | 无真实同步日志 | No | `SyncBoundaryTests.swift` 只覆盖 disabled boundary | `docs/technical-framework-roadmap.md` |
+| 未来权限 | Photos / microphone / Speech / OCR 未接入 | 保持未实现说明，真实权限任务另建 plan | 不弹出真实权限或误导为已授权 | 无真实权限日志 | No | 当前无完整权限测试 | `docs/spec/008-permissions-local-privacy-and-diagnostics.md` |
+| 未来导出 | 完整导出和可恢复备份未实现 | 保持 unavailable / future capability | 设置页不能写成已导出 | 无真实导出日志 | No | 当前无完整导出测试 | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
+| 未来 StoreKit | 买断制购买 / 恢复购买未实现 | 保持未实现，发布前另建 StoreKit plan | 不显示已购买或可恢复购买 | 无 StoreKit 日志 | No | 当前无 StoreKit 测试 | `docs/release/README.md` |
+
+## 8. 验证入口
+
+文档和工程验证入口：
+
+```bash
+scripts/check-docs.sh
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
+git diff --check
+scripts/verify.sh
+```
+
+聚焦 package 测试入口：
+
+```bash
+swift test --package-path Packages/LangoTraceCore
+swift test --package-path Packages/LangoTraceData
+swift test --package-path Packages/LangoTraceAI
+swift test --package-path Packages/LangoTraceSpeech
+swift test --package-path Packages/LangoTraceSync
+swift test --package-path Packages/LangoTraceUI
+python3 -m unittest Tests/Tooling/test_probe_openai_compatible_api.py
+```
