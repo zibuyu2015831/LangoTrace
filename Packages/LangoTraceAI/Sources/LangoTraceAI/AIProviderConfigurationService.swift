@@ -8,6 +8,7 @@ public struct AIProviderConfigurationService: Sendable {
     private let credentialStore: (any AIProviderCredentialStore)?
     private let configurationProbeService: AIProviderConfigurationProbeService?
     private let ttsConfigurationProbeService: TTSConfigurationProbeService?
+    private let embeddingConfigurationProbeService: EmbeddingConfigurationProbeService?
     private let diagnosticLogger: any DiagnosticLogging
     private let clock: @Sendable () -> Date
     private let idGenerator: @Sendable () -> String
@@ -17,6 +18,7 @@ public struct AIProviderConfigurationService: Sendable {
         credentialStore = nil
         configurationProbeService = nil
         ttsConfigurationProbeService = nil
+        embeddingConfigurationProbeService = nil
         diagnosticLogger = DisabledDiagnosticLogger()
         clock = Date.init
         idGenerator = { UUID().uuidString }
@@ -27,6 +29,7 @@ public struct AIProviderConfigurationService: Sendable {
         credentialStore: any AIProviderCredentialStore,
         configurationProbeService: AIProviderConfigurationProbeService? = nil,
         ttsConfigurationProbeService: TTSConfigurationProbeService? = nil,
+        embeddingConfigurationProbeService: EmbeddingConfigurationProbeService? = nil,
         diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
@@ -35,6 +38,7 @@ public struct AIProviderConfigurationService: Sendable {
         self.credentialStore = credentialStore
         self.configurationProbeService = configurationProbeService
         self.ttsConfigurationProbeService = ttsConfigurationProbeService
+        self.embeddingConfigurationProbeService = embeddingConfigurationProbeService
         self.diagnosticLogger = diagnosticLogger
         self.clock = clock
         self.idGenerator = idGenerator
@@ -181,7 +185,7 @@ public struct AIProviderConfigurationService: Sendable {
               let ttsSettings = input.ttsSettings,
               let ttsVoiceProfile = input.ttsVoiceProfile
         else {
-            return textResult
+            return await mergedDraftEmbeddingProbeResult(textResult, input: input)
         }
         let ttsResult = await ttsConfigurationProbeService.probeDraftTTSConfiguration(
             TTSDraftProbeInput(
@@ -191,7 +195,8 @@ public struct AIProviderConfigurationService: Sendable {
                 plaintextSecret: input.ttsPlaintextSecret
             )
         )
-        return textResult.replacingCapabilityResult(ttsResult)
+        let merged = textResult.replacingCapabilityResult(ttsResult)
+        return await mergedDraftEmbeddingProbeResult(merged, input: input)
     }
 
     public func testDefaultConfiguration(
@@ -201,80 +206,55 @@ public struct AIProviderConfigurationService: Sendable {
         guard let credentialStore else {
             throw AIProviderConfigurationError.keychainWriteFailed
         }
-        guard let configurationProbeService else {
-            throw AIProviderConfigurationError.unsupportedCapabilityForProvider
-        }
-        guard let profile = try await repository.loadDefaultProfile(),
-              let endpoint = profile.endpoints.first(where: { $0.purpose == .textGeneration && $0.isEnabled })
+        guard let profile = try await repository.loadDefaultProfile()
         else {
             throw AIProviderConfigurationError.missingRequiredEndpointField
         }
 
         let credentialsByID = Dictionary(uniqueKeysWithValues: profile.credentials.map { ($0.id, $0) })
-        let resolvedSecret: String?
-        if endpoint.providerPresetID == "ollama-local" {
-            resolvedSecret = nil
-        } else {
-            guard let credentialID = endpoint.credentialID,
-                  let credential = credentialsByID[credentialID]
-            else {
-                resolvedSecret = nil
-                let result = missingSavedCredentialResult(endpoint: endpoint, category: .missingCredential)
-                await recordSavedProbePreflightFailure(
-                    endpoint: endpoint,
-                    category: .missingCredential,
-                    operationID: operationID
-                )
-                return try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
-            }
-            do {
-                let secret = try await credentialStore.resolveSecret(
-                    for: AIProviderCredentialKeychainReference(metadata: credential)
-                )
-                resolvedSecret = secret.value
-            } catch let error as AIProviderCredentialStoreError {
-                let result = missingSavedCredentialResult(
-                    endpoint: endpoint,
-                    category: validationErrorCategory(for: error)
-                )
-                await recordSavedProbePreflightFailure(
-                    endpoint: endpoint,
-                    category: validationErrorCategory(for: error),
-                    operationID: operationID
-                )
-                return try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
-            }
+        let textEndpoint = profile.endpoints.first(where: { $0.purpose == .textGeneration && $0.isEnabled })
+        let embeddingEndpoint = profile.endpoints.first(where: { $0.purpose == .embedding && $0.isEnabled })
+        guard textEndpoint != nil || embeddingEndpoint != nil else {
+            throw AIProviderConfigurationError.missingRequiredEndpointField
         }
 
-        let textResult = try await configurationProbeService.probeSavedConfiguration(
-            AIProviderConfigurationProbeSavedInput(
-                endpoint: AIProviderEndpointInput(
-                    id: endpoint.id,
-                    profileID: endpoint.profileID,
-                    purpose: endpoint.purpose,
-                    isEnabled: endpoint.isEnabled,
-                    providerPresetID: endpoint.providerPresetID,
-                    adapterKind: endpoint.adapterKind,
-                    baseURL: endpoint.baseURL,
-                    modelName: endpoint.modelName,
-                    credentialID: endpoint.credentialID,
-                    supportsImageInput: endpoint.supportsImageInput,
-                    imageInputEnabled: endpoint.imageInputEnabled,
-                    requestTimeoutSeconds: endpoint.requestTimeoutSeconds
-                ),
-                plaintextSecret: resolvedSecret,
-                languageContext: languageContext,
-                operationID: operationID
-            )
+        let textResult = try await savedTextProbeResult(
+            profile: profile,
+            endpoint: textEndpoint,
+            credentialsByID: credentialsByID,
+            credentialStore: credentialStore,
+            languageContext: languageContext,
+            operationID: operationID
         )
-        let result = await mergedSavedTTSProbeResult(
+        var result = await mergedSavedTTSProbeResult(
             textResult,
             profile: profile,
             credentialsByID: credentialsByID,
             credentialStore: credentialStore,
             languageContext: languageContext
         )
-        let persisted = try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
+        result = await mergedSavedEmbeddingProbeResult(
+            result,
+            profile: profile,
+            embeddingEndpoint: embeddingEndpoint,
+            credentialsByID: credentialsByID,
+            credentialStore: credentialStore
+        )
+        var persisted = result
+        if let endpoint = textEndpoint {
+            persisted = try await persistSyntheticProbeResult(result, profileID: profile.id, endpointID: endpoint.id)
+        }
+        if let embeddingResult = result.capabilities.first(where: { $0.capability == .embedding }),
+           let embeddingEndpointID = embeddingResult.endpointMetadata?.endpointID,
+           embeddingResult.status != .notEnabled,
+           embeddingResult.status != .notConfigured
+        {
+            try await persistEmbeddingProbeResult(
+                embeddingResult,
+                profileID: profile.id,
+                endpointID: embeddingEndpointID
+            )
+        }
         if let speechResult = result.capabilities.first(where: { $0.capability == .speechSynthesis }),
            let ttsEndpointID = speechResult.endpointMetadata?.endpointID,
            let languageCode = languageContext?.languageCode,
@@ -366,7 +346,11 @@ private extension AIProviderConfigurationProbeResult {
     }
 
     var persistableCapabilities: [AIProviderProbeCapabilityResult] {
-        capabilities.filter { $0.capability != .languageSupport && $0.capability != .speechSynthesis }
+        capabilities.filter {
+            $0.capability != .languageSupport &&
+                $0.capability != .speechSynthesis &&
+                $0.capability != .embedding
+        }
     }
 
     var persistenceStatus: AIProviderValidationStatus {
@@ -475,6 +459,107 @@ private extension AIProviderConfigurationService {
         try await repository.recordTTSVoiceProfileProbeOutcome(event, languageCode: languageCode)
     }
 
+    func persistEmbeddingProbeResult(
+        _ result: AIProviderProbeCapabilityResult,
+        profileID: AIProviderProfileID,
+        endpointID: AIProviderEndpointID
+    ) async throws {
+        guard result.status != .cancelled,
+              let fingerprint = result.endpointMetadata?.configurationFingerprint
+        else {
+            return
+        }
+        let event = AIProviderValidationEvent(
+            id: idGenerator(),
+            profileID: profileID,
+            endpointID: endpointID,
+            eventType: .syntheticTest,
+            status: result.status == .succeeded ? .succeeded : .failed,
+            errorCategory: result.errorCategory,
+            providerPresetID: result.endpointMetadata?.providerPresetID ?? "",
+            modelName: result.endpointMetadata?.modelName,
+            durationMilliseconds: result.durationMilliseconds,
+            createdAt: clock()
+        )
+        try await repository.recordEndpointValidationOutcome(
+            AIProviderEndpointValidationOutcome(event: event, configurationFingerprint: fingerprint)
+        )
+    }
+
+    func savedTextProbeResult(
+        profile: AIProviderConfigurationProfile,
+        endpoint: AIProviderEndpointConfiguration?,
+        credentialsByID: [AIProviderCredentialID: AIProviderCredentialMetadata],
+        credentialStore: any AIProviderCredentialStore,
+        languageContext: AIProviderProbeLanguageContext?,
+        operationID: DiagnosticOperationID
+    ) async throws -> AIProviderConfigurationProbeResult {
+        guard let endpoint else {
+            return noTextSavedProbeResult(profile: profile)
+        }
+        guard let configurationProbeService else {
+            throw AIProviderConfigurationError.unsupportedCapabilityForProvider
+        }
+        let resolvedSecret: String?
+        if endpoint.providerPresetID == "ollama-local" {
+            resolvedSecret = nil
+        } else {
+            guard let credentialID = endpoint.credentialID,
+                  let credential = credentialsByID[credentialID]
+            else {
+                let result = missingSavedCredentialResult(endpoint: endpoint, category: .missingCredential)
+                await recordSavedProbePreflightFailure(
+                    endpoint: endpoint,
+                    category: .missingCredential,
+                    operationID: operationID
+                )
+                return result
+            }
+            do {
+                let secret = try await credentialStore.resolveSecret(
+                    for: AIProviderCredentialKeychainReference(metadata: credential)
+                )
+                resolvedSecret = secret.value
+            } catch let error as AIProviderCredentialStoreError {
+                let category = validationErrorCategory(for: error)
+                let result = missingSavedCredentialResult(endpoint: endpoint, category: category)
+                await recordSavedProbePreflightFailure(
+                    endpoint: endpoint,
+                    category: category,
+                    operationID: operationID
+                )
+                return result
+            }
+        }
+
+        return try await configurationProbeService.probeSavedConfiguration(
+            AIProviderConfigurationProbeSavedInput(
+                endpoint: endpoint.makeProbeInput(),
+                plaintextSecret: resolvedSecret,
+                languageContext: languageContext,
+                operationID: operationID
+            )
+        )
+    }
+
+    func mergedDraftEmbeddingProbeResult(
+        _ current: AIProviderConfigurationProbeResult,
+        input: AIProviderConfigurationProbeDraftInput
+    ) async -> AIProviderConfigurationProbeResult {
+        guard let embeddingConfigurationProbeService,
+              let embeddingEndpoint = input.embeddingEndpoint
+        else {
+            return current
+        }
+        let embeddingResult = await embeddingConfigurationProbeService.probeDraftEmbeddingConfiguration(
+            EmbeddingDraftProbeInput(
+                endpoint: embeddingEndpoint,
+                plaintextSecret: input.embeddingPlaintextSecret
+            )
+        )
+        return current.replacingCapabilityResult(embeddingResult)
+    }
+
     func mergedSavedTTSProbeResult(
         _ textResult: AIProviderConfigurationProbeResult,
         profile: AIProviderConfigurationProfile,
@@ -542,6 +627,43 @@ private extension AIProviderConfigurationService {
         }
     }
 
+    func mergedSavedEmbeddingProbeResult(
+        _ current: AIProviderConfigurationProbeResult,
+        profile _: AIProviderConfigurationProfile,
+        embeddingEndpoint: AIProviderEndpointConfiguration?,
+        credentialsByID: [AIProviderCredentialID: AIProviderCredentialMetadata],
+        credentialStore: any AIProviderCredentialStore
+    ) async -> AIProviderConfigurationProbeResult {
+        guard let embeddingConfigurationProbeService,
+              let embeddingEndpoint
+        else {
+            return current
+        }
+        let secret: String?
+        do {
+            secret = try await resolveSecretForProbe(
+                endpoint: embeddingEndpoint,
+                credentialsByID: credentialsByID,
+                credentialStore: credentialStore
+            )
+        } catch let error as AIProviderCredentialStoreError {
+            return current.replacingCapabilityResult(
+                embeddingPreflightFailureResult(
+                    endpoint: embeddingEndpoint,
+                    category: validationErrorCategory(for: error)
+                )
+            )
+        } catch {
+            return current.replacingCapabilityResult(
+                embeddingPreflightFailureResult(endpoint: embeddingEndpoint, category: .credentialInaccessible)
+            )
+        }
+        let result = await embeddingConfigurationProbeService.probeDraftEmbeddingConfiguration(
+            EmbeddingDraftProbeInput(endpoint: embeddingEndpoint.makeProbeInput(), plaintextSecret: secret)
+        )
+        return current.replacingCapabilityResult(result)
+    }
+
     func resolveSecretForProbe(
         endpoint: AIProviderEndpointConfiguration,
         credentialsByID: [AIProviderCredentialID: AIProviderCredentialMetadata],
@@ -584,6 +706,44 @@ private extension AIProviderConfigurationService {
                 .init(capability: .embedding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
             ],
             persistedValidationEventID: nil
+        )
+    }
+
+    func noTextSavedProbeResult(profile: AIProviderConfigurationProfile) -> AIProviderConfigurationProbeResult {
+        let representative = profile.endpoints.first { $0.isEnabled }
+        return AIProviderConfigurationProbeResult(
+            source: .savedProfile,
+            overallStatus: .succeeded,
+            providerPresetID: representative?.providerPresetID ?? "",
+            modelName: representative?.modelName ?? "",
+            capabilities: [
+                .init(capability: .textReply, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+                .init(capability: .structuredJSON, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+                .init(capability: .languageSupport, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+                .init(capability: .imageUnderstanding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+                .init(capability: .speechSynthesis, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+                .init(capability: .embedding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+            ],
+            persistedValidationEventID: nil
+        )
+    }
+
+    func embeddingPreflightFailureResult(
+        endpoint: AIProviderEndpointConfiguration,
+        category: AIProviderValidationErrorCategory
+    ) -> AIProviderProbeCapabilityResult {
+        AIProviderProbeCapabilityResult(
+            capability: .embedding,
+            status: .failed,
+            errorCategory: category,
+            durationMilliseconds: nil,
+            endpointMetadata: AIProviderEndpointProbeMetadata(
+                endpointID: endpoint.id,
+                endpointPurpose: .embedding,
+                providerPresetID: endpoint.providerPresetID,
+                modelName: endpoint.modelName,
+                configurationFingerprint: endpoint.configurationFingerprint
+            )
         )
     }
 
@@ -1056,5 +1216,24 @@ private extension AIProviderConfigurationService {
                 cleanupFailure: cleanupFailure
             )
         }
+    }
+}
+
+private extension AIProviderEndpointConfiguration {
+    func makeProbeInput() -> AIProviderEndpointInput {
+        AIProviderEndpointInput(
+            id: id,
+            profileID: profileID,
+            purpose: purpose,
+            isEnabled: isEnabled,
+            providerPresetID: providerPresetID,
+            adapterKind: adapterKind,
+            baseURL: baseURL,
+            modelName: modelName,
+            credentialID: credentialID,
+            supportsImageInput: supportsImageInput,
+            imageInputEnabled: imageInputEnabled,
+            requestTimeoutSeconds: requestTimeoutSeconds
+        )
     }
 }

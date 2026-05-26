@@ -8,6 +8,8 @@ public struct AIProviderConfigurationProbeDraftInput {
     public var ttsSettings: TTSProviderSettings?
     public var ttsVoiceProfile: TTSVoiceProfile?
     public var ttsPlaintextSecret: String?
+    public var embeddingEndpoint: AIProviderEndpointInput?
+    public var embeddingPlaintextSecret: String?
     public var languageContext: AIProviderProbeLanguageContext?
     public var operationID: DiagnosticOperationID
 
@@ -18,6 +20,8 @@ public struct AIProviderConfigurationProbeDraftInput {
         ttsSettings: TTSProviderSettings? = nil,
         ttsVoiceProfile: TTSVoiceProfile? = nil,
         ttsPlaintextSecret: String? = nil,
+        embeddingEndpoint: AIProviderEndpointInput? = nil,
+        embeddingPlaintextSecret: String? = nil,
         languageContext: AIProviderProbeLanguageContext? = nil,
         operationID: DiagnosticOperationID
     ) {
@@ -27,6 +31,8 @@ public struct AIProviderConfigurationProbeDraftInput {
         self.ttsSettings = ttsSettings
         self.ttsVoiceProfile = ttsVoiceProfile
         self.ttsPlaintextSecret = ttsPlaintextSecret
+        self.embeddingEndpoint = embeddingEndpoint
+        self.embeddingPlaintextSecret = embeddingPlaintextSecret
         self.languageContext = languageContext
         self.operationID = operationID
     }

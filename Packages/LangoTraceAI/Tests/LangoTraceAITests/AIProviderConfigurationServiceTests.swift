@@ -642,6 +642,108 @@ func configurationServiceMergesDraftTTSProbeIntoSingleResultWithoutPersistence()
     #expect(await ttsHTTPClient.requests.count == 1)
 }
 
+@Test("Configuration service merges draft embedding probe without persistence even when text fails")
+func configurationServiceMergesDraftEmbeddingProbeWithoutPersistenceEvenWhenTextFails() async throws {
+    let repository = StubAIProviderConfigurationRepository(profile: nil)
+    let store = TrackingAIProviderCredentialStore()
+    let textHTTPClient = CapturingProbeHTTPClient(responses: [
+        .http(statusCode: 401, body: Data("{}".utf8)),
+    ])
+    let embeddingHTTPClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"data":[{"embedding":[0.1,0.2]}]}"#),
+    ])
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: AIProviderConfigurationProbeService(httpClient: textHTTPClient),
+        embeddingConfigurationProbeService: EmbeddingConfigurationProbeService(httpClient: embeddingHTTPClient)
+    )
+
+    let result = try await service.testDraftConfiguration(
+        AIProviderConfigurationProbeDraftInput(
+            endpoint: AIProviderEndpointInput(
+                id: "draft-text-endpoint",
+                profileID: "draft-profile",
+                purpose: .textGeneration,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-5.2",
+                credentialID: "draft-text-credential",
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+            plaintextSecret: "sk-text",
+            embeddingEndpoint: AIProviderEndpointInput(
+                id: "draft-embedding-endpoint",
+                profileID: "draft-profile",
+                purpose: .embedding,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAICompatibleChat,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "text-embedding-3-small",
+                credentialID: "draft-text-credential",
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+            embeddingPlaintextSecret: "sk-text",
+            operationID: DiagnosticOperationID(rawValue: "operation-draft-embedding-probe")
+        )
+    )
+
+    #expect(result.source == .draft)
+    #expect(result.overallStatus == .failed)
+    #expect(result.capabilities.first { $0.capability == .textReply }?.status == .failed)
+    let embedding = try #require(result.capabilities.first { $0.capability == .embedding })
+    #expect(embedding.status == .succeeded)
+    #expect(embedding.endpointMetadata?.endpointID == "draft-embedding-endpoint")
+    #expect(embedding.endpointMetadata?.configurationFingerprint != nil)
+    #expect(result.persistedValidationEventID == nil)
+    #expect(await repository.recordedValidationOutcomes.isEmpty)
+    #expect(await repository.recordedEndpointValidationOutcomes.isEmpty)
+    #expect(await textHTTPClient.requests.count == 1)
+    #expect(await embeddingHTTPClient.requests.count == 1)
+}
+
+@Test("Configuration service tests saved embedding endpoint without requiring text endpoint")
+func configurationServiceTestsSavedEmbeddingEndpointWithoutRequiringTextEndpoint() async throws {
+    let repository = try StubAIProviderConfigurationRepository(profile: savedProfileWithEmbedding(includeTextEndpoint: false))
+    let store = TrackingAIProviderCredentialStore()
+    let embeddingHTTPClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"data":[{"embedding":[0.1,0.2]}]}"#),
+    ])
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: AIProviderConfigurationProbeService(
+            httpClient: CapturingProbeHTTPClient(responses: [])
+        ),
+        embeddingConfigurationProbeService: EmbeddingConfigurationProbeService(httpClient: embeddingHTTPClient),
+        clock: { Date(timeIntervalSince1970: 260) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let result = try await service.testDefaultConfiguration(
+        operationID: DiagnosticOperationID(rawValue: "operation-saved-embedding-probe")
+    )
+
+    #expect(result.source == .savedProfile)
+    #expect(result.overallStatus == .succeeded)
+    let embedding = try #require(result.capabilities.first { $0.capability == .embedding })
+    #expect(embedding.status == .succeeded)
+    #expect(embedding.endpointMetadata?.endpointID == "endpoint-embedding")
+    #expect(await store.resolvedAccounts == ["ai-provider-credential:credential-embedding:api_key"])
+    #expect(await embeddingHTTPClient.requests.count == 1)
+    #expect(await repository.recordedValidationOutcomes.isEmpty)
+    let endpointOutcomes = await repository.recordedEndpointValidationOutcomes
+    #expect(endpointOutcomes.count == 1)
+    #expect(endpointOutcomes.first?.event.endpointID == "endpoint-embedding")
+    #expect(endpointOutcomes.first?.event.status == .succeeded)
+    #expect(endpointOutcomes.first?.configurationFingerprint == embedding.endpointMetadata?.configurationFingerprint)
+}
+
 private struct StubAIProviderConfigurationRepository: AIProviderConfigurationRepository {
     var profile: AIProviderConfigurationProfile?
     var saveError: (any Error)?
@@ -735,6 +837,16 @@ private struct StubAIProviderConfigurationRepository: AIProviderConfigurationRep
         }
     }
 
+    func recordEndpointValidationOutcome(_ outcome: AIProviderEndpointValidationOutcome) async throws {
+        await storage.appendEndpointValidationOutcome(outcome)
+    }
+
+    var recordedEndpointValidationOutcomes: [AIProviderEndpointValidationOutcome] {
+        get async {
+            await storage.recordedEndpointValidationOutcomes
+        }
+    }
+
     func loadTTSSettings(endpointID: AIProviderEndpointID) async throws -> TTSProviderSettings? {
         if let saved = await storage.savedTTSSettings, saved.endpointID == endpointID {
             return saved
@@ -789,6 +901,7 @@ private actor RepositoryStorage {
     var markedCredentialStates: [AIProviderSecretPresence] = []
     var recordedValidationEvents: [AIProviderValidationEvent] = []
     var recordedValidationOutcomes: [AIProviderValidationEvent] = []
+    var recordedEndpointValidationOutcomes: [AIProviderEndpointValidationOutcome] = []
     var recordedTTSVoiceProfileOutcomes: [AIProviderValidationEvent] = []
     var recordedTTSOutcomeLanguageCodes: [String] = []
 
@@ -811,6 +924,10 @@ private actor RepositoryStorage {
 
     func appendValidationOutcome(_ event: AIProviderValidationEvent) {
         recordedValidationOutcomes.append(event)
+    }
+
+    func appendEndpointValidationOutcome(_ outcome: AIProviderEndpointValidationOutcome) {
+        recordedEndpointValidationOutcomes.append(outcome)
     }
 
     func appendTTSVoiceProfileOutcome(_ event: AIProviderValidationEvent, languageCode: String) {
@@ -1046,6 +1163,79 @@ private func savedProfile(imageInputEnabled: Bool = false) throws -> AIProviderC
         updatedAt: now,
         endpoints: [endpoint],
         credentials: [credential]
+    )
+}
+
+private func savedProfileWithEmbedding(includeTextEndpoint: Bool = true) throws -> AIProviderConfigurationProfile {
+    let now = Date(timeIntervalSince1970: 100)
+    var endpoints: [AIProviderEndpointConfiguration] = []
+    if includeTextEndpoint {
+        endpoints.append(try AIProviderEndpointConfiguration(
+            input: AIProviderEndpointInput(
+                id: "endpoint-1",
+                profileID: "profile-1",
+                purpose: .textGeneration,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-5.2",
+                credentialID: "credential-1",
+                supportsImageInput: true,
+                imageInputEnabled: false
+            ),
+            createdAt: now,
+            updatedAt: now
+        ))
+    }
+    endpoints.append(try AIProviderEndpointConfiguration(
+        input: AIProviderEndpointInput(
+            id: "endpoint-embedding",
+            profileID: "profile-1",
+            purpose: .embedding,
+            isEnabled: true,
+            providerPresetID: "openai",
+            adapterKind: .openAICompatibleChat,
+            baseURL: "https://api.openai.com/v1",
+            modelName: "text-embedding-3-small",
+            credentialID: "credential-embedding",
+            supportsImageInput: false,
+            imageInputEnabled: false
+        ),
+        createdAt: now,
+        updatedAt: now
+    ))
+    let credentials = [
+        AIProviderCredentialMetadata(
+            id: "credential-1",
+            profileID: "profile-1",
+            providerPresetID: "openai",
+            kind: .apiKey,
+            label: "OpenAI API Key",
+            secretPresence: .present,
+            createdAt: now,
+            updatedAt: now
+        ),
+        AIProviderCredentialMetadata(
+            id: "credential-embedding",
+            profileID: "profile-1",
+            providerPresetID: "openai",
+            kind: .apiKey,
+            label: "OpenAI Embedding API Key",
+            secretPresence: .present,
+            createdAt: now,
+            updatedAt: now
+        ),
+    ]
+    return AIProviderConfigurationProfile(
+        id: "profile-1",
+        displayName: "Default AI Provider",
+        isDefault: true,
+        status: .configured,
+        createdAt: now,
+        updatedAt: now,
+        endpoints: endpoints,
+        credentials: credentials
     )
 }
 

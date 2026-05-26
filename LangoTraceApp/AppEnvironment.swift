@@ -135,6 +135,8 @@ struct AppEnvironment {
                                 ttsSettings: snapshot.ttsSettings,
                                 ttsVoiceProfile: snapshot.ttsVoiceProfile,
                                 ttsPlaintextSecret: snapshot.ttsPlaintextSecret,
+                                embeddingEndpoint: snapshot.embeddingEndpoint,
+                                embeddingPlaintextSecret: snapshot.embeddingPlaintextSecret,
                                 languageContext: snapshot.languageContext,
                                 operationID: operationID
                             )
@@ -577,6 +579,9 @@ private func makeAIProviderConfigurationService(
         ttsConfigurationProbeService: TTSConfigurationProbeService(
             httpClient: URLSessionAIProviderProbeHTTPClient(),
             audioValidationService: DefaultTTSAudioValidationService(previewStore: ttsPreviewStore)
+        ),
+        embeddingConfigurationProbeService: EmbeddingConfigurationProbeService(
+            httpClient: URLSessionAIProviderProbeHTTPClient()
         ),
         diagnosticLogger: diagnosticLogger
     )
