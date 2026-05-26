@@ -122,9 +122,6 @@ struct PracticeSessionView: View {
                         },
                         onPlayRecording: {
                             Task { await viewModel.playLatestRecording() }
-                        },
-                        onComplete: {
-                            Task { await viewModel.completeLatestRecording() }
                         }
                     )
                     PracticeSentenceNavigationBar(

@@ -6,8 +6,8 @@ import Testing
 @Suite("Practice session view model")
 @MainActor
 struct PracticeSessionViewModelTests {
-    @Test("View model creates session starts recording and completes latest ready attempt")
-    func viewModelCreatesRecordsAndCompletesLatestReadyAttempt() async {
+    @Test("View model creates session and keeps latest recording repeatable")
+    func viewModelCreatesSessionAndKeepsLatestRecordingRepeatable() async {
         let actions = RecordingPracticeActions()
         let viewModel = PracticeSessionViewModel(
             languageSpaceID: "space-1",
@@ -28,10 +28,14 @@ struct PracticeSessionViewModelTests {
         #expect(!viewModel.isRecording)
         #expect(viewModel.session?.latestReadyRecordingID == "recording-1")
 
-        await viewModel.completeLatestRecording()
-        #expect(viewModel.session?.status == .completed)
-        #expect(viewModel.session?.completedRecordingID == "recording-1")
-        #expect(actions.completedRecordingID == "recording-1")
+        await viewModel.startRecording()
+        #expect(viewModel.isRecording)
+        #expect(viewModel.activeRecordingID == "recording-2")
+
+        await viewModel.stopRecording()
+        #expect(viewModel.session?.readyRecordings.map(\.id) == ["recording-1", "recording-2"])
+        #expect(viewModel.session?.latestReadyRecordingID == "recording-2")
+        #expect(viewModel.session?.status == .inProgress)
     }
 
     @Test("View model plays demo and latest ready recording without mutating completion")
@@ -189,8 +193,8 @@ struct PracticeSessionViewModelTests {
         #expect(viewModel.isRecording)
     }
 
-    @Test("Control bar presentation maps session state to user-visible action keys")
-    func controlBarPresentationMapsSessionStateToActionKeys() {
+    @Test("Control bar presentation keeps recording action repeatable after ready recordings")
+    func controlBarPresentationKeepsRecordingActionRepeatableAfterReadyRecordings() {
         let base = PracticeSession(
             id: "session-1",
             languageSpaceID: "space-1",
@@ -209,7 +213,7 @@ struct PracticeSessionViewModelTests {
         ]
         #expect(
             PracticeControlBarPresentation(session: withRecording, isRecording: false, isPlayingRecording: false)
-                .primaryTitleKey == "practice.action.markComplete"
+                .primaryTitleKey == "practice.recording.recordAgain"
         )
 
         var completed = withRecording
@@ -217,7 +221,7 @@ struct PracticeSessionViewModelTests {
         completed.completedRecordingID = "recording-1"
         #expect(
             PracticeControlBarPresentation(session: completed, isRecording: false, isPlayingRecording: false)
-                .primaryTitleKey == "common.keepCompleted"
+                .primaryTitleKey == "practice.recording.recordAgain"
         )
     }
 }

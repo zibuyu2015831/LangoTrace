@@ -96,23 +96,6 @@ final class PracticeSessionViewModel: ObservableObject {
         }
     }
 
-    func completeLatestRecording() async {
-        guard let session else {
-            failure = .missingSession
-            return
-        }
-        guard let recordingID = session.latestReadyRecordingID else {
-            failure = .missingReadyRecording
-            return
-        }
-        do {
-            self.session = try await actions.complete(session, recordingID)
-            failure = nil
-        } catch {
-            failure = .missingReadyRecording
-        }
-    }
-
     func playDemo() async {
         guard !isRecording, !isPlayingRecording else {
             failure = .audioBusy

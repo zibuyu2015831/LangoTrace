@@ -7608,6 +7608,23 @@
         }
       }
     },
+    "practice.recording.recordAgain": {
+      "comment": "Primary button title for recording another attempt after a ready practice recording exists.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record Again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再录一次"
+          }
+        }
+      }
+    },
     "practice.recording.playback": {
       "comment": "Button title for playing back a practice recording.",
       "localizations": {

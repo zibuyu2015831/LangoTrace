@@ -22,7 +22,7 @@ LangoTrace 的信任基础是本地优先。权限和隐私说明不能只在 AI
 - 每个权限请求前，App 自有 UI 必须用当前界面语言说明用途和数据边界。
 - Photos、相机、麦克风、Speech、OCR 和文件访问不得因为用户打开页面而自动读取敏感内容。
 - TTS 播放目标语言文本不需要系统权限。本地 TTS 不上传内容；外部 TTS Provider 必须遵守 `011-tts-provider-configuration-and-playback.md`：设置页完成配置、测试和披露后，用户在学习页面显式点击单句播放可以直接发送该句目标语言文本，不再逐次弹出请求预览。页面展示、滚动、保存记录、进入详情、批量预生成、照片、音频、OCR、历史记忆或多条 Entry 上下文不得复用该低摩擦边界。
-- 单句跟读录音必须由用户点击开始录音触发。进入练习页、查看句子列表、播放 TTS 示范、回放页面状态或标记完成不得自动请求麦克风权限。
+- 单句跟读录音必须由用户点击开始录音或再录一次触发。进入练习页、查看句子列表、播放 TTS 示范、回放页面状态或已练过状态投影不得自动请求麦克风权限。
 - 跟读录音默认只保存到 App 管理的本地媒体资产目录和 practice metadata。不得自动发送给 AI Provider，不进入默认导出包、同步目录、诊断日志或对象存储。
 - iOS 和 macOS 的 `NSMicrophoneUsageDescription` 必须通过 `project.yml` 作为 XcodeGen 事实源维护；macOS App Sandbox 必须启用 audio input entitlement。purpose string 需要说明录音仅用于本地跟读练习，不自动上传或发送给 AI。
 - OCR、Speech 或图片理解若调用外部 Provider，必须同时遵守 `005` 的请求预览和同意级别。

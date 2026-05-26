@@ -10,7 +10,6 @@ struct PracticeControlBar: View {
     let onStartRecording: () -> Void
     let onStopRecording: () -> Void
     let onPlayRecording: () -> Void
-    let onComplete: () -> Void
 
     private var presentation: PracticeControlBarPresentation {
         PracticeControlBarPresentation(
@@ -67,14 +66,12 @@ struct PracticeControlBar: View {
     }
 
     private var primaryDisabled: Bool {
-        session.status == .completed || isPlayingDemo || isPlayingRecording
+        isPlayingDemo || isPlayingRecording
     }
 
     private func primaryAction() {
         if isRecording {
             onStopRecording()
-        } else if session.latestReadyRecordingID != nil {
-            onComplete()
         } else {
             onStartRecording()
         }
@@ -92,12 +89,9 @@ struct PracticeControlBarPresentation: Equatable {
         } else if isPlayingRecording {
             primaryTitleKey = "practice.recording.playing"
             primaryIcon = "play.circle"
-        } else if session.status == .completed {
-            primaryTitleKey = "common.keepCompleted"
-            primaryIcon = "checkmark"
         } else if session.latestReadyRecordingID != nil {
-            primaryTitleKey = "practice.action.markComplete"
-            primaryIcon = "checkmark"
+            primaryTitleKey = "practice.recording.recordAgain"
+            primaryIcon = "record.circle"
         } else {
             primaryTitleKey = "practice.recording.start"
             primaryIcon = "record.circle"

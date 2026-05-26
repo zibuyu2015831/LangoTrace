@@ -120,7 +120,7 @@ struct ThreePlatformPresentationCopyTests {
             "practice.navigation.previous",
             "practice.navigation.next",
             "practice.navigation.position",
-            "practice.action.markComplete",
+            "practice.recording.recordAgain",
             "practice.prompt.translation.title",
             "practice.prompt.translation.expand",
             "practice.prompt.translation.collapse",
