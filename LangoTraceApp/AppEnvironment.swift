@@ -86,10 +86,16 @@ struct AppEnvironment {
                     return try await service.loadTTSVoiceProfile(endpointID: endpointID, languageCode: languageCode)
                 },
                 resolveCredentialSecret: { credential in
-                    let secret = try await credentialStore.resolveSecret(
-                        for: AIProviderCredentialKeychainReference(metadata: credential)
-                    )
-                    return secret.value
+                    do {
+                        let secret = try await credentialStore.resolveSecret(
+                            for: AIProviderCredentialKeychainReference(metadata: credential)
+                        )
+                        return secret.value
+                    } catch let error as AIProviderCredentialStoreError {
+                        throw AIProviderCredentialResolveFailure(
+                            category: credentialResolveFailureCategory(for: error)
+                        )
+                    }
                 },
                 saveDefaultProfile: { input, operationID in
                     let service = try makeAIProviderConfigurationService(
@@ -457,6 +463,17 @@ private func resolveLearningMaterialSecret(
     ).value
 }
 
+private func credentialResolveFailureCategory(
+    for error: AIProviderCredentialStoreError
+) -> AIProviderValidationErrorCategory {
+    switch error {
+    case .missingCredential:
+        .missingCredential
+    case .credentialInaccessible, .credentialCorrupted, .userInteractionRequired:
+        .credentialInaccessible
+    }
+}
+
 private func recordLearningMaterialFailure(
     _ category: LearningMaterialGenerationFailureCategory,
     operationID: DiagnosticOperationID,
@@ -571,13 +588,13 @@ private func makeDiagnosticLogger(
 ) -> any DiagnosticLogging {
     var loggers: [any DiagnosticLogging] = []
 
-    if environment["LANGOTRACE_DIAGNOSTICS"] == "1" {
-        loggers.append(
-            ConsoleDiagnosticLogger(
-                minimumLevel: diagnosticLevel(from: environment["LANGOTRACE_LOG_LEVEL"])
-            )
+    loggers.append(
+        ConsoleDiagnosticLogger(
+            minimumLevel: environment["LANGOTRACE_DIAGNOSTICS"] == "1"
+                ? diagnosticLevel(from: environment["LANGOTRACE_LOG_LEVEL"])
+                : .warning
         )
-    }
+    )
 
     if environment["LANGOTRACE_DIAGNOSTIC_STORE"] == "1",
        let repository = try? GRDBDiagnosticEventRepository(database: databaseFactory.database())

@@ -52,6 +52,7 @@ func languageSupportValidatorRejectsEnglishShortSentence() {
 
     #expect(!result.isValid)
     #expect(result.errorCategory == .invalidResponse)
+    #expect(result.failureReason == .sampleTooShort)
 }
 
 @Test("Language support validator rejects Japanese sample without kana")
@@ -66,6 +67,7 @@ func languageSupportValidatorRejectsJapaneseWithoutKana() {
 
     #expect(!result.isValid)
     #expect(result.errorCategory == .invalidResponse)
+    #expect(result.failureReason == .scriptMismatch)
 }
 
 @Test("Language support validator rejects Korean sample without Hangul")
@@ -82,6 +84,7 @@ func languageSupportValidatorRejectsKoreanWithoutHangul() {
 
     #expect(!result.isValid)
     #expect(result.errorCategory == .invalidResponse)
+    #expect(result.failureReason == .scriptMismatch)
 }
 
 @Test("Language support validator rejects Chinese sample written in English")
@@ -100,6 +103,7 @@ func languageSupportValidatorRejectsChineseWrittenInEnglish() {
 
     #expect(!result.isValid)
     #expect(result.errorCategory == .invalidResponse)
+    #expect(result.failureReason == .scriptMismatch)
 }
 
 @Test("Language support validator rejects unsupported language code before network use")
@@ -114,4 +118,20 @@ func languageSupportValidatorRejectsUnsupportedLanguageCode() {
 
     #expect(!result.isValid)
     #expect(result.errorCategory == .invalidResponse)
+    #expect(result.failureReason == .unsupportedLanguageCode)
+}
+
+@Test("Language support validator reports missing sample JSON without preserving response text")
+func languageSupportValidatorReportsMissingSampleJSON() {
+    let validator = AIProviderLanguageSupportValidator()
+
+    let result = validator.validateResponseText(
+        "The language works, but this is not JSON.",
+        languageContext: AIProviderProbeLanguageContext(languageCode: "en")
+    )
+
+    #expect(!result.isValid)
+    #expect(result.errorCategory == .invalidResponse)
+    #expect(result.failureReason == .missingSampleJSON)
+    #expect(result.sample == nil)
 }

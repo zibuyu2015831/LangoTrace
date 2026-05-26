@@ -22,6 +22,10 @@ func diagnosticEventUsesTypedNamesAndOperationID() {
     #expect(event.name.rawValue == "ai_provider_settings.save_started")
     #expect(event.attributes.contains(.operationID(operationID)))
     #expect(event.attributes.contains(.providerPresetID("openai")))
+    #expect(
+        DiagnosticEventName.aiProviderSettingsCredentialFailed.rawValue
+            == "ai_provider_settings.credential_resolve_failed"
+    )
 }
 
 @Test("Diagnostic attribute keys are stable and allowlisted")
@@ -30,6 +34,10 @@ func diagnosticAttributeKeysAreStableAndAllowlisted() {
     #expect(DiagnosticAttribute.endpointPurpose(.textGeneration).key == "endpoint_purpose")
     #expect(DiagnosticAttribute.durationMilliseconds(42).key == "duration_ms")
     #expect(DiagnosticAttribute.failurePhase("database_write").key == "failure_phase")
+    #expect(
+        DiagnosticAttribute.languageSupportFailureReason("sample_too_short").key
+            == "language_support_failure_reason"
+    )
 }
 
 @Test("AI provider save failure preserves primary database phase when cleanup also fails")
@@ -45,6 +53,13 @@ func aiProviderSaveFailurePreservesPrimaryPhaseWhenCleanupAlsoFails() {
     #expect(failure.phase == .databaseWrite)
     #expect(failure.category == .databaseWriteFailed)
     #expect(failure.cleanupFailure == .credentialCleanupFailed)
+}
+
+@Test("Credential resolve failure exposes stable validation category")
+func credentialResolveFailureExposesStableValidationCategory() {
+    let failure = AIProviderCredentialResolveFailure(category: .missingCredential)
+
+    #expect(failure.category == .missingCredential)
 }
 
 @Test("Repository diagnostic logger swallows repository failures")

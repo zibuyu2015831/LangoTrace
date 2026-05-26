@@ -803,6 +803,29 @@ struct AIProviderLoadedSecretRepairTests {
         #expect(!source.contains("debugPrint("))
     }
 
+    @Test("Settings view records credential resolve failures without logging secrets")
+    func settingsViewRecordsCredentialResolveFailuresWithoutLoggingSecrets() throws {
+        let source = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"),
+            encoding: .utf8
+        )
+
+        let resolverNeedle = "do {\n" +
+            "                let secret = try await actions.resolveCredentialSecret(credential)"
+
+        #expect(source.contains(resolverNeedle))
+        #expect(source.contains("catch {"))
+        #expect(source.contains("recordCredentialResolveFailure(error)"))
+        #expect(source.contains(".aiProviderSettingsCredentialFailed"))
+        #expect(source.contains(".failurePhase(\"credential_resolve\")"))
+        #expect(source.contains("credentialResolveFailureCategory(for: error)"))
+        #expect(source.contains("error as? AIProviderCredentialResolveFailure"))
+        #expect(source.contains(".diagnosticsMode(\"settings_load\")"))
+        #expect(source.contains(".platform(aiProviderSettingsPlatformName)"))
+        #expect(!source.contains("credential.keychainAccount"))
+        #expect(!source.contains("credential.keychainService"))
+    }
+
     private func sourceFileURL(named fileName: String) -> URL {
         langoTraceUISourceFileURL(named: fileName)
     }

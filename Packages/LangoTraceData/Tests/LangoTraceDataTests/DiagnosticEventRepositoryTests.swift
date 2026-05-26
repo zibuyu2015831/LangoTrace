@@ -34,6 +34,7 @@ func diagnosticEventRepositoryRecordsAndLoadsRecentAllowlistedEvents() async thr
     #expect(recent.map(\.id) == ["event-2", "event-1"])
     #expect(recent.first?.name == .aiProviderSettingsSaveStarted)
     #expect(recent.first?.attributes.contains(.operationID(operationID)) == true)
+    #expect(recent.first?.attributes.contains(.languageSupportFailureReason("sample_too_short")) == true)
 
     let storedRow = try database.databaseQueue.read { db in
         try Row.fetchOne(db, sql: "SELECT * FROM diagnostic_events WHERE id = ?", arguments: ["event-1"])
@@ -117,6 +118,7 @@ private func diagnosticEvent(
             .providerPresetID("openai"),
             .endpointPurpose(.textGeneration),
             .durationMilliseconds(12),
+            .languageSupportFailureReason("sample_too_short"),
         ],
         createdAt: createdAt
     )

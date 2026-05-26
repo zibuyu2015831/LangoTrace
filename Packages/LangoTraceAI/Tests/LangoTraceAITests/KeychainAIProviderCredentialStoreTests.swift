@@ -32,10 +32,30 @@ func keychainCredentialStoreReportsMissingCredential() async {
     #expect(await store.hasSecret(for: reference) == .missing)
 }
 
+@Test("Keychain credential store uses noninteractive credential queries")
+func keychainCredentialStoreUsesNoninteractiveCredentialQueries() throws {
+    let source = try String(
+        contentsOf: langoTraceAISourceFileURL(named: "KeychainAIProviderCredentialStore.swift"),
+        encoding: .utf8
+    )
+
+    #expect(source.contains("kSecUseAuthenticationContext"))
+    #expect(source.contains("interactionNotAllowed = true"))
+    #expect(source.contains("nonInteractiveQuery(for: reference)"))
+}
+
 private func testReference() -> AIProviderCredentialKeychainReference {
     AIProviderCredentialKeychainReference(
         credentialID: UUID().uuidString,
         kind: .apiKey,
         service: "com.langotrace.ai-provider.tests"
     )
+}
+
+private func langoTraceAISourceFileURL(named filename: String) -> URL {
+    URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .appendingPathComponent("Sources/LangoTraceAI/\(filename)")
 }

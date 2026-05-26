@@ -87,6 +87,7 @@ private extension GRDBDiagnosticEventRepository {
         "probe_capability_status": {
             AIProviderProbeCapabilityStatus(rawValue: $0).map(DiagnosticAttribute.probeCapabilityStatus)
         },
+        "language_support_failure_reason": { .languageSupportFailureReason($0) },
         "platform": { .platform($0) },
         "app_version": { .appVersion($0) },
         "diagnostics_mode": { .diagnosticsMode($0) },
@@ -164,41 +165,7 @@ private extension GRDBDiagnosticEventRepository {
     }
 
     func value(from attribute: DiagnosticAttribute) -> String {
-        switch attribute {
-        case let .operationID(value):
-            value.rawValue
-        case let .providerPresetID(value):
-            value
-        case let .endpointPurpose(value):
-            value.rawValue
-        case let .endpointCount(value),
-             let .enabledEndpointCount(value),
-             let .durationMilliseconds(value):
-            String(value)
-        case let .modelName(value),
-             let .errorCategory(value),
-             let .failurePhase(value),
-             let .platform(value),
-             let .appVersion(value),
-             let .diagnosticsMode(value):
-            value
-        case let .adapterKind(value):
-            value.rawValue
-        case let .probeCapability(value):
-            value.rawValue
-        case let .probeCapabilityStatus(value):
-            value.rawValue
-        case let .outputFormat(value):
-            value.rawValue
-        case let .textLengthBucket(value):
-            value.rawValue
-        case let .byteSizeBucket(value):
-            value.rawValue
-        case let .durationBucket(value):
-            value.rawValue
-        case let .cacheResult(value):
-            value.rawValue
-        }
+        attribute.valueDescription
     }
 
     func operationID(in attributes: [DiagnosticAttribute]) -> DiagnosticOperationID? {

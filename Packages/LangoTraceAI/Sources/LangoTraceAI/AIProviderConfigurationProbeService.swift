@@ -380,7 +380,8 @@ private extension AIProviderConfigurationProbeService {
                         capability: kind.capability,
                         status: .failed,
                         errorCategory: validation.errorCategory,
-                        durationMilliseconds: duration
+                        durationMilliseconds: duration,
+                        languageSupportFailureReason: validation.failureReason?.rawValue
                     )
                 }
             }
@@ -771,6 +772,11 @@ private extension AIProviderConfigurationProbeService {
                     attributes.append(
                         .errorCategory("\(capability.capability.rawValue):\(errorCategory.rawValue)")
                     )
+                }
+                if capability.capability == .languageSupport,
+                   let failureReason = capability.languageSupportFailureReason
+                {
+                    attributes.append(.languageSupportFailureReason(failureReason))
                 }
                 return attributes
             }

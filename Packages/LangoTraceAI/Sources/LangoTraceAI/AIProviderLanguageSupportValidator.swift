@@ -6,16 +6,27 @@ public struct AIProviderLanguageSupportValidationResult: Equatable, Sendable {
     public var isValid: Bool
     public var sample: String?
     public var errorCategory: AIProviderValidationErrorCategory?
+    public var failureReason: AIProviderLanguageSupportFailureReason?
 
     public init(
         isValid: Bool,
         sample: String?,
-        errorCategory: AIProviderValidationErrorCategory?
+        errorCategory: AIProviderValidationErrorCategory?,
+        failureReason: AIProviderLanguageSupportFailureReason? = nil
     ) {
         self.isValid = isValid
         self.sample = sample
         self.errorCategory = errorCategory
+        self.failureReason = failureReason
     }
+}
+
+public enum AIProviderLanguageSupportFailureReason: String, Codable, Sendable {
+    case unsupportedLanguageCode = "unsupported_language_code"
+    case missingSampleJSON = "missing_sample_json"
+    case sampleTooShort = "sample_too_short"
+    case scriptMismatch = "script_mismatch"
+    case naturalLanguageMismatch = "natural_language_mismatch"
 }
 
 public struct AIProviderLanguageSupportValidator: Sendable {
@@ -25,22 +36,36 @@ public struct AIProviderLanguageSupportValidator: Sendable {
         _ responseText: String,
         languageContext: AIProviderProbeLanguageContext
     ) -> AIProviderLanguageSupportValidationResult {
-        guard let target = TargetLanguage(languageCode: languageContext.languageCode),
-              let sample = parseSample(from: responseText),
-              validateLength(sample, for: target),
-              validateScript(sample, for: target),
-              validateNaturalLanguage(sample, for: target)
-        else {
-            return AIProviderLanguageSupportValidationResult(
-                isValid: false,
-                sample: nil,
-                errorCategory: .invalidResponse
-            )
+        guard let target = TargetLanguage(languageCode: languageContext.languageCode) else {
+            return invalid(.unsupportedLanguageCode)
+        }
+        guard let sample = parseSample(from: responseText) else {
+            return invalid(.missingSampleJSON)
+        }
+        guard validateLength(sample, for: target) else {
+            return invalid(.sampleTooShort)
+        }
+        guard validateScript(sample, for: target) else {
+            return invalid(.scriptMismatch)
+        }
+        guard validateNaturalLanguage(sample, for: target) else {
+            return invalid(.naturalLanguageMismatch)
         }
         return AIProviderLanguageSupportValidationResult(
             isValid: true,
             sample: sample,
             errorCategory: nil
+        )
+    }
+
+    private func invalid(
+        _ reason: AIProviderLanguageSupportFailureReason
+    ) -> AIProviderLanguageSupportValidationResult {
+        AIProviderLanguageSupportValidationResult(
+            isValid: false,
+            sample: nil,
+            errorCategory: .invalidResponse,
+            failureReason: reason
         )
     }
 }

@@ -423,8 +423,13 @@ private extension AIProviderSettingsView {
     ) async -> [AIProviderCredentialID: String] {
         var secretsByCredentialID: [AIProviderCredentialID: String] = [:]
         for credential in profile.credentials {
-            if let secret = try? await actions.resolveCredentialSecret(credential) {
-                secretsByCredentialID[credential.id] = secret
+            do {
+                let secret = try await actions.resolveCredentialSecret(credential)
+                if let secret {
+                    secretsByCredentialID[credential.id] = secret
+                }
+            } catch {
+                await recordCredentialResolveFailure(error)
             }
         }
         return secretsByCredentialID
@@ -598,5 +603,44 @@ private extension AIProviderSettingsView {
                 createdAt: Date()
             )
         )
+    }
+
+    func recordCredentialResolveFailure(_ error: Error) async {
+        await actions.recordDiagnosticEvent(
+            DiagnosticEvent(
+                id: UUID().uuidString,
+                name: .aiProviderSettingsCredentialFailed,
+                domain: .aiProviderSettings,
+                level: .warning,
+                outcome: .failed,
+                attributes: [
+                    .failurePhase("credential_resolve"),
+                    .errorCategory(credentialResolveFailureCategory(for: error).rawValue),
+                    .diagnosticsMode("settings_load"),
+                    .platform(aiProviderSettingsPlatformName),
+                ],
+                createdAt: Date()
+            )
+        )
+    }
+
+    func credentialResolveFailureCategory(for error: Error) -> AIProviderValidationErrorCategory {
+        if let failure = error as? AIProviderCredentialResolveFailure {
+            return failure.category
+        }
+        if error is CancellationError {
+            return .credentialInaccessible
+        }
+        return .credentialInaccessible
+    }
+
+    var aiProviderSettingsPlatformName: String {
+        #if os(macOS)
+            "macOS"
+        #elseif os(iOS)
+            "iOS"
+        #else
+            "unknown"
+        #endif
     }
 }

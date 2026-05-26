@@ -141,6 +141,7 @@ func languageSupportFailureDiagnosticsIncludeCapabilityScopedErrorCategory() asy
     let completion = try #require(events.last)
     #expect(completion.name == .aiProviderConfigurationProbePartial)
     #expect(completion.attributes.contains(.errorCategory("language_support:invalid_response")))
+    #expect(completion.attributes.contains(.languageSupportFailureReason("sample_too_short")))
     #expect(!String(describing: completion).contains("I wrote a note today"))
 }
 

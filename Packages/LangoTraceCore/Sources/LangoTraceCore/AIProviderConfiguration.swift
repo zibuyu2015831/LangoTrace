@@ -15,6 +15,14 @@ public enum AIProviderConfigurationError: Error, Equatable, Sendable {
     case orphanedCredentialCleanupFailed
 }
 
+public struct AIProviderCredentialResolveFailure: Error, Equatable, Sendable {
+    public var category: AIProviderValidationErrorCategory
+
+    public init(category: AIProviderValidationErrorCategory) {
+        self.category = category
+    }
+}
+
 public enum AIProviderProfileStatus: String, Codable, CaseIterable, Sendable {
     case draft
     case configured
@@ -171,6 +179,7 @@ public struct AIProviderProbeCapabilityResult: Equatable, Sendable {
     public var errorCategory: AIProviderValidationErrorCategory?
     public var durationMilliseconds: Int?
     public var endpointMetadata: AIProviderEndpointProbeMetadata?
+    public var languageSupportFailureReason: String?
     public var audioMetadata: TTSAudioMetadata?
     public var audioPreviewResource: TTSAudioPreviewResource?
 
@@ -180,6 +189,7 @@ public struct AIProviderProbeCapabilityResult: Equatable, Sendable {
         errorCategory: AIProviderValidationErrorCategory?,
         durationMilliseconds: Int?,
         endpointMetadata: AIProviderEndpointProbeMetadata? = nil,
+        languageSupportFailureReason: String? = nil,
         audioMetadata: TTSAudioMetadata? = nil,
         audioPreviewResource: TTSAudioPreviewResource? = nil
     ) {
@@ -188,6 +198,7 @@ public struct AIProviderProbeCapabilityResult: Equatable, Sendable {
         self.errorCategory = errorCategory
         self.durationMilliseconds = durationMilliseconds
         self.endpointMetadata = endpointMetadata
+        self.languageSupportFailureReason = languageSupportFailureReason
         self.audioMetadata = audioMetadata
         self.audioPreviewResource = audioPreviewResource
     }

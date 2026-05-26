@@ -61,7 +61,16 @@ public struct ConsoleDiagnosticLogger: DiagnosticLogging {
             return
         }
 
-        let message = "\(event.name.rawValue) \(event.outcome?.rawValue ?? "none")"
+        let attributes = event.attributes
+            .map { "\($0.key)=\($0.valueDescription)" }
+            .joined(separator: " ")
+        let message = [
+            event.name.rawValue,
+            event.outcome?.rawValue ?? "none",
+            attributes,
+        ]
+        .filter { !$0.isEmpty }
+        .joined(separator: " ")
         switch event.level {
         case .debug:
             logger.debug("\(message, privacy: .public)")

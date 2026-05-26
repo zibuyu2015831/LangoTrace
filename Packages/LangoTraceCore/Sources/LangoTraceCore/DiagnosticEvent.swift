@@ -42,6 +42,7 @@ public enum DiagnosticEventName: String, Codable, Sendable {
     case aiProviderSettingsSaveStarted = "ai_provider_settings.save_started"
     case aiProviderSettingsSaveSucceeded = "ai_provider_settings.save_succeeded"
     case aiProviderSettingsSaveFailed = "ai_provider_settings.save_failed"
+    case aiProviderSettingsCredentialFailed = "ai_provider_settings.credential_resolve_failed"
     case aiProviderConfigurationKeychainWriteStarted = "ai_provider_configuration.keychain_write_started"
     case aiProviderConfigurationKeychainWriteSucceeded = "ai_provider_configuration.keychain_write_succeeded"
     case aiProviderConfigurationKeychainWriteFailed = "ai_provider_configuration.keychain_write_failed"
@@ -104,6 +105,7 @@ public enum DiagnosticAttribute: Equatable, Sendable {
     case adapterKind(AIProviderAdapterKind)
     case probeCapability(AIProviderProbeCapability)
     case probeCapabilityStatus(AIProviderProbeCapabilityStatus)
+    case languageSupportFailureReason(String)
     case platform(String)
     case appVersion(String)
     case diagnosticsMode(String)
@@ -139,6 +141,8 @@ public enum DiagnosticAttribute: Equatable, Sendable {
             "probe_capability"
         case .probeCapabilityStatus:
             "probe_capability_status"
+        case .languageSupportFailureReason:
+            "language_support_failure_reason"
         case .platform:
             "platform"
         case .appVersion:
@@ -155,6 +159,45 @@ public enum DiagnosticAttribute: Equatable, Sendable {
             "duration_bucket"
         case .cacheResult:
             "cache_result"
+        }
+    }
+
+    public var valueDescription: String {
+        switch self {
+        case let .operationID(value):
+            value.rawValue
+        case let .providerPresetID(value):
+            value
+        case let .endpointPurpose(value):
+            value.rawValue
+        case let .endpointCount(value),
+             let .enabledEndpointCount(value),
+             let .durationMilliseconds(value):
+            String(value)
+        case let .modelName(value),
+             let .errorCategory(value),
+             let .failurePhase(value),
+             let .languageSupportFailureReason(value),
+             let .platform(value),
+             let .appVersion(value),
+             let .diagnosticsMode(value):
+            value
+        case let .adapterKind(value):
+            value.rawValue
+        case let .probeCapability(value):
+            value.rawValue
+        case let .probeCapabilityStatus(value):
+            value.rawValue
+        case let .outputFormat(value):
+            value.rawValue
+        case let .textLengthBucket(value):
+            value.rawValue
+        case let .byteSizeBucket(value):
+            value.rawValue
+        case let .durationBucket(value):
+            value.rawValue
+        case let .cacheResult(value):
+            value.rawValue
         }
     }
 }

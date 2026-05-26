@@ -1,5 +1,6 @@
 import Foundation
 import LangoTraceCore
+import LocalAuthentication
 import Security
 
 public struct KeychainAIProviderCredentialStore: AIProviderCredentialStore {
@@ -23,7 +24,7 @@ public struct KeychainAIProviderCredentialStore: AIProviderCredentialStore {
 
         if addStatus == errSecDuplicateItem {
             let updateStatus = SecItemUpdate(
-                baseQuery(for: reference) as CFDictionary,
+                nonInteractiveQuery(for: reference) as CFDictionary,
                 [kSecValueData as String: data] as CFDictionary
             )
             guard updateStatus == errSecSuccess else {
@@ -38,7 +39,7 @@ public struct KeychainAIProviderCredentialStore: AIProviderCredentialStore {
     public func hasSecret(
         for reference: AIProviderCredentialKeychainReference
     ) async -> AIProviderSecretPresence {
-        var query = baseQuery(for: reference)
+        var query = nonInteractiveQuery(for: reference)
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         query[kSecReturnData as String] = false
 
@@ -58,7 +59,7 @@ public struct KeychainAIProviderCredentialStore: AIProviderCredentialStore {
     public func resolveSecret(
         for reference: AIProviderCredentialKeychainReference
     ) async throws -> AIProviderResolvedSecret {
-        var query = baseQuery(for: reference)
+        var query = nonInteractiveQuery(for: reference)
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         query[kSecReturnData as String] = true
 
@@ -78,7 +79,7 @@ public struct KeychainAIProviderCredentialStore: AIProviderCredentialStore {
     public func deleteSecret(
         for reference: AIProviderCredentialKeychainReference
     ) async throws {
-        let status = SecItemDelete(baseQuery(for: reference) as CFDictionary)
+        let status = SecItemDelete(nonInteractiveQuery(for: reference) as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw error(from: status)
         }
@@ -97,6 +98,17 @@ private func baseQuery(
     if let accessGroup = reference.accessGroup {
         query[kSecAttrAccessGroup as String] = accessGroup
     }
+    return query
+}
+
+private func nonInteractiveQuery(
+    for reference: AIProviderCredentialKeychainReference
+) -> [String: Any] {
+    let context = LAContext()
+    context.interactionNotAllowed = true
+
+    var query = baseQuery(for: reference)
+    query[kSecUseAuthenticationContext as String] = context
     return query
 }
 
