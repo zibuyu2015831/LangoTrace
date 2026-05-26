@@ -173,6 +173,45 @@ func practiceRecordingMigrationCreatesSnapshotSessionsRecordingsAndTypedArtifact
     }
 }
 
+@Test("Legacy media artifact derivation constraint is relaxed for practice recordings")
+func legacyMediaArtifactDerivationConstraintIsRelaxedForPracticeRecordings() throws {
+    let queue = try DatabaseQueue()
+
+    try migrateLegacyRestrictiveMediaArtifactV9(queue)
+    _ = try AppDatabase(databaseQueue: queue)
+
+    try queue.write { db in
+        try db.execute(
+            sql: """
+            INSERT INTO language_spaces (
+                id, native_language_code, target_language_code, level,
+                display_name, display_name_normalized, created_at, updated_at,
+                last_opened_at, deleted_at
+            ) VALUES ('space-1', 'zh-Hans', 'en', 'b1', 'English', 'english', 1, 1, 1, NULL)
+            """
+        )
+        try db.execute(
+            sql: """
+            INSERT INTO media_artifacts (
+                id, language_space_id, owner_type, owner_id, owner_sub_id,
+                artifact_type, derivation_kind, derivation_key_hash, relative_file_path,
+                mime_type, byte_size, duration_seconds, content_hash, created_at,
+                last_accessed_at, invalidated_at, delete_after, backup_policy,
+                sync_policy, export_policy, file_state
+            ) VALUES (
+                'recording-artifact-1', 'space-1', 'practiceSession', 'session-1', NULL,
+                'shadowingRecording', 'practiceRecording', 'practice-key',
+                'shadowingRecording/en/recording-artifact-1.m4a', 'audio/mp4',
+                1024, 1.5, 'hash', 1, 1, NULL, NULL, 'excludedFromSystemBackup',
+                'localOnly', 'excludedByDefault', 'ready'
+            )
+            """
+        )
+        let failures = try Row.fetchAll(db, sql: "PRAGMA foreign_key_check")
+        #expect(failures.isEmpty)
+    }
+}
+
 private final class FixedClock: @unchecked Sendable {
     private let epochSeconds: TimeInterval
 
@@ -250,6 +289,134 @@ private func migrateMinimalLegacyMediaArtifactV7(_ queue: DatabaseQueue) throws 
         """)
     }
     try migrator.migrate(queue)
+}
+
+private func migrateLegacyRestrictiveMediaArtifactV9(_ queue: DatabaseQueue) throws {
+    var migrator = DatabaseMigrator()
+    migrator.registerMigration("v1_create_language_space_infrastructure") { db in
+        try createLegacyLanguageSpacesTable(db)
+    }
+    for migration in [
+        "v2_create_ai_provider_configuration",
+        "v3_create_diagnostic_events",
+        "v4_create_learning_content_infrastructure",
+        "v5_add_learning_material_source_entry_body_hash",
+        "v6_create_ai_provider_tts_configuration",
+    ] {
+        migrator.registerMigration(migration) { _ in }
+    }
+    migrator.registerMigration("v7_create_media_artifact_infrastructure") { db in
+        try createLegacyRestrictiveMediaArtifactTables(db)
+    }
+    migrator.registerMigration("v8_add_media_artifact_file_state") { db in
+        try db.execute(sql: """
+        ALTER TABLE media_artifacts
+        ADD COLUMN file_state TEXT NOT NULL DEFAULT 'ready'
+        CHECK (file_state IN ('pending', 'ready'))
+        """)
+    }
+    migrator.registerMigration("v9_create_practice_recording_infrastructure") { db in
+        try createLegacyPracticeRecordingTables(db)
+    }
+    try migrator.migrate(queue)
+}
+
+private func createLegacyLanguageSpacesTable(_ db: Database) throws {
+    try db.execute(sql: """
+    CREATE TABLE language_spaces (
+      id TEXT PRIMARY KEY,
+      native_language_code TEXT NOT NULL,
+      target_language_code TEXT NOT NULL,
+      level TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      display_name_normalized TEXT NOT NULL,
+      created_at REAL NOT NULL,
+      updated_at REAL NOT NULL,
+      last_opened_at REAL,
+      deleted_at REAL
+    )
+    """)
+}
+
+private func createLegacyRestrictiveMediaArtifactTables(_ db: Database) throws {
+    try db.execute(sql: """
+    CREATE TABLE media_artifacts (
+      id TEXT PRIMARY KEY,
+      language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+      owner_type TEXT NOT NULL,
+      owner_id TEXT NOT NULL,
+      owner_sub_id TEXT,
+      artifact_type TEXT NOT NULL,
+      derivation_kind TEXT NOT NULL,
+      derivation_key_hash TEXT NOT NULL,
+      relative_file_path TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      byte_size INTEGER NOT NULL,
+      duration_seconds REAL,
+      content_hash TEXT NOT NULL,
+      created_at REAL NOT NULL,
+      last_accessed_at REAL NOT NULL,
+      invalidated_at REAL,
+      delete_after REAL,
+      backup_policy TEXT NOT NULL,
+      sync_policy TEXT NOT NULL,
+      export_policy TEXT NOT NULL,
+      CHECK (byte_size >= 0),
+      CHECK (duration_seconds IS NULL OR duration_seconds >= 0),
+      CHECK (artifact_type IN (
+        'ttsSentenceAudio', 'ttsDocumentAudio', 'shadowingRecording',
+        'dictationRecording', 'ocrIntermediate', 'exportTemporary'
+      )),
+      CHECK (derivation_kind IN ('ttsAudio')),
+      CHECK (backup_policy IN ('excludedFromSystemBackup', 'includedInSystemBackup')),
+      CHECK (sync_policy IN ('localOnly', 'syncCandidate', 'syncManaged')),
+      CHECK (export_policy IN (
+        'excludedByDefault', 'includedInUserExport', 'includedInRecoverableBackup'
+      ))
+    )
+    """)
+    try createLegacyMediaArtifactExtensionTablesAndIndexes(db)
+}
+
+private func createLegacyMediaArtifactExtensionTablesAndIndexes(_ db: Database) throws {
+    try db.execute(sql: """
+    CREATE TABLE tts_audio_artifacts (
+      artifact_id TEXT PRIMARY KEY REFERENCES media_artifacts(id) ON DELETE CASCADE
+    )
+    """)
+    try db.execute(sql: """
+    CREATE UNIQUE INDEX idx_media_artifacts_active_derivation_key
+    ON media_artifacts(artifact_type, derivation_kind, derivation_key_hash)
+    WHERE invalidated_at IS NULL
+    """)
+    try db.execute(sql: """
+    CREATE INDEX idx_media_artifacts_language_type_accessed
+    ON media_artifacts(language_space_id, artifact_type, invalidated_at, last_accessed_at)
+    """)
+    try db.execute(sql: """
+    CREATE INDEX idx_media_artifacts_owner
+    ON media_artifacts(owner_type, owner_id, owner_sub_id, invalidated_at)
+    """)
+}
+
+private func createLegacyPracticeRecordingTables(_ db: Database) throws {
+    try db.execute(sql: """
+    CREATE TABLE practice_sessions (
+      id TEXT PRIMARY KEY,
+      language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE
+    )
+    """)
+    try db.execute(sql: """
+    CREATE TABLE practice_recordings (
+      id TEXT PRIMARY KEY,
+      media_artifact_id TEXT NOT NULL REFERENCES media_artifacts(id) ON DELETE RESTRICT
+    )
+    """)
+    try db.execute(sql: """
+    CREATE TABLE practice_recording_artifacts (
+      artifact_id TEXT PRIMARY KEY REFERENCES media_artifacts(id) ON DELETE CASCADE
+    )
+    """)
 }
 
 private func insertMediaArtifactPrerequisites(_ db: Database) throws {

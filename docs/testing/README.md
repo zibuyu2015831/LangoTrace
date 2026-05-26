@@ -217,12 +217,14 @@ macOS 手动验证：
 
 ## 练习录音验证清单
 
+录音完成后回放按钮不刷新、录音只停留在 staging、metadata 没有 ready 或 SQLite schema 约束漂移时，先按 [练习录音回放故障排查 Runbook](practice-recording-troubleshooting.md) 分层定位。
+
 自动化最低要求：
 
 - Core：`PracticeSessionReducerTests` 覆盖三步状态、ready recording、完成态和失败事件；`PracticeAudioCoordinationTests` 覆盖示范播放、录音和回放互斥边界。
 - Data：`AppDatabaseTests` 覆盖 practice session / recording / typed artifact migration；`GRDBPracticeRepositoryTests` 覆盖句子快照、session 恢复、ready recording、完成态引用和完成态不漂移；`MediaArtifactRepositoryTests` 覆盖 practice recording artifact lookup / cleanup exclusion。
 - Speech：`PracticeRecordingServiceTests` 覆盖 start / stop、权限拒绝、文件大小或停止失败边界；测试使用 fake recorder，不依赖真实麦克风。
-- UI：`PracticeRouteSeedTests` 覆盖 route seed 必须包含 sentence identity；`PracticeSessionViewModelTests` 覆盖 create / listen demo / record / playback recording / complete action seam 和录音播放互斥；`PhoneIOSConvergenceTests` 覆盖练习 Tab 不展示未实现任务类型。
+- UI：`PracticeRouteSeedTests` 覆盖 route seed 必须包含 sentence identity、同一篇记录内 sibling context、上一句 / 下一句 seed 生成、底部导航条中间句序 presentation 和无 context 安全退化；`PracticeSessionViewModelTests` 覆盖 create / listen demo / record / playback recording / complete action seam、录音播放互斥、操作区 action projection，以及重复录音后回放最近 ready recording；`ThreePlatformPresentationCopyTests` 覆盖练习句间导航 key 在 `en` / `zh-Hans` 均存在；`PhoneIOSConvergenceTests` 覆盖练习 Tab 不展示未实现任务类型。
 - App：`PracticeRecordingConfigurationTests` 覆盖 iOS / macOS purpose string 和 macOS audio input entitlement；`AppEnvironmentPracticeBootstrapTests` 覆盖 production assembly 未回退到 disabled practice seam，并暴露录音回放失败而非静默 no-op；`SentenceAudioPlaybackAssemblyTests` 覆盖示范 TTS 播放 action seam。
 
 聚焦命令：
@@ -231,13 +233,13 @@ macOS 手动验证：
 swift test --package-path Packages/LangoTraceCore --filter 'SentenceAudioPlaybackCoordinatorTests|PracticeSessionReducerTests|PracticeAudioCoordinationTests'
 swift test --package-path Packages/LangoTraceData --filter 'GRDBPracticeRepositoryTests|MediaArtifactPlaybackSourceResolverTests|MediaArtifactRepositoryTests'
 swift test --package-path Packages/LangoTraceSpeech --filter PracticeRecordingServiceTests
-swift test --package-path Packages/LangoTraceUI --filter 'PracticeSessionViewModelTests|PracticeRouteSeedTests|LearningContentStoreSentenceAudioCoordinatorTests|PhoneIOSConvergenceTests'
+swift test --package-path Packages/LangoTraceUI --filter 'PracticeSessionViewModelTests|PracticeRouteSeedTests|ThreePlatformPresentationCopyTests|LearningContentStoreSentenceAudioCoordinatorTests|PhoneIOSConvergenceTests'
 xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests/PracticeRecordingConfigurationTests -only-testing:LangoTraceAppTests/AppEnvironmentPracticeBootstrapTests -only-testing:LangoTraceAppTests/SentenceAudioPlaybackAssemblyTests
 ```
 
 手动验证至少覆盖：
 
-- iOS Simulator：进入练习 Tab -> 记录卡片 -> 句子列表 -> 单句页；点击听示范不会自动开始录音；拒绝 / 允许麦克风权限；开始 / 停止录音；回放录音；完成后返回再进入可看到完成状态。
+- iOS Simulator：进入练习 Tab -> 记录卡片 -> 句子列表 -> 单句页；确认单句页没有重复 header、不可点击阶段 pill、常驻指导文案、缺少录音提示卡或底部 step card；从第一句 / 中间句 / 最后一句分别检查底部导航条左侧 `上一句`、中间 `第 n / m 句`、右侧 `下一句`，不显示 `这是第一句` / `这是最后一句`；点击上一句 / 下一句后系统返回仍回到句子列表或记录详情，不按每句逐级倒退；点击听示范不会自动开始录音；拒绝 / 允许麦克风权限；开始 / 停止录音；录音停止后 `回放录音` 可用；重复录音后回放最近一次录音；录音中不能切换句子；回放录音中不能切换句子；完成后返回再进入可看到完成状态。
 - 真实 iPhone：重复 iOS Simulator 主路径，确认系统麦克风弹窗、录音文件生成、停止时长、示范播放与录音互斥、录音回放音量 / 路由和前后台切换行为；模拟器不能替代真实设备验收。
 - macOS：首次录音弹出麦克风授权；拒绝后不创建 ready recording；允许后可听示范、录音、回放并完成单句 session；App Sandbox audio input entitlement 生效。
 - 隐私扫描：日志、测试输出和诊断事件不得包含完整句子、Entry 正文、音频 bytes、波形、绝对路径、API Key 或 Provider 请求体。

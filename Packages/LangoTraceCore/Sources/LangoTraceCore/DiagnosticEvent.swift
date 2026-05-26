@@ -66,6 +66,7 @@ public enum DiagnosticEventName: String, Codable, Sendable {
     case sentenceAudioPlaybackStopped = "sentence_audio_playback.stopped"
     case sentenceAudioPlaybackCompleted = "sentence_audio_playback.completed"
     case sentenceAudioPlaybackFailed = "sentence_audio_playback.failed"
+    case practiceRecordingFailed = "practice_recording.failed"
 }
 
 public enum DiagnosticDomain: String, Codable, Sendable {
@@ -73,6 +74,7 @@ public enum DiagnosticDomain: String, Codable, Sendable {
     case permissions
     case dataStorage = "data_storage"
     case appLifecycle = "app_lifecycle"
+    case practiceRecording = "practice_recording"
 }
 
 public enum DiagnosticLevel: String, Codable, Sendable {

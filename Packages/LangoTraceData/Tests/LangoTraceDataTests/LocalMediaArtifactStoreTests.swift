@@ -53,6 +53,27 @@ struct LocalMediaArtifactStoreTests {
         #expect(lookup == .invalidated(.fileMissing))
     }
 
+    @Test("Facade commits practice recording artifact and repository session exposes it as latest ready recording")
+    func facadeCommitsPracticeRecordingAndSessionExposesLatestReadyRecording() async throws {
+        let harness = try await FacadeHarness()
+        try await MediaArtifactTestFixtures.seedPracticeSession(in: harness.database)
+        let practiceRepository = GRDBPracticeRepository(database: harness.database)
+        let staged = try harness.fileStore.writeStagingFile(Data("recording".utf8), operationID: "recording-1")
+        let input = MediaArtifactTestFixtures.practiceRecordingCommitInput(stagedFile: staged)
+
+        let artifact = try await harness.store.commitPracticeRecordingArtifact(input)
+        let session = try await practiceRepository.session(id: input.sessionID)
+        let resolved = try await practiceRepository.readyRecordingArtifact(
+            sessionID: input.sessionID,
+            recordingID: input.recordingID
+        )
+
+        #expect(try harness.fileStore.fileInfo(relativePath: staged.relativeStagingPath) == nil)
+        #expect(try harness.fileStore.fileInfo(relativePath: artifact.relativeFilePath)?.byteSize == 9)
+        #expect(session?.latestReadyRecordingID == input.recordingID)
+        #expect(resolved?.id == artifact.id)
+    }
+
     @Test("Facade invalidates only the stale artifact when sibling files remain valid")
     func facadeInvalidatesOnlyStaleArtifactWhenSiblingFilesRemainValid() async throws {
         let harness = try await FacadeHarness()

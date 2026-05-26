@@ -111,6 +111,29 @@ struct ThreePlatformPresentationCopyTests {
         }
     }
 
+    @Test("Practice session interaction keys are localized")
+    func practiceSessionInteractionKeysAreLocalized() throws {
+        let catalog = try StringCatalog.load(from: sourceFileURL(named: "Resources/Localizable.xcstrings"))
+        let requiredKeys = [
+            "practice.navigation.previous",
+            "practice.navigation.next",
+            "practice.navigation.position",
+            "practice.action.markComplete",
+        ]
+
+        for key in requiredKeys {
+            let localizedValues = catalog.strings[key]?.localizedValues ?? []
+            let locales = Set(localizedValues.map(\.locale))
+
+            #expect(locales.contains("en"), "\(key) is missing English copy")
+            #expect(locales.contains("zh-Hans"), "\(key) is missing Simplified Chinese copy")
+            for value in localizedValues.map(\.value) {
+                #expect(!value.isEmpty, "\(key) has empty localized copy")
+                #expect(value != key, "\(key) exposes its raw localization key")
+            }
+        }
+    }
+
     private var forbiddenPresentationTerms: [String] {
         [
             "mock",

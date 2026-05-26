@@ -7200,6 +7200,108 @@
         }
       }
     },
+    "practice.navigation.previous": {
+      "comment": "Practice sentence navigation previous button.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一句"
+          }
+        }
+      }
+    },
+    "practice.navigation.previous.hint": {
+      "comment": "Accessibility hint for previous sentence navigation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to the previous sentence in this entry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换到这篇记录的上一句。"
+          }
+        }
+      }
+    },
+    "practice.navigation.next": {
+      "comment": "Practice sentence navigation next button.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一句"
+          }
+        }
+      }
+    },
+    "practice.navigation.next.hint": {
+      "comment": "Accessibility hint for next sentence navigation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to the next sentence in this entry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换到这篇记录的下一句。"
+          }
+        }
+      }
+    },
+    "practice.navigation.position": {
+      "comment": "Practice sentence position. The first value is the current sentence number and the second is the total sentence count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentence %1$d of %2$d"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %1$d / %2$d 句"
+          }
+        }
+      }
+    },
+    "practice.action.markComplete": {
+      "comment": "Primary button title for completing a practice recording.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark Complete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记完成"
+          }
+        }
+      }
+    },
     "practiceStep.prepare": {
       "comment": "Practice step title.",
       "localizations": {
@@ -7519,6 +7621,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "请先结束当前录音或播放，再开始新的音频操作。"
+          }
+        }
+      }
+    },
+    "practice.failure.recordingUnavailable": {
+      "comment": "Practice recording stop or save failure copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This recording could not be saved for playback. Try recording the sentence again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次录音未能保存为可回放音频，请重新录制本句。"
           }
         }
       }

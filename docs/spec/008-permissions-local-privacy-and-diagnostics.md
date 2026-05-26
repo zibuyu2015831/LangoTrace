@@ -88,6 +88,7 @@ AI Provider API Key、外部服务 token、自定义敏感请求头、对象存�
 - UI、AI、Data 和 Core package 不直接读取进程环境变量，也不自行决定产品期是否开启持久诊断。
 - 本地诊断写入失败必须静默降级或仅在开发期 console 记录；不得导致保存配置、验证配置、权限请求、导出、同步或 AI 请求失败。
 - `diagnostic_events` 只保存非敏感枚举和值，例如 operation id、endpoint purpose、endpoint count、duration、failure phase、error category 和 diagnostics mode。不得保存用户输入内容、API Key、完整 Keychain account、请求头、请求体、响应体、照片、音频、OCR 全文或转写全文。
+- Practice recording 失败诊断使用 typed event `practice_recording.failed` 和 domain `practice_recording`，仅记录 operation id、platform、failure phase 和 error category。当前允许的 failure phase 为录音停止、artifact commit 和 session reload 等链路边界；不得记录完整句子、Entry 正文、音频 bytes、波形、绝对文件路径或用户目录。
 - 诊断数据默认不进入导出包、同步目录或对象存储。未来若提供诊断导出或发送，必须先显示摘要、允许取消，并在导出前执行敏感字段扫描。
 
 ## 6. 验证要求
@@ -121,6 +122,7 @@ AI Provider API Key、外部服务 token、自定义敏感请求头、对象存�
 
 - 2026-05-23：修订外部 TTS Provider 请求预览边界。原因：TTS Provider 配置与测试方案要求设置页完成披露和真实 probe 后，学习页单句点击播放可直接调用已配置 TTS Provider；旧规则“外部 TTS Provider 必须进入 Provider 请求预览”过宽，会阻断逐句播放交互。影响范围：TTS 设置、逐句播放、隐私披露、诊断日志和发布隐私说明。是否需要 ADR：否，沿用 ADR-005；照片、音频、OCR、历史记忆、多条 Entry 上下文和批量预生成仍需单独授权边界。
 - 2026-05-26：补充练习跟读录音权限和本地隐私边界。原因：单句练习已接入真实麦克风权限、App 管理媒体资产和 practice recording metadata，需要把显式触发、purpose string、macOS audio input entitlement、日志字段和导出 / 同步排除规则写入长期规范。影响范围：LangoTraceApp、Speech、Data、UI、Testing 和 Release。是否需要 ADR：否，沿用 ADR-005；录音同步、默认导出或可恢复备份需要独立方案。
+- 2026-05-26：补充练习录音失败诊断事件边界。原因：单句练习录音完成后回放按钮不刷新需要定位 stop、artifact commit 和 session reload 的实际断点，诊断必须可用但不能泄露句子、音频或路径。影响范围：LangoTraceCore、LangoTraceApp、UI 状态和测试。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-18：创建权限、本地隐私与诊断日志规范。原因：spec 深审确认 AI 隐私规范已有，但跨 Photos、Speech、OCR、录音、TTS、Keychain、日志和系统权限弹窗缺少统一执行源。影响范围：AI、Speech、Data、UI、Testing、Release 和发布隐私材料。是否需要 ADR：否，沿用本地优先和用户自带 Provider 决策。
 - 2026-05-20：补充 Keychain 与敏感配置边界。原因：AI Provider 配置存储已落地，需要把 ThisDeviceOnly、默认不同步、数据库恢复缺密钥、非敏感 validation event 和 SQLite / Keychain 非原子补偿规则沉淀为长期隐私规范。影响范围：AI Provider、Data、AI、UI、Testing 和后续导出 / 同步。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-20：调整 Provider 配置页已保存密钥读取边界。原因：用户再次打开 Provider 配置页时需要查看和编辑本机保存的 API Key；允许通过服务边界读取 Keychain 并回填短生命周期 UI draft，但仍禁止进入数据库、日志、同步、请求预览或测试输出。影响范围：AI Provider 设置、Keychain、UI draft、隐私验证。是否需要 ADR：否，沿用 ADR-005。

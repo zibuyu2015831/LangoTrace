@@ -67,6 +67,7 @@ public enum PracticeActionFailure: Error, Equatable, Sendable {
     case missingSession
     case missingReadyRecording
     case audioBusy
+    case recordingUnavailable
     case playbackUnavailable
 
     var localizedSummaryKey: String {
@@ -79,6 +80,8 @@ public enum PracticeActionFailure: Error, Equatable, Sendable {
             "practice.failure.missingReadyRecording"
         case .audioBusy:
             "practice.failure.audioBusy"
+        case .recordingUnavailable:
+            "practice.failure.recordingUnavailable"
         case .playbackUnavailable:
             "practice.failure.playbackUnavailable"
         }

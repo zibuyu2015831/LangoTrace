@@ -12,13 +12,16 @@ struct PracticeControlBar: View {
     let onPlayRecording: () -> Void
     let onComplete: () -> Void
 
+    private var presentation: PracticeControlBarPresentation {
+        PracticeControlBarPresentation(
+            session: session,
+            isRecording: isRecording,
+            isPlayingRecording: isPlayingRecording
+        )
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                phasePill(.shadowing)
-                phasePill(.recording)
-                phasePill(.completion)
-            }
             HStack(spacing: 10) {
                 secondaryButton(
                     title: localizedString("common.listen"),
@@ -35,9 +38,9 @@ struct PracticeControlBar: View {
             }
             Button(action: primaryAction) {
                 Label {
-                    Text(primaryTitle)
+                    Text(localizedString(presentation.primaryTitleKey))
                 } icon: {
-                    Image(systemName: primaryIcon)
+                    Image(systemName: presentation.primaryIcon)
                 }
                 .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                 .frame(maxWidth: .infinity, minHeight: 48)
@@ -47,30 +50,6 @@ struct PracticeControlBar: View {
             .disabled(primaryDisabled)
         }
         .langoPanel(padding: 14)
-    }
-
-    private func phasePill(_ phase: PracticeSessionPhase) -> some View {
-        Text(title(for: phase))
-            .font(.caption.weight(.semibold))
-            .frame(maxWidth: .infinity, minHeight: 44)
-            .foregroundStyle(phase == session.currentStep ? .white : LangoTraceDesign.ColorToken.accent)
-            .background(
-                phase == session.currentStep
-                    ? LangoTraceDesign.ColorToken.accent
-                    : LangoTraceDesign.ColorToken.surfaceAccentMuted
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-    }
-
-    private func title(for phase: PracticeSessionPhase) -> String {
-        switch phase {
-        case .shadowing:
-            localizedString("practiceStep.shadow")
-        case .recording:
-            localizedString("practiceStep.record")
-        case .completion:
-            localizedString("practiceStep.completed")
-        }
     }
 
     private func secondaryButton(
@@ -87,32 +66,6 @@ struct PracticeControlBar: View {
         .disabled(disabled)
     }
 
-    private var primaryTitle: String {
-        if isRecording {
-            return localizedString("practice.recording.stop")
-        }
-        if isPlayingRecording {
-            return localizedString("practice.recording.playing")
-        }
-        if session.status == .completed {
-            return localizedString("common.keepCompleted")
-        }
-        if session.latestReadyRecordingID != nil {
-            return localizedString("practiceStep.completed")
-        }
-        return localizedString("practice.recording.start")
-    }
-
-    private var primaryIcon: String {
-        if isRecording {
-            return "stop.fill"
-        }
-        if session.latestReadyRecordingID != nil {
-            return "checkmark"
-        }
-        return "record.circle"
-    }
-
     private var primaryDisabled: Bool {
         session.status == .completed || isPlayingDemo || isPlayingRecording
     }
@@ -124,6 +77,30 @@ struct PracticeControlBar: View {
             onComplete()
         } else {
             onStartRecording()
+        }
+    }
+}
+
+struct PracticeControlBarPresentation: Equatable {
+    var primaryTitleKey: String
+    var primaryIcon: String
+
+    init(session: PracticeSession, isRecording: Bool, isPlayingRecording: Bool) {
+        if isRecording {
+            primaryTitleKey = "practice.recording.stop"
+            primaryIcon = "stop.fill"
+        } else if isPlayingRecording {
+            primaryTitleKey = "practice.recording.playing"
+            primaryIcon = "play.circle"
+        } else if session.status == .completed {
+            primaryTitleKey = "common.keepCompleted"
+            primaryIcon = "checkmark"
+        } else if session.latestReadyRecordingID != nil {
+            primaryTitleKey = "practice.action.markComplete"
+            primaryIcon = "checkmark"
+        } else {
+            primaryTitleKey = "practice.recording.start"
+            primaryIcon = "record.circle"
         }
     }
 }

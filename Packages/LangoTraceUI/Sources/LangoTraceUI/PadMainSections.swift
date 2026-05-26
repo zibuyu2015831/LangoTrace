@@ -125,8 +125,12 @@ struct PadWorkspaceContentView: View {
                     },
                     onStopDemo: {
                         await contentStore.stopSentenceAudioPlayback()
+                    },
+                    onNavigateSentence: { nextSeed in
+                        onRoute(.practiceSentence(nextSeed))
                     }
                 )
+                .id(seed.practiceRouteIdentity)
             case let .settings(kind):
                 settingDetail(kind: kind)
             case .settingsList:

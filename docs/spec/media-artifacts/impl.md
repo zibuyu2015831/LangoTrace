@@ -17,7 +17,7 @@
 - `media_artifacts` 是长期通用主表，不是 TTS 专属表。TTS、跟读录音、听写录音、OCR 中间文件、导出临时产物等都应共享 language space、owner、artifact type、derivation kind / key hash、相对路径、MIME、byte size、duration、content hash、file state、created / last accessed、invalidated / delete after、backup / sync / export policy 等通用字段。
 - typed metadata 必须放在扩展表中。TTS 继续使用 `tts_audio_artifacts`；练习录音应新增 `practice_recording_artifacts` 或等价 typed extension metadata，不能写入 `tts_audio_artifacts`。
 - 代码 public surface 当前仍偏 TTS：`MediaArtifactRepository`、`LocalMediaArtifactStoring` 和 `LocalMediaArtifactStore` 暴露 `ttsAudioArtifact` / `reserveTTSAudioArtifact` / `commitTTSAudioArtifact` 等方法。练习录音落地前应提升出通用 `MediaArtifactCommitInput`、`MediaArtifactCommitReservation`、`MediaArtifactLookupKey`、ready 标记、resolver 和 cleanup contract；TTS convenience wrapper 可以保留，但底层必须走通用 commit / lookup / resolver。
-- 数据库当前 `derivation_kind` CHECK 只允许 `ttsAudio`。练习录音 migration 必须新增 `practiceRecording`，并同步更新 Core enum、mapper、fixture 和迁移测试。
+- 数据库 `derivation_kind` CHECK 必须允许 `ttsAudio` 和 `practiceRecording`。既有旧库可能仍停留在只允许 `ttsAudio` 的 schema，`v10_allow_practice_recording_media_derivation_kind` 负责重建 `media_artifacts` 表并保留既有 metadata。
 - 通用 commit contract 的职责边界是：repository 只创建 / 查询 / 标记 metadata；file store 只管理 App 管理目录、staging、hash、原子 move 和删除；facade / service 负责编排验证、reservation、move、ready 标记、失败补偿和 cleanup。
 - `file_state = pending` 的 metadata 不得被 lookup 当作 ready hit；文件 move 成功但 ready 标记失败时必须由 recovery / cleanup 处理，不得向 UI 暴露 ready 录音。
 - completed practice recording 是用户练习证据，不是普通可重建缓存。被 `practice_sessions.completed_recording_id` 引用的 artifact 不得进入普通容量 LRU、TTS cache cleanup 或派生缓存清理候选。
@@ -40,6 +40,7 @@
 
 - `media_artifacts` / `tts_audio_artifacts` metadata。
 - `practice_recording_artifacts` typed metadata，以及 `MediaArtifactDerivationKind.practiceRecording`。
+- `v10_allow_practice_recording_media_derivation_kind` 旧库迁移，覆盖已有 v9 数据库中 `derivation_kind` CHECK 只允许 `ttsAudio` 时无法写入练习录音 artifact 的问题。
 - pending / ready file state。
 - TTS derivation key lookup、reservation、commit、ready 标记、precise invalidation、metadata deletion 和 cleanup selection。
 - Practice recording derivation key lookup、reservation、commit、ready 标记和与 `practice_recordings` / `practice_sessions.completed_recording_id` 的 cleanup exclusion。
@@ -57,8 +58,10 @@
 
 ## 5. 复查方法
 
+练习录音无法回放、staging 文件未晋升为 ready artifact、或旧库 schema 约束疑似漂移时，优先按 `docs/testing/practice-recording-troubleshooting.md` 排查。
+
 ```bash
 swift test --package-path Packages/LangoTraceData
-rg "MediaArtifact|LocalMediaArtifactStore|ttsAudioArtifact|commitTTSAudioArtifact|derivation_kind|practiceRecording" Packages/LangoTraceCore Packages/LangoTraceData docs/spec docs/plans/active
+rg "MediaArtifact|LocalMediaArtifactStore|ttsAudioArtifact|commitTTSAudioArtifact|derivation_kind|practiceRecording" Packages/LangoTraceCore Packages/LangoTraceData docs/spec docs/plans
 scripts/verify.sh
 ```

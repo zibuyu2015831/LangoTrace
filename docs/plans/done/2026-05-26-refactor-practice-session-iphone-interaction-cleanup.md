@@ -1,6 +1,6 @@
 # 任务方案：优化单句练习页 iPhone 信息架构与交互层级
 
-状态：Draft
+状态：Done
 类型：refactor
 创建日期：2026-05-26
 最后更新日期：2026-05-26
@@ -11,7 +11,7 @@
 
 2026-05-26：用户进一步确认倾向删除 `跟读 / 录音 / 已完成` 三段状态，并提出练习页需要 `上一句` / `下一句`，方便在同一篇记录的句子之间切换；当到达最后一句时，需要提醒用户这是最后一句。
 
-本方案创建后仍需用户确认 `User Approved` 后再实施代码修改。
+2026-05-26：用户确认“立即进入实施”，本方案进入实现。
 
 ## 2. 需求描述
 
@@ -406,3 +406,22 @@ git diff --check
 - 当前上一句 / 下一句限定在同一篇记录的当前 rendering 内；后续如果做跨记录连续练习，需要新增练习队列模型，而不是继续扩展 route seed。
 - `PracticeSessionRouteSeed` 增加 sibling context 后会比当前单句 seed 更大；本任务要求只保存轻量句子导航快照，避免 route enum 携带完整 rendering 或 repository 状态。
 - 未完成但已保存的 ready recording 在切换句子后仍保留在对应 session 中；这符合本地优先和可恢复原则，但用户可能需要后续“未完成练习列表”来重新发现它，不在本任务范围内。
+
+## 19. 实施记录
+
+2026-05-26 已实施：
+
+- 删除单句练习页顶部重复 `跟读练习` header、不可点击三段 phase pill 和底部 `PracticeStepPanel`，用户可见页面不再读取 `practiceStep.shadow.body`。
+- 新增 `PracticeSessionNavigationContext`、`PracticeSessionNavigationItem`、`PracticeSentenceNavigationDirection` 和 route seed neighbor helper；同一篇记录内可生成上一句 / 下一句 seed，缺少 context 时安全退化。
+- 新增 `PracticeSentenceNavigationBar`，显示 `上一句` / `第 n / m 句` / `下一句`，第一句和最后一句显示边界提示；录音中和录音回放中禁用切换，示范播放中切换前停止旧播放。
+- iPhone 通过替换当前 `navigationPath` 最后一项实现句间 route replacement；iPad / macOS 通过共享 route seam 切换；三端调用点均用 `routeSeed.practiceRouteIdentity` 重建 `PracticeSessionView`，避免旧 `@StateObject` session 被复用。
+- `PracticeControlBar` 改为真实 action panel：保留 `听`、`回放录音`、录音 / 标记完成主按钮，并增加低权重状态文案。
+- 新增 `en` / `zh-Hans` 本地化 key：句间导航、边界提示、导航禁用说明、练习状态文案和 `practice.action.markComplete`。
+- 更新 `docs/spec/003-ui-design-system.md`、`docs/platform-page-inventory.md` 和 `docs/testing/README.md`。
+
+验证记录：
+
+- TDD 红灯：新增聚焦测试后，`swift test --package-path Packages/LangoTraceUI --filter 'PracticeSessionViewModelTests|PracticeRouteSeedTests|ThreePlatformPresentationCopyTests|LearningContentStoreSentenceAudioCoordinatorTests'` 因缺少 route seed neighbor helper、presentation helper 和本地化 key 失败。
+- 聚焦绿灯：`swift test --package-path Packages/LangoTraceUI --filter 'PracticeSessionViewModelTests|PracticeRouteSeedTests|ThreePlatformPresentationCopyTests|LearningContentStoreSentenceAudioCoordinatorTests|PhoneIOSConvergenceTests'` 通过，26 tests passed。
+- 文档检查：`scripts/check-docs.sh` 通过；占位符扫描无命中；`git diff --check` 通过。
+- 完整验证：`scripts/verify.sh` 通过；SwiftLint 仍报告既有 warning，但 0 serious。

@@ -62,7 +62,8 @@ struct AppEnvironment {
             practiceActions: (
                 try? PracticeActionsAssembly.makeActions(
                     database: databaseFactory.database(),
-                    mediaArtifactsRoot: SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot()
+                    mediaArtifactsRoot: SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot(),
+                    diagnosticLogger: diagnosticLogger
                 )
             ) ?? .disabled,
             aiProviderSettingsActions: AIProviderSettingsActions(

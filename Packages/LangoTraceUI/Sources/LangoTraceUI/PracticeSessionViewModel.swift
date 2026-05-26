@@ -17,6 +17,15 @@ final class PracticeSessionViewModel: ObservableObject {
     @Published private(set) var activeRecordingID: String?
     @Published private(set) var failure: PracticeActionFailure?
 
+    private var isDemoTapInFlight = false
+
+    var visibleFailure: PracticeActionFailure? {
+        guard failure != .missingReadyRecording else {
+            return nil
+        }
+        return failure
+    }
+
     init(
         languageSpaceID: String,
         snapshot: PracticeSentenceSnapshot,
@@ -81,7 +90,8 @@ final class PracticeSessionViewModel: ObservableObject {
             isRecording = false
             failure = nil
         } catch {
-            failure = .missingReadyRecording
+            self.activeRecordingID = nil
+            failure = .recordingUnavailable
             isRecording = false
         }
     }
@@ -108,8 +118,12 @@ final class PracticeSessionViewModel: ObservableObject {
             failure = .audioBusy
             return
         }
-        isPlayingDemo = true
-        defer { isPlayingDemo = false }
+        guard !isDemoTapInFlight else {
+            failure = .audioBusy
+            return
+        }
+        isDemoTapInFlight = true
+        defer { isDemoTapInFlight = false }
         let state = await playDemoAction()
         switch state {
         case .failed:
@@ -117,6 +131,11 @@ final class PracticeSessionViewModel: ObservableObject {
         default:
             failure = nil
         }
+    }
+
+    func stopDemoPlayback() async {
+        await stopDemoAction()
+        isPlayingDemo = false
     }
 
     func playLatestRecording() async {

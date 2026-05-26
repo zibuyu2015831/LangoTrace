@@ -60,6 +60,7 @@ struct PracticeSessionView: View {
     let actions: PracticeActions
     let onPlayDemo: @MainActor @Sendable () async -> SentenceAudioPresentationState
     let onStopDemo: @MainActor @Sendable () async -> Void
+    let onNavigateSentence: (PracticeSessionRouteSeed) -> Void
 
     @StateObject private var viewModel: PracticeSessionViewModel
 
@@ -68,13 +69,15 @@ struct PracticeSessionView: View {
         routeSeed: PracticeSessionRouteSeed,
         actions: PracticeActions,
         onPlayDemo: @escaping @MainActor @Sendable () async -> SentenceAudioPresentationState = { .idle },
-        onStopDemo: @escaping @MainActor @Sendable () async -> Void = {}
+        onStopDemo: @escaping @MainActor @Sendable () async -> Void = {},
+        onNavigateSentence: @escaping (PracticeSessionRouteSeed) -> Void = { _ in }
     ) {
         self.languageSpaceID = languageSpaceID
         self.routeSeed = routeSeed
         self.actions = actions
         self.onPlayDemo = onPlayDemo
         self.onStopDemo = onStopDemo
+        self.onNavigateSentence = onNavigateSentence
         _viewModel = StateObject(
             wrappedValue: PracticeSessionViewModel(
                 languageSpaceID: languageSpaceID,
@@ -89,10 +92,6 @@ struct PracticeSessionView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                SectionHeader(
-                    titleKey: "practice.shadowing.title",
-                    subtitle: routeSeed.snapshot.targetTextSnapshot
-                )
                 PracticeSnapshotPanel(snapshot: routeSeed.snapshot)
                 if let session = viewModel.session {
                     PracticeControlBar(
@@ -116,7 +115,12 @@ struct PracticeSessionView: View {
                             Task { await viewModel.completeLatestRecording() }
                         }
                     )
-                    if let failure = viewModel.failure {
+                    PracticeSentenceNavigationBar(
+                        routeSeed: routeSeed,
+                        isNavigationDisabled: viewModel.isRecording || viewModel.isPlayingRecording,
+                        onNavigate: navigateSentence
+                    )
+                    if let failure = viewModel.visibleFailure {
                         CapabilityStatusRow(
                             localizedTitleKey: "practice.failure.title",
                             localizedSummaryKey: failure.localizedSummaryKey,
@@ -125,7 +129,6 @@ struct PracticeSessionView: View {
                             action: nil
                         )
                     }
-                    PracticeStepPanel(session: session)
                 } else {
                     CapabilityStatusRow(
                         localizedTitleKey: "practice.noContent.title",
@@ -139,9 +142,26 @@ struct PracticeSessionView: View {
             .padding(20)
         }
         .navigationTitle(localizedText("practice.title"))
+        .langoPracticeInlineNavigationTitle()
         .langoPageBackground()
         .task {
             await viewModel.load()
+        }
+    }
+
+    private func navigateSentence(direction: PracticeSentenceNavigationDirection) {
+        guard !viewModel.isRecording,
+              !viewModel.isPlayingRecording,
+              let nextSeed = routeSeed.neighboringSeed(direction: direction, capturedAt: Date())
+        else {
+            return
+        }
+
+        Task {
+            if viewModel.isPlayingDemo {
+                await viewModel.stopDemoPlayback()
+            }
+            onNavigateSentence(nextSeed)
         }
     }
 }
@@ -170,69 +190,109 @@ private struct PracticeSnapshotPanel: View {
     }
 }
 
-private struct PracticeStepPanel: View {
-    let session: PracticeSession
+private struct PracticeSentenceNavigationBar: View {
+    let routeSeed: PracticeSessionRouteSeed
+    let isNavigationDisabled: Bool
+    let onNavigate: (PracticeSentenceNavigationDirection) -> Void
+
+    private var presentation: PracticeSentenceNavigationBarPresentation {
+        PracticeSentenceNavigationBarPresentation(
+            routeSeed: routeSeed,
+            isNavigationDisabled: isNavigationDisabled
+        )
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Label {
-                localizedText(labelTitleKey)
-            } icon: {
-                Image(systemName: labelIcon)
-            }
-            .font(.headline)
-            Text(mainText)
-                .font(.title3.weight(.semibold))
-                .lineSpacing(5)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(detailText)
-                .font(.callout)
+        HStack(spacing: 12) {
+            previousButton
+            Spacer(minLength: 8)
+            Text(positionSummary)
+                .font(.footnote)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.center)
+                .layoutPriority(1)
+                .accessibilityLabel(positionSummary)
+            Spacer(minLength: 8)
+            nextButton
         }
-        .langoPanel()
+        .padding(.horizontal, 2)
+        .accessibilityElement(children: .contain)
     }
 
-    private var labelTitleKey: String {
-        switch session.currentStep {
-        case .shadowing:
-            "practiceStep.shadow"
-        case .recording:
-            "practiceStep.compare"
-        case .completion:
-            "practiceStep.completed"
+    private var previousButton: some View {
+        Button {
+            onNavigate(.previous)
+        } label: {
+            Label(localizedString(presentation.previousTitleKey), systemImage: "chevron.left")
+                .frame(minHeight: 44)
+                .padding(.horizontal, 10)
         }
+        .buttonStyle(.plain)
+        .foregroundStyle(
+            presentation.isPreviousDisabled
+                ? LangoTraceDesign.ColorToken.textSecondary
+                : LangoTraceDesign.ColorToken.accent
+        )
+        .disabled(presentation.isPreviousDisabled)
+        .accessibilityHint(localizedString("practice.navigation.previous.hint"))
     }
 
-    private var labelIcon: String {
-        switch session.currentStep {
-        case .shadowing:
-            "waveform"
-        case .recording:
-            "record.circle"
-        case .completion:
-            "checkmark.circle"
+    private var nextButton: some View {
+        Button {
+            onNavigate(.next)
+        } label: {
+            Label(localizedString(presentation.nextTitleKey), systemImage: "chevron.right")
+                .labelStyle(.titleAndIcon)
+                .frame(minHeight: 44)
+                .padding(.horizontal, 10)
         }
+        .buttonStyle(.plain)
+        .foregroundStyle(
+            presentation.isNextDisabled
+                ? LangoTraceDesign.ColorToken.textSecondary
+                : LangoTraceDesign.ColorToken.accent
+        )
+        .disabled(presentation.isNextDisabled)
+        .accessibilityHint(localizedString("practice.navigation.next.hint"))
     }
 
-    private var mainText: String {
-        switch session.currentStep {
-        case .shadowing:
-            localizedString("practiceStep.shadow.body")
-        case .recording:
-            localizedString("practice.recording.inProgress")
-        case .completion:
-            if session.completedRecordingID == nil {
-                localizedString("practiceStep.compare.body")
-            } else {
-                localizedString("practiceStep.completed.body")
-            }
-        }
+    private var positionSummary: String {
+        localizedString(
+            presentation.positionKey,
+            presentation.currentPosition,
+            presentation.totalCount
+        )
     }
+}
 
-    private var detailText: String {
-        session.status == .completed
-            ? localizedString("practice.recording.completedLocal")
-            : localizedString("practice.recording.guidance")
+struct PracticeSentenceNavigationBarPresentation: Equatable {
+    var previousTitleKey: String
+    var positionKey: String
+    var currentPosition: Int
+    var totalCount: Int
+    var nextTitleKey: String
+    var isPreviousDisabled: Bool
+    var isNextDisabled: Bool
+
+    init(routeSeed: PracticeSessionRouteSeed, isNavigationDisabled: Bool) {
+        let projection = routeSeed.navigationProjection
+        previousTitleKey = "practice.navigation.previous"
+        positionKey = projection.positionKey
+        currentPosition = projection.currentPosition
+        totalCount = projection.totalCount
+        nextTitleKey = "practice.navigation.next"
+        isPreviousDisabled = isNavigationDisabled || !routeSeed.hasPreviousSentence
+        isNextDisabled = isNavigationDisabled || !routeSeed.hasNextSentence
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func langoPracticeInlineNavigationTitle() -> some View {
+        #if os(iOS)
+            navigationBarTitleDisplayMode(.inline)
+        #else
+            self
+        #endif
     }
 }

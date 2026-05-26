@@ -186,6 +186,17 @@ struct PhoneIOSConvergenceTests {
         #expect(!components.contains("UnavailableCapabilityView(content: ." + "listenOne)"))
     }
 
+    @Test("Practice session keeps inline navigation title during playback state updates")
+    func practiceSessionKeepsInlineNavigationTitleDuringPlaybackUpdates() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "PracticeSessionViews.swift"), encoding: .utf8)
+
+        #expect(source.contains("PracticeSessionView"))
+        #expect(source.contains(".navigationTitle(localizedText(\"practice.title\"))"))
+        #expect(source.contains(".langoPracticeInlineNavigationTitle()"))
+        #expect(source.contains("navigationBarTitleDisplayMode(.inline)"))
+        #expect(source.contains("#if os(iOS)"))
+    }
+
     @Test("Sentence audio playback state is observed by the visible detail route")
     func sentenceAudioPlaybackStateIsSwiftUIObservedDetailInput() throws {
         let supportingViews = try String(

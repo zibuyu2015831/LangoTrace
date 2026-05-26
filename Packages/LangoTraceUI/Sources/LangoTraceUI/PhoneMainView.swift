@@ -117,8 +117,12 @@ struct PhoneMainView: View {
                         },
                         onStopDemo: {
                             await contentStore.stopSentenceAudioPlayback()
+                        },
+                        onNavigateSentence: { nextSeed in
+                            replaceCurrentRoute(with: .practiceSentence(nextSeed))
                         }
                     )
+                    .id(seed.practiceRouteIdentity)
                 case .settings(.languageSpace):
                     LanguageSpaceManagementView(
                         spaces: languageSpaces,
@@ -232,6 +236,14 @@ struct PhoneMainView: View {
     private func showEntryDetail(_ entry: LearningEntry) {
         contentStore.selectEntry(entry)
         navigationPath.append(.entryDetail(entry.id))
+    }
+
+    private func replaceCurrentRoute(with route: PhoneRoute) {
+        guard !navigationPath.isEmpty else {
+            navigationPath.append(route)
+            return
+        }
+        navigationPath[navigationPath.count - 1] = route
     }
 }
 
