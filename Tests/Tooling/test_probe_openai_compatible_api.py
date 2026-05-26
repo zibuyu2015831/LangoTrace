@@ -61,6 +61,24 @@ class ProbeOpenAICompatibleAPITests(unittest.TestCase):
         self.assertEqual(body["model"], "demo-model")
         self.assertNotIn("sk-secret", json.dumps(body))
 
+    def test_embeddings_request_uses_fixed_low_sensitivity_payload(self) -> None:
+        request = probe.build_request(
+            base_url="https://example.test/v1",
+            api_key="sk-secret",
+            model="text-embedding-3-small",
+            mode="embeddings",
+            timeout_seconds=20,
+        )
+
+        self.assertEqual(request.full_url, "https://example.test/v1/embeddings")
+        self.assertEqual(request.headers["Authorization"], "Bearer sk-secret")
+        body = json.loads(request.data.decode("utf-8"))
+        self.assertEqual(body["model"], "text-embedding-3-small")
+        self.assertEqual(body["input"], "LangoTrace embedding configuration test.")
+        self.assertEqual(body["encoding_format"], "float")
+        self.assertNotIn("sk-secret", json.dumps(body))
+        self.assertNotIn("life record", json.dumps(body))
+
     def test_chat_success_is_detected_from_message_content(self) -> None:
         calls = []
 
@@ -84,6 +102,53 @@ class ProbeOpenAICompatibleAPITests(unittest.TestCase):
         self.assertEqual(result.category, "success")
         self.assertEqual(calls, [("https://example.test/v1/chat/completions", 7)])
         self.assertNotIn("sk-secret", result.detail)
+
+    def test_embeddings_success_reports_only_vector_length(self) -> None:
+        calls = []
+
+        def opener(request, timeout):
+            calls.append((request.full_url, timeout))
+            return FakeHTTPResponse(
+                200,
+                {"data": [{"embedding": [0.1, 0.2, 0.3]}]},
+            )
+
+        result = probe.run_probe(
+            base_url="https://example.test",
+            api_key="sk-secret",
+            model="text-embedding-3-small",
+            mode="embeddings",
+            timeout_seconds=7,
+            opener=opener,
+        )
+
+        self.assertTrue(result.ok)
+        self.assertEqual(result.category, "success")
+        self.assertEqual(result.vector_length, 3)
+        self.assertEqual(calls, [("https://example.test/v1/embeddings", 7)])
+        self.assertNotIn("sk-secret", result.detail)
+        self.assertNotIn("0.1", result.detail)
+
+    def test_json_output_for_embeddings_does_not_include_vector_or_secret(self) -> None:
+        result = probe.ProbeResult(
+            mode="embeddings",
+            ok=True,
+            category="success",
+            detail="Embedding vector length: 3",
+            duration_ms=12,
+            vector_length=3,
+        )
+        output = io.StringIO()
+
+        with contextlib.redirect_stdout(output):
+            probe.print_json_results([result])
+
+        rendered = output.getvalue()
+        data = json.loads(rendered)
+        self.assertEqual(data[0]["vector_length"], 3)
+        self.assertNotIn("sk-secret", rendered)
+        self.assertNotIn("[0.1", rendered)
+        self.assertNotIn("embedding\":[", rendered)
 
     def test_http_401_is_classified_as_authentication_failed(self) -> None:
         def opener(request, timeout):

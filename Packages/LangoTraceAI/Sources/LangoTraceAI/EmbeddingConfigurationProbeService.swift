@@ -136,7 +136,8 @@ private extension EmbeddingConfigurationProbeService {
     }
 
     func makeRequest(endpoint: AIProviderEndpointInput, secret: String?) throws -> URLRequest {
-        var request = URLRequest(url: try embeddingsURL(baseURL: endpoint.baseURL))
+        let url = try embeddingsURL(baseURL: endpoint.baseURL)
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")

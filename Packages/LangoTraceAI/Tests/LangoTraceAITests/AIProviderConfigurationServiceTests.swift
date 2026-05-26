@@ -1170,7 +1170,7 @@ private func savedProfileWithEmbedding(includeTextEndpoint: Bool = true) throws 
     let now = Date(timeIntervalSince1970: 100)
     var endpoints: [AIProviderEndpointConfiguration] = []
     if includeTextEndpoint {
-        endpoints.append(try AIProviderEndpointConfiguration(
+        try endpoints.append(AIProviderEndpointConfiguration(
             input: AIProviderEndpointInput(
                 id: "endpoint-1",
                 profileID: "profile-1",
@@ -1188,7 +1188,7 @@ private func savedProfileWithEmbedding(includeTextEndpoint: Bool = true) throws 
             updatedAt: now
         ))
     }
-    endpoints.append(try AIProviderEndpointConfiguration(
+    try endpoints.append(AIProviderEndpointConfiguration(
         input: AIProviderEndpointInput(
             id: "endpoint-embedding",
             profileID: "profile-1",

@@ -354,7 +354,7 @@ public struct AIProviderEndpointInput: Equatable, Sendable {
     }
 
     public var configurationFingerprint: String {
-        AIProviderEndpointConfigurationFingerprint.make(
+        AIProviderEndpointConfigurationFingerprint.make(EndpointFingerprintFields(
             purpose: purpose.rawValue,
             providerPresetID: providerPresetID,
             adapterKind: adapterKind.rawValue,
@@ -364,7 +364,7 @@ public struct AIProviderEndpointInput: Equatable, Sendable {
             requestTimeoutSeconds: requestTimeoutSeconds,
             supportsImageInput: supportsImageInput,
             imageInputEnabled: imageInputEnabled
-        )
+        ))
     }
 }
 
@@ -501,7 +501,7 @@ public struct AIProviderEndpointConfiguration: Equatable, Sendable {
     }
 
     public var configurationFingerprint: String {
-        AIProviderEndpointConfigurationFingerprint.make(
+        AIProviderEndpointConfigurationFingerprint.make(EndpointFingerprintFields(
             purpose: purpose.rawValue,
             providerPresetID: providerPresetID,
             adapterKind: adapterKind.rawValue,
@@ -511,7 +511,7 @@ public struct AIProviderEndpointConfiguration: Equatable, Sendable {
             requestTimeoutSeconds: requestTimeoutSeconds,
             supportsImageInput: supportsImageInput,
             imageInputEnabled: imageInputEnabled
-        )
+        ))
     }
 }
 
@@ -702,40 +702,42 @@ public extension AIProviderConfigurationRepository {
 }
 
 private enum AIProviderEndpointConfigurationFingerprint {
-    static func make(
-        purpose: String,
-        providerPresetID: String,
-        adapterKind: String,
-        baseURL: String,
-        modelName: String,
-        credentialID: String?,
-        requestTimeoutSeconds: Double?,
-        supportsImageInput: Bool,
-        imageInputEnabled: Bool
-    ) -> String {
+    static func make(_ fields: EndpointFingerprintFields) -> String {
         let parts = [
             "v1",
-            purpose,
-            providerPresetID.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
-            adapterKind,
-            baseURL.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
-            modelName.trimmingCharacters(in: .whitespacesAndNewlines),
-            credentialID ?? "none",
-            requestTimeoutSeconds.map { String(format: "%.3f", $0) } ?? "default",
-            supportsImageInput ? "image-supported" : "image-unsupported",
-            imageInputEnabled ? "image-enabled" : "image-disabled",
+            fields.purpose,
+            fields.providerPresetID.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+            fields.adapterKind,
+            fields.baseURL.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+            fields.modelName.trimmingCharacters(in: .whitespacesAndNewlines),
+            fields.credentialID ?? "none",
+            fields.requestTimeoutSeconds.map { String(format: "%.3f", $0) } ?? "default",
+            fields.supportsImageInput ? "image-supported" : "image-unsupported",
+            fields.imageInputEnabled ? "image-enabled" : "image-disabled",
         ].joined(separator: "\u{1F}")
         return "endpoint-v1-\(fnv1a64Hex(parts))"
     }
 
     private static func fnv1a64Hex(_ value: String) -> String {
-        var hash: UInt64 = 0xcbf29ce484222325
+        var hash: UInt64 = 0xCBF2_9CE4_8422_2325
         for byte in value.utf8 {
             hash ^= UInt64(byte)
-            hash = hash &* 0x100000001b3
+            hash = hash &* 0x0100_0000_01B3
         }
         return String(format: "%016llx", hash)
     }
+}
+
+private struct EndpointFingerprintFields {
+    var purpose: String
+    var providerPresetID: String
+    var adapterKind: String
+    var baseURL: String
+    var modelName: String
+    var credentialID: String?
+    var requestTimeoutSeconds: Double?
+    var supportsImageInput: Bool
+    var imageInputEnabled: Bool
 }
 
 private extension AIProviderEndpointInput {

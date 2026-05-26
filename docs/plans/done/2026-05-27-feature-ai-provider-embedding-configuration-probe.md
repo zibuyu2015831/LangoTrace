@@ -1,6 +1,6 @@
 # AI Provider 向量化配置测试方案
 
-状态：In Progress
+状态：Verified
 类型：feature
 创建日期：2026-05-27
 最后更新日期：2026-05-27
@@ -13,6 +13,7 @@
 - 2026-05-27：用户要求立即创建 active plan，之后由用户审核该 plan，通过后才能实施。本方案因此仅创建实施方案，不实施代码；后续实现前必须由用户把状态确认到 `User Approved`。
 - 2026-05-27：按系统架构师视角完成严格代码审查，确认原方案方向正确但实施前必须补齐 endpoint-scoped validation、provider allowlist、独立 capability 聚合、通用 endpoint fingerprint、opt-in live smoke 和未来向量基础设施备忘录边界。
 - 2026-05-27：再次复查方案与当前代码状态，确认方案已进入实施中：阶段 1 / 阶段 2 已完成并分别提交，阶段 3 存在未提交实现文件；本次修订只同步方案上下文、已完成证据、接口命名和剩余实施边界，不扩大实现范围。
+- 2026-05-27：再次按 live code、提交历史和未提交 diff 复查方案完整性。结论：方案的功能链路、隐私边界和测试覆盖仍成立，但当前实施快照必须更新为阶段 1-4 已提交、阶段 5 与文档收口未提交、完整验证曾暴露旧 fixture migration 兼容问题且已在 Data migration 中补 guard。
 
 ## 2. 需求描述
 
@@ -40,7 +41,10 @@ AI Provider 设置页已经支持文本模型、语音生成模型和向量模�
 
 - 阶段 1 已提交：`3dca90c Add endpoint validation fingerprint contract`。
 - 阶段 2 已提交：`69aba31 Add embedding probe UI capability resolution`。
-- 阶段 3 正在实施中，当前未提交文件为 `Packages/LangoTraceAI/Sources/LangoTraceAI/EmbeddingConfigurationProbeService.swift` 和 `Packages/LangoTraceAI/Tests/LangoTraceAITests/EmbeddingConfigurationProbeServiceTests.swift`；阶段 3 必须先通过聚焦测试再提交。
+- 阶段 3 已提交：`f49b602 Add embedding configuration probe service`。
+- 阶段 4 已提交：`0125080 Integrate embedding probe configuration flow`。
+- 阶段 5 正在收口中，当前未提交内容集中在 opt-in embedding live smoke tooling、测试 / spec / prompt / 页面事实文档、未来向量基础设施备忘录，以及完整验证暴露出的 Data migration 兼容修复。
+- 完整验证曾在 `swift test --package-path Packages/LangoTraceData` 暴露旧 media fixture 标记 `v2_create_ai_provider_configuration` 已执行但未创建 `ai_provider_endpoints` 的兼容问题；本轮应把 `v11_add_ai_provider_endpoint_validation_summary` 设计为存在表时才补列，避免 unrelated legacy fixture 阻断后续验证。
 
 文档事实：
 
@@ -151,6 +155,10 @@ AI Provider 设置页已经支持文本模型、语音生成模型和向量模�
 
 - `Packages/LangoTraceAI/Tests/LangoTraceAITests/EmbeddingConfigurationProbeServiceTests.swift`
 - `docs/architecture/notes/2026-05-27-embedding-infrastructure-notes.md`
+
+实施中追加修复：
+
+- `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift`：`v11_add_ai_provider_endpoint_validation_summary` 需兼容旧测试 fixture 中 AI Provider 表不存在的 migration 快照；真实新库和正常迁移库仍创建 / 更新 endpoint validation summary 字段。
 
 预计修改测试：
 
@@ -270,6 +278,7 @@ AI Provider 设置页已经支持文本模型、语音生成模型和向量模�
 5. 更新 `docs/spec/005-ai-provider-prompt-and-privacy.md`，删除旧的“向量化当前阶段不得发真实网络测试请求”，替换为本轮第一阶段低敏测试边界。
 6. 新增 `docs/architecture/notes/2026-05-27-embedding-infrastructure-notes.md`，记录本轮不实现但后续必须决策的向量索引 schema、维度、模型 fingerprint、重建策略、删除策略、同步 / 导出边界、job queue 和隐私提示。
 7. 检查 `docs/platform-page-inventory.md` 和 Prompt Registry 是否需要同步当前事实。
+8. 运行完整 `scripts/verify.sh` 时如果暴露旧 migration fixture 与新增 migration 的不一致，只允许在 migration 入口补幂等 / 存在性 guard 或补 fixture 真实表结构；不得为通过测试删除 endpoint validation summary、弱化 repository contract 或绕过 Data package 完整测试。
 
 ## 12. TDD 与测试方案
 
@@ -382,6 +391,7 @@ rg -n "URLSession|Authorization|Bearer " Packages/LangoTraceUI/Sources/LangoTrac
 rg -n "LangoTrace embedding configuration test|/embeddings|invalidEmbeddingResponse" Packages/LangoTraceAI Packages/LangoTraceUI docs scripts Tests/Tooling
 rg -n "向量化当前阶段不得发真实网络测试请求|不得发真实网络测试请求" docs/spec docs/plans/active
 rg -n "recordValidationOutcome\\(|recordEndpointValidationOutcome|last_successful_configuration_fingerprint|configurationFingerprint" Packages/LangoTraceAI Packages/LangoTraceData Packages/LangoTraceCore
+swift test --package-path Packages/LangoTraceData
 git diff --check
 ```
 
@@ -466,10 +476,13 @@ OPENAI_API_KEY='...' OPENAI_BASE_URL='https://api.openai.com/v1' OPENAI_EMBEDDIN
 - 2026-05-27：再次复查方案完整性。结论：方案总体链路完整，但状态和部分现状描述需与当前实施进度对齐；已更新为 `In Progress`，并明确阶段 3 未提交、阶段 4 必须移除 saved text endpoint 短路、阶段 5 必须完成文档和 live smoke 收口。
 - 2026-05-27：阶段 3 已完成并提交 `f49b602 Add embedding configuration probe service`。已运行并通过：`swift test --package-path Packages/LangoTraceAI --filter EmbeddingConfigurationProbeServiceTests`、`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationProbeServiceTests`、`git diff --check`。
 - 2026-05-27：阶段 4 已完成。AI service 层已接入 draft / saved embedding 独立聚合，saved embedding 使用 Keychain 引用解析 credential，并通过 `recordEndpointValidationOutcome(_:)` 写 endpoint-scoped validation outcome；`AppEnvironment` 已注入真实 `EmbeddingConfigurationProbeService` 并传递 draft snapshot 的 embedding endpoint / secret。已运行并通过：`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationServiceTests`、`swift test --package-path Packages/LangoTraceAI --filter EmbeddingConfigurationProbeServiceTests`、`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationProbeServiceTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests`、`xcodegen generate`、`xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build`。
+- 2026-05-27：再次复查当前方案完整性。阶段 1-4 的架构链路与代码事实一致；阶段 5 已覆盖 live smoke、测试文档、Prompt Registry、页面事实和未来向量基础设施备忘录。完整验证曾因旧 Data migration fixture 缺少 `ai_provider_endpoints` 表失败，已把该兼容点补入当前方案的阶段 5 收口和复查要求；后续必须重新运行 `scripts/verify.sh` 后才能移动到 `done/`。
+- 2026-05-27：阶段 5 已完成。Tooling 已支持 `scripts/probe_openai_compatible_api.py --mode embeddings` 的 opt-in live smoke，单元测试覆盖固定低敏请求体、`/embeddings` URL、vector length 输出和脱敏边界；`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/testing/README.md`、Prompt Registry、页面事实文档和 `docs/architecture/notes/2026-05-27-embedding-infrastructure-notes.md` 已同步。完整验证中发现并修复两个收口问题：旧 Data migration fixture 缺少 `ai_provider_endpoints` 表时 v11 migration 需跳过补列；fingerprint helper 和 embedding 测试需满足 swiftlint / SwiftFormat。已运行并通过：`swift test --package-path Packages/LangoTraceCore --filter AIProviderConfigurationTests`、`swift test --package-path Packages/LangoTraceAI --filter EmbeddingConfigurationProbeServiceTests`、`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationServiceTests`、`swiftformat --lint Packages/LangoTraceAI/Tests/LangoTraceAITests/EmbeddingConfigurationProbeServiceTests.swift Packages/LangoTraceAI/Sources/LangoTraceAI/EmbeddingConfigurationProbeService.swift Packages/LangoTraceCore/Sources/LangoTraceCore/AIProviderConfiguration.swift Packages/LangoTraceAI/Tests/LangoTraceAITests/AIProviderConfigurationServiceTests.swift`、`scripts/verify.sh`。
+- 2026-05-27：完成前文档检查已通过：`scripts/check-docs.sh`、`rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'` 无命中、`git diff --check`。
 
 ## 17. 完成标准
 
-- 用户审核本方案并确认进入 `User Approved` 后才开始实现。
+- 用户审核门槛已在实施前完成；当前方案作为 `In Progress` 控制面继续记录阶段性提交、验证结果和剩余风险。
 - OpenAI、Custom OpenAI-compatible 和 OpenRouter 的 embedding configuration probe 均有单元测试覆盖。
 - 其他 Provider 暂不实现时有稳定 unsupported / not configured 行为和测试。
 - Draft probe 不持久化。

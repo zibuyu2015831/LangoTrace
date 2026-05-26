@@ -106,16 +106,24 @@ OPENAI_API_KEY='...' scripts/probe_openai_compatible_api.py \
 ```bash
 scripts/probe_openai_compatible_api.py
 scripts/probe_openai_compatible_api.py --mode responses ...
+scripts/probe_openai_compatible_api.py --mode embeddings ...
 scripts/probe_openai_compatible_api.py --mode both ...
 scripts/probe_openai_compatible_api.py --json ...
+```
+
+Embedding / 向量化 opt-in smoke 示例：
+
+```bash
+OPENAI_API_KEY='...' OPENAI_BASE_URL='https://api.openai.com/v1' OPENAI_EMBEDDING_MODEL='text-embedding-3-small' \
+  scripts/probe_openai_compatible_api.py --mode embeddings --json
 ```
 
 边界：
 
 - 脚本只用于开发期宿主机诊断，不属于 App 运行链路。
 - 不携带任何参数时，脚本进入交互模式，依次要求输入 Base URL、API Key 和 Model；API Key 在终端输入时可见，但脚本输出仍会脱敏。
-- 请求内容固定为 `Reply with exactly OK.`，不发送生活记录、照片、音频、历史记忆、Prompt Preset 或用户正文。
-- 输出不会打印 API Key、请求体或响应体。
+- 文本请求内容固定为 `Reply with exactly OK.`；embedding 请求内容固定为 `LangoTrace embedding configuration test.`；两者都不发送生活记录、照片、音频、历史记忆、Prompt Preset 或用户正文。
+- 输出不会打印 API Key、请求体、响应体或 embedding vector；embedding mode 只输出 vector length。
 - 如果脚本返回 `authentication_failed`，应优先检查 API Key、Provider 账号权限和兼容层认证方式；如果脚本通过但 App 失败，再回到 App 日志和 Provider probe 实现排查。
 
 ## 模拟器截图验证

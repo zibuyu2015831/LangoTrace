@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Probe an OpenAI-compatible text model endpoint.
+"""Probe an OpenAI-compatible text or embeddings endpoint.
 
 This script is a host-side development diagnostic tool. It sends a fixed,
 synthetic request and never prints the API key, request body, or response body.
@@ -31,6 +31,7 @@ class ProbeResult:
     category: str
     detail: str
     duration_ms: int
+    vector_length: Optional[int] = None
 
 
 @dataclass(frozen=True)
@@ -86,6 +87,8 @@ def build_endpoint_url(base_url: str, mode: Mode) -> str:
         return f"{normalized}/v1/chat/completions"
     if mode == "responses":
         return f"{normalized}/v1/responses"
+    if mode == "embeddings":
+        return f"{normalized}/v1/embeddings"
     raise ValueError(f"unsupported mode: {mode}")
 
 
@@ -113,6 +116,12 @@ def build_payload(model: str, mode: Mode) -> dict[str, object]:
             "input": "Reply with exactly OK.",
             "temperature": 0,
             "max_output_tokens": 8,
+        }
+    if mode == "embeddings":
+        return {
+            "model": model_name,
+            "input": "LangoTrace embedding configuration test.",
+            "encoding_format": "float",
         }
     raise ValueError(f"unsupported mode: {mode}")
 
@@ -201,6 +210,22 @@ def extract_text(payload: dict[str, object], mode: Mode) -> str:
     raise ValueError(f"unsupported mode: {mode}")
 
 
+def extract_embedding_vector_length(payload: dict[str, object]) -> int:
+    data = payload.get("data")
+    if not isinstance(data, list) or not data:
+        raise ValueError("embedding response does not contain data")
+    first = data[0]
+    if not isinstance(first, dict):
+        raise ValueError("embedding response item is not an object")
+    embedding = first.get("embedding")
+    if not isinstance(embedding, list) or not embedding:
+        raise ValueError("embedding response does not contain a non-empty vector")
+    for value in embedding:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError("embedding vector contains non-numeric values")
+    return len(embedding)
+
+
 def _category_for_http_status(status: int) -> str:
     if status in {401, 403}:
         return "authentication_failed"
@@ -242,6 +267,16 @@ def run_probe(
         )
         with opener(request, timeout_seconds) as response:
             payload = _load_json_response(response)
+        if mode == "embeddings":
+            vector_length = extract_embedding_vector_length(payload)
+            return _result(
+                started,
+                mode,
+                True,
+                "success",
+                f"Embedding vector length: {vector_length}",
+                vector_length=vector_length,
+            )
         text = extract_text(payload, mode)
         if text != "OK":
             return _result(started, mode, False, "unexpected_model_output", "Model did not reply with exactly OK")
@@ -257,20 +292,28 @@ def run_probe(
         return _result(started, mode, False, "invalid_response", str(error))
 
 
-def _result(started: float, mode: Mode, ok: bool, category: str, detail: str) -> ProbeResult:
+def _result(
+    started: float,
+    mode: Mode,
+    ok: bool,
+    category: str,
+    detail: str,
+    vector_length: Optional[int] = None,
+) -> ProbeResult:
     return ProbeResult(
         mode=mode,
         ok=ok,
         category=category,
         detail=detail,
         duration_ms=int((time.monotonic() - started) * 1000),
+        vector_length=vector_length,
     )
 
 
 def modes_from_argument(mode: str) -> list[Mode]:
     if mode == "both":
         return ["chat", "responses"]
-    if mode in {"chat", "responses"}:
+    if mode in {"chat", "responses", "embeddings"}:
         return [mode]
     raise ValueError(f"unsupported mode: {mode}")
 
@@ -291,6 +334,7 @@ def print_json_results(results: Iterable[ProbeResult]) -> None:
                     "category": result.category,
                     "detail": result.detail,
                     "duration_ms": result.duration_ms,
+                    "vector_length": result.vector_length,
                 }
                 for result in results
             ],
@@ -302,12 +346,12 @@ def print_json_results(results: Iterable[ProbeResult]) -> None:
 
 def parser() -> argparse.ArgumentParser:
     argument_parser = argparse.ArgumentParser(
-        description="Test whether an OpenAI-compatible API key, base URL, and model can answer a minimal text probe. Run without arguments for interactive input.",
+        description="Test whether an OpenAI-compatible API key, base URL, and model can answer a minimal text or embeddings probe. Run without arguments for interactive input.",
     )
     argument_parser.add_argument("--base-url", default=os.environ.get("OPENAI_BASE_URL"), help="Provider base URL, for example https://api.openai.com or https://api.example.com/v1. Defaults to OPENAI_BASE_URL.")
-    argument_parser.add_argument("--model", default=os.environ.get("OPENAI_MODEL"), help="Text model name. Defaults to OPENAI_MODEL.")
+    argument_parser.add_argument("--model", default=None, help="Model name. Defaults to OPENAI_MODEL, or OPENAI_EMBEDDING_MODEL when --mode embeddings.")
     argument_parser.add_argument("--api-key", default=os.environ.get("OPENAI_API_KEY"), help="API key. Defaults to OPENAI_API_KEY. The value is never printed.")
-    argument_parser.add_argument("--mode", choices=["chat", "responses", "both"], default="chat", help="Endpoint to probe. Default: chat.")
+    argument_parser.add_argument("--mode", choices=["chat", "responses", "embeddings", "both"], default="chat", help="Endpoint to probe. Default: chat.")
     argument_parser.add_argument("--timeout", type=int, default=30, help="Request timeout in seconds. Default: 30.")
     argument_parser.add_argument("--json", action="store_true", help="Print machine-readable JSON result.")
     return argument_parser
@@ -323,7 +367,11 @@ def main(argv: Optional[list[str]] = None) -> int:
         config = ProbeConfig(
             base_url=args.base_url,
             api_key=args.api_key,
-            model=args.model,
+            model=args.model or (
+                os.environ.get("OPENAI_EMBEDDING_MODEL")
+                if args.mode == "embeddings"
+                else os.environ.get("OPENAI_MODEL")
+            ),
             mode=args.mode,
             timeout=args.timeout,
             json_output=args.json,

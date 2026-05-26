@@ -49,7 +49,7 @@ func embeddingProbeBuildsOpenAICompatibleEmbeddingsRequestAndReturnsMetadata() a
 }
 
 @Test("Embedding probe supports OpenRouter and custom OpenAI compatible base URLs")
-func embeddingProbeSupportsOpenRouterAndCustomBaseURLs() async throws {
+func embeddingProbeSupportsOpenRouterAndCustomBaseURLs() async {
     let httpClient = CapturingEmbeddingProbeHTTPClient(responses: [
         .json(#"{"data":[{"embedding":[1]}]}"#),
         .json(#"{"data":[{"embedding":[2]}]}"#),
@@ -86,7 +86,7 @@ func embeddingProbeSupportsOpenRouterAndCustomBaseURLs() async throws {
 }
 
 @Test("Embedding probe rejects invalid embedding response shapes")
-func embeddingProbeRejectsInvalidResponseShapes() async throws {
+func embeddingProbeRejectsInvalidResponseShapes() async {
     for payload in [
         #"{"data":[{"embedding":[]}]}"#,
         #"{"data":[{"embedding":["0.1"]}]}"#,
@@ -107,7 +107,7 @@ func embeddingProbeRejectsInvalidResponseShapes() async throws {
 }
 
 @Test("Embedding probe maps provider and transport failures")
-func embeddingProbeMapsProviderAndTransportFailures() async throws {
+func embeddingProbeMapsProviderAndTransportFailures() async {
     let cases: [(CapturingEmbeddingProbeHTTPClient.Response, AIProviderProbeCapabilityStatus, AIProviderValidationErrorCategory?)] = [
         (.http(statusCode: 401, body: "{}"), .failed, .authenticationFailed),
         (.http(statusCode: 403, body: "{}"), .failed, .authenticationFailed),
@@ -133,7 +133,7 @@ func embeddingProbeMapsProviderAndTransportFailures() async throws {
 }
 
 @Test("Embedding probe maps missing credential and unsupported provider without HTTP")
-func embeddingProbeMapsMissingCredentialAndUnsupportedProviderWithoutHTTP() async throws {
+func embeddingProbeMapsMissingCredentialAndUnsupportedProviderWithoutHTTP() async {
     let missingCredentialClient = CapturingEmbeddingProbeHTTPClient(responses: [])
     let missingCredentialService = EmbeddingConfigurationProbeService(httpClient: missingCredentialClient)
     let missingCredential = await missingCredentialService.probeDraftEmbeddingConfiguration(

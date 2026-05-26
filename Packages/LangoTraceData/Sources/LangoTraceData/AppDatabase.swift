@@ -237,6 +237,9 @@ private extension AppDatabase {
     }
 
     static func addAIProviderEndpointValidationSummary(_ db: Database) throws {
+        guard try db.tableExists("ai_provider_endpoints") else {
+            return
+        }
         let columns = try Row.fetchAll(db, sql: "PRAGMA table_info(ai_provider_endpoints)")
             .map { $0["name"] as String }
         guard !columns.contains("last_validated_at") else {
