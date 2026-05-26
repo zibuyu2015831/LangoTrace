@@ -152,8 +152,8 @@ struct PracticeRouteSeedTests {
         #expect(projection.estimatedRegularHeightRange == 112 ... 132)
     }
 
-    @Test("Practice prompt card presentation collapses long translation and expands to full text")
-    func practicePromptCardPresentationCollapsesAndExpandsLongTranslation() {
+    @Test("Practice prompt card presentation hides translation until user asks")
+    func practicePromptCardPresentationHidesTranslationUntilUserAsks() {
         let snapshot = promptSnapshot(
             translation: "鸟儿轻声鸣叫，标志着另一个宁静的一天结束，也提醒用户这句话描述的是安静收束的生活场景。",
             note: "chirp 是动词，表示鸟儿发出短促轻快的叫声。"
@@ -171,26 +171,32 @@ struct PracticeRouteSeedTests {
         )
 
         #expect(collapsed.targetText == "Birds chirp softly, signaling the end of another peaceful day.")
-        #expect(collapsed.translationLineLimit == PracticePromptCardPresentation.collapsedTranslationLineLimit)
-        #expect(collapsed.translationNeedsDisclosure)
+        #expect(collapsed.translationText == "鸟儿轻声鸣叫，标志着另一个宁静的一天结束，也提醒用户这句话描述的是安静收束的生活场景。")
+        #expect(collapsed.displayedTranslationText == nil)
         #expect(collapsed.shouldShowTranslationToggle)
         #expect(collapsed.translationToggleTitleKey == "practice.prompt.translation.expand")
         #expect(collapsed.translationAccessibilityValueKey == "accessibility.hidden")
         #expect(collapsed.explanationToggleTitleKey == "practice.prompt.explanation.expand")
         #expect(collapsed.explanationAccessibilityValueKey == "accessibility.hidden")
+        #expect(collapsed.explanationParagraphs == ["chirp 是动词，表示鸟儿发出短促轻快的叫声。"])
 
-        #expect(expanded.translationLineLimit == nil)
+        #expect(expanded.displayedTranslationText == "鸟儿轻声鸣叫，标志着另一个宁静的一天结束，也提醒用户这句话描述的是安静收束的生活场景。")
         #expect(expanded.translationToggleTitleKey == "practice.prompt.translation.collapse")
         #expect(expanded.translationAccessibilityValueKey == "accessibility.visible")
         #expect(expanded.explanationToggleTitleKey == "practice.prompt.explanation.collapse")
         #expect(expanded.explanationAccessibilityValueKey == "accessibility.visible")
     }
 
-    @Test("Practice prompt card presentation avoids empty controls for short or blank auxiliary text")
-    func practicePromptCardPresentationAvoidsEmptyControlsForShortOrBlankAuxiliaryText() {
+    @Test("Practice prompt card presentation requires explicit reveal for short translation")
+    func practicePromptCardPresentationRequiresExplicitRevealForShortTranslation() {
         let short = PracticePromptCardPresentation(
             snapshot: promptSnapshot(translation: "鸟儿轻声鸣叫。", note: " "),
             isTranslationExpanded: false,
+            isExplanationExpanded: false
+        )
+        let expandedShort = PracticePromptCardPresentation(
+            snapshot: promptSnapshot(translation: "鸟儿轻声鸣叫。", note: " "),
+            isTranslationExpanded: true,
             isExplanationExpanded: false
         )
         let blank = PracticePromptCardPresentation(
@@ -200,17 +206,37 @@ struct PracticeRouteSeedTests {
         )
 
         #expect(short.translationText == "鸟儿轻声鸣叫。")
-        #expect(short.translationLineLimit == nil)
-        #expect(!short.translationNeedsDisclosure)
-        #expect(!short.shouldShowTranslationToggle)
-        #expect(short.translationToggleTitleKey == nil)
+        #expect(short.displayedTranslationText == nil)
+        #expect(short.shouldShowTranslationToggle)
+        #expect(short.translationToggleTitleKey == "practice.prompt.translation.expand")
         #expect(short.explanationText == nil)
         #expect(!short.shouldShowExplanationToggle)
 
+        #expect(expandedShort.displayedTranslationText == "鸟儿轻声鸣叫。")
+        #expect(expandedShort.translationToggleTitleKey == "practice.prompt.translation.collapse")
+
         #expect(blank.translationText == nil)
+        #expect(blank.displayedTranslationText == nil)
         #expect(blank.explanationText == nil)
         #expect(!blank.shouldShowTranslationToggle)
         #expect(!blank.shouldShowExplanationToggle)
+    }
+
+    @Test("Practice prompt card presentation splits explanation into readable paragraphs")
+    func practicePromptCardPresentationSplitsExplanationParagraphs() {
+        let presentation = PracticePromptCardPresentation(
+            snapshot: promptSnapshot(
+                translation: "太阳轻轻地落下。",
+                note: "set (太阳落下): 在英语中，'set' 可以用来描述太阳落下的动作。\n\npainting (动名词): 'painting' 在这里是动名词形式，表示一种持续的动作。"
+            ),
+            isTranslationExpanded: false,
+            isExplanationExpanded: true
+        )
+
+        #expect(presentation.explanationParagraphs == [
+            "set (太阳落下): 在英语中，'set' 可以用来描述太阳落下的动作。",
+            "painting (动名词): 'painting' 在这里是动名词形式，表示一种持续的动作。",
+        ])
     }
 }
 

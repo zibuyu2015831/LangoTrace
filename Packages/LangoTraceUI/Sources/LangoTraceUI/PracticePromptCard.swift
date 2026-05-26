@@ -24,42 +24,59 @@ struct PracticePromptCard: View {
                 .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            if let translationText = presentation.translationText {
+            disclosureControls
+
+            if let translationText = presentation.displayedTranslationText {
                 translationSection(translationText)
             }
 
-            if presentation.shouldShowExplanationToggle {
-                explanationToggle
+            if isExplanationExpanded, !presentation.explanationParagraphs.isEmpty {
+                explanationSection
             }
+        }
+        .langoPanel()
+    }
 
-            if isExplanationExpanded, let explanationText = presentation.explanationText {
-                Text(explanationText)
+    private func translationSection(_ translationText: String) -> some View {
+        Text(translationText)
+            .font(.callout)
+            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var explanationSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(Array(presentation.explanationParagraphs.enumerated()), id: \.offset) { _, paragraph in
+                Text(paragraph)
                     .font(.footnote)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .frame(minHeight: PracticePromptCardLayout.collapsedMinHeight, alignment: .topLeading)
-        .langoPanel()
     }
 
-    private func translationSection(_ translationText: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .center, spacing: 10) {
-                Text(localizedString("practice.prompt.translation.title"))
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                Spacer(minLength: 8)
-                if presentation.shouldShowTranslationToggle {
-                    translationToggle
+    @ViewBuilder
+    private var disclosureControls: some View {
+        if presentation.shouldShowTranslationToggle || presentation.shouldShowExplanationToggle {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .center, spacing: 16) {
+                    if presentation.shouldShowTranslationToggle {
+                        translationToggle
+                    }
+                    if presentation.shouldShowExplanationToggle {
+                        explanationToggle
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 0) {
+                    if presentation.shouldShowTranslationToggle {
+                        translationToggle
+                    }
+                    if presentation.shouldShowExplanationToggle {
+                        explanationToggle
+                    }
                 }
             }
-
-            Text(translationText)
-                .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .lineLimit(presentation.translationLineLimit)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -92,23 +109,16 @@ struct PracticePromptCard: View {
     }
 }
 
-private enum PracticePromptCardLayout {
-    static let collapsedMinHeight: CGFloat = 220
-}
-
 struct PracticePromptCardPresentation: Equatable {
-    static let collapsedTranslationLineLimit = 2
-    static let translationDisclosureCharacterThreshold = 42
-
     var targetText: String
     var translationText: String?
+    var displayedTranslationText: String?
     var explanationText: String?
-    var translationLineLimit: Int?
+    var explanationParagraphs: [String]
     var translationToggleTitleKey: String?
     var explanationToggleTitleKey: String?
     var translationAccessibilityValueKey: String?
     var explanationAccessibilityValueKey: String?
-    var translationNeedsDisclosure: Bool
     var shouldShowTranslationToggle: Bool
     var shouldShowExplanationToggle: Bool
 
@@ -120,12 +130,10 @@ struct PracticePromptCardPresentation: Equatable {
         targetText = snapshot.targetTextSnapshot
         translationText = Self.normalizedText(snapshot.translationSnapshot)
         explanationText = Self.normalizedText(snapshot.noteSnapshot)
+        explanationParagraphs = Self.normalizedParagraphs(snapshot.noteSnapshot)
 
-        translationNeedsDisclosure = Self.needsTranslationDisclosure(translationText)
-        shouldShowTranslationToggle = translationNeedsDisclosure
-        translationLineLimit = translationNeedsDisclosure && !isTranslationExpanded
-            ? Self.collapsedTranslationLineLimit
-            : nil
+        shouldShowTranslationToggle = translationText != nil
+        displayedTranslationText = isTranslationExpanded ? translationText : nil
         translationToggleTitleKey = shouldShowTranslationToggle
             ? (isTranslationExpanded ? "practice.prompt.translation.collapse" : "practice.prompt.translation.expand")
             : nil
@@ -147,11 +155,10 @@ struct PracticePromptCardPresentation: Equatable {
         return trimmed?.isEmpty == false ? trimmed : nil
     }
 
-    private static func needsTranslationDisclosure(_ value: String?) -> Bool {
-        guard let value else {
-            return false
-        }
-
-        return value.count > translationDisclosureCharacterThreshold || value.contains("\n")
+    private static func normalizedParagraphs(_ value: String?) -> [String] {
+        value?
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty } ?? []
     }
 }

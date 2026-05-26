@@ -7314,7 +7314,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "展开译文"
+            "value": "查看释义"
           }
         }
       }
@@ -7331,7 +7331,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "收起译文"
+            "value": "收起释义"
           }
         }
       }
@@ -7348,7 +7348,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "展开或收起完整中文释义。"
+            "value": "查看或收起中文释义。"
           }
         }
       }
