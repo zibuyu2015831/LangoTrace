@@ -114,6 +114,11 @@ func capabilityProbeResultCarriesEndpointMetadataForMixedProfileProbes() {
     #expect(result.capability(.speechSynthesis)?.endpointMetadata?.providerPresetID == "openrouter")
 }
 
+@Test("Embedding validation error category exposes stable raw value")
+func embeddingValidationErrorCategoryExposesStableRawValue() {
+    #expect(AIProviderValidationErrorCategory.invalidEmbeddingResponse.rawValue == "invalid_embedding_response")
+}
+
 @Test("TTS validation error categories expose stable raw values")
 func ttsValidationErrorCategoriesExposeStableRawValues() {
     #expect(AIProviderValidationErrorCategory.invalidVoice.rawValue == "invalid_voice")

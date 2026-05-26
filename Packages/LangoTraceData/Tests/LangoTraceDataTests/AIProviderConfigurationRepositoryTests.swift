@@ -94,6 +94,79 @@ func aiProviderRepositoryRecordsSyntheticValidationOutcomeAndUpdatesProfileSumma
     #expect(storedEvent?["error_category"] as String? == "invalid_response")
 }
 
+@Test("AI provider repository records endpoint scoped validation without changing profile summary")
+func aiProviderRepositoryRecordsEndpointScopedValidationWithoutChangingProfileSummary() async throws {
+    let database = try AppDatabase.inMemory()
+    let repository = GRDBAIProviderConfigurationRepository(database: database)
+    let profile = try embeddingProfile()
+    try await repository.saveProfile(profile)
+
+    try await repository.recordEndpointValidationOutcome(
+        AIProviderEndpointValidationOutcome(
+            event: AIProviderValidationEvent(
+                id: "event-embedding-1",
+                profileID: "profile-1",
+                endpointID: "endpoint-embedding",
+                eventType: .syntheticTest,
+                status: .succeeded,
+                errorCategory: nil,
+                providerPresetID: "openai",
+                modelName: "text-embedding-3-small",
+                durationMilliseconds: 88,
+                createdAt: Date(timeIntervalSince1970: 240)
+            ),
+            configurationFingerprint: "embedding-fingerprint-1"
+        )
+    )
+
+    let loaded = try await repository.loadDefaultProfile()
+    let embeddingEndpoint = loaded?.endpoints.first { $0.purpose == .embedding }
+    #expect(loaded?.lastValidatedAt == nil)
+    #expect(loaded?.lastValidationStatus == nil)
+    #expect(embeddingEndpoint?.lastValidatedAt == Date(timeIntervalSince1970: 240))
+    #expect(embeddingEndpoint?.lastValidationStatus == .succeeded)
+    #expect(embeddingEndpoint?.lastValidationErrorCategory == nil)
+    #expect(embeddingEndpoint?.lastSuccessfulConfigurationFingerprint == "embedding-fingerprint-1")
+
+    let storedEvent = try database.databaseQueue.read { db in
+        try Row.fetchOne(db, sql: "SELECT * FROM ai_provider_validation_events WHERE id = ?", arguments: ["event-embedding-1"])
+    }
+    #expect(storedEvent?["endpoint_id"] as String? == "endpoint-embedding")
+    #expect(storedEvent?["event_type"] as String? == "synthetic_test")
+}
+
+@Test("AI provider repository stores failed endpoint scoped validation without successful fingerprint")
+func aiProviderRepositoryStoresFailedEndpointScopedValidationWithoutSuccessfulFingerprint() async throws {
+    let database = try AppDatabase.inMemory()
+    let repository = GRDBAIProviderConfigurationRepository(database: database)
+    let profile = try embeddingProfile()
+    try await repository.saveProfile(profile)
+
+    try await repository.recordEndpointValidationOutcome(
+        AIProviderEndpointValidationOutcome(
+            event: AIProviderValidationEvent(
+                id: "event-embedding-failed",
+                profileID: "profile-1",
+                endpointID: "endpoint-embedding",
+                eventType: .syntheticTest,
+                status: .failed,
+                errorCategory: .invalidEmbeddingResponse,
+                providerPresetID: "openai",
+                modelName: "text-embedding-3-small",
+                durationMilliseconds: 90,
+                createdAt: Date(timeIntervalSince1970: 260)
+            ),
+            configurationFingerprint: "embedding-fingerprint-1"
+        )
+    )
+
+    let loaded = try await repository.loadDefaultProfile()
+    let embeddingEndpoint = loaded?.endpoints.first { $0.purpose == .embedding }
+    #expect(embeddingEndpoint?.lastValidationStatus == .failed)
+    #expect(embeddingEndpoint?.lastValidationErrorCategory == .invalidEmbeddingResponse)
+    #expect(embeddingEndpoint?.lastSuccessfulConfigurationFingerprint == nil)
+}
+
 @Test("AI provider repository saves TTS settings in same profile transaction")
 func aiProviderRepositorySavesTTSSettingsInSameProfileTransaction() async throws {
     let database = try AppDatabase.inMemory()
@@ -273,6 +346,64 @@ private func defaultProfile() throws -> AIProviderConfigurationProfile {
         createdAt: now,
         updatedAt: now,
         endpoints: [endpoint],
+        credentials: [credential]
+    )
+}
+
+private func embeddingProfile() throws -> AIProviderConfigurationProfile {
+    let now = Date(timeIntervalSince1970: 100)
+    let textEndpoint = try AIProviderEndpointConfiguration(
+        input: AIProviderEndpointInput(
+            id: "endpoint-text",
+            profileID: "profile-1",
+            purpose: .textGeneration,
+            isEnabled: true,
+            providerPresetID: "openai",
+            adapterKind: .openAIResponses,
+            baseURL: "https://api.openai.com/v1",
+            modelName: "gpt-5.2",
+            credentialID: "credential-1",
+            supportsImageInput: true,
+            imageInputEnabled: false
+        ),
+        createdAt: now,
+        updatedAt: now
+    )
+    let embeddingEndpoint = try AIProviderEndpointConfiguration(
+        input: AIProviderEndpointInput(
+            id: "endpoint-embedding",
+            profileID: "profile-1",
+            purpose: .embedding,
+            isEnabled: true,
+            providerPresetID: "openai",
+            adapterKind: .openAIResponses,
+            baseURL: "https://api.openai.com/v1",
+            modelName: "text-embedding-3-small",
+            credentialID: "credential-1",
+            supportsImageInput: false,
+            imageInputEnabled: false
+        ),
+        createdAt: now,
+        updatedAt: now
+    )
+    let credential = AIProviderCredentialMetadata(
+        id: "credential-1",
+        profileID: "profile-1",
+        providerPresetID: "openai",
+        kind: .apiKey,
+        label: "OpenAI API Key",
+        secretPresence: .present,
+        createdAt: now,
+        updatedAt: now
+    )
+    return AIProviderConfigurationProfile(
+        id: "profile-1",
+        displayName: "Default AI Provider",
+        isDefault: true,
+        status: .configured,
+        createdAt: now,
+        updatedAt: now,
+        endpoints: [textEndpoint, embeddingEndpoint],
         credentials: [credential]
     )
 }

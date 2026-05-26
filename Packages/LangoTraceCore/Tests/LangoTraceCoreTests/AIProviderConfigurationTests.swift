@@ -44,6 +44,52 @@ func nonTextGenerationEndpointsClearImageInputSupportAndEnablement() throws {
     #expect(!endpoint.imageInputEnabled)
 }
 
+@Test("Endpoint configuration fingerprint is stable and excludes sensitive values")
+func endpointConfigurationFingerprintIsStableAndExcludesSensitiveValues() throws {
+    let endpoint = try endpointInput(
+        baseURL: " https://api.openai.com/v1 ",
+        purpose: .embedding,
+        supportsImageInput: true,
+        imageInputEnabled: true
+    ).normalized()
+    let sameOutputFields = AIProviderEndpointInput(
+        id: "endpoint-other",
+        profileID: "profile-other",
+        purpose: endpoint.purpose,
+        isEnabled: false,
+        providerPresetID: endpoint.providerPresetID,
+        adapterKind: endpoint.adapterKind,
+        baseURL: endpoint.baseURL,
+        modelName: endpoint.modelName,
+        credentialID: endpoint.credentialID,
+        supportsImageInput: endpoint.supportsImageInput,
+        imageInputEnabled: endpoint.imageInputEnabled,
+        requestTimeoutSeconds: endpoint.requestTimeoutSeconds
+    )
+
+    #expect(endpoint.configurationFingerprint == sameOutputFields.configurationFingerprint)
+    #expect(!endpoint.configurationFingerprint.contains("endpoint-1"))
+    #expect(!endpoint.configurationFingerprint.contains("profile-1"))
+    #expect(!endpoint.configurationFingerprint.contains("ai-provider-credential"))
+    #expect(!endpoint.configurationFingerprint.contains("sk-"))
+
+    var changedModel = endpoint
+    changedModel.modelName = "text-embedding-3-large"
+    #expect(changedModel.configurationFingerprint != endpoint.configurationFingerprint)
+
+    var changedBaseURL = endpoint
+    changedBaseURL.baseURL = "https://openrouter.ai/api/v1"
+    #expect(changedBaseURL.configurationFingerprint != endpoint.configurationFingerprint)
+
+    var changedPurpose = endpoint
+    changedPurpose.purpose = .textGeneration
+    #expect(changedPurpose.configurationFingerprint != endpoint.configurationFingerprint)
+
+    var changedTimeout = endpoint
+    changedTimeout.requestTimeoutSeconds = 12
+    #expect(changedTimeout.configurationFingerprint != endpoint.configurationFingerprint)
+}
+
 @Test("Credential metadata derives stable non secret Keychain reference fields")
 func credentialMetadataDerivesStableKeychainReferenceFields() {
     let metadata = AIProviderCredentialMetadata(

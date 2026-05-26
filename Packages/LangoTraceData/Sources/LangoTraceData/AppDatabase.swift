@@ -70,6 +70,9 @@ private extension AppDatabase {
         migrator.registerMigration("v10_allow_practice_recording_media_derivation_kind") { db in
             try allowPracticeRecordingMediaDerivationKind(db)
         }
+        migrator.registerMigration("v11_add_ai_provider_endpoint_validation_summary") { db in
+            try addAIProviderEndpointValidationSummary(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
@@ -179,6 +182,10 @@ private extension AppDatabase {
             table.column("supports_image_input", .boolean).notNull()
             table.column("image_input_enabled", .boolean).notNull()
             table.column("request_timeout_seconds", .double)
+            table.column("last_validated_at", .double)
+            table.column("last_validation_status", .text)
+            table.column("last_validation_error_category", .text)
+            table.column("last_successful_configuration_fingerprint", .text)
             table.column("created_at", .double).notNull()
             table.column("updated_at", .double).notNull()
             table.column("deleted_at", .double)
@@ -226,6 +233,20 @@ private extension AppDatabase {
             table.column("model_name", .text)
             table.column("duration_ms", .integer)
             table.column("created_at", .double).notNull()
+        }
+    }
+
+    static func addAIProviderEndpointValidationSummary(_ db: Database) throws {
+        let columns = try Row.fetchAll(db, sql: "PRAGMA table_info(ai_provider_endpoints)")
+            .map { $0["name"] as String }
+        guard !columns.contains("last_validated_at") else {
+            return
+        }
+        try db.alter(table: "ai_provider_endpoints") { table in
+            table.add(column: "last_validated_at", .double)
+            table.add(column: "last_validation_status", .text)
+            table.add(column: "last_validation_error_category", .text)
+            table.add(column: "last_successful_configuration_fingerprint", .text)
         }
     }
 

@@ -352,6 +352,20 @@ public struct AIProviderEndpointInput: Equatable, Sendable {
         }
         return normalized
     }
+
+    public var configurationFingerprint: String {
+        AIProviderEndpointConfigurationFingerprint.make(
+            purpose: purpose.rawValue,
+            providerPresetID: providerPresetID,
+            adapterKind: adapterKind.rawValue,
+            baseURL: baseURL,
+            modelName: modelName,
+            credentialID: credentialID,
+            requestTimeoutSeconds: requestTimeoutSeconds,
+            supportsImageInput: supportsImageInput,
+            imageInputEnabled: imageInputEnabled
+        )
+    }
 }
 
 public struct AIProviderProfileSaveInput: Equatable, Sendable {
@@ -449,13 +463,21 @@ public struct AIProviderEndpointConfiguration: Equatable, Sendable {
     public var supportsImageInput: Bool
     public var imageInputEnabled: Bool
     public var requestTimeoutSeconds: Double?
+    public var lastValidatedAt: Date?
+    public var lastValidationStatus: AIProviderValidationStatus?
+    public var lastValidationErrorCategory: AIProviderValidationErrorCategory?
+    public var lastSuccessfulConfigurationFingerprint: String?
     public var createdAt: Date
     public var updatedAt: Date
 
     public init(
         input: AIProviderEndpointInput,
         createdAt: Date,
-        updatedAt: Date
+        updatedAt: Date,
+        lastValidatedAt: Date? = nil,
+        lastValidationStatus: AIProviderValidationStatus? = nil,
+        lastValidationErrorCategory: AIProviderValidationErrorCategory? = nil,
+        lastSuccessfulConfigurationFingerprint: String? = nil
     ) throws {
         let normalized = try input.normalized()
         id = normalized.id
@@ -470,8 +492,26 @@ public struct AIProviderEndpointConfiguration: Equatable, Sendable {
         supportsImageInput = normalized.supportsImageInput
         imageInputEnabled = normalized.imageInputEnabled
         requestTimeoutSeconds = normalized.requestTimeoutSeconds
+        self.lastValidatedAt = lastValidatedAt
+        self.lastValidationStatus = lastValidationStatus
+        self.lastValidationErrorCategory = lastValidationErrorCategory
+        self.lastSuccessfulConfigurationFingerprint = lastSuccessfulConfigurationFingerprint
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+
+    public var configurationFingerprint: String {
+        AIProviderEndpointConfigurationFingerprint.make(
+            purpose: purpose.rawValue,
+            providerPresetID: providerPresetID,
+            adapterKind: adapterKind.rawValue,
+            baseURL: baseURL,
+            modelName: modelName,
+            credentialID: credentialID,
+            requestTimeoutSeconds: requestTimeoutSeconds,
+            supportsImageInput: supportsImageInput,
+            imageInputEnabled: imageInputEnabled
+        )
     }
 }
 
@@ -586,6 +626,19 @@ public struct AIProviderValidationEvent: Equatable, Sendable {
     }
 }
 
+public struct AIProviderEndpointValidationOutcome: Equatable, Sendable {
+    public var event: AIProviderValidationEvent
+    public var configurationFingerprint: String
+
+    public init(
+        event: AIProviderValidationEvent,
+        configurationFingerprint: String
+    ) {
+        self.event = event
+        self.configurationFingerprint = configurationFingerprint
+    }
+}
+
 public protocol AIProviderConfigurationRepository: Sendable {
     func loadDefaultProfile() async throws -> AIProviderConfigurationProfile?
     func saveProfile(_ profile: AIProviderConfigurationProfile) async throws
@@ -600,6 +653,7 @@ public protocol AIProviderConfigurationRepository: Sendable {
     ) async throws
     func recordValidationEvent(_ event: AIProviderValidationEvent) async throws
     func recordValidationOutcome(_ event: AIProviderValidationEvent) async throws
+    func recordEndpointValidationOutcome(_ outcome: AIProviderEndpointValidationOutcome) async throws
     func loadTTSSettings(endpointID: AIProviderEndpointID) async throws -> TTSProviderSettings?
     func loadTTSVoiceProfile(
         endpointID: AIProviderEndpointID,
@@ -624,6 +678,10 @@ public extension AIProviderConfigurationRepository {
         try await recordValidationEvent(event)
     }
 
+    func recordEndpointValidationOutcome(_ outcome: AIProviderEndpointValidationOutcome) async throws {
+        try await recordValidationEvent(outcome.event)
+    }
+
     func loadTTSSettings(endpointID _: AIProviderEndpointID) async throws -> TTSProviderSettings? {
         nil
     }
@@ -640,6 +698,43 @@ public extension AIProviderConfigurationRepository {
         languageCode _: String
     ) async throws {
         try await recordValidationEvent(event)
+    }
+}
+
+private enum AIProviderEndpointConfigurationFingerprint {
+    static func make(
+        purpose: String,
+        providerPresetID: String,
+        adapterKind: String,
+        baseURL: String,
+        modelName: String,
+        credentialID: String?,
+        requestTimeoutSeconds: Double?,
+        supportsImageInput: Bool,
+        imageInputEnabled: Bool
+    ) -> String {
+        let parts = [
+            "v1",
+            purpose,
+            providerPresetID.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+            adapterKind,
+            baseURL.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+            modelName.trimmingCharacters(in: .whitespacesAndNewlines),
+            credentialID ?? "none",
+            requestTimeoutSeconds.map { String(format: "%.3f", $0) } ?? "default",
+            supportsImageInput ? "image-supported" : "image-unsupported",
+            imageInputEnabled ? "image-enabled" : "image-disabled",
+        ].joined(separator: "\u{1F}")
+        return "endpoint-v1-\(fnv1a64Hex(parts))"
+    }
+
+    private static func fnv1a64Hex(_ value: String) -> String {
+        var hash: UInt64 = 0xcbf29ce484222325
+        for byte in value.utf8 {
+            hash ^= UInt64(byte)
+            hash = hash &* 0x100000001b3
+        }
+        return String(format: "%016llx", hash)
     }
 }
 

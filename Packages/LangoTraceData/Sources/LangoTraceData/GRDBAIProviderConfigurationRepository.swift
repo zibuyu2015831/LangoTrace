@@ -145,6 +145,58 @@ public struct GRDBAIProviderConfigurationRepository: AIProviderConfigurationRepo
             )
         }
     }
+
+    public func recordEndpointValidationOutcome(_ outcome: AIProviderEndpointValidationOutcome) async throws {
+        try await databaseQueue.write { db in
+            try insert(outcome.event, db: db)
+            guard let endpointID = outcome.event.endpointID else {
+                return
+            }
+
+            let successfulFingerprint: String? = outcome.event.status == .succeeded
+                ? outcome.configurationFingerprint
+                : nil
+            if let successfulFingerprint {
+                try db.execute(
+                    sql: """
+                    UPDATE ai_provider_endpoints
+                    SET last_validated_at = ?,
+                        last_validation_status = ?,
+                        last_validation_error_category = ?,
+                        last_successful_configuration_fingerprint = ?,
+                        updated_at = ?
+                    WHERE id = ? AND deleted_at IS NULL
+                    """,
+                    arguments: [
+                        outcome.event.createdAt.timeIntervalSince1970,
+                        outcome.event.status.rawValue,
+                        outcome.event.errorCategory?.rawValue,
+                        successfulFingerprint,
+                        outcome.event.createdAt.timeIntervalSince1970,
+                        endpointID,
+                    ]
+                )
+            } else {
+                try db.execute(
+                    sql: """
+                    UPDATE ai_provider_endpoints
+                    SET last_validated_at = ?,
+                        last_validation_status = ?,
+                        last_validation_error_category = ?,
+                        updated_at = ?
+                    WHERE id = ? AND deleted_at IS NULL
+                    """,
+                    arguments: [
+                        outcome.event.createdAt.timeIntervalSince1970,
+                        outcome.event.status.rawValue,
+                        outcome.event.errorCategory?.rawValue,
+                        outcome.event.createdAt.timeIntervalSince1970,
+                        endpointID,
+                    ]
+                )
+            }
+        }
+    }
 }
 
 private extension GRDBAIProviderConfigurationRepository {
@@ -239,8 +291,9 @@ private extension GRDBAIProviderConfigurationRepository {
                 id, profile_id, purpose, is_enabled, provider_preset_id,
                 adapter_kind, base_url, model_name, credential_id,
                 supports_image_input, image_input_enabled, request_timeout_seconds,
-                created_at, updated_at, deleted_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                last_validated_at, last_validation_status, last_validation_error_category,
+                last_successful_configuration_fingerprint, created_at, updated_at, deleted_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             arguments: [
                 endpoint.id,
@@ -255,6 +308,10 @@ private extension GRDBAIProviderConfigurationRepository {
                 endpoint.supportsImageInput,
                 endpoint.imageInputEnabled,
                 endpoint.requestTimeoutSeconds,
+                endpoint.lastValidatedAt?.timeIntervalSince1970,
+                endpoint.lastValidationStatus?.rawValue,
+                endpoint.lastValidationErrorCategory?.rawValue,
+                endpoint.lastSuccessfulConfigurationFingerprint,
                 endpoint.createdAt.timeIntervalSince1970,
                 endpoint.updatedAt.timeIntervalSince1970,
                 nil,
@@ -354,7 +411,11 @@ private extension GRDBAIProviderConfigurationRepository {
         return try AIProviderEndpointConfiguration(
             input: input,
             createdAt: date(row["created_at"]),
-            updatedAt: date(row["updated_at"])
+            updatedAt: date(row["updated_at"]),
+            lastValidatedAt: optionalDate(row["last_validated_at"]),
+            lastValidationStatus: optionalValidationStatus(row["last_validation_status"]),
+            lastValidationErrorCategory: optionalValidationErrorCategory(row["last_validation_error_category"]),
+            lastSuccessfulConfigurationFingerprint: row["last_successful_configuration_fingerprint"]
         )
     }
 
@@ -388,5 +449,9 @@ private extension GRDBAIProviderConfigurationRepository {
 
     func optionalValidationStatus(_ value: String?) -> AIProviderValidationStatus? {
         value.flatMap(AIProviderValidationStatus.init(rawValue:))
+    }
+
+    func optionalValidationErrorCategory(_ value: String?) -> AIProviderValidationErrorCategory? {
+        value.flatMap(AIProviderValidationErrorCategory.init(rawValue:))
     }
 }
