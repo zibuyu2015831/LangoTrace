@@ -24,6 +24,8 @@ public struct AIProviderDraftProbeSnapshot: Sendable {
     public var ttsSettings: TTSProviderSettings?
     public var ttsVoiceProfile: TTSVoiceProfile?
     public var ttsPlaintextSecret: String?
+    public var embeddingEndpoint: AIProviderEndpointInput?
+    public var embeddingPlaintextSecret: String?
     public var languageContext: AIProviderProbeLanguageContext?
     public var requestedCapabilities: [AIProviderProbeCapability]
     public var operationID: DiagnosticOperationID
@@ -451,11 +453,22 @@ struct AIProviderDraftConfiguration: Equatable {
         if includePlaceholders || (text.imageUnderstandingEnabled && imageInputDecision.canProbe) {
             capabilities.append(.imageUnderstanding)
         }
+        let embeddingDecision = embedding.endpoint.embeddingDecision()
         if includePlaceholders {
             capabilities.append(.speechSynthesis)
             capabilities.append(.embedding)
         } else if speech.isEnabled {
             capabilities.append(.speechSynthesis)
+        }
+        if !includePlaceholders,
+           embedding.isEnabled,
+           embeddingDecision.canProbe,
+           embedding.isComplete(
+               textCredential: text.endpoint.independentCredential,
+               textCredentialID: text.endpoint.credentialID
+           )
+        {
+            capabilities.append(.embedding)
         }
         return capabilities
     }
@@ -464,22 +477,48 @@ struct AIProviderDraftConfiguration: Equatable {
         to result: AIProviderConfigurationProbeResult,
         languageContext _: AIProviderProbeLanguageContext?
     ) -> AIProviderConfigurationProbeResult {
-        guard result.source == .draft,
-              speech.isEnabled,
-              !speech.isComplete(
-                  textCredential: text.endpoint.independentCredential,
-                  textCredentialID: text.endpoint.credentialID
-              )
-        else {
+        guard result.source == .draft else {
             return result
         }
 
-        return result.replacingLocalCapabilityResult(.init(
-            capability: .speechSynthesis,
-            status: .notConfigured,
-            errorCategory: nil,
-            durationMilliseconds: nil
-        ))
+        var updated = result
+        if speech.isEnabled,
+           !speech.isComplete(
+               textCredential: text.endpoint.independentCredential,
+               textCredentialID: text.endpoint.credentialID
+           )
+        {
+            updated = updated.replacingLocalCapabilityResult(.init(
+                capability: .speechSynthesis,
+                status: .notConfigured,
+                errorCategory: nil,
+                durationMilliseconds: nil
+            ))
+        }
+
+        if embedding.isEnabled {
+            let embeddingDecision = embedding.endpoint.embeddingDecision()
+            let embeddingStatus: AIProviderProbeCapabilityStatus? = if !embeddingDecision.canProbe {
+                .unsupported
+            } else if !embedding.isComplete(
+                textCredential: text.endpoint.independentCredential,
+                textCredentialID: text.endpoint.credentialID
+            ) {
+                .notConfigured
+            } else {
+                nil
+            }
+            if let embeddingStatus {
+                updated = updated.replacingLocalCapabilityResult(.init(
+                    capability: .embedding,
+                    status: embeddingStatus,
+                    errorCategory: embeddingStatus == .unsupported ? .unsupportedEndpointPurpose : nil,
+                    durationMilliseconds: nil
+                ))
+            }
+        }
+
+        return updated
     }
 
     func makeConfigurationProbeDraftSnapshot(
@@ -509,6 +548,10 @@ struct AIProviderDraftConfiguration: Equatable {
             profileID: profileID ?? "draft-profile",
             languageCode: languageContext?.languageCode ?? "en"
         )
+        let embeddingSnapshot = try makeEmbeddingDraftProbeSnapshot(
+            endpointID: embedding.endpoint.id ?? "draft-embedding-endpoint",
+            profileID: profileID ?? "draft-profile"
+        )
         return AIProviderDraftProbeSnapshot(
             source: .draft,
             endpoint: endpoint,
@@ -519,6 +562,8 @@ struct AIProviderDraftConfiguration: Equatable {
             ttsSettings: ttsSnapshot?.settings,
             ttsVoiceProfile: ttsSnapshot?.voiceProfile,
             ttsPlaintextSecret: ttsSnapshot?.plaintextSecret,
+            embeddingEndpoint: embeddingSnapshot?.endpoint,
+            embeddingPlaintextSecret: embeddingSnapshot?.plaintextSecret,
             languageContext: languageContext,
             requestedCapabilities: configurationProbeRequestedCapabilities(languageContext: languageContext),
             operationID: operationID
@@ -711,6 +756,15 @@ private extension AIProviderEndpointDraftConfiguration {
         )
     }
 
+    func embeddingDecision() -> AIProviderCapabilityDecision {
+        AIProviderEndpointCapabilityResolver.embeddingDecision(
+            provider: provider,
+            adapterKind: provider.adapterKind,
+            purpose: .embedding,
+            modelName: model
+        )
+    }
+
     func makeCredentialMode() -> AIProviderEndpointCredentialSaveMode {
         switch credentialReference {
         case .textModelCredential:
@@ -768,6 +822,11 @@ private extension AIProviderDraftConfiguration {
         var endpoint: AIProviderEndpointInput
         var settings: TTSProviderSettings
         var voiceProfile: TTSVoiceProfile
+        var plaintextSecret: String?
+    }
+
+    struct EmbeddingDraftProbeSnapshotParts {
+        var endpoint: AIProviderEndpointInput
         var plaintextSecret: String?
     }
 
@@ -831,6 +890,48 @@ private extension AIProviderDraftConfiguration {
             endpoint: endpoint,
             settings: TTSProviderSettings(endpointID: endpoint.id, adapterKind: adapterKind),
             voiceProfile: voiceProfile,
+            plaintextSecret: plaintextSecret
+        )
+    }
+
+    func makeEmbeddingDraftProbeSnapshot(
+        endpointID: AIProviderEndpointID,
+        profileID: AIProviderProfileID
+    ) throws -> EmbeddingDraftProbeSnapshotParts? {
+        guard embedding.isEnabled,
+              embedding.endpoint.embeddingDecision().canProbe,
+              embedding.isComplete(
+                  textCredential: text.endpoint.independentCredential,
+                  textCredentialID: text.endpoint.credentialID
+              )
+        else {
+            return nil
+        }
+        let endpoint = try AIProviderEndpointInput(
+            id: endpointID,
+            profileID: profileID,
+            purpose: .embedding,
+            isEnabled: true,
+            providerPresetID: embedding.endpoint.provider.id,
+            adapterKind: embedding.endpoint.provider.coreAdapterKind,
+            baseURL: embedding.endpoint.baseURL,
+            modelName: embedding.endpoint.model,
+            credentialID: embedding.endpoint.credentialID ?? "draft-embedding-credential",
+            supportsImageInput: false,
+            imageInputEnabled: false
+        ).normalized()
+        let plaintextSecret: String? = switch embedding.endpoint.credentialReference {
+        case .textModelCredential:
+            text.endpoint.independentCredential.requiresAPIKey
+                ? text.endpoint.independentCredential.apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                : nil
+        case .independent:
+            embedding.endpoint.independentCredential.requiresAPIKey
+                ? embedding.endpoint.independentCredential.apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                : nil
+        }
+        return EmbeddingDraftProbeSnapshotParts(
+            endpoint: endpoint,
             plaintextSecret: plaintextSecret
         )
     }

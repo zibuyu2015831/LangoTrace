@@ -535,6 +535,31 @@ struct AIProviderCapabilityResolverTests {
         #expect(!decision.canProbe)
     }
 
+    @Test("Embedding probe is allowlisted to first stage providers")
+    func embeddingProbeIsAllowlistedToFirstStageProviders() {
+        let openAI = embeddingDecision(provider: .openAI, modelName: "text-embedding-3-small")
+        let openRouter = embeddingDecision(provider: .openRouter, modelName: "openai/text-embedding-3-small")
+        let custom = embeddingDecision(provider: .customOpenAICompatible, modelName: "embedding-model")
+        let deepSeek = embeddingDecision(provider: .deepSeek, modelName: "deepseek-embedding")
+        let anthropic = AIProviderEndpointCapabilityResolver.embeddingDecision(
+            provider: .anthropic,
+            adapterKind: .anthropicMessages,
+            purpose: .embedding,
+            modelName: "claude-sonnet-4-5"
+        )
+
+        #expect(openAI.support == .supported)
+        #expect(openAI.canProbe)
+        #expect(openRouter.support == .modelDependent)
+        #expect(openRouter.canProbe)
+        #expect(custom.support == .modelDependent)
+        #expect(custom.canProbe)
+        #expect(deepSeek.support == .unsupported)
+        #expect(!deepSeek.canProbe)
+        #expect(anthropic.support == .unsupported)
+        #expect(!anthropic.canProbe)
+    }
+
     private func imageInputDecision(
         provider: AIProviderPreset,
         adapterKind: LangoTraceUI.AIProviderAdapterKind,
@@ -544,6 +569,18 @@ struct AIProviderCapabilityResolverTests {
             provider: provider,
             adapterKind: adapterKind,
             purpose: .textGeneration,
+            modelName: modelName
+        )
+    }
+
+    private func embeddingDecision(
+        provider: AIProviderPreset,
+        modelName: String
+    ) -> AIProviderCapabilityDecision {
+        AIProviderEndpointCapabilityResolver.embeddingDecision(
+            provider: provider,
+            adapterKind: provider.adapterKind,
+            purpose: .embedding,
             modelName: modelName
         )
     }

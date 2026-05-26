@@ -185,6 +185,91 @@ struct AIProviderSettingsProbeTests {
         #expect(displayedResult.capabilities.first { $0.capability == .speechSynthesis }?.status == .notConfigured)
     }
 
+    @Test("Enabled complete embedding probe is requested only for first stage providers")
+    func enabledCompleteEmbeddingProbeIsRequestedOnlyForFirstStageProviders() throws {
+        for provider in [AIProviderPreset.openAI, .openRouter, .customOpenAICompatible] {
+            var draft = AIProviderDraftConfiguration(provider: provider)
+            draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
+            draft.embedding.isEnabled = true
+            draft.embedding.endpoint.model = "text-embedding-3-small"
+            if provider == .customOpenAICompatible {
+                draft.text.endpoint.model = "chat-model"
+                draft.embedding.endpoint.baseURL = "https://custom.example/v1"
+            }
+
+            let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
+                operationID: DiagnosticOperationID(rawValue: "operation-\(provider.id)-embedding-probe")
+            )
+
+            #expect(draft.configurationProbeRequestedCapabilities == [.textReply, .structuredJSON, .embedding])
+            #expect(snapshot.embeddingEndpoint?.purpose == .embedding)
+            #expect(snapshot.embeddingEndpoint?.providerPresetID == provider.id)
+            #expect(snapshot.embeddingPlaintextSecret == "sk-local-draft")
+            #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON, .embedding])
+        }
+    }
+
+    @Test("Enabled incomplete embedding probe stays visible as not configured")
+    func enabledIncompleteEmbeddingProbeStaysVisibleAsNotConfigured() {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
+        draft.embedding.isEnabled = true
+        draft.embedding.endpoint.model = ""
+
+        #expect(draft.configurationProbeRequestedCapabilities == [.textReply, .structuredJSON])
+
+        let textOnlyResult = AIProviderConfigurationProbeResult(
+            source: .draft,
+            overallStatus: .succeeded,
+            providerPresetID: "openai",
+            modelName: "gpt-5.2",
+            capabilities: [
+                .init(capability: .textReply, status: .succeeded, errorCategory: nil, durationMilliseconds: 10),
+                .init(capability: .structuredJSON, status: .succeeded, errorCategory: nil, durationMilliseconds: 12),
+                .init(capability: .embedding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+            ],
+            persistedValidationEventID: nil
+        )
+
+        let displayedResult = draft.applyingLocalProbeCapabilityOverrides(
+            to: textOnlyResult,
+            languageContext: nil
+        )
+
+        #expect(displayedResult.capabilities.first { $0.capability == .embedding }?.status == .notConfigured)
+    }
+
+    @Test("OpenAI compatible providers outside first stage do not request embedding")
+    func openAICompatibleProvidersOutsideFirstStageDoNotRequestEmbedding() {
+        var draft = AIProviderDraftConfiguration(provider: .deepSeek)
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
+        draft.embedding.isEnabled = true
+        draft.embedding.endpoint.model = "deepseek-embedding"
+
+        #expect(draft.embedding.endpoint.provider.adapterKind == .openAICompatibleChat)
+        #expect(draft.configurationProbeRequestedCapabilities == [.textReply, .structuredJSON])
+
+        let textOnlyResult = AIProviderConfigurationProbeResult(
+            source: .draft,
+            overallStatus: .succeeded,
+            providerPresetID: "deepseek",
+            modelName: "deepseek-v4-flash",
+            capabilities: [
+                .init(capability: .textReply, status: .succeeded, errorCategory: nil, durationMilliseconds: 10),
+                .init(capability: .structuredJSON, status: .succeeded, errorCategory: nil, durationMilliseconds: 12),
+                .init(capability: .embedding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+            ],
+            persistedValidationEventID: nil
+        )
+
+        let displayedResult = draft.applyingLocalProbeCapabilityOverrides(
+            to: textOnlyResult,
+            languageContext: nil
+        )
+
+        #expect(displayedResult.capabilities.first { $0.capability == .embedding }?.status == .unsupported)
+    }
+
     @Test("Saved speech probe result is not downgraded by local draft completeness")
     func savedSpeechProbeResultIsNotDowngradedByLocalDraftCompleteness() {
         var draft = AIProviderDraftConfiguration(provider: .openRouter)

@@ -144,6 +144,53 @@ enum AIProviderEndpointCapabilityResolver {
             return .adapterUnsupported("aiProviderSettings.capability.image.adapterUnsupported")
         }
     }
+
+    static func embeddingDecision(
+        provider: AIProviderPreset,
+        adapterKind: AIProviderAdapterKind,
+        purpose: LangoTraceCore.AIProviderEndpointPurpose,
+        modelName _: String
+    ) -> AIProviderCapabilityDecision {
+        guard purpose == .embedding else {
+            return .unsupported("aiProviderSettings.capability.embedding.unsupportedProvider")
+        }
+        guard provider.isFirstStageEmbeddingProbeProvider else {
+            return .unsupported("aiProviderSettings.capability.embedding.unsupportedProvider")
+        }
+
+        let providerSupport = provider.capabilityPolicy.embedding
+        let adapterCanProbe = adapterKind.capabilityPolicy.canProbeEmbedding
+        if !adapterCanProbe, providerSupport != .unsupported {
+            return .adapterUnsupported("aiProviderSettings.capability.embedding.adapterUnsupported")
+        }
+
+        switch providerSupport {
+        case .supported:
+            return AIProviderCapabilityDecision(
+                support: .supported,
+                canToggle: true,
+                canProbe: adapterCanProbe,
+                requiresUserAssertion: false,
+                shouldPersistImageSupport: false,
+                explanationKey: "aiProviderSettings.capability.embedding.supported"
+            )
+        case .modelDependent:
+            return AIProviderCapabilityDecision(
+                support: .modelDependent,
+                canToggle: adapterCanProbe,
+                canProbe: adapterCanProbe,
+                requiresUserAssertion: true,
+                shouldPersistImageSupport: false,
+                explanationKey: adapterCanProbe
+                    ? "aiProviderSettings.capability.embedding.modelDependent"
+                    : "aiProviderSettings.capability.embedding.adapterUnsupported"
+            )
+        case .unsupported:
+            return .unsupported("aiProviderSettings.capability.embedding.unsupportedProvider")
+        case .adapterUnsupported:
+            return .adapterUnsupported("aiProviderSettings.capability.embedding.adapterUnsupported")
+        }
+    }
 }
 
 private extension AIProviderCapabilityDecision {
@@ -326,6 +373,8 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
         switch self {
         case .openAI:
             "text-embedding-3-small"
+        case .openRouter:
+            "openai/text-embedding-3-small"
         case .customOpenAICompatible:
             ""
         default:
@@ -492,6 +541,15 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
         }
     }
 
+    var isFirstStageEmbeddingProbeProvider: Bool {
+        switch self {
+        case .openAI, .openRouter, .customOpenAICompatible:
+            true
+        default:
+            false
+        }
+    }
+
     var riskNoteKey: String {
         switch self {
         case .openRouter, .dashScopeQwen, .zhipuGLM, .siliconFlow:
@@ -513,7 +571,7 @@ extension AIProviderAdapterKind {
                 canProbeStructuredJSON: true,
                 canProbeImageInput: true,
                 canProbeSpeechSynthesis: false,
-                canProbeEmbedding: false
+                canProbeEmbedding: true
             )
         case .anthropicMessages, .geminiGenerateContent:
             AIProviderAdapterCapabilityPolicy(
