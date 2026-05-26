@@ -18,7 +18,7 @@ enum AIProviderTestReadiness: Equatable {
 
 public struct AIProviderDraftProbeSnapshot: Sendable {
     public var source: AIProviderProbeSource
-    public var endpoint: AIProviderEndpointInput
+    public var endpoint: AIProviderEndpointInput?
     public var plaintextSecret: String?
     public var ttsEndpoint: AIProviderEndpointInput?
     public var ttsSettings: TTSProviderSettings?
@@ -359,6 +359,20 @@ struct AIProviderDraftConfiguration: Equatable {
         return text.endpoint.hasUsableCredential ? .readyForRequest : .missingRequiredFields
     }
 
+    var configurationProbeReadiness: AIProviderTestReadiness {
+        if textProbeReadiness == .readyForRequest {
+            return .readyForRequest
+        }
+        let embeddingDecision = embedding.endpoint.embeddingDecision()
+        let hasCompleteEmbeddingProbe = embedding.isEnabled &&
+            embeddingDecision.canProbe &&
+            embedding.isComplete(
+                textCredential: text.endpoint.independentCredential,
+                textCredentialID: text.endpoint.credentialID
+            )
+        return hasCompleteEmbeddingProbe ? .readyForRequest : .missingRequiredFields
+    }
+
     var textProbeSource: AIProviderTextProbeSource {
         if hasPersistedConfiguration, saveState != .unsavedChanges {
             return .savedProfile
@@ -525,24 +539,12 @@ struct AIProviderDraftConfiguration: Equatable {
         operationID: DiagnosticOperationID,
         languageContext: AIProviderProbeLanguageContext? = nil
     ) throws -> AIProviderDraftProbeSnapshot {
-        guard textProbeReadiness == .readyForRequest else {
+        guard configurationProbeReadiness == .readyForRequest else {
             throw AIProviderConfigurationError.missingRequiredEndpointField
         }
         let imageInputDecision = text.endpoint.imageInputDecision(purpose: .textGeneration)
         let ttsEndpointID = speech.endpoint.id ?? "draft-tts-endpoint"
-        let endpoint = try AIProviderEndpointInput(
-            id: text.endpoint.id ?? "draft-text-endpoint",
-            profileID: profileID ?? "draft-profile",
-            purpose: .textGeneration,
-            isEnabled: true,
-            providerPresetID: text.endpoint.provider.id,
-            adapterKind: text.endpoint.provider.coreAdapterKind,
-            baseURL: text.endpoint.baseURL,
-            modelName: text.endpoint.model,
-            credentialID: text.endpoint.credentialID ?? "draft-text-credential",
-            supportsImageInput: imageInputDecision.shouldPersistImageSupport,
-            imageInputEnabled: text.imageUnderstandingEnabled && imageInputDecision.canProbe
-        ).normalized()
+        let endpoint = try makeTextDraftProbeEndpoint(imageInputDecision: imageInputDecision)
         let ttsSnapshot = try makeTTSDraftProbeSnapshot(
             endpointID: ttsEndpointID,
             profileID: profileID ?? "draft-profile",
@@ -555,7 +557,7 @@ struct AIProviderDraftConfiguration: Equatable {
         return AIProviderDraftProbeSnapshot(
             source: .draft,
             endpoint: endpoint,
-            plaintextSecret: text.endpoint.independentCredential.requiresAPIKey
+            plaintextSecret: endpoint != nil && text.endpoint.independentCredential.requiresAPIKey
                 ? text.endpoint.independentCredential.apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
                 : nil,
             ttsEndpoint: ttsSnapshot?.endpoint,
@@ -818,6 +820,27 @@ private extension AIOptionalModelDraftConfiguration {
 }
 
 private extension AIProviderDraftConfiguration {
+    func makeTextDraftProbeEndpoint(
+        imageInputDecision: AIProviderCapabilityDecision
+    ) throws -> AIProviderEndpointInput? {
+        guard textProbeReadiness == .readyForRequest else {
+            return nil
+        }
+        return try AIProviderEndpointInput(
+            id: text.endpoint.id ?? "draft-text-endpoint",
+            profileID: profileID ?? "draft-profile",
+            purpose: .textGeneration,
+            isEnabled: true,
+            providerPresetID: text.endpoint.provider.id,
+            adapterKind: text.endpoint.provider.coreAdapterKind,
+            baseURL: text.endpoint.baseURL,
+            modelName: text.endpoint.model,
+            credentialID: text.endpoint.credentialID ?? "draft-text-credential",
+            supportsImageInput: imageInputDecision.shouldPersistImageSupport,
+            imageInputEnabled: text.imageUnderstandingEnabled && imageInputDecision.canProbe
+        ).normalized()
+    }
+
     struct TTSDraftProbeSnapshotParts {
         var endpoint: AIProviderEndpointInput
         var settings: TTSProviderSettings

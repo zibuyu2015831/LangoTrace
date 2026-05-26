@@ -707,6 +707,57 @@ func configurationServiceMergesDraftEmbeddingProbeWithoutPersistenceEvenWhenText
     #expect(await embeddingHTTPClient.requests.count == 1)
 }
 
+@Test("Configuration service runs draft embedding probe when text endpoint is absent")
+func configurationServiceRunsDraftEmbeddingProbeWhenTextEndpointIsAbsent() async throws {
+    let repository = StubAIProviderConfigurationRepository(profile: nil)
+    let textHTTPClient = CapturingProbeHTTPClient(responses: [])
+    let embeddingHTTPClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"data":[{"embedding":[0.1,0.2]}]}"#),
+    ])
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: TrackingAIProviderCredentialStore(),
+        configurationProbeService: AIProviderConfigurationProbeService(httpClient: textHTTPClient),
+        embeddingConfigurationProbeService: EmbeddingConfigurationProbeService(httpClient: embeddingHTTPClient)
+    )
+
+    let result = try await service.testDraftConfiguration(
+        AIProviderConfigurationProbeDraftInput(
+            endpoint: nil,
+            plaintextSecret: nil,
+            embeddingEndpoint: AIProviderEndpointInput(
+                id: "draft-embedding-endpoint",
+                profileID: "draft-profile",
+                purpose: .embedding,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAICompatibleChat,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "text-embedding-3-small",
+                credentialID: "draft-embedding-credential",
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+            embeddingPlaintextSecret: "sk-embedding",
+            operationID: DiagnosticOperationID(rawValue: "operation-draft-embedding-without-text")
+        )
+    )
+
+    #expect(result.source == .draft)
+    #expect(result.overallStatus == .succeeded)
+    #expect(result.providerPresetID == "openai")
+    #expect(result.modelName == "text-embedding-3-small")
+    #expect(result.capabilities.first { $0.capability == .textReply }?.status == .notConfigured)
+    #expect(result.capabilities.first { $0.capability == .structuredJSON }?.status == .notConfigured)
+    let embedding = try #require(result.capabilities.first { $0.capability == .embedding })
+    #expect(embedding.status == .succeeded)
+    #expect(embedding.endpointMetadata?.endpointID == "draft-embedding-endpoint")
+    #expect(await textHTTPClient.requests.isEmpty)
+    #expect(await embeddingHTTPClient.requests.count == 1)
+    #expect(await repository.recordedValidationOutcomes.isEmpty)
+    #expect(await repository.recordedEndpointValidationOutcomes.isEmpty)
+}
+
 @Test("Configuration service tests saved embedding endpoint without requiring text endpoint")
 func configurationServiceTestsSavedEmbeddingEndpointWithoutRequiringTextEndpoint() async throws {
     let repository = try StubAIProviderConfigurationRepository(profile: savedProfileWithEmbedding(includeTextEndpoint: false))

@@ -85,8 +85,8 @@ struct AIProviderSettingsProbeTests {
             languageContext: AIProviderProbeLanguageContext(languageCode: "en")
         )
         #expect(snapshot.source == .draft)
-        #expect(snapshot.endpoint.purpose == .textGeneration)
-        #expect(snapshot.endpoint.providerPresetID == "openai")
+        #expect(snapshot.endpoint?.purpose == .textGeneration)
+        #expect(snapshot.endpoint?.providerPresetID == "openai")
         #expect(snapshot.plaintextSecret == "sk-local-draft")
         #expect(snapshot.languageContext == AIProviderProbeLanguageContext(languageCode: "en"))
         #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON, .languageSupport, .speechSynthesis])
@@ -103,7 +103,7 @@ struct AIProviderSettingsProbeTests {
         let openAISnapshot = try draft.makeConfigurationProbeDraftSnapshot(
             operationID: DiagnosticOperationID(rawValue: "operation-ui-image-probe")
         )
-        #expect(openAISnapshot.endpoint.imageInputEnabled)
+        #expect(openAISnapshot.endpoint?.imageInputEnabled == true)
         #expect(openAISnapshot.requestedCapabilities == [.textReply, .structuredJSON, .imageUnderstanding])
 
         draft.text.updateProvider(.deepSeek)
@@ -112,7 +112,7 @@ struct AIProviderSettingsProbeTests {
             operationID: DiagnosticOperationID(rawValue: "operation-ui-text-only-probe")
         )
         #expect(draft.configurationProbeRequestedCapabilities == [.textReply, .structuredJSON])
-        #expect(!textOnlySnapshot.endpoint.imageInputEnabled)
+        #expect(textOnlySnapshot.endpoint?.imageInputEnabled == false)
         #expect(textOnlySnapshot.requestedCapabilities == [.textReply, .structuredJSON])
     }
 
@@ -128,10 +128,10 @@ struct AIProviderSettingsProbeTests {
         )
 
         #expect(draft.configurationProbeRequestedCapabilities == [.textReply, .structuredJSON, .imageUnderstanding])
-        #expect(snapshot.endpoint.providerPresetID == "openrouter")
-        #expect(snapshot.endpoint.adapterKind == .openAICompatibleChat)
-        #expect(snapshot.endpoint.supportsImageInput)
-        #expect(snapshot.endpoint.imageInputEnabled)
+        #expect(snapshot.endpoint?.providerPresetID == "openrouter")
+        #expect(snapshot.endpoint?.adapterKind == .openAICompatibleChat)
+        #expect(snapshot.endpoint?.supportsImageInput == true)
+        #expect(snapshot.endpoint?.imageInputEnabled == true)
         #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON, .imageUnderstanding])
     }
 
@@ -145,8 +145,8 @@ struct AIProviderSettingsProbeTests {
             operationID: DiagnosticOperationID(rawValue: "operation-openrouter-text-probe")
         )
 
-        #expect(snapshot.endpoint.supportsImageInput)
-        #expect(!snapshot.endpoint.imageInputEnabled)
+        #expect(snapshot.endpoint?.supportsImageInput == true)
+        #expect(snapshot.endpoint?.imageInputEnabled == false)
         #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON])
     }
 
@@ -207,6 +207,28 @@ struct AIProviderSettingsProbeTests {
             #expect(snapshot.embeddingPlaintextSecret == "sk-local-draft")
             #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON, .embedding])
         }
+    }
+
+    @Test("Complete independent embedding probe is allowed when draft text credential is missing")
+    func completeIndependentEmbeddingProbeIsAllowedWhenDraftTextCredentialIsMissing() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.text.endpoint.independentCredential.apiKeyDraft = ""
+        draft.embedding.isEnabled = true
+        draft.embedding.endpoint.credentialReference = .independent
+        draft.embedding.endpoint.independentCredential.apiKeyDraft = "sk-embedding"
+
+        #expect(draft.textProbeReadiness == .missingRequiredFields)
+        #expect(draft.configurationProbeReadiness == .readyForRequest)
+
+        let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
+            operationID: DiagnosticOperationID(rawValue: "operation-embedding-without-text")
+        )
+
+        #expect(snapshot.endpoint == nil)
+        #expect(snapshot.plaintextSecret == nil)
+        #expect(snapshot.embeddingEndpoint?.purpose == .embedding)
+        #expect(snapshot.embeddingPlaintextSecret == "sk-embedding")
+        #expect(snapshot.requestedCapabilities == [.textReply, .structuredJSON, .embedding])
     }
 
     @Test("Enabled incomplete embedding probe stays visible as not configured")

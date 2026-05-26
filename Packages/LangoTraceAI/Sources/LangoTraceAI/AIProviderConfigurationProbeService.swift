@@ -2,7 +2,7 @@
 import LangoTraceCore
 
 public struct AIProviderConfigurationProbeDraftInput {
-    public var endpoint: AIProviderEndpointInput
+    public var endpoint: AIProviderEndpointInput?
     public var plaintextSecret: String?
     public var ttsEndpoint: AIProviderEndpointInput?
     public var ttsSettings: TTSProviderSettings?
@@ -14,7 +14,7 @@ public struct AIProviderConfigurationProbeDraftInput {
     public var operationID: DiagnosticOperationID
 
     public init(
-        endpoint: AIProviderEndpointInput,
+        endpoint: AIProviderEndpointInput?,
         plaintextSecret: String?,
         ttsEndpoint: AIProviderEndpointInput? = nil,
         ttsSettings: TTSProviderSettings? = nil,
@@ -75,9 +75,27 @@ public struct AIProviderConfigurationProbeService: Sendable {
     public func probeDraftConfiguration(
         _ input: AIProviderConfigurationProbeDraftInput
     ) async throws -> AIProviderConfigurationProbeResult {
-        try await probeConfiguration(
+        guard let endpoint = input.endpoint else {
+            let representative = input.embeddingEndpoint ?? input.ttsEndpoint
+            return AIProviderConfigurationProbeResult(
+                source: .draft,
+                overallStatus: .succeeded,
+                providerPresetID: representative?.providerPresetID ?? "",
+                modelName: representative?.modelName ?? "",
+                capabilities: [
+                    .init(capability: .textReply, status: .notConfigured, errorCategory: nil, durationMilliseconds: nil),
+                    .init(capability: .structuredJSON, status: .notConfigured, errorCategory: nil, durationMilliseconds: nil),
+                    .init(capability: .languageSupport, status: .notConfigured, errorCategory: nil, durationMilliseconds: nil),
+                    .init(capability: .imageUnderstanding, status: .notConfigured, errorCategory: nil, durationMilliseconds: nil),
+                    .init(capability: .speechSynthesis, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+                    .init(capability: .embedding, status: .notEnabled, errorCategory: nil, durationMilliseconds: nil),
+                ],
+                persistedValidationEventID: nil
+            )
+        }
+        return try await probeConfiguration(
             source: .draft,
-            endpoint: input.endpoint,
+            endpoint: endpoint,
             plaintextSecret: input.plaintextSecret,
             languageContext: input.languageContext,
             operationID: input.operationID

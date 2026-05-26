@@ -138,7 +138,7 @@ struct AIProviderSettingsView: View {
                 .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
             }
             .buttonStyle(.bordered)
-            .disabled(draft.textProbeReadiness == .missingRequiredFields || isTesting)
+            .disabled(draft.configurationProbeReadiness == .missingRequiredFields || isTesting)
 
             if let statusTitleKey {
                 statusPanel(titleKey: statusTitleKey)
@@ -269,7 +269,7 @@ private extension AIProviderSettingsView {
             guard !isSaving else {
                 return
             }
-            guard draft.textProbeReadiness == .readyForRequest else {
+            guard draft.configurationProbeReadiness == .readyForRequest else {
                 draft.testState = .missingRequiredFields
                 return
             }
