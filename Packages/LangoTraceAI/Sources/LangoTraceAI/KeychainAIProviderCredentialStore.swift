@@ -109,8 +109,15 @@ private func nonInteractiveQuery(
 
     var query = baseQuery(for: reference)
     query[kSecUseAuthenticationContext as String] = context
+    query[secUseAuthenticationUIKey] = secUseAuthenticationUIFailValue
     return query
 }
+
+// Security.framework exposes these as kSecUseAuthenticationUI and kSecUseAuthenticationUIFail.
+// The value constant is deprecated on modern SDKs, but macOS login keychain ACL prompts still
+// honor it as the explicit no-UI fallback when LAContext.interactionNotAllowed is not enough.
+private let secUseAuthenticationUIKey = "u_AuthUI"
+private let secUseAuthenticationUIFailValue = "u_AuthUIF"
 
 private func accessibleValue(for value: String) -> CFString? {
     switch value {

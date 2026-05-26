@@ -40,6 +40,8 @@ func keychainCredentialStoreUsesNoninteractiveCredentialQueries() throws {
     )
 
     #expect(source.contains("kSecUseAuthenticationContext"))
+    #expect(source.contains("kSecUseAuthenticationUI"))
+    #expect(source.contains("kSecUseAuthenticationUIFail"))
     #expect(source.contains("interactionNotAllowed = true"))
     #expect(source.contains("nonInteractiveQuery(for: reference)"))
 }
