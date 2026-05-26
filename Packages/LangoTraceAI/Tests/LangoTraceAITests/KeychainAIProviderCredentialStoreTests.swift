@@ -46,6 +46,19 @@ func keychainCredentialStoreUsesNoninteractiveCredentialQueries() throws {
     #expect(source.contains("nonInteractiveQuery(for: reference)"))
 }
 
+@Test("Keychain credential store uses platform appropriate accessibility attributes")
+func keychainCredentialStoreUsesPlatformAppropriateAccessibilityAttributes() throws {
+    let source = try String(
+        contentsOf: langoTraceAISourceFileURL(named: "KeychainAIProviderCredentialStore.swift"),
+        encoding: .utf8
+    )
+
+    #expect(source.contains("shouldSetAccessibleAttribute"))
+    #expect(source.contains("#if os(macOS)"))
+    #expect(source.contains("return false"))
+    #expect(source.contains("addQuery[kSecAttrAccessible as String] = accessible"))
+}
+
 private func testReference() -> AIProviderCredentialKeychainReference {
     AIProviderCredentialKeychainReference(
         credentialID: UUID().uuidString,

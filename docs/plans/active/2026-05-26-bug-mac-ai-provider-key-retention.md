@@ -24,6 +24,11 @@
 - 2026-05-27 用户截图显示 macOS 在读取 `com.langotrace.ai-provider` 机密信息时仍弹出登录钥匙串密码框。对应 unified log 在弹窗前出现 `SecItemCopyMatching`，随后 probe 失败为 `credential_inaccessible`，证明弹窗仍来自 Keychain 读取路径，而不是 profile metadata 丢失、页面状态重置或网络层。
 - Xcode SDK `SecItem.h` 写明未提供 `kSecUseAuthenticationUI` 时默认允许认证 UI 出现。当前代码只传入 `LAContext.interactionNotAllowed = true` 和 `kSecUseAuthenticationContext`，不足以覆盖 macOS 登录钥匙串 ACL 的旧式授权弹窗。
 - 尝试在 SwiftPM 测试环境直接使用 `kSecUseDataProtectionKeychain` 返回 `-34018` / “A required entitlement isn't present.”。在当前 `DEVELOPMENT_TEAM` 为空、未配置 keychain access group 的开发签名状态下，不能把 Data Protection Keychain 作为本次最小修复，否则会破坏测试宿主和可能的 Debug 构建。
+- 2026-05-27 用户复测后不再出现系统密码弹窗，但测试请求提示密钥不可用。最新 macOS unified log 显示：
+  - `00:37:20` 出现 `SecItemAdd` 且 login keychain 文件提交成功，说明保存路径已经写入 Keychain。
+  - 随后 settings load 和 probe 都在 `SecItemCopyMatching` 后返回 `credential_inaccessible`。
+  - 这证明本次问题不是 API Key 内容错误，也不是 iOS / iPad 可用性差异，而是 macOS 新写入的 Keychain item 仍不能在 no-UI 策略下静默读取。
+- 根因进一步收敛到 macOS 传统 login keychain 写入时仍设置了 iOS 风格 `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`。SDK 文档说明 macOS 上要使用 `kSecAttrAccessible` 语义应走 Data Protection Keychain；当前 Debug 签名没有对应 entitlement，因此本轮应在 macOS 传统 Keychain 路径跳过该属性，让 login keychain 使用自身 ACL。
 
 ## 目标
 
@@ -46,6 +51,7 @@
 - 诊断属性仅包含 `failure_phase=credential_resolve`、稳定错误分类、`diagnostics_mode=settings_load` 和平台名。
 - App Shell 将 Keychain resolver 的 `missingCredential` 和 `credentialInaccessible` 映射为 Core 层稳定分类，避免 UI 只能记录 `credential_inaccessible`。
 - `KeychainAIProviderCredentialStore` 在 `hasSecret`、`resolveSecret`、duplicate update 和 delete 路径使用 `LAContext.interactionNotAllowed = true` + `kSecUseAuthenticationContext` 的非交互查询，并额外显式设置 `kSecUseAuthenticationUIFail` 等价参数。这样 Keychain 仍负责加密存储和读取，但 App 不主动触发登录钥匙串密码弹窗；若 macOS 因锁定、ACL 或调试签名变化无法静默授权，则返回 `credentialInaccessible` 并由上层记录诊断。
+- `KeychainAIProviderCredentialStore` 写入新 item 时按平台处理 accessibility：iOS / iPad 保留 `kSecAttrAccessible...ThisDeviceOnly`；macOS 当前传统 login keychain 路径不写该属性，避免在无 Data Protection Keychain entitlement 的 Debug 构建中创建需要认证 UI 的 item。
 - 不采用“Mac 端完全绕过系统 Keychain、自行维护密钥”的方案作为本轮修复。原因：如果加密密钥也保存在 App 容器，实际安全性接近本地可读的混淆存储；若再把主密钥放入 Keychain，仍会回到同一授权问题。长期可选路线是使用稳定 Apple Development / Distribution 签名和正式 Keychain access group，或在未来新增用户明确选择的低安全级别本地密钥库，但这会改变敏感凭证安全边界，需要单独 ADR / spec 讨论。
 
 ## 验证计划

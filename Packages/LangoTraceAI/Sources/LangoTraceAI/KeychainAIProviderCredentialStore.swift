@@ -13,7 +13,9 @@ public struct KeychainAIProviderCredentialStore: AIProviderCredentialStore {
         let data = Data(secret.value.utf8)
         var addQuery = baseQuery(for: reference)
         addQuery[kSecValueData as String] = data
-        if let accessible = accessibleValue(for: reference.accessibility) {
+        if shouldSetAccessibleAttribute,
+           let accessible = accessibleValue(for: reference.accessibility)
+        {
             addQuery[kSecAttrAccessible as String] = accessible
         }
 
@@ -118,6 +120,16 @@ private func nonInteractiveQuery(
 // honor it as the explicit no-UI fallback when LAContext.interactionNotAllowed is not enough.
 private let secUseAuthenticationUIKey = "u_AuthUI"
 private let secUseAuthenticationUIFailValue = "u_AuthUIF"
+
+private var shouldSetAccessibleAttribute: Bool {
+    #if os(macOS)
+        // The macOS Debug app currently uses the traditional login keychain.
+        // Data Protection Keychain requires entitlements that ad-hoc local builds do not have.
+        return false
+    #else
+        return true
+    #endif
+}
 
 private func accessibleValue(for value: String) -> CFString? {
     switch value {
