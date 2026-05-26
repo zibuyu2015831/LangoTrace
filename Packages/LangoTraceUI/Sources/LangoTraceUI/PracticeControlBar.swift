@@ -4,8 +4,12 @@ import SwiftUI
 struct PracticeControlBar: View {
     let session: PracticeSession
     let isRecording: Bool
+    let isPlayingDemo: Bool
+    let isPlayingRecording: Bool
+    let onPlayDemo: () -> Void
     let onStartRecording: () -> Void
     let onStopRecording: () -> Void
+    let onPlayRecording: () -> Void
     let onComplete: () -> Void
 
     var body: some View {
@@ -14,6 +18,20 @@ struct PracticeControlBar: View {
                 phasePill(.shadowing)
                 phasePill(.recording)
                 phasePill(.completion)
+            }
+            HStack(spacing: 10) {
+                secondaryButton(
+                    title: localizedString("common.listen"),
+                    icon: "speaker.wave.2",
+                    action: onPlayDemo,
+                    disabled: isRecording || isPlayingRecording
+                )
+                secondaryButton(
+                    title: localizedString("practice.recording.playback"),
+                    icon: "play.circle",
+                    action: onPlayRecording,
+                    disabled: isRecording || isPlayingDemo || session.latestReadyRecordingID == nil
+                )
             }
             Button(action: primaryAction) {
                 Label {
@@ -55,9 +73,26 @@ struct PracticeControlBar: View {
         }
     }
 
+    private func secondaryButton(
+        title: String,
+        icon: String,
+        action: @escaping () -> Void,
+        disabled: Bool
+    ) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: icon)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+        .disabled(disabled)
+    }
+
     private var primaryTitle: String {
         if isRecording {
             return localizedString("practice.recording.stop")
+        }
+        if isPlayingRecording {
+            return localizedString("practice.recording.playing")
         }
         if session.status == .completed {
             return localizedString("common.keepCompleted")
@@ -79,7 +114,7 @@ struct PracticeControlBar: View {
     }
 
     private var primaryDisabled: Bool {
-        session.status == .completed
+        session.status == .completed || isPlayingDemo || isPlayingRecording
     }
 
     private func primaryAction() {

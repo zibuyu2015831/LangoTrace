@@ -162,6 +162,27 @@ struct SentenceAudioPlaybackCoordinatorTests {
         #expect(await player.pauseCount == 1)
     }
 
+    @Test("Coordinator stop active playback stops player and clears presentation state")
+    func coordinatorStopActivePlaybackStopsPlayerAndClearsState() async throws {
+        let completion = PlaybackCompletionProbe()
+        let player = FakePlayer(completion: completion.session)
+        let coordinator = try SentenceAudioPlaybackCoordinator(
+            availabilityService: FakeAvailabilityService(status: .available(playableConfiguration())),
+            secretResolver: FakeSecretResolver(secret: "sk-test"),
+            mediaStore: FakeMediaStore(lookup: .hit(mediaArtifact())),
+            generationService: FakeGenerator(),
+            playbackSourceResolver: FakePlaybackSourceResolver(),
+            player: player
+        )
+        let request = sentenceRequest()
+
+        try await coordinator.handleTap(request)
+        await coordinator.stopActivePlayback()
+
+        #expect(await player.stopCount == 1)
+        #expect(await coordinator.presentationState(for: request) == .idle)
+    }
+
     @Test("Coordinator reports configuration issues without external work")
     func coordinatorReportsConfigurationIssues() async throws {
         let generator = FakeGenerator()
@@ -286,6 +307,7 @@ private struct FakePlaybackSourceResolver: MediaArtifactPlaybackSourceResolving 
 private actor FakePlayer: TTSAudioPlaying {
     private(set) var playedSources: [MediaArtifactPlaybackSource] = []
     private(set) var pauseCount = 0
+    private(set) var stopCount = 0
     private let completion: @Sendable () -> TTSAudioPlaybackSession
 
     init(completion: @escaping @Sendable () -> TTSAudioPlaybackSession = { .completed }) {
@@ -303,7 +325,9 @@ private actor FakePlayer: TTSAudioPlaying {
 
     func resume() async throws {}
 
-    func stop() async {}
+    func stop() async {
+        stopCount += 1
+    }
 }
 
 private actor PlaybackCompletionProbe {

@@ -7387,6 +7387,40 @@
         }
       }
     },
+    "practice.recording.playback": {
+      "comment": "Button title for playing back a practice recording.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Recording"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回放录音"
+          }
+        }
+      }
+    },
+    "practice.recording.playing": {
+      "comment": "Primary button title while a practice recording is playing back.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playing Recording"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在回放"
+          }
+        }
+      }
+    },
     "practice.recording.inProgress": {
       "comment": "Practice recording status text.",
       "localizations": {
@@ -7400,6 +7434,108 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在录音..."
+          }
+        }
+      }
+    },
+    "practice.failure.title": {
+      "comment": "Practice session recoverable failure title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice needs attention"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习需要处理"
+          }
+        }
+      }
+    },
+    "practice.failure.unavailable": {
+      "comment": "Practice session disabled failure copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice actions are not available in this environment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前环境不可使用练习操作。"
+          }
+        }
+      }
+    },
+    "practice.failure.missingSession": {
+      "comment": "Practice session missing failure copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This sentence practice session could not be restored."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法恢复这条句子的练习会话。"
+          }
+        }
+      }
+    },
+    "practice.failure.missingReadyRecording": {
+      "comment": "Practice session missing ready recording failure copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record one complete attempt before reviewing or completing this sentence."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先完成一次录音，再回放或标记本句完成。"
+          }
+        }
+      }
+    },
+    "practice.failure.audioBusy": {
+      "comment": "Practice session busy audio failure copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish the current recording or playback before starting another audio action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先结束当前录音或播放，再开始新的音频操作。"
+          }
+        }
+      }
+    },
+    "practice.failure.playbackUnavailable": {
+      "comment": "Practice recording playback unavailable failure copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This recording cannot be played right now. The completion record is still kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前无法播放这段录音，本次完成记录仍会保留。"
           }
         }
       }

@@ -58,22 +58,30 @@ struct PracticeSessionView: View {
     let languageSpaceID: String
     let routeSeed: PracticeSessionRouteSeed
     let actions: PracticeActions
+    let onPlayDemo: @MainActor @Sendable () async -> SentenceAudioPresentationState
+    let onStopDemo: @MainActor @Sendable () async -> Void
 
     @StateObject private var viewModel: PracticeSessionViewModel
 
     init(
         languageSpaceID: String,
         routeSeed: PracticeSessionRouteSeed,
-        actions: PracticeActions
+        actions: PracticeActions,
+        onPlayDemo: @escaping @MainActor @Sendable () async -> SentenceAudioPresentationState = { .idle },
+        onStopDemo: @escaping @MainActor @Sendable () async -> Void = {}
     ) {
         self.languageSpaceID = languageSpaceID
         self.routeSeed = routeSeed
         self.actions = actions
+        self.onPlayDemo = onPlayDemo
+        self.onStopDemo = onStopDemo
         _viewModel = StateObject(
             wrappedValue: PracticeSessionViewModel(
                 languageSpaceID: languageSpaceID,
                 snapshot: routeSeed.snapshot,
-                actions: actions
+                actions: actions,
+                playDemo: onPlayDemo,
+                stopDemo: onStopDemo
             )
         )
     }
@@ -90,16 +98,33 @@ struct PracticeSessionView: View {
                     PracticeControlBar(
                         session: session,
                         isRecording: viewModel.isRecording,
+                        isPlayingDemo: viewModel.isPlayingDemo,
+                        isPlayingRecording: viewModel.isPlayingRecording,
+                        onPlayDemo: {
+                            Task { await viewModel.playDemo() }
+                        },
                         onStartRecording: {
                             Task { await viewModel.startRecording() }
                         },
                         onStopRecording: {
                             Task { await viewModel.stopRecording() }
                         },
+                        onPlayRecording: {
+                            Task { await viewModel.playLatestRecording() }
+                        },
                         onComplete: {
                             Task { await viewModel.completeLatestRecording() }
                         }
                     )
+                    if let failure = viewModel.failure {
+                        CapabilityStatusRow(
+                            localizedTitleKey: "practice.failure.title",
+                            localizedSummaryKey: failure.localizedSummaryKey,
+                            status: .unavailable,
+                            systemImage: "exclamationmark.triangle",
+                            action: nil
+                        )
+                    }
                     PracticeStepPanel(session: session)
                 } else {
                     CapabilityStatusRow(

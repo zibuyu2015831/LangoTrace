@@ -6,6 +6,7 @@ public struct SentenceAudioPlaybackActions: Sendable {
     public var presentationState: @Sendable (SentenceAudioRequest) async -> SentenceAudioPresentationState
     public var stateUpdates: @Sendable (SentenceAudioRequest) async
         -> AsyncStream<SentenceAudioPresentationState>
+    public var stopActivePlayback: @Sendable () async -> Void
 
     public init(
         handleTap: @escaping @Sendable (SentenceAudioRequest) async -> SentenceAudioPresentationState,
@@ -15,11 +16,13 @@ public struct SentenceAudioPlaybackActions: Sendable {
                 AsyncStream { continuation in
                     continuation.finish()
                 }
-            }
+            },
+        stopActivePlayback: @escaping @Sendable () async -> Void = {}
     ) {
         self.handleTap = handleTap
         self.presentationState = presentationState
         self.stateUpdates = stateUpdates
+        self.stopActivePlayback = stopActivePlayback
     }
 
     public static let disabled = SentenceAudioPlaybackActions(
@@ -30,7 +33,8 @@ public struct SentenceAudioPlaybackActions: Sendable {
                 continuation.yield(.idle)
                 continuation.finish()
             }
-        }
+        },
+        stopActivePlayback: {}
     )
 
     public static func coordinator(_ coordinator: SentenceAudioPlaybackCoordinator) -> SentenceAudioPlaybackActions {
@@ -50,6 +54,9 @@ public struct SentenceAudioPlaybackActions: Sendable {
             },
             stateUpdates: { request in
                 await coordinator.stateUpdates(for: request)
+            },
+            stopActivePlayback: {
+                await coordinator.stopActivePlayback()
             }
         )
     }

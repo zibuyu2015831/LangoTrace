@@ -178,14 +178,16 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/TTSAudioPlaybackServiceTests.swift`
 - `LangoTraceAppTests/SentenceAudioPlaybackAssemblyTests.swift`
 
-### 4.6 单句跟读练习录音和完成态
+### 4.6 单句跟读练习录音、示范播放和完成态
 
 1. 用户从练习 Tab 记录卡片或记录详情逐句 `练` 进入句子列表 / 单句练习页。
 2. UI 创建 `PracticeSessionRouteSeed`，携带 entry、learning material、sentence identity、sentence index、target text hash、target language code 和句子快照。
 3. `PracticeSessionViewModel` 通过 `PracticeActions` 调用 App 层，`GRDBPracticeRepository` 创建或恢复 shadowing session，并保存 `PracticeSentenceSnapshot`。
-4. 用户显式点击开始录音后，`PracticeRecordingService` 调用 `AppPracticeRecordingEngine` 请求麦克风权限并写入 staging 文件。
-5. 停止录音后，App 层经 `LocalMediaArtifactStore` 提交 practice recording artifact，`GRDBMediaArtifactRepository` 写入 `practice_recording_artifacts` typed metadata；ready recording 回写 session attempt。
-6. 用户点击完成时，repository 在事务中校验 ready recording，并把 `practice_sessions.completed_recording_id` 固定到该次录音，后续重录不会自动漂移完成证据。
+4. 单句页的听示范按钮复用 `LearningContentStore` 的 `SentenceAudioPlaybackActions` 和 `SentenceAudioPlaybackCoordinator`，以 route seed 构造单句 TTS 请求，不复制 TTS 生成 / artifact cache 路径。
+5. 用户显式点击开始录音后，ViewModel 先停止当前示范播放，并在本地 playback flag 活跃时拒绝开始录音；`PracticeRecordingService` 调用 `AppPracticeRecordingEngine` 请求麦克风权限并写入 staging 文件。
+6. 停止录音后，App 层经 `LocalMediaArtifactStore` 提交 practice recording artifact，`GRDBMediaArtifactRepository` 写入 `practice_recording_artifacts` typed metadata；ready recording 回写 session attempt。
+7. 用户可在单句页回放最近 ready recording；App 层通过 `GRDBPracticeRepository.readyRecordingArtifact` 校验 session / recording / artifact ready 状态，再由 `LocalMediaArtifactPlaybackSourceResolver` 校验文件存在、大小和 hash 后交给前台播放器。
+8. 用户点击完成时，repository 在事务中校验 ready recording，并把 `practice_sessions.completed_recording_id` 固定到该次录音，后续重录不会自动漂移完成证据。
 
 关键文件：
 
@@ -198,6 +200,8 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - `Packages/LangoTraceSpeech/Sources/LangoTraceSpeech/PracticeRecordingService.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/PracticeRouting.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/PracticeSessionViewModel.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/LearningContentStore.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/SentenceAudioPlaybackActions.swift`
 
 测试入口：
 
@@ -205,9 +209,11 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/PracticeAudioCoordinationTests.swift`
 - `Packages/LangoTraceData/Tests/LangoTraceDataTests/GRDBPracticeRepositoryTests.swift`
 - `Packages/LangoTraceData/Tests/LangoTraceDataTests/MediaArtifactRepositoryTests.swift`
+- `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/SentenceAudioPlaybackCoordinatorTests.swift`
 - `Packages/LangoTraceSpeech/Tests/LangoTraceSpeechTests/PracticeRecordingServiceTests.swift`
 - `Packages/LangoTraceUI/Tests/LangoTraceUITests/PracticeRouteSeedTests.swift`
 - `Packages/LangoTraceUI/Tests/LangoTraceUITests/PracticeSessionViewModelTests.swift`
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/LearningContentStoreSentenceAudioCoordinatorTests.swift`
 - `LangoTraceAppTests/PracticeRecordingConfigurationTests.swift`
 - `LangoTraceAppTests/AppEnvironmentPracticeBootstrapTests.swift`
 
@@ -267,7 +273,7 @@ Sync -> Core
 | 练习 session 创建 / 恢复 | current material 变化、sentence soft reference 丢失或重复进入同一句 | repository 按 language space / material / sentence / exercise type 创建或恢复，并依赖 session snapshot 回读历史内容 | 用户仍能看到练习时的句子快照；悬空 current sentence 不作为 active 入口 | 不记录完整句子或 Entry 正文 | Yes | `GRDBPracticeRepositoryTests.swift`、`PracticeRouteSeedTests.swift` | `docs/plans/done/2026-05-25-feature-practice-shadowing-recording-completion.md` |
 | 麦克风权限拒绝或不可用 | 用户拒绝、受限、设备不可用或 sandbox entitlement 缺失 | 录音 service 返回稳定 failure，不创建 ready recording，不标记完成 | 单句页显示可恢复失败；其他学习功能可继续使用 | permission status / failure category，不记录音频 | Partial | `PracticeRecordingServiceTests.swift`、`PracticeRecordingConfigurationTests.swift`；真实设备需人工验收 | `docs/spec/008-permissions-local-privacy-and-diagnostics.md` |
 | 练习录音提交失败 | recording stop 失败、文件缺失、文件过大、hash mismatch、metadata ready 标记失败 | 清理 staging 或保持 pending 待 recovery；不把失败 attempt 暴露为 ready；完成操作只接受 ready recording | 用户可重新录音，不显示完成成功 | duration / byte size bucket 和 failure category；无绝对路径 | Partial | `GRDBPracticeRepositoryTests.swift`、`MediaArtifactRepositoryTests.swift`、`PracticeRecordingServiceTests.swift` | `docs/spec/media-artifacts/impl.md` |
-| 完成态录音缺失或被清理误选 | completed recording 文件缺失、hash mismatch 或普通 cleanup 候选误包含 | session 保持 completed；playback source 标为 unavailable；completed recording 不进入普通 TTS / capacity cleanup | 用户看到完成记录存在但录音不可播放或需重新录制 | artifact state / failure category；不记录路径 | Partial | `MediaArtifactRepositoryTests.swift`、`GRDBPracticeRepositoryTests.swift`；playback source UI 需后续补强 | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
+| 完成态录音缺失或被清理误选 | completed recording 文件缺失、hash mismatch 或普通 cleanup 候选误包含 | session 保持 completed；playback source 标为 unavailable；completed recording 不进入普通 TTS / capacity cleanup | 用户看到完成记录存在但录音不可播放或需重新录制 | artifact state / failure category；不记录路径 | Partial | `MediaArtifactRepositoryTests.swift`、`GRDBPracticeRepositoryTests.swift`、`PracticeSessionViewModelTests.swift`；真实设备回放需人工验收 | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
 | 未来 Sync | sync engine / adapter / conflict 未实现 | 保持 disabled / unavailable，不承诺同步 | 设置页显示未启用或不可用 | 无真实同步日志 | No | `SyncBoundaryTests.swift` 只覆盖 disabled boundary | `docs/technical-framework-roadmap.md` |
 | 未来权限 | Photos / Camera / Speech Recognition / OCR 未接入 | 保持未实现说明，真实权限任务另建 plan | 不弹出真实权限或误导为已授权 | 无真实权限日志 | No | 当前无完整权限测试 | `docs/spec/008-permissions-local-privacy-and-diagnostics.md` |
 | 未来导出 | 完整导出和可恢复备份未实现 | 保持 unavailable / future capability | 设置页不能写成已导出 | 无真实导出日志 | No | 当前无完整导出测试 | `docs/spec/007-data-storage-migration-export-and-attachments.md` |

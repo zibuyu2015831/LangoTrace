@@ -43,16 +43,17 @@
 - pending / ready file state。
 - TTS derivation key lookup、reservation、commit、ready 标记、precise invalidation、metadata deletion 和 cleanup selection。
 - Practice recording derivation key lookup、reservation、commit、ready 标记和与 `practice_recordings` / `practice_sessions.completed_recording_id` 的 cleanup exclusion。
+- 按 session id / recording id 解析 ready practice recording artifact metadata，用于用户录音回放前的 repository 级校验。
 - App 管理的 `MediaArtifacts` 目录、staging 写入、相对路径校验、hash、move、删除和 staging cleanup。
 - TTS 和 practice recording facade 编排文件验证、reservation、move、ready 标记和失败补偿。
-- playback source resolver 校验 metadata 与文件 byte size / hash 一致后才返回本地 URL。
+- playback source resolver 校验 metadata 与文件 byte size / hash 一致后才返回本地 URL；单句练习页已接入录音回放入口，文件缺失或 hash mismatch 时保持 completed session 并向 UI 返回不可播放失败。
 
 ## 4. 已知偏差
 
 - public facade 仍保留 TTS convenience wrapper，并新增 practice recording wrapper；底层 commit / lookup 已按通用 `MediaArtifactRepository` / `LocalMediaArtifactStoring` contract 扩展，但尚未抽出完全类型擦除的 generic public API。
 - cleanup 已排除 completed practice recording，但仍缺少面向用户的存储管理 UI 和显式删除 recording / session 的完整文件删除补偿流程。
 - pending recovery 目前只通过 cleanup / metadata delete 间接处理；练习录音需要区分可删除的 TTS cache pending 和被 session 引用的用户录音 pending / missing 状态。
-- playback source resolver 当前仍主要服务 TTS 播放；completed recording missing / unavailable 的用户可见回放状态需要后续练习回放 UI 方案补强。
+- completed recording missing / unavailable 已在单句练习页通过回放失败状态暴露；仍需要后续存储管理 UI 定义用户主动删除、重新录制后是否清理旧录音、以及删除 session 时的文件补偿策略。
 
 ## 5. 复查方法
 

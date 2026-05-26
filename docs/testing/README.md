@@ -146,7 +146,7 @@ Apple 三端交互、Dynamic Type、VoiceOver、键盘、指针、菜单命令�
 - iPhone 设置：进入设置后，语言空间进入真实管理页，AI Provider、同步、本地数据、隐私边界和导出每一项都能进入二级说明页或对应配置页。
 - iPhone 设置二级页：每页必须显示当前状态、当前边界、后续接入条件和“不会发生”的副作用说明。
 - iPhone 练习：练习 Tab 中以记录卡片列表进入句子练习列表；首层不显示“从生活进入练习”标题，不混排听写 / 回译等未完成任务类型。
-- iPhone 练习会话：单句页可创建或恢复 shadowing session，显式点击后请求麦克风录音，停止后写入本地 practice recording metadata，完成态重启后可读取；未授权、失败或无 ready recording 时不能标记完成。
+- iPhone 练习会话：单句页可创建或恢复 shadowing session；听示范按钮只在用户显式点击时复用逐句 TTS 播放；显式点击后请求麦克风录音，停止后写入本地 practice recording metadata；ready recording 可在单句页回放，文件缺失或 hash mismatch 时保留完成态但显示不可播放；完成态重启后可读取；未授权、失败或无 ready recording 时不能标记完成。
 - iPhone 记录详情：逐句练习入口携带 sentence identity 和 snapshot 进入同一单句练习闭环，而不是 Entry 级隐式练习。
 - 不可用状态：无 rendering 的记录应显示不可用说明，而不是空白或误导性按钮。
 - 隐私表达：AI Provider 未配置、同步未启用、导出未实现时，不得出现“已连接”“已同步”“已生成真实结果”等文案。
@@ -222,24 +222,24 @@ macOS 手动验证：
 - Core：`PracticeSessionReducerTests` 覆盖三步状态、ready recording、完成态和失败事件；`PracticeAudioCoordinationTests` 覆盖示范播放、录音和回放互斥边界。
 - Data：`AppDatabaseTests` 覆盖 practice session / recording / typed artifact migration；`GRDBPracticeRepositoryTests` 覆盖句子快照、session 恢复、ready recording、完成态引用和完成态不漂移；`MediaArtifactRepositoryTests` 覆盖 practice recording artifact lookup / cleanup exclusion。
 - Speech：`PracticeRecordingServiceTests` 覆盖 start / stop、权限拒绝、文件大小或停止失败边界；测试使用 fake recorder，不依赖真实麦克风。
-- UI：`PracticeRouteSeedTests` 覆盖 route seed 必须包含 sentence identity；`PracticeSessionViewModelTests` 覆盖 create / record / complete action seam；`PhoneIOSConvergenceTests` 覆盖练习 Tab 不展示未实现任务类型。
-- App：`PracticeRecordingConfigurationTests` 覆盖 iOS / macOS purpose string 和 macOS audio input entitlement；`AppEnvironmentPracticeBootstrapTests` 覆盖 production assembly 未回退到 disabled practice seam。
+- UI：`PracticeRouteSeedTests` 覆盖 route seed 必须包含 sentence identity；`PracticeSessionViewModelTests` 覆盖 create / listen demo / record / playback recording / complete action seam 和录音播放互斥；`PhoneIOSConvergenceTests` 覆盖练习 Tab 不展示未实现任务类型。
+- App：`PracticeRecordingConfigurationTests` 覆盖 iOS / macOS purpose string 和 macOS audio input entitlement；`AppEnvironmentPracticeBootstrapTests` 覆盖 production assembly 未回退到 disabled practice seam，并暴露录音回放失败而非静默 no-op；`SentenceAudioPlaybackAssemblyTests` 覆盖示范 TTS 播放 action seam。
 
 聚焦命令：
 
 ```bash
-swift test --package-path Packages/LangoTraceCore --filter 'PracticeSessionReducerTests|PracticeAudioCoordinationTests'
-swift test --package-path Packages/LangoTraceData --filter 'GRDBPracticeRepositoryTests|MediaArtifactRepositoryTests|practiceRecordingMigrationCreatesSnapshotSessionsRecordingsAndTypedArtifactMetadata'
+swift test --package-path Packages/LangoTraceCore --filter 'SentenceAudioPlaybackCoordinatorTests|PracticeSessionReducerTests|PracticeAudioCoordinationTests'
+swift test --package-path Packages/LangoTraceData --filter 'GRDBPracticeRepositoryTests|MediaArtifactPlaybackSourceResolverTests|MediaArtifactRepositoryTests'
 swift test --package-path Packages/LangoTraceSpeech --filter PracticeRecordingServiceTests
-swift test --package-path Packages/LangoTraceUI --filter 'PracticeSessionViewModelTests|PracticeRouteSeedTests|PhoneIOSConvergenceTests'
-xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests/PracticeRecordingConfigurationTests -only-testing:LangoTraceAppTests/AppEnvironmentPracticeBootstrapTests
+swift test --package-path Packages/LangoTraceUI --filter 'PracticeSessionViewModelTests|PracticeRouteSeedTests|LearningContentStoreSentenceAudioCoordinatorTests|PhoneIOSConvergenceTests'
+xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests/PracticeRecordingConfigurationTests -only-testing:LangoTraceAppTests/AppEnvironmentPracticeBootstrapTests -only-testing:LangoTraceAppTests/SentenceAudioPlaybackAssemblyTests
 ```
 
 手动验证至少覆盖：
 
-- iOS Simulator：进入练习 Tab -> 记录卡片 -> 句子列表 -> 单句页；拒绝 / 允许麦克风权限；开始 / 停止录音；完成后返回再进入可看到完成状态。
-- 真实 iPhone：重复 iOS Simulator 主路径，确认系统麦克风弹窗、录音文件生成、停止时长和前后台切换行为；模拟器不能替代真实设备验收。
-- macOS：首次录音弹出麦克风授权；拒绝后不创建 ready recording；允许后可完成单句 session；App Sandbox audio input entitlement 生效。
+- iOS Simulator：进入练习 Tab -> 记录卡片 -> 句子列表 -> 单句页；点击听示范不会自动开始录音；拒绝 / 允许麦克风权限；开始 / 停止录音；回放录音；完成后返回再进入可看到完成状态。
+- 真实 iPhone：重复 iOS Simulator 主路径，确认系统麦克风弹窗、录音文件生成、停止时长、示范播放与录音互斥、录音回放音量 / 路由和前后台切换行为；模拟器不能替代真实设备验收。
+- macOS：首次录音弹出麦克风授权；拒绝后不创建 ready recording；允许后可听示范、录音、回放并完成单句 session；App Sandbox audio input entitlement 生效。
 - 隐私扫描：日志、测试输出和诊断事件不得包含完整句子、Entry 正文、音频 bytes、波形、绝对路径、API Key 或 Provider 请求体。
 - 未接线菜单、Command Palette、多窗口和快捷键不作为已完成项验收。
 

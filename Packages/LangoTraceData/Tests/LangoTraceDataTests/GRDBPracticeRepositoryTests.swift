@@ -73,6 +73,64 @@ struct GRDBPracticeRepositoryTests {
         #expect(restored?.completedRecordingID == "recording-1")
         #expect(restored?.latestReadyRecordingID == "recording-2")
     }
+
+    @Test("Repository resolves ready practice recording artifact for playback")
+    func repositoryResolvesReadyPracticeRecordingArtifactForPlayback() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        try await MediaArtifactTestFixtures.seedPracticeSession(in: database)
+        let repository = GRDBPracticeRepository(database: database)
+        let mediaRepository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        let artifact = try await mediaRepository.commitPracticeRecordingArtifact(
+            MediaArtifactTestFixtures.practiceRecordingCommitInput()
+        )
+
+        let resolved = try await repository.readyRecordingArtifact(
+            sessionID: "session-1",
+            recordingID: "recording-1"
+        )
+
+        #expect(resolved?.id == artifact.id)
+        #expect(resolved?.type == .shadowingRecording)
+        #expect(resolved?.derivationKind == .practiceRecording)
+    }
+
+    @Test("Repository rejects ready recording artifacts with non practice derivation")
+    func repositoryRejectsReadyRecordingArtifactsWithNonPracticeDerivation() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        try await MediaArtifactTestFixtures.seedPracticeSession(in: database)
+        let repository = GRDBPracticeRepository(database: database)
+        let mediaRepository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        let artifact = try await mediaRepository.commitPracticeRecordingArtifact(
+            MediaArtifactTestFixtures.practiceRecordingCommitInput()
+        )
+        try await database.databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                UPDATE media_artifacts
+                SET derivation_kind = 'ttsAudio'
+                WHERE id = ?
+                """,
+                arguments: [artifact.id]
+            )
+        }
+
+        let resolved = try await repository.readyRecordingArtifact(
+            sessionID: "session-1",
+            recordingID: "recording-1"
+        )
+
+        #expect(resolved == nil)
+    }
 }
 
 private func practiceSnapshot() -> PracticeSentenceSnapshot {

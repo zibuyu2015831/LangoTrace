@@ -6,21 +6,29 @@ final class PracticeSessionViewModel: ObservableObject {
     private let languageSpaceID: String
     private let snapshot: PracticeSentenceSnapshot
     private let actions: PracticeActions
+    private let playDemoAction: @MainActor @Sendable () async -> SentenceAudioPresentationState
+    private let stopDemoAction: @MainActor @Sendable () async -> Void
 
     @Published private(set) var session: PracticeSession?
     @Published private(set) var isLoading = false
     @Published private(set) var isRecording = false
+    @Published private(set) var isPlayingDemo = false
+    @Published private(set) var isPlayingRecording = false
     @Published private(set) var activeRecordingID: String?
     @Published private(set) var failure: PracticeActionFailure?
 
     init(
         languageSpaceID: String,
         snapshot: PracticeSentenceSnapshot,
-        actions: PracticeActions
+        actions: PracticeActions,
+        playDemo: @escaping @MainActor @Sendable () async -> SentenceAudioPresentationState = { .idle },
+        stopDemo: @escaping @MainActor @Sendable () async -> Void = {}
     ) {
         self.languageSpaceID = languageSpaceID
         self.snapshot = snapshot
         self.actions = actions
+        playDemoAction = playDemo
+        stopDemoAction = stopDemo
     }
 
     func load() async {
@@ -38,6 +46,11 @@ final class PracticeSessionViewModel: ObservableObject {
     }
 
     func startRecording() async {
+        guard !isPlayingDemo, !isPlayingRecording else {
+            failure = .audioBusy
+            return
+        }
+        await stopDemoAction()
         guard let session else {
             failure = .missingSession
             return
@@ -87,6 +100,45 @@ final class PracticeSessionViewModel: ObservableObject {
             failure = nil
         } catch {
             failure = .missingReadyRecording
+        }
+    }
+
+    func playDemo() async {
+        guard !isRecording, !isPlayingRecording else {
+            failure = .audioBusy
+            return
+        }
+        isPlayingDemo = true
+        defer { isPlayingDemo = false }
+        let state = await playDemoAction()
+        switch state {
+        case .failed:
+            failure = .playbackUnavailable
+        default:
+            failure = nil
+        }
+    }
+
+    func playLatestRecording() async {
+        guard !isRecording, !isPlayingDemo else {
+            failure = .audioBusy
+            return
+        }
+        guard let session else {
+            failure = .missingSession
+            return
+        }
+        guard let recordingID = session.latestReadyRecordingID else {
+            failure = .missingReadyRecording
+            return
+        }
+        isPlayingRecording = true
+        defer { isPlayingRecording = false }
+        do {
+            try await actions.playRecording(session, recordingID)
+            failure = nil
+        } catch {
+            failure = .playbackUnavailable
         }
     }
 }

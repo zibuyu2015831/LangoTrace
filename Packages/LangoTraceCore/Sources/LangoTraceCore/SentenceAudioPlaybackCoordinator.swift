@@ -84,6 +84,15 @@ public actor SentenceAudioPlaybackCoordinator {
             }
         }
     }
+
+    public func stopActivePlayback() async {
+        guard let key = activePlaybackKey else {
+            return
+        }
+        clearPlaybackCompletionTracking()
+        await player.stop()
+        _ = reduceAndNotify(.playbackCompleted(key))
+    }
 }
 
 private extension SentenceAudioPlaybackCoordinator {

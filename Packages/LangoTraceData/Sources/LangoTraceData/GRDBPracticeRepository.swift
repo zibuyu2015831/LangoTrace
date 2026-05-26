@@ -110,6 +110,34 @@ public struct GRDBPracticeRepository: PracticeRepository, @unchecked Sendable {
             return try practiceSession(from: row, db: db)
         }
     }
+
+    public func readyRecordingArtifact(sessionID: String, recordingID: String) async throws -> MediaArtifact? {
+        try await databaseQueue.read { db -> MediaArtifact? in
+            guard let row = try Row.fetchOne(
+                db,
+                sql: """
+                SELECT media_artifacts.*
+                FROM practice_recordings
+                JOIN media_artifacts ON media_artifacts.id = practice_recordings.media_artifact_id
+                WHERE practice_recordings.id = ?
+                  AND practice_recordings.session_id = ?
+                  AND practice_recordings.status = 'ready'
+                  AND practice_recordings.invalidated_at IS NULL
+                  AND media_artifacts.artifact_type = 'shadowingRecording'
+                  AND media_artifacts.derivation_kind = 'practiceRecording'
+                  AND media_artifacts.owner_type = 'practiceSession'
+                  AND media_artifacts.owner_id = practice_recordings.session_id
+                  AND media_artifacts.file_state = 'ready'
+                  AND media_artifacts.invalidated_at IS NULL
+                LIMIT 1
+                """,
+                arguments: [recordingID, sessionID]
+            ) else {
+                return nil
+            }
+            return mediaArtifact(from: row)
+        }
+    }
 }
 
 public enum PracticeRepositoryError: Error, Equatable, Sendable {
@@ -236,5 +264,51 @@ private extension GRDBPracticeRepository {
             arguments: [recordingID, sessionID]
         ) ?? 0
         return count > 0
+    }
+
+    func mediaArtifact(from row: Row) -> MediaArtifact {
+        let policy = MediaArtifactPolicy(
+            backupPolicy: MediaArtifactBackupPolicy(rawValue: row["backup_policy"] as String)
+                ?? .excludedFromSystemBackup,
+            syncPolicy: MediaArtifactSyncPolicy(rawValue: row["sync_policy"] as String) ?? .localOnly,
+            exportPolicy: MediaArtifactExportPolicy(rawValue: row["export_policy"] as String) ?? .excludedByDefault
+        )
+        return MediaArtifact(
+            id: row["id"],
+            languageSpaceID: row["language_space_id"],
+            owner: owner(
+                type: row["owner_type"],
+                id: row["owner_id"],
+                subID: row["owner_sub_id"]
+            ),
+            type: MediaArtifactType(rawValue: row["artifact_type"] as String) ?? .shadowingRecording,
+            derivationKind: MediaArtifactDerivationKind(rawValue: row["derivation_kind"] as String) ?? .practiceRecording,
+            derivationKeyHash: row["derivation_key_hash"],
+            relativeFilePath: row["relative_file_path"],
+            mimeType: row["mime_type"],
+            byteSize: row["byte_size"],
+            durationSeconds: row["duration_seconds"],
+            contentHash: row["content_hash"],
+            createdAt: Date(timeIntervalSince1970: row["created_at"]),
+            lastAccessedAt: Date(timeIntervalSince1970: row["last_accessed_at"]),
+            invalidatedAt: (row["invalidated_at"] as Double?).map(Date.init(timeIntervalSince1970:)),
+            deleteAfter: (row["delete_after"] as Double?).map(Date.init(timeIntervalSince1970:)),
+            policy: policy
+        )
+    }
+
+    func owner(type: String, id: String, subID: String?) -> MediaArtifactOwner {
+        switch type {
+        case "entry":
+            .entry(id: id)
+        case "learningMaterial":
+            .learningMaterial(id: id)
+        case "learningMaterialSentence":
+            .learningMaterialSentence(materialID: id, sentenceIndex: Int(subID ?? "") ?? 0)
+        case "practiceSession":
+            .practiceSession(id: id)
+        default:
+            .temporaryOperation(id: id)
+        }
     }
 }

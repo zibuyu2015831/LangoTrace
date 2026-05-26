@@ -111,7 +111,13 @@ struct PhoneMainView: View {
                     PracticeSessionView(
                         languageSpaceID: languageSpace.id,
                         routeSeed: seed,
-                        actions: practiceActions
+                        actions: practiceActions,
+                        onPlayDemo: {
+                            await contentStore.handlePracticeDemoTap(routeSeed: seed, languageSpace: languageSpace)
+                        },
+                        onStopDemo: {
+                            await contentStore.stopSentenceAudioPlayback()
+                        }
                     )
                 case .settings(.languageSpace):
                     LanguageSpaceManagementView(

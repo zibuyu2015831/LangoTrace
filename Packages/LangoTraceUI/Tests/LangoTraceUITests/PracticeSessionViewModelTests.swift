@@ -12,7 +12,9 @@ struct PracticeSessionViewModelTests {
         let viewModel = PracticeSessionViewModel(
             languageSpaceID: "space-1",
             snapshot: snapshot(),
-            actions: actions.actions
+            actions: actions.actions,
+            playDemo: actions.playDemo,
+            stopDemo: actions.stopDemo
         )
 
         await viewModel.load()
@@ -31,10 +33,100 @@ struct PracticeSessionViewModelTests {
         #expect(viewModel.session?.completedRecordingID == "recording-1")
         #expect(actions.completedRecordingID == "recording-1")
     }
+
+    @Test("View model plays demo and latest ready recording without mutating completion")
+    func viewModelPlaysDemoAndLatestReadyRecording() async {
+        let actions = RecordingPracticeActions()
+        let viewModel = PracticeSessionViewModel(
+            languageSpaceID: "space-1",
+            snapshot: snapshot(),
+            actions: actions.actions,
+            playDemo: actions.playDemo,
+            stopDemo: actions.stopDemo
+        )
+
+        await viewModel.load()
+        await viewModel.playDemo()
+        #expect(actions.playedDemoCount == 1)
+        #expect(!viewModel.isPlayingDemo)
+
+        await viewModel.startRecording()
+        await viewModel.stopRecording()
+        await viewModel.playLatestRecording()
+
+        #expect(actions.playedRecordingID == "recording-1")
+        #expect(!viewModel.isPlayingRecording)
+        #expect(viewModel.session?.status == .inProgress)
+    }
+
+    @Test("View model blocks playback while recording is active")
+    func viewModelBlocksPlaybackWhileRecordingIsActive() async {
+        let actions = RecordingPracticeActions()
+        let viewModel = PracticeSessionViewModel(
+            languageSpaceID: "space-1",
+            snapshot: snapshot(),
+            actions: actions.actions,
+            playDemo: actions.playDemo,
+            stopDemo: actions.stopDemo
+        )
+
+        await viewModel.load()
+        await viewModel.startRecording()
+        await viewModel.playDemo()
+        await viewModel.playLatestRecording()
+
+        #expect(actions.playedDemoCount == 0)
+        #expect(actions.playedRecordingID == nil)
+        #expect(viewModel.failure == .audioBusy)
+        #expect(viewModel.failure?.localizedSummaryKey == "practice.failure.audioBusy")
+    }
+
+    @Test("View model exposes a user-visible failure key when recording playback is unavailable")
+    func viewModelExposesVisibleFailureWhenPlaybackUnavailable() async {
+        let actions = RecordingPracticeActions()
+        actions.shouldFailPlayback = true
+        let viewModel = PracticeSessionViewModel(
+            languageSpaceID: "space-1",
+            snapshot: snapshot(),
+            actions: actions.actions,
+            playDemo: actions.playDemo,
+            stopDemo: actions.stopDemo
+        )
+
+        await viewModel.load()
+        await viewModel.startRecording()
+        await viewModel.stopRecording()
+        await viewModel.playLatestRecording()
+
+        #expect(viewModel.failure == .playbackUnavailable)
+        #expect(viewModel.failure?.localizedSummaryKey == "practice.failure.playbackUnavailable")
+    }
+
+    @Test("View model stops active demo playback before starting recording")
+    func viewModelStopsActiveDemoBeforeStartingRecording() async {
+        let actions = RecordingPracticeActions()
+        let viewModel = PracticeSessionViewModel(
+            languageSpaceID: "space-1",
+            snapshot: snapshot(),
+            actions: actions.actions,
+            playDemo: actions.playDemo,
+            stopDemo: actions.stopDemo
+        )
+
+        await viewModel.load()
+        await viewModel.startRecording()
+
+        #expect(actions.stoppedDemoCount == 1)
+        #expect(viewModel.isRecording)
+    }
 }
 
 private final class RecordingPracticeActions: @unchecked Sendable {
     var completedRecordingID: String?
+    var playedRecordingID: String?
+    var playedDemoCount = 0
+    var stoppedDemoCount = 0
+    var shouldFailPlayback = false
 
     var actions: PracticeActions {
         PracticeActions(
@@ -63,8 +155,23 @@ private final class RecordingPracticeActions: @unchecked Sendable {
                 next.status = .completed
                 next.completedRecordingID = recordingID
                 return next
+            },
+            playRecording: { [weak self] _, recordingID in
+                if self?.shouldFailPlayback == true {
+                    throw PracticeActionFailure.playbackUnavailable
+                }
+                self?.playedRecordingID = recordingID
             }
         )
+    }
+
+    func playDemo() async -> SentenceAudioPresentationState {
+        playedDemoCount += 1
+        return .idle
+    }
+
+    func stopDemo() async {
+        stoppedDemoCount += 1
     }
 }
 

@@ -103,6 +103,12 @@ actor SentenceAudioPlaybackCoordinatorBox {
                         continuation.finish()
                     }
                 }
+            },
+            stopActivePlayback: {
+                do {
+                    let coordinator = try await self.coordinatorInstance()
+                    await coordinator.stopActivePlayback()
+                } catch {}
             }
         )
     }

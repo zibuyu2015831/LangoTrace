@@ -381,12 +381,13 @@ extension LearningContentStore {
         sentenceAudioPlaybackStates[sentenceID] ?? .idle
     }
 
+    @discardableResult
     func handleSentenceAudioTap(
         rendering: LearningRendering,
         sentence: RenderingSentence,
         sentenceIndex: Int,
         languageSpace: LanguageSpacePreview
-    ) async {
+    ) async -> SentenceAudioPresentationState {
         let request = SentenceAudioRequest(
             languageSpaceID: languageSpace.id,
             owner: .learningMaterialSentence(materialID: rendering.id, sentenceIndex: sentenceIndex),
@@ -398,6 +399,35 @@ extension LearningContentStore {
         let state = await sentenceAudioPlaybackActions.handleTap(request)
         setSentenceAudioPlaybackState(state, for: sentence.id)
         observeSentenceAudioPlaybackState(for: sentence.id, request: request)
+        return state
+    }
+
+    func handlePracticeDemoTap(
+        routeSeed: PracticeSessionRouteSeed,
+        languageSpace: LanguageSpacePreview
+    ) async -> SentenceAudioPresentationState {
+        let request = SentenceAudioRequest(
+            languageSpaceID: languageSpace.id,
+            owner: .learningMaterialSentence(
+                materialID: routeSeed.learningMaterialID,
+                sentenceIndex: routeSeed.sentenceIndex
+            ),
+            sentenceSource: .learningMaterialSentence(
+                materialID: routeSeed.learningMaterialID,
+                sentenceIndex: routeSeed.sentenceIndex
+            ),
+            sentenceIndex: routeSeed.sentenceIndex,
+            targetText: routeSeed.snapshot.targetTextSnapshot,
+            targetLanguageCode: routeSeed.targetLanguageCode
+        )
+        let state = await sentenceAudioPlaybackActions.handleTap(request)
+        setSentenceAudioPlaybackState(state, for: routeSeed.sentenceID)
+        observeSentenceAudioPlaybackState(for: routeSeed.sentenceID, request: request)
+        return state
+    }
+
+    func stopSentenceAudioPlayback() async {
+        await sentenceAudioPlaybackActions.stopActivePlayback()
     }
 
     private func observeSentenceAudioPlaybackState(for sentenceID: String, request: SentenceAudioRequest) {

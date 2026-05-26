@@ -13,6 +13,8 @@ enum PracticeActionsAssembly {
             audioFileValidator: TTSAudioFileValidator(mediaArtifactsRoot: mediaArtifactsRoot)
         )
         let repository = GRDBPracticeRepository(database: database)
+        let playbackSourceResolver = LocalMediaArtifactPlaybackSourceResolver(fileStore: fileStore)
+        let recordingPlayer = TTSAudioPlaybackService()
         let recordingService = PracticeRecordingService(
             engine: AppPracticeRecordingEngine(fileStore: fileStore),
             limits: .singleSentenceDefault
@@ -70,6 +72,20 @@ enum PracticeActionsAssembly {
             },
             complete: { session, recordingID in
                 try await repository.completeSession(id: session.id, recordingID: recordingID)
+            },
+            playRecording: { session, recordingID in
+                guard let artifact = try await repository.readyRecordingArtifact(
+                    sessionID: session.id,
+                    recordingID: recordingID
+                ) else {
+                    throw PracticeActionFailure.playbackUnavailable
+                }
+                let source = try await playbackSourceResolver.playbackSource(for: artifact)
+                let playbackSession = try await recordingPlayer.play(source)
+                let result = await playbackSession.completion()
+                if case .failure = result {
+                    throw PracticeActionFailure.playbackUnavailable
+                }
             }
         )
     }

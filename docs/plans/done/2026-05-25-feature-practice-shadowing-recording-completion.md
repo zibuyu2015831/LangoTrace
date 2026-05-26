@@ -14,7 +14,7 @@
 2026-05-26：根据系统架构师再次严格代码审查修订方案：补充练习句子内容快照、历史 sentence reference / FK 删除语义、完成态录音 retention / cleanup policy，以及实施前必须先完成的通用 MediaArtifact API review 阶段。明确完成态录音不是普通 LRU cache，不能被容量清理静默删除；历史练习读取不能依赖 current LearningMaterial 仍存在。
 2026-05-26：用户确认本方案审核通过，要求先将状态改为 Approved，并针对本方案文档改动单独提交 commit；随后立即按方案进入开发，直至完整落地。
 
-当前方案已完成实施并移入 done；后续评分、ASR、听写、回译、单词本、练习录音同步 / 导出 / 可恢复备份和真实设备麦克风人工验收仍需独立任务。
+当前方案已完成实施并移入 done；2026-05-26 post-implementation 复审发现的单句页听示范和录音回放缺口，已通过 `docs/plans/done/2026-05-26-bug-practice-session-playback-completion-gap.md` 补齐。后续评分、ASR、听写、回译、单词本、练习录音同步 / 导出 / 可恢复备份和真实设备麦克风人工验收仍需独立任务。
 
 ## 1. 需求或 bug 描述
 
@@ -466,6 +466,8 @@ git status --short
 2026-05-26：文档同步完成。更新 `docs/README.md`、`docs/platform-page-inventory.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`、`docs/spec/media-artifacts/impl.md`、`docs/architecture/002-system-map.md`、`docs/testing/README.md`、`docs/release/README.md`，并新增 `docs/architecture/notes/2026-05-26-practice-recording-sync-export-notes.md` 记录录音同步 / 导出 / 可恢复备份的后续决策边界。
 2026-05-26：聚焦验证通过：`swift test --package-path Packages/LangoTraceCore --filter 'PracticeSessionReducerTests|PracticeAudioCoordinationTests'`、`swift test --package-path Packages/LangoTraceData --filter 'GRDBPracticeRepositoryTests|MediaArtifactRepositoryTests|practiceRecordingMigrationCreatesSnapshotSessionsRecordingsAndTypedArtifactMetadata'`、`swift test --package-path Packages/LangoTraceSpeech --filter PracticeRecordingServiceTests`、`swift test --package-path Packages/LangoTraceUI --filter 'PracticeSessionViewModelTests|PracticeRouteSeedTests|PhoneIOSConvergenceTests'`、`xcodegen generate && xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests/PracticeRecordingConfigurationTests -only-testing:LangoTraceAppTests/AppEnvironmentPracticeBootstrapTests`。
 2026-05-26：完整验证通过：`scripts/verify.sh` 成功完成 XcodeGen、package tests、工具测试、iPhone / iPad / macOS build、macOS app tests、SwiftLint、SwiftFormat 和文档 placeholder 扫描。真实 iPhone 麦克风人工验证未在本自动化会话中执行，剩余风险保留在第 17 节。
+2026-05-26：post-implementation 全面复审发现语义缺口：单句 `PracticeSessionView` 未在页内接入听示范 TTS，也未提供用户录音回放入口；`PracticeActions` / `PracticeSessionViewModel` 只覆盖 create / start recording / stop recording / complete。该缺口先记录到 active bug plan，随后通过 `docs/plans/done/2026-05-26-bug-practice-session-playback-completion-gap.md` 完成修复并归档。
+2026-05-26：缺口修复完成并归档到 `docs/plans/done/2026-05-26-bug-practice-session-playback-completion-gap.md`。单句页现在可复用逐句 TTS action 听示范，可通过 ready recording artifact resolver 回放用户录音；开始录音前会停止当前示范播放，录音中禁用示范和回放，文件缺失或 hash mismatch 时保持 completed session 并显示不可播放失败。
 
 ## 16. 完成标准
 
@@ -502,3 +504,4 @@ git status --short
 - 当前计划采用“单句跟读 session”作为第一阶段推荐粒度；如果用户更希望一次 session 覆盖整篇 Entry 的多句队列，需要在实施前调整 schema、route 和 UI，不宜在开发中临时混用两种语义。
 - iOS 句子页是否展示全文应保持折叠上下文，不应默认占据练习主视图；如果人工测试发现用户频繁迷失上下文，再考虑提高概览可见性。
 - 词级选择和短语标记在 SwiftUI 文本中可能涉及 selection、range mapping、本地化分词和目标语言脚本差异，必须单独设计，不能在录音闭环中临时实现。
+- 单句页听示范和录音回放已补齐；真实 iPhone 和 macOS 设备上的麦克风权限、录音回放音频路由、系统中断和前后台切换仍需要人工验收。
