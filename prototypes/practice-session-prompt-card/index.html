@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>单句练习内容卡优化原型 - 语迹</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="workspace">
+    <section class="overview" aria-labelledby="prototype-title">
+      <p class="eyebrow">Practice Session Prototype</p>
+      <h1 id="prototype-title">单句练习内容卡优化</h1>
+      <p class="summary">
+        目标句保持主视觉；中文释义默认低权重展示，但可完整展开；语法讲解独立为按需内容，避免打断录音练习节奏。
+      </p>
+      <div class="notes">
+        <div><strong>默认态</strong><span>操作区位置稳定，用户优先完成听、录、回放。</span></div>
+        <div><strong>展开译文</strong><span>只展开中文释义，不自动展开语法分析。</span></div>
+        <div><strong>查看讲解</strong><span>讲解使用独立面板，区分“看懂意思”和“研究语言点”。</span></div>
+      </div>
+    </section>
+
+    <section class="phone-stage" aria-label="iPhone prototype">
+      <div class="phone">
+        <div class="status-bar">
+          <span>6:27</span>
+          <span class="status-icons">••• 􀙇 ▰</span>
+        </div>
+        <header class="nav-bar">
+          <button class="round-button" aria-label="返回">‹</button>
+          <h2>练习</h2>
+          <span class="nav-spacer"></span>
+        </header>
+
+        <section class="content">
+          <article class="prompt-card" aria-label="练习句子">
+            <div class="prompt-topline">
+              <span>目标句</span>
+              <span id="sentence-tone">适合跟读</span>
+            </div>
+            <p class="target-text" id="target-text">
+              Birds chirp softly, signaling the end of another peaceful day.
+            </p>
+
+            <div class="translation-block">
+              <div class="translation-header">
+                <span>中文释义</span>
+                <button id="translation-toggle" type="button">展开译文</button>
+              </div>
+              <p class="translation-text" id="translation-text">
+                鸟儿轻声鸣叫，标志着另一个宁静的一天的结束。
+              </p>
+            </div>
+
+            <div class="explain-row">
+              <button id="explain-toggle" class="plain-link" type="button">查看讲解</button>
+              <span>不影响跟读主流程</span>
+            </div>
+
+            <div class="explanation" id="explanation" hidden>
+              <p><strong>chirp</strong> 是动词，表示鸟儿短促而轻快地叫。</p>
+              <p><strong>signaling</strong> 是动名词形式，表示前半句动作带来的结果或提示。</p>
+            </div>
+          </article>
+
+          <section class="control-card" aria-label="练习控制">
+            <div class="secondary-actions">
+              <button type="button" class="soft-action">􀊢 听</button>
+              <button type="button" class="soft-action muted">􀊄 回放录音</button>
+            </div>
+            <button type="button" class="primary-action">􀀁 开始录音</button>
+          </section>
+
+          <nav class="sentence-nav" aria-label="句子导航">
+            <button id="prev-sentence" type="button">‹ 上一句</button>
+            <span id="position">第 2 / 3 句</span>
+            <button id="next-sentence" type="button">下一句 ›</button>
+          </nav>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const samples = [
+      {
+        tone: "短句",
+        target: "The sun sets gently, painting the sky with hues of orange and pink.",
+        translation: "太阳轻轻地落下，把天空染成橙色和粉红色的色调。",
+        explanation: [
+          "<strong>sets</strong> 表示太阳落下，是这个句子的主要动作。",
+          "<strong>painting</strong> 是现在分词，用来补充说明夕阳造成的画面效果。"
+        ]
+      },
+      {
+        tone: "适合跟读",
+        target: "Birds chirp softly, signaling the end of another peaceful day.",
+        translation: "鸟儿轻声鸣叫，标志着另一个宁静的一天的结束。",
+        explanation: [
+          "<strong>chirp</strong> 是动词，表示鸟儿短促而轻快地叫。",
+          "<strong>signaling</strong> 是动名词形式，表示前半句动作带来的结果或提示。"
+        ]
+      },
+      {
+        tone: "长译文",
+        target: "As the evening light fades behind the quiet houses, I slow my steps and notice how calm the street feels.",
+        translation: "当傍晚的光线在安静的房屋后方渐渐暗下去时，我放慢了脚步，并注意到整条街道呈现出一种难得的平静感。这个译文比前两句更长，用来验证默认低权重展示和完整展开之间的切换体验。",
+        explanation: [
+          "<strong>As</strong> 引导时间状语从句，说明主句动作发生的背景。",
+          "<strong>notice how calm...</strong> 表达观察到的感受，适合练习自然停顿和重音。"
+        ]
+      }
+    ];
+
+    let currentIndex = 1;
+    let translationExpanded = false;
+    let explanationExpanded = false;
+
+    const targetText = document.getElementById("target-text");
+    const translationText = document.getElementById("translation-text");
+    const translationToggle = document.getElementById("translation-toggle");
+    const explainToggle = document.getElementById("explain-toggle");
+    const explanation = document.getElementById("explanation");
+    const sentenceTone = document.getElementById("sentence-tone");
+    const position = document.getElementById("position");
+    const prev = document.getElementById("prev-sentence");
+    const next = document.getElementById("next-sentence");
+
+    function render() {
+      const sample = samples[currentIndex];
+      targetText.textContent = sample.target;
+      translationText.textContent = sample.translation;
+      sentenceTone.textContent = sample.tone;
+      position.textContent = `第 ${currentIndex + 1} / ${samples.length} 句`;
+      translationText.classList.toggle("expanded", translationExpanded);
+      translationToggle.textContent = translationExpanded ? "收起译文" : "展开译文";
+      explanation.hidden = !explanationExpanded;
+      explanation.innerHTML = sample.explanation.map(item => `<p>${item}</p>`).join("");
+      explainToggle.textContent = explanationExpanded ? "收起讲解" : "查看讲解";
+      prev.disabled = currentIndex === 0;
+      next.disabled = currentIndex === samples.length - 1;
+    }
+
+    translationToggle.addEventListener("click", () => {
+      translationExpanded = !translationExpanded;
+      render();
+    });
+
+    explainToggle.addEventListener("click", () => {
+      explanationExpanded = !explanationExpanded;
+      render();
+    });
+
+    prev.addEventListener("click", () => {
+      if (currentIndex === 0) return;
+      currentIndex -= 1;
+      translationExpanded = false;
+      explanationExpanded = false;
+      render();
+    });
+
+    next.addEventListener("click", () => {
+      if (currentIndex === samples.length - 1) return;
+      currentIndex += 1;
+      translationExpanded = false;
+      explanationExpanded = false;
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

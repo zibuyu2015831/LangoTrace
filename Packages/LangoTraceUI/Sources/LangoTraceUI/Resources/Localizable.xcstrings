@@ -7285,6 +7285,125 @@
         }
       }
     },
+    "practice.prompt.translation.title": {
+      "comment": "Practice prompt card translation section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中文释义"
+          }
+        }
+      }
+    },
+    "practice.prompt.translation.expand": {
+      "comment": "Practice prompt card button for expanding the translation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "展开译文"
+          }
+        }
+      }
+    },
+    "practice.prompt.translation.collapse": {
+      "comment": "Practice prompt card button for collapsing the translation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收起译文"
+          }
+        }
+      }
+    },
+    "practice.prompt.translation.toggle.hint": {
+      "comment": "Accessibility hint for toggling the practice prompt card translation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show or hide the full translation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "展开或收起完整中文释义。"
+          }
+        }
+      }
+    },
+    "practice.prompt.explanation.expand": {
+      "comment": "Practice prompt card button for expanding sentence notes.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show notes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看讲解"
+          }
+        }
+      }
+    },
+    "practice.prompt.explanation.collapse": {
+      "comment": "Practice prompt card button for collapsing sentence notes.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide notes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收起讲解"
+          }
+        }
+      }
+    },
+    "practice.prompt.explanation.toggle.hint": {
+      "comment": "Accessibility hint for toggling the practice prompt card sentence notes.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show or hide the sentence notes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "展开或收起词句讲解。"
+          }
+        }
+      }
+    },
     "practice.action.markComplete": {
       "comment": "Primary button title for completing a practice recording.",
       "localizations": {

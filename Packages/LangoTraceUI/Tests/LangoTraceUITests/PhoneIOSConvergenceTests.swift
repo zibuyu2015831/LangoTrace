@@ -197,6 +197,23 @@ struct PhoneIOSConvergenceTests {
         #expect(source.contains("#if os(iOS)"))
     }
 
+    @Test("Practice prompt disclosures reset when route identity changes")
+    func practicePromptDisclosuresResetWhenRouteIdentityChanges() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "PracticeSessionViews.swift"), encoding: .utf8)
+        let promptCard = try String(contentsOf: sourceFileURL(named: "PracticePromptCard.swift"), encoding: .utf8)
+
+        #expect(source.contains("@State private var isTranslationExpanded = false"))
+        #expect(source.contains("@State private var isExplanationExpanded = false"))
+        #expect(source.contains("private func resetPromptDisclosures()"))
+        #expect(source.contains(".onChange(of: routeSeed.practiceRouteIdentity)"))
+        #expect(source.contains("resetPromptDisclosures()"))
+        #expect(source.contains("PracticePromptCard("))
+        #expect(promptCard.contains("PracticePromptCardLayout.collapsedMinHeight"))
+        #expect(promptCard.contains("practice.prompt.translation.toggle.hint"))
+        #expect(promptCard.contains("practice.prompt.explanation.toggle.hint"))
+        #expect(!source.contains("PracticeSnapshotPanel("))
+    }
+
     @Test("Sentence audio playback state is observed by the visible detail route")
     func sentenceAudioPlaybackStateIsSwiftUIObservedDetailInput() throws {
         let supportingViews = try String(

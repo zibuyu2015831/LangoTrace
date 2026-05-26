@@ -63,6 +63,8 @@ struct PracticeSessionView: View {
     let onNavigateSentence: (PracticeSessionRouteSeed) -> Void
 
     @StateObject private var viewModel: PracticeSessionViewModel
+    @State private var isTranslationExpanded = false
+    @State private var isExplanationExpanded = false
 
     init(
         languageSpaceID: String,
@@ -92,7 +94,17 @@ struct PracticeSessionView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                PracticeSnapshotPanel(snapshot: routeSeed.snapshot)
+                PracticePromptCard(
+                    snapshot: routeSeed.snapshot,
+                    isTranslationExpanded: isTranslationExpanded,
+                    isExplanationExpanded: isExplanationExpanded,
+                    onToggleTranslation: {
+                        isTranslationExpanded.toggle()
+                    },
+                    onToggleExplanation: {
+                        isExplanationExpanded.toggle()
+                    }
+                )
                 if let session = viewModel.session {
                     PracticeControlBar(
                         session: session,
@@ -147,6 +159,9 @@ struct PracticeSessionView: View {
         .task {
             await viewModel.load()
         }
+        .onChange(of: routeSeed.practiceRouteIdentity) { _, _ in
+            resetPromptDisclosures()
+        }
     }
 
     private func navigateSentence(direction: PracticeSentenceNavigationDirection) {
@@ -161,32 +176,14 @@ struct PracticeSessionView: View {
             if viewModel.isPlayingDemo {
                 await viewModel.stopDemoPlayback()
             }
+            resetPromptDisclosures()
             onNavigateSentence(nextSeed)
         }
     }
-}
 
-private struct PracticeSnapshotPanel: View {
-    let snapshot: PracticeSentenceSnapshot
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let translation = snapshot.translationSnapshot {
-                Text(translation)
-                    .font(.callout)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            }
-            Text(snapshot.targetTextSnapshot)
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-            if let note = snapshot.noteSnapshot {
-                Text(note)
-                    .font(.footnote)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            }
-        }
-        .langoPanel()
+    private func resetPromptDisclosures() {
+        isTranslationExpanded = false
+        isExplanationExpanded = false
     }
 }
 

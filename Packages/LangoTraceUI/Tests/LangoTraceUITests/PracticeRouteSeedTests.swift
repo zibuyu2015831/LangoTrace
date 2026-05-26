@@ -151,6 +151,67 @@ struct PracticeRouteSeedTests {
         #expect(projection.metadataLineLimit == 1)
         #expect(projection.estimatedRegularHeightRange == 112 ... 132)
     }
+
+    @Test("Practice prompt card presentation collapses long translation and expands to full text")
+    func practicePromptCardPresentationCollapsesAndExpandsLongTranslation() {
+        let snapshot = promptSnapshot(
+            translation: "鸟儿轻声鸣叫，标志着另一个宁静的一天结束，也提醒用户这句话描述的是安静收束的生活场景。",
+            note: "chirp 是动词，表示鸟儿发出短促轻快的叫声。"
+        )
+
+        let collapsed = PracticePromptCardPresentation(
+            snapshot: snapshot,
+            isTranslationExpanded: false,
+            isExplanationExpanded: false
+        )
+        let expanded = PracticePromptCardPresentation(
+            snapshot: snapshot,
+            isTranslationExpanded: true,
+            isExplanationExpanded: true
+        )
+
+        #expect(collapsed.targetText == "Birds chirp softly, signaling the end of another peaceful day.")
+        #expect(collapsed.translationLineLimit == PracticePromptCardPresentation.collapsedTranslationLineLimit)
+        #expect(collapsed.translationNeedsDisclosure)
+        #expect(collapsed.shouldShowTranslationToggle)
+        #expect(collapsed.translationToggleTitleKey == "practice.prompt.translation.expand")
+        #expect(collapsed.translationAccessibilityValueKey == "accessibility.hidden")
+        #expect(collapsed.explanationToggleTitleKey == "practice.prompt.explanation.expand")
+        #expect(collapsed.explanationAccessibilityValueKey == "accessibility.hidden")
+
+        #expect(expanded.translationLineLimit == nil)
+        #expect(expanded.translationToggleTitleKey == "practice.prompt.translation.collapse")
+        #expect(expanded.translationAccessibilityValueKey == "accessibility.visible")
+        #expect(expanded.explanationToggleTitleKey == "practice.prompt.explanation.collapse")
+        #expect(expanded.explanationAccessibilityValueKey == "accessibility.visible")
+    }
+
+    @Test("Practice prompt card presentation avoids empty controls for short or blank auxiliary text")
+    func practicePromptCardPresentationAvoidsEmptyControlsForShortOrBlankAuxiliaryText() {
+        let short = PracticePromptCardPresentation(
+            snapshot: promptSnapshot(translation: "鸟儿轻声鸣叫。", note: " "),
+            isTranslationExpanded: false,
+            isExplanationExpanded: false
+        )
+        let blank = PracticePromptCardPresentation(
+            snapshot: promptSnapshot(translation: " \n ", note: "\t"),
+            isTranslationExpanded: false,
+            isExplanationExpanded: false
+        )
+
+        #expect(short.translationText == "鸟儿轻声鸣叫。")
+        #expect(short.translationLineLimit == nil)
+        #expect(!short.translationNeedsDisclosure)
+        #expect(!short.shouldShowTranslationToggle)
+        #expect(short.translationToggleTitleKey == nil)
+        #expect(short.explanationText == nil)
+        #expect(!short.shouldShowExplanationToggle)
+
+        #expect(blank.translationText == nil)
+        #expect(blank.explanationText == nil)
+        #expect(!blank.shouldShowTranslationToggle)
+        #expect(!blank.shouldShowExplanationToggle)
+    }
 }
 
 private func makeEntry() -> LearningEntry {
@@ -196,6 +257,24 @@ private func snapshot() -> PracticeSentenceSnapshot {
         targetLanguageCode: "en",
         translationSnapshot: "译文 1",
         noteSnapshot: "Note 1",
+        sourceEntryBodyHash: "source-hash",
+        materialAnalysisSourceHash: nil,
+        exerciseType: .shadowing,
+        capturedAt: Date(timeIntervalSince1970: 1)
+    )
+}
+
+private func promptSnapshot(translation: String?, note: String?) -> PracticeSentenceSnapshot {
+    PracticeSentenceSnapshot(
+        entryID: "entry-1",
+        learningMaterialID: "material-1",
+        sentenceID: "sentence-1",
+        sentenceIndex: 0,
+        targetTextSnapshot: "Birds chirp softly, signaling the end of another peaceful day.",
+        targetTextHash: String(repeating: "a", count: 64),
+        targetLanguageCode: "en",
+        translationSnapshot: translation,
+        noteSnapshot: note,
         sourceEntryBodyHash: "source-hash",
         materialAnalysisSourceHash: nil,
         exerciseType: .shadowing,

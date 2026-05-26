@@ -50,6 +50,8 @@ struct ThreePlatformPresentationCopyTests {
             "MacMainView.swift",
             "MacWorkspaceContentView.swift",
             "LearningContentComponents.swift",
+            "PracticePromptCard.swift",
+            "PracticeSessionViews.swift",
             "LanguageSpaceSwitcherSheet.swift",
             "LangoTraceSettingsSceneView.swift",
         ] {
@@ -119,6 +121,13 @@ struct ThreePlatformPresentationCopyTests {
             "practice.navigation.next",
             "practice.navigation.position",
             "practice.action.markComplete",
+            "practice.prompt.translation.title",
+            "practice.prompt.translation.expand",
+            "practice.prompt.translation.collapse",
+            "practice.prompt.translation.toggle.hint",
+            "practice.prompt.explanation.expand",
+            "practice.prompt.explanation.collapse",
+            "practice.prompt.explanation.toggle.hint",
         ]
 
         for key in requiredKeys {
