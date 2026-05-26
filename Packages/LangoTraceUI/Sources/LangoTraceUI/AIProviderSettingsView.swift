@@ -186,8 +186,7 @@ private extension AIProviderSettingsView {
         guard let profile = try? await actions.loadDefaultProfile() else {
             return
         }
-        let secretsByCredentialID = await resolvedSecretsByCredentialID(for: profile)
-        draft.applyLoadedProfile(profile, resolvedSecretsByCredentialID: secretsByCredentialID)
+        draft.applyLoadedProfile(profile)
         await applyLoadedTTSVoiceProfile(from: profile)
     }
 
@@ -240,8 +239,7 @@ private extension AIProviderSettingsView {
                     operationID: operationID
                 )
                 let profile = try await actions.saveDefaultProfile(input, operationID)
-                let secretsByCredentialID = await resolvedSecretsByCredentialID(for: profile)
-                draft.applySavedProfile(profile, resolvedSecretsByCredentialID: secretsByCredentialID)
+                draft.applySavedProfile(profile)
                 await applyLoadedTTSVoiceProfile(from: profile)
                 await recordSaveEvent(
                     .aiProviderSettingsSaveSucceeded,
@@ -418,23 +416,6 @@ private extension AIProviderSettingsView {
         return false
     }
 
-    func resolvedSecretsByCredentialID(
-        for profile: AIProviderConfigurationProfile
-    ) async -> [AIProviderCredentialID: String] {
-        var secretsByCredentialID: [AIProviderCredentialID: String] = [:]
-        for credential in profile.credentials {
-            do {
-                let secret = try await actions.resolveCredentialSecret(credential)
-                if let secret {
-                    secretsByCredentialID[credential.id] = secret
-                }
-            } catch {
-                await recordCredentialResolveFailure(error)
-            }
-        }
-        return secretsByCredentialID
-    }
-
     func scheduleTransientSaveStatusClear() {
         transientSaveStatusClearTask?.cancel()
         transientSaveStatusClearTask = Task { @MainActor in
@@ -603,44 +584,5 @@ private extension AIProviderSettingsView {
                 createdAt: Date()
             )
         )
-    }
-
-    func recordCredentialResolveFailure(_ error: Error) async {
-        await actions.recordDiagnosticEvent(
-            DiagnosticEvent(
-                id: UUID().uuidString,
-                name: .aiProviderSettingsCredentialFailed,
-                domain: .aiProviderSettings,
-                level: .warning,
-                outcome: .failed,
-                attributes: [
-                    .failurePhase("credential_resolve"),
-                    .errorCategory(credentialResolveFailureCategory(for: error).rawValue),
-                    .diagnosticsMode("settings_load"),
-                    .platform(aiProviderSettingsPlatformName),
-                ],
-                createdAt: Date()
-            )
-        )
-    }
-
-    func credentialResolveFailureCategory(for error: Error) -> AIProviderValidationErrorCategory {
-        if let failure = error as? AIProviderCredentialResolveFailure {
-            return failure.category
-        }
-        if error is CancellationError {
-            return .credentialInaccessible
-        }
-        return .credentialInaccessible
-    }
-
-    var aiProviderSettingsPlatformName: String {
-        #if os(macOS)
-            "macOS"
-        #elseif os(iOS)
-            "iOS"
-        #else
-            "unknown"
-        #endif
     }
 }

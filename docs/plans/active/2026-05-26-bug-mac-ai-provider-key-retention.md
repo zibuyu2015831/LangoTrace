@@ -29,6 +29,8 @@
   - 随后 settings load 和 probe 都在 `SecItemCopyMatching` 后返回 `credential_inaccessible`。
   - 这证明本次问题不是 API Key 内容错误，也不是 iOS / iPad 可用性差异，而是 macOS 新写入的 Keychain item 仍不能在 no-UI 策略下静默读取。
 - 根因进一步收敛到 macOS 传统 login keychain 写入时仍设置了 iOS 风格 `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`。SDK 文档说明 macOS 上要使用 `kSecAttrAccessible` 语义应走 Data Protection Keychain；当前 Debug 签名没有对应 entitlement，因此本轮应在 macOS 传统 Keychain 路径跳过该属性，让 login keychain 使用自身 ACL。
+- 2026-05-27 继续复测后又出现登录钥匙串弹窗，且需要反复输入。最新日志显示弹窗发生在设置页 `settings_load` 阶段：`SecItemCopyMatching` 前激活 `com.apple.CoreAuthentication.agent`，随后记录 `ai_provider_settings.credential_resolve_failed` / `credential_inaccessible`。这说明“进入设置页即主动读取并回填 API Key 明文”的交互本身会触发系统认证，即使测试请求尚未执行。
+- 经过三轮 Keychain 层小修复后，当前架构假设需要调整：macOS Debug app 为 ad-hoc 签名、无 TeamIdentifier、无 keychain access group，却使用传统 login keychain 保存 provider secret。这个组合依赖 ACL / 代码签名授权，单靠 `LAContext.interactionNotAllowed` 和 `kSecUseAuthenticationUIFail` 不能保证完全无弹窗。
 
 ## 目标
 
@@ -52,6 +54,8 @@
 - App Shell 将 Keychain resolver 的 `missingCredential` 和 `credentialInaccessible` 映射为 Core 层稳定分类，避免 UI 只能记录 `credential_inaccessible`。
 - `KeychainAIProviderCredentialStore` 在 `hasSecret`、`resolveSecret`、duplicate update 和 delete 路径使用 `LAContext.interactionNotAllowed = true` + `kSecUseAuthenticationContext` 的非交互查询，并额外显式设置 `kSecUseAuthenticationUIFail` 等价参数。这样 Keychain 仍负责加密存储和读取，但 App 不主动触发登录钥匙串密码弹窗；若 macOS 因锁定、ACL 或调试签名变化无法静默授权，则返回 `credentialInaccessible` 并由上层记录诊断。
 - `KeychainAIProviderCredentialStore` 写入新 item 时按平台处理 accessibility：iOS / iPad 保留 `kSecAttrAccessible...ThisDeviceOnly`；macOS 当前传统 login keychain 路径不写该属性，避免在无 Data Protection Keychain entitlement 的 Debug 构建中创建需要认证 UI 的 item。
+- macOS 新建传统 login keychain item 时显式设置 `kSecAttrAccess`，通过 Security.framework 的 `SecAccessCreate` 语义把当前创建 app 设为 trusted application，减少后续读取同一 item 时触发 ACL 认证 UI 的概率。该调用仅限 macOS login keychain 分支，并通过动态符号调用隔离已废弃 API 的编译 warning。
+- 设置页加载和保存成功后不再主动解析 Keychain secret 来回填 API Key 输入框。页面只加载非敏感 profile / endpoint / credential metadata；用户输入新 API Key 才会写入 Keychain；测试已保存配置或真实 AI 请求时才按显式动作读取 secret。这样进入设置界面本身不应再触发登录钥匙串认证弹窗。
 - 不采用“Mac 端完全绕过系统 Keychain、自行维护密钥”的方案作为本轮修复。原因：如果加密密钥也保存在 App 容器，实际安全性接近本地可读的混淆存储；若再把主密钥放入 Keychain，仍会回到同一授权问题。长期可选路线是使用稳定 Apple Development / Distribution 签名和正式 Keychain access group，或在未来新增用户明确选择的低安全级别本地密钥库，但这会改变敏感凭证安全边界，需要单独 ADR / spec 讨论。
 
 ## 验证计划

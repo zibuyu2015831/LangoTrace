@@ -803,25 +803,26 @@ struct AIProviderLoadedSecretRepairTests {
         #expect(!source.contains("debugPrint("))
     }
 
-    @Test("Settings view records credential resolve failures without logging secrets")
-    func settingsViewRecordsCredentialResolveFailuresWithoutLoggingSecrets() throws {
+    @Test("Settings view does not resolve secrets when loading or saving profile")
+    func settingsViewDoesNotResolveSecretsWhenLoadingOrSavingProfile() throws {
         let source = try String(
             contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"),
             encoding: .utf8
         )
 
-        let resolverNeedle = "do {\n" +
-            "                let secret = try await actions.resolveCredentialSecret(credential)"
+        #expect(source.contains("draft.applyLoadedProfile(profile)"))
+        #expect(source.contains("draft.applySavedProfile(profile)"))
+        #expect(!source.contains("resolvedSecretsByCredentialID(for: profile)"))
+    }
 
-        #expect(source.contains(resolverNeedle))
-        #expect(source.contains("catch {"))
-        #expect(source.contains("recordCredentialResolveFailure(error)"))
-        #expect(source.contains(".aiProviderSettingsCredentialFailed"))
-        #expect(source.contains(".failurePhase(\"credential_resolve\")"))
-        #expect(source.contains("credentialResolveFailureCategory(for: error)"))
-        #expect(source.contains("error as? AIProviderCredentialResolveFailure"))
-        #expect(source.contains(".diagnosticsMode(\"settings_load\")"))
-        #expect(source.contains(".platform(aiProviderSettingsPlatformName)"))
+    @Test("Settings view does not log secret metadata while avoiding load time resolution")
+    func settingsViewDoesNotLogSecretMetadataWhileAvoidingLoadTimeResolution() throws {
+        let source = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(!source.contains("actions.resolveCredentialSecret(credential)"))
         #expect(!source.contains("credential.keychainAccount"))
         #expect(!source.contains("credential.keychainService"))
     }

@@ -2,6 +2,9 @@ import Foundation
 import LangoTraceCore
 import LocalAuthentication
 import Security
+#if os(macOS)
+    import Darwin
+#endif
 
 public struct KeychainAIProviderCredentialStore: AIProviderCredentialStore {
     public init() {}
@@ -18,6 +21,7 @@ public struct KeychainAIProviderCredentialStore: AIProviderCredentialStore {
         {
             addQuery[kSecAttrAccessible as String] = accessible
         }
+        addMacTrustedAccessIfAvailable(to: &addQuery)
 
         let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
         if addStatus == errSecSuccess {
@@ -130,6 +134,38 @@ private var shouldSetAccessibleAttribute: Bool {
         return true
     #endif
 }
+
+private func addMacTrustedAccessIfAvailable(to query: inout [String: Any]) {
+    #if os(macOS)
+        if let access = macTrustedAccess() {
+            query[kSecAttrAccess as String] = access
+        }
+    #endif
+}
+
+#if os(macOS)
+    private func macTrustedAccess() -> SecAccess? {
+        typealias SecAccessCreateFunction = @convention(c) (
+            CFString,
+            CFArray?,
+            UnsafeMutablePointer<SecAccess?>
+        ) -> OSStatus
+
+        guard let framework = dlopen("/System/Library/Frameworks/Security.framework/Security", RTLD_NOW),
+              let symbol = dlsym(framework, "SecAccessCreate")
+        else {
+            return nil
+        }
+
+        let createAccess = unsafeBitCast(symbol, to: SecAccessCreateFunction.self)
+        var access: SecAccess?
+        let status = createAccess("LangoTrace AI Provider" as CFString, nil, &access)
+        guard status == errSecSuccess else {
+            return nil
+        }
+        return access
+    }
+#endif
 
 private func accessibleValue(for value: String) -> CFString? {
     switch value {

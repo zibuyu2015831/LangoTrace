@@ -59,6 +59,19 @@ func keychainCredentialStoreUsesPlatformAppropriateAccessibilityAttributes() thr
     #expect(source.contains("addQuery[kSecAttrAccessible as String] = accessible"))
 }
 
+@Test("Keychain credential store sets Mac trusted access for new login keychain items")
+func keychainCredentialStoreSetsMacTrustedAccessForNewLoginKeychainItems() throws {
+    let source = try String(
+        contentsOf: langoTraceAISourceFileURL(named: "KeychainAIProviderCredentialStore.swift"),
+        encoding: .utf8
+    )
+
+    #expect(source.contains("macTrustedAccess()"))
+    #expect(source.contains("SecAccessCreate"))
+    #expect(source.contains("kSecAttrAccess as String"))
+    #expect(source.contains("addMacTrustedAccessIfAvailable(to: &addQuery)"))
+}
+
 private func testReference() -> AIProviderCredentialKeychainReference {
     AIProviderCredentialKeychainReference(
         credentialID: UUID().uuidString,
