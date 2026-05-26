@@ -52,6 +52,20 @@ struct PhoneIOSConvergenceTests {
         #expect(!supportingViews.contains("entryDetail.practiceEntry.subtitle"))
     }
 
+    @Test("Entry detail does not show informational practice candidate cards on any platform")
+    func entryDetailDoesNotShowInformationalPracticeCandidateCardsOnAnyPlatform() throws {
+        let supportingViews = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
+            encoding: .utf8
+        )
+
+        #expect(supportingViews.contains("SentencePairView("))
+        #expect(supportingViews.contains("onPracticeSentence(rendering, sentence, index)"))
+        #expect(!supportingViews.contains(#"SectionHeader(titleKey: "entryDetail.practiceEntry.title")"#))
+        #expect(!supportingViews.contains("CompactPanel(title: item.title, text: item.summary"))
+        #expect(!supportingViews.contains(#"localizedTitleKey: "practice.noContent.title""#))
+    }
+
     @Test("three platform detail routes own real generation and analysis actions")
     func threePlatformDetailRoutesOwnRealGenerationAndAnalysisActions() throws {
         let phoneMainView = try String(contentsOf: sourceFileURL(named: "PhoneMainView.swift"), encoding: .utf8)

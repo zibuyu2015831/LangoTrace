@@ -569,6 +569,20 @@ struct AIProviderPlatformConsistencyTests {
         #expect(!macSource.contains("MacAIProviderSettingsView"))
     }
 
+    @Test("iPad auxiliary AI provider shortcut does not advertise the real settings form as mock")
+    func iPadAuxiliaryAIProviderShortcutDoesNotAdvertiseRealSettingsFormAsMock() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "PadLearningPanelView.swift"), encoding: .utf8)
+        let staleMockStatusNeedle = """
+        status: .mockOnly,
+                        systemImage: SettingsCapability.Kind.aiProvider.systemImage,
+                        action: { onRoute(.settings(.aiProvider)) }
+        """
+
+        #expect(source.contains("localizedTitleKey: SettingsCapability.Kind.aiProvider.localizedTitleKey"))
+        #expect(source.contains("action: { onRoute(.settings(.aiProvider)) }"))
+        #expect(!source.contains(staleMockStatusNeedle))
+    }
+
     @Test("macOS settings scene and root inject the same AI provider actions")
     func macOSSettingsSceneAndRootInjectSameAIProviderActions() throws {
         let appSource = try String(contentsOf: appSourceFileURL(named: "LangoTraceApp.swift"), encoding: .utf8)

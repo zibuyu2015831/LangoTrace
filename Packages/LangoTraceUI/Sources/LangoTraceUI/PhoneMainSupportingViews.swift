@@ -69,7 +69,6 @@ struct EntryDetailView: View {
     let languageSpace: LanguageSpacePreview
     let entry: LearningEntry
     let rendering: LearningRendering?
-    let practiceItems: [PracticeItem]
     var generationState: LearningMaterialGenerationState = .idle
     var sourceEntryIsStale: Bool = false
     var onGenerateLearningMaterial: (() -> Void)?
@@ -162,20 +161,6 @@ struct EntryDetailView: View {
                         action: onGenerateLocalPreview
                     )
                 }
-                if practiceItems.isEmpty {
-                    CapabilityStatusRow(
-                        localizedTitleKey: "practice.noContent.title",
-                        localizedSummaryKey: "practice.noContent.summary",
-                        status: .unavailable,
-                        systemImage: "waveform",
-                        action: nil
-                    )
-                } else {
-                    SectionHeader(titleKey: "entryDetail.practiceEntry.title")
-                    ForEach(practiceItems) { item in
-                        CompactPanel(title: item.title, text: item.summary, systemImage: "waveform")
-                    }
-                }
             }
             .padding(20)
         }
@@ -235,7 +220,6 @@ struct EntryDetailStoreView: View {
                 languageSpace: languageSpace,
                 entry: entry,
                 rendering: contentStore.rendering(for: entry),
-                practiceItems: contentStore.practiceItems(for: entry),
                 generationState: contentStore.generationState(for: entry),
                 sourceEntryIsStale: contentStore.sourceEntryIsStale(for: entry),
                 onGenerateLearningMaterial: {

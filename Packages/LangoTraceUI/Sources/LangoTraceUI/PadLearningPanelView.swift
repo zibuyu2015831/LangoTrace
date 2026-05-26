@@ -79,7 +79,7 @@ struct PadLearningPanelView: View {
             CapabilityStatusRow(
                 localizedTitleKey: SettingsCapability.Kind.aiProvider.localizedTitleKey,
                 localizedSummaryKey: "pad.learningPanel.settings.aiProvider.summary",
-                status: .mockOnly,
+                status: .ready,
                 systemImage: SettingsCapability.Kind.aiProvider.systemImage,
                 action: { onRoute(.settings(.aiProvider)) }
             )
