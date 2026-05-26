@@ -1,6 +1,6 @@
 # AI Provider 向量化配置测试方案
 
-状态：Draft
+状态：In Progress
 类型：feature
 创建日期：2026-05-27
 最后更新日期：2026-05-27
@@ -12,6 +12,7 @@
 - 2026-05-27：用户确认第一阶段真实向量化配置测试只支持 OpenAI、OpenAI-compatible 和 OpenRouter；其他 Provider 暂不实现。
 - 2026-05-27：用户要求立即创建 active plan，之后由用户审核该 plan，通过后才能实施。本方案因此仅创建实施方案，不实施代码；后续实现前必须由用户把状态确认到 `User Approved`。
 - 2026-05-27：按系统架构师视角完成严格代码审查，确认原方案方向正确但实施前必须补齐 endpoint-scoped validation、provider allowlist、独立 capability 聚合、通用 endpoint fingerprint、opt-in live smoke 和未来向量基础设施备忘录边界。
+- 2026-05-27：再次复查方案与当前代码状态，确认方案已进入实施中：阶段 1 / 阶段 2 已完成并分别提交，阶段 3 存在未提交实现文件；本次修订只同步方案上下文、已完成证据、接口命名和剩余实施边界，不扩大实现范围。
 
 ## 2. 需求描述
 
@@ -29,11 +30,17 @@ AI Provider 设置页已经支持文本模型、语音生成模型和向量模�
 - `AIProviderConfigurationProbeService` 当前固定把 `.embedding` 返回为 `.notEnabled`，不发真实网络请求。
 - `AIProviderConfigurationService` 当前合并文本 probe 和 TTS probe；尚无 embedding probe service，也没有从 saved profile 中解析 embedding endpoint 凭证并执行测试的路径。
 - `AIProviderSettingsComponents` 已有 `aiProviderSettings.probeCapability.embedding` 和 `invalidEmbeddingResponse` 文案。
-- `AIProviderAdapterKind.capabilityPolicy.canProbeEmbedding` 当前对 OpenAI Responses 和 OpenAI-compatible Chat 也为 `false`，需要调整为第一阶段可 probe 的 embedding 协议边界。
+- `AIProviderAdapterKind.capabilityPolicy.canProbeEmbedding` 已在阶段 2 调整：OpenAI Responses 和 OpenAI-compatible Chat 的 adapter policy 可表达第一阶段 embedding probe 能力；最终放行仍必须叠加 provider preset allowlist、provider capability policy、endpoint purpose、用户启用状态和配置完整性。
 - `GRDBAIProviderConfigurationRepository.recordValidationOutcome(_:)` 当前会插入 validation event 后无条件更新 `ai_provider_profiles.last_validation_status`；不能直接用于 embedding endpoint scoped outcome，否则会把 embedding 结果污染为 profile 全局验证摘要。
-- `ai_provider_validation_events.endpoint_id` 已能记录 endpoint 归属，但 `ai_provider_endpoints` 当前没有 endpoint-level 最近验证摘要，也没有通用 endpoint configuration fingerprint。
+- `ai_provider_validation_events.endpoint_id` 已能记录 endpoint 归属；阶段 1 已为 `ai_provider_endpoints` 增加 endpoint-level 最近验证摘要字段，并为 endpoint input / configuration 增加通用 `configurationFingerprint`。
 - UI provider preset 中 OpenAI、OpenRouter 和 Custom OpenAI-compatible 的 embedding policy 可表达为 supported / model-dependent；但多个其他 Provider 也使用 OpenAI-compatible adapter，因此第一阶段不能只按 adapterKind 放行，必须同时按 provider preset allowlist、provider capability policy、adapter capability policy 和用户启用状态判定。
-- `AppEnvironment.makeAIProviderConfigurationService(...)` 当前只装配 text probe service 和 TTS probe service；实施时必须新增 embedding probe service 注入。
+- `AppEnvironment.makeAIProviderConfigurationService(...)` 当前仍只装配 text probe service 和 TTS probe service；阶段 4 必须新增 embedding probe service 注入。
+
+当前实施快照：
+
+- 阶段 1 已提交：`3dca90c Add endpoint validation fingerprint contract`。
+- 阶段 2 已提交：`69aba31 Add embedding probe UI capability resolution`。
+- 阶段 3 正在实施中，当前未提交文件为 `Packages/LangoTraceAI/Sources/LangoTraceAI/EmbeddingConfigurationProbeService.swift` 和 `Packages/LangoTraceAI/Tests/LangoTraceAITests/EmbeddingConfigurationProbeServiceTests.swift`；阶段 3 必须先通过聚焦测试再提交。
 
 文档事实：
 
@@ -191,7 +198,7 @@ AI Provider 设置页已经支持文本模型、语音生成模型和向量模�
 1. 在 Core 测试中锁定 `.embedding` capability 的顺序、endpoint metadata 表达和 `invalidEmbeddingResponse` 错误分类。
 2. 在 Core 新增通用 endpoint configuration fingerprint 生成规则，禁止把 API Key、完整 Keychain account、完整请求头、请求体、响应体或 vector 内容纳入 fingerprint。
 3. 在 Data 层新增 endpoint-scoped validation 写入契约，优先方案为：
-   - `recordEndpointValidationEvent(_:)`：只插入 `ai_provider_validation_events`，不更新 `ai_provider_profiles.last_validation_status`。
+   - `recordEndpointValidationOutcome(_:)`：插入 endpoint-scoped `ai_provider_validation_events`，不更新 `ai_provider_profiles.last_validation_status`。
    - 在 `ai_provider_endpoints` 上增加 `last_validated_at`、`last_validation_status`、`last_validation_error_category`、`last_successful_configuration_fingerprint`，repository 只更新对应 endpoint。
 4. 为当前 `recordValidationOutcome(_:)` 添加回归测试：它仍只用于 profile/global text synthetic outcome；embedding 持久化不得调用它。
 
@@ -247,6 +254,8 @@ AI Provider 设置页已经支持文本模型、语音生成模型和向量模�
    - 任一实际运行 capability 取消时 overall 为 `.cancelled`，且不写失败 validation event。
    - required text probe 失败时 overall 可为 `.failed`，但 embedding row 保留自己的 succeeded / failed / unsupported 状态。
    - embedding 未启用、未配置或 unsupported 不应让已通过的 text profile global synthetic outcome 变为 failed。
+8. 当前 `AIProviderConfigurationService.testDefaultConfiguration(...)` 仍以 enabled text endpoint 为必需前置，且 saved probe preflight failure 会直接返回；阶段 4 必须重构为 capability-level collection 后再执行各自 preflight，避免继续保留该短路路径。
+9. 当前 `AIProviderConfigurationProbeDraftInput` 的 embedding 字段已由 UI draft snapshot 准备好，但 AI package 的 draft probe input 构造和 App 注入仍需在阶段 4 对齐；不能只让 UI 侧 requested capability 显示 `.embedding` 而服务层忽略。
 
 ### 11.5 阶段 5：结果面板、live smoke、文案和文档
 
@@ -372,7 +381,7 @@ rg -n "URLSession|Authorization|Bearer " Packages/LangoTraceUI/Sources/LangoTrac
 ```bash
 rg -n "LangoTrace embedding configuration test|/embeddings|invalidEmbeddingResponse" Packages/LangoTraceAI Packages/LangoTraceUI docs scripts Tests/Tooling
 rg -n "向量化当前阶段不得发真实网络测试请求|不得发真实网络测试请求" docs/spec docs/plans/active
-rg -n "recordValidationOutcome\\(|recordEndpointValidationEvent|last_successful_configuration_fingerprint|configurationFingerprint" Packages/LangoTraceAI Packages/LangoTraceData Packages/LangoTraceCore
+rg -n "recordValidationOutcome\\(|recordEndpointValidationOutcome|last_successful_configuration_fingerprint|configurationFingerprint" Packages/LangoTraceAI Packages/LangoTraceData Packages/LangoTraceCore
 git diff --check
 ```
 
@@ -450,8 +459,11 @@ OPENAI_API_KEY='...' OPENAI_BASE_URL='https://api.openai.com/v1' OPENAI_EMBEDDIN
 
 ## 16. 实施记录
 
-- 2026-05-27：创建 active plan。当前状态为 `Draft`，等待用户审核；未实施代码。
-- 2026-05-27：根据严格方案审查修订 plan，补齐 endpoint-scoped validation、provider allowlist、独立 capability 聚合、通用 endpoint fingerprint、opt-in live smoke 和未来向量基础设施备忘录要求；仍未实施代码。
+- 2026-05-27：创建 active plan。初始状态为 `Draft`，等待用户审核；未实施代码。
+- 2026-05-27：根据严格方案审查修订 plan，补齐 endpoint-scoped validation、provider allowlist、独立 capability 聚合、通用 endpoint fingerprint、opt-in live smoke 和未来向量基础设施备忘录要求。
+- 2026-05-27：阶段 1 已完成并提交 `3dca90c Add endpoint validation fingerprint contract`。已运行并通过：`swift test --package-path Packages/LangoTraceCore --filter AIProviderConfigurationTests`、`swift test --package-path Packages/LangoTraceCore --filter AIProviderConfigurationProbeTests`、`swift test --package-path Packages/LangoTraceData --filter AIProviderConfigurationRepositoryTests`。
+- 2026-05-27：阶段 2 已完成并提交 `69aba31 Add embedding probe UI capability resolution`。已运行并通过：`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests`。
+- 2026-05-27：再次复查方案完整性。结论：方案总体链路完整，但状态和部分现状描述需与当前实施进度对齐；已更新为 `In Progress`，并明确阶段 3 未提交、阶段 4 必须移除 saved text endpoint 短路、阶段 5 必须完成文档和 live smoke 收口。
 
 ## 17. 完成标准
 
