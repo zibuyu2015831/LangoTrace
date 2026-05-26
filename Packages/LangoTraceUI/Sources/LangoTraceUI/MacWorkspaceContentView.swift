@@ -151,7 +151,7 @@ struct MacWorkspaceContentView: View {
             CapabilityStatusRow(
                 title: item.title,
                 summary: "\(entry.title) · \(item.summary)",
-                status: .mockOnly,
+                status: .ready,
                 systemImage: "waveform",
                 action: { onRoute(.practiceSentenceList(entry.id)) }
             )

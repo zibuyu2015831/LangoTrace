@@ -72,9 +72,9 @@ enum MacWorkspaceRoute: Equatable {
 
     var usesDedicatedMainScrolling: Bool {
         switch self {
-        case .languageSpaceManagement:
+        case .practiceSentenceList, .practiceSentence, .languageSpaceManagement:
             true
-        case .overview, .entryDetail, .practiceSentenceList, .practiceSentence, .settings, .unavailable:
+        case .overview, .entryDetail, .settings, .unavailable:
             false
         }
     }

@@ -115,7 +115,9 @@ struct PadLearningPanelView: View {
     }
 
     private func entryLearningContent(_ entry: LearningEntry) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+        let hasPracticeItems = !contentStore.practiceItems(for: entry).isEmpty
+
+        return VStack(alignment: .leading, spacing: 14) {
             TextPanel(
                 title: localizedString("pad.currentSentence.title"),
                 text: selectedRendering?.sentences.first?.note ?? localizedString("pad.currentSentence.pending")
@@ -127,9 +129,9 @@ struct PadLearningPanelView: View {
             CapabilityStatusRow(
                 localizedTitleKey: "pad.practiceEntry.title",
                 summary: practiceSummary(for: entry),
-                status: contentStore.practiceItems(for: entry).isEmpty ? .unavailable : .mockOnly,
+                status: hasPracticeItems ? .ready : .unavailable,
                 systemImage: "waveform",
-                action: contentStore.practiceItems(for: entry).isEmpty ? nil : { onRoute(.practiceSentenceList(entry.id)) }
+                action: hasPracticeItems ? { onRoute(.practiceSentenceList(entry.id)) } : nil
             )
             CapabilityStatusRow(
                 localizedTitleKey: "pad.spaceSettings.title",

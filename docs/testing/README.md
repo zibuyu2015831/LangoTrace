@@ -203,17 +203,17 @@ iPad 手动验证：
 - 记录选择会更新主内容和学习面板。
 - 新建记录打开 sheet，保存后选中新记录并进入详情。
 - 筛选按钮可切换全部记录、照片写作、待练习和已入记忆；选中态有可访问状态，不只靠颜色表达。
-- 练习句子列表、单句跟读录音会话、设置详情和请求预览可从当前记录或面板进入。
+- 练习句子列表、单句跟读录音会话、设置详情和请求预览可从当前记录或面板进入；当前记录有可练习句子时，学习面板练习入口显示可用状态而不是 mock 状态。
 - Split View、Slide Over 或 Stage Manager 窄窗口下，主内容仍可读，辅助面板不把主内容挤压到不可用。
 
 macOS 手动验证：
 
 - 默认窗口显示 Sidebar、主工作区和 Inspector。
-- Sidebar section 可切换今日、记录库、练习、词句记忆、导入导出和设置。
+- Sidebar section 可切换今日、记录库、练习、词句记忆、导入导出和设置；Practice section 中有可练习句子的记录显示可用状态，而不是 mock 状态。
 - 新建记录打开 mock 编辑 sheet，保存后进入对应记录详情。
 - Inspector 内容随记录详情、练习、设置、导入导出或 overview 变化。
 - Sidebar 和 Inspector 可独立隐藏，窗口缩放后主内容仍可操作。
-- 导入导出、向量索引、同步、练习录音导出 / 同步和快捷键未实现时，页面明确显示 unavailable 或 Local Mock，不写成真实能力。
+- 导入导出、向量索引、同步、练习录音导出 / 同步和快捷键未实现时，页面明确显示 unavailable 或 Local Mock，不写成真实能力；练习句子列表和单句页不应出现外层工作台滚动与页面内滚动叠加。
 
 ## 练习录音验证清单
 
@@ -224,7 +224,7 @@ macOS 手动验证：
 - Core：`PracticeSessionReducerTests` 覆盖三步状态、ready recording、完成态和失败事件；`PracticeAudioCoordinationTests` 覆盖示范播放、录音和回放互斥边界。
 - Data：`AppDatabaseTests` 覆盖 practice session / recording / typed artifact migration；`GRDBPracticeRepositoryTests` 覆盖句子快照、session 恢复、ready recording、完成态引用和完成态不漂移；`MediaArtifactRepositoryTests` 覆盖 practice recording artifact lookup / cleanup exclusion。
 - Speech：`PracticeRecordingServiceTests` 覆盖 start / stop、权限拒绝、文件大小或停止失败边界；测试使用 fake recorder，不依赖真实麦克风。
-- UI：`PracticeRouteSeedTests` 覆盖 route seed 必须包含 sentence identity、同一篇记录内 sibling context、上一句 / 下一句 seed 生成、底部导航条中间句序 presentation 和无 context 安全退化；`PracticeSessionViewModelTests` 覆盖 create / listen demo / record / playback recording、录音播放互斥、操作区 action projection，以及重复录音后回放最近 ready recording；`ThreePlatformPresentationCopyTests` 覆盖练习句间导航和重录 key 在 `en` / `zh-Hans` 均存在；`PhoneIOSConvergenceTests` 覆盖练习 Tab 不展示未实现任务类型。
+- UI：`PracticeRouteSeedTests` 覆盖 route seed 必须包含 sentence identity、同一篇记录内 sibling context、上一句 / 下一句 seed 生成、底部导航条中间句序 presentation 和无 context 安全退化；`PracticeSessionViewModelTests` 覆盖 create / listen demo / record / playback recording、录音播放互斥、操作区 action projection，以及重复录音后回放最近 ready recording；`ThreePlatformPresentationCopyTests` 覆盖练习句间导航和重录 key 在 `en` / `zh-Hans` 均存在；`PhoneIOSConvergenceTests` 覆盖练习 Tab 不展示未实现任务类型，并锁定 iPad / macOS 练习入口 ready 状态和 macOS 练习 route dedicated scrolling。
 - App：`PracticeRecordingConfigurationTests` 覆盖 iOS / macOS purpose string 和 macOS audio input entitlement；`AppEnvironmentPracticeBootstrapTests` 覆盖 production assembly 未回退到 disabled practice seam，并暴露录音回放失败而非静默 no-op；`SentenceAudioPlaybackAssemblyTests` 覆盖示范 TTS 播放 action seam。
 
 聚焦命令：

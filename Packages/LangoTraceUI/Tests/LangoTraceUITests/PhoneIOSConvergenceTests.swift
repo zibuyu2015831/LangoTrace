@@ -222,6 +222,28 @@ struct PhoneIOSConvergenceTests {
         #expect(!source.contains("PracticeSnapshotPanel("))
     }
 
+    @Test("iPad and Mac practice shells match the iOS repeatable recording flow")
+    func iPadAndMacPracticeShellsMatchIOSRepeatableRecordingFlow() throws {
+        let padLearningPanel = try String(
+            contentsOf: sourceFileURL(named: "PadLearningPanelView.swift"),
+            encoding: .utf8
+        )
+        let macWorkspace = try String(
+            contentsOf: sourceFileURL(named: "MacWorkspaceContentView.swift"),
+            encoding: .utf8
+        )
+        let macModels = try String(contentsOf: sourceFileURL(named: "MacMainModels.swift"), encoding: .utf8)
+
+        #expect(padLearningPanel.contains("status: hasPracticeItems ? .ready : .unavailable"))
+        #expect(!padLearningPanel.contains("status: hasPracticeItems ? .mockOnly : .unavailable"))
+        #expect(macWorkspace.contains("status: .ready"))
+        #expect(!macWorkspace.contains("status: .mockOnly,\n                systemImage: \"waveform\""))
+        #expect(macWorkspace.contains("PracticeSentenceListView("))
+        #expect(macWorkspace.contains("PracticeSessionView("))
+        #expect(macWorkspace.contains("onRoute(.practiceSentence(nextSeed))"))
+        #expect(macModels.contains("case .practiceSentenceList, .practiceSentence, .languageSpaceManagement:"))
+    }
+
     @Test("Sentence audio playback state is observed by the visible detail route")
     func sentenceAudioPlaybackStateIsSwiftUIObservedDetailInput() throws {
         let supportingViews = try String(
