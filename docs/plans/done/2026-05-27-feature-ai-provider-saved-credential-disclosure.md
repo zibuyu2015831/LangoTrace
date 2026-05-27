@@ -1,6 +1,6 @@
 # AI Provider 已保存密钥查看与替换交互方案
 
-状态：Draft
+状态：Verified
 类型：feature
 创建日期：2026-05-27
 最后更新日期：2026-05-27
@@ -108,10 +108,14 @@ Keychain 不可读不是普通表单错误。UI 应区分：
 
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsView.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsComponents.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderAPIKeyField.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderCredentialRevealState.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderDraftConfiguration.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsActions.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/AIProviderSettingsModels.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/Resources/Localizable.xcstrings`
+- `.swiftlint.yml`
+- `scripts/verify.sh`
 - `LangoTraceApp/AppEnvironment.swift`
 - `Packages/LangoTraceAI/Sources/LangoTraceAI/KeychainAIProviderCredentialStore.swift`
 - `Packages/LangoTraceAI/Sources/LangoTraceAI/AIProviderCredentialStore.swift`
@@ -288,6 +292,10 @@ scripts/verify.sh
 - 2026-05-27：创建 Draft 方案，记录 Apple 三端交互设计、安全边界、测试落点和文档影响。
 - 2026-05-27：根据用户对当前 iPhone UI 截图的反馈，放弃复杂状态行 / sheet 原型，改为保留现有 API Key 输入框的最小改动方案：已有密钥以 placeholder 表达，眼睛按钮显式解析并加载到同一可编辑字段。
 - 2026-05-27：原型样式确认：未保存状态 placeholder 使用 `当前未保存 API Key`，已保存状态 placeholder 使用 `已保存到本机 Keychain`，可见性按钮保留当前小眼睛样式。
+- 2026-05-27：完成实现。新增 UI-only credential reveal presentation / state，API Key 字段保留现有小眼睛按钮；无保存密钥时显示 `当前未保存 API Key`，已有 credential 且明文未加载时显示 `已保存到本机 Keychain`；点击小眼睛才调用 `resolveCredentialSecret`，成功后把明文写入同一可编辑字段；保存成功、离开页面、进入后台、切换 Provider 或 credential reference 时清空短生命周期明文草稿。
+- 2026-05-27：完成文档同步。`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/008-permissions-local-privacy-and-diagnostics.md`、`docs/platform-page-inventory.md` 和 `docs/plans/active/2026-05-26-bug-mac-ai-provider-key-retention.md` 已更新为“页面打开不自动解析 Keychain；用户点击眼睛、配置测试或真实请求才解析”的边界。
+- 2026-05-27：完整验证首次暴露 `scripts/verify.sh` 生成的 `build/DerivedData` 会被 SwiftLint / SwiftFormat 扫描，导致外部 GRDB checkout 参与 lint/format；已将生成目录排除，并让 UI package 测试在脚本内通过 `tee /dev/null` 持续消费 Swift Testing 输出，避免长脚本重定向场景下测试 runner 偶发 idle 挂起。
+- 2026-05-27：验证通过：`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests`、`swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsProbeTests`、`swift test --package-path Packages/LangoTraceUI --filter TTSProviderSettingsTests`、`swift test --package-path Packages/LangoTraceAI --filter KeychainAIProviderCredentialStoreTests`、`swift test --package-path Packages/LangoTraceAI --filter AIProviderConfigurationServiceTests`、`swift test --package-path Packages/LangoTraceUI`、`swift test --package-path Packages/LangoTraceAI`、`scripts/check-docs.sh`、文档占位符扫描、`git diff --check`、`swiftlint --no-cache`、`swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore` 和 `scripts/verify.sh`。
 
 ## 完成标准
 

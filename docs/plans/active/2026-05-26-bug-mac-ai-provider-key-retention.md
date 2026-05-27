@@ -56,6 +56,7 @@
 - `KeychainAIProviderCredentialStore` 写入新 item 时按平台处理 accessibility：iOS / iPad 保留 `kSecAttrAccessible...ThisDeviceOnly`；macOS 当前传统 login keychain 路径不写该属性，避免在无 Data Protection Keychain entitlement 的 Debug 构建中创建需要认证 UI 的 item。
 - macOS 新建传统 login keychain item 时显式设置 `kSecAttrAccess`，通过 Security.framework 的 `SecAccessCreate` 语义把当前创建 app 设为 trusted application，减少后续读取同一 item 时触发 ACL 认证 UI 的概率。该调用仅限 macOS login keychain 分支，并通过动态符号调用隔离已废弃 API 的编译 warning。
 - 设置页加载和保存成功后不再主动解析 Keychain secret 来回填 API Key 输入框。页面只加载非敏感 profile / endpoint / credential metadata；用户输入新 API Key 才会写入 Keychain；测试已保存配置或真实 AI 请求时才按显式动作读取 secret。这样进入设置界面本身不应再触发登录钥匙串认证弹窗。
+- 已保存密钥的长期查看 / 替换 UX 由 `docs/plans/active/2026-05-27-feature-ai-provider-saved-credential-disclosure.md` 承接：已有 credential 时 API Key 字段显示 `已保存到本机 Keychain`，用户点击小眼睛后才解析 Keychain 并把明文加载到同一可编辑输入框。本 Mac bug 方案继续只追踪 macOS Keychain 可访问性、签名 / ACL 和 no-UI 诊断问题。
 - 不采用“Mac 端完全绕过系统 Keychain、自行维护密钥”的方案作为本轮修复。原因：如果加密密钥也保存在 App 容器，实际安全性接近本地可读的混淆存储；若再把主密钥放入 Keychain，仍会回到同一授权问题。长期可选路线是使用稳定 Apple Development / Distribution 签名和正式 Keychain access group，或在未来新增用户明确选择的低安全级别本地密钥库，但这会改变敏感凭证安全边界，需要单独 ADR / spec 讨论。
 
 ## 验证计划

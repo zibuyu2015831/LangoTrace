@@ -54,7 +54,7 @@ AI Provider API Key、外部服务 token、自定义敏感请求头、对象存�
 - Keychain 使用 Generic Password item 保存真实 secret，默认 `ThisDeviceOnly`、不同步。
 - SQLite / GRDB 只保存非敏感配置、credential metadata、Keychain service / account 引用、最近观测到的 secret presence、cleanup state 和 validation event 摘要。
 - Keychain account 是生命周期引用，日志和 UI 不应展示完整值；如需诊断，只能展示错误分类、provider、endpoint purpose、模型名和脱敏后的状态。
-- App 启动、普通设置列表刷新和非 Provider 配置页不得解密 API Key。用户主动打开 Provider 配置页时，可以由服务边界读取 Keychain 并回填到短生命周期 UI draft，默认隐藏；用户触发本地配置验证、文本模型合成测试或未来真实 AI 请求时，也必须由服务层读取 Keychain。上述读取不得进入数据库、日志、同步、请求预览或测试输出。
+- App 启动、普通设置列表刷新、非 Provider 配置页和 Provider 配置页加载阶段不得解密 API Key。Provider 配置页只能加载非敏感 profile、endpoint 和 credential metadata；已有密钥以 `已保存到本机 Keychain` placeholder 表达。用户点击 API Key 字段右侧显示 / 隐藏按钮、触发本地配置验证、文本模型合成测试或未来真实 AI 请求时，才允许由服务层读取 Keychain。上述读取不得进入数据库、日志、同步、请求预览或测试输出。
 - 当前文本模型合成测试沿用同一边界：未保存 draft 的明文 API Key 只允许在 UI draft、AppEnvironment 映射和 AI package transient probe input 中短生命周期存在，不写 Keychain、SQLite、validation event 或 diagnostic attributes；已保存 profile 的测试由服务层重新解析 Keychain，不依赖 UI 回填明文。
 - 数据库恢复到新设备或 Keychain item 丢失时，应进入密钥缺失状态，引导用户重新输入；不得尝试从导出包、同步目录或日志恢复密钥。
 - Keychain 与 SQLite 没有共同事务。保存敏感配置时必须先写 Keychain，再提交数据库 metadata；数据库失败时必须补偿删除新建 Keychain item，清理失败只能记录非敏感错误状态。
@@ -125,6 +125,7 @@ AI Provider API Key、外部服务 token、自定义敏感请求头、对象存�
 - 2026-05-26：补充练习录音失败诊断事件边界。原因：单句练习录音完成后回放按钮不刷新需要定位 stop、artifact commit 和 session reload 的实际断点，诊断必须可用但不能泄露句子、音频或路径。影响范围：LangoTraceCore、LangoTraceApp、UI 状态和测试。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-18：创建权限、本地隐私与诊断日志规范。原因：spec 深审确认 AI 隐私规范已有，但跨 Photos、Speech、OCR、录音、TTS、Keychain、日志和系统权限弹窗缺少统一执行源。影响范围：AI、Speech、Data、UI、Testing、Release 和发布隐私材料。是否需要 ADR：否，沿用本地优先和用户自带 Provider 决策。
 - 2026-05-20：补充 Keychain 与敏感配置边界。原因：AI Provider 配置存储已落地，需要把 ThisDeviceOnly、默认不同步、数据库恢复缺密钥、非敏感 validation event 和 SQLite / Keychain 非原子补偿规则沉淀为长期隐私规范。影响范围：AI Provider、Data、AI、UI、Testing 和后续导出 / 同步。是否需要 ADR：否，沿用 ADR-005。
-- 2026-05-20：调整 Provider 配置页已保存密钥读取边界。原因：用户再次打开 Provider 配置页时需要查看和编辑本机保存的 API Key；允许通过服务边界读取 Keychain 并回填短生命周期 UI draft，但仍禁止进入数据库、日志、同步、请求预览或测试输出。影响范围：AI Provider 设置、Keychain、UI draft、隐私验证。是否需要 ADR：否，沿用 ADR-005。
+- 2026-05-27：收紧 Provider 配置页已保存密钥读取边界。原因：macOS 登录钥匙串在设置页加载阶段可能弹出认证，且已确认通过当前 API Key 字段的小眼睛按钮进行显式查看；配置页加载不再读取 Keychain，用户点击显示按钮、配置测试或真实请求才解析密钥。影响范围：AI Provider 设置、Keychain、UI draft、隐私验证。是否需要 ADR：否，沿用 ADR-005。
+- 2026-05-20：调整 Provider 配置页已保存密钥读取边界。原因：用户再次打开 Provider 配置页时需要查看和编辑本机保存的 API Key；允许通过服务边界读取 Keychain 并回填短生命周期 UI draft，但仍禁止进入数据库、日志、同步、请求预览或测试输出。影响范围：AI Provider 设置、Keychain、UI draft、隐私验证。是否需要 ADR：否，沿用 ADR-005；该边界已于 2026-05-27 收紧为用户显式查看后才读取。
 - 2026-05-20：补充诊断日志基础设施边界。原因：本地 `diagnostic_events` ring buffer、typed diagnostic events 和 App Shell logger 装配已落地，需要明确默认关闭、非敏感 allowlist、包边界、导出 / 同步排除和失败降级规则。影响范围：Core、Data、AI、UI、App Shell、Testing 和后续诊断导出。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-21：补充 Provider 配置合成测试诊断边界。原因：文本模型测试请求已接入真实 Provider 层，需要明确 draft secret 生命周期、`synthetic_test` validation event、分能力 diagnostic attributes 和敏感字段禁入规则。影响范围：AI Provider 设置、LangoTraceAI、LangoTraceData、LangoTraceUI、诊断日志和测试验证。是否需要 ADR：否，沿用 ADR-005。

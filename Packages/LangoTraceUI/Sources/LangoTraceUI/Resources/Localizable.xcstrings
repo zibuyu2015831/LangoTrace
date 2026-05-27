@@ -12835,13 +12835,132 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paste API key for this local draft"
+            "value": "No API Key saved"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "粘贴本地草稿使用的 API Key"
+            "value": "当前未保存 API Key"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.placeholder.saved": {
+      "comment": "Placeholder shown when an API key credential exists locally but has not been revealed.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved to local Keychain"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存到本机 Keychain"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.placeholder.unsaved": {
+      "comment": "Placeholder shown when no API key credential has been saved.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No API Key saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前未保存 API Key"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.helper.unsaved": {
+      "comment": "Helper text shown when no API key has been saved.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter or paste an API Key, then save to store it in the local Keychain."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入或粘贴 API Key 后保存，会写入本机 Keychain。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.revealError.cancelled": {
+      "comment": "Message shown after the user cancels API key reveal authentication.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viewing was cancelled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消查看"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.revealError.credentialInaccessible": {
+      "comment": "Message shown when a saved API key cannot be read from Keychain.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot read the API Key from Keychain. Authenticate again, try later, or replace it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取 Keychain 中的 API Key。你可以重新认证、稍后再试，或替换 API Key。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.revealError.missingCredential": {
+      "comment": "Message shown when saved API key metadata exists but the local Keychain item is missing.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device cannot find the saved API Key. Enter it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这台设备上找不到已保存的 API Key，请重新输入。"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.apiKey.revealError.userInteractionRequired": {
+      "comment": "Message shown when local authentication is required before revealing the API key.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local authentication is required before viewing the API Key."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要本机认证后才能查看 API Key。"
           }
         }
       }

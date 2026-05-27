@@ -152,7 +152,7 @@ Provider 配置页已经从真实级 mock 表单进入本地配置保存和配�
 
 真实文本 Entry 的一键学习材料生成已通过共享 `EntryDetailView` 接入 iPhone / iPad / macOS 记录详情：用户点击 `生成学习材料` 时，App Shell 通过 `LearningMaterialGenerationActions` / `LearningContentStore` 读取默认文本 endpoint、解析 Keychain secret、调用 `LearningMaterialGenerationService`，并将 LearningMaterial、analysis、candidate 和 operation 摘要写入 GRDB。该能力第一版只发送当前 Entry 文本或用户编辑后的当前 learning text，不发送照片、音频、OCR、附件摘要、历史记忆或多条 Entry 上下文；三端平台差异只体现在承载位置和布局，不分叉 AI 请求、Prompt、Keychain 或 Data 写入路径。后续实现必须遵守以下边界：
 
-- API Key 输入只能作为当前页面的短生命周期明文草稿。保存成功后应清空本次新输入草稿；用户主动再次打开 Provider 配置页时，可以通过服务边界从 Keychain 解析已保存密钥并回填到输入框，默认仍以隐藏态展示。该回填只允许存在于当前 UI draft，不得写入 SQLite、诊断日志、同步目录、请求预览或测试输出。
+- API Key 输入只能作为当前页面的短生命周期明文草稿。保存成功后应清空本次新输入草稿；用户再次打开 Provider 配置页时，不得自动解析 Keychain 或回填明文。已有密钥时字段应以 placeholder 表达 `已保存到本机 Keychain`；只有用户点击字段右侧显示 / 隐藏按钮、触发配置测试或执行真实 AI 请求时，才允许通过服务边界解析 Keychain。用户显式查看成功后的明文只允许存在于当前 UI draft，不得写入 SQLite、诊断日志、同步目录、请求预览或测试输出。
 - 非敏感配置和敏感凭证必须分层。Provider、Base URL、模型名属于普通表单配置；请求格式、认证方式和自定义请求头等技术信息应默认收起或进入高级配置，不应挤占首屏主路径。API Key、外部服务 token、自定义请求头中的密钥属于敏感凭证。
 - 敏感凭证必须保存到本机 Keychain 或等价安全存储。SQLite 只能保存 credential metadata、Keychain service / account 引用、最近观测到的 secret presence 和非敏感验证事件；不得保存明文、可解密密文、hash、尾号或完整请求头值。
 - 已保存配置的后续本地验证和未来真实 AI 请求必须由服务层通过 Keychain 引用解析密钥；不得要求用户每次请求前重新输入、暴露或预览密钥。
@@ -243,7 +243,8 @@ AI 在实现任何 AI 能力前应先确认：
 - 2026-05-19：补充三端 Provider 设置页共享与大屏承载规则。原因：iPad / macOS 工作台详情需要保持与 iPhone 相同字段语义，同时避免把 iPhone 表单横向拉满大屏。影响范围：AI Provider 设置 UI、SettingsCapabilityDetailView、macOS Settings scene 边界。是否需要 ADR：否。
 - 2026-05-20：更新 Provider 配置页从 mock 到本地配置保存阶段的事实边界。原因：AI Provider profile、endpoint、credential metadata、Keychain 保存和本地 credential validation 已落地，真实外部 Provider 合成探测仍未接入。影响范围：AI Provider 设置、Keychain、Data repository、validation event、后续真实 AI 请求。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-20：补充 Provider 配置保存诊断规则。原因：保存链路已经跨 UI、AI service、Keychain、SQLite 和补偿清理，需要稳定 operation id、阶段分类、非敏感日志字段和默认关闭边界。影响范围：AI Provider 设置、诊断日志、Data repository、Testing 和 App Shell 装配。是否需要 ADR：否，沿用 ADR-005。
-- 2026-05-20：调整已保存 API Key 回显边界。原因：用户完成配置后再次进入配置页，需要能查看和编辑当前本机保存的 API Key；回显仅允许通过服务边界解析 Keychain 并进入短生命周期 UI draft，默认隐藏，不进入数据库、日志、同步或请求预览。影响范围：AI Provider 设置 UI、Keychain resolver action、SwiftUI draft 状态。是否需要 ADR：否，仍符合 ADR-005 的本地优先和用户自带 Provider 边界。
+- 2026-05-27：调整已保存 API Key 查看边界。原因：macOS 登录钥匙串可能在设置页加载阶段弹出认证，且用户已确认保留当前 API Key 字段 UI；再次进入 Provider 配置页不得自动解析 Keychain，已有密钥以 `已保存到本机 Keychain` placeholder 表达，用户点击字段右侧小眼睛后才解析并回填到同一可编辑输入框。影响范围：AI Provider 设置 UI、Keychain resolver action、SwiftUI draft 状态和测试边界。是否需要 ADR：否，仍符合 ADR-005 的本地优先和用户自带 Provider 边界。
+- 2026-05-20：调整已保存 API Key 回显边界。原因：用户完成配置后再次进入配置页，需要能查看和编辑当前本机保存的 API Key；回显仅允许通过服务边界解析 Keychain 并进入短生命周期 UI draft，默认隐藏，不进入数据库、日志、同步或请求预览。影响范围：AI Provider 设置 UI、Keychain resolver action、SwiftUI draft 状态。是否需要 ADR：否，仍符合 ADR-005 的本地优先和用户自带 Provider 边界；该边界已于 2026-05-27 收紧为用户点击显示按钮后才解析。
 - 2026-05-21：更新 Provider 配置测试请求边界。原因：文本模型合成探测已接入 Provider 层，测试请求从本地 credential validation 扩展为固定合成网络 probe；需要沉淀 draft / saved profile 分流、`synthetic_test` validation event、分能力结果面板和非敏感诊断边界。影响范围：AI Provider 设置、LangoTraceAI、LangoTraceData、LangoTraceUI、诊断日志和后续真实学习请求。是否需要 ADR：否，沿用 ADR-005；真实学习内容请求仍需单独请求预览方案。
 - 2026-05-21：补充图片理解合成 probe 边界。原因：Provider 配置测试请求从文本 / JSON 扩展为用户显式启用后的内置图片 probe，需要明确不发送用户照片、adapter 支持范围、Prompt Registry 登记和非敏感日志约束。影响范围：AI Provider 设置、LangoTraceAI、Prompt Registry、诊断日志和后续真实图片理解请求。是否需要 ADR：否，沿用 ADR-005；真实用户照片请求仍需单独请求预览方案。
 - 2026-05-22：补充语言支持合成 probe 边界。原因：Provider 配置测试请求新增当前语言空间上下文下的 `语言支持` 分项，需要明确 target language code allowlist、Prompt Registry、离线校验、非认证性质、profile 全局验证摘要隔离和 `sample` 原文不落日志边界。影响范围：AI Provider 设置、LangoTraceAI、LangoTraceUI、Prompt Registry、诊断日志和后续真实学习请求。是否需要 ADR：否，沿用 ADR-005；真实学习内容请求仍需单独请求预览方案。

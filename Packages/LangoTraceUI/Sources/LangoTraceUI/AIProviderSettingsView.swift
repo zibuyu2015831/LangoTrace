@@ -4,11 +4,13 @@ import SwiftUI
 
 struct AIProviderSettingsView: View {
     @Environment(\.aiProviderSettingsActions) private var actions
+    @Environment(\.scenePhase) private var scenePhase
     #if os(iOS)
         @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
     let languageContext: AIProviderProbeLanguageContext?
     @State private var draft = AIProviderDraftConfiguration(provider: .openAI)
+    @State private var savedCredentialMetadataByID: [AIProviderCredentialID: AIProviderCredentialMetadata] = [:]
     @State private var transientSaveStatusClearTask: Task<Void, Never>?
     @State private var transientTestStatusClearTask: Task<Void, Never>?
     @State private var isProbeResultPresented = false
@@ -43,6 +45,12 @@ struct AIProviderSettingsView: View {
         .onDisappear {
             transientSaveStatusClearTask?.cancel()
             transientTestStatusClearTask?.cancel()
+            clearPlaintextSecretsForCredentialDisclosure()
+        }
+        .onChange(of: scenePhase) {
+            if scenePhase != .active {
+                clearPlaintextSecretsForCredentialDisclosure()
+            }
         }
         .sheet(isPresented: $isProbeResultPresented) {
             AIProviderProbeResultPanelSheet(
@@ -84,7 +92,11 @@ struct AIProviderSettingsView: View {
                 model: textModelBinding,
                 modelTitleKey: "aiProviderSettings.textModel.modelTitle"
             )
-            AIProviderAPIKeyField(text: textAPIKeyBinding)
+            AIProviderAPIKeyField(
+                text: textAPIKeyBinding,
+                savedCredential: textCredentialMetadata,
+                onRevealSavedCredential: revealTextCredential
+            )
             AIProviderCapabilityBoundaryView(
                 imageInputDecision: textImageInputDecision,
                 imageUnderstandingEnabled: imageUnderstandingBinding
@@ -104,6 +116,8 @@ struct AIProviderSettingsView: View {
             enabledKey: enabledKey,
             modelTitleKey: modelTitleKey,
             textProvider: draft.text.endpoint.provider,
+            credentialMetadataByID: savedCredentialMetadataByID,
+            revealIndependentCredential: revealIndependentCredential,
             configuration: configuration
         )
     }
@@ -186,6 +200,7 @@ private extension AIProviderSettingsView {
         guard let profile = try? await actions.loadDefaultProfile() else {
             return
         }
+        savedCredentialMetadataByID = credentialMetadataByID(from: profile)
         draft.applyLoadedProfile(profile)
         await applyLoadedTTSVoiceProfile(from: profile)
     }
@@ -239,6 +254,7 @@ private extension AIProviderSettingsView {
                     operationID: operationID
                 )
                 let profile = try await actions.saveDefaultProfile(input, operationID)
+                savedCredentialMetadataByID = credentialMetadataByID(from: profile)
                 draft.applySavedProfile(profile)
                 await applyLoadedTTSVoiceProfile(from: profile)
                 await recordSaveEvent(
@@ -320,6 +336,109 @@ private extension AIProviderSettingsView {
     func playSpeechPreview(_ resource: TTSAudioPreviewResource) {
         Task {
             await actions.playSpeechPreview(resource)
+        }
+    }
+
+    func revealTextCredential() async -> AIProviderCredentialRevealResult {
+        await revealCredential(for: .textGeneration)
+    }
+
+    func revealIndependentCredential(
+        _ purpose: AIProviderEndpointPurpose
+    ) async -> AIProviderCredentialRevealResult {
+        await revealCredential(for: purpose)
+    }
+
+    @MainActor
+    func revealCredential(for purpose: AIProviderEndpointPurpose) async -> AIProviderCredentialRevealResult {
+        guard let metadata = credentialMetadata(for: purpose) else {
+            return .failed(.missingCredential)
+        }
+
+        do {
+            guard let secret = try await actions.resolveCredentialSecret(metadata),
+                  !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            else {
+                return .failed(.missingCredential)
+            }
+            applyRevealedSecret(secret, for: purpose)
+            return .succeeded(secret)
+        } catch let failure as AIProviderCredentialResolveFailure {
+            return .failed(revealFailure(from: failure.category))
+        } catch {
+            return .failed(.credentialInaccessible)
+        }
+    }
+
+    func credentialMetadata(for purpose: AIProviderEndpointPurpose) -> AIProviderCredentialMetadata? {
+        let credentialID: AIProviderCredentialID? = switch purpose {
+        case .textGeneration:
+            draft.text.endpoint.credentialID
+        case .tts:
+            draft.speech.endpoint.credentialReference == .independent
+                ? draft.speech.endpoint.credentialID
+                : nil
+        case .embedding:
+            draft.embedding.endpoint.credentialReference == .independent
+                ? draft.embedding.endpoint.credentialID
+                : nil
+        }
+
+        guard let credentialID else {
+            return nil
+        }
+        return savedCredentialMetadataByID[credentialID]
+    }
+
+    var textCredentialMetadata: AIProviderCredentialMetadata? {
+        guard let credentialID = draft.text.endpoint.credentialID else {
+            return nil
+        }
+        return savedCredentialMetadataByID[credentialID]
+    }
+
+    func applyRevealedSecret(_ secret: String, for purpose: AIProviderEndpointPurpose) {
+        switch purpose {
+        case .textGeneration:
+            draft.text.endpoint.independentCredential.apiKeyDraft = secret
+        case .tts:
+            guard draft.speech.endpoint.credentialReference == .independent else {
+                return
+            }
+            draft.speech.endpoint.independentCredential.apiKeyDraft = secret
+        case .embedding:
+            guard draft.embedding.endpoint.credentialReference == .independent else {
+                return
+            }
+            draft.embedding.endpoint.independentCredential.apiKeyDraft = secret
+        }
+    }
+
+    func clearPlaintextSecretsForCredentialDisclosure() {
+        draft.clearPlaintextSecrets()
+    }
+
+    func credentialMetadataByID(
+        from profile: AIProviderConfigurationProfile
+    ) -> [AIProviderCredentialID: AIProviderCredentialMetadata] {
+        Dictionary(uniqueKeysWithValues: profile.credentials.map { ($0.id, $0) })
+    }
+
+    func revealFailure(
+        from category: AIProviderValidationErrorCategory
+    ) -> AIProviderCredentialRevealFailure {
+        switch category {
+        case .missingCredential:
+            .missingCredential
+        case .credentialInaccessible:
+            .credentialInaccessible
+        case .authenticationFailed:
+            .userInteractionRequired
+        case .networkUnavailable, .timeout, .providerRejected, .unsupportedModel,
+             .unsupportedEndpointPurpose, .invalidResponse, .invalidAudioResponse,
+             .invalidVoice, .unsupportedLanguage, .unsupportedAudioFormat,
+             .audioDecodeFailed, .rateLimited, .quotaExceeded, .invalidEmbeddingResponse:
+            .credentialInaccessible
         }
     }
 
@@ -477,6 +596,7 @@ private extension AIProviderSettingsView {
                 guard markDraftInputChanged(from: draft.text.endpoint.provider, to: newValue) else {
                     return
                 }
+                clearPlaintextSecretsForCredentialDisclosure()
                 draft.text.updateProvider(newValue)
             }
         )
@@ -550,6 +670,12 @@ private extension AIProviderSettingsView {
                 guard markDraftInputChanged(from: draft.speech, to: newValue) else {
                     return
                 }
+                if shouldClearPlaintextSecretsForEndpointChange(
+                    from: draft.speech.endpoint,
+                    to: newValue.endpoint
+                ) {
+                    clearPlaintextSecretsForCredentialDisclosure()
+                }
                 draft.speech = newValue
             }
         )
@@ -561,6 +687,12 @@ private extension AIProviderSettingsView {
             set: { newValue in
                 guard markDraftInputChanged(from: draft.embedding, to: newValue) else {
                     return
+                }
+                if shouldClearPlaintextSecretsForEndpointChange(
+                    from: draft.embedding.endpoint,
+                    to: newValue.endpoint
+                ) {
+                    clearPlaintextSecretsForCredentialDisclosure()
                 }
                 draft.embedding = newValue
             }
@@ -584,5 +716,14 @@ private extension AIProviderSettingsView {
                 createdAt: Date()
             )
         )
+    }
+
+    func shouldClearPlaintextSecretsForEndpointChange(
+        from oldEndpoint: AIProviderEndpointDraftConfiguration,
+        to newEndpoint: AIProviderEndpointDraftConfiguration
+    ) -> Bool {
+        oldEndpoint.provider != newEndpoint.provider ||
+            oldEndpoint.credentialReference != newEndpoint.credentialReference ||
+            oldEndpoint.credentialID != newEndpoint.credentialID
     }
 }

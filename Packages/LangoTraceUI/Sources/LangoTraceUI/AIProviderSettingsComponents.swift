@@ -402,7 +402,29 @@ struct AIProviderOptionalModelSection: View {
     let enabledKey: String
     let modelTitleKey: String
     let textProvider: AIProviderPreset
+    let credentialMetadataByID: [AIProviderCredentialID: AIProviderCredentialMetadata]
+    let revealIndependentCredential: (AIProviderEndpointPurpose) async -> AIProviderCredentialRevealResult
     @Binding var configuration: AIOptionalModelDraftConfiguration
+
+    init(
+        titleKey: String,
+        enabledKey: String,
+        modelTitleKey: String,
+        textProvider: AIProviderPreset,
+        credentialMetadataByID: [AIProviderCredentialID: AIProviderCredentialMetadata] = [:],
+        revealIndependentCredential: @escaping (
+            AIProviderEndpointPurpose
+        ) async -> AIProviderCredentialRevealResult = { _ in .failed(.missingCredential) },
+        configuration: Binding<AIOptionalModelDraftConfiguration>
+    ) {
+        self.titleKey = titleKey
+        self.enabledKey = enabledKey
+        self.modelTitleKey = modelTitleKey
+        self.textProvider = textProvider
+        self.credentialMetadataByID = credentialMetadataByID
+        self.revealIndependentCredential = revealIndependentCredential
+        _configuration = configuration
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -425,7 +447,13 @@ struct AIProviderOptionalModelSection: View {
                 )
                 credentialReferencePicker
                 if configuration.endpoint.credentialReference == .independent {
-                    AIProviderAPIKeyField(text: independentAPIKeyBinding)
+                    AIProviderAPIKeyField(
+                        text: independentAPIKeyBinding,
+                        savedCredential: independentCredentialMetadata,
+                        onRevealSavedCredential: {
+                            await revealIndependentCredential(configuration.purpose.endpointPurpose)
+                        }
+                    )
                 }
                 if configuration.purpose == .speech {
                     speechTTSFields
@@ -452,6 +480,13 @@ struct AIProviderOptionalModelSection: View {
                 .font(.footnote)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
         }
+    }
+
+    private var independentCredentialMetadata: AIProviderCredentialMetadata? {
+        guard let credentialID = configuration.endpoint.credentialID else {
+            return nil
+        }
+        return credentialMetadataByID[credentialID]
     }
 
     @ViewBuilder
@@ -813,52 +848,6 @@ private struct AIProviderLockedCapabilityRow: View {
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
         }
         .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
-    }
-}
-
-struct AIProviderAPIKeyField: View {
-    @Binding var text: String
-    @State private var isVisible = false
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            localizedText("aiProviderSettings.apiKey.title")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            HStack(spacing: 8) {
-                Group {
-                    if isVisible {
-                        TextField(localizedString("aiProviderSettings.apiKey.placeholder"), text: $text)
-                    } else {
-                        SecureField(localizedString("aiProviderSettings.apiKey.placeholder"), text: $text)
-                    }
-                }
-                .langoProviderTextInput(keyboardHint: .plain)
-                .font(.body.monospaced())
-
-                Button {
-                    isVisible.toggle()
-                } label: {
-                    Image(systemName: isVisible ? "eye.slash" : "eye")
-                        .frame(
-                            width: LangoTraceDesign.Density.minimumTouchTarget,
-                            height: LangoTraceDesign.Density.minimumTouchTarget
-                        )
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .accessibilityLabel(localizedText(visibilityLabelKey))
-            }
-            .padding(.leading, 12)
-            .padding(.trailing, 4)
-            .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
-            .background(LangoTraceDesign.ColorToken.surfaceMuted)
-            .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
-        }
-    }
-
-    private var visibilityLabelKey: String {
-        isVisible ? "aiProviderSettings.apiKey.hide" : "aiProviderSettings.apiKey.show"
     }
 }
 

@@ -299,7 +299,11 @@ struct AIProviderSettingsTests {
             contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
             encoding: .utf8
         )
-        let source = viewSource + componentSource
+        let fieldSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderAPIKeyField.swift"),
+            encoding: .utf8
+        )
+        let source = viewSource + componentSource + fieldSource
 
         #expect(!source.contains("showsAdvancedModels"))
         #expect(!source.contains("aiProviderSettings.advancedModels.title"))
@@ -319,7 +323,11 @@ struct AIProviderSettingsTests {
             contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
             encoding: .utf8
         )
-        let source = viewSource + componentSource
+        let fieldSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderAPIKeyField.swift"),
+            encoding: .utf8
+        )
+        let source = viewSource + componentSource + fieldSource
 
         #expect(source.contains("AIProviderRowPicker"))
         #expect(source.contains("AIProviderAPIKeyField"))
@@ -327,6 +335,57 @@ struct AIProviderSettingsTests {
         #expect(source.contains("eye.slash"))
         #expect(source.contains("eye"))
         #expect(source.contains("accessibilityLabel(localizedText(visibilityLabelKey))"))
+    }
+
+    @Test("API key field presentation distinguishes unsaved and saved credentials")
+    func apiKeyFieldPresentationDistinguishesUnsavedAndSavedCredentials() {
+        let unsaved = AIProviderAPIKeyFieldPresentation(
+            text: "",
+            hasSavedCredential: false,
+            revealState: .idle
+        )
+        let saved = AIProviderAPIKeyFieldPresentation(
+            text: "",
+            hasSavedCredential: true,
+            revealState: .idle
+        )
+        let editing = AIProviderAPIKeyFieldPresentation(
+            text: "sk-local-draft",
+            hasSavedCredential: true,
+            revealState: .revealedVisible
+        )
+
+        #expect(unsaved.placeholderKey == "aiProviderSettings.apiKey.placeholder.unsaved")
+        #expect(unsaved.helperKey == "aiProviderSettings.apiKey.helper.unsaved")
+        #expect(!unsaved.shouldResolveSavedCredential)
+
+        #expect(saved.placeholderKey == "aiProviderSettings.apiKey.placeholder.saved")
+        #expect(saved.helperKey == nil)
+        #expect(saved.shouldResolveSavedCredential)
+
+        #expect(editing.placeholderKey == "aiProviderSettings.apiKey.placeholder.unsaved")
+        #expect(editing.helperKey == nil)
+        #expect(!editing.shouldResolveSavedCredential)
+    }
+
+    @Test("API key field reveal failures map to user-facing recovery copy")
+    func apiKeyFieldRevealFailuresMapToRecoveryCopy() {
+        #expect(
+            AIProviderCredentialRevealFailure.missingCredential.messageKey ==
+                "aiProviderSettings.apiKey.revealError.missingCredential"
+        )
+        #expect(
+            AIProviderCredentialRevealFailure.credentialInaccessible.messageKey ==
+                "aiProviderSettings.apiKey.revealError.credentialInaccessible"
+        )
+        #expect(
+            AIProviderCredentialRevealFailure.userInteractionRequired.messageKey ==
+                "aiProviderSettings.apiKey.revealError.userInteractionRequired"
+        )
+        #expect(
+            AIProviderCredentialRevealFailure.cancelled.messageKey ==
+                "aiProviderSettings.apiKey.revealError.cancelled"
+        )
     }
 
     @Test("Provider row keeps long names on one line")
@@ -859,9 +918,31 @@ struct AIProviderLoadedSecretRepairTests {
             encoding: .utf8
         )
 
-        #expect(!source.contains("actions.resolveCredentialSecret(credential)"))
+        #expect(source.contains("revealTextCredential()"))
+        #expect(source.contains("actions.resolveCredentialSecret(metadata)"))
+        #expect(source.contains("clearPlaintextSecretsForCredentialDisclosure()"))
+        #expect(source.contains("savedCredentialMetadataByID"))
+        #expect(source.contains("draft.applyLoadedProfile(profile)"))
+        #expect(!source.contains("resolvedSecretsByCredentialID(for: profile)"))
         #expect(!source.contains("credential.keychainAccount"))
         #expect(!source.contains("credential.keychainService"))
+    }
+
+    @Test("Settings source wires reveal only to independent API key fields")
+    func settingsSourceWiresRevealOnlyToIndependentAPIKeyFields() throws {
+        let viewSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"),
+            encoding: .utf8
+        )
+        let componentSource = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsComponents.swift"),
+            encoding: .utf8
+        )
+
+        #expect(viewSource.contains("onRevealSavedCredential: revealTextCredential"))
+        #expect(componentSource.contains("await revealIndependentCredential(configuration.purpose.endpointPurpose)"))
+        #expect(componentSource.contains("if configuration.endpoint.credentialReference == .independent"))
+        #expect(componentSource.contains("credentialReferencePicker"))
     }
 
     private func sourceFileURL(named fileName: String) -> URL {

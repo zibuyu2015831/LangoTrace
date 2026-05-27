@@ -238,6 +238,15 @@ enum AIOptionalModelPurpose: Equatable {
     case speech
     case embedding
 
+    var endpointPurpose: AIProviderEndpointPurpose {
+        switch self {
+        case .speech:
+            .tts
+        case .embedding:
+            .embedding
+        }
+    }
+
     func defaultModel(for provider: AIProviderPreset) -> String {
         switch self {
         case .speech:

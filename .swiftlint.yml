@@ -3,6 +3,8 @@ disabled_rules:
 
 excluded:
   - .build
+  - build
+  - DerivedData
   - LangoTrace.xcodeproj
   - docs/reference/projects
   - Packages/*/.build
