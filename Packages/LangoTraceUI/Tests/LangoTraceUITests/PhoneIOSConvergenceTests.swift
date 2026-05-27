@@ -52,6 +52,19 @@ struct PhoneIOSConvergenceTests {
         #expect(!supportingViews.contains("entryDetail.practiceEntry.subtitle"))
     }
 
+    @Test("Entry detail header keeps title only without metadata or availability badge")
+    func entryDetailHeaderKeepsTitleOnlyWithoutMetadataOrAvailabilityBadge() throws {
+        let header = try String(contentsOf: sourceFileURL(named: "EntryDetailHeader.swift"), encoding: .utf8)
+
+        #expect(header.contains("struct EntryDetailHeader: View"))
+        #expect(header.contains("Text(entry.title)"))
+        #expect(!header.contains("CapabilityStatusBadge("))
+        #expect(!header.contains("EntryRenderingStatus.status(for: rendering)"))
+        #expect(!header.contains("entry.displaySourceTitle"))
+        #expect(!header.contains("targetLanguage"))
+        #expect(!header.contains("entry.scene"))
+    }
+
     @Test("Entry detail does not show informational practice candidate cards on any platform")
     func entryDetailDoesNotShowInformationalPracticeCandidateCardsOnAnyPlatform() throws {
         let supportingViews = try String(

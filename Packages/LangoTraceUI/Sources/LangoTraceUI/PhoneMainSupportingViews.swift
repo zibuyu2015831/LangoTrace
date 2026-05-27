@@ -84,11 +84,7 @@ struct EntryDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                EntryDetailHeader(
-                    entry: entry,
-                    targetLanguage: languageSpace.targetLanguage,
-                    rendering: rendering
-                )
+                EntryDetailHeader(entry: entry)
                 SourceEntryTextView(
                     entry: entry,
                     nativeLanguageName: languageSpace.nativeLanguage,

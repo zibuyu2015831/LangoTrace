@@ -3,23 +3,34 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-xcodegen generate
-xcodebuild -list -project LangoTrace.xcodeproj
-swift test --package-path Packages/LangoTraceCore
-swift test --package-path Packages/LangoTraceData
-swift test --package-path Packages/LangoTraceAI
-swift test --package-path Packages/LangoTraceSpeech
-swift test --package-path Packages/LangoTraceSync
-swift test --package-path Packages/LangoTraceUI 2>&1 | tee /dev/null
-python3 -m unittest Tests/Tooling/test_probe_openai_compatible_api.py
-xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
-xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
-xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
-xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests
-swiftlint --no-cache
-swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore
-if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'; then
-  echo "Documentation placeholder scan found entries." >&2
-  exit 1
-fi
-git status --short
+run() {
+  echo
+  echo "==> $*"
+  "$@"
+}
+
+for tool in git python3 rg swift xcodebuild xcodegen swiftlint swiftformat; do
+  command -v "$tool" >/dev/null 2>&1 || {
+    echo "Missing required tool: $tool" >&2
+    exit 127
+  }
+done
+
+run xcodegen generate
+run xcodebuild -list -project LangoTrace.xcodeproj
+run swift test --package-path Packages/LangoTraceCore
+run swift test --package-path Packages/LangoTraceData
+run swift test --package-path Packages/LangoTraceAI
+run swift test --package-path Packages/LangoTraceSpeech
+run swift test --package-path Packages/LangoTraceSync
+run swift test --package-path Packages/LangoTraceUI
+run python3 -m unittest discover -s Tests/Tooling -p 'test_*.py'
+run xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
+run xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
+run xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
+run xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests
+run swiftlint --no-cache
+run swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore
+run scripts/check-docs.sh
+run git diff --check
+run git status --short
