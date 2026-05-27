@@ -212,6 +212,7 @@ struct PadWorkspaceContentView: View {
             languageSpace: languageSpace,
             entryID: entry.id,
             contentStore: contentStore,
+            titlePresentation: .embeddedHeader,
             onPracticeSentence: { onRoute(.practiceSentence($0)) }
         )
         .padding(26)

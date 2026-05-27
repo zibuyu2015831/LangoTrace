@@ -1,6 +1,6 @@
 # 任务方案：iPhone 记录详情导航标题层级优化
 
-状态：Draft
+状态：Verified
 类型：refactor
 创建日期：2026-05-27
 最后更新日期：2026-05-27
@@ -270,6 +270,10 @@ scripts/verify.sh
 ## 16. 实施记录
 
 - 2026-05-27：创建 active plan，等待用户确认后实施。
+- 2026-05-27：提交 active plan 后开始实施；新增 `PhoneIOSConvergenceTests.iPhoneEntryDetailUsesEntryTitleAsNavigationTitleWithoutDuplicateBodyHeader`，首次运行按预期失败，失败点覆盖标题呈现策略、iPhone 对象标题入口、大屏嵌入式标题入口和空白标题 fallback。
+- 2026-05-27：新增 `EntryDetailTitlePresentation`，让 iPhone 入口传入 `.objectNavigationTitle`，iPad / macOS 入口传入 `.embeddedHeader`；`EntryDetailView` 按策略选择 navigation title 和正文 header，标题直接从 `entry.title` 派生并为空白标题 fallback 到 `entryDetail.title`。
+- 2026-05-27：更新 `docs/spec/003-ui-design-system.md` 和 `docs/platform-page-inventory.md`，记录 iPhone / 大屏标题呈现边界、长标题截断和空白标题 fallback。
+- 2026-05-27：验证完成，方案归档至 `docs/plans/done/`。
 
 ## 17. 完成标准
 
@@ -288,3 +292,13 @@ scripts/verify.sh
 
 - 源码级测试能锁定结构和边界，但不能替代真实模拟器截图对长标题截断效果的人工审美验收。
 - 如果 iPad / macOS 在参数化后仍出现视觉变化，需要在实施记录中保留人工复核结论，并另建大屏标题策略任务处理。
+
+## 19. 验证结果
+
+- `swift test --package-path Packages/LangoTraceUI --filter PhoneIOSConvergenceTests/iPhoneEntryDetailUsesEntryTitleAsNavigationTitleWithoutDuplicateBodyHeader`：先失败后通过。
+- `swift test --package-path Packages/LangoTraceUI --filter PhoneIOSConvergenceTests`：通过，16 个测试。
+- `swift test --package-path Packages/LangoTraceUI`：通过，262 个测试。
+- `xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build`：通过。
+- `xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build`：通过。
+- `xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build`：通过。
+- `scripts/verify.sh`：通过；SwiftLint 当前仍报告 warning，但 0 serious violation，未阻断统一验证脚本。

@@ -65,10 +65,24 @@ struct EntryEditorView: View {
     }
 }
 
+enum EntryDetailTitlePresentation {
+    case objectNavigationTitle
+    case embeddedHeader
+
+    var showsInlineHeader: Bool {
+        self == .embeddedHeader
+    }
+
+    var usesObjectNavigationTitle: Bool {
+        self == .objectNavigationTitle
+    }
+}
+
 struct EntryDetailView: View {
     let languageSpace: LanguageSpacePreview
     let entry: LearningEntry
     let rendering: LearningRendering?
+    let titlePresentation: EntryDetailTitlePresentation
     var generationState: LearningMaterialGenerationState = .idle
     var sourceEntryIsStale: Bool = false
     var onGenerateLearningMaterial: (() -> Void)?
@@ -84,7 +98,9 @@ struct EntryDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                EntryDetailHeader(entry: entry)
+                if titlePresentation.showsInlineHeader {
+                    EntryDetailHeader(entry: entry)
+                }
                 SourceEntryTextView(
                     entry: entry,
                     nativeLanguageName: languageSpace.nativeLanguage,
@@ -160,7 +176,11 @@ struct EntryDetailView: View {
             }
             .padding(20)
         }
-        .navigationTitle(localizedText("entryDetail.title"))
+        .navigationTitle(
+            titlePresentation.usesObjectNavigationTitle
+                ? entryNavigationTitle
+                : localizedString("entryDetail.title")
+        )
         .langoPageBackground()
     }
 
@@ -202,12 +222,21 @@ struct EntryDetailView: View {
         }
         return localizedString("entry.detail.learningText.titleFormat", trimmed)
     }
+
+    private var entryNavigationTitle: String {
+        let trimmed = entry.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return localizedString("entryDetail.title")
+        }
+        return trimmed
+    }
 }
 
 struct EntryDetailStoreView: View {
     let languageSpace: LanguageSpacePreview
     let entryID: String
     @ObservedObject var contentStore: LearningContentStore
+    let titlePresentation: EntryDetailTitlePresentation
     let onPracticeSentence: (PracticeSessionRouteSeed) -> Void
 
     var body: some View {
@@ -216,6 +245,7 @@ struct EntryDetailStoreView: View {
                 languageSpace: languageSpace,
                 entry: entry,
                 rendering: contentStore.rendering(for: entry),
+                titlePresentation: titlePresentation,
                 generationState: contentStore.generationState(for: entry),
                 sourceEntryIsStale: contentStore.sourceEntryIsStale(for: entry),
                 onGenerateLearningMaterial: {

@@ -65,6 +65,36 @@ struct PhoneIOSConvergenceTests {
         #expect(!header.contains("entry.scene"))
     }
 
+    @Test("iPhone entry detail uses entry title as navigation title without duplicate body header")
+    func iPhoneEntryDetailUsesEntryTitleAsNavigationTitleWithoutDuplicateBodyHeader() throws {
+        let supportingViews = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
+            encoding: .utf8
+        )
+        let phoneMainView = try String(contentsOf: sourceFileURL(named: "PhoneMainView.swift"), encoding: .utf8)
+        let padSections = try String(contentsOf: sourceFileURL(named: "PadMainSections.swift"), encoding: .utf8)
+        let macWorkspace = try String(
+            contentsOf: sourceFileURL(named: "MacWorkspaceContentView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(supportingViews.contains("enum EntryDetailTitlePresentation"))
+        #expect(supportingViews.contains("case objectNavigationTitle"))
+        #expect(supportingViews.contains("case embeddedHeader"))
+        #expect(supportingViews.contains("private var entryNavigationTitle: String"))
+        #expect(supportingViews.contains("entry.title.trimmingCharacters(in: .whitespacesAndNewlines)"))
+        #expect(supportingViews.contains(#"localizedString("entryDetail.title")"#))
+        #expect(supportingViews.contains("titlePresentation.usesObjectNavigationTitle"))
+        #expect(supportingViews.contains("titlePresentation.showsInlineHeader"))
+        #expect(supportingViews.contains("if titlePresentation.showsInlineHeader"))
+        #expect(supportingViews.contains("EntryDetailHeader(entry: entry)"))
+        #expect(!supportingViews.contains(#".navigationTitle(localizedText("entryDetail.title"))"#))
+        #expect(!supportingViews.contains("@State private var entryNavigationTitle"))
+        #expect(phoneMainView.contains("titlePresentation: .objectNavigationTitle"))
+        #expect(padSections.contains("titlePresentation: .embeddedHeader"))
+        #expect(macWorkspace.contains("titlePresentation: .embeddedHeader"))
+    }
+
     @Test("Entry detail does not show informational practice candidate cards on any platform")
     func entryDetailDoesNotShowInformationalPracticeCandidateCardsOnAnyPlatform() throws {
         let supportingViews = try String(

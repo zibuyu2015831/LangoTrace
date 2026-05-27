@@ -84,6 +84,7 @@ struct PhoneMainView: View {
                             languageSpace: languageSpace,
                             entryID: entry.id,
                             contentStore: contentStore,
+                            titlePresentation: .objectNavigationTitle,
                             onPracticeSentence: { seed in navigationPath.append(.practiceSentence(seed)) }
                         )
                     }
