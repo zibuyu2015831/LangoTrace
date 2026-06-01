@@ -1,6 +1,6 @@
 import LangoTraceCore
-import Testing
 @testable import LangoTraceUI
+import Testing
 
 @Suite("Reading document store AI and TTS")
 struct ReadingDocumentStoreAIAndTTSTests {

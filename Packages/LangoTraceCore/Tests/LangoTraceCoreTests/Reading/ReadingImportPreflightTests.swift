@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import LangoTraceCore
+import Testing
 
 @Suite("Reading import preflight")
 struct ReadingImportPreflightTests {
@@ -20,7 +20,7 @@ struct ReadingImportPreflightTests {
 
         let result = ReadingImportPreflight.evaluatePastedText(
             text,
-            limits: .init(longTextCharacterThreshold: 10_000, hardCharacterLimit: 50_000, hardByteLimit: 200_000)
+            limits: .init(longTextCharacterThreshold: 10000, hardCharacterLimit: 50000, hardByteLimit: 200_000)
         )
 
         #expect(result.decision == .accept)
@@ -33,7 +33,7 @@ struct ReadingImportPreflightTests {
         let result = ReadingImportPreflight.evaluateFileMetadata(
             filename: "book.txt",
             byteSize: 2_000_001,
-            limits: .init(longTextCharacterThreshold: 10_000, hardCharacterLimit: 50_000, hardByteLimit: 2_000_000)
+            limits: .init(longTextCharacterThreshold: 10000, hardCharacterLimit: 50000, hardByteLimit: 2_000_000)
         )
 
         #expect(result.decision == .reject(.fileTooLarge))

@@ -1,6 +1,6 @@
 import LangoTraceCore
-import Testing
 @testable import LangoTraceUI
+import Testing
 
 @Suite("Reading Markdown block renderer")
 struct ReadingMarkdownBlockRendererTests {

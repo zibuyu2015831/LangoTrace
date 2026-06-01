@@ -18,7 +18,7 @@ public struct ReadingDictionaryLookupIndex: Sendable {
     private var entriesByKey: [String: [ReadingDictionaryEntry]]
 
     public init(entries: [ReadingDictionaryEntry]) {
-        self.entriesByKey = Dictionary(grouping: entries) { entry in
+        entriesByKey = Dictionary(grouping: entries) { entry in
             Self.key(normalized: entry.normalizedHeadword, languageCode: entry.languageCode)
         }
     }

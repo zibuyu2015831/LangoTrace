@@ -1,5 +1,5 @@
-import Testing
 @testable import LangoTraceUI
+import Testing
 
 @Suite("Reading presentation")
 struct ReadingPresentationTests {
@@ -32,7 +32,7 @@ struct ReadingPresentationTests {
         var state = ReadingPresentationState(
             layout: .platform(.phone),
             chunks: [
-                .init(id: "chunk-1", text: "A short sentence for lookup.")
+                .init(id: "chunk-1", text: "A short sentence for lookup."),
             ]
         )
 

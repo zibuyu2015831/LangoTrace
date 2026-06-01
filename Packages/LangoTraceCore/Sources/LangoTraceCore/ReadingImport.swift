@@ -12,8 +12,8 @@ public struct ReadingImportPreflightLimits: Equatable, Sendable {
     }
 
     public static let verticalSliceDefaults = ReadingImportPreflightLimits(
-        longTextCharacterThreshold: 10_000,
-        hardCharacterLimit: 50_000,
+        longTextCharacterThreshold: 10000,
+        hardCharacterLimit: 50000,
         hardByteLimit: 2_000_000
     )
 }

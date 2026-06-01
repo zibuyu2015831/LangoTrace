@@ -42,7 +42,7 @@ public enum ReadingTextSegmenter {
         var paragraphStart = text.startIndex
 
         func appendParagraph(upTo end: String.Index) {
-            let rawRange = paragraphStart..<end
+            let rawRange = paragraphStart ..< end
             let paragraph = String(text[rawRange]).trimmingCharacters(in: .whitespacesAndNewlines)
             guard !paragraph.isEmpty else {
                 return

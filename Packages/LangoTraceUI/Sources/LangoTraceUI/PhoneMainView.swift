@@ -51,14 +51,14 @@ struct PhoneMainView: View {
                     explanationAction: readingExplanationAction,
                     ttsAction: readingTTSAction
                 )
-                    .tabItem {
-                        Label {
-                            localizedText(PhoneRootTab.reading.localizedTitleKey)
-                        } icon: {
-                            Image(systemName: "book.pages")
-                        }
+                .tabItem {
+                    Label {
+                        localizedText(PhoneRootTab.reading.localizedTitleKey)
+                    } icon: {
+                        Image(systemName: "book.pages")
                     }
-                    .tag(PhoneRootTab.reading)
+                }
+                .tag(PhoneRootTab.reading)
 
                 PracticeView(
                     languageSpace: languageSpace,

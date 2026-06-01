@@ -52,7 +52,7 @@ public struct ReadingAppearanceProfile: Equatable, Sendable {
             .heading(level: 3),
             .blockquote,
             .listItem,
-            .codeBlock
+            .codeBlock,
         ],
         inlineRoles: [.link, .inlineCode, .emphasis, .strong],
         colorRoles: [
@@ -62,7 +62,7 @@ public struct ReadingAppearanceProfile: Equatable, Sendable {
             .link,
             .codeBackground,
             .blockquoteAccent,
-            .darkModeBackground
+            .darkModeBackground,
         ],
         readingWidth: .points(640),
         lineSpacing: 5,

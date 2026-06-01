@@ -1,5 +1,5 @@
-import LangoTraceCore
 import Foundation
+import LangoTraceCore
 
 public enum ReadingAsyncState: Equatable, Sendable {
     case idle

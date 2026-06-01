@@ -80,7 +80,7 @@ public enum ReadingMarkdownParser {
             defer { currentIndex = nextIndex }
 
             let line = String(rawLine)
-            let range = lineStart..<lineEnd
+            let range = lineStart ..< lineEnd
 
             if let start = codeFenceStart {
                 if line.hasPrefix("```") {
@@ -88,8 +88,8 @@ public enum ReadingMarkdownParser {
                     appendBlock(
                         kind: .codeBlock(language: codeFenceLanguage),
                         text: codeText,
-                        sourceRange: start..<lineEnd,
-                        inlineRuns: [ReadingInlineRun(kind: .plain, text: codeText, sourceRange: start..<lineEnd)]
+                        sourceRange: start ..< lineEnd,
+                        inlineRuns: [ReadingInlineRun(kind: .plain, text: codeText, sourceRange: start ..< lineEnd)]
                     )
                     codeFenceStart = nil
                     codeFenceLanguage = nil
@@ -125,7 +125,7 @@ public enum ReadingMarkdownParser {
                 appendBlock(kind: .orderedList, text: stripOrderedMarker(trimmed), sourceRange: range)
             } else if trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") {
                 appendBlock(kind: .unorderedList, text: String(trimmed.dropFirst(2)), sourceRange: range)
-            } else if trimmed.hasPrefix("<") && trimmed.contains(">") {
+            } else if trimmed.hasPrefix("<"), trimmed.contains(">") {
                 appendBlock(kind: .unsupported, text: stripSimpleHTML(trimmed), sourceRange: range)
             } else {
                 appendBlock(kind: .paragraph, text: line, sourceRange: range)
@@ -134,7 +134,7 @@ public enum ReadingMarkdownParser {
 
         if let start = codeFenceStart {
             let codeText = codeLines.joined(separator: "\n")
-            appendBlock(kind: .codeBlock(language: codeFenceLanguage), text: codeText, sourceRange: start..<markdown.endIndex)
+            appendBlock(kind: .codeBlock(language: codeFenceLanguage), text: codeText, sourceRange: start ..< markdown.endIndex)
         }
 
         return ReadingMarkdownDocument(
@@ -188,9 +188,10 @@ public enum ReadingMarkdownParser {
 
         func appendDelimited(_ delimiter: String, kind: ReadingInlineRunKind) {
             var searchStart = text.startIndex
-            while let open = text.range(of: delimiter, range: searchStart..<text.endIndex),
-                  let close = text.range(of: delimiter, range: open.upperBound..<text.endIndex) {
-                let value = String(text[open.upperBound..<close.lowerBound])
+            while let open = text.range(of: delimiter, range: searchStart ..< text.endIndex),
+                  let close = text.range(of: delimiter, range: open.upperBound ..< text.endIndex)
+            {
+                let value = String(text[open.upperBound ..< close.lowerBound])
                 if !value.isEmpty {
                     runs.append(ReadingInlineRun(kind: kind, text: value, sourceRange: nil))
                 }
@@ -203,10 +204,11 @@ public enum ReadingMarkdownParser {
         appendDelimited("`", kind: .inlineCode)
 
         var searchStart = text.startIndex
-        while let labelStart = text.range(of: "[", range: searchStart..<text.endIndex),
-              let labelEnd = text.range(of: "](", range: labelStart.upperBound..<text.endIndex),
-              let urlEnd = text.range(of: ")", range: labelEnd.upperBound..<text.endIndex) {
-            let label = String(text[labelStart.upperBound..<labelEnd.lowerBound])
+        while let labelStart = text.range(of: "[", range: searchStart ..< text.endIndex),
+              let labelEnd = text.range(of: "](", range: labelStart.upperBound ..< text.endIndex),
+              let urlEnd = text.range(of: ")", range: labelEnd.upperBound ..< text.endIndex)
+        {
+            let label = String(text[labelStart.upperBound ..< labelEnd.lowerBound])
             if !label.isEmpty {
                 runs.append(ReadingInlineRun(kind: .link, text: label, sourceRange: nil))
             }

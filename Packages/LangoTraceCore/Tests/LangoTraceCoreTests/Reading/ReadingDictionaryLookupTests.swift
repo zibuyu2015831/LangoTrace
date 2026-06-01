@@ -1,5 +1,5 @@
-import Testing
 @testable import LangoTraceCore
+import Testing
 
 @Suite("Reading dictionary lookup")
 struct ReadingDictionaryLookupTests {
@@ -7,7 +7,7 @@ struct ReadingDictionaryLookupTests {
     func exactLookupUsesNormalization() {
         let entries = [
             ReadingDictionaryEntry(headword: "Résumé", normalizedHeadword: "resume", languageCode: "fr", definition: "summary"),
-            ReadingDictionaryEntry(headword: "resume", normalizedHeadword: "resume", languageCode: "en", definition: "continue")
+            ReadingDictionaryEntry(headword: "resume", normalizedHeadword: "resume", languageCode: "en", definition: "continue"),
         ]
         let index = ReadingDictionaryLookupIndex(entries: entries)
 
@@ -17,7 +17,7 @@ struct ReadingDictionaryLookupTests {
 
     @Test("synthetic 100k lookup returns deterministic result")
     func syntheticLargeLookup() {
-        let entries = (0..<100_000).map { index in
+        let entries = (0 ..< 100_000).map { index in
             ReadingDictionaryEntry(
                 headword: "word\(index)",
                 normalizedHeadword: "word\(index)",

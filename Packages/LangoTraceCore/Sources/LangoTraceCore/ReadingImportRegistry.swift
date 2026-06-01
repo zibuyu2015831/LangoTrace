@@ -54,7 +54,7 @@ public struct ReadingImportFormatRegistry: Sendable {
                 sourceFormat: .markdown,
                 supportedFileExtensions: ["md"],
                 status: .enabled
-            )
+            ),
         ])
     }
 
@@ -80,7 +80,7 @@ public struct ReadingImportFormatRegistry: Sendable {
                 sourceFormat: .htmlClip,
                 supportedFileExtensions: ["html", "htm"],
                 status: .future
-            )
+            ),
         ]
     }
 

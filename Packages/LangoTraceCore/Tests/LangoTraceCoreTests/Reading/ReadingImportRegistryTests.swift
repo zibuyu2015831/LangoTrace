@@ -1,5 +1,5 @@
-import Testing
 @testable import LangoTraceCore
+import Testing
 
 @Suite("Reading import registry")
 struct ReadingImportRegistryTests {

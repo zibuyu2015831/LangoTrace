@@ -8,6 +8,6 @@ public struct ReadingLibrarySearchQuery: Equatable, Hashable, Sendable {
         guard !trimmed.isEmpty else {
             return nil
         }
-        self.normalized = String(trimmed.prefix(Self.maxLength))
+        normalized = String(trimmed.prefix(Self.maxLength))
     }
 }

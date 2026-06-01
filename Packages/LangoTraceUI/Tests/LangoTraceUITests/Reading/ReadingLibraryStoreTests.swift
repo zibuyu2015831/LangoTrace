@@ -1,7 +1,7 @@
 import Foundation
 import LangoTraceCore
-import Testing
 @testable import LangoTraceUI
+import Testing
 
 @MainActor
 @Suite("Reading library store", .serialized)
@@ -89,7 +89,7 @@ struct ReadingLibraryStoreTests {
     func deleteAndRestore() async {
         let actions = FakeReadingLibraryActions(
             documents: [
-                .summary(id: "doc-a", spaceID: "space-a", title: "A")
+                .summary(id: "doc-a", spaceID: "space-a", title: "A"),
             ]
         )
         let store = ReadingLibraryStore(
@@ -181,7 +181,7 @@ struct ReadingLibraryStoreTests {
 }
 
 private actor FakeReadingLibraryActions {
-    struct ListRequest: Sendable {
+    struct ListRequest {
         var spaceID: String
         var includeDeleted: Bool
         var query: ReadingLibrarySearchQuery?

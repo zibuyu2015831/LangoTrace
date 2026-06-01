@@ -1,6 +1,6 @@
 import GRDB
-import Testing
 @testable import LangoTraceData
+import Testing
 
 @Suite("Reading database migration")
 struct AppDatabaseReadingMigrationTests {
@@ -57,7 +57,7 @@ struct AppDatabaseReadingMigrationTests {
             "import_status",
             "library_status",
             "restored_at",
-            "last_opened_at"
+            "last_opened_at",
         ] {
             #expect(columns.contains(expected))
         }

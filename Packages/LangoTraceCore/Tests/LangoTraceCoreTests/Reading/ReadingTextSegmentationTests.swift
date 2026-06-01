@@ -1,5 +1,5 @@
-import Testing
 @testable import LangoTraceCore
+import Testing
 
 @Suite("Reading text segmentation")
 struct ReadingTextSegmentationTests {
@@ -35,14 +35,14 @@ struct ReadingTextSegmentationTests {
     }
 
     @Test("manual selection records character range for later anchoring")
-    func selectionRecordsCharacterRange() {
+    func selectionRecordsCharacterRange() throws {
         let text = "Read this sentence carefully."
-        let start = text.range(of: "sentence")!.lowerBound
+        let start = try #require(text.range(of: "sentence")?.lowerBound)
         let end = text.index(start, offsetBy: 8)
         let selection = ReadingSelection(
             documentID: "doc-1",
             contentRevision: 1,
-            selectedText: String(text[start..<end]),
+            selectedText: String(text[start ..< end]),
             contextText: text,
             characterOffset: text.distance(from: text.startIndex, to: start),
             characterLength: text.distance(from: start, to: end)
@@ -64,7 +64,7 @@ struct ReadingTextSegmentationTests {
             contentRevision: 1
         )
 
-        #expect(text.count > 10_000)
+        #expect(text.count > 10000)
         #expect(chunks.count == 16)
         #expect(chunks.allSatisfy { !$0.text.isEmpty })
     }

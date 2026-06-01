@@ -27,18 +27,17 @@ public enum ReadingMarkdownBlockRenderer {
     }
 
     private static func inlinePresentation(for run: ReadingInlineRun) -> ReadingInlinePresentation {
-        let role: ReadingInlineRole
-        switch run.kind {
+        let role: ReadingInlineRole = switch run.kind {
         case .plain:
-            role = .emphasis
+            .emphasis
         case .emphasis:
-            role = .emphasis
+            .emphasis
         case .strong:
-            role = .strong
+            .strong
         case .inlineCode:
-            role = .inlineCode
+            .inlineCode
         case .link:
-            role = .link
+            .link
         }
         return ReadingInlinePresentation(role: role, text: run.text)
     }
