@@ -68,6 +68,8 @@ public struct ReadingLibraryActions: Sendable {
     public var softDeleteDocument: @Sendable (String, String) async throws -> Void
     public var restoreDocument: @Sendable (String, String) async throws -> Void
     public var markDocumentOpened: @Sendable (String, String) async throws -> Void
+    public var assignCollection: @Sendable (String, String, String) async throws -> Void
+    public var tagDocument: @Sendable (String, String, String) async throws -> Void
 
     public init(
         listDocuments: @escaping @Sendable (String, Bool, ReadingLibrarySearchQuery?) async throws
@@ -77,7 +79,9 @@ public struct ReadingLibraryActions: Sendable {
         loadDocument: @escaping @Sendable (String, String) async throws -> ReadingLibraryDocumentContent?,
         softDeleteDocument: @escaping @Sendable (String, String) async throws -> Void,
         restoreDocument: @escaping @Sendable (String, String) async throws -> Void,
-        markDocumentOpened: @escaping @Sendable (String, String) async throws -> Void
+        markDocumentOpened: @escaping @Sendable (String, String) async throws -> Void,
+        assignCollection: @escaping @Sendable (String, String, String) async throws -> Void = { _, _, _ in },
+        tagDocument: @escaping @Sendable (String, String, String) async throws -> Void = { _, _, _ in }
     ) {
         self.listDocuments = listDocuments
         self.importPastedText = importPastedText
@@ -85,6 +89,8 @@ public struct ReadingLibraryActions: Sendable {
         self.softDeleteDocument = softDeleteDocument
         self.restoreDocument = restoreDocument
         self.markDocumentOpened = markDocumentOpened
+        self.assignCollection = assignCollection
+        self.tagDocument = tagDocument
     }
 
     public static let disabled = ReadingLibraryActions(
@@ -95,7 +101,9 @@ public struct ReadingLibraryActions: Sendable {
         loadDocument: { _, _ in nil },
         softDeleteDocument: { _, _ in },
         restoreDocument: { _, _ in },
-        markDocumentOpened: { _, _ in }
+        markDocumentOpened: { _, _ in },
+        assignCollection: { _, _, _ in },
+        tagDocument: { _, _, _ in }
     )
 }
 

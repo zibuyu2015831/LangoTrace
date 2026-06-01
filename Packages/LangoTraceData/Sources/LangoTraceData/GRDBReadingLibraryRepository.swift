@@ -312,6 +312,57 @@ public extension GRDBReadingLibraryRepository {
             ).map(batchSummary(from:))
         }
     }
+
+    func recordAIExplanationOperation(
+        documentID: String,
+        spaceID: String,
+        sourceAnchorID: String?,
+        promptID: String,
+        promptVersion: String,
+        providerProfileID: String?,
+        providerEndpointID: String?,
+        providerPresetID: String?,
+        modelName: String?,
+        selectedText: String,
+        sentenceText: String?,
+        contextCharacterCount: Int,
+        status: String,
+        failureCategory: String? = nil,
+        completedAt: Date? = nil
+    ) throws {
+        try databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                INSERT INTO reading_ai_explanation_operations (
+                    id, document_id, space_id, source_anchor_id, prompt_id,
+                    prompt_version, provider_profile_id, provider_endpoint_id,
+                    provider_preset_id, model_name, selected_text_hash,
+                    sentence_text_hash, context_character_count, status,
+                    failure_category, created_at, completed_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                arguments: [
+                    idGenerator(),
+                    documentID,
+                    spaceID,
+                    sourceAnchorID,
+                    promptID,
+                    promptVersion,
+                    providerProfileID,
+                    providerEndpointID,
+                    providerPresetID,
+                    modelName,
+                    sha256Hex(selectedText),
+                    sentenceText.map(sha256Hex),
+                    contextCharacterCount,
+                    status,
+                    failureCategory,
+                    clock().timeIntervalSince1970,
+                    completedAt?.timeIntervalSince1970,
+                ]
+            )
+        }
+    }
 }
 
 private extension GRDBReadingLibraryRepository {

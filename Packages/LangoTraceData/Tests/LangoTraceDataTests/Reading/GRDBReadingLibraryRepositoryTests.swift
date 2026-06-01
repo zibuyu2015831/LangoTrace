@@ -1,4 +1,5 @@
 import Foundation
+import GRDB
 import LangoTraceCore
 import Testing
 @testable import LangoTraceData
@@ -142,6 +143,51 @@ struct GRDBReadingLibraryRepositoryTests {
         #expect(completed.status == .partialFailure)
         #expect(completed.successCount == 1)
         #expect(completed.failureCount == 1)
+    }
+
+    @Test("AI explanation operation stores hashes and non-sensitive metadata")
+    func aiExplanationOperationStoresHashesOnly() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 100) },
+            idGenerator: SequentialIDGenerator().next
+        )
+        let document = try repository.importInlineDocument(.sample(
+            spaceID: "space-1",
+            title: "Explain",
+            body: "A private sentence."
+        ))
+
+        try repository.recordAIExplanationOperation(
+            documentID: document.id,
+            spaceID: "space-1",
+            sourceAnchorID: nil,
+            promptID: "builtin.reading.selection_explanation.v1",
+            promptVersion: "1",
+            providerProfileID: "profile-1",
+            providerEndpointID: "endpoint-1",
+            providerPresetID: "openai",
+            modelName: "gpt-test",
+            selectedText: "private",
+            sentenceText: "A private sentence.",
+            contextCharacterCount: 19,
+            status: "succeeded",
+            completedAt: Date(timeIntervalSince1970: 101)
+        )
+
+        let row = try database.databaseQueue.read { db in
+            try Row.fetchOne(db, sql: "SELECT * FROM reading_ai_explanation_operations")
+        }
+        let stored = try #require(row)
+        #expect(stored["prompt_id"] as String? == "builtin.reading.selection_explanation.v1")
+        #expect(stored["provider_profile_id"] as String? == "profile-1")
+        #expect(stored["model_name"] as String? == "gpt-test")
+        #expect(stored["context_character_count"] as Int? == 19)
+        #expect((stored["selected_text_hash"] as String?)?.count == 64)
+        #expect((stored["sentence_text_hash"] as String?)?.count == 64)
+        #expect(!stored.columnNames.contains("selected_text"))
+        #expect(!stored.columnNames.contains("context_text"))
     }
 }
 

@@ -178,36 +178,79 @@ private func makeReadingExplanationAction(
     credentialStore: any AIProviderCredentialStore
 ) -> ReadingExplanationAction {
     { request in
-        let configurationRepository = try GRDBAIProviderConfigurationRepository(
-            database: databaseFactory.database()
+        let database = try databaseFactory.database()
+        let readingRepository = GRDBReadingLibraryRepository(database: database)
+        let promptID = "builtin.reading.selection_explanation.v1"
+        let promptVersion = "1"
+        let configurationRepository = GRDBAIProviderConfigurationRepository(
+            database: database
         )
+        func recordOperation(
+            status: String,
+            profile: AIProviderConfigurationProfile? = nil,
+            endpoint: AIProviderEndpointInput? = nil,
+            failureCategory: String? = nil
+        ) {
+            try? readingRepository.recordAIExplanationOperation(
+                documentID: request.documentID,
+                spaceID: request.spaceID,
+                sourceAnchorID: nil,
+                promptID: promptID,
+                promptVersion: promptVersion,
+                providerProfileID: profile?.id,
+                providerEndpointID: endpoint?.id,
+                providerPresetID: endpoint?.providerPresetID,
+                modelName: endpoint?.modelName,
+                selectedText: request.selectedText,
+                sentenceText: request.containingSentence.isEmpty ? nil : request.containingSentence,
+                contextCharacterCount: request.contextText.count,
+                status: status,
+                failureCategory: failureCategory,
+                completedAt: status == "pending" ? nil : Date()
+            )
+        }
         guard let profile = try await configurationRepository.loadDefaultProfile(),
               let endpoint = profile.textGenerationEndpointInput
         else {
+            recordOperation(status: "failed", failureCategory: "providerNotConfigured")
             throw ReadingSelectionExplanationServiceError(category: .providerNotConfigured)
         }
+        recordOperation(status: "pending", profile: profile, endpoint: endpoint)
         let plaintextSecret = try await resolveLearningMaterialSecret(
             endpoint: endpoint,
             profile: profile,
             credentialStore: credentialStore
         )
         let service = ReadingSelectionExplanationService(httpClient: URLSessionAIProviderHTTPClient())
-        return try await service.explain(
-            ReadingSelectionExplanationServiceRequest(
-                endpoint: endpoint,
-                plaintextSecret: plaintextSecret,
-                input: ReadingSelectionExplanationInput(
-                    documentID: request.documentID,
-                    sourceAnchorID: request.sentenceID ?? "selection",
-                    selectedText: request.selectedText,
-                    containingSentence: request.containingSentence,
-                    contextText: request.contextText,
-                    nativeLanguageCode: request.nativeLanguageCode,
-                    targetLanguageCode: request.targetLanguageCode,
-                    proficiencyLevelCode: request.proficiencyLevelCode
+        do {
+            let result = try await service.explain(
+                ReadingSelectionExplanationServiceRequest(
+                    endpoint: endpoint,
+                    plaintextSecret: plaintextSecret,
+                    input: ReadingSelectionExplanationInput(
+                        documentID: request.documentID,
+                        sourceAnchorID: request.sentenceID ?? "selection",
+                        selectedText: request.selectedText,
+                        containingSentence: request.containingSentence,
+                        contextText: request.contextText,
+                        nativeLanguageCode: request.nativeLanguageCode,
+                        targetLanguageCode: request.targetLanguageCode,
+                        proficiencyLevelCode: request.proficiencyLevelCode
+                    )
                 )
             )
-        )
+            recordOperation(status: "succeeded", profile: profile, endpoint: endpoint)
+            return result
+        } catch let error as CancellationError {
+            recordOperation(status: "cancelled", profile: profile, endpoint: endpoint, failureCategory: "cancelled")
+            throw error
+        } catch let error as ReadingSelectionExplanationServiceError {
+            recordOperation(status: "failed", profile: profile, endpoint: endpoint, failureCategory: "\(error.category)")
+            throw error
+        } catch {
+            recordOperation(status: "failed", profile: profile, endpoint: endpoint, failureCategory: "providerRejected")
+            throw error
+        }
     }
 }
 
@@ -265,6 +308,14 @@ private func makeReadingLibraryActions(
         markDocumentOpened: { id, spaceID in
             let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
             try repository.markDocumentOpened(id: id, spaceID: spaceID)
+        },
+        assignCollection: { id, spaceID, title in
+            let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
+            try repository.assignCollection(documentID: id, spaceID: spaceID, title: title)
+        },
+        tagDocument: { id, spaceID, name in
+            let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
+            try repository.tagDocument(documentID: id, spaceID: spaceID, name: name)
         }
     )
 }

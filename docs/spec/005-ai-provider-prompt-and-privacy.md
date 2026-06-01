@@ -126,7 +126,7 @@ Prompt Preset 建议包含：
 
 AI 输出应保存为新对象或新版本，而不是覆盖用户输入。
 
-阅读选区解释输出属于当前 selection 的派生学习结果。第一阶段可以只保留短生命周期 UI 状态；若后续持久化，必须写入 reading AI operation / result 表或等价派生对象，不能覆盖 `reading_documents.body`，也不能把解释结果混入用户原文。
+阅读选区解释输出属于当前 selection 的派生学习结果。当前纵向切片将解释结果保留为短生命周期 UI 状态，并把请求状态写入 `reading_ai_explanation_operations` 非敏感 operation 摘要；后续若持久化解释正文，必须写入 reading AI result 表或等价派生对象，不能覆盖 `reading_documents.body`，也不能把解释结果混入用户原文。
 
 推荐关联：
 

@@ -1,3 +1,4 @@
+import Foundation
 import LangoTraceCore
 import Testing
 @testable import LangoTraceUI
@@ -39,6 +40,29 @@ struct ReadingLibraryStoreTests {
         #expect(imported?.spaceID == "space-a")
         #expect(imported?.sourceFormat == .pastedText)
         #expect(imported?.adapterID == "builtin.pasted_text")
+    }
+
+    @Test("imports markdown files after metadata preflight without storing external path")
+    func importsMarkdownFile() async throws {
+        let actions = FakeReadingLibraryActions()
+        let store = ReadingLibraryStore(
+            languageSpace: .preview(id: "space-a", targetLanguageCode: "en"),
+            actions: actions.actions
+        )
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ReadingStore-\(UUID().uuidString)")
+            .appendingPathExtension("md")
+        try Data("# Heading\n\nBody".utf8).write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        try await store.importFile(url: url)
+
+        let imported = await actions.importedInputs.first
+        #expect(imported?.sourceFormat == .markdown)
+        #expect(imported?.adapterID == "builtin.markdown")
+        #expect(imported?.originalFilename == url.lastPathComponent)
+        #expect(imported?.originalFileExtension == "md")
+        #expect(imported?.body == "# Heading\n\nBody")
     }
 
     @Test("search uses normalized query and active document scope")
@@ -83,6 +107,51 @@ struct ReadingLibraryStoreTests {
         #expect(store.deletedDocuments.isEmpty)
     }
 
+    @Test("assigning collection and tag reloads filterable summaries")
+    func collectionAndTagFilters() async throws {
+        let actions = FakeReadingLibraryActions(
+            documents: [
+                .summary(id: "doc-a", spaceID: "space-a", title: "A"),
+                .summary(id: "doc-b", spaceID: "space-a", title: "B"),
+            ]
+        )
+        let store = ReadingLibraryStore(
+            languageSpace: .preview(id: "space-a", targetLanguageCode: "en"),
+            actions: actions.actions
+        )
+
+        await store.reload()
+        try await store.assignCollection(documentID: "doc-a", title: "Essays")
+        try await store.tagDocument(documentID: "doc-a", name: "Travel")
+        store.updateCollectionFilter("Essays")
+        store.updateTagFilter("Travel")
+
+        #expect(store.availableCollectionFilters == ["Essays"])
+        #expect(store.availableTagFilters == ["Travel"])
+        #expect(store.filteredDocuments.map(\.id) == ["doc-a"])
+        #expect(await actions.assignedCollections == ["doc-a:space-a:Essays"])
+        #expect(await actions.assignedTags == ["doc-a:space-a:Travel"])
+    }
+
+    @Test("unsupported file import fails before body import")
+    func unsupportedFileImportFailsBeforeImport() async throws {
+        let actions = FakeReadingLibraryActions()
+        let store = ReadingLibraryStore(
+            languageSpace: .preview(id: "space-a", targetLanguageCode: "en"),
+            actions: actions.actions
+        )
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ReadingStore-\(UUID().uuidString)")
+            .appendingPathExtension("pdf")
+        try Data([0x25, 0x50, 0x44, 0x46]).write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        await #expect(throws: ReadingLibraryStoreError.preflightRejected) {
+            try await store.importFile(url: url)
+        }
+        #expect(await actions.importedInputs.isEmpty)
+    }
+
     @Test("stale load from prior language space is ignored")
     func staleLoadIgnoredAfterSpaceSwitch() async {
         let actions = ControlledReadingLibraryActions()
@@ -121,6 +190,8 @@ private actor FakeReadingLibraryActions {
     private var storedDocuments: [ReadingLibraryDocumentSummary]
     private(set) var importedInputs: [ReadingInlineDocumentImportInput] = []
     private(set) var listRequests: [ListRequest] = []
+    private(set) var assignedCollections: [String] = []
+    private(set) var assignedTags: [String] = []
 
     init(documents: [ReadingLibraryDocumentSummary] = []) {
         storedDocuments = documents
@@ -141,7 +212,13 @@ private actor FakeReadingLibraryActions {
             restoreDocument: { [self] id, spaceID in
                 await restore(id: id, spaceID: spaceID)
             },
-            markDocumentOpened: { _, _ in }
+            markDocumentOpened: { _, _ in },
+            assignCollection: { [self] id, spaceID, title in
+                await assignCollection(id: id, spaceID: spaceID, title: title)
+            },
+            tagDocument: { [self] id, spaceID, name in
+                await tag(id: id, spaceID: spaceID, name: name)
+            }
         )
     }
 
@@ -187,6 +264,30 @@ private actor FakeReadingLibraryActions {
             return copy
         }
     }
+
+    private func assignCollection(id: String, spaceID: String, title: String) {
+        assignedCollections.append("\(id):\(spaceID):\(title)")
+        storedDocuments = storedDocuments.map { document in
+            guard document.id == id, document.spaceID == spaceID else { return document }
+            var copy = document
+            if !copy.collectionTitles.contains(title) {
+                copy.collectionTitles.append(title)
+            }
+            return copy
+        }
+    }
+
+    private func tag(id: String, spaceID: String, name: String) {
+        assignedTags.append("\(id):\(spaceID):\(name)")
+        storedDocuments = storedDocuments.map { document in
+            guard document.id == id, document.spaceID == spaceID else { return document }
+            var copy = document
+            if !copy.tagNames.contains(name) {
+                copy.tagNames.append(name)
+            }
+            return copy
+        }
+    }
 }
 
 private actor ControlledReadingLibraryActions {
@@ -209,7 +310,9 @@ private actor ControlledReadingLibraryActions {
             loadDocument: { _, _ in nil },
             softDeleteDocument: { _, _ in },
             restoreDocument: { _, _ in },
-            markDocumentOpened: { _, _ in }
+            markDocumentOpened: { _, _ in },
+            assignCollection: { _, _, _ in },
+            tagDocument: { _, _, _ in }
         )
     }
 

@@ -1,5 +1,6 @@
 import LangoTraceCore
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ReadingLibraryView: View {
     let platform: ReadingPlatformRole
@@ -9,11 +10,15 @@ struct ReadingLibraryView: View {
     @State private var importTitle = ""
     @State private var importBody = ""
     @State private var isImportSheetPresented = false
+    @State private var isFileImporterPresented = false
     @State private var selectedText: String?
     @State private var selectedSentenceID: String?
     @State private var explanationResult: ReadingSelectionExplanationResult?
     @State private var explanationState: ReadingAsyncState = .idle
     @State private var audioState: ReadingAsyncState = .idle
+    @State private var selectionGeneration = 0
+    @State private var collectionDrafts: [String: String] = [:]
+    @State private var tagDrafts: [String: String] = [:]
 
     private var activePresentation: ReadingDocumentPresentation {
         if let selectedPresentation = store.selectedPresentation {
@@ -47,6 +52,14 @@ struct ReadingLibraryView: View {
         }
         .sheet(isPresented: $isImportSheetPresented) {
             importSheet
+        }
+        .fileImporter(
+            isPresented: $isFileImporterPresented,
+            allowedContentTypes: [.plainText, UTType(filenameExtension: "md") ?? .plainText],
+            allowsMultipleSelection: false
+        ) { result in
+            guard case let .success(urls) = result, let url = urls.first else { return }
+            Task { try? await store.importFile(url: url) }
         }
         .task {
             await store.reload()
@@ -99,14 +112,23 @@ struct ReadingLibraryView: View {
             }
             .buttonStyle(.borderedProminent)
 
-            if store.documents.isEmpty {
+            Button {
+                isFileImporterPresented = true
+            } label: {
+                Label(localizedString("reading.library.import.file"), systemImage: "doc.badge.plus")
+            }
+            .buttonStyle(.bordered)
+
+            libraryFilters
+
+            if store.filteredDocuments.isEmpty {
                 ContentUnavailableView(
                     localizedString("reading.library.empty.title"),
                     systemImage: "book.closed",
                     description: Text(localizedString("reading.library.empty.body"))
                 )
             } else {
-                List(store.documents, id: \.id) { document in
+                List(store.filteredDocuments, id: \.id) { document in
                     Button {
                         Task { await store.openDocument(document.id) }
                     } label: {
@@ -116,15 +138,27 @@ struct ReadingLibraryView: View {
                             Text(document.sourceFormat.rawValue)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
+                            tagCollectionLine(document)
                         }
                     }
                     .contextMenu {
+                        Button {
+                            collectionDrafts[document.id] = collectionDrafts[document.id, default: ""]
+                        } label: {
+                            Label(localizedString("reading.library.collection.assign"), systemImage: "folder.badge.plus")
+                        }
+                        Button {
+                            tagDrafts[document.id] = tagDrafts[document.id, default: ""]
+                        } label: {
+                            Label(localizedString("reading.library.tag.assign"), systemImage: "tag")
+                        }
                         Button(role: .destructive) {
                             Task { await store.softDelete(document.id) }
                         } label: {
                             Label(localizedString("reading.library.delete"), systemImage: "trash")
                         }
                     }
+                    inlineMetadataEditors(document)
                 }
                 .listStyle(.plain)
             }
@@ -148,6 +182,38 @@ struct ReadingLibraryView: View {
             }
         }
         .padding(20)
+    }
+
+    private var libraryFilters: some View {
+        HStack(spacing: 8) {
+            Picker(
+                localizedString("reading.library.collection.filter"),
+                selection: Binding(
+                    get: { store.selectedCollectionFilter ?? "" },
+                    set: { store.updateCollectionFilter($0.isEmpty ? nil : $0) }
+                )
+            ) {
+                Text(localizedString("reading.library.filter.all")).tag("")
+                ForEach(store.availableCollectionFilters, id: \.self) { title in
+                    Text(title).tag(title)
+                }
+            }
+            .pickerStyle(.menu)
+
+            Picker(
+                localizedString("reading.library.tag.filter"),
+                selection: Binding(
+                    get: { store.selectedTagFilter ?? "" },
+                    set: { store.updateTagFilter($0.isEmpty ? nil : $0) }
+                )
+            ) {
+                Text(localizedString("reading.library.filter.all")).tag("")
+                ForEach(store.availableTagFilters, id: \.self) { name in
+                    Text(name).tag(name)
+                }
+            }
+            .pickerStyle(.menu)
+        }
     }
 
     private var readerPane: some View {
@@ -253,6 +319,57 @@ struct ReadingLibraryView: View {
     }
 
     @ViewBuilder
+    private func tagCollectionLine(_ document: ReadingLibraryDocumentSummary) -> some View {
+        let labels = document.collectionTitles + document.tagNames.map { "#\($0)" }
+        if !labels.isEmpty {
+            Text(labels.joined(separator: " · "))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+    }
+
+    @ViewBuilder
+    private func inlineMetadataEditors(_ document: ReadingLibraryDocumentSummary) -> some View {
+        if collectionDrafts[document.id] != nil {
+            HStack {
+                TextField(
+                    localizedString("reading.library.collection.placeholder"),
+                    text: Binding(
+                        get: { collectionDrafts[document.id] ?? "" },
+                        set: { collectionDrafts[document.id] = $0 }
+                    )
+                )
+                Button(localizedString("common.save")) {
+                    let value = collectionDrafts[document.id] ?? ""
+                    Task {
+                        try? await store.assignCollection(documentID: document.id, title: value)
+                        collectionDrafts[document.id] = nil
+                    }
+                }
+            }
+        }
+        if tagDrafts[document.id] != nil {
+            HStack {
+                TextField(
+                    localizedString("reading.library.tag.placeholder"),
+                    text: Binding(
+                        get: { tagDrafts[document.id] ?? "" },
+                        set: { tagDrafts[document.id] = $0 }
+                    )
+                )
+                Button(localizedString("common.save")) {
+                    let value = tagDrafts[document.id] ?? ""
+                    Task {
+                        try? await store.tagDocument(documentID: document.id, name: value)
+                        tagDrafts[document.id] = nil
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
     private func readingBlock(_ block: ReadingBlockPresentation, style: ReadingPresentationStyle) -> some View {
         switch block.kind {
         case let .heading(level):
@@ -284,20 +401,26 @@ struct ReadingLibraryView: View {
     }
 
     private func select(_ block: ReadingBlockPresentation) {
+        selectionGeneration += 1
         selectedText = block.text
         selectedSentenceID = block.id
         explanationResult = nil
         explanationState = .idle
+        audioState = .idle
     }
 
     private func explainSelectedText() async {
         guard let selectedText, let selectedSentenceID else { return }
+        selectionGeneration += 1
+        let token = selectionGeneration
+        let documentID = store.selectedDocument?.id ?? ""
+        let spaceID = store.languageSpace.id
         explanationState = .loading
         do {
-            explanationResult = try await explanationAction(
+            let result = try await explanationAction(
                 ReadingExplanationRequest(
-                    documentID: store.selectedDocument?.id ?? "",
-                    spaceID: store.languageSpace.id,
+                    documentID: documentID,
+                    spaceID: spaceID,
                     selectedText: selectedText,
                     sentenceID: selectedSentenceID,
                     containingSentence: selectedText,
@@ -307,23 +430,45 @@ struct ReadingLibraryView: View {
                     proficiencyLevelCode: store.languageSpace.level.rawValue
                 )
             )
+            guard isCurrentSelection(token: token, text: selectedText, sentenceID: selectedSentenceID, documentID: documentID, spaceID: spaceID) else { return }
+            explanationResult = result
             explanationState = .idle
         } catch {
+            guard isCurrentSelection(token: token, text: selectedText, sentenceID: selectedSentenceID, documentID: documentID, spaceID: spaceID) else { return }
             explanationState = .failed
         }
     }
 
     private func play(_ block: ReadingBlockPresentation) async {
+        selectionGeneration += 1
+        let token = selectionGeneration
+        let documentID = store.selectedDocument?.id ?? ""
+        let spaceID = store.languageSpace.id
         audioState = .loading
         await ttsAction(
             ReadingTTSRequest(
-                documentID: store.selectedDocument?.id ?? "",
-                spaceID: store.languageSpace.id,
+                documentID: documentID,
+                spaceID: spaceID,
                 sentenceID: block.id,
                 text: block.text,
                 targetLanguageCode: store.languageSpace.targetLanguageCode
             )
         )
+        guard isCurrentSelection(token: token, text: block.text, sentenceID: block.id, documentID: documentID, spaceID: spaceID) else { return }
         audioState = .idle
+    }
+
+    private func isCurrentSelection(
+        token: Int,
+        text: String,
+        sentenceID: String,
+        documentID: String,
+        spaceID: String
+    ) -> Bool {
+        token == selectionGeneration
+            && selectedText == text
+            && selectedSentenceID == sentenceID
+            && (store.selectedDocument?.id ?? "") == documentID
+            && store.languageSpace.id == spaceID
     }
 }

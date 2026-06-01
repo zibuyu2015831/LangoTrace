@@ -40,6 +40,8 @@
 
 ```bash
 swift test --package-path Packages/LangoTraceData --filter GRDBReadingLibraryRepositoryTests
+swift test --package-path Packages/LangoTraceData --filter 'GRDBReadingLibraryRepositoryTests|AppDatabaseReadingMigrationTests'
+swift test --package-path Packages/LangoTraceUI --filter ReadingLibraryStoreTests
 swift test --package-path Packages/LangoTraceUI --filter 'ReadingDocumentStoreAIAndTTSTests|ReadingLibraryStoreTests|ReadingPresentationTests'
 swift test --package-path Packages/LangoTraceCore --filter PhoneTabNavigationTests
 xcodebuild -scheme LangoTrace-macOS -project LangoTrace.xcodeproj -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
@@ -51,7 +53,7 @@ git diff --check
 ## 4. 当前限制与后续拆分
 
 - 当前阅读正文选择是 SwiftUI block 点击级 selection，不是完整 TextKit selection engine；TextKit / UIKit / AppKit bridge 不是本轮 Phase 0 阻塞门禁，但后续精细选词、跨行选择、CJK / RTL 光标体验和 VoiceOver 必须单独验收。
-- 文件导入 UI 仍只有粘贴入口；`.txt` / `.md` adapter contract 和 preflight 已就绪，document picker / open panel 需后续任务补齐。
+- 文件导入 UI 已接入 SwiftUI file importer / open panel 路径，当前只启用 `.txt` / `.md`，并在读取正文前执行 extension 与 byte-size metadata preflight；后续仍需补真实 permission denied / cancel 人工验收、长期外部文件引用和 sandbox bookmark 管理。
 - Markdown renderer 是原生 block presentation 第一版，不支持表格、Mermaid、HTML preview 或编辑器。
 - Reading AI explanation 不做二次预览确认；点击 `解释` 即为显式触发。后续如引入全文总结、全文翻译或历史记忆上下文，必须另开 AI plan。
 - Reading TTS 只做用户点击句子 / 正文块播放，不做全文朗读、批量预生成、后台播放或锁屏控制。
