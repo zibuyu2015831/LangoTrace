@@ -8,6 +8,8 @@ Reading is a first-class learning scene in LangoTrace, alongside entries, practi
 
 The first implementation slice supports pasted text, `.txt` and `.md` documents. EPUB, PDF, HTML clip, web article import, dictionary import UI, sync, export, full-document AI summary, full-document translation and batch TTS are future capabilities.
 
+Current implementation entry points are `ReadingLibraryStore`, `ReadingDocumentStore`, `ReadingLibraryView`, `GRDBReadingLibraryRepository`, `ReadingSelectionExplanationService` and `SentenceAudioPlaybackActions` mapping to `readingDocumentSentence`.
+
 ## 2. Reading Documents
 
 `ReadingDocument` is primary local data scoped by `language_space_id`. It must have a stable document id, title, source format, source kind, adapter id/version, body storage kind, body hash, content revision, structure version, target language code, timestamps, import status and soft-delete state.
@@ -57,3 +59,4 @@ Reading library and document stores must guard asynchronous import, load, AI and
 ## Change Log
 
 - 2026-06-01: Created Reading learning domain spec for the reading AI/TTS vertical slice.
+- 2026-06-01: Updated implementation facts after landing the vertical slice. Reading is now a top-level route on iPhone / iPad / macOS with GRDB library actions, selection explanation and reading sentence TTS wired through AppEnvironment.

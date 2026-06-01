@@ -22,6 +22,7 @@ AI 是语迹的重要能力，但不是产品的唯一中心。AI 应服务于�
 - 内置 Prompt 和用户自定义 Prompt 必须区分来源。
 - API Key 必须保存到 Keychain，不能保存到普通数据库、日志或同步目录。
 - 照片、日记、音频、历史记忆和目标语言写作内容只有在用户明确触发相关能力时才发送给 Provider。
+- 阅读选区解释只有在用户显式点击阅读页中的解释动作时才发送给 Provider；导入、打开、滚动、选中正文、删除 / 恢复资料或播放 TTS 都不得自动触发 AI。
 - AI 输出不能直接覆盖用户原文。
 - AI 请求日志不能默认记录完整日记、完整照片识别文本、API Key 或密钥。
 - 长期记忆上下文不能默认无限量发送给 Provider。
@@ -110,6 +111,8 @@ Prompt Preset 建议包含：
 - 错误码。
 - Prompt Preset ID 和版本。
 
+阅读 selection explanation 允许记录 Prompt id / version、schema version、Provider / endpoint / model 非敏感元数据、selection 长度分桶、失败分类和耗时；不得记录完整 selection、完整句子、完整上下文、完整请求体或完整响应体。
+
 默认不记录：
 
 - API Key。
@@ -122,6 +125,8 @@ Prompt Preset 建议包含：
 ### 4.5 输出保存边界
 
 AI 输出应保存为新对象或新版本，而不是覆盖用户输入。
+
+阅读选区解释输出属于当前 selection 的派生学习结果。第一阶段可以只保留短生命周期 UI 状态；若后续持久化，必须写入 reading AI operation / result 表或等价派生对象，不能覆盖 `reading_documents.body`，也不能把解释结果混入用户原文。
 
 推荐关联：
 
@@ -251,3 +256,4 @@ AI 在实现任何 AI 能力前应先确认：
 - 2026-05-22：补充 iPad / macOS 语言支持入口事实。原因：iOS 人工审核后，iPad / macOS 通过共享 `SettingsCapabilityDetailView` 接入同一 language context，不改变 Provider 保存、Keychain、网络、Prompt、日志或持久验证摘要边界。影响范围：AI Provider 设置 UI、SettingsCapabilityDetailView、页面清单。是否需要 ADR：否。
 - 2026-05-24：补充 AI Provider 系统级设置归属边界。原因：Provider profile 和凭证是跨语言空间配置，设置详情不应把当前语言空间方向显示成页面归属；language context 只服务测试和 voice profile。影响范围：AI Provider 设置 UI、SettingsCapabilityDetailView、页面清单。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-27：补充向量化配置测试边界。原因：OpenAI、OpenRouter 和 Custom OpenAI-compatible 的向量 endpoint 已从占位状态推进到用户显式启用后的固定低敏 embeddings probe，需要明确不发送用户内容、不保存 vector、endpoint-scoped validation 和 profile 全局摘要隔离。影响范围：AI Provider 设置、LangoTraceAI、LangoTraceData、Prompt Registry、测试工具和后续向量基础设施。是否需要 ADR：否，沿用 ADR-005。
+- 2026-06-01：补充阅读选区解释边界。原因：Reading vertical slice 已接入真实 `ReadingSelectionExplanationService` 和 Prompt Registry，阅读页点击 `解释` 后只发送 selection、sentence、limited context 和语言空间上下文，不发送全文。影响范围：LangoTraceAI、Reading UI、AppEnvironment、Prompt Registry、诊断日志和 Reading spec。是否需要 ADR：否，沿用 ADR-005。

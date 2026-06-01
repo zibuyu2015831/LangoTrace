@@ -1,6 +1,6 @@
 # 阅读基础设施与 AI/TTS 纵向切片方案
 
-状态：Draft
+状态：Implementing
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-01
@@ -28,6 +28,7 @@
 - 2026-06-01：用户要求重新评估 VMark 项目的 Markdown 阅读 / 编辑能力是否可借鉴，并要求在方案中补充具体参考代码文件位置，便于后续开发准确阅读和吸收。
 - 2026-06-01：用户进一步明确阅读功能必须追求精美阅读体验，Markdown 渲染很重要；方案需要充分借鉴 VMark 的 Markdown 实现，尤其是其对多语言展示、CJK 排版、locale、主题 token 和多语言资源的努力。本轮因此不能把 Markdown 降级为普通文本展示，应建立可扩展的 Markdown block renderer 和阅读样式边界。
 - 2026-06-01：用户确认不接受把 TextKit / SwiftUI chunk 选择前置成 Phase 0 阻塞门禁；AI explanation 不需要采用“预览确认后发送”的两步动作；async cancellation / stale response 必须作为进入实现前补齐的 P1 边界。
+- 2026-06-01：用户要求按本方案立即实施直至完整落地，并补充要求每完成一个阶段都进行代码检查、测试和 commit，便于后续回溯。
 
 ## 2. 需求描述
 
@@ -2397,7 +2398,7 @@ scripts/verify.sh
 - 本轮资料库 UI 的管理深度：是否只做列表 / 搜索 / collection-tag filter / 删除恢复入口，还是同时做多选批量管理 UI。当前方案建议本轮不做多选批量编辑 UI，但 repository 支持 import batch 和 membership 幂等。
 - 纵向切片完成后，是优先进入词典导入与词状态，还是优先进入 EPUB / PDF / HTML / Web clip adapter。
 
-是否允许进入实现：否。当前状态为 `Draft`，需要用户明确确认后才能开始实现。
+是否允许进入实现：是。当前状态为 `Implementing`，用户已要求按阶段完成检查、测试和 commit；最终完成前仍需逐项对照完成标准审计，不得以阶段性可用替代完整落地。
 
 ## 17. 实施记录
 
@@ -2409,6 +2410,9 @@ scripts/verify.sh
 - 2026-06-01：按用户要求继续修订方案：补充 TextKit / UIKit / AppKit bridge spike gate、FTS5 优先且普通 search index fallback 不改变 repository API、文件导入 security-scoped / 外部路径不落库边界、CJK / RTL 后续基于 Unicode UAX #29 / Apple `NLTokenizer` / language pack 的处理路线；方案仍为 Draft，尚未进入生产代码实现。
 - 2026-06-01：按用户要求继续修订方案：将 Markdown 渲染从普通结构化导入升级为本轮精美阅读体验的核心边界，新增 `ReadingMarkdownParser` / `ReadingMarkdownBlock` / `ReadingMarkdownBlockRenderer` / `ReadingAppearanceProfile`、多语言 Markdown fixtures、VMark CJK / locale / theme / markdown pipeline 参考路径、VMark commit 快照记录要求，以及资料库按 `LanguageSpace` 分层的更严格 repository 规则；方案仍为 Draft，尚未进入生产代码实现。
 - 2026-06-01：按用户确认继续修订方案：TextKit / SwiftUI chunk 选择不作为 Phase 0 阻塞门禁；AI explanation 改为单次显式点击触发、不采用“预览确认后发送”的两步动作；新增 async cancellation / stale response 作为 P1 必补边界，覆盖 import / load / AI / TTS 的 request token、取消、失效和旧 completion 忽略测试。
+- 2026-06-01：阶段提交 `c8d6760 Add reading vertical slice foundation`：落地 Core reading 模型、Markdown block / appearance、segmentation、dictionary lookup probe、source anchor、Data `v12_create_reading_domain_infrastructure` migration、`GRDBReadingLibraryRepository`、reading media artifact source、UI `ReadingLibraryStore` / `ReadingLibraryView` 基础资料库闭环和三端 Reading route。阶段验证已运行 `swift test --package-path Packages/LangoTraceData --filter GRDBReadingLibraryRepositoryTests`、`swift test --package-path Packages/LangoTraceUI --filter 'ReadingLibraryStoreTests|ReadingPresentationTests|PhoneIOSConvergenceTests'`、`git diff --check`、`xcodegen generate`、`xcodebuild -list -project LangoTrace.xcodeproj` 和 `xcodebuild -scheme LangoTrace-macOS -project LangoTrace.xcodeproj -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build`。
+- 2026-06-01：阶段提交 `60df1a0 Wire reading AI and TTS actions`：将 `ReadingSelectionExplanationService` 和 `readingDocumentSentence` TTS action 通过 `AppEnvironment` 装配到 iPhone / iPad / macOS reading route，补齐 `ReadingDocumentStore` stale AI/TTS 测试、language context 传递、`LanguageSpacePreview.nativeLanguageCode` 和 UI 资料库 load stale guard。阶段验证已运行 `swift test --package-path Packages/LangoTraceUI --filter 'ReadingDocumentStoreAIAndTTSTests|ReadingLibraryStoreTests|ReadingPresentationTests'`、`swift test --package-path Packages/LangoTraceCore --filter PhoneTabNavigationTests`、`xcodebuild -scheme LangoTrace-macOS -project LangoTrace.xcodeproj -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build` 和 `git diff --check`。
+- 2026-06-01：文档阶段进行中：已回写产品主参考、导航规范、页面清单、Data / AI / TTS spec、Reading domain spec、Prompt Registry 和 evidence 文档；本阶段提交前需运行文档检查。当前审计发现仍需继续补齐的实现项包括文件 picker / open panel 导入、collection/tag filter UI、UI view 直接 action 的 stale write guard，以及 reading AI operation summary 的持久记录路径。
 
 ## 18. 完成标准
 

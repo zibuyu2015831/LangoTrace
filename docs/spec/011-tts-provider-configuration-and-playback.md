@@ -46,7 +46,9 @@ TTS 是“用生活记录学习语言”闭环中的辅助能力，目的是让�
 - TTS saved probe 失败不得覆盖文本模型 profile 的全局最近验证状态。
 - 设置页保持单一主测试入口；语音生成作为同一 capability result panel 中的一行结果，不新增一套独立主测试流程。
 - 学习页只有用户显式点击某句播放时，才能发送该句目标语言文本给已配置 TTS Provider。
+- 阅读页只有用户显式点击阅读正文块或句子的 `听` 动作时，才能发送该句或该块目标语言文本给已配置 TTS Provider；reading TTS 必须使用独立 `readingDocumentSentence` source，不得复用 Entry 或 LearningMaterial sentence source。
 - 页面展示、滚动、进入详情、保存记录、生成学习材料完成、切换句子和批量预生成不得自动触发 TTS 请求。
+- 阅读资料导入、打开、滚动、选中、搜索、删除 / 恢复和 AI 解释完成不得自动触发 TTS 请求。
 - 逐句播放生成的 TTS 音频必须通过本地媒体派生资产基础设施管理，不得写入 SwiftUI 私有状态、临时目录、不可索引文件名或 UI 层 ad hoc 缓存。
 - TTS 音频 metadata 必须绑定 derivation key、文本 hash、目标语言、provider profile、endpoint、adapter kind / version、model、voice、format、参数 hash、configuration fingerprint、文件相对路径、byte size、duration、created / last accessed、失效和清理策略。
 - 第一阶段 TTS 音频默认 `localOnly`、excluded from system backup、excluded by default from export；未来同步、导出、备份或附件化必须单独设计 manifest、加密、删除传播和恢复策略。
@@ -410,3 +412,4 @@ Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu 和
 - 2026-05-23：同步本地媒体派生资产基础设施实施事实。原因：本地媒体派生资产与 TTS 音频缓存方案已落地 Core / Data / Speech 基础设施和测试；逐句播放规范需要把 media artifact 从“待建前置”更新为“已具备基础设施，但仍缺 playback coordinator / generation / UI 接入”。影响范围：Data、Speech、direct playback 方案、缓存命中、失效清理和隐私日志边界。是否需要 ADR：否，沿用 ADR-005；未来若默认同步、备份或导出音频再评估 ADR。
 - 2026-05-23：补充设置页加载已保存 voice profile 的状态同步规则。原因：voice profile 是 language code 级状态源，重开设置页必须回填当前语言空间的 voice、format、speed、instructions，避免 UI 默认值覆盖用户配置。
 - 2026-05-24：同步逐句 TTS generation / playback / coordinator 和 direct playback UI 接入实施事实。原因：真实单句 TTS 生成、持久音频播放、缓存优先、跨句协调、AppEnvironment 装配和共享 UI action contract 已落地；规范需从“播放前置缺失”更新为“第一阶段真实逐句播放已具备”。影响范围：Core、AI、Data、Speech、UI、AppEnvironment、project.yml、scripts/verify.sh 和页面清单。是否需要 ADR：否，沿用 ADR-005；后台播放、锁屏控制、批量预生成、同步导出和费用预算仍需独立方案。
+- 2026-06-01：补充 reading sentence TTS source。原因：Reading vertical slice 已新增 `TTSSentenceSource.readingDocumentSentence(documentID:sentenceID:)`、media artifact owner/source columns 和阅读页显式 `听` action，不能与 Entry 或 LearningMaterial sentence cache key 混用。影响范围：Core TTS artifact key、Data media artifact metadata、Reading UI、AppEnvironment 和 Reading spec。是否需要 ADR：否，沿用本地优先派生媒体资产规则。
