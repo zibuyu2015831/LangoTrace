@@ -4984,6 +4984,23 @@
         }
       }
     },
+    "reading.action.explain": {
+      "comment": "Explain selected reading text action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explain"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解释"
+          }
+        }
+      }
+    },
     "reading.inspector.body": {
       "comment": "Reading inspector empty state body.",
       "localizations": {

@@ -20,6 +20,8 @@ public struct LangoTraceRootView: View {
     private let learningMaterialGenerationActions: LearningMaterialGenerationActions
     private let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
     private let readingLibraryActions: ReadingLibraryActions
+    private let readingExplanationAction: ReadingExplanationAction
+    private let readingTTSAction: ReadingTTSAction
     private let practiceActions: PracticeActions
     private let interfaceLanguagePreference: InterfaceLanguagePreference
     private let appearancePreference: AppearancePreference
@@ -41,6 +43,10 @@ public struct LangoTraceRootView: View {
         learningMaterialGenerationActions: LearningMaterialGenerationActions = .disabled,
         sentenceAudioPlaybackActions: SentenceAudioPlaybackActions = .disabled,
         readingLibraryActions: ReadingLibraryActions = .disabled,
+        readingExplanationAction: @escaping ReadingExplanationAction = { _ in
+            throw ReadingLibraryActionError.unavailable
+        },
+        readingTTSAction: @escaping ReadingTTSAction = { _ in },
         practiceActions: PracticeActions = .disabled,
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         appearancePreference: AppearancePreference = .system,
@@ -61,6 +67,8 @@ public struct LangoTraceRootView: View {
         self.learningMaterialGenerationActions = learningMaterialGenerationActions
         self.sentenceAudioPlaybackActions = sentenceAudioPlaybackActions
         self.readingLibraryActions = readingLibraryActions
+        self.readingExplanationAction = readingExplanationAction
+        self.readingTTSAction = readingTTSAction
         self.practiceActions = practiceActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
@@ -99,6 +107,8 @@ public struct LangoTraceRootView: View {
                         learningMaterialGenerationActions: learningMaterialGenerationActions,
                         sentenceAudioPlaybackActions: sentenceAudioPlaybackActions,
                         readingLibraryActions: readingLibraryActions,
+                        readingExplanationAction: readingExplanationAction,
+                        readingTTSAction: readingTTSAction,
                         practiceActions: practiceActions,
                         interfaceLanguagePreference: interfaceLanguagePreference,
                         appearancePreference: appearancePreference,
@@ -158,6 +168,8 @@ private struct PlatformMainView: View {
     let learningMaterialGenerationActions: LearningMaterialGenerationActions
     let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
     let readingLibraryActions: ReadingLibraryActions
+    let readingExplanationAction: ReadingExplanationAction
+    let readingTTSAction: ReadingTTSAction
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -177,6 +189,8 @@ private struct PlatformMainView: View {
         learningMaterialGenerationActions: LearningMaterialGenerationActions,
         sentenceAudioPlaybackActions: SentenceAudioPlaybackActions,
         readingLibraryActions: ReadingLibraryActions,
+        readingExplanationAction: @escaping ReadingExplanationAction,
+        readingTTSAction: @escaping ReadingTTSAction,
         practiceActions: PracticeActions,
         interfaceLanguagePreference: InterfaceLanguagePreference,
         appearancePreference: AppearancePreference,
@@ -192,6 +206,8 @@ private struct PlatformMainView: View {
         self.learningMaterialGenerationActions = learningMaterialGenerationActions
         self.sentenceAudioPlaybackActions = sentenceAudioPlaybackActions
         self.readingLibraryActions = readingLibraryActions
+        self.readingExplanationAction = readingExplanationAction
+        self.readingTTSAction = readingTTSAction
         self.practiceActions = practiceActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
@@ -225,6 +241,8 @@ private struct PlatformMainView: View {
                     languageSpaces: languageSpaces,
                     contentStore: contentStore,
                     readingLibraryStore: readingLibraryStore,
+                    readingExplanationAction: readingExplanationAction,
+                    readingTTSAction: readingTTSAction,
                     practiceActions: practiceActions,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     appearancePreference: appearancePreference,
@@ -241,6 +259,8 @@ private struct PlatformMainView: View {
                     languageSpaces: languageSpaces,
                     contentStore: contentStore,
                     readingLibraryStore: readingLibraryStore,
+                    readingExplanationAction: readingExplanationAction,
+                    readingTTSAction: readingTTSAction,
                     practiceActions: practiceActions,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     appearancePreference: appearancePreference,
@@ -258,6 +278,8 @@ private struct PlatformMainView: View {
                 languageSpaces: languageSpaces,
                 contentStore: contentStore,
                 readingLibraryStore: readingLibraryStore,
+                readingExplanationAction: readingExplanationAction,
+                readingTTSAction: readingTTSAction,
                 practiceActions: practiceActions,
                 interfaceLanguagePreference: interfaceLanguagePreference,
                 appearancePreference: appearancePreference,

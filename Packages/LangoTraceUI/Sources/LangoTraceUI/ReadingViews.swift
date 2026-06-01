@@ -4,9 +4,16 @@ import SwiftUI
 struct ReadingLibraryView: View {
     let platform: ReadingPlatformRole
     @ObservedObject var store: ReadingLibraryStore
+    let explanationAction: ReadingExplanationAction
+    let ttsAction: ReadingTTSAction
     @State private var importTitle = ""
     @State private var importBody = ""
     @State private var isImportSheetPresented = false
+    @State private var selectedText: String?
+    @State private var selectedSentenceID: String?
+    @State private var explanationResult: ReadingSelectionExplanationResult?
+    @State private var explanationState: ReadingAsyncState = .idle
+    @State private var audioState: ReadingAsyncState = .idle
 
     private var activePresentation: ReadingDocumentPresentation {
         if let selectedPresentation = store.selectedPresentation {
@@ -65,6 +72,8 @@ struct ReadingLibraryView: View {
                 libraryPane
                 Divider()
                 readerPane
+                Divider()
+                inspectorPane
             }
         }
     }
@@ -145,7 +154,33 @@ struct ReadingLibraryView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: activePresentation.style.paragraphSpacing) {
                 ForEach(activePresentation.blocks, id: \.id) { block in
-                    readingBlock(block, style: activePresentation.style)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Button {
+                            select(block)
+                        } label: {
+                            readingBlock(block, style: activePresentation.style)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.plain)
+                        if selectedSentenceID == block.id {
+                            HStack(spacing: 8) {
+                                Button {
+                                    Task { await explainSelectedText() }
+                                } label: {
+                                    Label(localizedString("reading.action.explain"), systemImage: "sparkles")
+                                }
+                                .disabled(explanationState == .loading)
+
+                                Button {
+                                    Task { await play(block) }
+                                } label: {
+                                    Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
+                                }
+                                .disabled(audioState == .loading)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
                 }
             }
             .padding(24)
@@ -158,9 +193,25 @@ struct ReadingLibraryView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(localizedString("reading.inspector.title"))
                 .font(.headline)
-            Text(localizedString("reading.inspector.body"))
-                .font(.callout)
-                .foregroundStyle(.secondary)
+            if let selectedText {
+                Text(selectedText)
+                    .font(.callout.weight(.semibold))
+                if let explanationResult {
+                    Text(explanationResult.shortExplanation)
+                        .font(.callout)
+                    Text(explanationResult.meaningInNativeLanguage)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text(localizedString("reading.inspector.body"))
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text(localizedString("reading.inspector.body"))
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(20)
     }
@@ -230,5 +281,49 @@ struct ReadingLibraryView: View {
                 .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
                 .lineSpacing(style.lineSpacing)
         }
+    }
+
+    private func select(_ block: ReadingBlockPresentation) {
+        selectedText = block.text
+        selectedSentenceID = block.id
+        explanationResult = nil
+        explanationState = .idle
+    }
+
+    private func explainSelectedText() async {
+        guard let selectedText, let selectedSentenceID else { return }
+        explanationState = .loading
+        do {
+            explanationResult = try await explanationAction(
+                ReadingExplanationRequest(
+                    documentID: store.selectedDocument?.id ?? "",
+                    spaceID: store.languageSpace.id,
+                    selectedText: selectedText,
+                    sentenceID: selectedSentenceID,
+                    containingSentence: selectedText,
+                    contextText: selectedText,
+                    nativeLanguageCode: store.languageSpace.nativeLanguageCode,
+                    targetLanguageCode: store.languageSpace.targetLanguageCode,
+                    proficiencyLevelCode: store.languageSpace.level.rawValue
+                )
+            )
+            explanationState = .idle
+        } catch {
+            explanationState = .failed
+        }
+    }
+
+    private func play(_ block: ReadingBlockPresentation) async {
+        audioState = .loading
+        await ttsAction(
+            ReadingTTSRequest(
+                documentID: store.selectedDocument?.id ?? "",
+                spaceID: store.languageSpace.id,
+                sentenceID: block.id,
+                text: block.text,
+                targetLanguageCode: store.languageSpace.targetLanguageCode
+            )
+        )
+        audioState = .idle
     }
 }

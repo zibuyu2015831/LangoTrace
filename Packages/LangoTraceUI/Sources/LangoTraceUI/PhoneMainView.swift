@@ -7,6 +7,8 @@ struct PhoneMainView: View {
     let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
     @ObservedObject var readingLibraryStore: ReadingLibraryStore
+    let readingExplanationAction: ReadingExplanationAction
+    let readingTTSAction: ReadingTTSAction
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -43,7 +45,12 @@ struct PhoneMainView: View {
                 }
                 .tag(PhoneRootTab.entries)
 
-                ReadingLibraryView(platform: .phone, store: readingLibraryStore)
+                ReadingLibraryView(
+                    platform: .phone,
+                    store: readingLibraryStore,
+                    explanationAction: readingExplanationAction,
+                    ttsAction: readingTTSAction
+                )
                     .tabItem {
                         Label {
                             localizedText(PhoneRootTab.reading.localizedTitleKey)

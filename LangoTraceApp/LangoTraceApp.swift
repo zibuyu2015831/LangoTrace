@@ -88,6 +88,8 @@ struct LangoTraceApp: App {
             learningMaterialGenerationActions: environment.learningMaterialGenerationActions,
             sentenceAudioPlaybackActions: environment.sentenceAudioPlaybackActions,
             readingLibraryActions: environment.readingLibraryActions,
+            readingExplanationAction: environment.readingExplanationAction,
+            readingTTSAction: environment.readingTTSAction,
             practiceActions: environment.practiceActions,
             interfaceLanguagePreference: interfaceLanguagePreference,
             appearancePreference: appearancePreference,

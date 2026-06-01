@@ -84,6 +84,49 @@ struct ReadingDocumentStoreAIAndTTSTests {
         #expect(await explanation.requestCount() == 1)
         #expect(store.explanationState == .loading)
     }
+
+    @Test("explanation request carries selection sentence context and language metadata")
+    func explanationRequestCarriesContextAndLanguageMetadata() async {
+        let explanation = CapturingReadingExplanationAction()
+        let store = ReadingDocumentStore(
+            documentID: "doc-1",
+            spaceID: "space-1",
+            nativeLanguageCode: "zh-Hans",
+            targetLanguageCode: "ja",
+            proficiencyLevelCode: "a2",
+            explanationAction: explanation.explain,
+            ttsAction: { _ in }
+        )
+
+        store.selectText("図書館", sentenceID: "block-1", containingSentence: "今日は図書館で読みます。")
+        await store.explainSelection()
+
+        let request = await explanation.requests.first
+        #expect(request?.selectedText == "図書館")
+        #expect(request?.containingSentence == "今日は図書館で読みます。")
+        #expect(request?.contextText == "今日は図書館で読みます。")
+        #expect(request?.nativeLanguageCode == "zh-Hans")
+        #expect(request?.targetLanguageCode == "ja")
+        #expect(request?.proficiencyLevelCode == "a2")
+    }
+
+    @Test("TTS request carries target language metadata")
+    func ttsRequestCarriesTargetLanguageMetadata() async {
+        let tts = CapturingReadingTTSAction()
+        let store = ReadingDocumentStore(
+            documentID: "doc-1",
+            spaceID: "space-1",
+            targetLanguageCode: "ja",
+            explanationAction: { _ in .sample(selection: "word") },
+            ttsAction: tts.play
+        )
+
+        await store.playSentence(sentenceID: "block-1", text: "今日は図書館で読みます。")
+
+        let request = await tts.requests.first
+        #expect(request?.sentenceID == "block-1")
+        #expect(request?.targetLanguageCode == "ja")
+    }
 }
 
 private actor ControlledReadingExplanationAction {
@@ -127,6 +170,23 @@ private actor ControlledReadingTTSAction {
 
     func requestCount() -> Int {
         requests.count
+    }
+}
+
+private actor CapturingReadingExplanationAction {
+    private(set) var requests: [ReadingExplanationRequest] = []
+
+    func explain(_ request: ReadingExplanationRequest) async throws -> ReadingSelectionExplanationResult {
+        requests.append(request)
+        return .sample(selection: request.selectedText)
+    }
+}
+
+private actor CapturingReadingTTSAction {
+    private(set) var requests: [ReadingTTSRequest] = []
+
+    func play(_ request: ReadingTTSRequest) async {
+        requests.append(request)
     }
 }
 

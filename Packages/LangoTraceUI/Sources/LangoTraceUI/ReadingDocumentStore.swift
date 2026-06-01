@@ -12,29 +12,40 @@ public final class ReadingDocumentStore: @unchecked Sendable {
     public private(set) var spaceID: String
     public private(set) var selectedText: String?
     public private(set) var selectedSentenceID: String?
+    public private(set) var containingSentence: String = ""
     public private(set) var explanationState: ReadingAsyncState = .idle
     public private(set) var explanationResult: ReadingSelectionExplanationResult?
     public private(set) var audioState: ReadingAsyncState = .idle
 
     private let explanationAction: ReadingExplanationAction
     private let ttsAction: ReadingTTSAction
+    private let nativeLanguageCode: String
+    private let targetLanguageCode: String
+    private let proficiencyLevelCode: String
     private var generation = 0
 
     public init(
         documentID: String,
         spaceID: String,
+        nativeLanguageCode: String = "",
+        targetLanguageCode: String = "",
+        proficiencyLevelCode: String = "",
         explanationAction: @escaping ReadingExplanationAction,
         ttsAction: @escaping ReadingTTSAction
     ) {
         self.documentID = documentID
         self.spaceID = spaceID
+        self.nativeLanguageCode = nativeLanguageCode
+        self.targetLanguageCode = targetLanguageCode
+        self.proficiencyLevelCode = proficiencyLevelCode
         self.explanationAction = explanationAction
         self.ttsAction = ttsAction
     }
 
-    public func selectText(_ text: String, sentenceID: String?) {
+    public func selectText(_ text: String, sentenceID: String?, containingSentence: String = "") {
         selectedText = text
         selectedSentenceID = sentenceID
+        self.containingSentence = containingSentence
         explanationResult = nil
         explanationState = .idle
         invalidateInFlightWork()
@@ -45,6 +56,7 @@ public final class ReadingDocumentStore: @unchecked Sendable {
         self.spaceID = spaceID
         selectedText = nil
         selectedSentenceID = nil
+        containingSentence = ""
         explanationResult = nil
         explanationState = .idle
         audioState = .idle
@@ -61,7 +73,12 @@ public final class ReadingDocumentStore: @unchecked Sendable {
             documentID: documentID,
             spaceID: spaceID,
             selectedText: selectedText,
-            sentenceID: selectedSentenceID
+            sentenceID: selectedSentenceID,
+            containingSentence: containingSentence,
+            contextText: containingSentence,
+            nativeLanguageCode: nativeLanguageCode,
+            targetLanguageCode: targetLanguageCode,
+            proficiencyLevelCode: proficiencyLevelCode
         )
         Task { [weak self] in
             do {
@@ -85,7 +102,8 @@ public final class ReadingDocumentStore: @unchecked Sendable {
             documentID: documentID,
             spaceID: spaceID,
             sentenceID: sentenceID,
-            text: text
+            text: text,
+            targetLanguageCode: targetLanguageCode
         )
         Task { [weak self] in
             await self?.ttsAction(request)

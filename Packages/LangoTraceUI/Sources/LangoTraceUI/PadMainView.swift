@@ -7,6 +7,8 @@ struct PadMainView: View {
     let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
     @ObservedObject var readingLibraryStore: ReadingLibraryStore
+    let readingExplanationAction: ReadingExplanationAction
+    let readingTTSAction: ReadingTTSAction
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -239,6 +241,8 @@ struct PadMainView: View {
             settingsCapabilities: settingsCapabilities,
             contentStore: contentStore,
             readingLibraryStore: readingLibraryStore,
+            readingExplanationAction: readingExplanationAction,
+            readingTTSAction: readingTTSAction,
             practiceActions: practiceActions,
             interfaceLanguagePreference: interfaceLanguagePreference,
             appearancePreference: appearancePreference,

@@ -99,6 +99,8 @@ struct PadWorkspaceContentView: View {
     let settingsCapabilities: [SettingsCapability]
     @ObservedObject var contentStore: LearningContentStore
     @ObservedObject var readingLibraryStore: ReadingLibraryStore
+    let readingExplanationAction: ReadingExplanationAction
+    let readingTTSAction: ReadingTTSAction
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -136,7 +138,12 @@ struct PadWorkspaceContentView: View {
                 )
                 .id(seed.practiceRouteIdentity)
             case .reading:
-                ReadingLibraryView(platform: .pad, store: readingLibraryStore)
+                ReadingLibraryView(
+                    platform: .pad,
+                    store: readingLibraryStore,
+                    explanationAction: readingExplanationAction,
+                    ttsAction: readingTTSAction
+                )
             case let .settings(kind):
                 settingDetail(kind: kind)
             case .settingsList:

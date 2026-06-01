@@ -39,6 +39,21 @@ public struct ReadingTTSRequest: Equatable, Sendable {
     public var spaceID: String
     public var sentenceID: String
     public var text: String
+    public var targetLanguageCode: String
+
+    public init(
+        documentID: String,
+        spaceID: String,
+        sentenceID: String,
+        text: String,
+        targetLanguageCode: String = ""
+    ) {
+        self.documentID = documentID
+        self.spaceID = spaceID
+        self.sentenceID = sentenceID
+        self.text = text
+        self.targetLanguageCode = targetLanguageCode
+    }
 }
 
 public typealias ReadingExplanationAction = @Sendable (ReadingExplanationRequest) async throws -> ReadingSelectionExplanationResult

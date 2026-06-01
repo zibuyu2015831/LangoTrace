@@ -45,6 +45,7 @@ public struct LanguageSpace: Equatable, Sendable, Identifiable {
             id: id,
             name: displayName,
             nativeLanguage: LearningLanguage.find(code: nativeLanguageCode)?.zhHansName ?? nativeLanguageCode,
+            nativeLanguageCode: nativeLanguageCode,
             targetLanguage: LearningLanguage.find(code: targetLanguageCode)?.zhHansName ?? targetLanguageCode,
             targetLanguageCode: targetLanguageCode,
             level: level

@@ -15,6 +15,8 @@ struct MacWorkspaceContentView: View {
     let settingsCapabilities: [SettingsCapability]
     @ObservedObject var contentStore: LearningContentStore
     @ObservedObject var readingLibraryStore: ReadingLibraryStore
+    let readingExplanationAction: ReadingExplanationAction
+    let readingTTSAction: ReadingTTSAction
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -39,7 +41,12 @@ struct MacWorkspaceContentView: View {
         case let .entryDetail(entryID):
             entryDetail(entryID: entryID)
         case .reading:
-            ReadingLibraryView(platform: .mac, store: readingLibraryStore)
+            ReadingLibraryView(
+                platform: .mac,
+                store: readingLibraryStore,
+                explanationAction: readingExplanationAction,
+                ttsAction: readingTTSAction
+            )
         case let .practiceSentenceList(entryID):
             practiceSentenceList(entryID: entryID)
         case let .practiceSentence(seed):
@@ -75,7 +82,12 @@ struct MacWorkspaceContentView: View {
         case .entries:
             entriesContent
         case .reading:
-            ReadingLibraryView(platform: .mac, store: readingLibraryStore)
+            ReadingLibraryView(
+                platform: .mac,
+                store: readingLibraryStore,
+                explanationAction: readingExplanationAction,
+                ttsAction: readingTTSAction
+            )
         case .practice:
             practiceContent
         case .memory:

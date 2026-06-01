@@ -3,7 +3,7 @@ import Testing
 @testable import LangoTraceUI
 
 @MainActor
-@Suite("Reading library store")
+@Suite("Reading library store", .serialized)
 struct ReadingLibraryStoreTests {
     @Test("loads documents for the current language space only")
     func loadsCurrentSpaceOnly() async {
@@ -96,14 +96,14 @@ struct ReadingLibraryStoreTests {
         store.replaceLanguageSpace(.preview(id: "space-b", targetLanguageCode: "ja"))
         let secondLoad = Task { await store.reload() }
         await actions.waitForListRequestCount(4)
-        await actions.completeNextList([
+        await actions.completeNextList(spaceID: "space-a", includeDeleted: false, [
             .summary(id: "doc-a", spaceID: "space-a", title: "A"),
         ])
-        await actions.completeNextList([])
-        await actions.completeNextList([
+        await actions.completeNextList(spaceID: "space-a", includeDeleted: true, [])
+        await actions.completeNextList(spaceID: "space-b", includeDeleted: false, [
             .summary(id: "doc-b", spaceID: "space-b", title: "B"),
         ])
-        await actions.completeNextList([])
+        await actions.completeNextList(spaceID: "space-b", includeDeleted: true, [])
         await firstLoad.value
         await secondLoad.value
 
@@ -190,12 +190,18 @@ private actor FakeReadingLibraryActions {
 }
 
 private actor ControlledReadingLibraryActions {
-    private var continuations: [CheckedContinuation<[ReadingLibraryDocumentSummary], Error>] = []
+    private struct PendingList {
+        var spaceID: String
+        var includeDeleted: Bool
+        var continuation: CheckedContinuation<[ReadingLibraryDocumentSummary], Error>
+    }
+
+    private var continuations: [PendingList] = []
 
     nonisolated var actions: ReadingLibraryActions {
         ReadingLibraryActions(
-            listDocuments: { [self] _, _, _ in
-                try await list()
+            listDocuments: { [self] spaceID, includeDeleted, _ in
+                try await list(spaceID: spaceID, includeDeleted: includeDeleted)
             },
             importPastedText: { _ in
                 .summary(id: "unused", spaceID: "unused", title: "unused")
@@ -207,9 +213,13 @@ private actor ControlledReadingLibraryActions {
         )
     }
 
-    private func list() async throws -> [ReadingLibraryDocumentSummary] {
+    private func list(spaceID: String, includeDeleted: Bool) async throws -> [ReadingLibraryDocumentSummary] {
         try await withCheckedThrowingContinuation { continuation in
-            continuations.append(continuation)
+            continuations.append(PendingList(
+                spaceID: spaceID,
+                includeDeleted: includeDeleted,
+                continuation: continuation
+            ))
         }
     }
 
@@ -219,9 +229,17 @@ private actor ControlledReadingLibraryActions {
         }
     }
 
-    func completeNextList(_ documents: [ReadingLibraryDocumentSummary]) {
-        guard !continuations.isEmpty else { return }
-        continuations.removeFirst().resume(returning: documents)
+    func completeNextList(
+        spaceID: String,
+        includeDeleted: Bool,
+        _ documents: [ReadingLibraryDocumentSummary]
+    ) {
+        guard let index = continuations.firstIndex(where: {
+            $0.spaceID == spaceID && $0.includeDeleted == includeDeleted
+        }) else {
+            return
+        }
+        continuations.remove(at: index).continuation.resume(returning: documents)
     }
 }
 

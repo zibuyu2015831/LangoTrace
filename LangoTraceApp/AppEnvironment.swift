@@ -14,6 +14,8 @@ struct AppEnvironment {
     let makeSentenceAudioPlaybackCoordinator: @Sendable () throws -> SentenceAudioPlaybackCoordinator
     let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
     let readingLibraryActions: ReadingLibraryActions
+    let readingExplanationAction: ReadingExplanationAction
+    let readingTTSAction: ReadingTTSAction
     let practiceActions: PracticeActions
     let aiProviderSettingsActions: AIProviderSettingsActions
     let aiProvider: any AIProvider
@@ -61,6 +63,13 @@ struct AppEnvironment {
             },
             sentenceAudioPlaybackActions: sentenceAudioPlaybackCoordinatorBox.actions(),
             readingLibraryActions: makeReadingLibraryActions(databaseFactory: databaseFactory),
+            readingExplanationAction: makeReadingExplanationAction(
+                databaseFactory: databaseFactory,
+                credentialStore: credentialStore
+            ),
+            readingTTSAction: makeReadingTTSAction(
+                sentenceAudioPlaybackActions: sentenceAudioPlaybackCoordinatorBox.actions()
+            ),
             practiceActions: (
                 try? PracticeActionsAssembly.makeActions(
                     database: databaseFactory.database(),
@@ -160,6 +169,67 @@ struct AppEnvironment {
             aiProvider: DisabledAIProvider(),
             speechService: DisabledSpeechService(),
             syncService: DisabledSyncService()
+        )
+    }
+}
+
+private func makeReadingExplanationAction(
+    databaseFactory: SharedAppDatabaseFactory,
+    credentialStore: any AIProviderCredentialStore
+) -> ReadingExplanationAction {
+    { request in
+        let configurationRepository = try GRDBAIProviderConfigurationRepository(
+            database: databaseFactory.database()
+        )
+        guard let profile = try await configurationRepository.loadDefaultProfile(),
+              let endpoint = profile.textGenerationEndpointInput
+        else {
+            throw ReadingSelectionExplanationServiceError(category: .providerNotConfigured)
+        }
+        let plaintextSecret = try await resolveLearningMaterialSecret(
+            endpoint: endpoint,
+            profile: profile,
+            credentialStore: credentialStore
+        )
+        let service = ReadingSelectionExplanationService(httpClient: URLSessionAIProviderHTTPClient())
+        return try await service.explain(
+            ReadingSelectionExplanationServiceRequest(
+                endpoint: endpoint,
+                plaintextSecret: plaintextSecret,
+                input: ReadingSelectionExplanationInput(
+                    documentID: request.documentID,
+                    sourceAnchorID: request.sentenceID ?? "selection",
+                    selectedText: request.selectedText,
+                    containingSentence: request.containingSentence,
+                    contextText: request.contextText,
+                    nativeLanguageCode: request.nativeLanguageCode,
+                    targetLanguageCode: request.targetLanguageCode,
+                    proficiencyLevelCode: request.proficiencyLevelCode
+                )
+            )
+        )
+    }
+}
+
+private func makeReadingTTSAction(
+    sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
+) -> ReadingTTSAction {
+    { request in
+        _ = await sentenceAudioPlaybackActions.handleTap(
+            SentenceAudioRequest(
+                languageSpaceID: request.spaceID,
+                owner: .readingDocumentSentence(
+                    documentID: request.documentID,
+                    sentenceID: request.sentenceID
+                ),
+                sentenceSource: .readingDocumentSentence(
+                    documentID: request.documentID,
+                    sentenceID: request.sentenceID
+                ),
+                sentenceIndex: 0,
+                targetText: request.text,
+                targetLanguageCode: request.targetLanguageCode
+            )
         )
     }
 }
