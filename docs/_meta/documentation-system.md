@@ -164,6 +164,7 @@ docs/plans/done/YYYY-MM-DD-<type>-<short-topic>.md
 - `refactor`
 - `research`
 - `chore`
+- `docs`
 
 必须先创建任务方案并经用户确认后再实现的任务：
 
@@ -173,6 +174,8 @@ docs/plans/done/YYYY-MM-DD-<type>-<short-topic>.md
 - 数据、AI、隐私、同步、权限、StoreKit 相关任务。
 - 影响用户路径或多端体验的任务。
 - 改变开发规范、模块边界或长期维护方式的任务。
+
+上述任务进入实现前，还必须按 `docs/plans/plan-review-protocol.md` 完成严格方案自审核，并将确认的问题、修订和剩余风险写回 active plan。
 
 低风险错别字、轻量文档修正或用户明确要求跳过记录的小任务，可以不创建任务方案，但最终答复应说明原因。
 

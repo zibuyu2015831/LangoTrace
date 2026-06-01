@@ -1,6 +1,7 @@
 # AI Provider language support diagnostics
 
 状态：In Progress
+自审核状态：Not Reviewed
 类型：bug
 创建日期：2026-05-26
 最后更新日期：2026-05-26

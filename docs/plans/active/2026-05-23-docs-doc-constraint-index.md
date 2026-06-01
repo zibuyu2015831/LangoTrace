@@ -1,9 +1,10 @@
 # 文档约束索引与任务方案模板优化方案
 
 状态：Draft
+自审核状态：Reviewed
 类型：docs
 创建日期：2026-05-23
-最后更新日期：2026-05-25
+最后更新日期：2026-06-01
 
 ## 用户确认记录
 
@@ -14,6 +15,10 @@
 - 2026-05-23：用户确认采纳上述优化方向，并要求立即完成本方案文档。本方案仍处于 Draft；实施前需要用户确认具体修改范围。
 - 2026-05-23：系统架构复查确认本任务不涉及 Swift 源码实现，代码现状描述为“无代码文件路径”准确；但要求收紧首批约束索引范围，避免把隐私、存储、AI 等领域规范复制成 `_meta` 下的第二事实源，并要求使用文档体系变更的更严格验证命令。
 - 2026-05-25：用户要求站在系统架构师角度，基于项目定位和愿景，对方案问题深入思考并推荐最优方案；确认采纳“轻量文档约束路由索引 + 任务方案内具体约束执行”的设计，并要求立即更新本方案。
+- 2026-06-01：用户指出 `docs/plan-review-protocol.md` 是从其他项目拷贝而来，询问是否可以优化完善为本项目 active plan 创建后的方案审核协议；评估后确认该方向可纳入，但必须移除外部项目名、`dev_docs/` 路径、强制 commit 和 memo 落点冲突。
+- 2026-06-01：用户明确要求立即进行该方案的优化和完善。本轮确认范围为“将外来方案自审核协议改造为 LangoTrace 的实现前 active plan 自审核协议，并接入现有 plans / review 权威关系”；不包含首批 `docs/_meta/documentation-constraints.md` 约束路由索引落地。
+- 2026-06-01：用户要求重新商榷自审核状态，确认自审核发现问题后应先完成方案修订，因此自审核状态只需要两态；同时要求在 `docs/plans/README.md` 简要说明文档状态。
+- 2026-06-01：用户进一步要求自审核状态和主状态一样使用英文表示；确认取值为 `Not Reviewed` / `Reviewed`。
 
 ## 1. 需求或 bug 描述
 
@@ -21,11 +26,12 @@
 
 外部参考文件 `docs/reference/_constraints_doc.html` 提供了一套将约束结构化的设计：每条 constraint 有 `kind`、`source`、`applies_to`、`enforced_by`、`severity` 和 `verification_hint`，并按消费位置分流。LangoTrace 不应照搬该外部系统，但可以吸收它的轻量结构化思想，优化任务方案模板和文档治理入口。
 
-本任务要完成三件事：
+本任务要完成四件事：
 
 1. 修正计划类型规则中的当前文档漂移。
 2. 增强任务方案模板，使后续 feature / bug / refactor / docs 方案显式记录约束映射和验证路径。
 3. 建立一份轻量文档约束路由索引，用于指向 LangoTrace 已经存在、需要高频遵守的文档治理约束来源，而不是创造新的产品、架构或领域事实源。
+4. 将外来 `docs/plan-review-protocol.md` 优化为 LangoTrace 的 active plan 实现前严格方案自审核协议，明确它和 `docs/plans/README.md`、`docs/review/README.md`、`docs/architecture/notes/` 的职责关系。
 
 ## 2. 现状描述
 
@@ -43,6 +49,7 @@
 - 模板没有明确要求写出 TDD 落点、先失败用例、聚焦测试命令、完整验证命令，以及不新增单元测试时的原因和剩余风险。
 - 模板没有区分约束的 `source`、`scope`、`severity` 和 `enforced_by`，导致复杂方案中约束容易散落在正文段落里。
 - 现有 `docs/reference/` 规则已明确外部参考不是产品决策源、架构事实源或实现事实源；因此 `docs/reference/_constraints_doc.html` 只能作为参考输入，不能直接升级为 LangoTrace 规范。
+- `docs/plan-review-protocol.md` 是外来文档，当前仍包含 `AnvilDeck`、`dev_docs/plans/active/`、`dev_docs/memos/` 和强制 commit 规则；这些内容与 LangoTrace 当前文档体系冲突。
 
 ## 3. 目标
 
@@ -56,10 +63,12 @@
   - 如果不新增单元测试，必须说明原因和剩余风险。
 - `docs/plans/examples/task-plan-template.md` 增加一套可直接填写的“约束映射与验证路径”章节或子章节。
 - 新增轻量文档约束路由索引，推荐落点为 `docs/_meta/documentation-constraints.md`，只收录已经存在于 `docs/README.md`、`docs/plans/README.md`、`docs/review/README.md`、`docs/_meta/documentation-system.md`、`docs/reference/README.md`、核心 spec 和 ADR 中的高价值治理规则与领域检查入口。
+- 新增或改造 `docs/plans/plan-review-protocol.md`，作为 active plan 进入实现前的严格方案自审核协议，要求审查结论写回 active plan。
 - 新索引采用 Markdown，不引入 JSON / YAML / 代码生成 pipeline；索引主格式采用“短摘要表 + 每条约束段落块”，避免长字段破坏 Markdown 表格。
 - 每条约束至少包含：`id`、`kind`、`status`、`source`、`statement`、`scope`、`severity`、`enforced_by`、`verification_hint`、`conflict_handling`，必要时包含 `superseded_by`。
 - 首批索引优先收录文档治理、任务方案、review、reference 权威边界和验证入口等跨任务治理约束；隐私、存储、AI Provider 等领域规则只收录“应回到哪个权威文档检查”的触发型路由约束，不复制具体领域规则正文。
 - 新索引明确它不是新的产品决策源、架构事实源、执行裁决源或领域规范源；如果索引内容与原始 spec / ADR / product reference / review 机制冲突，以原始权威文档为准，并把冲突作为文档治理问题处理。
+- 方案自审核协议明确只管理“实现前方案审核”，不替代实现后的文档影响检查、事件触发专项审查或里程碑轻量全审。
 - 完成文档门禁验证，并记录验证结果。
 
 ## 4. 范围
@@ -71,6 +80,7 @@
 - 新增轻量文档约束路由索引。
 - 必要时更新 `docs/_meta/directory-responsibilities.md`，登记新增 `_meta` 文档职责。
 - 必要时更新 `docs/README.md` 或 `docs/review/README.md` 的读取路径，但只在新增约束索引需要入口发现时进行。
+- 将 `docs/plan-review-protocol.md` 移动或改造到 `docs/plans/plan-review-protocol.md`，消除外部项目残留，并在任务方案规则和模板中接入。
 - 文档-only 验证。
 
 ## 5. 不做什么
@@ -87,6 +97,9 @@
 - 不改写历史 `docs/plans/done/`、`docs/review/rounds/` 或 `docs/archive/` 正文。
 - 不删除任何历史记录或外部参考文件。
 - 不把 LLM 推断出的规则直接设为 blocker；只有已经被 LangoTrace 权威文档或用户明确确认的规则才能进入强约束。
+- 不把方案自审核协议放入 `docs/review/`，避免混淆“实现前方案审核”和“实现后文档一致性审查”。
+- 不强制每次方案创建、修订、审核都单独 commit；提交规则仍以用户要求和当前协作流程为准。
+- 不恢复 `dev_docs/`、`dev_docs/memos/` 或其他外来目录。
 
 ## 6. 证据与决策依据
 
@@ -99,6 +112,7 @@
 - `docs/reference/README.md`：外部参考不是产品决策源、架构事实源或实现事实源。
 - `docs/reference/_constraints_doc.html`：外部 constraint 结构化设计参考。
 - `docs/README.md`：当前 AGENTS / AI_ENTRY_POINT / CLAUDE 入口事实源，包含 active plan、TDD、专项文档影响检查和高风险变更规则。
+- `docs/plan-review-protocol.md`：外来方案自审核协议原始输入，含 AnvilDeck 和 `dev_docs` 路径残留；可吸收双轮审核、P0-P3 分级和发现写回 active plan 的机制。
 
 参考设计中可吸收的点：
 
@@ -152,6 +166,7 @@
 预计修改：
 
 - `docs/plans/README.md`
+- `docs/plans/plan-review-protocol.md`
 - `docs/plans/examples/task-plan-template.md`
 - `docs/_meta/documentation-system.md`
 - `docs/_meta/documentation-constraints.md`
@@ -316,6 +331,44 @@
 8. 在本方案“实施记录”中记录实际修改、验证命令和结果。
 9. 验证通过后，将本方案移入 `docs/plans/done/` 并更新状态。
 
+### 11.8 方案自审核协议改造
+
+1. 将外来 `docs/plan-review-protocol.md` 移动到 `docs/plans/plan-review-protocol.md`，使其成为 plans 体系下的执行规则。
+2. 将项目名、路径和落点改为 LangoTrace 当前事实：
+   - `AnvilDeck` -> `LangoTrace`。
+   - `dev_docs/plans/active/` -> `docs/plans/active/`。
+   - `dev_docs/memos/` -> `docs/architecture/notes/`，且仅用于架构级跨任务提醒。
+3. 明确协议权威边界：只管实现前 active plan 审核，不替代 ADR、spec、architecture、workflow、review 或 testing 文档。
+4. 保留双轮审核、P0-P3 分级、证据化发现和写回 active plan 的核心机制。
+5. 将强制 commit 改为条件性记录：用户要求提交或任务进入提交流程时才记录 commit；不把 commit 设为协议硬门禁。
+6. 在 `docs/plans/README.md`、任务方案模板、`docs/_meta/documentation-system.md` 和必要入口中加入轻量引用。
+
+### 11.9 严格方案自审核记录
+
+审核日期：2026-06-01
+
+审核方式：主会话自审核。
+
+审核轮次：单轮，覆盖系统架构、测试 / 安全 / 落地性中与本轮文档治理子范围直接相关的事项。
+
+未使用隔离审查的原因：本轮只改造文档协议和入口接线，不涉及 Swift 生产代码、数据库、Provider、权限、同步或发布路径；已直接核对 `docs/README.md`、`docs/plans/README.md`、`docs/review/README.md`、`docs/_meta/documentation-system.md` 和现有 active plan。
+
+发现摘要：
+
+- P1：外来协议若原样接入，会把 `AnvilDeck`、`dev_docs/`、强制 commit 和 memo 路径带入 LangoTrace，误导后续任务执行。
+- P1：协议职责若放入 `docs/review/`，会混淆实现前方案审核与实现后文档一致性审查。
+- P2：任务方案模板缺少固定“严格方案自审核记录”章节，后续方案容易只在聊天记录中保留审核结论。
+
+写回修改：
+
+- 将协议落点确定为 `docs/plans/plan-review-protocol.md`。
+- 将协议权威边界写清为实现前 active plan 审核，不替代 ADR、spec、architecture、workflow、review 或 testing 文档。
+- 在 plans 入口、任务模板、文档体系规范、目录职责和总入口中加入轻量引用。
+
+仍需用户确认的问题：首批 `docs/_meta/documentation-constraints.md` 约束路由索引是否继续按本 active plan 后续实施。
+
+是否允许进入实现：本轮用户已明确授权“立即进行该方案的优化和完善”，因此允许执行方案自审核协议改造子范围；不自动扩展到约束路由索引落地。
+
 ## 12. 复查方法
 
 - 对照 `docs/plans/README.md` 和 `docs/plans/examples/task-plan-template.md`，确认新增章节在规则和模板中都有对应。
@@ -326,6 +379,8 @@
 - 检查首批约束的 `blocker` 项是否均来自当前权威文档中的明确强制规则。
 - 检查首批约束的生命周期状态是否完整；源文档状态不明的约束必须标记 `needs-review`。
 - 搜索 `constraints.json`、`audit_v2`、`variant` 等词，确认本任务没有引入外部系统实现承诺。
+- 检查 `docs/plans/plan-review-protocol.md` 不再包含 `AnvilDeck`、`dev_docs/` 或外部项目 memo 路径。
+- 检查方案自审核协议没有替代 `docs/review/README.md` 的实现后文档一致性审查职责。
 
 ## 13. 验证命令
 
@@ -354,6 +409,9 @@ rg -n "约束路由索引|不是产品决策源|不是.*事实源|不是.*裁决
 # 应有命中：首批约束必须带 lifecycle 和冲突处理字段。
 rg -n "状态：active|状态：superseded|状态：invalidated|状态：needs-review|冲突处理|替代关系" docs/_meta/documentation-constraints.md
 
+# 应无命中：方案自审核协议不应保留外来项目名或 dev_docs 路径。
+if rg -n "AnvilDeck|dev_docs" docs/plans/plan-review-protocol.md docs/plans/README.md docs/README.md docs/_meta/documentation-system.md docs/_meta/directory-responsibilities.md; then exit 1; fi
+
 git diff --check
 git status --short
 ```
@@ -367,6 +425,7 @@ git status --short
 预期影响：
 
 - `docs/plans/README.md`：任务方案必填字段和使用规则增强。
+- `docs/plans/plan-review-protocol.md`：新增或改造 active plan 实现前严格方案自审核协议。
 - `docs/plans/examples/task-plan-template.md`：模板章节增强。
 - `docs/_meta/documentation-system.md`：任务类型清单修正。
 - `docs/_meta/documentation-constraints.md`：新增约束路由索引。
@@ -385,11 +444,16 @@ git status --short
 - 2026-05-23：创建本 active plan，记录外部 constraint 设计可吸收点、现有模板缺口、实施范围和验证方式。尚未修改长期规则文档。
 - 2026-05-23：完成系统架构复查并写回方案：确认无 Swift 代码修改边界准确；初步收紧首批约束索引范围；明确 `_meta` 索引不得复制领域规范正文；统一 `severity` 语义；补充文档体系变更验证命令。
 - 2026-05-25：根据系统架构审核后的推荐方案更新本 active plan：将新增文件定位从“约束索引”收窄为“约束路由索引 / governance router”；首批范围收紧为 10 到 16 条；索引格式改为短摘要表加段落块；补充 `status` 生命周期、`blocker` 来源限制、冲突处理、替代关系和可判定验证命令。
+- 2026-06-01：按用户确认完成方案自审核协议改造子范围：删除外来根目录 `docs/plan-review-protocol.md`，新增 `docs/plans/plan-review-protocol.md`；将协议改为 LangoTrace 路径、权威边界、双轮审核、P0-P3 发现写回、条件性 commit 记录和与 `docs/review/README.md` 的职责分离；同步更新 `docs/README.md`、`docs/plans/README.md`、`docs/plans/examples/task-plan-template.md`、`docs/_meta/documentation-system.md` 和 `docs/_meta/directory-responsibilities.md`。
+- 2026-06-01：完成本轮文档验证：`find docs -maxdepth 4 -type f | sort` 已确认新增协议落点；`scripts/check-docs.sh` 通过；占位词扫描无命中；`rg -n "AnvilDeck|dev_docs" docs/plans/plan-review-protocol.md docs/plans/README.md docs/README.md docs/_meta/documentation-system.md docs/_meta/directory-responsibilities.md` 无命中；`rg -n "constraints\\.json|audit_v2|variant-trigger|variant scatter|by_module" docs/_meta docs/README.md docs/review/README.md docs/plans/README.md docs/plans/examples/task-plan-template.md docs/plans/plan-review-protocol.md` 无命中；`git diff --check` 通过。未运行 `scripts/verify.sh`，原因是本轮只修改文档，不修改 Swift 源码、工程配置、Package、资源或验证脚本。
+- 2026-06-01：按用户要求补充任务方案状态规范：`docs/plans/README.md` 新增状态说明，区分主生命周期 `状态` 和二态 `自审核状态`；模板新增 `自审核状态：Not Reviewed`；协议明确自审核问题修订并写回后才可标为 `Reviewed`。本 active plan 已完成本轮自审核与修订，因此标记为 `自审核状态：Reviewed`，但主状态仍为 `Draft`，不代表首批约束路由索引已获准实施。
+- 2026-06-01：将自审核状态取值统一改为英文：`Not Reviewed` / `Reviewed`；同步更新当前 active plan、模板、计划规范和自审核协议。
 
 ## 16. 完成标准
 
 - 用户确认本方案可实施。
 - `docs/_meta/documentation-system.md` 与 `docs/plans/README.md` 的任务类型口径一致。
+- `docs/plans/plan-review-protocol.md` 已成为 LangoTrace active plan 进入实现前的严格方案自审核协议，且不包含外来项目名或 `dev_docs/` 路径。
 - `docs/plans/README.md` 已新增约束映射、TDD / 测试落点和不新增测试说明要求。
 - `docs/plans/examples/task-plan-template.md` 已提供可直接填写的约束映射与验证路径模板。
 - `docs/_meta/documentation-constraints.md` 已创建，且首批约束均有明确来源、生命周期状态、验证提示、冲突处理和替代关系字段。

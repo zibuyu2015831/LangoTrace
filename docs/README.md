@@ -21,8 +21,9 @@ AI 不应只根据用户当前一句需求直接实现功能。涉及产品、�
 7. 如果在开发、审查或阅读文档时发现文档体系自身存在结构性问题，例如模板缺陷、规范过期、历史记录误用、文档谬误或无用临时文件，应按 [文档审查机制](review/README.md) 主动汇报，并给出证据、影响、必要性、可行性、风险和推荐方案。
 8. 如果当前任务明确不实现某个未来能力，但当前设计会影响该未来能力，或讨论形成了跨任务复用的架构风险、候选方案、边界提醒，应主动创建或更新对应领域的开发备忘录；架构级备忘录写入 [架构开发备忘录目录](architecture/notes/README.md)。
 9. 新功能、bug 修复、架构调整和行为变化默认采用测试驱动开发：先在所属 Swift Package 的 `Tests` 目录中创建或更新能失败的单元测试，再实施最小代码变更，最后运行聚焦测试和完整验证。只有纯文档、纯视觉文案或无法自动化的手动验证项可以在方案中说明跳过单元测试的原因。
-10. 运行期问题、模拟器人工验证失败或 AI 辅助排查需要日志时，优先运行 `scripts/capture-runtime-log --last 30m` 采集到本地 `logs/latest.log`；`logs/` 只作为被 Git 忽略的宿主机诊断目录，App 不得直接写仓库目录。
-11. 对于高频高风险开发动作，例如新增 AI Provider、TTS Provider、数据迁移、平台页面或 Prompt，应先读取对应 [开发 Workflow 手册](workflows/README.md)。Workflow 只提供执行顺序和检查清单，不替代 spec、ADR、architecture、review 或 task plan 的权威关系。
+10. 新功能、bug 修复、架构调整、行为变化和文档治理任务在 active plan 创建后、进入实现前，应按 [方案自审核协议](plans/plan-review-protocol.md) 完成严格自审核，并将确认的问题、修订、TDD 落点、验证命令和剩余风险写回 active plan。
+11. 运行期问题、模拟器人工验证失败或 AI 辅助排查需要日志时，优先运行 `scripts/capture-runtime-log --last 30m` 采集到本地 `logs/latest.log`；`logs/` 只作为被 Git 忽略的宿主机诊断目录，App 不得直接写仓库目录。
+12. 对于高频高风险开发动作，例如新增 AI Provider、TTS Provider、数据迁移、平台页面或 Prompt，应先读取对应 [开发 Workflow 手册](workflows/README.md)。Workflow 只提供执行顺序和检查清单，不替代 spec、ADR、architecture、review 或 task plan 的权威关系。
 
 ### 1.1 早期开发阶段的重构原则
 
@@ -331,6 +332,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 优先读取：
 
 - [任务方案文档规范](plans/README.md)
+- [方案自审核协议](plans/plan-review-protocol.md)
 - [文档体系规范](_meta/documentation-system.md)
 - [文档审查机制](review/README.md)
 - [文档审查索引](review/INDEX.md)
