@@ -55,7 +55,10 @@ public extension GRDBReadingLibraryRepository {
                     content_revision, structure_version, target_language_code,
                     import_status, library_status, created_at, updated_at,
                     imported_at, deleted_at, restored_at, last_opened_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'inline', ?, NULL, NULL, ?, ?, ?, ?, ?, ?, 1, 1, ?, 'ready', 'active', ?, ?, ?, NULL, NULL, ?)
+                ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, 'inline', ?, NULL, NULL, ?, ?, ?, ?, ?, ?,
+                    1, 1, ?, 'ready', 'active', ?, ?, ?, NULL, NULL, ?
+                )
                 """,
                 arguments: [
                     id,
@@ -149,6 +152,7 @@ public extension GRDBReadingLibraryRepository {
 
     func markDocumentOpened(id: String, spaceID: String) throws {
         try databaseQueue.write { db in
+            try requireDocument(id: id, spaceID: spaceID, db: db)
             let now = clock().timeIntervalSince1970
             try db.execute(
                 sql: """
@@ -164,6 +168,7 @@ public extension GRDBReadingLibraryRepository {
 
     func softDeleteDocument(id: String, spaceID: String) throws {
         try databaseQueue.write { db in
+            try requireDocument(id: id, spaceID: spaceID, db: db)
             let now = clock().timeIntervalSince1970
             try db.execute(
                 sql: """
@@ -179,6 +184,7 @@ public extension GRDBReadingLibraryRepository {
 
     func restoreDocument(id: String, spaceID: String) throws {
         try databaseQueue.write { db in
+            try requireDocument(id: id, spaceID: spaceID, db: db)
             let now = clock().timeIntervalSince1970
             try db.execute(
                 sql: """
@@ -194,6 +200,7 @@ public extension GRDBReadingLibraryRepository {
 
     func assignCollection(documentID: String, spaceID: String, title: String) throws {
         try databaseQueue.write { db in
+            try requireDocument(id: documentID, spaceID: spaceID, db: db)
             let normalized = title.lowercased()
             let collectionID = try upsertCollection(spaceID: spaceID, title: title, normalized: normalized, db: db)
             try db.execute(
@@ -210,6 +217,7 @@ public extension GRDBReadingLibraryRepository {
 
     func tagDocument(documentID: String, spaceID: String, name: String) throws {
         try databaseQueue.write { db in
+            try requireDocument(id: documentID, spaceID: spaceID, db: db)
             let normalized = name.lowercased()
             let tagID = try upsertTag(spaceID: spaceID, name: name, normalized: normalized, db: db)
             try db.execute(
@@ -256,6 +264,9 @@ public extension GRDBReadingLibraryRepository {
 
     func recordImportItem(_ input: ReadingImportItemRecordInput) throws {
         try databaseQueue.write { db in
+            if let documentID = input.documentID {
+                try requireDocument(id: documentID, spaceID: input.spaceID, db: db)
+            }
             try db.execute(
                 sql: """
                 INSERT INTO reading_import_items (
@@ -292,12 +303,20 @@ public extension GRDBReadingLibraryRepository {
         try databaseQueue.write { db in
             let success = try Int.fetchOne(
                 db,
-                sql: "SELECT COUNT(*) FROM reading_import_items WHERE batch_id = ? AND space_id = ? AND status = 'ready'",
+                sql: """
+                SELECT COUNT(*)
+                FROM reading_import_items
+                WHERE batch_id = ? AND space_id = ? AND status = 'ready'
+                """,
                 arguments: [id, spaceID]
             ) ?? 0
             let failure = try Int.fetchOne(
                 db,
-                sql: "SELECT COUNT(*) FROM reading_import_items WHERE batch_id = ? AND space_id = ? AND status = 'failed'",
+                sql: """
+                SELECT COUNT(*)
+                FROM reading_import_items
+                WHERE batch_id = ? AND space_id = ? AND status = 'failed'
+                """,
                 arguments: [id, spaceID]
             ) ?? 0
             let status: ReadingImportBatchStatus = if failure > 0, success > 0 {
@@ -334,6 +353,7 @@ public extension GRDBReadingLibraryRepository {
 
     func recordAIExplanationOperation(_ record: ReadingAIExplanationOperationRecord) throws {
         try databaseQueue.write { db in
+            try requireDocument(id: record.documentID, spaceID: record.spaceID, db: db)
             try db.execute(
                 sql: """
                 INSERT INTO reading_ai_explanation_operations (
@@ -369,6 +389,17 @@ public extension GRDBReadingLibraryRepository {
 }
 
 private extension GRDBReadingLibraryRepository {
+    func requireDocument(id: String, spaceID: String, db: Database) throws {
+        let exists = try Bool.fetchOne(
+            db,
+            sql: "SELECT EXISTS(SELECT 1 FROM reading_documents WHERE id = ? AND space_id = ?)",
+            arguments: [id, spaceID]
+        ) ?? false
+        guard exists else {
+            throw DatabaseError(message: "Reading document does not belong to the requested language space")
+        }
+    }
+
     func summary(documentID: String, spaceID: String, db: Database) throws -> ReadingLibraryDocumentSummary {
         guard let row = try Row.fetchOne(
             db,

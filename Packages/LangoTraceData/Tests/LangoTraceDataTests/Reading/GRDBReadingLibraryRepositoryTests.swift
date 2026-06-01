@@ -30,7 +30,8 @@ struct GRDBReadingLibraryRepositoryTests {
 
         try repository.softDeleteDocument(id: document.id, spaceID: "space-1")
         #expect(try repository.listDocuments(spaceID: "space-1").isEmpty)
-        #expect(try repository.listDocuments(spaceID: "space-1", includeDeleted: true).first?.libraryStatus == .softDeleted)
+        let deletedDocument = try repository.listDocuments(spaceID: "space-1", includeDeleted: true).first
+        #expect(deletedDocument?.libraryStatus == .softDeleted)
 
         try repository.restoreDocument(id: document.id, spaceID: "space-1")
         #expect(try repository.listDocuments(spaceID: "space-1").first?.libraryStatus == .active)
@@ -53,15 +54,61 @@ struct GRDBReadingLibraryRepositoryTests {
         #expect(summary.tagNames == ["travel"])
     }
 
+    @Test("collection and tag membership reject cross-space document ids")
+    func collectionAndTagMembershipRejectCrossSpaceDocumentIDs() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(database: database, clock: { Date(timeIntervalSince1970: 100) })
+        let document = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Scoped"))
+
+        #expect(throws: Error.self) {
+            try repository.assignCollection(documentID: document.id, spaceID: "space-2", title: "Wrong Space")
+        }
+        #expect(throws: Error.self) {
+            try repository.tagDocument(documentID: document.id, spaceID: "space-2", name: "wrong-space")
+        }
+
+        #expect(try repository.listDocuments(spaceID: "space-1").first?.collectionTitles.isEmpty == true)
+        #expect(try repository.listDocuments(spaceID: "space-1").first?.tagNames.isEmpty == true)
+    }
+
+    @Test("lifecycle actions reject cross-space document ids")
+    func lifecycleActionsRejectCrossSpaceDocumentIDs() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(database: database, clock: { Date(timeIntervalSince1970: 100) })
+        let document = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Lifecycle"))
+
+        #expect(throws: Error.self) {
+            try repository.markDocumentOpened(id: document.id, spaceID: "space-2")
+        }
+        #expect(throws: Error.self) {
+            try repository.softDeleteDocument(id: document.id, spaceID: "space-2")
+        }
+        #expect(try repository.listDocuments(spaceID: "space-1").first?.libraryStatus == .active)
+    }
+
     @Test("search matches title and indexed body excerpt without triggering external services")
     func searchMatchesTitleAndBodyExcerpt() throws {
         let database = try seededDatabase()
         let repository = GRDBReadingLibraryRepository(database: database, clock: { Date(timeIntervalSince1970: 100) })
-        _ = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Train Notes", body: "I bought a ticket."))
-        _ = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Cafe", body: "Reading markdown quietly."))
+        _ = try repository.importInlineDocument(.sample(
+            spaceID: "space-1",
+            title: "Train Notes",
+            body: "I bought a ticket."
+        ))
+        _ = try repository.importInlineDocument(.sample(
+            spaceID: "space-1",
+            title: "Cafe",
+            body: "Reading markdown quietly."
+        ))
 
-        let titleMatches = try repository.listDocuments(spaceID: "space-1", search: ReadingLibrarySearchQuery(rawValue: "train"))
-        let bodyMatches = try repository.listDocuments(spaceID: "space-1", search: ReadingLibrarySearchQuery(rawValue: "markdown"))
+        let titleMatches = try repository.listDocuments(
+            spaceID: "space-1",
+            search: ReadingLibrarySearchQuery(rawValue: "train")
+        )
+        let bodyMatches = try repository.listDocuments(
+            spaceID: "space-1",
+            search: ReadingLibrarySearchQuery(rawValue: "markdown")
+        )
 
         #expect(titleMatches.map(\.title) == ["Train Notes"])
         #expect(bodyMatches.map(\.title) == ["Cafe"])
@@ -145,6 +192,42 @@ struct GRDBReadingLibraryRepositoryTests {
         #expect(completed.failureCount == 1)
     }
 
+    @Test("import item rejects document id from another language space")
+    func importItemRejectsCrossSpaceDocumentID() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(database: database, clock: { Date(timeIntervalSince1970: 100) })
+        let batch = try repository.createImportBatch(
+            ReadingImportBatchCreateInput(
+                spaceID: "space-2",
+                adapterID: "markdown-file.v1",
+                adapterVersion: 1,
+                itemCount: 1
+            )
+        )
+        let imported = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Imported"))
+
+        #expect(throws: Error.self) {
+            try repository.recordImportItem(
+                ReadingImportItemRecordInput(
+                    batchID: batch.id,
+                    spaceID: "space-2",
+                    documentID: imported.id,
+                    sourceFormat: .markdown,
+                    adapterID: "markdown-file.v1",
+                    adapterVersion: 1,
+                    originalFilename: "wrong.md",
+                    originalFileExtension: "md",
+                    originalMimeType: "text/markdown",
+                    originalUTI: "net.daringfireball.markdown",
+                    originalByteSize: 128,
+                    byteSizeBucket: "small",
+                    status: .ready,
+                    failureCategory: nil
+                )
+            )
+        }
+    }
+
     @Test("AI explanation operation stores hashes and non-sensitive metadata")
     func aiExplanationOperationStoresHashesOnly() throws {
         let database = try seededDatabase()
@@ -187,6 +270,25 @@ struct GRDBReadingLibraryRepositoryTests {
         #expect((stored["sentence_text_hash"] as String?)?.count == 64)
         #expect(!stored.columnNames.contains("selected_text"))
         #expect(!stored.columnNames.contains("context_text"))
+    }
+
+    @Test("AI explanation operation rejects document id from another language space")
+    func aiExplanationOperationRejectsCrossSpaceDocumentID() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(database: database, clock: { Date(timeIntervalSince1970: 100) })
+        let document = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Explain"))
+
+        var record = ReadingAIExplanationOperationRecord()
+        record.documentID = document.id
+        record.spaceID = "space-2"
+        record.promptID = "builtin.reading.selection_explanation.v1"
+        record.promptVersion = "1"
+        record.selectedText = "private"
+        record.status = "pending"
+
+        #expect(throws: Error.self) {
+            try repository.recordAIExplanationOperation(record)
+        }
     }
 }
 

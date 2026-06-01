@@ -465,7 +465,7 @@ Learn languages from your life.
 
 ### 11.1 阶段 0：确认空白边界
 
-- [ ] **Step 0.1：确认没有既有 reading active plan**
+- [x] **Step 0.1：确认没有既有 reading active plan**
 
 运行：
 
@@ -478,7 +478,7 @@ rg -n "reading|阅读" docs/plans/active docs/plans/done --glob '*.md'
 - 只能命中本方案、既有调研引用或无关“阅读”普通词。
 - 若存在同一 reading AI/TTS vertical slice active plan，停止并合并方案。
 
-- [ ] **Step 0.2：确认本轮导航升级授权和规范更新范围**
+- [x] **Step 0.2：确认本轮导航升级授权和规范更新范围**
 
 运行：
 
@@ -492,7 +492,7 @@ git diff -- docs/product-main-reference.md docs/platform-page-inventory.md docs/
 - 用户批准本方案实施后，上述文件应出现受控 diff：产品定位、导航规范、页面清单和 `PhoneRootTab` 同步进入四入口形态。
 - 若用户只批准继续完善方案而未批准实现，不能修改生产代码。
 
-- [ ] **Step 0.3：确认 Reading domain spec 写入路径**
+- [x] **Step 0.3：确认 Reading domain spec 写入路径**
 
 创建或更新：`docs/spec/012-reading-learning-domain.md`
 
@@ -503,7 +503,7 @@ git diff -- docs/product-main-reference.md docs/platform-page-inventory.md docs/
 
 ### 11.2 阶段 1：Core 导入 preflight
 
-- [ ] **Step 1.1：写失败测试 `ReadingImportPreflightTests`**
+- [x] **Step 1.1：写失败测试 `ReadingImportPreflightTests`**
 
 创建：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/Reading/ReadingImportPreflightTests.swift`
 
@@ -575,7 +575,7 @@ struct ReadingImportPreflightTests {
 }
 ```
 
-- [ ] **Step 1.2：运行测试确认失败**
+- [x] **Step 1.2：运行测试确认失败**
 
 运行：
 
@@ -587,7 +587,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingImportPrefligh
 
 - 失败原因包含 `cannot find 'ReadingImportPreflight' in scope` 或等价未定义类型错误。
 
-- [ ] **Step 1.3：实现最小 Core preflight 模型**
+- [x] **Step 1.3：实现最小 Core preflight 模型**
 
 创建：`Packages/LangoTraceCore/Sources/LangoTraceCore/ReadingImport.swift`
 
@@ -611,7 +611,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingImportPrefligh
 - decode 只支持 UTF-8 和 UTF-16 的 best-effort；失败返回 `.encodingFailed`。
 - 不解析 EPUB / PDF / HTML。
 
-- [ ] **Step 1.4：运行 Core preflight 测试通过**
+- [x] **Step 1.4：运行 Core preflight 测试通过**
 
 运行：
 
@@ -623,7 +623,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingImportPrefligh
 
 ### 11.2A 阶段 1A：Core 导入 registry、资料库模型和搜索 contract
 
-- [ ] **Step 1A.1：写失败测试 `ReadingImportRegistryTests`**
+- [x] **Step 1A.1：写失败测试 `ReadingImportRegistryTests`**
 
 创建：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/Reading/ReadingImportRegistryTests.swift`
 
@@ -657,7 +657,7 @@ struct ReadingImportRegistryTests {
 }
 ```
 
-- [ ] **Step 1A.2：写失败测试 `ReadingLibraryModelTests`**
+- [x] **Step 1A.2：写失败测试 `ReadingLibraryModelTests`**
 
 创建：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/Reading/ReadingLibraryModelTests.swift`
 
@@ -697,7 +697,7 @@ struct ReadingLibraryModelTests {
 }
 ```
 
-- [ ] **Step 1A.3：写失败测试 `ReadingSearchQueryTests`**
+- [x] **Step 1A.3：写失败测试 `ReadingSearchQueryTests`**
 
 创建：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/Reading/ReadingSearchQueryTests.swift`
 
@@ -724,7 +724,7 @@ struct ReadingSearchQueryTests {
 }
 ```
 
-- [ ] **Step 1A.4：实现 Core library / registry / search 模型**
+- [x] **Step 1A.4：实现 Core library / registry / search 模型**
 
 创建：
 
@@ -743,7 +743,7 @@ struct ReadingSearchQueryTests {
 - `ReadingDocumentLifecycleEventType` 至少包含 imported、opened、softDeleted、restored、assignedCollection、removedCollection、tagged、untagged。
 - `ReadingLibrarySearchQuery` 负责 trim、空值归一和长度限制。
 
-- [ ] **Step 1A.5：运行 Core library 测试通过**
+- [x] **Step 1A.5：运行 Core library 测试通过**
 
 运行：
 
@@ -757,7 +757,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingSearchQueryTes
 
 ### 11.2B 阶段 1B：Core Markdown block model 和阅读样式 contract
 
-- [ ] **Step 1B.1：写失败测试 `ReadingMarkdownRenderingTests`**
+- [x] **Step 1B.1：写失败测试 `ReadingMarkdownRenderingTests`**
 
 创建：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/Reading/ReadingMarkdownRenderingTests.swift`
 
@@ -831,7 +831,7 @@ struct ReadingMarkdownRenderingTests {
 }
 ```
 
-- [ ] **Step 1B.2：写失败测试 `ReadingAppearanceProfileTests`**
+- [x] **Step 1B.2：写失败测试 `ReadingAppearanceProfileTests`**
 
 创建：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/Reading/ReadingAppearanceProfileTests.swift`
 
@@ -841,7 +841,7 @@ struct ReadingMarkdownRenderingTests {
 - profile 不参与 body hash、content revision、structure version、source anchor 或 TTS source key。
 - future user custom style 可以通过 profile value 表达，不需要改 `ReadingMarkdownBlock` schema。
 
-- [ ] **Step 1B.3：运行测试确认失败**
+- [x] **Step 1B.3：运行测试确认失败**
 
 运行：
 
@@ -852,7 +852,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingAppearanceProf
 
 预期：失败原因包含 `ReadingMarkdownParser` / `ReadingAppearanceProfile` 未定义。
 
-- [ ] **Step 1B.4：实现 Markdown block model 和 appearance contract**
+- [x] **Step 1B.4：实现 Markdown block model 和 appearance contract**
 
 创建：
 
@@ -875,7 +875,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingAppearanceProf
 - Markdown parser 首版可以采用保守 parser / line scanner，但必须通过测试覆盖的 block / inline contract；若实现期引入 Swift Markdown 或其他 parser，必须先检查依赖、平台支持和许可证，并写入 implementation record。
 - 不自动重写用户原文的 CJK 标点或 spacing；只在 presentation layer 做可逆展示处理，自动格式化必须进入后续独立 plan。
 
-- [ ] **Step 1B.5：运行 Core Markdown 测试通过**
+- [x] **Step 1B.5：运行 Core Markdown 测试通过**
 
 运行：
 
@@ -888,7 +888,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingAppearanceProf
 
 ### 11.3 阶段 2：Core 分段、分句和选择模型
 
-- [ ] **Step 2.1：写失败测试 `ReadingTextSegmentationTests`**
+- [x] **Step 2.1：写失败测试 `ReadingTextSegmentationTests`**
 
 创建：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/Reading/ReadingTextSegmentationTests.swift`
 
@@ -952,7 +952,7 @@ struct ReadingTextSegmentationTests {
 }
 ```
 
-- [ ] **Step 2.2：运行测试确认失败**
+- [x] **Step 2.2：运行测试确认失败**
 
 运行：
 
@@ -962,7 +962,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingTextSegmentati
 
 预期：失败原因包含 `ReadingTextSegmenter` 或 `ReadingSelection` 未定义。
 
-- [ ] **Step 2.3：实现分段和选择模型**
+- [x] **Step 2.3：实现分段和选择模型**
 
 创建：`Packages/LangoTraceCore/Sources/LangoTraceCore/ReadingTextSegmentation.swift`
 
@@ -975,7 +975,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingTextSegmentati
 - `ReadingSelection` 由 UI 手动选择产生，不依赖英文空格。
 - `ReadingSelection` 必须保存 `characterOffset` 和 `characterLength`，为后续 source anchor 提供最小可验证输入。
 
-- [ ] **Step 2.4：运行测试通过**
+- [x] **Step 2.4：运行测试通过**
 
 运行：
 
@@ -987,7 +987,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingTextSegmentati
 
 ### 11.4 阶段 3：100k 词典 exact lookup 验证
 
-- [ ] **Step 3.1：写失败测试 `ReadingDictionaryLookupTests`**
+- [x] **Step 3.1：写失败测试 `ReadingDictionaryLookupTests`**
 
 创建：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/Reading/ReadingDictionaryLookupTests.swift`
 
@@ -1030,7 +1030,7 @@ struct ReadingDictionaryLookupTests {
 }
 ```
 
-- [ ] **Step 3.2：运行测试确认失败**
+- [x] **Step 3.2：运行测试确认失败**
 
 运行：
 
@@ -1040,7 +1040,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingDictionaryLook
 
 预期：失败原因包含 `ReadingDictionaryLookupIndex` 未定义。
 
-- [ ] **Step 3.3：实现纯内存 lookup index**
+- [x] **Step 3.3：实现纯内存 lookup index**
 
 创建：`Packages/LangoTraceCore/Sources/LangoTraceCore/ReadingDictionaryLookup.swift`
 
@@ -1052,7 +1052,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingDictionaryLook
 - key 由 `languageCode + normalizedHeadword` 组成。
 - 仅用于本任务的本地 lookup 验证，不作为正式词典 repository。
 
-- [ ] **Step 3.4：运行 lookup 测试通过**
+- [x] **Step 3.4：运行 lookup 测试通过**
 
 运行：
 
@@ -1064,7 +1064,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingDictionaryLook
 
 ### 11.5 阶段 4：Source anchor stale 判定
 
-- [ ] **Step 4.1：写失败测试 `ReadingSourceAnchorTests`**
+- [x] **Step 4.1：写失败测试 `ReadingSourceAnchorTests`**
 
 创建：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/Reading/ReadingSourceAnchorTests.swift`
 
@@ -1118,7 +1118,7 @@ struct ReadingSourceAnchorTests {
 }
 ```
 
-- [ ] **Step 4.2：运行测试确认失败**
+- [x] **Step 4.2：运行测试确认失败**
 
 运行：
 
@@ -1128,7 +1128,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingSourceAnchorTe
 
 预期：失败原因包含 `ReadingSourceAnchor` 未定义。
 
-- [ ] **Step 4.3：实现 anchor 判定模型**
+- [x] **Step 4.3：实现 anchor 判定模型**
 
 创建：`Packages/LangoTraceCore/Sources/LangoTraceCore/ReadingSourceAnchor.swift`
 
@@ -1140,7 +1140,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingSourceAnchorTe
 - revision 不匹配优先返回 stale。
 - revision 匹配但 hash 不匹配也返回 stale。
 
-- [ ] **Step 4.4：运行 anchor 测试通过**
+- [x] **Step 4.4：运行 anchor 测试通过**
 
 运行：
 
@@ -1152,7 +1152,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingSourceAnchorTe
 
 ### 11.6 阶段 5：UI presentation model 和三端 layout
 
-- [ ] **Step 5.1：写失败测试 `ReadingPresentationTests`**
+- [x] **Step 5.1：写失败测试 `ReadingPresentationTests`**
 
 创建：`Packages/LangoTraceUI/Tests/LangoTraceUITests/Reading/ReadingPresentationTests.swift`
 
@@ -1206,7 +1206,7 @@ struct ReadingPresentationTests {
 }
 ```
 
-- [ ] **Step 5.1A：写失败测试 `ReadingMarkdownBlockRendererTests`**
+- [x] **Step 5.1A：写失败测试 `ReadingMarkdownBlockRendererTests`**
 
 创建：`Packages/LangoTraceUI/Tests/LangoTraceUITests/Reading/ReadingMarkdownBlockRendererTests.swift`
 
@@ -1219,7 +1219,7 @@ struct ReadingPresentationTests {
 - CJK / Latin 混排、日文、韩文、RTL 短段、带重音拉丁文、inline code、ordered list marker 和 CJK link text 都能形成可读 block presentation。
 - renderer 不触发 AI、TTS、repository、Keychain 或文件访问。
 
-- [ ] **Step 5.2：运行测试确认失败**
+- [x] **Step 5.2：运行测试确认失败**
 
 运行：
 
@@ -1230,7 +1230,7 @@ swift test --package-path Packages/LangoTraceUI --filter ReadingMarkdownBlockRen
 
 预期：失败原因包含 `ReadingLayoutModel` / `ReadingMarkdownBlockRenderer` 未定义。
 
-- [ ] **Step 5.3：实现 UI presentation model**
+- [x] **Step 5.3：实现 UI presentation model**
 
 创建：`Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingPresentationModels.swift`
 
@@ -1247,7 +1247,7 @@ swift test --package-path Packages/LangoTraceUI --filter ReadingMarkdownBlockRen
 - 不依赖 Data repository。
 - 不依赖旧记录详情 route。
 
-- [ ] **Step 5.4：添加 SwiftUI reading route view**
+- [x] **Step 5.4：添加 SwiftUI reading route view**
 
 创建：`Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingViews.swift`
 
@@ -1264,7 +1264,7 @@ swift test --package-path Packages/LangoTraceUI --filter ReadingMarkdownBlockRen
 - 首轮视觉目标是精美但克制的阅读体验：清晰标题层级、舒适段距和行距、可辨识引用块、稳定列表缩进、代码块等宽字体和背景、链接 / inline code / emphasis 可辨识、Dark Mode 和 Dynamic Type 可用。
 - 本阶段可以先使用 sample chunks 验证 view contract；最终必须在阶段 10 接入正式 reading route 和 store。
 
-- [ ] **Step 5.5：运行 UI 测试通过**
+- [x] **Step 5.5：运行 UI 测试通过**
 
 运行：
 
@@ -1277,7 +1277,7 @@ swift test --package-path Packages/LangoTraceUI --filter ReadingMarkdownBlockRen
 
 ### 11.7 阶段 6：10k 字长文本和 chunk 数量验证
 
-- [ ] **Step 6.1：补充分段性能形态测试**
+- [x] **Step 6.1：补充分段性能形态测试**
 
 修改：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/Reading/ReadingTextSegmentationTests.swift`
 
@@ -1301,7 +1301,7 @@ func tenThousandCharacterTextIsChunked() {
 }
 ```
 
-- [ ] **Step 6.2：运行分段测试通过**
+- [x] **Step 6.2：运行分段测试通过**
 
 运行：
 
@@ -1313,7 +1313,7 @@ swift test --package-path Packages/LangoTraceCore --filter ReadingTextSegmentati
 
 ### 11.8 阶段 7：Data Reading library domain 基础 schema 与 repository
 
-- [ ] **Step 7.1：写失败测试 `AppDatabaseReadingMigrationTests`**
+- [x] **Step 7.1：写失败测试 `AppDatabaseReadingMigrationTests`**
 
 创建：`Packages/LangoTraceData/Tests/LangoTraceDataTests/Reading/AppDatabaseReadingMigrationTests.swift`
 
@@ -1374,7 +1374,7 @@ struct AppDatabaseReadingMigrationTests {
 - `reading_document_lifecycle_events` 不保存原文，能够记录 imported / opened / softDeleted / restored / assignedCollection / removedCollection / tagged / untagged。
 - search index table 或 FTS table 是本地可重建派生索引，不是同步主数据。
 
-- [ ] **Step 7.2：运行迁移测试确认失败**
+- [x] **Step 7.2：运行迁移测试确认失败**
 
 运行：
 
@@ -1384,7 +1384,7 @@ swift test --package-path Packages/LangoTraceData --filter AppDatabaseReadingMig
 
 预期：失败原因包含缺少 `reading_documents`、`reading_collections`、`reading_import_batches` 或 `reading_ai_explanation_operations`。
 
-- [ ] **Step 7.3：新增 Reading domain 基础 migration**
+- [x] **Step 7.3：新增 Reading domain 基础 migration**
 
 修改：`Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift`
 
@@ -1587,7 +1587,7 @@ v12_create_reading_domain_infrastructure
 - 唯一索引至少覆盖 active document 查询、`space_id + title_normalized + soft_deleted_at`、`document_id + block_index + structure_version`、`document_id + sentence_index + structure_version`、`operation_id`、`document_id + collection_id`、`document_id + tag_id`、`space_id + tag name_normalized`、`space_id + collection title_normalized`。
 - FTS5 可作为 `reading_document_search_fts` virtual table 实现；如果本轮不使用 FTS5，则 `reading_document_search_index` 必须有 stale / rebuild contract，且后续切换 FTS5 不改变 repository API。
 
-- [ ] **Step 7.4：写失败测试 `GRDBReadingRepositoryTests`**
+- [x] **Step 7.4：写失败测试 `GRDBReadingRepositoryTests`**
 
 创建：`Packages/LangoTraceData/Tests/LangoTraceDataTests/Reading/GRDBReadingRepositoryTests.swift`
 
@@ -1602,7 +1602,7 @@ v12_create_reading_domain_infrastructure
 - 切换 language space 后不会读到其他空间文档。
 - 同一个 `operation_id` 重复写入不能产生多条 summary。
 
-- [ ] **Step 7.4A：写失败测试 `GRDBReadingLibraryRepositoryTests`**
+- [x] **Step 7.4A：写失败测试 `GRDBReadingLibraryRepositoryTests`**
 
 创建：`Packages/LangoTraceData/Tests/LangoTraceDataTests/Reading/GRDBReadingLibraryRepositoryTests.swift`
 
@@ -1617,7 +1617,7 @@ v12_create_reading_domain_infrastructure
 - 删除 collection 或 tag 后，active library filter 不再使用它，但 document 不被删除。
 - 最近阅读排序使用 `last_opened_at`，打开文档会写入 lifecycle event。
 
-- [ ] **Step 7.4B：写失败测试 `ReadingImportBatchRepositoryTests`**
+- [x] **Step 7.4B：写失败测试 `ReadingImportBatchRepositoryTests`**
 
 创建：`Packages/LangoTraceData/Tests/LangoTraceDataTests/Reading/ReadingImportBatchRepositoryTests.swift`
 
@@ -1631,7 +1631,7 @@ v12_create_reading_domain_infrastructure
 - permission denied / cancelled / encoding failed / file too large / unsupported format 都映射为 stable failure category。
 - unsupported EPUB / PDF / HTML 在本轮返回 stable failure category，而不是落库为 ready document。
 
-- [ ] **Step 7.4C：写失败测试 `ReadingSearchIndexTests`**
+- [x] **Step 7.4C：写失败测试 `ReadingSearchIndexTests`**
 
 创建：`Packages/LangoTraceData/Tests/LangoTraceDataTests/Reading/ReadingSearchIndexTests.swift`
 
@@ -1644,7 +1644,7 @@ v12_create_reading_domain_infrastructure
 - search index 不写入 operation summary 或诊断日志。
 - repository API 使用 FTS-capable 查询语义；若实现先采用普通 `reading_document_search_index`，测试仍必须证明后续切换 FTS5 不需要修改 UI store API。
 
-- [ ] **Step 7.4D：写失败测试 `ReadingDocumentLifecycleTests`**
+- [x] **Step 7.4D：写失败测试 `ReadingDocumentLifecycleTests`**
 
 创建：`Packages/LangoTraceData/Tests/LangoTraceDataTests/Reading/ReadingDocumentLifecycleTests.swift`
 
@@ -1655,7 +1655,7 @@ v12_create_reading_domain_infrastructure
 - soft delete 不物理删除 source anchor、position、import history 或 AI operation summary。
 - restore 不改变 `content_revision`，只改变 library visibility。
 
-- [ ] **Step 7.5：实现 `GRDBReadingRepository` 和 `GRDBReadingLibraryRepository`**
+- [x] **Step 7.5：实现 `GRDBReadingRepository` 和 `GRDBReadingLibraryRepository`**
 
 创建：
 
@@ -1675,7 +1675,7 @@ v12_create_reading_domain_infrastructure
 - soft delete document 时，active document、position 和可见 sentence 查询都必须排除 deleted document；source anchor 不物理删除，以便后续 memory / practice 引用能表达 stale / unavailable。
 - restore document 时不重写正文、不重写 source anchor、不重写 TTS artifact，只恢复 library visibility 并写 lifecycle event。
 
-- [ ] **Step 7.6：运行 Data 聚焦测试通过**
+- [x] **Step 7.6：运行 Data 聚焦测试通过**
 
 运行：
 
@@ -1688,7 +1688,7 @@ swift test --package-path Packages/LangoTraceData --filter AppDatabaseTests
 
 ### 11.9 阶段 8：真实 AI selection explanation
 
-- [ ] **Step 8.1：创建 Prompt Registry 文档**
+- [x] **Step 8.1：创建 Prompt Registry 文档**
 
 创建：`docs/prompts/reading/selection-explanation.md`
 
@@ -1705,7 +1705,7 @@ swift test --package-path Packages/LangoTraceData --filter AppDatabaseTests
 - 发送范围展示要求：单次显式点击即可发送；不采用“预览确认后发送”的两步流程。UI 应在按钮附近、inspector 或进行中状态中展示 selection、上下文范围、Provider profile 和模型，帮助用户理解本次发送边界。
 - 日志允许字段：operation id、长度分桶、provider preset id、adapter kind、model name、failure category、duration bucket
 
-- [ ] **Step 8.2：写失败测试 `ReadingSelectionExplanationServiceTests`**
+- [x] **Step 8.2：写失败测试 `ReadingSelectionExplanationServiceTests`**
 
 创建：`Packages/LangoTraceAI/Tests/LangoTraceAITests/ReadingSelectionExplanationServiceTests.swift`
 
@@ -1719,7 +1719,7 @@ swift test --package-path Packages/LangoTraceData --filter AppDatabaseTests
 - 取消映射 cancelled，且不写 failed operation summary。
 - 取消或 stale completion 不写入当前 selection 的 AI result，不覆盖后续 operation state。
 
-- [ ] **Step 8.3：创建 Core AI explanation contract**
+- [x] **Step 8.3：创建 Core AI explanation contract**
 
 创建：`Packages/LangoTraceCore/Sources/LangoTraceCore/ReadingAIExplanation.swift`
 
@@ -1738,7 +1738,7 @@ swift test --package-path Packages/LangoTraceData --filter AppDatabaseTests
 - summary 中只能含分桶和 provider metadata。
 - request contract 不要求二次确认；是否展示发送范围属于 UI presentation state，不改变 service 输入契约。
 
-- [ ] **Step 8.4：实现 `ReadingSelectionExplanationService`**
+- [x] **Step 8.4：实现 `ReadingSelectionExplanationService`**
 
 创建：`Packages/LangoTraceAI/Sources/LangoTraceAI/ReadingSelectionExplanationService.swift`
 
@@ -1751,7 +1751,7 @@ swift test --package-path Packages/LangoTraceData --filter AppDatabaseTests
 - parser 拒绝自然语言前后缀、缺字段、非法枚举、额外字段和过长数组。
 - service 支持 Task cancellation；调用方取消后不得继续解析结果并写入 UI state。
 
-- [ ] **Step 8.5：运行 AI 聚焦测试通过**
+- [x] **Step 8.5：运行 AI 聚焦测试通过**
 
 运行：
 
@@ -1763,7 +1763,7 @@ swift test --package-path Packages/LangoTraceAI --filter ReadingSelectionExplana
 
 ### 11.10 阶段 9：真实 reading sentence TTS source
 
-- [ ] **Step 9.1：写失败测试 `ReadingTTSArtifactKeyTests`**
+- [x] **Step 9.1：写失败测试 `ReadingTTSArtifactKeyTests`**
 
 创建：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/Reading/ReadingTTSArtifactKeyTests.swift`
 
@@ -1785,7 +1785,7 @@ struct ReadingTTSArtifactKeyTests {
 }
 ```
 
-- [ ] **Step 9.2：扩展 Core TTS source**
+- [x] **Step 9.2：扩展 Core TTS source**
 
 修改：`Packages/LangoTraceCore/Sources/LangoTraceCore/TTSAudioArtifact.swift`
 
@@ -1801,7 +1801,7 @@ case readingDocumentSentence(documentID: String, sentenceID: String)
 readingDocumentSentence|<documentID>|<sentenceID>
 ```
 
-- [ ] **Step 9.3：扩展 Data media artifact source mapping**
+- [x] **Step 9.3：扩展 Data media artifact source mapping**
 
 修改：`Packages/LangoTraceData/Sources/LangoTraceData/GRDBMediaArtifactRepository.swift`
 
@@ -1811,7 +1811,7 @@ readingDocumentSentence|<documentID>|<sentenceID>
 - `ownerColumns(_:)` 如需要新增 `.readingDocument(id:)`，必须同步 Core `MediaArtifactOwner`。
 - round-trip 测试覆盖 ready artifact 读取后 source 不丢失。
 
-- [ ] **Step 9.4：扩展 Core / Data 测试**
+- [x] **Step 9.4：扩展 Core / Data 测试**
 
 修改：
 
@@ -1824,7 +1824,7 @@ readingDocumentSentence|<documentID>|<sentenceID>
 - reading source metadata 写入 / 读取 round-trip。
 - reading source 不记录 sentence text 明文到 artifact path、derivation key 或 diagnostic description。
 
-- [ ] **Step 9.5：运行 TTS source 聚焦测试通过**
+- [x] **Step 9.5：运行 TTS source 聚焦测试通过**
 
 运行：
 
@@ -1837,7 +1837,7 @@ swift test --package-path Packages/LangoTraceData --filter MediaArtifactReposito
 
 ### 11.11 阶段 10：ReadingLibraryStore / ReadingDocumentStore 与三端 UI action seam
 
-- [ ] **Step 10.0：写失败测试 `ReadingLibraryStoreTests`**
+- [x] **Step 10.0：写失败测试 `ReadingLibraryStoreTests`**
 
 创建：`Packages/LangoTraceUI/Tests/LangoTraceUITests/Reading/ReadingLibraryStoreTests.swift`
 
@@ -1853,7 +1853,7 @@ swift test --package-path Packages/LangoTraceData --filter MediaArtifactReposito
 - language space 切换后清空旧列表、selection、搜索和恢复状态。
 - language space 切换后，旧 import / load 操作完成不得写回新空间列表或 import state。
 
-- [ ] **Step 10.1：写失败测试 `ReadingDocumentStoreAIAndTTSTests`**
+- [x] **Step 10.1：写失败测试 `ReadingDocumentStoreAIAndTTSTests`**
 
 创建：`Packages/LangoTraceUI/Tests/LangoTraceUITests/Reading/ReadingDocumentStoreAIAndTTSTests.swift`
 
@@ -1873,7 +1873,7 @@ swift test --package-path Packages/LangoTraceData --filter MediaArtifactReposito
 - selection 变化、document 切换或 language space 切换后，旧 AI response / TTS response 完成必须被忽略，不得覆盖当前 selection、inspector、audio state 或错误状态。
 - 重复点击 explain / sentence audio 不得产生重复 active operation；必须取消、合并、忽略或以 request token 失效旧操作，并在测试中锁定所选策略。
 
-- [ ] **Step 10.2：实现 UI actions**
+- [x] **Step 10.2：实现 UI actions**
 
 创建：`Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingActions.swift`
 
@@ -1889,7 +1889,7 @@ swift test --package-path Packages/LangoTraceData --filter MediaArtifactReposito
 - action closure 由 App Shell 注入。
 - View 不直接 import LangoTraceAI / LangoTraceData concrete。
 
-- [ ] **Step 10.3：实现 `ReadingLibraryStore` 和 `ReadingDocumentStore`**
+- [x] **Step 10.3：实现 `ReadingLibraryStore` 和 `ReadingDocumentStore`**
 
 创建：
 
@@ -1909,7 +1909,7 @@ swift test --package-path Packages/LangoTraceData --filter MediaArtifactReposito
 - store 不持有 SQLite handle、URLSession、API Key 或真实文件路径。
 - store 分层必须让后续资料库管理扩展不污染阅读正文 selection / AI / TTS 状态。
 
-- [ ] **Step 10.4：实现三端阅读视图**
+- [x] **Step 10.4：实现三端阅读视图**
 
 创建或修改：
 
@@ -1928,7 +1928,7 @@ swift test --package-path Packages/LangoTraceData --filter MediaArtifactReposito
 - 三端阅读正文使用同一 Markdown block presentation model；平台 View 只决定列布局、inspector 承载和交互 affordance，不各自重新解析 Markdown 或定义不一致样式。
 - 入口命名和可见性必须在 UI 测试中锁定，避免后续回退成隐藏入口或二级 mock。
 
-- [ ] **Step 10.5：运行 UI 聚焦测试通过**
+- [x] **Step 10.5：运行 UI 聚焦测试通过**
 
 运行：
 
@@ -1941,7 +1941,7 @@ swift test --package-path Packages/LangoTraceUI --filter PhoneIOSConvergenceTest
 
 ### 11.12 阶段 11：App assembly 与真实依赖注入
 
-- [ ] **Step 11.1：装配 reading repository**
+- [x] **Step 11.1：装配 reading repository**
 
 修改：`Packages/LangoTraceUI/Sources/LangoTraceUI/LangoTraceRootView.swift` 或当前 App assembly 所在文件。
 
@@ -1952,7 +1952,7 @@ swift test --package-path Packages/LangoTraceUI --filter PhoneIOSConvergenceTest
 - 语言空间切换时更新 reading library / document store space id，并清理旧 search、selection、document、trash projection 和 in-flight import 状态。
 - 语言空间切换、文档切换和关闭阅读详情时必须取消或失效 in-flight AI/TTS/import/load task；旧 completion 不得写回新 store state。
 
-- [ ] **Step 11.2：装配真实 AI explanation action**
+- [x] **Step 11.2：装配真实 AI explanation action**
 
 要求：
 
@@ -1963,7 +1963,7 @@ swift test --package-path Packages/LangoTraceUI --filter PhoneIOSConvergenceTest
 - 用户点击 AI 解释即为显式触发；不增加二次确认门槛。UI 可展示本次发送范围和 Provider 信息，但 action seam 只接收一次明确 explain intent。
 - 若调用被取消、selection 已变化、document 已切换或 language space 已切换，结果必须被丢弃，且不写入失败 summary。
 
-- [ ] **Step 11.3：装配真实 TTS action**
+- [x] **Step 11.3：装配真实 TTS action**
 
 要求：
 
@@ -1973,7 +1973,7 @@ swift test --package-path Packages/LangoTraceUI --filter PhoneIOSConvergenceTest
 - 不在页面出现、滚动或 selection 时调用 TTS。
 - 若 sentence、document 或 language space 已变化，旧 TTS completion 不得覆盖当前 audio state；重复点击必须有明确策略并通过测试锁定。
 
-- [ ] **Step 11.4：补 assembly 级源码测试**
+- [x] **Step 11.4：补 assembly 级源码测试**
 
 若当前没有 App target 测试，至少在 UI package 增加源码级 convergence 测试，检查：
 
@@ -1987,7 +1987,7 @@ swift test --package-path Packages/LangoTraceUI --filter PhoneIOSConvergenceTest
 
 ### 11.13 阶段 12：证据文档
 
-- [ ] **Step 12.1：创建 feature evidence 文档**
+- [x] **Step 12.1：创建 feature evidence 文档**
 
 创建：`docs/reference/research/spikes/2026-06-01-reading-ai-tts-vertical-slice.md`
 
@@ -2016,7 +2016,7 @@ swift test --package-path Packages/LangoTraceUI --filter PhoneIOSConvergenceTest
 - `docs/spec/012-reading-learning-domain.md` 是否已经吸收本轮稳定结论。
 - 是否需要后续 `feature-reading-library-and-document-management` 或 `feature-reading-dictionary-and-lexeme` active plan。
 
-- [ ] **Step 12.2：回写本 active plan 实施记录**
+- [x] **Step 12.2：回写本 active plan 实施记录**
 
 修改本方案的“实施记录”章节，记录：
 
@@ -2026,7 +2026,7 @@ swift test --package-path Packages/LangoTraceUI --filter PhoneIOSConvergenceTest
 
 ### 11.14 阶段 13：最终验证
 
-- [ ] **Step 13.1：运行聚焦测试**
+- [x] **Step 13.1：运行聚焦测试**
 
 运行：
 
@@ -2039,7 +2039,7 @@ swift test --package-path Packages/LangoTraceUI --filter Reading
 
 预期：通过。
 
-- [ ] **Step 13.2：运行 package 回归**
+- [x] **Step 13.2：运行 package 回归**
 
 运行：
 
@@ -2053,7 +2053,7 @@ swift test --package-path Packages/LangoTraceUI
 
 预期：通过。
 
-- [ ] **Step 13.3：运行文档检查**
+- [x] **Step 13.3：运行文档检查**
 
 运行：
 
@@ -2069,7 +2069,7 @@ git diff --check
 - 占位词检索无命中。
 - `git diff --check` 无输出。
 
-- [ ] **Step 13.4：运行完整验证**
+- [x] **Step 13.4：运行完整验证**
 
 本任务涉及 Data migration、AI、TTS source、App assembly 和 UI action seam，必须运行：
 
@@ -2420,6 +2420,7 @@ scripts/verify.sh
 - 2026-06-01：阶段提交 `e1ffb2c Extract reading migration infrastructure`：将 Reading migration 拆入 `AppDatabaseReadingMigration.swift`，并把 AI explanation operation summary 写入改为 `ReadingAIExplanationOperationRecord` 输入结构，降低 Data 层文件复杂度和参数数量。阶段验证已运行 `swift test --package-path Packages/LangoTraceData --filter 'GRDBReadingLibraryRepositoryTests|AppDatabaseReadingMigrationTests'`、`xcodebuild -scheme LangoTrace-macOS -project LangoTrace.xcodeproj -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -only-testing:LangoTraceAppTests/AppEnvironmentBootstrapTests test`、`swiftformat --lint Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift Packages/LangoTraceData/Sources/LangoTraceData/AppDatabaseReadingMigration.swift Packages/LangoTraceData/Sources/LangoTraceData/GRDBReadingLibraryRepository.swift LangoTrace/App/AppEnvironment.swift --cache ignore` 和 `git diff --check`。
 - 2026-06-01：阶段提交 `0c83778 Resolve reading verification gates`：对本轮 Reading 新增文件执行 SwiftFormat 机械格式化，并提交完整验证前的最终门禁修复。阶段验证已运行 `swift test --package-path Packages/LangoTraceData --filter 'GRDBReadingLibraryRepositoryTests|AppDatabaseReadingMigrationTests'`、`swift test --package-path Packages/LangoTraceUI --filter 'ReadingLibraryStoreTests|ReadingDocumentStoreAIAndTTSTests|ReadingPresentationTests|AIProviderSettingsTests|AIProviderSettingsProbeTests'`、`swift test --package-path Packages/LangoTraceCore`、`swiftlint --no-cache --quiet`、`swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore` 和 `git diff --check`。
 - 2026-06-01：阶段提交 `c8ca39b Mark reading vertical slice implemented`：将 active plan 状态更新为 `Implemented`，补齐主要阶段实施记录和最终完整验证记录。最终完整验证通过 `scripts/verify.sh`，覆盖 XcodeGen、各 Swift package 测试、Tooling 单元测试、iPhone / iPad / macOS 构建、macOS App tests、SwiftLint、SwiftFormat、`scripts/check-docs.sh`、`git diff --check` 和 `git status --short`；其中 SwiftLint 报告 208 个 warning、0 个 serious，SwiftFormat 报告 0/277 个文件需要格式化，`scripts/check-docs.sh` 返回 ok，最终 `git status --short` 无输出。
+- 2026-06-01：完成后审查发现 Reading active plan 第 11 节 tracking checklist 未勾选，且 `GRDBReadingLibraryRepository` 对 collection/tag membership、lifecycle event、import item 和 AI explanation operation summary 的 `(document_id, space_id)` 组合缺少 repository 级归属校验。已补充跨语言空间 document id 拒绝测试并修复为写入前验证 document 属于目标 language space；本轮验证已运行 `swift test --package-path Packages/LangoTraceData --filter GRDBReadingLibraryRepositoryTests`、`swift test --package-path Packages/LangoTraceData --filter 'GRDBReadingLibraryRepositoryTests|AppDatabaseReadingMigrationTests'`、`scripts/check-docs.sh`、docs 占位词检索、`swiftlint lint Packages/LangoTraceData/Sources/LangoTraceData/GRDBReadingLibraryRepository.swift Packages/LangoTraceData/Tests/LangoTraceDataTests/Reading/GRDBReadingLibraryRepositoryTests.swift`、`swiftformat Packages/LangoTraceData/Sources/LangoTraceData/GRDBReadingLibraryRepository.swift Packages/LangoTraceData/Tests/LangoTraceDataTests/Reading/GRDBReadingLibraryRepositoryTests.swift --cache ignore`、`git diff --check` 和 `scripts/verify.sh`。
 
 ## 18. 完成标准
 
