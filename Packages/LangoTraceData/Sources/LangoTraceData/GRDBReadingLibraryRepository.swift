@@ -13,10 +13,30 @@ public struct GRDBReadingLibraryRepository: @unchecked Sendable {
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
     ) {
-        self.databaseQueue = database.databaseQueue
+        databaseQueue = database.databaseQueue
         self.clock = clock
         self.idGenerator = idGenerator
     }
+}
+
+public struct ReadingAIExplanationOperationRecord: Sendable {
+    public var documentID: String = ""
+    public var spaceID: String = ""
+    public var sourceAnchorID: String?
+    public var promptID: String = ""
+    public var promptVersion: String = ""
+    public var providerProfileID: String?
+    public var providerEndpointID: String?
+    public var providerPresetID: String?
+    public var modelName: String?
+    public var selectedText: String = ""
+    public var sentenceText: String?
+    public var contextCharacterCount: Int = 0
+    public var status: String = ""
+    public var failureCategory: String?
+    public var completedAt: Date?
+
+    public init() {}
 }
 
 public extension GRDBReadingLibraryRepository {
@@ -280,13 +300,12 @@ public extension GRDBReadingLibraryRepository {
                 sql: "SELECT COUNT(*) FROM reading_import_items WHERE batch_id = ? AND space_id = ? AND status = 'failed'",
                 arguments: [id, spaceID]
             ) ?? 0
-            let status: ReadingImportBatchStatus
-            if failure > 0 && success > 0 {
-                status = .partialFailure
+            let status: ReadingImportBatchStatus = if failure > 0, success > 0 {
+                .partialFailure
             } else if failure > 0 {
-                status = .failed
+                .failed
             } else {
-                status = .completed
+                .completed
             }
             try db.execute(
                 sql: """
@@ -313,23 +332,7 @@ public extension GRDBReadingLibraryRepository {
         }
     }
 
-    func recordAIExplanationOperation(
-        documentID: String,
-        spaceID: String,
-        sourceAnchorID: String?,
-        promptID: String,
-        promptVersion: String,
-        providerProfileID: String?,
-        providerEndpointID: String?,
-        providerPresetID: String?,
-        modelName: String?,
-        selectedText: String,
-        sentenceText: String?,
-        contextCharacterCount: Int,
-        status: String,
-        failureCategory: String? = nil,
-        completedAt: Date? = nil
-    ) throws {
+    func recordAIExplanationOperation(_ record: ReadingAIExplanationOperationRecord) throws {
         try databaseQueue.write { db in
             try db.execute(
                 sql: """
@@ -343,22 +346,22 @@ public extension GRDBReadingLibraryRepository {
                 """,
                 arguments: [
                     idGenerator(),
-                    documentID,
-                    spaceID,
-                    sourceAnchorID,
-                    promptID,
-                    promptVersion,
-                    providerProfileID,
-                    providerEndpointID,
-                    providerPresetID,
-                    modelName,
-                    sha256Hex(selectedText),
-                    sentenceText.map(sha256Hex),
-                    contextCharacterCount,
-                    status,
-                    failureCategory,
+                    record.documentID,
+                    record.spaceID,
+                    record.sourceAnchorID,
+                    record.promptID,
+                    record.promptVersion,
+                    record.providerProfileID,
+                    record.providerEndpointID,
+                    record.providerPresetID,
+                    record.modelName,
+                    sha256Hex(record.selectedText),
+                    record.sentenceText.map(sha256Hex),
+                    record.contextCharacterCount,
+                    record.status,
+                    record.failureCategory,
                     clock().timeIntervalSince1970,
-                    completedAt?.timeIntervalSince1970,
+                    record.completedAt?.timeIntervalSince1970,
                 ]
             )
         }
@@ -467,7 +470,7 @@ private extension GRDBReadingLibraryRepository {
                 documentID,
                 spaceID,
                 title.lowercased(),
-                String(body.prefix(2_000)).lowercased(),
+                String(body.prefix(2000)).lowercased(),
                 clock().timeIntervalSince1970,
             ]
         )

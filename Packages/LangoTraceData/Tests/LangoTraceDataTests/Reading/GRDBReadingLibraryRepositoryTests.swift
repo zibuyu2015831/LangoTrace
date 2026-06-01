@@ -1,8 +1,8 @@
 import Foundation
 import GRDB
 import LangoTraceCore
-import Testing
 @testable import LangoTraceData
+import Testing
 
 @Suite("GRDB reading library repository")
 struct GRDBReadingLibraryRepositoryTests {
@@ -159,22 +159,21 @@ struct GRDBReadingLibraryRepositoryTests {
             body: "A private sentence."
         ))
 
-        try repository.recordAIExplanationOperation(
-            documentID: document.id,
-            spaceID: "space-1",
-            sourceAnchorID: nil,
-            promptID: "builtin.reading.selection_explanation.v1",
-            promptVersion: "1",
-            providerProfileID: "profile-1",
-            providerEndpointID: "endpoint-1",
-            providerPresetID: "openai",
-            modelName: "gpt-test",
-            selectedText: "private",
-            sentenceText: "A private sentence.",
-            contextCharacterCount: 19,
-            status: "succeeded",
-            completedAt: Date(timeIntervalSince1970: 101)
-        )
+        var record = ReadingAIExplanationOperationRecord()
+        record.documentID = document.id
+        record.spaceID = "space-1"
+        record.promptID = "builtin.reading.selection_explanation.v1"
+        record.promptVersion = "1"
+        record.providerProfileID = "profile-1"
+        record.providerEndpointID = "endpoint-1"
+        record.providerPresetID = "openai"
+        record.modelName = "gpt-test"
+        record.selectedText = "private"
+        record.sentenceText = "A private sentence."
+        record.contextCharacterCount = 19
+        record.status = "succeeded"
+        record.completedAt = Date(timeIntervalSince1970: 101)
+        try repository.recordAIExplanationOperation(record)
 
         let row = try database.databaseQueue.read { db in
             try Row.fetchOne(db, sql: "SELECT * FROM reading_ai_explanation_operations")

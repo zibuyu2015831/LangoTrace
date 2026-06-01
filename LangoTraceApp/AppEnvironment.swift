@@ -191,23 +191,22 @@ private func makeReadingExplanationAction(
             endpoint: AIProviderEndpointInput? = nil,
             failureCategory: String? = nil
         ) {
-            try? readingRepository.recordAIExplanationOperation(
-                documentID: request.documentID,
-                spaceID: request.spaceID,
-                sourceAnchorID: nil,
-                promptID: promptID,
-                promptVersion: promptVersion,
-                providerProfileID: profile?.id,
-                providerEndpointID: endpoint?.id,
-                providerPresetID: endpoint?.providerPresetID,
-                modelName: endpoint?.modelName,
-                selectedText: request.selectedText,
-                sentenceText: request.containingSentence.isEmpty ? nil : request.containingSentence,
-                contextCharacterCount: request.contextText.count,
-                status: status,
-                failureCategory: failureCategory,
-                completedAt: status == "pending" ? nil : Date()
-            )
+            var record = ReadingAIExplanationOperationRecord()
+            record.documentID = request.documentID
+            record.spaceID = request.spaceID
+            record.promptID = promptID
+            record.promptVersion = promptVersion
+            record.providerProfileID = profile?.id
+            record.providerEndpointID = endpoint?.id
+            record.providerPresetID = endpoint?.providerPresetID
+            record.modelName = endpoint?.modelName
+            record.selectedText = request.selectedText
+            record.sentenceText = request.containingSentence.isEmpty ? nil : request.containingSentence
+            record.contextCharacterCount = request.contextText.count
+            record.status = status
+            record.failureCategory = failureCategory
+            record.completedAt = status == "pending" ? nil : Date()
+            try? readingRepository.recordAIExplanationOperation(record)
         }
         guard let profile = try await configurationRepository.loadDefaultProfile(),
               let endpoint = profile.textGenerationEndpointInput
