@@ -193,7 +193,7 @@ private extension PadWorkspaceRoute {
         switch self {
         case .settings:
             true
-        case .workspace, .entryDetail, .practiceSentenceList, .practiceSentence,
+        case .workspace, .entryDetail, .practiceSentenceList, .practiceSentence, .reading,
              .settingsList, .memory, .importExport, .languageSpaceManagement:
             false
         }

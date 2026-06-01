@@ -176,6 +176,48 @@ struct MediaArtifactRepositoryTests {
         #expect(artifact.id == "artifact-1")
     }
 
+    @Test("Repository commits reading document sentence TTS source with distinct owner columns")
+    func repositoryCommitsReadingDocumentSentenceTTSSource() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        let key = MediaArtifactTestFixtures.key(
+            sentenceSource: .readingDocumentSentence(documentID: "doc-1", sentenceID: "sentence-1")
+        )
+        let input = MediaArtifactTestFixtures.commitInput(
+            key: key,
+            owner: .readingDocumentSentence(documentID: "doc-1", sentenceID: "sentence-1")
+        )
+
+        let artifact = try await repository.commitTTSAudioArtifact(input)
+        let row = try await database.databaseQueue.read { db in
+            try Row.fetchOne(
+                db,
+                sql: """
+                SELECT media_artifacts.owner_type, media_artifacts.owner_id,
+                       media_artifacts.owner_sub_id, tts_audio_artifacts.sentence_source_type,
+                       tts_audio_artifacts.reading_document_id,
+                       tts_audio_artifacts.reading_sentence_id
+                FROM media_artifacts
+                JOIN tts_audio_artifacts ON tts_audio_artifacts.artifact_id = media_artifacts.id
+                WHERE media_artifacts.id = ?
+                """,
+                arguments: [artifact.id]
+            )
+        }
+
+        #expect(row?["owner_type"] as String? == "readingDocumentSentence")
+        #expect(row?["owner_id"] as String? == "doc-1")
+        #expect(row?["owner_sub_id"] as String? == "sentence-1")
+        #expect(row?["sentence_source_type"] as String? == "readingDocumentSentence")
+        #expect(row?["reading_document_id"] as String? == "doc-1")
+        #expect(row?["reading_sentence_id"] as String? == "sentence-1")
+    }
+
     @Test("Repository maps supported TTS output formats to matching file extensions")
     func repositoryMapsSupportedTTSOutputFormatsToMatchingExtensions() async throws {
         let database = try AppDatabase.inMemory()

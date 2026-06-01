@@ -4,6 +4,7 @@ import Foundation
 public enum TTSSentenceSource: Equatable, Hashable, Sendable {
     case entry(id: String, sentenceIndex: Int)
     case learningMaterialSentence(materialID: String, sentenceIndex: Int)
+    case readingDocumentSentence(documentID: String, sentenceID: String)
     case temporary(operationID: String, sentenceIndex: Int)
 }
 
@@ -158,6 +159,8 @@ private extension TTSSentenceSource {
             "entry|\(id)|\(sentenceIndex)"
         case let .learningMaterialSentence(materialID, sentenceIndex):
             "learningMaterialSentence|\(materialID)|\(sentenceIndex)"
+        case let .readingDocumentSentence(documentID, sentenceID):
+            "readingDocumentSentence|\(documentID)|\(sentenceID)"
         case let .temporary(operationID, sentenceIndex):
             "temporary|\(operationID)|\(sentenceIndex)"
         }

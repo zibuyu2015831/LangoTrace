@@ -46,6 +46,9 @@ struct PadSidebarView: View {
             SidebarSectionTitle("pad.sidebar.pages")
                 .padding(.top, 4)
             VStack(alignment: .leading, spacing: 8) {
+                PadRouteButton(titleKey: "tab.reading", systemImage: "book.pages", active: route == .reading) {
+                    onRoute(.reading)
+                }
                 PadRouteButton(titleKey: "tab.memory", systemImage: "archivebox", active: route == .memory) {
                     onRoute(.memory)
                 }
@@ -95,6 +98,7 @@ struct PadWorkspaceContentView: View {
     let languageSpaces: [LanguageSpace]
     let settingsCapabilities: [SettingsCapability]
     @ObservedObject var contentStore: LearningContentStore
+    @ObservedObject var readingLibraryStore: ReadingLibraryStore
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -131,6 +135,8 @@ struct PadWorkspaceContentView: View {
                     }
                 )
                 .id(seed.practiceRouteIdentity)
+            case .reading:
+                ReadingLibraryView(platform: .pad, store: readingLibraryStore)
             case let .settings(kind):
                 settingDetail(kind: kind)
             case .settingsList:

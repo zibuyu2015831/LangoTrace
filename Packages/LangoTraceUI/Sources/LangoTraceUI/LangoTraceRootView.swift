@@ -19,6 +19,7 @@ public struct LangoTraceRootView: View {
     private let learningContentRepository: any LearningContentRepository
     private let learningMaterialGenerationActions: LearningMaterialGenerationActions
     private let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
+    private let readingLibraryActions: ReadingLibraryActions
     private let practiceActions: PracticeActions
     private let interfaceLanguagePreference: InterfaceLanguagePreference
     private let appearancePreference: AppearancePreference
@@ -39,6 +40,7 @@ public struct LangoTraceRootView: View {
         learningContentRepository: any LearningContentRepository,
         learningMaterialGenerationActions: LearningMaterialGenerationActions = .disabled,
         sentenceAudioPlaybackActions: SentenceAudioPlaybackActions = .disabled,
+        readingLibraryActions: ReadingLibraryActions = .disabled,
         practiceActions: PracticeActions = .disabled,
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         appearancePreference: AppearancePreference = .system,
@@ -58,6 +60,7 @@ public struct LangoTraceRootView: View {
         self.learningContentRepository = learningContentRepository
         self.learningMaterialGenerationActions = learningMaterialGenerationActions
         self.sentenceAudioPlaybackActions = sentenceAudioPlaybackActions
+        self.readingLibraryActions = readingLibraryActions
         self.practiceActions = practiceActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
@@ -95,6 +98,7 @@ public struct LangoTraceRootView: View {
                         learningContentRepository: learningContentRepository,
                         learningMaterialGenerationActions: learningMaterialGenerationActions,
                         sentenceAudioPlaybackActions: sentenceAudioPlaybackActions,
+                        readingLibraryActions: readingLibraryActions,
                         practiceActions: practiceActions,
                         interfaceLanguagePreference: interfaceLanguagePreference,
                         appearancePreference: appearancePreference,
@@ -153,6 +157,7 @@ private struct PlatformMainView: View {
     let languageSpaces: [LanguageSpace]
     let learningMaterialGenerationActions: LearningMaterialGenerationActions
     let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
+    let readingLibraryActions: ReadingLibraryActions
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -163,6 +168,7 @@ private struct PlatformMainView: View {
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
     let onAppearancePreferenceChange: (AppearancePreference) -> Void
     @StateObject private var contentStore: LearningContentStore
+    @StateObject private var readingLibraryStore: ReadingLibraryStore
 
     init(
         languageSpace: LanguageSpacePreview,
@@ -170,6 +176,7 @@ private struct PlatformMainView: View {
         learningContentRepository: any LearningContentRepository,
         learningMaterialGenerationActions: LearningMaterialGenerationActions,
         sentenceAudioPlaybackActions: SentenceAudioPlaybackActions,
+        readingLibraryActions: ReadingLibraryActions,
         practiceActions: PracticeActions,
         interfaceLanguagePreference: InterfaceLanguagePreference,
         appearancePreference: AppearancePreference,
@@ -184,6 +191,7 @@ private struct PlatformMainView: View {
         self.languageSpaces = languageSpaces
         self.learningMaterialGenerationActions = learningMaterialGenerationActions
         self.sentenceAudioPlaybackActions = sentenceAudioPlaybackActions
+        self.readingLibraryActions = readingLibraryActions
         self.practiceActions = practiceActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
@@ -201,6 +209,12 @@ private struct PlatformMainView: View {
                 sentenceAudioPlaybackActions: sentenceAudioPlaybackActions
             )
         )
+        _readingLibraryStore = StateObject(
+            wrappedValue: ReadingLibraryStore(
+                languageSpace: languageSpace,
+                actions: readingLibraryActions
+            )
+        )
     }
 
     var body: some View {
@@ -210,6 +224,7 @@ private struct PlatformMainView: View {
                     languageSpace: languageSpace,
                     languageSpaces: languageSpaces,
                     contentStore: contentStore,
+                    readingLibraryStore: readingLibraryStore,
                     practiceActions: practiceActions,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     appearancePreference: appearancePreference,
@@ -225,6 +240,7 @@ private struct PlatformMainView: View {
                     languageSpace: languageSpace,
                     languageSpaces: languageSpaces,
                     contentStore: contentStore,
+                    readingLibraryStore: readingLibraryStore,
                     practiceActions: practiceActions,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     appearancePreference: appearancePreference,
@@ -241,6 +257,7 @@ private struct PlatformMainView: View {
                 languageSpace: languageSpace,
                 languageSpaces: languageSpaces,
                 contentStore: contentStore,
+                readingLibraryStore: readingLibraryStore,
                 practiceActions: practiceActions,
                 interfaceLanguagePreference: interfaceLanguagePreference,
                 appearancePreference: appearancePreference,

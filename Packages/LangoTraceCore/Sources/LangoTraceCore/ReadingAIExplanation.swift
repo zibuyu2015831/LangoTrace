@@ -1,0 +1,64 @@
+public struct ReadingSelectionExplanationInput: Equatable, Sendable {
+    public var documentID: String
+    public var sourceAnchorID: String
+    public var selectedText: String
+    public var containingSentence: String
+    public var contextText: String
+    public var nativeLanguageCode: String
+    public var targetLanguageCode: String
+    public var proficiencyLevelCode: String
+
+    public init(
+        documentID: String,
+        sourceAnchorID: String,
+        selectedText: String,
+        containingSentence: String,
+        contextText: String,
+        nativeLanguageCode: String,
+        targetLanguageCode: String,
+        proficiencyLevelCode: String
+    ) {
+        self.documentID = documentID
+        self.sourceAnchorID = sourceAnchorID
+        self.selectedText = selectedText
+        self.containingSentence = containingSentence
+        self.contextText = contextText
+        self.nativeLanguageCode = nativeLanguageCode
+        self.targetLanguageCode = targetLanguageCode
+        self.proficiencyLevelCode = proficiencyLevelCode
+    }
+}
+
+public struct ReadingSelectionExplanationResult: Equatable, Sendable {
+    public var schemaVersion: String
+    public var selection: String
+    public var shortExplanation: String
+    public var meaningInNativeLanguage: String
+    public var usageNote: String
+    public var exampleSentence: String
+
+    public init(
+        schemaVersion: String,
+        selection: String,
+        shortExplanation: String,
+        meaningInNativeLanguage: String,
+        usageNote: String,
+        exampleSentence: String
+    ) {
+        self.schemaVersion = schemaVersion
+        self.selection = selection
+        self.shortExplanation = shortExplanation
+        self.meaningInNativeLanguage = meaningInNativeLanguage
+        self.usageNote = usageNote
+        self.exampleSentence = exampleSentence
+    }
+}
+
+public enum ReadingSelectionExplanationFailureCategory: Equatable, Sendable {
+    case providerNotConfigured
+    case unsupportedProvider
+    case providerRejected
+    case networkUnavailable
+    case cancelled
+    case invalidStructuredResponse
+}

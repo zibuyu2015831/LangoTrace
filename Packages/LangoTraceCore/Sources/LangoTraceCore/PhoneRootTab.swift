@@ -1,5 +1,6 @@
 public enum PhoneRootTab: String, CaseIterable, Hashable, Identifiable {
     case entries
+    case reading
     case practice
     case memory
 
@@ -16,6 +17,8 @@ public enum PhoneRootTab: String, CaseIterable, Hashable, Identifiable {
         switch self {
         case .entries:
             "记录"
+        case .reading:
+            "阅读"
         case .practice:
             "练习"
         case .memory:

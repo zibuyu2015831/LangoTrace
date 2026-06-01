@@ -36,6 +36,8 @@ struct MacInspectorContent: View {
                 titleKey: "mac.inspector.nextCapability.title",
                 textKey: "mac.inspector.nextCapability.body"
             )
+        case .reading:
+            LocalizedTextPanel(titleKey: "reading.inspector.title", textKey: "reading.inspector.body")
         case let .settings(kind):
             if let capability = settingsCapabilities.first(where: { $0.kind == kind }) {
                 if kind == .interfaceLanguage || kind == .appearance {
@@ -105,6 +107,8 @@ struct MacInspectorContent: View {
             LocalizedTextPanel(titleKey: "mac.inspector.today.title", textKey: "mac.inspector.today.body")
         case .entries:
             LocalizedTextPanel(titleKey: "mac.inspector.entries.title", textKey: "mac.inspector.entries.body")
+        case .reading:
+            LocalizedTextPanel(titleKey: "reading.inspector.title", textKey: "reading.inspector.body")
         case .practice:
             LocalizedTextPanel(titleKey: "mac.inspector.practice.title", textKey: "mac.inspector.practice.body")
         case .memory:

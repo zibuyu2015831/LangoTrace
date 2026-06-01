@@ -472,18 +472,21 @@ private extension GRDBMediaArtifactRepository {
             sql: """
             INSERT INTO tts_audio_artifacts (
                 artifact_id, sentence_source_type, entry_id, learning_material_id,
-                operation_id, sentence_index, sentence_text_hash, target_language_code,
+                reading_document_id, reading_sentence_id, operation_id, sentence_index,
+                sentence_text_hash, target_language_code,
                 provider_profile_id, tts_endpoint_id, tts_voice_profile_id,
                 adapter_kind, adapter_version, model_name, voice_id_hash,
                 output_format, sample_rate, speed, pitch, volume,
                 instructions_hash, provider_parameters_hash, configuration_fingerprint
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             arguments: [
                 artifactID,
                 source.type,
                 source.entryID,
                 source.learningMaterialID,
+                source.readingDocumentID,
+                source.readingSentenceID,
                 source.operationID,
                 source.sentenceIndex,
                 key.sentenceTextHash,
@@ -638,6 +641,8 @@ private extension GRDBMediaArtifactRepository {
             MediaArtifactOwnerColumns(type: "learningMaterial", id: id, subID: nil)
         case let .learningMaterialSentence(materialID, sentenceIndex):
             MediaArtifactOwnerColumns(type: "learningMaterialSentence", id: materialID, subID: String(sentenceIndex))
+        case let .readingDocumentSentence(documentID, sentenceID):
+            MediaArtifactOwnerColumns(type: "readingDocumentSentence", id: documentID, subID: sentenceID)
         case let .practiceSession(id):
             MediaArtifactOwnerColumns(type: "practiceSession", id: id, subID: nil)
         case let .temporaryOperation(id):
@@ -653,6 +658,8 @@ private extension GRDBMediaArtifactRepository {
             .learningMaterial(id: id)
         case "learningMaterialSentence":
             .learningMaterialSentence(materialID: id, sentenceIndex: Int(subID ?? "") ?? 0)
+        case "readingDocumentSentence":
+            .readingDocumentSentence(documentID: id, sentenceID: subID ?? "")
         case "practiceSession":
             .practiceSession(id: id)
         default:
@@ -667,6 +674,8 @@ private extension GRDBMediaArtifactRepository {
                 type: "entry",
                 entryID: id,
                 learningMaterialID: nil,
+                readingDocumentID: nil,
+                readingSentenceID: nil,
                 operationID: nil,
                 sentenceIndex: sentenceIndex
             )
@@ -675,14 +684,28 @@ private extension GRDBMediaArtifactRepository {
                 type: "learningMaterialSentence",
                 entryID: nil,
                 learningMaterialID: materialID,
+                readingDocumentID: nil,
+                readingSentenceID: nil,
                 operationID: nil,
                 sentenceIndex: sentenceIndex
+            )
+        case let .readingDocumentSentence(documentID, sentenceID):
+            TTSSentenceSourceColumns(
+                type: "readingDocumentSentence",
+                entryID: nil,
+                learningMaterialID: nil,
+                readingDocumentID: documentID,
+                readingSentenceID: sentenceID,
+                operationID: nil,
+                sentenceIndex: nil
             )
         case let .temporary(operationID, sentenceIndex):
             TTSSentenceSourceColumns(
                 type: "temporary",
                 entryID: nil,
                 learningMaterialID: nil,
+                readingDocumentID: nil,
+                readingSentenceID: nil,
                 operationID: operationID,
                 sentenceIndex: sentenceIndex
             )
@@ -700,6 +723,8 @@ private struct TTSSentenceSourceColumns {
     var type: String
     var entryID: String?
     var learningMaterialID: String?
+    var readingDocumentID: String?
+    var readingSentenceID: String?
     var operationID: String?
     var sentenceIndex: Int?
 }

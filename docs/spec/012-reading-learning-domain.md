@@ -1,0 +1,59 @@
+# 012: Reading Learning Domain
+
+适用阶段：阅读资料库、阅读导入、Markdown 阅读、阅读选区 AI 解释、reading sentence TTS、词典 lookup 和后续阅读 MVP。
+
+## 1. Domain Position
+
+Reading is a first-class learning scene in LangoTrace, alongside entries, practice and memory. It keeps the product north star `用生活记录学习语言 / Learn languages from your life` unchanged while allowing user-supplied reading materials to become local-first learning inputs.
+
+The first implementation slice supports pasted text, `.txt` and `.md` documents. EPUB, PDF, HTML clip, web article import, dictionary import UI, sync, export, full-document AI summary, full-document translation and batch TTS are future capabilities.
+
+## 2. Reading Documents
+
+`ReadingDocument` is primary local data scoped by `language_space_id`. It must have a stable document id, title, source format, source kind, adapter id/version, body storage kind, body hash, content revision, structure version, target language code, timestamps, import status and soft-delete state.
+
+Document body and library organization are separate concerns. Library summaries may expose title, source format, import status, active/deleted state, tags, collections and last opened time, but must not carry full document text.
+
+## 3. Import Boundary
+
+Reading import is adapter-based. The active vertical slice enables only:
+
+- pasted text via `pasted-text.v1`
+- plain text file via `plain-text-file.v1`
+- Markdown file via `markdown-file.v1`
+
+Future descriptors may exist for EPUB, PDF and HTML clip, but disabled descriptors must not create ready documents. File import must evaluate file type and byte metadata before reading the full body. The app must not persist external absolute paths, security-scoped URLs or user directory structure.
+
+## 4. Markdown Rendering
+
+Markdown import produces LangoTrace-owned structure: blocks, inline runs, source ranges and plain text. The initial renderer contract covers headings, paragraphs, block quotes, ordered and unordered lists, code blocks, horizontal rules, links, emphasis, strong and inline code.
+
+Markdown presentation is controlled by `ReadingAppearanceProfile`. Style is a presentation preference and must not affect body hash, content revision, structure version, source anchor inputs or TTS source keys.
+
+## 5. Selection And Source Anchor
+
+Manual selection is the first supported selection model. It records selected text, limited context, character offset and character length, and must not depend on English whitespace tokenization. CJK, Japanese, accented Latin text and RTL snippets are valid inputs.
+
+`ReadingSourceAnchor` must include document id, content revision, structure version, block id, selected text hash and character range. If content revision, structure version, block id, selected text hash or range no longer matches the current document structure, the anchor is stale and must not silently point at another text.
+
+## 6. AI Explanation
+
+Reading AI explanation is a user-explicit action. The request may contain selection, containing sentence, limited surrounding context, native language, target language, prompt id/version and provider/model metadata. It must not automatically send a full document on import, open, scroll, select or TTS playback.
+
+The UI may show the sending scope near the action or progress state. It must not require a second preview-confirm step for this slice.
+
+## 7. TTS Source
+
+Reading sentence TTS uses `TTSSentenceSource.readingDocumentSentence(documentID:sentenceID:)`. Its canonical key must not collide with entry, learning material or temporary sentence sources. Opening a reading document must not trigger TTS; only an explicit sentence play action may call the playback coordinator.
+
+## 8. Dictionary Extension Boundary
+
+This slice may include an in-memory exact lookup index for synthetic fixtures. Future production dictionary import should use `DictionaryImportAdapter`, dictionary import batches, normalized lookup index, language-specific normalization strategy and lexeme state scoped to learning workflows. LangoTrace must not become a standalone dictionary product and must not ship copyrighted dictionary data without a separate plan.
+
+## 9. Async State Boundary
+
+Reading library and document stores must guard asynchronous import, load, AI and TTS operations with request tokens or an equivalent generation counter. Space switch, document switch, selection change, detail close, soft delete of the current document or repeated action must cancel or invalidate in-flight work. Stale completions must not write into current library, document, selection, explanation or audio state.
+
+## Change Log
+
+- 2026-06-01: Created Reading learning domain spec for the reading AI/TTS vertical slice.

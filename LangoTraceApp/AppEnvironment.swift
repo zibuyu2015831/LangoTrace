@@ -13,6 +13,7 @@ struct AppEnvironment {
     let learningMaterialGenerationActions: LearningMaterialGenerationActions
     let makeSentenceAudioPlaybackCoordinator: @Sendable () throws -> SentenceAudioPlaybackCoordinator
     let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
+    let readingLibraryActions: ReadingLibraryActions
     let practiceActions: PracticeActions
     let aiProviderSettingsActions: AIProviderSettingsActions
     let aiProvider: any AIProvider
@@ -59,6 +60,7 @@ struct AppEnvironment {
                 )
             },
             sentenceAudioPlaybackActions: sentenceAudioPlaybackCoordinatorBox.actions(),
+            readingLibraryActions: makeReadingLibraryActions(databaseFactory: databaseFactory),
             practiceActions: (
                 try? PracticeActionsAssembly.makeActions(
                     database: databaseFactory.database(),
@@ -160,6 +162,41 @@ struct AppEnvironment {
             syncService: DisabledSyncService()
         )
     }
+}
+
+private func makeReadingLibraryActions(
+    databaseFactory: SharedAppDatabaseFactory
+) -> ReadingLibraryActions {
+    ReadingLibraryActions(
+        listDocuments: { spaceID, includeDeleted, query in
+            let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
+            return try repository.listDocuments(
+                spaceID: spaceID,
+                includeDeleted: includeDeleted,
+                search: query
+            )
+        },
+        importPastedText: { input in
+            let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
+            return try repository.importInlineDocument(input)
+        },
+        loadDocument: { id, spaceID in
+            let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
+            return try repository.documentContent(id: id, spaceID: spaceID)
+        },
+        softDeleteDocument: { id, spaceID in
+            let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
+            try repository.softDeleteDocument(id: id, spaceID: spaceID)
+        },
+        restoreDocument: { id, spaceID in
+            let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
+            try repository.restoreDocument(id: id, spaceID: spaceID)
+        },
+        markDocumentOpened: { id, spaceID in
+            let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
+            try repository.markDocumentOpened(id: id, spaceID: spaceID)
+        }
+    )
 }
 
 private func makeLearningContentRepository(

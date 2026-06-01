@@ -249,6 +249,8 @@ extension PhoneRootTab {
         switch self {
         case .entries:
             "tab.entries"
+        case .reading:
+            "tab.reading"
         case .practice:
             "tab.practice"
         case .memory:

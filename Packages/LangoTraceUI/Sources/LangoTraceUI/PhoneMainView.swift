@@ -6,6 +6,7 @@ struct PhoneMainView: View {
     let languageSpace: LanguageSpacePreview
     let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
+    @ObservedObject var readingLibraryStore: ReadingLibraryStore
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -41,6 +42,16 @@ struct PhoneMainView: View {
                     }
                 }
                 .tag(PhoneRootTab.entries)
+
+                ReadingLibraryView(platform: .phone, store: readingLibraryStore)
+                    .tabItem {
+                        Label {
+                            localizedText(PhoneRootTab.reading.localizedTitleKey)
+                        } icon: {
+                            Image(systemName: "book.pages")
+                        }
+                    }
+                    .tag(PhoneRootTab.reading)
 
                 PracticeView(
                     languageSpace: languageSpace,

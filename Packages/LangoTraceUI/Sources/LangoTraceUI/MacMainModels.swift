@@ -4,6 +4,7 @@ import LangoTraceData
 enum MacWorkspaceSection: CaseIterable, Hashable {
     case today
     case entries
+    case reading
     case practice
     case memory
     case importExport
@@ -15,6 +16,8 @@ enum MacWorkspaceSection: CaseIterable, Hashable {
             "tab.today"
         case .entries:
             "mac.section.entries"
+        case .reading:
+            "tab.reading"
         case .practice:
             "tab.practice"
         case .memory:
@@ -32,6 +35,8 @@ enum MacWorkspaceSection: CaseIterable, Hashable {
             "mac.section.today.description"
         case .entries:
             "mac.section.entries.description"
+        case .reading:
+            "reading.library.subtitle"
         case .practice:
             "mac.section.practice.description"
         case .memory:
@@ -49,6 +54,8 @@ enum MacWorkspaceSection: CaseIterable, Hashable {
             localizedString("mac.section.today.subtitle")
         case .entries:
             localizedString("mac.section.entries.subtitle", entriesCount)
+        case .reading:
+            localizedString("reading.library.subtitle")
         case .practice:
             localizedString("mac.section.practice.subtitle")
         case .memory:
@@ -64,6 +71,7 @@ enum MacWorkspaceSection: CaseIterable, Hashable {
 enum MacWorkspaceRoute: Equatable {
     case overview
     case entryDetail(String)
+    case reading
     case practiceSentenceList(String)
     case practiceSentence(PracticeSessionRouteSeed)
     case settings(SettingsCapability.Kind)
@@ -74,7 +82,7 @@ enum MacWorkspaceRoute: Equatable {
         switch self {
         case .practiceSentenceList, .practiceSentence, .languageSpaceManagement:
             true
-        case .overview, .entryDetail, .settings, .unavailable:
+        case .overview, .entryDetail, .reading, .settings, .unavailable:
             false
         }
     }

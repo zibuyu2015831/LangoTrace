@@ -6,6 +6,7 @@ struct MacMainView: View {
     let languageSpace: LanguageSpacePreview
     let languageSpaces: [LanguageSpace]
     @ObservedObject var contentStore: LearningContentStore
+    @ObservedObject var readingLibraryStore: ReadingLibraryStore
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -242,6 +243,7 @@ private extension MacMainView {
                 languageSpaces: languageSpaces,
                 settingsCapabilities: settingsCapabilities,
                 contentStore: contentStore,
+                readingLibraryStore: readingLibraryStore,
                 practiceActions: practiceActions,
                 interfaceLanguagePreference: interfaceLanguagePreference,
                 appearancePreference: appearancePreference,

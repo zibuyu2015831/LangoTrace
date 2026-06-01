@@ -4950,6 +4950,210 @@
         }
       }
     },
+    "tab.reading": {
+      "comment": "Top-level tab and workspace title for reading.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阅读"
+          }
+        }
+      }
+    },
+    "reading.import.title.placeholder": {
+      "comment": "Placeholder for pasted reading document title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标题"
+          }
+        }
+      }
+    },
+    "reading.inspector.body": {
+      "comment": "Reading inspector empty state body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select text to explain it, or choose a sentence to play audio."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择文本进行解释，或选择句子播放音频。"
+          }
+        }
+      }
+    },
+    "reading.inspector.title": {
+      "comment": "Reading inspector title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选中文本"
+          }
+        }
+      }
+    },
+    "reading.library.delete": {
+      "comment": "Delete reading document action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
+      }
+    },
+    "reading.library.deleted": {
+      "comment": "Deleted reading documents section title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已删除"
+          }
+        }
+      }
+    },
+    "reading.library.empty.body": {
+      "comment": "Reading library empty state body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste a short text or Markdown document to start reading."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "粘贴短文本或 Markdown 文档开始阅读。"
+          }
+        }
+      }
+    },
+    "reading.library.empty.title": {
+      "comment": "Reading library empty state title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No reading documents"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无阅读资料"
+          }
+        }
+      }
+    },
+    "reading.library.import.paste": {
+      "comment": "Import pasted reading text action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste Text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "粘贴文本"
+          }
+        }
+      }
+    },
+    "reading.library.restore": {
+      "comment": "Restore reading document action.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复"
+          }
+        }
+      }
+    },
+    "reading.library.search.placeholder": {
+      "comment": "Reading library search field placeholder.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search reading library"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索阅读资料"
+          }
+        }
+      }
+    },
+    "reading.library.subtitle": {
+      "comment": "Reading library section subtitle.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local reading documents for the current language space."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前语言空间的本地阅读资料。"
+          }
+        }
+      }
+    },
     "tab.settings": {
       "comment": "iPhone tab for settings.",
       "localizations": {

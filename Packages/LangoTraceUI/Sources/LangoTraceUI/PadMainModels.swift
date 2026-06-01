@@ -39,6 +39,7 @@ enum PadWorkspaceRoute: Equatable {
     case entryDetail(String)
     case practiceSentenceList(String)
     case practiceSentence(PracticeSessionRouteSeed)
+    case reading
     case settingsList
     case settings(SettingsCapability.Kind)
     case memory
@@ -53,6 +54,8 @@ enum PadWorkspaceRoute: Equatable {
             "entryDetail.title"
         case .practiceSentenceList, .practiceSentence:
             "tab.practice"
+        case .reading:
+            "tab.reading"
         case .settingsList, .settings:
             "tab.settings"
         case .memory:

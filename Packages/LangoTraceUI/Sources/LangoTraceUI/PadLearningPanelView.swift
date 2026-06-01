@@ -41,6 +41,14 @@ struct PadLearningPanelView: View {
                     textKey: "pad.learningPanel.empty.body"
                 )
             }
+        case .reading:
+            routeContextContent(
+                titleKey: "tab.reading",
+                subtitleKey: "reading.library.subtitle",
+                panelTitleKey: "reading.inspector.title",
+                panelTextKey: "reading.inspector.body",
+                systemImage: "book.pages"
+            )
         case .settingsList, .settings:
             settingsContextContent
         case .memory:

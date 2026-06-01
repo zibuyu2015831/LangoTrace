@@ -59,6 +59,7 @@ public enum MediaArtifactOwner: Equatable, Sendable {
     case entry(id: String)
     case learningMaterial(id: String)
     case learningMaterialSentence(materialID: String, sentenceIndex: Int)
+    case readingDocumentSentence(documentID: String, sentenceID: String)
     case practiceSession(id: String)
     case temporaryOperation(id: String)
 }
