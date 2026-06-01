@@ -483,6 +483,7 @@ struct AIProviderDraftConfiguration: Equatable {
         } else if speech.isEnabled {
             capabilities.append(.speechSynthesis)
         }
+        // swiftlint:disable opening_brace
         if !includePlaceholders,
            embedding.isEnabled,
            embeddingDecision.canProbe,
@@ -491,6 +492,7 @@ struct AIProviderDraftConfiguration: Equatable {
                textCredentialID: text.endpoint.credentialID
            )
         {
+            // swiftlint:enable opening_brace
             capabilities.append(.embedding)
         }
         return capabilities
@@ -505,12 +507,14 @@ struct AIProviderDraftConfiguration: Equatable {
         }
 
         var updated = result
+        // swiftlint:disable opening_brace
         if speech.isEnabled,
            !speech.isComplete(
                textCredential: text.endpoint.independentCredential,
                textCredentialID: text.endpoint.credentialID
            )
         {
+            // swiftlint:enable opening_brace
             updated = updated.replacingLocalCapabilityResult(.init(
                 capability: .speechSynthesis,
                 status: .notConfigured,
@@ -678,6 +682,7 @@ struct AIProviderDraftConfiguration: Equatable {
     }
 
     mutating func applyResolvedSecrets(_ secretsByCredentialID: [AIProviderCredentialID: String]) {
+        // swiftlint:disable opening_brace
         if let credentialID = text.endpoint.credentialID,
            let secret = secretsByCredentialID[credentialID]
         {
@@ -695,6 +700,7 @@ struct AIProviderDraftConfiguration: Equatable {
            let credentialID = embedding.endpoint.credentialID,
            let secret = secretsByCredentialID[credentialID]
         {
+            // swiftlint:enable opening_brace
             embedding.endpoint.independentCredential.apiKeyDraft = secret
         }
     }
@@ -789,9 +795,11 @@ private extension AIProviderEndpointDraftConfiguration {
         guard independentCredential.requiresAPIKey else {
             return .none
         }
+        // swiftlint:disable opening_brace
         if independentCredential.apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
            let credentialID
         {
+            // swiftlint:enable opening_brace
             return .existing(credentialID)
         }
         return .newSecret(
