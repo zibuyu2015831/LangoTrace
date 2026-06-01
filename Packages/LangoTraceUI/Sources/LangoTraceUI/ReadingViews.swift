@@ -51,7 +51,21 @@ struct ReadingLibraryView: View {
             }
         }
         .sheet(isPresented: $isImportSheetPresented) {
-            importSheet
+            ReadingImportSheetView(
+                importTitle: $importTitle,
+                importBody: $importBody,
+                onCancel: {
+                    isImportSheetPresented = false
+                },
+                onSave: {
+                    Task {
+                        try? await store.importPastedText(title: importTitle, body: importBody)
+                        importTitle = ""
+                        importBody = ""
+                        isImportSheetPresented = false
+                    }
+                }
+            )
         }
         .fileImporter(
             isPresented: $isFileImporterPresented,
@@ -92,128 +106,13 @@ struct ReadingLibraryView: View {
     }
 
     private var libraryPane: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(titleKey: "tab.reading", subtitleKey: "reading.library.subtitle")
-            TextField(
-                localizedString("reading.library.search.placeholder"),
-                text: Binding(
-                    get: { store.searchText },
-                    set: { value in
-                        Task { await store.updateSearchText(value) }
-                    }
-                )
-            )
-            .textFieldStyle(.roundedBorder)
-
-            Button {
-                isImportSheetPresented = true
-            } label: {
-                Label(localizedString("reading.library.import.paste"), systemImage: "doc.on.clipboard")
-            }
-            .buttonStyle(.borderedProminent)
-
-            Button {
-                isFileImporterPresented = true
-            } label: {
-                Label(localizedString("reading.library.import.file"), systemImage: "doc.badge.plus")
-            }
-            .buttonStyle(.bordered)
-
-            libraryFilters
-
-            if store.filteredDocuments.isEmpty {
-                ContentUnavailableView(
-                    localizedString("reading.library.empty.title"),
-                    systemImage: "book.closed",
-                    description: Text(localizedString("reading.library.empty.body"))
-                )
-            } else {
-                List(store.filteredDocuments, id: \.id) { document in
-                    Button {
-                        Task { await store.openDocument(document.id) }
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(document.title)
-                                .font(.headline)
-                            Text(document.sourceFormat.rawValue)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            tagCollectionLine(document)
-                        }
-                    }
-                    .contextMenu {
-                        Button {
-                            collectionDrafts[document.id] = collectionDrafts[document.id, default: ""]
-                        } label: {
-                            Label(localizedString("reading.library.collection.assign"), systemImage: "folder.badge.plus")
-                        }
-                        Button {
-                            tagDrafts[document.id] = tagDrafts[document.id, default: ""]
-                        } label: {
-                            Label(localizedString("reading.library.tag.assign"), systemImage: "tag")
-                        }
-                        Button(role: .destructive) {
-                            Task { await store.softDelete(document.id) }
-                        } label: {
-                            Label(localizedString("reading.library.delete"), systemImage: "trash")
-                        }
-                    }
-                    inlineMetadataEditors(document)
-                }
-                .listStyle(.plain)
-            }
-
-            if !store.deletedDocuments.isEmpty {
-                DisclosureGroup(localizedString("reading.library.deleted")) {
-                    ForEach(store.deletedDocuments, id: \.id) { document in
-                        HStack {
-                            Text(document.title)
-                            Spacer()
-                            Button {
-                                Task { await store.restore(document.id) }
-                            } label: {
-                                Image(systemName: "arrow.uturn.backward")
-                            }
-                            .buttonStyle(.borderless)
-                            .accessibilityLabel(localizedString("reading.library.restore"))
-                        }
-                    }
-                }
-            }
-        }
-        .padding(20)
-    }
-
-    private var libraryFilters: some View {
-        HStack(spacing: 8) {
-            Picker(
-                localizedString("reading.library.collection.filter"),
-                selection: Binding(
-                    get: { store.selectedCollectionFilter ?? "" },
-                    set: { store.updateCollectionFilter($0.isEmpty ? nil : $0) }
-                )
-            ) {
-                Text(localizedString("reading.library.filter.all")).tag("")
-                ForEach(store.availableCollectionFilters, id: \.self) { title in
-                    Text(title).tag(title)
-                }
-            }
-            .pickerStyle(.menu)
-
-            Picker(
-                localizedString("reading.library.tag.filter"),
-                selection: Binding(
-                    get: { store.selectedTagFilter ?? "" },
-                    set: { store.updateTagFilter($0.isEmpty ? nil : $0) }
-                )
-            ) {
-                Text(localizedString("reading.library.filter.all")).tag("")
-                ForEach(store.availableTagFilters, id: \.self) { name in
-                    Text(name).tag(name)
-                }
-            }
-            .pickerStyle(.menu)
-        }
+        ReadingLibraryPane(
+            store: store,
+            isImportSheetPresented: $isImportSheetPresented,
+            isFileImporterPresented: $isFileImporterPresented,
+            collectionDrafts: $collectionDrafts,
+            tagDrafts: $tagDrafts
+        )
     }
 
     private var readerPane: some View {
@@ -224,7 +123,7 @@ struct ReadingLibraryView: View {
                         Button {
                             select(block)
                         } label: {
-                            readingBlock(block, style: activePresentation.style)
+                            ReadingBlockView(block: block, style: activePresentation.style)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .buttonStyle(.plain)
@@ -256,148 +155,10 @@ struct ReadingLibraryView: View {
     }
 
     private var inspectorPane: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(localizedString("reading.inspector.title"))
-                .font(.headline)
-            if let selectedText {
-                Text(selectedText)
-                    .font(.callout.weight(.semibold))
-                if let explanationResult {
-                    Text(explanationResult.shortExplanation)
-                        .font(.callout)
-                    Text(explanationResult.meaningInNativeLanguage)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text(localizedString("reading.inspector.body"))
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                Text(localizedString("reading.inspector.body"))
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(20)
-    }
-
-    private var importSheet: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 16) {
-                TextField(localizedString("reading.import.title.placeholder"), text: $importTitle)
-                    .textFieldStyle(.roundedBorder)
-                TextEditor(text: $importBody)
-                    .frame(minHeight: 220)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(LangoTraceDesign.ColorToken.borderSubtle)
-                    }
-                Spacer()
-            }
-            .padding(20)
-            .navigationTitle(localizedString("reading.library.import.paste"))
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(localizedString("common.close")) {
-                        isImportSheetPresented = false
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(localizedString("common.save")) {
-                        Task {
-                            try? await store.importPastedText(title: importTitle, body: importBody)
-                            importTitle = ""
-                            importBody = ""
-                            isImportSheetPresented = false
-                        }
-                    }
-                    .disabled(importBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func tagCollectionLine(_ document: ReadingLibraryDocumentSummary) -> some View {
-        let labels = document.collectionTitles + document.tagNames.map { "#\($0)" }
-        if !labels.isEmpty {
-            Text(labels.joined(separator: " · "))
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-        }
-    }
-
-    @ViewBuilder
-    private func inlineMetadataEditors(_ document: ReadingLibraryDocumentSummary) -> some View {
-        if collectionDrafts[document.id] != nil {
-            HStack {
-                TextField(
-                    localizedString("reading.library.collection.placeholder"),
-                    text: Binding(
-                        get: { collectionDrafts[document.id] ?? "" },
-                        set: { collectionDrafts[document.id] = $0 }
-                    )
-                )
-                Button(localizedString("common.save")) {
-                    let value = collectionDrafts[document.id] ?? ""
-                    Task {
-                        try? await store.assignCollection(documentID: document.id, title: value)
-                        collectionDrafts[document.id] = nil
-                    }
-                }
-            }
-        }
-        if tagDrafts[document.id] != nil {
-            HStack {
-                TextField(
-                    localizedString("reading.library.tag.placeholder"),
-                    text: Binding(
-                        get: { tagDrafts[document.id] ?? "" },
-                        set: { tagDrafts[document.id] = $0 }
-                    )
-                )
-                Button(localizedString("common.save")) {
-                    let value = tagDrafts[document.id] ?? ""
-                    Task {
-                        try? await store.tagDocument(documentID: document.id, name: value)
-                        tagDrafts[document.id] = nil
-                    }
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func readingBlock(_ block: ReadingBlockPresentation, style: ReadingPresentationStyle) -> some View {
-        switch block.kind {
-        case let .heading(level):
-            Text(block.text)
-                .font(level == 1 ? .title2.weight(.semibold) : .headline)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-        case .blockquote:
-            Text(block.text)
-                .font(.body)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .padding(.leading, 12)
-                .overlay(alignment: .leading) {
-                    Rectangle()
-                        .fill(LangoTraceDesign.ColorToken.borderSubtle)
-                        .frame(width: 3)
-                }
-        case .codeBlock:
-            Text(block.text)
-                .font(.system(.body, design: .monospaced))
-                .padding(12)
-                .background(LangoTraceDesign.ColorToken.surfacePanel)
-                .clipShape(.rect(cornerRadius: 8))
-        default:
-            Text(block.text)
-                .font(.body)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                .lineSpacing(style.lineSpacing)
-        }
+        ReadingInspectorPane(
+            selectedText: selectedText,
+            explanationResult: explanationResult
+        )
     }
 
     private func select(_ block: ReadingBlockPresentation) {
@@ -430,11 +191,23 @@ struct ReadingLibraryView: View {
                     proficiencyLevelCode: store.languageSpace.level.rawValue
                 )
             )
-            guard isCurrentSelection(token: token, text: selectedText, sentenceID: selectedSentenceID, documentID: documentID, spaceID: spaceID) else { return }
+            guard isCurrentSelection(
+                token: token,
+                text: selectedText,
+                sentenceID: selectedSentenceID,
+                documentID: documentID,
+                spaceID: spaceID
+            ) else { return }
             explanationResult = result
             explanationState = .idle
         } catch {
-            guard isCurrentSelection(token: token, text: selectedText, sentenceID: selectedSentenceID, documentID: documentID, spaceID: spaceID) else { return }
+            guard isCurrentSelection(
+                token: token,
+                text: selectedText,
+                sentenceID: selectedSentenceID,
+                documentID: documentID,
+                spaceID: spaceID
+            ) else { return }
             explanationState = .failed
         }
     }
@@ -454,7 +227,13 @@ struct ReadingLibraryView: View {
                 targetLanguageCode: store.languageSpace.targetLanguageCode
             )
         )
-        guard isCurrentSelection(token: token, text: block.text, sentenceID: block.id, documentID: documentID, spaceID: spaceID) else { return }
+        guard isCurrentSelection(
+            token: token,
+            text: block.text,
+            sentenceID: block.id,
+            documentID: documentID,
+            spaceID: spaceID
+        ) else { return }
         audioState = .idle
     }
 

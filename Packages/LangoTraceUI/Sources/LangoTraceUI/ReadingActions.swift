@@ -56,7 +56,8 @@ public struct ReadingTTSRequest: Equatable, Sendable {
     }
 }
 
-public typealias ReadingExplanationAction = @Sendable (ReadingExplanationRequest) async throws -> ReadingSelectionExplanationResult
+public typealias ReadingExplanationAction = @Sendable (ReadingExplanationRequest) async throws
+    -> ReadingSelectionExplanationResult
 public typealias ReadingTTSAction = @Sendable (ReadingTTSRequest) async -> Void
 
 public struct ReadingLibraryActions: Sendable {

@@ -18,22 +18,6 @@ final class ReadingLibraryStore: ObservableObject {
     @Published private(set) var selectedDocument: ReadingLibraryDocumentContent?
     @Published private(set) var selectedPresentation: ReadingDocumentPresentation?
 
-    var availableCollectionFilters: [String] {
-        Array(Set(documents.flatMap(\.collectionTitles))).sorted()
-    }
-
-    var availableTagFilters: [String] {
-        Array(Set(documents.flatMap(\.tagNames))).sorted()
-    }
-
-    var filteredDocuments: [ReadingLibraryDocumentSummary] {
-        documents.filter { document in
-            let collectionMatches = selectedCollectionFilter.map { document.collectionTitles.contains($0) } ?? true
-            let tagMatches = selectedTagFilter.map { document.tagNames.contains($0) } ?? true
-            return collectionMatches && tagMatches
-        }
-    }
-
     init(
         languageSpace: LanguageSpacePreview,
         actions: ReadingLibraryActions = .disabled
@@ -153,21 +137,12 @@ final class ReadingLibraryStore: ObservableObject {
         }
 
         importState = .loading
-        let ext = url.pathExtension.lowercased()
-        let sourceFormat: ReadingSourceFormat = ext == "md" ? .markdown : .plainText
-        let input = ReadingInlineDocumentImportInput(
-            spaceID: languageSpace.id,
-            title: url.deletingPathExtension().lastPathComponent,
+        let input = fileImportInput(
+            url: url,
+            filename: filename,
+            typeIdentifier: values.typeIdentifier,
             body: body,
-            sourceFormat: sourceFormat,
-            adapterID: sourceFormat == .markdown ? "builtin.markdown" : "builtin.plain_text",
-            adapterVersion: 1,
-            targetLanguageCode: languageSpace.targetLanguageCode,
-            originalFilename: filename,
-            originalFileExtension: ext.isEmpty ? nil : ext,
-            originalMimeType: sourceFormat == .markdown ? "text/markdown" : "text/plain",
-            originalUTI: values.typeIdentifier ?? (sourceFormat == .markdown ? "net.daringfireball.markdown" : "public.plain-text"),
-            originalByteSize: data.count
+            byteSize: data.count
         )
         do {
             _ = try await actions.importPastedText(input)
@@ -262,8 +237,58 @@ final class ReadingLibraryStore: ObservableObject {
         let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return trimmed.isEmpty ? nil : trimmed
     }
+
+    private func fileImportInput(
+        url: URL,
+        filename: String,
+        typeIdentifier: String?,
+        body: String,
+        byteSize: Int
+    ) -> ReadingInlineDocumentImportInput {
+        let ext = url.pathExtension.lowercased()
+        let sourceFormat: ReadingSourceFormat = ext == "md" ? .markdown : .plainText
+        let fallbackUTI = sourceFormat == .markdown
+            ? "net.daringfireball.markdown"
+            : "public.plain-text"
+        return ReadingInlineDocumentImportInput(
+            spaceID: languageSpace.id,
+            title: url.deletingPathExtension().lastPathComponent,
+            body: body,
+            sourceFormat: sourceFormat,
+            adapterID: sourceFormat == .markdown ? "builtin.markdown" : "builtin.plain_text",
+            adapterVersion: 1,
+            targetLanguageCode: languageSpace.targetLanguageCode,
+            originalFilename: filename,
+            originalFileExtension: ext.isEmpty ? nil : ext,
+            originalMimeType: sourceFormat == .markdown ? "text/markdown" : "text/plain",
+            originalUTI: typeIdentifier ?? fallbackUTI,
+            originalByteSize: byteSize
+        )
+    }
 }
 
 enum ReadingLibraryStoreError: Error, Equatable {
     case preflightRejected
+}
+
+extension ReadingLibraryStore {
+    var availableCollectionFilters: [String] {
+        Array(Set(documents.flatMap(\.collectionTitles))).sorted()
+    }
+
+    var availableTagFilters: [String] {
+        Array(Set(documents.flatMap(\.tagNames))).sorted()
+    }
+
+    var filteredDocuments: [ReadingLibraryDocumentSummary] {
+        documents.filter { document in
+            let collectionMatches = selectedCollectionFilter.map {
+                document.collectionTitles.contains($0)
+            } ?? true
+            let tagMatches = selectedTagFilter.map {
+                document.tagNames.contains($0)
+            } ?? true
+            return collectionMatches && tagMatches
+        }
+    }
 }
