@@ -36,6 +36,15 @@
 
 如任务属于 AI Provider、TTS Provider、数据迁移、平台页面或 Prompt 等高风险动作，应引用对应 `docs/workflows/` 手册，并说明采纳或偏离原因。
 
+参考研究、外部项目或重大文档治理结论被采纳前，应写清：
+
+```text
+证据能证明什么：
+证据不能证明什么：
+迁移前提：
+照搬风险：
+```
+
 高风险或研究性任务补充：
 
 ```text
@@ -43,6 +52,16 @@
 需要时的落点：
 是否包含真实用户敏感内容：
 如何验证和清理：
+```
+
+来源于 review round、health ledger 或运行期诊断时补充“审计发现与 work item 对照”：
+
+```text
+来源：round id / health-ledger trigger / runtime trigger
+发现 ID 或 trigger ID：
+严重度：
+对应 work item：
+验证证据：
 ```
 
 ## 7. 涉及的代码文件路径
@@ -78,6 +97,17 @@
 
 写清步骤、文件、顺序和关键边界。
 
+高风险、多阶段、跨 package 或超过 3 个阶段的任务，可增加 Phase 0 spike / baseline gate：
+
+```text
+假设名称：
+probe / fixture / baseline 路径：
+PASS 条件：
+FAIL 条件：
+FAIL 后处理方式：
+是否允许进入生产实现：
+```
+
 ## 12. 严格方案自审核记录
 
 按 `docs/plans/plan-review-protocol.md` 在进入实现前填写。低风险例外或用户明确跳过时，也要写明原因和剩余风险。
@@ -105,6 +135,14 @@
 
 列出完成前必须运行的命令。
 
+大型多阶段任务可增加阶段 DoD 检查命令；这些命令只检查结构性事实，不替代语义审查：
+
+```bash
+# Phase 0 DoD
+
+# Phase 1 DoD
+```
+
 ## 15. 文档影响检查
 
 说明是否影响入口、ADR、spec、architecture、testing、release、review 或其他长期文档。
@@ -113,9 +151,28 @@
 
 按时间记录实际改动、偏离方案的原因、验证结果和提交信息。
 
+如实施中出现 deferred / aborted 项，记录延后 / 中止决策日志：
+
+```text
+项目：
+决策类型：deferred / aborted
+原因：
+影响：
+后续事实源或复审入口：
+```
+
 ## 17. 完成标准
 
 列出任务可以从 `active/` 移入 `done/` 的条件。
+
+高风险任务移入 `done/` 前，应补充 plan-vs-shipped 对账：
+
+```text
+work item 是否都有文档 / 代码 / 测试 / 脚本 / review evidence：
+scope-down 是否已记录：
+deferred / aborted 项是否已从完成叙事中剥离：
+后续事实源或复审入口：
+```
 
 ## 18. 剩余风险
 

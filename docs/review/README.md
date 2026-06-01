@@ -84,6 +84,14 @@
 docs/review/rounds/YYYY-MM-DD-<topic>/README.md
 ```
 
+专项审查发现 ID：
+
+- 发现 ID 用于从 review round 追踪到 remediation active plan 的 work item，不替代 P0 / P1 / P2 / P3 严重度。
+- 推荐按领域使用稳定前缀，例如数据 / 存储 `DATA-1`、AI / Prompt / Provider `AI-1`、权限 / 隐私 / 诊断 `PRIV-1`、同步 `SYNC-1`、UI / 可访问性 `UI-1`、文档治理 `DOC-1`。
+- ID 只要求在单个 review round 内稳定；跨 round 引用时必须带上 round id，例如 `2026-06-01-ai-provider/AI-1`。
+- 来源于 review round 的 remediation plan，应在“证据与决策依据”或专门对照表中写明 `round id -> finding id -> work item`，避免审查结论和实施计划脱节。
+- 若发现来自 health ledger、用户报告或运行期诊断，而不是正式 review round，可以使用 trigger id；进入专项审查后再分配 round 内 finding id。
+
 ### 4.3 里程碑轻量全审
 
 适用场景：
@@ -97,6 +105,22 @@ docs/review/rounds/YYYY-MM-DD-<topic>/README.md
 - 检查入口文档、主参考文档、架构文档、spec、testing、release 是否仍然匹配实际实现。
 - 抽样追踪关键能力从代码到文档的闭环。
 - 记录剩余风险，不追求一次性覆盖所有细节。
+
+### 4.3.1 Release-tail Closeout
+
+Release-tail closeout 是阶段性功能落地后的尾部收口，不是每个小任务的强制流程。
+
+适用场景：
+
+- 数据层、AI 层、同步层、StoreKit、权限层等高风险阶段收尾。
+- 跨 package 大功能、跨三端共享能力或 TestFlight / 发布前收口。
+- 主功能已进入可验证状态，但仍需要集中处理 focused review、focused tests、CI repair、stale-test alignment、文档影响检查或剩余风险降权。
+
+边界：
+
+- 没有清晰 feature batch 边界时，不启用 release-tail closeout。
+- release-tail 不能把新需求、scope-down、deferred 或 aborted 项包装成已完成内容；这些内容必须回到 active plan、done plan 收口记录或后续事实源。
+- 如果 release-tail 发现新的 P0 / P1 风险，应新建或更新 active plan，而不是在审查记录中顺手修复。
 
 ### 4.4 保守文档自进化
 
@@ -178,6 +202,24 @@ docs/review/rounds/YYYY-MM-DD-<topic>/README.md
 - health ledger 指标必须可机械采集、方向明确、能指导行动，避免 raw LOC、总提交数等 vanity metrics。
 - 同一问题连续三次在 health ledger、T2 或 T3 中出现且没有改善时，应分流为 `docs/plans/active/` 下的 bug、chore、docs、refactor 任务、专项 review round，或显式接受风险，而不是长期留在趋势记录中。
 - 每条发现必须有 verdict，例如已修、转为 active plan、明确接受、延后原因或由某个 review round 承接。
+- 如果 health ledger 或 T2 / T3 触发 remediation plan，应在 plan 中使用稳定 finding id 或 trigger id，并写明 trigger -> work item 的对照。
+
+### 4.6 Guardrail 生命周期
+
+Guardrail 指脚本、CI、TDD、coverage、AI audit、文档结构检查、release gate 或人工门禁等约束。新增或调整 guardrail 时，必须记录它解决的问题和 enforcement level：
+
+- `advisory`：只作为建议或人工提醒。
+- `manual`：需要人工按 checklist 执行。
+- `script`：本地脚本可机械检查。
+- `CI`：持续集成自动检查。
+- `hook-blocking`：提交或推送前阻断。
+- `release-blocking`：发布或 TestFlight 前阻断。
+
+生命周期记录要求：
+
+- 在对应 active plan、review round 或 health ledger 中记录 introduced、strengthened、weakened、manualized、removed 或 replacement。
+- 弱化、手动化、移除或替换 guardrail 时，应记录原因，例如误报、维护成本、外部依赖不稳定、信号质量不足或已有替代检查。
+- 不把外部模型或 cross-model audit 当作自动真理；AI 审查只能作为盲点探测器，结论必须经主线程复核，并回写到 plan、测试、代码或 review 记录。
 
 ## 5. 审查产物
 

@@ -24,8 +24,29 @@
 - fixture 不得包含真实用户敏感内容、API Key、Authorization header、请求体、响应体、照片、音频或转写全文。
 - 外部项目 fixture、格式样本或许可证研究只能作为参考；采纳结论后仍要回写到 LangoTrace 权威文档。
 - 依赖外部网络、真实 API Key、本机路径或系统服务的 probe，必须写清离线复现方式、跳过条件和剩余风险。
+- 参考研究或重大文档治理结论被采纳前，应使用 evidence-backed claim 写法，明确证据能证明什么、证据不能证明什么、迁移前提和照搬风险。
+- spike 或 probe 失败时也要记录 FAIL 原因、后续处理和是否保留证据；不能只删除失败材料。
 
-## 3. 与其他目录的关系
+## 3. Phase 0 Gate
+
+Phase 0 gate 是高风险生产实现前的前置证明层，适用于数据迁移、AI Provider、同步、权限、StoreKit、跨 package 大功能、复杂文档治理或不确定技术路线。它不是所有任务的必填项。
+
+最低记录内容：
+
+- 假设名称。
+- probe / fixture / baseline 路径。
+- PASS / FAIL 条件。
+- FAIL 后处理方式。
+- 是否允许进入生产实现。
+
+关系边界：
+
+- Phase 0 gate 可以引用本目录、`docs/reference/research/`、`scripts/`、`Tests/Tooling/` 或 package tests 中的 evidence。
+- 研究证据本身不是当前事实源；被采纳后必须写回 active plan、spec、architecture、testing、review 或 ADR。
+- 需要真实用户敏感样本时，不得把原始照片、音频、转写全文、请求体、响应体、API Key 或 Authorization header 写入本目录；应使用脱敏 fixture、合成样本或人工验收记录。
+- Phase 0 通过只证明该假设在记录的条件下成立，不自动证明完整功能已实现。
+
+## 4. 与其他目录的关系
 
 - `docs/plans/active/`：记录本次任务是否需要 spike / probe / fixture / evidence、实施顺序和清理条件。
 - `docs/review/rounds/`：保存审查 evidence，不把 evidence 迁入本目录。
@@ -33,7 +54,7 @@
 - `scripts/`：保存可复用宿主机诊断脚本或结构检查脚本。
 - `Packages/*/Tests/`：保存模块自动化测试和靠近测试的长期 fixture。
 
-## 4. 当前已知样例
+## 5. 当前已知样例
 
 - `Packages/LangoTraceAI/Sources/LangoTraceAI/Resources/AIProviderProbe/blue-square.png`：AI Provider 图片理解 probe 的内置低敏 fixture。
 - `Packages/LangoTraceAI/Tests/LangoTraceAITests/LearningMaterialGenerationServiceFixtures.swift`：学习材料生成服务测试 fixture。

@@ -46,6 +46,7 @@ docs/plans/done/YYYY-MM-DD-<type>-<topic>.md
 - 现状描述。
 - 目标、范围和不做什么。
 - 证据与决策依据。
+- 来源于 review round、health ledger 或运行期诊断时的 finding id / trigger id 与 work item 对照。
 - 涉及的代码文件路径。
 - 参考的代码文件路径。
 - 涉及的文档路径。
@@ -103,6 +104,12 @@ bug 方案还必须包含：
 - 如果任务改变了长期规则，应同步更新 `docs/spec/`、`docs/decisions/`、`docs/architecture/` 或其他相关文档。
 - AI Provider、TTS Provider、数据迁移、平台页面或 Prompt 等高风险动作，应在任务方案的“证据与决策依据”或“实施方案”中引用对应 `docs/workflows/` 手册，并说明采纳或偏离原因。
 - 高风险任务应在方案中说明是否需要 spike / probe / fixture / evidence；需要时写清落点、是否包含真实用户敏感内容、验证方式、保留期限和清理条件。
+- 来源于 review round 的 remediation plan，应写明 `round id -> finding id -> work item`；来源于 health ledger 或运行期诊断时，应写明 trigger id -> work item。
+- 高风险、多阶段、跨 package 或超过 3 个阶段的任务，应考虑增加 Phase 0 spike / baseline gate。Phase 0 至少写明假设名称、probe / fixture / baseline 路径、PASS / FAIL 条件、FAIL 后处理方式，以及是否允许进入生产实现。
+- 大型多阶段任务可以定义机器可检查 DoD；DoD 只检查文件、章节、命令、测试、migration、review round 状态等结构性事实，不替代语义审查或人工判断。
+- 任务中出现 deferred 或 aborted 项时，必须记录项目、决策类型、原因、影响、后续事实源或复审入口；不得在完成叙事中把 deferred / aborted 项包装成已完成。
+- 高风险任务完成并移入 `done/` 前，应做 plan-vs-shipped 对账：检查 work item 是否有实际文档、代码、测试、脚本或 review evidence；scope-down 是否写明；deferred / aborted 项是否有后续入口。
+- 新增或强化脚本、CI、TDD、coverage、AI audit、文档检查或 release gate 时，应记录 guardrail 的 enforcement level、引入原因和未来回调路径；弱化、手动化、移除或替换时，应说明原因和替代机制。
 - `docs/plans/done/` 是已完成任务的历史记录目录，不作为新任务入口；新任务必须先写入 `docs/plans/active/`。
 - 模板缺陷、文档治理规则变化、历史资料清理、文档谬误修正、review 生命周期调整、当前事实源索引修正都属于 `docs` 类型任务。
 - 文档治理任务创建前必须先搜索 `docs/plans/active/`、`docs/plans/done/` 和 `docs/review/INDEX.md`。若已有 active plan 处理同一问题，应追加到现有方案；若已完成任务的问题复发，应新建方案并引用旧任务，而不是重开或改写旧记录。

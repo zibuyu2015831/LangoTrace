@@ -12,7 +12,10 @@
 - 不记录 raw LOC、总提交数、文档总数等难以直接指导行动的 vanity metrics。
 - 每条记录必须包含日期、commit、trigger、metrics、verdict 和 notes。
 - 同一问题连续三次出现且没有改善时，必须转为 active plan、review round 或显式接受风险。
+- 转为 active plan 或 review round 时，应分配稳定 trigger id 或引用后续 finding id，并记录 trigger -> work item / review round 的对照。
+- 每条发现都必须有 verdict，例如已修、转为 active plan、明确接受、延后原因或由某个 review round 承接。
 - 语义问题仍进入 `docs/plans/active/` 或 `docs/review/rounds/`；本 ledger 只保存趋势和处置结论。
+- 本 ledger 不是第二套 issue tracker；只保存趋势、触发条件和处置结果，不维护完整任务状态。
 
 ## 2. Ledger
 

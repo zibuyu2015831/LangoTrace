@@ -54,6 +54,9 @@ playground.xcworkspace
 .env.*
 !.env.example
 
+# Local reference project symlinks
+/docs/reference/projects/vmark
+
 # Logs and temporary files
 /logs/
 *.log

@@ -36,6 +36,22 @@ rg -q "^## 最新状态摘要$" docs/review/INDEX.md || fail "docs/review/INDEX.
 rg -q "^## 2\\. Ledger$" docs/review/health-ledger.md || fail "docs/review/health-ledger.md must include ledger section"
 rg -q "日期.*Commit.*Trigger.*Metrics.*Verdict.*Notes" docs/review/health-ledger.md \
   || fail "docs/review/health-ledger.md must include date/commit/trigger/metrics/verdict/notes columns"
+rg -q "发现 ID" docs/review/README.md || fail "docs/review/README.md must include finding ID rules"
+rg -q "Guardrail 生命周期" docs/review/README.md || fail "docs/review/README.md must include guardrail lifecycle rules"
+rg -q "release-tail closeout|Release-tail Closeout" docs/review/README.md \
+  || fail "docs/review/README.md must include release-tail closeout rules"
+rg -q "审计发现与 work item 对照" docs/plans/examples/task-plan-template.md \
+  || fail "task plan template must include audit finding to work item mapping"
+rg -q "Phase 0" docs/plans/examples/task-plan-template.md \
+  || fail "task plan template must include Phase 0 gate guidance"
+rg -q "延后 / 中止决策日志" docs/plans/examples/task-plan-template.md \
+  || fail "task plan template must include deferred/aborted decision log"
+rg -q "plan-vs-shipped" docs/plans/examples/task-plan-template.md \
+  || fail "task plan template must include plan-vs-shipped closeout"
+rg -q "Phase 0" docs/reference/research/spikes/README.md \
+  || fail "docs/reference/research/spikes/README.md must include Phase 0 gate rules"
+rg -q "evidence-backed claim" docs/reference/research/spikes/README.md \
+  || fail "docs/reference/research/spikes/README.md must include evidence-backed claim rules"
 
 while IFS= read -r file; do
   name="$(basename "$file")"

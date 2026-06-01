@@ -36,6 +36,7 @@
 | Lute v3 | https://github.com/LuteOrg/lute-v3 | `projects/lute-v3` | `/Users/zibuyu/code/openSource/lute-v3` | MIT |
 | Readest | https://github.com/readest/readest | `projects/readest` | `/Users/zibuyu/code/openSource/readest` | AGPL-3.0 |
 | LibreLingo | https://github.com/kantord/LibreLingo | `projects/LibreLingo` | `/Users/zibuyu/code/openSource/LibreLingo` | AGPL-3.0 |
+| VMark | https://github.com/xiaolai/vmark | `projects/vmark` | `/Users/zibuyu/code/openSource/vmark` | ISC |
 
 ## 2. 优先研究结论
 
