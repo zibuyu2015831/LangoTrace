@@ -40,7 +40,7 @@ LangoTrace 已经具备较完整的文档体系：
 - `docs/review/health-ledger.md` 已吸收 VMark house-cleaning 的轻量趋势记录思想。
 - `docs/architecture/002-system-map.md` 已吸收 VMark architecture map 的快速系统地图形式。
 - `docs/reference/research/spikes/README.md` 已吸收 spike / probe / fixture / evidence 的研究落点规则。
-- `docs/reference/research/2026-06-01-vmark-dev-docs-assessment.md` 已记录本轮 VMark dev-docs 再评估结论。
+- `docs/archive/reference/research/2026-06-01-vmark-dev-docs-assessment.md` 已归档记录本轮 VMark dev-docs 再评估结论。
 
 已存在相关任务：
 
@@ -119,7 +119,7 @@ LangoTrace 文档依据：
 - `docs/review/README.md`：文档审查机制、专项 review、健康趋势和保守文档自进化规则。
 - `docs/reference/README.md`：参考项目不能直接成为产品决策源、架构事实源或实现事实源。
 - `docs/reference/research/spikes/README.md`：spike / probe / fixture / evidence 的研究落点。
-- `docs/reference/research/2026-06-01-vmark-dev-docs-assessment.md`：本轮 VMark dev-docs 再评估结论。
+- `docs/archive/reference/research/2026-06-01-vmark-dev-docs-assessment.md`：本轮 VMark dev-docs 再评估结论，已归档。
 - `docs/reference/projects/vmark/zibuyu-analysis/reports/project-methods/dev-docs-system.md`：项目考古报告对 VMark dev docs、ADR、plans、audit notes 与 runtime truth 对账的总结。
 - `docs/reference/projects/vmark/zibuyu-analysis/reports/reusable/ai-assisted-programming-playbook.md`：可复用 AI 辅助编程方法，强调 working agreement、phase / WI / checkpoint、cross-model audit、guardrail 生命周期和 release-tail closeout。
 - `docs/reference/projects/vmark/zibuyu-analysis/reports/author-thinking/development-philosophy.md`：作者开发思路报告，强调先分解再证明、失败进入制度、AI 是审查放大器而非证据替代品。
@@ -148,8 +148,8 @@ VMark 参考依据：
 高风险或研究性任务补充：
 
 ```text
-是否需要 spike / probe / fixture / evidence：需要。实施前需要把 VMark 终端审计和整改方案中的可迁移机制作为 evidence，已经落点到 docs/reference/research/2026-06-01-vmark-dev-docs-assessment.md。
-需要时的落点：docs/reference/research/2026-06-01-vmark-dev-docs-assessment.md；实施中如发现新的 VMark 证据，可追加到本 active plan 的实施记录或新建 reference research 记录。
+是否需要 spike / probe / fixture / evidence：需要。实施前需要把 VMark 终端审计和整改方案中的可迁移机制作为 evidence，已经落点到 docs/archive/reference/research/2026-06-01-vmark-dev-docs-assessment.md。
+需要时的落点：docs/archive/reference/research/2026-06-01-vmark-dev-docs-assessment.md；实施中如发现新的 VMark 证据，可追加到本 active plan 的实施记录或新建 reference research 记录。
 是否包含真实用户敏感内容：否。只涉及公开参考项目文档和本仓库开发文档。
 如何验证和清理：完成后运行文档结构检查、占位符扫描、git diff 检查；不删除参考项目文档。
 ```
@@ -187,7 +187,7 @@ VMark 参考依据：
 只读参考：
 
 - `docs/reference/README.md`
-- `docs/reference/research/2026-06-01-vmark-dev-docs-assessment.md`
+- `docs/archive/reference/research/2026-06-01-vmark-dev-docs-assessment.md`
 - `docs/plans/active/2026-05-23-docs-doc-constraint-index.md`
 - `docs/plans/done/2026-05-25-docs-vmark-docs-system-optimization.md`
 - `docs/plans/done/2026-05-25-docs-dev-docs-workflow-governance.md`

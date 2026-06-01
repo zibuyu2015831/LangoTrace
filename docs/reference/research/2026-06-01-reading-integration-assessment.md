@@ -10,6 +10,8 @@
 
 定位再审日期：2026-06-01
 
+架构深审日期：2026-06-01
+
 复审范围：
 
 - 当前 LangoTrace 权威文档：`docs/README.md`、`docs/product-main-reference.md`、`docs/technical-framework-roadmap.md`、`docs/plans/README.md`、`docs/plans/plan-review-protocol.md`、`docs/spec/002-navigation-and-routing.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/011-tts-provider-configuration-and-playback.md`、`docs/spec/learning-content/impl.md`、`docs/spec/media-artifacts/impl.md`。
@@ -52,25 +54,25 @@ LangoTrace 已有 SwiftUI Multiplatform、Language Space、GRDB、Keychain、用
 
 ## 1.1 严格复审结论
 
-状态：Needs Changes before feature implementation
+状态：Approved With Required Plan Constraints
 
-这份 research 可以作为后续 active plan 的输入，但尚不能直接作为实现方案。后续已创建 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 承接本研究，并按 `docs/plans/plan-review-protocol.md` 完成自审核；该 active plan 仍为 `Draft`，尚未获得生产代码实现授权。
+这份 research 可以作为后续 active plan 的输入，但不能直接替代实现方案或用户授权。后续已创建 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 承接本研究，并按 `docs/plans/plan-review-protocol.md` 完成自审核；该 active plan 仍为 `Draft`，尚未获得生产代码实现授权。修正后的架构判断是：阅读作为长期一级学习场景已经成立；若用户批准该 feature 级纵向切片进入实现，应同步更新产品主参考、导航规范、页面清单和 Reading 领域 spec，并在同一任务中提供正式 reading route。只有纯 research spike 或一次性技术验证才允许临时二级入口。
 
 ### 关键问题
 
 - P1：产品边界需要分层表达。阅读应升级为一级学习场景，但不能稀释“用生活记录学习语言”的品牌差异化。建议保留主 slogan，同时扩展一句话定位和功能架构。
-- P1：导航方案 B 从长期看有必要，但不能作为无方案的即时改动。`docs/spec/002-navigation-and-routing.md` 和 `PhoneRootTab` 当前都固定 iPhone 三 Tab：`记录 / 练习 / 记忆`。新增“阅读”一级 Tab 属于导航规范变更，至少需要 active plan、spec 更新、页面清单更新，若改变核心信息架构还要评估 ADR。
+- P1：导航方案 B 从长期看有必要，但不能作为无文档的偷改。`docs/spec/002-navigation-and-routing.md` 和 `PhoneRootTab` 当前都固定 iPhone 三 Tab：`记录 / 练习 / 记忆`。新增“阅读”一级 Tab 属于导航规范变更；在 feature 级纵向切片中可以实施，但必须先更新 active plan、产品主参考、导航 spec、页面清单、本地化和 UI tests，并评估是否触发 ADR。若只是 research spike，则不应修改生产导航。
 - P1：VMark 证据链不足。VMark 没有语言学习阅读器、词典或 lexeme state；它值得借鉴的是文档状态、格式适配、打开管线、大文件性能、命令意图和服务分层。不能把 VMark 的 Markdown 编辑器优势直接等价为 LangoTrace 的阅读学习实现。
 - P1：数据模型缺少版本、导入、删除、导出和大文本策略。`reading_documents.body` 单字段可以作为早期小文本 MVP，但 active plan 必须明确大小上限、body hash、structure version、source anchor revision、import artifact、软删除、导出 / 备份 / 同步默认策略和 migration 测试。
-- P1：词典和词状态容易膨胀为独立词库产品。第一阶段应先实现用户导入 CSV/TSV/JSON 的本地查词和词状态，不内置版权词典，不做 MDX / StarDict，不做自动 SRS。
-- P2：AI 查询边界需要更细。点词时本地词典优先；AI 解释必须显式触发；不得自动发送全文；上下文半径、请求预览、成本提示和日志脱敏要写进 active plan。
+- P1：词典和词状态容易膨胀为独立词库产品。当前纵向切片只应验证合成 100k exact lookup、normalization 和 lookup panel 交互，不落完整词典导入 UI；完整 MVP 再做用户导入 CSV/TSV/JSON 的本地查词和词状态。不内置版权词典，不做 MDX / StarDict，不做自动 SRS。
+- P2：AI 查询边界需要更细。点词时本地词典优先；AI 解释必须显式触发；不得自动发送全文；上下文半径、请求预览、成本提示、取消 / 去重、超时、Provider 未配置、operation summary 和日志脱敏要写进 active plan。
 - P2：SwiftUI 阅读交互需要 spike 先行。Text 选择、AttributedString 高亮、TextKit / UIKit / AppKit bridge、LazyVStack 长文本渲染、VoiceOver 和 Dynamic Type 都不应在 MVP 方案里凭空假设可行。
 - P2：测试落点不够具体。需要先失败测试覆盖 Core segmentation contract、Data repository / migration、dictionary lookup normalization、source anchor stability、UI presentation model、TTS reading source key 和 import failure recovery。
 
 ### 四维切片
 
-- 并发 / 性能边界：导入、分段 / 分句、词典索引、长文本渲染和 TTS 生成都必须异步、可取消、幂等；大文件先做 pre-read size gate，不能读入后再决定拒绝。
-- 异常边界：文件不存在、无权限、编码失败、空内容、超长内容、重复导入、词典字段缺失、AI Provider 未配置、TTS requires retest、媒体 artifact 写入失败都要有稳定错误分类和用户可恢复路径。
+- 并发 / 性能边界：导入、分段 / 分句、词典索引、长文本渲染、AI selection explanation 和 TTS 生成都必须异步、可取消、幂等；大文件先做 pre-read size gate，不能读入后再决定拒绝；同一 selection 的 AI/TTS 重复触发应合并、禁用或取消旧任务，避免重复计费和重复缓存。
+- 异常边界：文件不存在、无权限、编码失败、空内容、超长内容、重复导入、词典字段缺失、AI Provider 未配置、Provider 超时 / 限流 / JSON 解析失败、TTS requires retest、media artifact staging / move / hash 校验失败都要有稳定错误分类和用户可恢复路径。
 - 状态同步：ReadingDocument 是主数据；reading structure、tokenization、lookup result、当前选择、inspector 展开状态是派生或 UI 状态；阅读位置是否 device-scoped 必须先定，不得混入 language space 主模型。
 - 数据一致性：source anchor 不能只靠 sentence index；至少要保存 document id、content revision / structure version、sentence id、character range、source text hash。删除 ReadingDocument 时必须定义 anchors、memory、practice、TTS artifact 和导出行为。
 
@@ -265,15 +267,18 @@ VMark 不是可直接迁移的阅读学习模块。它是 Tauri + React + Rust �
 - iPhone 上阅读仍不如 Tab 显性。
 - 需要设计稳定、可发现的资料库入口。
 
-推荐：产品定位上接受方案 B 作为长期 IA 目标；实施上先用方案 C 或 A 完成 spike 和 MVP，待阅读资料库、点词、词典、TTS、Memory / Practice 回流形成最小闭环后，再通过独立导航任务把 iPhone Tab 调整为 `记录 / 阅读 / 练习 / 记忆`。
+推荐：产品定位和长期 IA 上接受方案 B。实施上区分两类任务：
+
+- 如果只是 research spike 或技术 probe，可以用方案 C 或 A 作为临时入口，避免把验证性代码扩大为正式信息架构。
+- 如果进入 feature 级纵向切片并落真实 Reading 主数据、AI/TTS action seam 和三端 route，则不应继续把阅读藏在二级入口；应在同一方案内先修订产品主参考、导航 spec 和页面清单，再把 iPhone Tab 调整为 `记录 / 阅读 / 练习 / 记忆`，同时保持本轮只交付最小阅读闭环。
 
 复审补充：
 
 - 长期一级 Tab 目标建议调整为 `记录 / 阅读 / 练习 / 记忆`。这比把阅读藏在“记录”或“记忆”里更符合“一切语言学习”的目标，也更容易让用户理解语迹既支持自我表达输入，也支持外部文本输入。
-- MVP 不应在同一个任务里同时做阅读基础设施和 `PhoneRootTab` 变更。当前代码和规范都把 iPhone 一级入口固定为 `记录 / 练习 / 记忆`；新增 Tab 会牵动 `PhoneRootTab`、本地化、页面清单、导航规范和 iOS 验证，建议拆成独立导航任务。
-- iPhone spike / MVP 临时入口可以放在 `记录`页或顶部轻量入口中的“导入阅读材料”，以及 `记忆`页中的“阅读材料中的词句”聚合入口。临时入口用于降低首轮风险，不代表长期 IA。
+- 纯 spike 不应在同一个任务里同时做阅读基础设施和 `PhoneRootTab` 变更。当前代码和规范都把 iPhone 一级入口固定为 `记录 / 练习 / 记忆`；新增 Tab 会牵动 `PhoneRootTab`、本地化、页面清单、导航规范和 iOS 验证，必须由 feature plan 明确授权。
+- iPhone research spike 临时入口可以放在 `记录`页或顶部轻量入口中的“导入阅读材料”，以及 `记忆`页中的“阅读材料中的词句”聚合入口。临时入口用于降低首轮风险，不代表长期 IA；feature 级纵向切片则应提供正式 reading route。
 - iPad / macOS 首版可以更显性：iPad 左侧工作台 route 增加资料库入口，macOS Sidebar / toolbar 增加导入和资料库。平台显性程度可以不同，但写入路径必须共享。
-- 阅读 MVP 闭环验证后，应创建导航变更 active plan，更新 `docs/product-main-reference.md`、`docs/spec/002-navigation-and-routing.md`、`docs/platform-page-inventory.md`、相关 UI tests，并评估是否需要 ADR。
+- 当前已由 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 承接的路线属于 feature 级纵向切片。若用户批准实施，应把导航变更、产品事实源更新、Reading spec 和最小 reading route 纳入同一受控范围；若用户不同意本轮导航升级，则应把该 active plan 拆回“无顶级入口的 reading infrastructure / spike”，并明确其临时性。
 
 ### 5.1 Slogan 与定位边界
 
@@ -716,7 +721,7 @@ CSV/TSV/JSON 字段映射可控，但 MDX、StarDict、Lingvo DSL 会增加：
 正式进入开发前，需要：
 
 1. 任务方案  
-   按 `docs/plans/README.md` 创建 `docs/plans/active/YYYY-MM-DD-research-reading-spike.md` 或 `docs/plans/active/YYYY-MM-DD-feature-reading-mvp.md` 并经确认。若尚未完成 SwiftUI 阅读交互和长文本性能 spike，推荐先建 research spike，不直接建 feature plan。
+   已由 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 承接本研究。该 active plan 当前为 `Draft`，只能作为方案来源，不能自动授权生产代码实现。进入实现前必须取得用户明确确认，并在用户确认记录中写明本轮是否包含四 Tab 导航升级、Reading spec 写入和真实 AI/TTS 纵向切片。
 
 2. 权威文档更新  
    由于定位再审已经建议把阅读作为一级学习场景，后续进入 feature plan 或导航 plan 时需要更新：
@@ -728,10 +733,10 @@ CSV/TSV/JSON 字段映射可控，但 MDX、StarDict、Lingvo DSL 会增加：
    - `docs/platform-page-inventory.md`
    - `docs/spec/009-testing-and-verification.md` 中的阅读手动验证入口
 
-   如果只是进入 research spike，可暂不立即修改 `PhoneRootTab` 和导航规范强制规则，但 active plan 必须写明“产品方向已倾向四 Tab，当前任务只验证阅读闭环和技术可行性”。
+   如果只是进入 research spike，可暂不立即修改 `PhoneRootTab` 和导航规范强制规则，但 active plan 必须写明“产品方向已倾向四 Tab，当前任务只验证阅读闭环和技术可行性”。如果进入当前 feature 级纵向切片，则应先更新这些权威文档，再修改生产导航和三端 route。
 
 3. Spike  
-   至少验证：
+   至少验证。当前纵向切片可以把 spike 作为 Phase 0 / evidence gate 嵌入 feature plan，而不必另建 research plan；但 Phase 0 失败时必须停止生产实现或降级范围：
    - iPhone 点词和 bottom sheet。
    - iPad 三栏阅读 + 词典 Inspector。
    - macOS 资料库 + 阅读 + Inspector。
@@ -753,13 +758,16 @@ CSV/TSV/JSON 字段映射可控，但 MDX、StarDict、Lingvo DSL 会增加：
 7. 自审核
    active plan 进入实现前必须按 `docs/plans/plan-review-protocol.md` 完成严格自审核，尤其覆盖并发 / 性能、异常边界、状态同步、数据一致性、TDD 和文档影响检查。
 
+8. 用户授权边界
+   本 research 的任何结论都不能单独授权生产实现。当前 active plan 的 `状态：Draft` 意味着只能继续完善方案和证据；实施前必须由用户明确批准，并把方案状态推进到 `User Approved` 或在用户确认记录中写明等价授权。
+
 ## 10. 推荐 MVP
 
-复审后建议把路线拆成三个层级：`Spike`、`MVP`、`Post-MVP`。不要把所有阅读能力塞进第一份 feature plan。
+复审后建议把路线拆成四个层级：`Feature Phase 0`、`Vertical Slice`、`MVP`、`Post-MVP`。不要把所有阅读能力塞进第一份 feature plan；但当前项目已有真实 AI/TTS、GRDB 和媒体派生资产基础设施，因此可以在用户批准后用一个窄范围 feature 纵向切片同时验证 Reading 主数据、正式 route、selection-only AI 和 reading sentence TTS。
 
-### 10.0 先做 Spike
+### 10.0 Feature Phase 0 / Spike Gate
 
-Spike 只验证，不承诺真实主数据完整上线：
+Phase 0 只验证，不承诺真实主数据完整上线。它可以是独立 research spike，也可以作为 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 的前置 gate：
 
 - 三端阅读布局原型：iPhone 单栏 + bottom sheet，iPad 正文 + inspector，macOS 资料库 + inspector。
 - SwiftUI / TextKit 点词选择技术路线。
@@ -770,7 +778,20 @@ Spike 只验证，不承诺真实主数据完整上线：
 - CJK / 日语 / RTL 手动选择可用性。
 - Source anchor revision mismatch 的 UI 表达。
 
-Spike 产物应放入 `docs/reference/research/spikes/` 或 active research plan 的 evidence 段，不直接写入产品事实源。
+Phase 0 产物应放入 `docs/reference/research/spikes/` 或 active plan 的 evidence 段。只有被 feature plan 采纳为长期规则的结论，才写回产品主参考、spec、architecture 或 ADR。
+
+### 10.0.1 当前推荐纵向切片
+
+当前 active plan 承接的合理切片是：
+
+- 先更新产品主参考、导航规范、页面清单和 Reading 领域 spec，确认阅读是正式一级学习场景。
+- 落 ReadingDocument / structure / position / source anchor / operation summary 的最小 GRDB 主数据，不落完整资料库管理和同步。
+- 提供 pasted text、`.txt`、`.md` 的 preflight 和短文本导入；超限、空内容和编码失败必须在写库前拦截。
+- 三端提供正式 reading route：iPhone 进入 `记录 / 阅读 / 练习 / 记忆`，iPad / macOS 使用适合大屏的 sidebar / workspace 承载。
+- 手动 selection 触发 inspector，不依赖英文空格分词。
+- AI 只做 selection explanation，必须有请求预览、有限上下文、显式触发、取消 / 去重、错误分类和非敏感 operation summary。
+- TTS 只做 reading sentence 单句播放，必须使用独立 `readingDocumentSentence` source，复用现有 media artifact policy，不做全文朗读或批量预生成。
+- 证据文档记录 Phase 0 阈值、失败项、范围降级和后续 MVP 拆分。
 
 ### 10.1 MVP 做
 
@@ -788,7 +809,7 @@ Spike 产物应放入 `docs/reference/research/spikes/` 或 active research plan
 - 从阅读句子进入跟读练习。
 - Reading import operation 摘要和非敏感诊断。
 - Source anchor：至少支持 readingDocument 来源，并能在 revision 变化时标记 stale。
-- iPhone MVP 可先通过二级入口降低风险；长期目标仍是新增阅读一级 Tab。
+- iPhone MVP 应使用正式阅读入口；只有 research spike 才允许二级临时入口。
 
 ### 10.2 MVP 暂缓
 
@@ -872,14 +893,14 @@ Sync -> Core
 
 ### 11.1 推荐实施拆分
 
-后续 active plan 不建议一份计划覆盖全部。推荐拆为：
+后续 active plan 不建议一份计划覆盖全部。当前已经存在的 `feature-reading-ai-tts-vertical-slice` 可以作为第一份 feature 级窄切片，但它不应越界到完整词典、完整资料库、同步或电子书引擎。完整路线仍推荐拆为：
 
-1. `research-reading-interaction-spike`：三端阅读交互、TextKit / SwiftUI 技术路线、性能阈值。
-2. `feature-reading-document-infrastructure`：Core model、GRDB schema、repository、import operation、txt/md/paste 导入。
-3. `feature-reading-library-ui`：三端资料库入口、ReadingDocumentStore、阅读位置恢复。
-4. `feature-reading-dictionary-lookup`：dictionary import、normalized lookup、lookup panel、lexeme state。
-5. `feature-reading-memory-practice-tts`：source anchor、Memory / Practice 回流、reading sentence TTS。
-6. 后续再评估 AI explanation、FTS、EPUB/PDF、同步。
+1. `feature-reading-ai-tts-vertical-slice`：Phase 0 gate、Reading 基础主数据、正式 reading route、selection-only AI explanation、reading sentence TTS、source anchor stale、证据沉淀。
+2. `feature-reading-library-management`：资料库列表、搜索、删除、恢复、批量导入和阅读位置恢复增强。
+3. `feature-reading-dictionary-lookup`：dictionary import、normalized lookup、lookup panel、lexeme state。
+4. `feature-reading-memory-practice`：source anchor、Memory / Practice 回流、练习入口完整闭环。
+5. `feature-reading-export-backup-boundary`：阅读材料、词典、词状态、source anchor 和派生缓存的导出 / 可恢复备份策略。
+6. 后续再评估 FTS、EPUB/PDF、语言包、SRS 和同步。
 
 ### 11.2 TDD 落点
 
@@ -970,13 +991,13 @@ Learn languages from your life.
 
 短期不要把阅读降级为生活记录详情页的小功能，也不要一步到位做完整电子书阅读器。最稳妥路线是：
 
-1. 先做 research spike，验证 SwiftUI 阅读交互、长文本性能、导入 preflight、词典查询和 source anchor。
-2. 建立阅读资料库和纯文本 / Markdown 阅读主数据。
-3. 做手动选词、本地词典、词状态和句子收藏。
-4. 接入 TTS、Memory、Practice。
-5. 阅读 MVP 闭环成立后，单独创建导航任务，把 iPhone Tab 从 `记录 / 练习 / 记忆` 调整为 `记录 / 阅读 / 练习 / 记忆`。
-6. 再扩展 AI 解释、文件格式、SRS、语言包、FTS 和同步。
+1. 以当前 active plan 为入口，在用户批准后先更新产品主参考、导航规范、页面清单和 Reading 领域 spec，确认阅读作为正式一级学习入口。
+2. 用 Phase 0 gate 验证 SwiftUI 阅读交互、长文本性能、导入 preflight、100k lookup 和 source anchor stale；失败时停止或降级范围。
+3. 建立纯文本 / Markdown ReadingDocument 主数据、正式 reading route、最小阅读 presentation model 和 source anchor。
+4. 接入用户显式触发的 selection-only AI explanation 和 reading sentence TTS，严格复用现有 Provider / Keychain / media artifact 边界。
+5. 再拆分完整资料库、词典导入、词状态、Memory / Practice 回流、导出 / 备份和同步。
+6. 最后评估 EPUB / PDF、SRS、语言包、FTS、全文 AI 能力和跨设备阅读位置。
 
-这一路线的核心判断是：阅读作为产品能力应升格，阅读作为工程实现必须分阶段。方向上承认它是一级学习场景；落地上先验证阅读闭环，不让电子书、词典格式、同步和 AI 全文能力拖垮 MVP。
+这一路线的核心判断是：阅读作为产品能力应升格，阅读作为工程实现必须分阶段。方向上承认它是一级学习场景；落地上先做受控纵向切片，不让电子书、词典格式、同步和 AI 全文能力拖垮 MVP。
 
-本 research 的结论不能直接授权实现。当前后续入口是 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md`；该方案把原先建议的 spike 事项提升为含真实 AI / TTS 的窄范围纵向切片，但仍需用户明确确认后才能进入生产代码实现。
+本 research 的结论不能直接授权实现。当前后续入口是 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md`；该方案把原先建议的 spike 事项提升为含正式 route、真实 AI / TTS 的窄范围纵向切片。它在设计上合理，但仍需用户明确确认后才能进入生产代码实现。

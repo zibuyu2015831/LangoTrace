@@ -1,10 +1,10 @@
 # VMark dev-docs 文档体系评估
 
 日期：2026-06-01
-状态：Research，已被后续 docs plan 承接
+状态：Archived，已被后续 docs plan 承接并落地
 参考项目：`docs/reference/projects/vmark/dev-docs`、`docs/reference/projects/vmark/zibuyu-analysis/`
 
-本文记录对 VMark `dev-docs` 文档体系的再评估。它是参考研究记录，不是 LangoTrace 当前事实源、产品决策源或架构决策源。若后续采纳其中建议，必须分流到 `docs/review/`、`docs/plans/`、`docs/spec/`、`docs/architecture/` 或 `docs/decisions/`。
+本文记录对 VMark `dev-docs` 文档体系的再评估。它是已归档的参考研究记录，不是 LangoTrace 当前事实源、产品决策源或架构决策源。相关结论已由 `docs/plans/done/2026-06-01-docs-vmark-engineering-dev-docs.md` 承接并落地；后续若再次采纳其中建议，必须重新分流到 `docs/review/`、`docs/plans/`、`docs/spec/`、`docs/architecture/` 或 `docs/decisions/`。
 
 ## 1. 结论摘要
 
