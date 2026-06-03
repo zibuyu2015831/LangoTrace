@@ -2,7 +2,12 @@ public struct ReadingSelectionExplanationInput: Equatable, Sendable {
     public var documentID: String
     public var sourceAnchorID: String
     public var selectedText: String
+    public var selectionScope: ReadingSelectionScope
     public var containingSentence: String
+    public var previousSentence: String?
+    public var nextSentence: String?
+    public var containingParagraph: String
+    public var contextMode: ReadingContextMode
     public var contextText: String
     public var nativeLanguageCode: String
     public var targetLanguageCode: String
@@ -12,7 +17,12 @@ public struct ReadingSelectionExplanationInput: Equatable, Sendable {
         documentID: String,
         sourceAnchorID: String,
         selectedText: String,
+        selectionScope: ReadingSelectionScope,
         containingSentence: String,
+        previousSentence: String?,
+        nextSentence: String?,
+        containingParagraph: String,
+        contextMode: ReadingContextMode,
         contextText: String,
         nativeLanguageCode: String,
         targetLanguageCode: String,
@@ -21,7 +31,12 @@ public struct ReadingSelectionExplanationInput: Equatable, Sendable {
         self.documentID = documentID
         self.sourceAnchorID = sourceAnchorID
         self.selectedText = selectedText
+        self.selectionScope = selectionScope
         self.containingSentence = containingSentence
+        self.previousSentence = previousSentence
+        self.nextSentence = nextSentence
+        self.containingParagraph = containingParagraph
+        self.contextMode = contextMode
         self.contextText = contextText
         self.nativeLanguageCode = nativeLanguageCode
         self.targetLanguageCode = targetLanguageCode

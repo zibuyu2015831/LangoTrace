@@ -228,9 +228,14 @@ private func makeReadingExplanationAction(
                     plaintextSecret: plaintextSecret,
                     input: ReadingSelectionExplanationInput(
                         documentID: request.documentID,
-                        sourceAnchorID: request.sentenceID ?? "selection",
+                        sourceAnchorID: request.sourceAnchorID,
                         selectedText: request.selectedText,
+                        selectionScope: request.selectionScope,
                         containingSentence: request.containingSentence,
+                        previousSentence: request.previousSentence,
+                        nextSentence: request.nextSentence,
+                        containingParagraph: request.containingParagraph,
+                        contextMode: request.contextMode,
                         contextText: request.contextText,
                         nativeLanguageCode: request.nativeLanguageCode,
                         targetLanguageCode: request.targetLanguageCode,
@@ -295,6 +300,10 @@ private func makeReadingLibraryActions(
         loadDocument: { id, spaceID in
             let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
             return try repository.documentContent(id: id, spaceID: spaceID)
+        },
+        updateDocument: { input in
+            let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
+            return try repository.updateDocument(input)
         },
         softDeleteDocument: { id, spaceID in
             let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())

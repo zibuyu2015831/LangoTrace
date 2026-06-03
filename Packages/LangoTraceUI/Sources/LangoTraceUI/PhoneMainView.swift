@@ -49,7 +49,10 @@ struct PhoneMainView: View {
                     platform: .phone,
                     store: readingLibraryStore,
                     explanationAction: readingExplanationAction,
-                    ttsAction: readingTTSAction
+                    ttsAction: readingTTSAction,
+                    onOpenPhoneDocument: { documentID in
+                        navigationPath.append(.readingDocument(documentID))
+                    }
                 )
                 .tabItem {
                     Label {
@@ -142,6 +145,14 @@ struct PhoneMainView: View {
                         }
                     )
                     .id(seed.practiceRouteIdentity)
+                case let .readingDocument(documentID):
+                    ReadingDocumentDetailView(
+                        platform: .phone,
+                        documentID: documentID,
+                        store: readingLibraryStore,
+                        explanationAction: readingExplanationAction,
+                        ttsAction: readingTTSAction
+                    )
                 case .settings(.languageSpace):
                     LanguageSpaceManagementView(
                         spaces: languageSpaces,
@@ -268,6 +279,7 @@ struct PhoneMainView: View {
 
 private enum PhoneRoute: Hashable {
     case entryDetail(String)
+    case readingDocument(String)
     case practiceSentenceList(String)
     case practiceSentence(PracticeSessionRouteSeed)
     case settings(SettingsCapability.Kind)

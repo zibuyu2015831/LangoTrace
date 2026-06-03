@@ -25,6 +25,7 @@
 - 是否更新 `docs/platform-page-inventory.md`。
 - 是否需要本地化 key、Dynamic Type、VoiceOver、键盘、指针或窗口行为验证。
 - 是否影响导航与路由规范。
+- 页面承载的核心对象属于用户主数据、派生数据、配置对象还是运行期记录；若属于用户主数据，必须检查是否已覆盖基础生命周期，而不是只实现创建、导入或只读展示。
 
 ## 3. 关键落点
 
@@ -57,6 +58,15 @@
 ## 6. 完成前检查
 
 运行相关 UI / Core 聚焦测试；涉及三端页面、导航结构或 App 启动结构时运行 `scripts/verify.sh`。完成前检查 `platform-page-inventory.md` 是否需要同步。
+
+如果页面新增或升级了用户主数据对象入口，还必须回看 `docs/spec/007-data-storage-migration-export-and-attachments.md`：
+
+- 是否定义了创建或导入入口。
+- 是否定义了列表 / 查询 / 打开路径。
+- 是否评估了更新路径。
+- 是否定义了删除、软删除、恢复或受限删除语义。
+
+若本轮只交付其中一部分，active plan 必须写明 deferred 项、原因和后续入口。
 
 ## 7. 反例
 

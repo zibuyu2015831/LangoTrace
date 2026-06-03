@@ -4984,6 +4984,40 @@
         }
       }
     },
+    "reading.editor.error.emptyBody": {
+      "comment": "Reading editor validation error when body is empty.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text can't be empty."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正文不能为空。"
+          }
+        }
+      }
+    },
+    "reading.editor.error.generic": {
+      "comment": "Fallback reading editor save failure message.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save failed. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存失败，请重试。"
+          }
+        }
+      }
+    },
     "reading.action.explain": {
       "comment": "Explain selected reading text action.",
       "localizations": {
@@ -5001,6 +5035,57 @@
         }
       }
     },
+    "reading.action.grammar": {
+      "comment": "Reading more menu grammar action placeholder.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grammar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语法分析"
+          }
+        }
+      }
+    },
+    "reading.action.more": {
+      "comment": "Reading more actions menu label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多"
+          }
+        }
+      }
+    },
+    "reading.action.translate": {
+      "comment": "Reading more menu translate action placeholder.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻译"
+          }
+        }
+      }
+    },
     "reading.inspector.body": {
       "comment": "Reading inspector empty state body.",
       "localizations": {
@@ -5014,6 +5099,142 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择文本进行解释，或选择句子播放音频。"
+          }
+        }
+      }
+    },
+    "reading.panel.failed": {
+      "comment": "Compact reading learning panel failure copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explanation failed. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解释失败，请重试。"
+          }
+        }
+      }
+    },
+    "reading.panel.idle": {
+      "comment": "Compact reading learning panel idle copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Explain or Listen for this selection."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可对当前选中内容执行解释或听。"
+          }
+        }
+      }
+    },
+    "reading.panel.loading": {
+      "comment": "Compact reading learning panel loading copy.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading explanation…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在生成解释…"
+          }
+        }
+      }
+    },
+    "reading.selection.context.adjacentParagraphs": {
+      "comment": "Reading selection context mode for adjacent paragraphs.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sending adjacent paragraphs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送相邻段落"
+          }
+        }
+      }
+    },
+    "reading.selection.context.currentParagraph": {
+      "comment": "Reading selection context mode for current paragraph.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sending current paragraph"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送当前段落"
+          }
+        }
+      }
+    },
+    "reading.selection.context.fullDocument": {
+      "comment": "Reading selection context mode for full document.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sending full document"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送全文"
+          }
+        }
+      }
+    },
+    "reading.selection.scope.fragment": {
+      "comment": "Reading selection scope title for fragment selection.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected fragment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选中片段"
+          }
+        }
+      }
+    },
+    "reading.selection.scope.sentence": {
+      "comment": "Reading selection scope title for sentence selection.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected sentence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选中句子"
           }
         }
       }

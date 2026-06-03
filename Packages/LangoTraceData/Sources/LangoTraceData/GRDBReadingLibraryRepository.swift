@@ -150,6 +150,62 @@ public extension GRDBReadingLibraryRepository {
         }
     }
 
+    func updateDocument(_ input: ReadingDocumentUpdateInput) throws -> ReadingLibraryDocumentContent {
+        try databaseQueue.write { db in
+            let documentRow = try requireDocumentRow(id: input.documentID, spaceID: input.spaceID, db: db)
+            let libraryStatus = ReadingLibraryStatus(rawValue: documentRow["library_status"] as String) ?? .softDeleted
+            guard libraryStatus == .active else {
+                throw DatabaseError(message: "Soft-deleted reading document cannot be edited")
+            }
+
+            let currentFormat = ReadingSourceFormat(rawValue: documentRow["source_format"] as String) ?? .plainText
+            guard currentFormat == input.sourceFormat else {
+                throw DatabaseError(message: "Reading document source format cannot be changed during edit")
+            }
+
+            let nextContentRevision = (documentRow["content_revision"] as Int) + 1
+            let nextStructureVersion = (documentRow["structure_version"] as Int) + 1
+            let now = clock().timeIntervalSince1970
+
+            try db.execute(
+                sql: """
+                UPDATE reading_documents
+                SET title = ?, body = ?, body_hash = ?, content_revision = ?,
+                    structure_version = ?, updated_at = ?
+                WHERE id = ? AND space_id = ?
+                """,
+                arguments: [
+                    input.title,
+                    input.body,
+                    sha256Hex(input.body),
+                    nextContentRevision,
+                    nextStructureVersion,
+                    now,
+                    input.documentID,
+                    input.spaceID,
+                ]
+            )
+            try rebuildSearchIndex(
+                documentID: input.documentID,
+                spaceID: input.spaceID,
+                title: input.title,
+                body: input.body,
+                db: db
+            )
+            try rebuildStructure(
+                documentID: input.documentID,
+                spaceID: input.spaceID,
+                sourceFormat: input.sourceFormat,
+                body: input.body,
+                structureVersion: nextStructureVersion,
+                contentRevision: nextContentRevision,
+                db: db
+            )
+            try recordLifecycle(documentID: input.documentID, spaceID: input.spaceID, eventType: .updated, db: db)
+            return try documentContent(id: input.documentID, spaceID: input.spaceID, db: db)
+        }
+    }
+
     func markDocumentOpened(id: String, spaceID: String) throws {
         try databaseQueue.write { db in
             try requireDocument(id: id, spaceID: spaceID, db: db)
@@ -390,25 +446,22 @@ public extension GRDBReadingLibraryRepository {
 
 private extension GRDBReadingLibraryRepository {
     func requireDocument(id: String, spaceID: String, db: Database) throws {
-        let exists = try Bool.fetchOne(
-            db,
-            sql: "SELECT EXISTS(SELECT 1 FROM reading_documents WHERE id = ? AND space_id = ?)",
-            arguments: [id, spaceID]
-        ) ?? false
-        guard exists else {
-            throw DatabaseError(message: "Reading document does not belong to the requested language space")
-        }
+        _ = try requireDocumentRow(id: id, spaceID: spaceID, db: db)
     }
 
-    func summary(documentID: String, spaceID: String, db: Database) throws -> ReadingLibraryDocumentSummary {
+    func requireDocumentRow(id: String, spaceID: String, db: Database) throws -> Row {
         guard let row = try Row.fetchOne(
             db,
             sql: "SELECT * FROM reading_documents WHERE id = ? AND space_id = ?",
-            arguments: [documentID, spaceID]
+            arguments: [id, spaceID]
         ) else {
-            throw DatabaseError(message: "Missing reading document")
+            throw DatabaseError(message: "Reading document does not belong to the requested language space")
         }
-        return try summary(from: row, db: db)
+        return row
+    }
+
+    func summary(documentID: String, spaceID: String, db: Database) throws -> ReadingLibraryDocumentSummary {
+        try summary(from: requireDocumentRow(id: documentID, spaceID: spaceID, db: db), db: db)
     }
 
     func summary(from row: Row, db: Database) throws -> ReadingLibraryDocumentSummary {
@@ -505,6 +558,127 @@ private extension GRDBReadingLibraryRepository {
                 clock().timeIntervalSince1970,
             ]
         )
+    }
+
+    func rebuildStructure(
+        documentID: String,
+        spaceID: String,
+        sourceFormat: ReadingSourceFormat,
+        body: String,
+        structureVersion: Int,
+        contentRevision: Int,
+        db: Database
+    ) throws {
+        try db.execute(
+            sql: "DELETE FROM reading_source_anchors WHERE document_id = ? AND space_id = ?",
+            arguments: [documentID, spaceID]
+        )
+        try db.execute(
+            sql: "DELETE FROM reading_sentences WHERE document_id = ? AND space_id = ?",
+            arguments: [documentID, spaceID]
+        )
+        try db.execute(
+            sql: "DELETE FROM reading_structure_blocks WHERE document_id = ? AND space_id = ?",
+            arguments: [documentID, spaceID]
+        )
+
+        let document = ReadingMarkdownParser.parse(body, sourceFormat: sourceFormat)
+        for (blockIndex, block) in document.blocks.enumerated() {
+            let blockID = idGenerator()
+            let sourceStartOffset = block.sourceRange.map { body.distance(from: body.startIndex, to: $0.lowerBound) } ?? 0
+            let sourceLength = block.sourceRange.map { body.distance(from: $0.lowerBound, to: $0.upperBound) } ?? block.text.count
+            try db.execute(
+                sql: """
+                INSERT INTO reading_structure_blocks (
+                    id, document_id, space_id, structure_version, block_index,
+                    block_kind, source_start_offset, source_length, plain_text, metadata_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+                """,
+                arguments: [
+                    blockID,
+                    documentID,
+                    spaceID,
+                    structureVersion,
+                    blockIndex,
+                    blockKindStorageValue(for: block.kind),
+                    sourceStartOffset,
+                    sourceLength,
+                    block.text,
+                ]
+            )
+
+            let trimmedText = block.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmedText.isEmpty else { continue }
+            let sentenceID = idGenerator()
+            try db.execute(
+                sql: """
+                INSERT INTO reading_sentences (
+                    id, document_id, block_id, space_id, structure_version,
+                    sentence_index, character_offset, character_length, text_hash
+                ) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)
+                """,
+                arguments: [
+                    sentenceID,
+                    documentID,
+                    blockID,
+                    spaceID,
+                    structureVersion,
+                    blockIndex,
+                    trimmedText.count,
+                    sha256Hex(trimmedText),
+                ]
+            )
+        }
+
+        _ = contentRevision
+    }
+
+    func documentContent(id: String, spaceID: String, db: Database) throws -> ReadingLibraryDocumentContent {
+        guard let content = try Row.fetchOne(
+            db,
+            sql: """
+            SELECT id, space_id, title, body, source_format, target_language_code,
+                   content_revision, structure_version
+            FROM reading_documents
+            WHERE id = ? AND space_id = ?
+            """,
+            arguments: [id, spaceID]
+        ).map({ row in
+            ReadingLibraryDocumentContent(
+                id: row["id"],
+                spaceID: row["space_id"],
+                title: row["title"],
+                body: row["body"] ?? "",
+                sourceFormat: ReadingSourceFormat(rawValue: row["source_format"] as String) ?? .plainText,
+                targetLanguageCode: row["target_language_code"],
+                contentRevision: row["content_revision"],
+                structureVersion: row["structure_version"]
+            )
+        }) else {
+            throw DatabaseError(message: "Missing reading document")
+        }
+        return content
+    }
+
+    func blockKindStorageValue(for kind: ReadingMarkdownBlockKind) -> String {
+        switch kind {
+        case let .heading(level):
+            "heading:\(level)"
+        case .paragraph:
+            "paragraph"
+        case .blockquote:
+            "blockquote"
+        case .unorderedList:
+            "unorderedList"
+        case .orderedList:
+            "orderedList"
+        case let .codeBlock(language):
+            "codeBlock:\(language ?? "")"
+        case .horizontalRule:
+            "horizontalRule"
+        case .unsupported:
+            "unsupported"
+        }
     }
 
     func recordLifecycle(

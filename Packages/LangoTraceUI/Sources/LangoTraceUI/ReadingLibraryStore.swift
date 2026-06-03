@@ -5,7 +5,8 @@ import LangoTraceCore
 @MainActor
 final class ReadingLibraryStore: ObservableObject {
     private let actions: ReadingLibraryActions
-    private var generation = 0
+    private var listGeneration = 0
+    private var documentGeneration = 0
 
     @Published private(set) var languageSpace: LanguageSpacePreview
     @Published private(set) var documents: [ReadingLibraryDocumentSummary] = []
@@ -44,7 +45,7 @@ final class ReadingLibraryStore: ObservableObject {
 
     func reload() async {
         loadState = .loading
-        let token = nextToken()
+        let token = nextListToken()
         let spaceID = languageSpace.id
         let query = ReadingLibrarySearchQuery(rawValue: searchText)
         do {
@@ -52,12 +53,12 @@ final class ReadingLibraryStore: ObservableObject {
             async let deleted = actions.listDocuments(spaceID, true, nil)
             let loadedActive = try await active
             let loadedDeleted = try await deleted.filter { $0.libraryStatus == .softDeleted }
-            guard isCurrent(token: token, spaceID: spaceID) else { return }
+            guard isCurrentList(token: token, spaceID: spaceID) else { return }
             documents = loadedActive
             deletedDocuments = loadedDeleted
             loadState = .idle
         } catch {
-            guard isCurrent(token: token, spaceID: spaceID) else { return }
+            guard isCurrentList(token: token, spaceID: spaceID) else { return }
             loadState = .failed
         }
     }
@@ -176,13 +177,16 @@ final class ReadingLibraryStore: ObservableObject {
         await reload()
     }
 
-    func openDocument(_ id: String) async {
-        let token = nextToken()
+    func openDocument(
+        _ id: String,
+        platform: ReadingPlatformRole = .phone
+    ) async {
+        let token = nextDocumentToken()
         let spaceID = languageSpace.id
         do {
             try await actions.markDocumentOpened(id, spaceID)
             guard let document = try await actions.loadDocument(id, spaceID) else {
-                guard isCurrent(token: token, spaceID: spaceID) else { return }
+                guard isCurrentDocument(token: token, spaceID: spaceID) else { return }
                 selectedDocument = nil
                 selectedPresentation = nil
                 return
@@ -190,21 +194,51 @@ final class ReadingLibraryStore: ObservableObject {
             let presentation = ReadingMarkdownBlockRenderer.render(
                 document: ReadingMarkdownParser.parse(document.body, sourceFormat: document.sourceFormat),
                 appearance: .default,
-                platform: .phone
+                platform: platform,
+                identity: ReadingDocumentRenderIdentity(
+                    documentID: document.id,
+                    contentRevision: document.contentRevision,
+                    structureVersion: document.structureVersion
+                )
             )
-            guard isCurrent(token: token, spaceID: spaceID) else { return }
+            guard isCurrentDocument(token: token, spaceID: spaceID) else { return }
             selectedDocument = document
             selectedPresentation = presentation
         } catch {
-            guard isCurrent(token: token, spaceID: spaceID) else { return }
+            guard isCurrentDocument(token: token, spaceID: spaceID) else { return }
             selectedDocument = nil
             selectedPresentation = nil
         }
     }
 
+    func saveDocumentEdits(
+        _ input: ReadingDocumentUpdateInput,
+        platform: ReadingPlatformRole
+    ) async throws -> ReadingLibraryDocumentContent {
+        let updated = try await actions.updateDocument(input)
+        selectedDocument = updated
+        selectedPresentation = ReadingMarkdownBlockRenderer.render(
+            document: ReadingMarkdownParser.parse(updated.body, sourceFormat: updated.sourceFormat),
+            appearance: .default,
+            platform: platform,
+            identity: ReadingDocumentRenderIdentity(
+                documentID: updated.id,
+                contentRevision: updated.contentRevision,
+                structureVersion: updated.structureVersion
+            )
+        )
+        await reload()
+        return updated
+    }
+
     func softDelete(_ id: String) async {
         do {
             try await actions.softDeleteDocument(id, languageSpace.id)
+            if selectedDocument?.id == id {
+                selectedDocument = nil
+                selectedPresentation = nil
+                documentGeneration += 1
+            }
             await reload()
         } catch {
             loadState = .failed
@@ -220,17 +254,27 @@ final class ReadingLibraryStore: ObservableObject {
         }
     }
 
-    private func nextToken() -> Int {
-        generation += 1
-        return generation
+    private func nextListToken() -> Int {
+        listGeneration += 1
+        return listGeneration
     }
 
     private func invalidateInFlightWork() {
-        generation += 1
+        listGeneration += 1
+        documentGeneration += 1
     }
 
-    private func isCurrent(token: Int, spaceID: String) -> Bool {
-        token == generation && languageSpace.id == spaceID
+    private func nextDocumentToken() -> Int {
+        documentGeneration += 1
+        return documentGeneration
+    }
+
+    private func isCurrentList(token: Int, spaceID: String) -> Bool {
+        token == listGeneration && languageSpace.id == spaceID
+    }
+
+    private func isCurrentDocument(token: Int, spaceID: String) -> Bool {
+        token == documentGeneration && languageSpace.id == spaceID
     }
 
     private func normalizedFilter(_ value: String?) -> String? {

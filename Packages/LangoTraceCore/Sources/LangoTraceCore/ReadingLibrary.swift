@@ -94,6 +94,37 @@ public struct ReadingLibraryDocumentContent: Equatable, Sendable {
     }
 }
 
+public struct ReadingDocumentUpdateInput: Equatable, Sendable {
+    public let documentID: String
+    public let spaceID: String
+    public let title: String
+    public let body: String
+    public let sourceFormat: ReadingSourceFormat
+
+    public init(
+        documentID: String,
+        spaceID: String,
+        title: String,
+        body: String,
+        sourceFormat: ReadingSourceFormat
+    ) throws {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedBody.isEmpty else {
+            throw ReadingDocumentUpdateError.emptyBody
+        }
+        self.documentID = documentID
+        self.spaceID = spaceID
+        self.title = trimmedTitle.isEmpty ? String(trimmedBody.prefix(40)) : trimmedTitle
+        self.body = body
+        self.sourceFormat = sourceFormat
+    }
+}
+
+public enum ReadingDocumentUpdateError: Error, Equatable, Sendable {
+    case emptyBody
+}
+
 public struct ReadingInlineDocumentImportInput: Equatable, Sendable {
     public var spaceID: String
     public var title: String

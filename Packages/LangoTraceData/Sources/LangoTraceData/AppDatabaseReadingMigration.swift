@@ -11,6 +11,37 @@ extension AppDatabase {
         try createReadingOperationTables(db)
     }
 
+    static func upgradeReadingLifecycleEventsForDocumentUpdatesIfNeeded(_ db: Database) throws {
+        guard try db.tableExists("reading_document_lifecycle_events") else {
+            return
+        }
+        let definition = try String.fetchOne(
+            db,
+            sql: """
+            SELECT sql
+            FROM sqlite_master
+            WHERE type = 'table' AND name = 'reading_document_lifecycle_events'
+            """
+        ) ?? ""
+        guard !definition.contains("'updated'") else {
+            return
+        }
+
+        try db.execute(sql: "ALTER TABLE reading_document_lifecycle_events RENAME TO reading_document_lifecycle_events_legacy")
+        try createReadingDocumentLifecycleEvents(db)
+        try db.execute(
+            sql: """
+            INSERT INTO reading_document_lifecycle_events (
+                id, document_id, space_id, event_type, actor, summary_json, created_at
+            )
+            SELECT
+                id, document_id, space_id, event_type, actor, summary_json, created_at
+            FROM reading_document_lifecycle_events_legacy
+            """
+        )
+        try db.execute(sql: "DROP TABLE reading_document_lifecycle_events_legacy")
+    }
+
     private static func createReadingDocuments(_ db: Database) throws {
         try db.execute(sql: """
         CREATE TABLE reading_documents (
@@ -247,21 +278,7 @@ extension AppDatabase {
     }
 
     private static func createReadingOperationTables(_ db: Database) throws {
-        try db.execute(sql: """
-        CREATE TABLE reading_document_lifecycle_events (
-          id TEXT PRIMARY KEY,
-          document_id TEXT NOT NULL REFERENCES reading_documents(id) ON DELETE CASCADE,
-          space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
-          event_type TEXT NOT NULL,
-          actor TEXT NOT NULL,
-          summary_json TEXT,
-          created_at REAL NOT NULL,
-          CHECK (event_type IN (
-            'imported', 'opened', 'softDeleted', 'restored',
-            'assignedCollection', 'removedCollection', 'tagged', 'untagged'
-          ))
-        )
-        """)
+        try createReadingDocumentLifecycleEvents(db)
         try db.execute(sql: """
         CREATE TABLE reading_ai_explanation_operations (
           id TEXT PRIMARY KEY,
@@ -283,6 +300,24 @@ extension AppDatabase {
           completed_at REAL,
           CHECK (context_character_count >= 0),
           CHECK (status IN ('pending', 'succeeded', 'failed', 'cancelled'))
+        )
+        """)
+    }
+
+    private static func createReadingDocumentLifecycleEvents(_ db: Database) throws {
+        try db.execute(sql: """
+        CREATE TABLE reading_document_lifecycle_events (
+          id TEXT PRIMARY KEY,
+          document_id TEXT NOT NULL REFERENCES reading_documents(id) ON DELETE CASCADE,
+          space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          event_type TEXT NOT NULL,
+          actor TEXT NOT NULL,
+          summary_json TEXT,
+          created_at REAL NOT NULL,
+          CHECK (event_type IN (
+            'imported', 'opened', 'updated', 'softDeleted', 'restored',
+            'assignedCollection', 'removedCollection', 'tagged', 'untagged'
+          ))
         )
         """)
     }

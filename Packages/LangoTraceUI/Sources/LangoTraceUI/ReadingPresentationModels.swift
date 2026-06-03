@@ -7,23 +7,56 @@ public enum ReadingPlatformRole: Equatable, Sendable {
 }
 
 public enum ReadingInspectorPresentation: Equatable, Sendable {
-    case bottomSheet
+    case inlineBottomPanel
     case sidePanel
+}
+
+public enum ReadingCompactLearningPanelState: Equatable, Sendable {
+    case hidden
+    case collapsed
+    case loading
+    case content
+    case failed
+}
+
+public enum ReadingWorkbenchStyle: Equatable, Sendable {
+    case focusedCanvas
+    case balancedWorkbench
 }
 
 public struct ReadingLayoutModel: Equatable, Sendable {
     public var platform: ReadingPlatformRole
     public var primaryColumnCount: Int
     public var inspectorPresentation: ReadingInspectorPresentation
+    public var workspaceStyle: ReadingWorkbenchStyle
+    public var showsPersistentInspector: Bool
 
     public static func platform(_ platform: ReadingPlatformRole) -> ReadingLayoutModel {
         switch platform {
         case .phone:
-            ReadingLayoutModel(platform: platform, primaryColumnCount: 1, inspectorPresentation: .bottomSheet)
+            ReadingLayoutModel(
+                platform: platform,
+                primaryColumnCount: 1,
+                inspectorPresentation: .inlineBottomPanel,
+                workspaceStyle: .focusedCanvas,
+                showsPersistentInspector: false
+            )
         case .pad:
-            ReadingLayoutModel(platform: platform, primaryColumnCount: 2, inspectorPresentation: .sidePanel)
+            ReadingLayoutModel(
+                platform: platform,
+                primaryColumnCount: 2,
+                inspectorPresentation: .sidePanel,
+                workspaceStyle: .focusedCanvas,
+                showsPersistentInspector: true
+            )
         case .mac:
-            ReadingLayoutModel(platform: platform, primaryColumnCount: 3, inspectorPresentation: .sidePanel)
+            ReadingLayoutModel(
+                platform: platform,
+                primaryColumnCount: 3,
+                inspectorPresentation: .sidePanel,
+                workspaceStyle: .balancedWorkbench,
+                showsPersistentInspector: true
+            )
         }
     }
 }
@@ -66,6 +99,53 @@ public struct ReadingPresentationState: Equatable, Sendable {
     }
 }
 
+public enum ReadingPhoneDestination: Equatable, Sendable {
+    case libraryHome
+    case documentDetail(documentID: String)
+}
+
+public struct ReadingPhoneNavigationState: Equatable, Sendable {
+    public var destination: ReadingPhoneDestination
+
+    public init(destination: ReadingPhoneDestination = .libraryHome) {
+        self.destination = destination
+    }
+
+    public var showsLibraryChrome: Bool {
+        destination == .libraryHome
+    }
+
+    public var showsDocumentDetail: Bool {
+        if case .documentDetail = destination {
+            return true
+        }
+        return false
+    }
+
+    public mutating func openDocument(id: String) {
+        destination = .documentDetail(documentID: id)
+    }
+
+    public mutating func closeDetail() {
+        destination = .libraryHome
+    }
+}
+
+public struct ReadingDetailChromeModel: Equatable, Sendable {
+    public var showsToolbarEditAction: Bool
+    public var showsInlineMetadataHeader: Bool
+
+    public init(showsToolbarEditAction: Bool, showsInlineMetadataHeader: Bool) {
+        self.showsToolbarEditAction = showsToolbarEditAction
+        self.showsInlineMetadataHeader = showsInlineMetadataHeader
+    }
+
+    public static let phoneReading = ReadingDetailChromeModel(
+        showsToolbarEditAction: true,
+        showsInlineMetadataHeader: false
+    )
+}
+
 public struct ReadingDocumentPresentation: Equatable, Sendable {
     public var blocks: [ReadingBlockPresentation]
     public var style: ReadingPresentationStyle
@@ -79,8 +159,31 @@ public struct ReadingBlockPresentation: Equatable, Sendable {
     public var id: String
     public var kind: ReadingMarkdownBlockKind
     public var text: String
+    public var sentences: [ReadingSentencePresentation]
     public var inlineRuns: [ReadingInlinePresentation]
     public var sourceRangeDescription: String?
+}
+
+public struct ReadingSentencePresentation: Equatable, Sendable {
+    public var id: String
+    public var blockID: String
+    public var sentenceIndex: Int
+    public var text: String
+    public var selection: ReadingSelectionContext
+
+    public init(
+        id: String,
+        blockID: String,
+        sentenceIndex: Int,
+        text: String,
+        selection: ReadingSelectionContext
+    ) {
+        self.id = id
+        self.blockID = blockID
+        self.sentenceIndex = sentenceIndex
+        self.text = text
+        self.selection = selection
+    }
 }
 
 public struct ReadingInlinePresentation: Equatable, Sendable {

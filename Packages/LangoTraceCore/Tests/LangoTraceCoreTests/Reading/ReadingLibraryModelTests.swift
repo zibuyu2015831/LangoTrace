@@ -28,4 +28,31 @@ struct ReadingLibraryModelTests {
         #expect(!ReadingLibraryStatus.softDeleted.isVisibleInActiveLibrary)
         #expect(ReadingLibraryStatus.softDeleted.isRestorable)
     }
+
+    @Test("reading document update input rejects empty body and preserves source format")
+    func readingDocumentUpdateInputRejectsEmptyBodyAndPreservesSourceFormat() throws {
+        #expect(throws: ReadingDocumentUpdateError.emptyBody) {
+            try ReadingDocumentUpdateInput(
+                documentID: "doc-1",
+                spaceID: "space-1",
+                title: "Updated",
+                body: "   \n",
+                sourceFormat: .markdown
+            )
+        }
+
+        let input = try ReadingDocumentUpdateInput(
+            documentID: "doc-1",
+            spaceID: "space-1",
+            title: " Updated Title ",
+            body: "## Updated body",
+            sourceFormat: .markdown
+        )
+
+        #expect(input.documentID == "doc-1")
+        #expect(input.spaceID == "space-1")
+        #expect(input.title == "Updated Title")
+        #expect(input.body == "## Updated body")
+        #expect(input.sourceFormat == .markdown)
+    }
 }

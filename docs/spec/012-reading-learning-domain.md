@@ -8,13 +8,22 @@ Reading is a first-class learning scene in LangoTrace, alongside entries, practi
 
 The first implementation slice supports pasted text, `.txt` and `.md` documents. EPUB, PDF, HTML clip, web article import, dictionary import UI, sync, export, full-document AI summary, full-document translation and batch TTS are future capabilities.
 
-Current implementation entry points are `ReadingLibraryStore`, `ReadingDocumentStore`, `ReadingLibraryView`, `GRDBReadingLibraryRepository`, `ReadingSelectionExplanationService` and `SentenceAudioPlaybackActions` mapping to `readingDocumentSentence`. The first UI slice supports paste import, `.txt` / `.md` file import, collection / tag assignment and local filtering, soft delete / restore, explicit selection explanation and explicit reading sentence TTS.
+Current implementation entry points are `ReadingLibraryStore`, `ReadingDocumentStore`, `ReadingLibraryView`, `GRDBReadingLibraryRepository`, `ReadingSelectionExplanationService` and `SentenceAudioPlaybackActions` mapping to `readingDocumentSentence`. The current slice supports paste import, `.txt` / `.md` file import, collection / tag assignment and local filtering, title/body editing through a controlled editor sheet, soft delete / restore, explicit selection explanation and explicit reading sentence TTS.
 
 ## 2. Reading Documents
 
 `ReadingDocument` is primary local data scoped by `language_space_id`. It must have a stable document id, title, source format, source kind, adapter id/version, body storage kind, body hash, content revision, structure version, target language code, timestamps, import status and soft-delete state.
 
 Document body and library organization are separate concerns. Library summaries may expose title, source format, import status, active/deleted state, tags, collections and last opened time, but must not carry full document text.
+
+`ReadingDocument` is user-owned primary data under the lifecycle rules in `007-data-storage-migration-export-and-attachments.md`. That means pasted text and imported files must not stop at import-only or read-only flows. The feature and page design must default to:
+
+- create or import
+- list, search, filter, open and inspect
+- update body or metadata through an explicit editing path, or record why that path is deferred
+- delete semantics with confirmation, soft delete or restore, and documented downstream effects
+
+The current slice already supports import, library read paths, collection / tag assignment, title/body editing and soft delete / restore. Soft-deleted documents must be restored before editing. If broader batch management is not implemented in a given phase, the active plan must state that explicitly rather than treating the imported document as maintenance-free content.
 
 ## 3. Import Boundary
 
@@ -34,13 +43,41 @@ Markdown presentation is controlled by `ReadingAppearanceProfile`. Style is a pr
 
 ## 5. Selection And Source Anchor
 
-Manual selection is the first supported selection model. It records selected text, limited context, character offset and character length, and must not depend on English whitespace tokenization. CJK, Japanese, accented Latin text and RTL snippets are valid inputs.
+Sentence selection is the default supported reading-learning selection model on compact iPhone detail. Paragraph remains the reading layout unit, but the learning action target defaults to sentence rather than whole block. The first stable delivery may defer true fragment UI selection, but the request and anchor contract must already distinguish:
+
+- `selection_scope = sentence`
+- `selection_scope = text_fragment`
+
+Manual selection records selected text, limited context, character offset and character length, and must not depend on English whitespace tokenization. CJK, Japanese, accented Latin text and RTL snippets are valid inputs.
 
 `ReadingSourceAnchor` must include document id, content revision, structure version, block id, selected text hash and character range. If content revision, structure version, block id, selected text hash or range no longer matches the current document structure, the anchor is stale and must not silently point at another text.
 
+When sentence selection is used as the default UI path, the sentence identity must still be document-version-bound. A stable selection identity must include document id, content revision, structure version, block id, sentence id or sentence index, selected text hash, character offset and character length. Editing save, document switch, language space switch or structure change must stale the prior anchor and invalidate old explanation or TTS completions.
+
 ## 6. AI Explanation
 
-Reading AI explanation is a user-explicit action. The request may contain selection, containing sentence, limited surrounding context, native language, target language, prompt id/version and provider/model metadata. It must not automatically send a full document on import, open, scroll, select or TTS playback.
+Reading AI explanation is a user-explicit action. The request may contain:
+
+- `selected_text`
+- `selection_scope`
+- `source_anchor_id`
+- `containing_sentence`
+- `previous_sentence`
+- `next_sentence`
+- `containing_paragraph`
+- `context_mode`
+- `context_text`
+- native language, target language, prompt id/version and provider/model metadata
+
+It must not automatically send a full document on import, open, scroll or TTS playback. Selection alone is not enough reason to send a request.
+
+Dynamic context strategy:
+
+- short reading text may use `context_mode = full_document`
+- longer reading text may use `context_mode = adjacent_paragraphs`
+- if the surrounding window grows too large, fall back to `context_mode = current_paragraph` while still carrying sentence-level context fields
+
+On iPhone / compact, explanation result is no longer carried by a blocking modal sheet. The current implementation uses a non-modal bottom learning panel with explicit `Explain / Listen / More` actions; the compact panel must distinguish `hidden / collapsed / loading / content / failed` so a fresh sentence selection does not immediately expand stale result content. iPad and macOS keep a persistent side inspector while reusing the same selection and request contract.
 
 The UI may show the sending scope near the action or progress state. It must not require a second preview-confirm step for this slice.
 
@@ -54,9 +91,12 @@ This slice may include an in-memory exact lookup index for synthetic fixtures. F
 
 ## 9. Async State Boundary
 
-Reading library and document stores must guard asynchronous import, load, AI and TTS operations with request tokens or an equivalent generation counter. Space switch, document switch, selection change, detail close, soft delete of the current document or repeated action must cancel or invalidate in-flight work. Stale completions must not write into current library, document, selection, explanation or audio state.
+Reading library and document stores must guard asynchronous import, load, update, AI and TTS operations with request tokens or an equivalent generation counter. Space switch, document switch, selection change, detail close, content revision change after edit save, soft delete of the current document or repeated action must cancel or invalidate in-flight work. Stale completions must not write into current library, document, selection, explanation or audio state.
 
 ## Change Log
 
+- 2026-06-03: Clarified that `ReadingDocument` is user-owned primary data and must default to a full lifecycle design rather than import-only behavior.
+- 2026-06-03: Updated the current slice facts after landing ReadingDocument title/body editing, controlled editor entry and revision-based stale invalidation.
+- 2026-06-03: Updated the selection and presentation contract to sentence-first reading actions, dynamic context modes and non-modal compact learning panel delivery.
 - 2026-06-01: Created Reading learning domain spec for the reading AI/TTS vertical slice.
 - 2026-06-01: Updated implementation facts after landing the vertical slice. Reading is now a top-level route on iPhone / iPad / macOS with GRDB library actions, paste and file import, collection / tag filters, selection explanation operation summaries and reading sentence TTS wired through AppEnvironment.

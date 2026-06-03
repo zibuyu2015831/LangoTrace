@@ -107,6 +107,40 @@ struct ReadingLibraryStoreTests {
         #expect(store.deletedDocuments.isEmpty)
     }
 
+    @Test("soft deleting the selected document clears reader selection and restore does not reselect it")
+    func deletingSelectedDocumentClearsSelection() async {
+        let actions = FakeReadingLibraryActions(
+            documents: [
+                .summary(id: "doc-a", spaceID: "space-a", title: "A"),
+            ],
+            loadedDocuments: [
+                "doc-a": .content(id: "doc-a", spaceID: "space-a", title: "A", body: "Body"),
+            ]
+        )
+        let store = ReadingLibraryStore(
+            languageSpace: .preview(id: "space-a", targetLanguageCode: "en"),
+            actions: actions.actions
+        )
+
+        await store.reload()
+        await store.openDocument("doc-a", platform: .pad)
+        #expect(store.selectedDocument?.id == "doc-a")
+        #expect(store.selectedPresentation != nil)
+
+        await store.softDelete("doc-a")
+
+        #expect(store.selectedDocument == nil)
+        #expect(store.selectedPresentation == nil)
+        #expect(store.documents.isEmpty)
+        #expect(store.deletedDocuments.map(\.id) == ["doc-a"])
+
+        await store.restore("doc-a")
+
+        #expect(store.selectedDocument == nil)
+        #expect(store.selectedPresentation == nil)
+        #expect(store.documents.map(\.id) == ["doc-a"])
+    }
+
     @Test("assigning collection and tag reloads filterable summaries")
     func collectionAndTagFilters() async throws {
         let actions = FakeReadingLibraryActions(
@@ -178,6 +212,40 @@ struct ReadingLibraryStoreTests {
 
         #expect(store.documents.map(\.id) == ["doc-b"])
     }
+
+    @Test("save refreshes library title without dropping current document selection")
+    func saveRefreshesLibraryTitleWithoutDroppingCurrentDocumentSelection() async throws {
+        let actions = FakeReadingLibraryActions(
+            documents: [
+                .summary(id: "doc-a", spaceID: "space-a", title: "Original"),
+            ],
+            loadedDocuments: [
+                "doc-a": .content(id: "doc-a", spaceID: "space-a", title: "Original", body: "Body"),
+            ]
+        )
+        let store = ReadingLibraryStore(
+            languageSpace: .preview(id: "space-a", targetLanguageCode: "en"),
+            actions: actions.actions
+        )
+
+        await store.reload()
+        await store.openDocument("doc-a", platform: .phone)
+        let updated = try ReadingDocumentUpdateInput(
+            documentID: "doc-a",
+            spaceID: "space-a",
+            title: "Updated",
+            body: "# Updated",
+            sourceFormat: .markdown
+        )
+
+        let content = try await store.saveDocumentEdits(updated, platform: .phone)
+
+        #expect(content.title == "Updated")
+        #expect(store.documents.map(\.title) == ["Updated"])
+        #expect(store.selectedDocument?.id == "doc-a")
+        #expect(store.selectedDocument?.title == "Updated")
+        #expect(store.selectedPresentation != nil)
+    }
 }
 
 private actor FakeReadingLibraryActions {
@@ -188,13 +256,18 @@ private actor FakeReadingLibraryActions {
     }
 
     private var storedDocuments: [ReadingLibraryDocumentSummary]
+    private var storedLoadedDocuments: [String: ReadingLibraryDocumentContent]
     private(set) var importedInputs: [ReadingInlineDocumentImportInput] = []
     private(set) var listRequests: [ListRequest] = []
     private(set) var assignedCollections: [String] = []
     private(set) var assignedTags: [String] = []
 
-    init(documents: [ReadingLibraryDocumentSummary] = []) {
+    init(
+        documents: [ReadingLibraryDocumentSummary] = [],
+        loadedDocuments: [String: ReadingLibraryDocumentContent] = [:]
+    ) {
         storedDocuments = documents
+        storedLoadedDocuments = loadedDocuments
     }
 
     nonisolated var actions: ReadingLibraryActions {
@@ -205,7 +278,12 @@ private actor FakeReadingLibraryActions {
             importPastedText: { [self] input in
                 await importInput(input)
             },
-            loadDocument: { _, _ in nil },
+            loadDocument: { [self] id, _ in
+                await loadDocument(id: id)
+            },
+            updateDocument: { [self] input in
+                try await updateDocument(input)
+            },
             softDeleteDocument: { [self] id, spaceID in
                 await softDelete(id: id, spaceID: spaceID)
             },
@@ -244,6 +322,35 @@ private actor FakeReadingLibraryActions {
             format: input.sourceFormat
         )
         storedDocuments.append(document)
+        storedLoadedDocuments[document.id] = .content(
+            id: document.id,
+            spaceID: input.spaceID,
+            title: input.title,
+            body: input.body,
+            format: input.sourceFormat
+        )
+        return document
+    }
+
+    private func loadDocument(id: String) -> ReadingLibraryDocumentContent? {
+        storedLoadedDocuments[id]
+    }
+
+    private func updateDocument(_ input: ReadingDocumentUpdateInput) throws -> ReadingLibraryDocumentContent {
+        guard var document = storedLoadedDocuments[input.documentID] else {
+            throw ReadingLibraryActionError.unavailable
+        }
+        document.title = input.title
+        document.body = input.body
+        document.contentRevision += 1
+        document.structureVersion += 1
+        storedLoadedDocuments[input.documentID] = document
+        storedDocuments = storedDocuments.map { summary in
+            guard summary.id == input.documentID else { return summary }
+            var copy = summary
+            copy.title = input.title
+            return copy
+        }
         return document
     }
 
@@ -308,6 +415,15 @@ private actor ControlledReadingLibraryActions {
                 .summary(id: "unused", spaceID: "unused", title: "unused")
             },
             loadDocument: { _, _ in nil },
+            updateDocument: { input in
+                .content(
+                    id: input.documentID,
+                    spaceID: input.spaceID,
+                    title: input.title,
+                    body: input.body,
+                    format: input.sourceFormat
+                )
+            },
             softDeleteDocument: { _, _ in },
             restoreDocument: { _, _ in },
             markDocumentOpened: { _, _ in },
@@ -363,6 +479,27 @@ private extension ReadingLibraryDocumentSummary {
             tagNames: [],
             collectionTitles: [],
             lastOpenedAt: nil
+        )
+    }
+}
+
+private extension ReadingLibraryDocumentContent {
+    static func content(
+        id: String,
+        spaceID: String,
+        title: String,
+        body: String,
+        format: ReadingSourceFormat = .markdown
+    ) -> ReadingLibraryDocumentContent {
+        ReadingLibraryDocumentContent(
+            id: id,
+            spaceID: spaceID,
+            title: title,
+            body: body,
+            sourceFormat: format,
+            targetLanguageCode: "en",
+            contentRevision: 1,
+            structureVersion: 1
         )
     }
 }

@@ -38,27 +38,72 @@ struct ReadingImportSheetView: View {
 struct ReadingLibraryDocumentRow: View {
     let document: ReadingLibraryDocumentSummary
     let onOpen: () -> Void
+    var isSelected = false
 
     var body: some View {
         Button(action: onOpen) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(document.title)
-                    .font(.headline)
-                Text(document.sourceFormat.rawValue)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                tagCollectionLine
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "doc.text")
+                        .font(.headline)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        .frame(width: 28, height: 28)
+                        .background(LangoTraceDesign.ColorToken.surfacePanel)
+                        .clipShape(.circle)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(document.title)
+                            .font(.headline)
+                            .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                            .multilineTextAlignment(.leading)
+                        HStack(spacing: 6) {
+                            Text(document.sourceFormat.rawValue)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(LangoTraceDesign.ColorToken.surfacePanel)
+                                .clipShape(.capsule)
+                            tagCollectionLine
+                        }
+                    }
+
+                    Spacer(minLength: 0)
+                }
             }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(
+                        isSelected
+                            ? LangoTraceDesign.ColorToken.surfacePanel
+                            : LangoTraceDesign.ColorToken.surfaceBase
+                    )
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(
+                        isSelected
+                            ? LangoTraceDesign.ColorToken.textSecondary
+                            : LangoTraceDesign.ColorToken.borderSubtle
+                    )
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
+        .buttonStyle(.plain)
+        .accessibilityHint(localizedString("tab.reading"))
     }
 
     @ViewBuilder
     private var tagCollectionLine: some View {
         let labels = document.collectionTitles + document.tagNames.map { "#\($0)" }
-        if !labels.isEmpty {
+        if labels.isEmpty {
+            EmptyView()
+        } else {
             Text(labels.joined(separator: " · "))
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                .font(.caption)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 .lineLimit(1)
         }
     }
@@ -66,21 +111,29 @@ struct ReadingLibraryDocumentRow: View {
 
 struct ReadingLibraryPane: View {
     @ObservedObject var store: ReadingLibraryStore
+    let platform: ReadingPlatformRole
     @Binding var isImportSheetPresented: Bool
     @Binding var isFileImporterPresented: Bool
     @Binding var collectionDrafts: [String: String]
     @Binding var tagDrafts: [String: String]
+    let onOpenDocument: (String) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(titleKey: "tab.reading", subtitleKey: "reading.library.subtitle")
-            searchField
-            importButtons
+            libraryHeader
             ReadingLibraryFilterControls(store: store)
             documentsList
             deletedDocumentsList
         }
         .padding(20)
+    }
+
+    private var libraryHeader: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(titleKey: "tab.reading", subtitleKey: "reading.library.subtitle")
+            importButtons
+            searchField
+        }
     }
 
     private var searchField: some View {
@@ -97,21 +150,38 @@ struct ReadingLibraryPane: View {
     }
 
     private var importButtons: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Button {
-                isImportSheetPresented = true
-            } label: {
-                Label(localizedString("reading.library.import.paste"), systemImage: "doc.on.clipboard")
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 10) {
+                pasteButton
+                importButton
             }
-            .buttonStyle(.borderedProminent)
-
-            Button {
-                isFileImporterPresented = true
-            } label: {
-                Label(localizedString("reading.library.import.file"), systemImage: "doc.badge.plus")
+            VStack(alignment: .leading, spacing: 8) {
+                pasteButton
+                importButton
             }
-            .buttonStyle(.bordered)
         }
+    }
+
+    private var pasteButton: some View {
+        Button {
+            isImportSheetPresented = true
+        } label: {
+            Label(localizedString("reading.library.import.paste"), systemImage: "doc.on.clipboard")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(platform == .mac ? .regular : .large)
+    }
+
+    private var importButton: some View {
+        Button {
+            isFileImporterPresented = true
+        } label: {
+            Label(localizedString("reading.library.import.file"), systemImage: "doc.badge.plus")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        .controlSize(platform == .mac ? .regular : .large)
     }
 
     @ViewBuilder
@@ -132,9 +202,13 @@ struct ReadingLibraryPane: View {
 
     private func documentListItem(_ document: ReadingLibraryDocumentSummary) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            ReadingLibraryDocumentRow(document: document) {
-                Task { await store.openDocument(document.id) }
-            }
+            ReadingLibraryDocumentRow(
+                document: document,
+                onOpen: {
+                    onOpenDocument(document.id)
+                },
+                isSelected: store.selectedDocument?.id == document.id && platform != .phone
+            )
             .contextMenu {
                 metadataContextMenu(for: document)
             }
@@ -201,33 +275,57 @@ struct ReadingLibraryFilterControls: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Picker(
-                localizedString("reading.library.collection.filter"),
-                selection: Binding(
-                    get: { store.selectedCollectionFilter ?? "" },
-                    set: { store.updateCollectionFilter($0.isEmpty ? nil : $0) }
-                )
-            ) {
-                Text(localizedString("reading.library.filter.all")).tag("")
-                ForEach(store.availableCollectionFilters, id: \.self) { title in
-                    Text(title).tag(title)
-                }
+            ReadingLibraryFilterMenu(
+                label: localizedString("reading.library.collection.filter"),
+                value: store.selectedCollectionFilter ?? localizedString("reading.library.filter.all"),
+                options: store.availableCollectionFilters
+            ) { selection in
+                store.updateCollectionFilter(selection)
             }
-            .pickerStyle(.menu)
 
-            Picker(
-                localizedString("reading.library.tag.filter"),
-                selection: Binding(
-                    get: { store.selectedTagFilter ?? "" },
-                    set: { store.updateTagFilter($0.isEmpty ? nil : $0) }
-                )
-            ) {
-                Text(localizedString("reading.library.filter.all")).tag("")
-                ForEach(store.availableTagFilters, id: \.self) { name in
-                    Text(name).tag(name)
+            ReadingLibraryFilterMenu(
+                label: localizedString("reading.library.tag.filter"),
+                value: store.selectedTagFilter ?? localizedString("reading.library.filter.all"),
+                options: store.availableTagFilters
+            ) { selection in
+                store.updateTagFilter(selection)
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+}
+
+private struct ReadingLibraryFilterMenu: View {
+    let label: String
+    let value: String
+    let options: [String]
+    let onSelect: (String?) -> Void
+
+    var body: some View {
+        Menu {
+            Button(localizedString("reading.library.filter.all")) {
+                onSelect(nil)
+            }
+            ForEach(options, id: \.self) { option in
+                Button(option) {
+                    onSelect(option)
                 }
             }
-            .pickerStyle(.menu)
+        } label: {
+            HStack(spacing: 8) {
+                Text(label)
+                    .font(.caption.weight(.semibold))
+                Text(value)
+                    .font(.callout.weight(.semibold))
+                    .lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2)
+            }
+            .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(LangoTraceDesign.ColorToken.surfacePanel)
+            .clipShape(.capsule)
         }
     }
 }
@@ -293,32 +391,108 @@ struct ReadingLibraryMetadataEditors: View {
 }
 
 struct ReadingInspectorPane: View {
-    let selectedText: String?
+    let selection: ReadingSelectionContext?
     let explanationResult: ReadingSelectionExplanationResult?
+    var explanationState: ReadingAsyncState = .idle
+    var audioState: ReadingAsyncState = .idle
+    let onExplain: () -> Void
+    let onListen: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(localizedString("reading.inspector.title"))
-                .font(.headline)
-            if let selectedText {
-                Text(selectedText)
-                    .font(.callout.weight(.semibold))
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(localizedString("reading.inspector.title"))
+                    .font(.headline)
+                Text(inspectorSubtitle)
+                    .font(.callout)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+
+            if let selection {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(selection.scopeTitle)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    Text(selection.selectedText)
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                    Text(selection.contextModeTitle)
+                        .font(.caption)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                }
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(LangoTraceDesign.ColorToken.surfacePanel)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+
+                HStack(spacing: 10) {
+                    Button(action: onExplain) {
+                        Label(localizedString("reading.action.explain"), systemImage: "sparkles")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(explanationState == .loading)
+
+                    Button(action: onListen) {
+                        Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(audioState == .loading)
+
+                    Menu {
+                        Button(localizedString("reading.action.translate")) {}
+                            .disabled(true)
+                        Button(localizedString("reading.action.grammar")) {}
+                            .disabled(true)
+                    } label: {
+                        Label(localizedString("reading.action.more"), systemImage: "ellipsis.circle")
+                            .frame(minWidth: 44, minHeight: 44)
+                    }
+                }
+
                 explanationBody
             } else {
                 emptyBody
             }
         }
-        .padding(20)
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(LangoTraceDesign.ColorToken.surfaceBase)
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(LangoTraceDesign.ColorToken.borderSubtle)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
     @ViewBuilder
     private var explanationBody: some View {
-        if let explanationResult {
-            Text(explanationResult.shortExplanation)
-                .font(.callout)
-            Text(explanationResult.meaningInNativeLanguage)
-                .font(.callout)
-                .foregroundStyle(.secondary)
+        if explanationState == .loading {
+            VStack(alignment: .leading, spacing: 10) {
+                ProgressView()
+                Text(localizedString("reading.inspector.body"))
+                    .font(.callout)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+        } else if let explanationResult {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(explanationResult.shortExplanation)
+                    .font(.callout)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                Text(explanationResult.meaningInNativeLanguage)
+                    .font(.callout)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+        } else if explanationState == .failed {
+            VStack(alignment: .leading, spacing: 10) {
+                Label(localizedString("reading.inspector.title"), systemImage: "exclamationmark.circle")
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                Text(localizedString("reading.inspector.body"))
+                    .font(.callout)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
         } else {
             emptyBody
         }
@@ -327,7 +501,137 @@ struct ReadingInspectorPane: View {
     private var emptyBody: some View {
         Text(localizedString("reading.inspector.body"))
             .font(.callout)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+    }
+
+    private var inspectorSubtitle: String {
+        if explanationState == .loading {
+            return localizedString("reading.library.subtitle")
+        }
+        return localizedString("reading.inspector.body")
+    }
+}
+
+struct ReadingCompactLearningPanel: View {
+    let selection: ReadingSelectionContext
+    let explanationResult: ReadingSelectionExplanationResult?
+    let explanationState: ReadingAsyncState
+    let audioState: ReadingAsyncState
+    let panelState: ReadingCompactLearningPanelState
+    let onExplain: () -> Void
+    let onListen: () -> Void
+    let onClear: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Capsule()
+                .fill(LangoTraceDesign.ColorToken.borderSubtle)
+                .frame(width: 44, height: 5)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 4)
+
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(selection.scopeTitle)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    Text(selection.selectedText)
+                        .font(.headline)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                    Text(selection.contextModeTitle)
+                        .font(.caption)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                }
+                Spacer()
+                Button(action: onClear) {
+                    Image(systemName: "xmark")
+                        .font(.footnote.weight(.semibold))
+                        .frame(width: 36, height: 36)
+                }
+                .buttonStyle(.plain)
+            }
+
+            HStack(spacing: 10) {
+                Button(action: onExplain) {
+                    Label(localizedString("reading.action.explain"), systemImage: "sparkles")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(explanationState == .loading)
+
+                Button(action: onListen) {
+                    Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .disabled(audioState == .loading)
+
+                Menu {
+                    Button(localizedString("reading.action.translate")) {}
+                        .disabled(true)
+                    Button(localizedString("reading.action.grammar")) {}
+                        .disabled(true)
+                } label: {
+                    Label(localizedString("reading.action.more"), systemImage: "ellipsis.circle")
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+            }
+
+            Group {
+                if panelState == .loading {
+                    HStack(spacing: 10) {
+                        ProgressView()
+                        Text(localizedString("reading.panel.loading"))
+                            .font(.callout)
+                            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    }
+                } else if panelState == .content, let explanationResult {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(explanationResult.shortExplanation)
+                            .font(.callout)
+                            .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                        Text(explanationResult.meaningInNativeLanguage)
+                            .font(.callout)
+                            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    }
+                } else if panelState == .failed {
+                    Text(localizedString("reading.panel.failed"))
+                        .font(.callout)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 12)
+        .padding(.top, 12)
+        .background(.ultraThinMaterial)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(LangoTraceDesign.ColorToken.borderSubtle)
+                .frame(height: 1)
+        }
+    }
+}
+
+private extension ReadingSelectionContext {
+    var scopeTitle: String {
+        switch selectionScope {
+        case .sentence:
+            localizedString("reading.selection.scope.sentence")
+        case .textFragment:
+            localizedString("reading.selection.scope.fragment")
+        }
+    }
+
+    var contextModeTitle: String {
+        switch contextMode {
+        case .fullDocument:
+            localizedString("reading.selection.context.fullDocument")
+        case .adjacentParagraphs:
+            localizedString("reading.selection.context.adjacentParagraphs")
+        case .currentParagraph:
+            localizedString("reading.selection.context.currentParagraph")
+        }
     }
 }
 

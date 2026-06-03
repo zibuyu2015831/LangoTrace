@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import GRDB
 import LangoTraceCore
@@ -292,6 +293,197 @@ struct GRDBReadingLibraryRepositoryTests {
     }
 }
 
+@Suite("GRDB reading library repository updates")
+struct GRDBReadingLibraryRepositoryUpdateTests {
+    @Test("update edited document rebuilds search index and preserves metadata")
+    func updateEditedDocumentRebuildsSearchIndexAndPreservesMetadata() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 100) },
+            idGenerator: SequentialIDGenerator().next
+        )
+        let document = try repository.importInlineDocument(.sample(
+            spaceID: "space-1",
+            title: "Original",
+            body: "Old body."
+        ))
+        try repository.assignCollection(documentID: document.id, spaceID: "space-1", title: "Essays")
+        try repository.tagDocument(documentID: document.id, spaceID: "space-1", name: "travel")
+
+        let updated = try repository.updateDocument(
+            ReadingDocumentUpdateInput(
+                documentID: document.id,
+                spaceID: "space-1",
+                title: "Updated Title",
+                body: "# Heading\n\nUpdated markdown body.",
+                sourceFormat: .markdown
+            )
+        )
+
+        #expect(updated.title == "Updated Title")
+        #expect(updated.body == "# Heading\n\nUpdated markdown body.")
+        #expect(updated.contentRevision == 2)
+        #expect(updated.structureVersion == 2)
+
+        let searchMatches = try repository.listDocuments(
+            spaceID: "space-1",
+            search: ReadingLibrarySearchQuery(rawValue: "updated markdown")
+        )
+        let summary = try #require(searchMatches.first)
+        #expect(summary.title == "Updated Title")
+        #expect(summary.collectionTitles == ["Essays"])
+        #expect(summary.tagNames == ["travel"])
+    }
+
+    @Test("soft deleted document must be restored before editing")
+    func softDeletedDocumentMustBeRestoredBeforeEditing() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(database: database, clock: { Date(timeIntervalSince1970: 100) })
+        let document = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Restorable"))
+
+        try repository.softDeleteDocument(id: document.id, spaceID: "space-1")
+        #expect(throws: Error.self) {
+            try repository.updateDocument(
+                ReadingDocumentUpdateInput(
+                    documentID: document.id,
+                    spaceID: "space-1",
+                    title: "Updated",
+                    body: "Updated body.",
+                    sourceFormat: .markdown
+                )
+            )
+        }
+    }
+
+    @Test("updating document records lifecycle event and rebuilds structure rows")
+    func updatingDocumentRecordsLifecycleEventAndRebuildsStructureRows() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 100) },
+            idGenerator: SequentialIDGenerator().next
+        )
+        let document = try repository.importInlineDocument(.sample(
+            spaceID: "space-1",
+            title: "Original",
+            body: "Old body."
+        ))
+        try database.databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                INSERT INTO reading_source_anchors (
+                    id, document_id, space_id, source_revision, structure_version,
+                    block_id, sentence_id, selected_text_hash, character_offset,
+                    character_length, created_at
+                ) VALUES (?, ?, ?, 1, 1, 'block-1', NULL, ?, 0, 3, ?)
+                """,
+                arguments: ["anchor-1", document.id, "space-1", sha256Hex("Old"), 100.0]
+            )
+        }
+
+        _ = try repository.updateDocument(
+            ReadingDocumentUpdateInput(
+                documentID: document.id,
+                spaceID: "space-1",
+                title: "Updated",
+                body: "# Heading\n\nUpdated markdown body.",
+                sourceFormat: .markdown
+            )
+        )
+
+        let eventTypes = try database.databaseQueue.read { db in
+            try String.fetchAll(
+                db,
+                sql: """
+                SELECT event_type
+                FROM reading_document_lifecycle_events
+                WHERE document_id = ?
+                ORDER BY created_at ASC
+                """,
+                arguments: [document.id]
+            )
+        }
+        #expect(eventTypes.contains(ReadingDocumentLifecycleEventType.updated.rawValue))
+
+        let counts = try database.databaseQueue.read { db in
+            let blockCount = try Int.fetchOne(
+                db,
+                sql: "SELECT COUNT(*) FROM reading_structure_blocks WHERE document_id = ?",
+                arguments: [document.id]
+            ) ?? 0
+            let sentenceCount = try Int.fetchOne(
+                db,
+                sql: "SELECT COUNT(*) FROM reading_sentences WHERE document_id = ?",
+                arguments: [document.id]
+            ) ?? 0
+            let anchorCount = try Int.fetchOne(
+                db,
+                sql: "SELECT COUNT(*) FROM reading_source_anchors WHERE document_id = ?",
+                arguments: [document.id]
+            ) ?? 0
+            return (blockCount, sentenceCount, anchorCount)
+        }
+        #expect(counts.0 > 0)
+        #expect(counts.1 > 0)
+        #expect(counts.2 == 0)
+    }
+
+    @Test("pasted text document with markdown-like content can be updated")
+    func pastedTextDocumentWithMarkdownLikeContentCanBeUpdated() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 100) },
+            idGenerator: SequentialIDGenerator().next
+        )
+        let originalBody = """
+        # Brainary
+
+        Brainary 是一个面向智能体构建的 Python 框架 / SDK。
+
+        ## 快速开始
+
+        建议使用 conda 环境 `brainary`
+
+        ```bash
+        pip install -e .
+        ```
+        """
+        let imported = try repository.importInlineDocument(
+            ReadingInlineDocumentImportInput(
+                spaceID: "space-1",
+                title: "测试文本",
+                body: originalBody,
+                sourceFormat: .pastedText,
+                adapterID: "builtin.pasted_text",
+                adapterVersion: 1,
+                targetLanguageCode: "en",
+                originalFilename: nil,
+                originalFileExtension: nil,
+                originalMimeType: "text/plain",
+                originalUTI: "public.plain-text",
+                originalByteSize: originalBody.utf8.count
+            )
+        )
+
+        let updated = try repository.updateDocument(
+            ReadingDocumentUpdateInput(
+                documentID: imported.id,
+                spaceID: "space-1",
+                title: "测试文本已修改",
+                body: originalBody + "\n\n新增一行。",
+                sourceFormat: .pastedText
+            )
+        )
+
+        #expect(updated.title == "测试文本已修改")
+        #expect(updated.body.hasSuffix("新增一行。"))
+        #expect(updated.contentRevision == 2)
+        #expect(updated.structureVersion == 2)
+    }
+}
+
 private final class SequentialIDGenerator: @unchecked Sendable {
     private var value = 0
 
@@ -352,4 +544,9 @@ private func seededDatabase() throws -> AppDatabase {
         )
     }
     return database
+}
+
+private func sha256Hex(_ value: String) -> String {
+    let digest = SHA256.hash(data: Data(value.utf8))
+    return digest.map { String(format: "%02x", $0) }.joined()
 }

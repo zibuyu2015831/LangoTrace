@@ -270,6 +270,27 @@ xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64
 - 至少一轮 RTL 或伪本地化 smoke，确认没有明显 left / right 硬编码导致布局方向错误。
 - 权限 purpose strings、隐私说明、请求预览、unavailable 页面和 App Store 元数据的本地化检查。
 
+## 阅读 compact 学习面板验证清单
+
+适用于 iPhone / compact `阅读` 详情从 block selection + modal sheet 重构到 sentence-first + non-modal learning panel 的阶段验证。
+
+自动化最低要求：
+
+- `swift test --package-path Packages/LangoTraceCore --filter Reading`
+- `swift test --package-path Packages/LangoTraceUI --filter ReadingPresentationTests`
+- `swift test --package-path Packages/LangoTraceUI --filter ReadingDocumentStoreAIAndTTSTests`
+- `swift test --package-path Packages/LangoTraceAI --filter ReadingSelectionExplanationServiceTests`
+
+手动验证至少覆盖：
+
+- iPhone Simulator：打开阅读详情，点击句子后只形成 sentence selection，不再弹阻断式 sheet；底部 learning panel 先进入 `collapsed`，不会直接显示上一句的 explanation 内容。
+- iPhone Simulator：在同一句上点击 `解释`，面板从 `collapsed` 进入 `loading` 再进入 `content`；失败时进入 `failed`；关闭选中后回到 `hidden`。
+- iPhone Simulator：切换到另一句时，旧 explanation 结果立即失效；若上一句已有 explanation，新句子不应错误复用旧结果。
+- iPhone Simulator：`听` 只播放完整句子，不因 selection scope 为 fragment contract 而播放局部片段。
+- Dynamic Type：至少检查一档较大字号，确认底部 learning panel 的 `Explain / Listen / More` 不遮挡正文，也不会把主要操作挤出安全点击范围。
+- VoiceOver：聚焦到句子、`Explain / Listen / More` 和关闭按钮时，读出的是用户可理解文案，不暴露内部 key；learning panel 出现后焦点仍能返回正文，不被阻断式 modal 抢走。
+- 长文滚动：在较长文档中选择接近底部的句子，确认 `safeAreaInset` 面板不会永久遮住当前句子；用户仍能继续滚动和切换别的句子。
+
 ## String Catalog 与界面语言设置验证清单
 
 本清单用于验证 `LangoTraceUI` String Catalog、App 内界面语言设置和三端页面 chrome 本地化。实现完成后必须补齐实际截图或问题链接。

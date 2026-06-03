@@ -56,7 +56,7 @@ LangoTrace 已有 SwiftUI Multiplatform、Language Space、GRDB、Keychain、用
 
 状态：Approved With Required Plan Constraints
 
-这份 research 可以作为后续 active plan 的输入，但不能直接替代实现方案或用户授权。后续已创建 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 承接本研究，并按 `docs/plans/plan-review-protocol.md` 完成自审核；该 active plan 仍为 `Draft`，尚未获得生产代码实现授权。修正后的架构判断是：阅读作为长期一级学习场景已经成立；若用户批准该 feature 级纵向切片进入实现，应同步更新产品主参考、导航规范、页面清单和 Reading 领域 spec，并在同一任务中提供正式 reading route。只有纯 research spike 或一次性技术验证才允许临时二级入口。
+这份 research 可以作为后续 active plan 的输入，但不能直接替代实现方案或用户授权。后续已创建 `docs/plans/done/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 承接本研究，并按 `docs/plans/plan-review-protocol.md` 完成自审核；该方案在 research 形成时仍处于 `Draft`，后续已获得用户授权、完成实现并归档。修正后的架构判断是：阅读作为长期一级学习场景已经成立；若用户批准该 feature 级纵向切片进入实现，应同步更新产品主参考、导航规范、页面清单和 Reading 领域 spec，并在同一任务中提供正式 reading route。只有纯 research spike 或一次性技术验证才允许临时二级入口。
 
 ### 关键问题
 
@@ -278,7 +278,7 @@ VMark 不是可直接迁移的阅读学习模块。它是 Tauri + React + Rust �
 - 纯 spike 不应在同一个任务里同时做阅读基础设施和 `PhoneRootTab` 变更。当前代码和规范都把 iPhone 一级入口固定为 `记录 / 练习 / 记忆`；新增 Tab 会牵动 `PhoneRootTab`、本地化、页面清单、导航规范和 iOS 验证，必须由 feature plan 明确授权。
 - iPhone research spike 临时入口可以放在 `记录`页或顶部轻量入口中的“导入阅读材料”，以及 `记忆`页中的“阅读材料中的词句”聚合入口。临时入口用于降低首轮风险，不代表长期 IA；feature 级纵向切片则应提供正式 reading route。
 - iPad / macOS 首版可以更显性：iPad 左侧工作台 route 增加资料库入口，macOS Sidebar / toolbar 增加导入和资料库。平台显性程度可以不同，但写入路径必须共享。
-- 当前已由 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 承接的路线属于 feature 级纵向切片。若用户批准实施，应把导航变更、产品事实源更新、Reading spec 和最小 reading route 纳入同一受控范围；若用户不同意本轮导航升级，则应把该 active plan 拆回“无顶级入口的 reading infrastructure / spike”，并明确其临时性。
+- 当前已由 `docs/plans/done/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 承接的路线属于 feature 级纵向切片。该方案已完成归档；研究阶段的结论是，若用户批准实施，应把导航变更、产品事实源更新、Reading spec 和最小 reading route 纳入同一受控范围；若用户不同意本轮导航升级，则应把该 active plan 拆回“无顶级入口的 reading infrastructure / spike”，并明确其临时性。
 
 ### 5.1 Slogan 与定位边界
 
@@ -721,7 +721,7 @@ CSV/TSV/JSON 字段映射可控，但 MDX、StarDict、Lingvo DSL 会增加：
 正式进入开发前，需要：
 
 1. 任务方案  
-   已由 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 承接本研究。该 active plan 当前为 `Draft`，只能作为方案来源，不能自动授权生产代码实现。进入实现前必须取得用户明确确认，并在用户确认记录中写明本轮是否包含四 Tab 导航升级、Reading spec 写入和真实 AI/TTS 纵向切片。
+   已由 `docs/plans/done/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 承接本研究。该方案在研究时曾处于 `Draft`，只能作为方案来源，不能自动授权生产代码实现；后续已取得用户确认并完成实现归档。进入实现前必须取得用户明确确认，并在用户确认记录中写明本轮是否包含四 Tab 导航升级、Reading spec 写入和真实 AI/TTS 纵向切片。
 
 2. 权威文档更新  
    由于定位再审已经建议把阅读作为一级学习场景，后续进入 feature plan 或导航 plan 时需要更新：
@@ -767,7 +767,7 @@ CSV/TSV/JSON 字段映射可控，但 MDX、StarDict、Lingvo DSL 会增加：
 
 ### 10.0 Feature Phase 0 / Spike Gate
 
-Phase 0 只验证，不承诺真实主数据完整上线。它可以是独立 research spike，也可以作为 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 的前置 gate：
+Phase 0 只验证，不承诺真实主数据完整上线。它可以是独立 research spike，也可以作为 `docs/plans/done/2026-06-01-feature-reading-ai-tts-vertical-slice.md` 的前置 gate：
 
 - 三端阅读布局原型：iPhone 单栏 + bottom sheet，iPad 正文 + inspector，macOS 资料库 + inspector。
 - SwiftUI / TextKit 点词选择技术路线。
@@ -1000,4 +1000,4 @@ Learn languages from your life.
 
 这一路线的核心判断是：阅读作为产品能力应升格，阅读作为工程实现必须分阶段。方向上承认它是一级学习场景；落地上先做受控纵向切片，不让电子书、词典格式、同步和 AI 全文能力拖垮 MVP。
 
-本 research 的结论不能直接授权实现。当前后续入口是 `docs/plans/active/2026-06-01-feature-reading-ai-tts-vertical-slice.md`；该方案把原先建议的 spike 事项提升为含正式 route、真实 AI / TTS 的窄范围纵向切片。它在设计上合理，但仍需用户明确确认后才能进入生产代码实现。
+本 research 的结论不能直接授权实现。后续承接入口是 `docs/plans/done/2026-06-01-feature-reading-ai-tts-vertical-slice.md`；该方案把原先建议的 spike 事项提升为含正式 route、真实 AI / TTS 的窄范围纵向切片，并已在获得用户确认后完成实现归档。研究文档本身仍只作为证据来源，不替代实现授权。

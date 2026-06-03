@@ -24,6 +24,68 @@
 
 主数据必须可迁移、可导出、可删除。附件必须有稳定归属和引用关系。派生数据必须可重建，默认不作为同步真源。
 
+### 3.1 对象生命周期分层
+
+后续设计、实现或评审任何“会被用户创建、导入、维护或依赖”的对象时，必须先判断该对象属于哪一类，再决定默认生命周期。禁止把所有对象粗暴套用同一 CRUD 模型，也禁止把用户主数据退化成只有创建或只读的半闭环。
+
+#### 3.1.1 用户主数据
+
+用户主数据是用户主动创建、导入、长期保留并期望继续维护的对象，例如 `LanguageSpace`、`Entry`、`ReadingDocument`、未来的 `MemoryItem`、附件主数据和用户自建词典条目。
+
+默认要求：
+
+- `Create`：必须定义创建或导入入口，以及失败 / 取消后的稳定状态。
+- `Read`：必须定义列表、打开、查询、过滤、定位或恢复查看路径。
+- `Update`：必须显式评估正文编辑、元数据编辑、状态更新或替代的受控修改路径；如果当前阶段暂不实现，任务方案必须记录原因和后续入口。
+- `Delete`：必须定义删除语义，至少说明是软删除、硬删除还是受限删除，并定义恢复、确认、级联影响和导出 / 同步边界。
+
+禁止事项：
+
+- 不得把用户主数据只实现为“可创建但不可维护”的单向漏斗。
+- 不得把临时导入缓存、视图状态或一次性 operation 伪装成用户主数据。
+
+#### 3.1.2 派生数据
+
+派生数据来自主数据、模型推理、索引或缓存重建，例如 `LearningMaterial` 分析结果、memory / practice candidate、FTS / 向量索引、TTS artifact 和各类可重建摘要。
+
+默认生命周期不是通用 CRUD，而是：
+
+- 生成 / 写入
+- 查看 / 使用
+- 失效 / 标记 stale
+- 重建 / 重新生成
+- 清理 / 淘汰
+
+如果派生数据会被用户长期引用、人工修正或作为完成证据保留，任务方案必须进一步说明哪些字段接近主数据语义，哪些字段仍保持派生数据语义。
+
+#### 3.1.3 配置对象
+
+配置对象表达系统或空间级能力配置，例如 `AI Provider`、`TTS Provider`、同步配置、界面偏好和设备级设置。
+
+默认生命周期是：
+
+- 读取当前值
+- 保存 / 创建配置
+- 更新配置
+- 删除、重置或停用配置
+- 验证配置是否可用
+
+配置对象不要求照搬内容型 CRUD 列表语义，但必须有清晰的保存、覆盖、清空和验证边界。
+
+#### 3.1.4 运行期记录
+
+运行期记录包括 operation summary、probe result、诊断日志、临时 preflight 失败记录和其他以审计或调试为主的对象。
+
+默认生命周期是：
+
+- 受控写入
+- 脱敏保留
+- 查询或摘要展示
+- 清理、过期或轮转
+- 导出排除或受控披露
+
+运行期记录默认不是用户主数据，不应被设计成普通业务 CRUD 页面。
+
 当前已落地的语言空间主数据采用：
 
 - `language_spaces`：稳定 `id` 主键、母语、目标语言、水平、展示名、规范化展示名、创建/更新/最近打开/软删除时间。
@@ -40,6 +102,7 @@
 
 - 每条 Entry、Rendering、PracticeSession 和 MemoryItem 必须归属一个 Language Space。
 - 缺少语言空间上下文时，任何真实写入路由都不得创建主数据。
+- 新增主数据对象、导入入口、资料库页面或对象详情页时，任务方案必须显式判断该对象属于用户主数据、派生数据、配置对象还是运行期记录，并写明对应生命周期；若对象属于用户主数据，默认必须设计完整 CRUD，除非在方案中明确记录当前阶段暂缓的项、原因和后续入口。
 - Language Space、Entry、Repository、迁移、导出、删除、恢复和启动恢复属于数据基础设施。一旦进入真实持久化实现，不得只实现单对象或单语言空间的临时版本作为可交付基础设施；可以在 UI 上暂时只开放创建第一个空间，但底层 schema、repository 协议、迁移测试和删除/导出边界必须按多语言空间、可扩展主数据模型建设。
 - 早期开发阶段允许推翻临时代码，但不允许把临时 UserDefaults、内存列表或展示 ID 包装成长期数据基础设施。若为了验证交互临时使用轻量存储，必须在任务方案中标记为 prototype，并不得关闭对应真实基础设施任务。
 - SQLite / GRDB schema 引入前，必须有任务方案说明表、主键、外键、迁移编号、回滚策略和测试方式。
@@ -98,6 +161,7 @@
 
 ## 8. 变更记录
 
+- 2026-06-03：新增对象生命周期分层规则。原因：阅读材料导入与三端阅读 UI 重构后，仓库需要明确“用户主数据默认必须具备完整生命周期”，同时避免把派生数据、配置对象和运行期记录粗暴套用同一 CRUD 模型。影响范围：ReadingDocument、后续 Memory / 附件 / PromptPreset / 设置对象设计、任务方案和 workflow 门禁。是否需要 ADR：否，属于数据和对象治理规范补强。
 - 2026-05-26：新增 media-artifacts 实现地图并冻结练习录音前置 API review 结论。原因：跟读录音完成闭环需要把现有 TTS-oriented media artifact facade 提升为通用 commit / resolver / cleanup contract，并明确 completed practice recording retention。影响范围：Core、Data、Speech、Practice session schema、导出 / 备份 / 同步后续边界。是否需要 ADR：否，沿用本地优先和 SQLite / GRDB 主存储决策；若未来默认同步或备份用户录音，再评估 ADR。
 - 2026-06-01：新增 Reading domain 存储事实。原因：阅读纵向切片新增 `v12_create_reading_domain_infrastructure` migration 和 `GRDBReadingLibraryRepository`，阅读资料成为按语言空间隔离的本地主数据。影响范围：ReadingDocument、资料库搜索、软删除 / 恢复、import batch、source anchor、AI operation summary、TTS source columns 和后续导出 / 同步边界。是否需要 ADR：否，沿用 SQLite / GRDB 和本地优先决策。
 - 2026-05-26：同步练习录音回放故障修复后的 schema 边界。原因：旧库 `media_artifacts.derivation_kind` CHECK 只允许 `ttsAudio` 会阻止 `practiceRecording` artifact 落库，导致录音文件停留在 staging 且不可回放；数据规范需要明确旧库 schema 漂移必须通过迁移修复，不得要求用户清空容器。影响范围：AppDatabase migration、media artifact metadata、practice recording typed metadata、测试和故障排查 runbook。是否需要 ADR：否，属于既有 SQLite / GRDB 和本地优先决策的实施修正。

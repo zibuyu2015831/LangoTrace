@@ -3,9 +3,15 @@ import LangoTraceCore
 public struct ReadingExplanationRequest: Equatable, Sendable {
     public var documentID: String
     public var spaceID: String
+    public var sourceAnchorID: String
     public var selectedText: String
+    public var selectionScope: ReadingSelectionScope
     public var sentenceID: String?
     public var containingSentence: String
+    public var previousSentence: String?
+    public var nextSentence: String?
+    public var containingParagraph: String
+    public var contextMode: ReadingContextMode
     public var contextText: String
     public var nativeLanguageCode: String
     public var targetLanguageCode: String
@@ -14,9 +20,15 @@ public struct ReadingExplanationRequest: Equatable, Sendable {
     public init(
         documentID: String,
         spaceID: String,
+        sourceAnchorID: String,
         selectedText: String,
+        selectionScope: ReadingSelectionScope,
         sentenceID: String?,
         containingSentence: String = "",
+        previousSentence: String? = nil,
+        nextSentence: String? = nil,
+        containingParagraph: String = "",
+        contextMode: ReadingContextMode = .currentParagraph,
         contextText: String = "",
         nativeLanguageCode: String = "",
         targetLanguageCode: String = "",
@@ -24,9 +36,15 @@ public struct ReadingExplanationRequest: Equatable, Sendable {
     ) {
         self.documentID = documentID
         self.spaceID = spaceID
+        self.sourceAnchorID = sourceAnchorID
         self.selectedText = selectedText
+        self.selectionScope = selectionScope
         self.sentenceID = sentenceID
         self.containingSentence = containingSentence
+        self.previousSentence = previousSentence
+        self.nextSentence = nextSentence
+        self.containingParagraph = containingParagraph
+        self.contextMode = contextMode
         self.contextText = contextText
         self.nativeLanguageCode = nativeLanguageCode
         self.targetLanguageCode = targetLanguageCode
@@ -66,6 +84,7 @@ public struct ReadingLibraryActions: Sendable {
     public var importPastedText: @Sendable (ReadingInlineDocumentImportInput) async throws
         -> ReadingLibraryDocumentSummary
     public var loadDocument: @Sendable (String, String) async throws -> ReadingLibraryDocumentContent?
+    public var updateDocument: @Sendable (ReadingDocumentUpdateInput) async throws -> ReadingLibraryDocumentContent
     public var softDeleteDocument: @Sendable (String, String) async throws -> Void
     public var restoreDocument: @Sendable (String, String) async throws -> Void
     public var markDocumentOpened: @Sendable (String, String) async throws -> Void
@@ -78,6 +97,8 @@ public struct ReadingLibraryActions: Sendable {
         importPastedText: @escaping @Sendable (ReadingInlineDocumentImportInput) async throws
             -> ReadingLibraryDocumentSummary,
         loadDocument: @escaping @Sendable (String, String) async throws -> ReadingLibraryDocumentContent?,
+        updateDocument: @escaping @Sendable (ReadingDocumentUpdateInput) async throws
+            -> ReadingLibraryDocumentContent,
         softDeleteDocument: @escaping @Sendable (String, String) async throws -> Void,
         restoreDocument: @escaping @Sendable (String, String) async throws -> Void,
         markDocumentOpened: @escaping @Sendable (String, String) async throws -> Void,
@@ -87,6 +108,7 @@ public struct ReadingLibraryActions: Sendable {
         self.listDocuments = listDocuments
         self.importPastedText = importPastedText
         self.loadDocument = loadDocument
+        self.updateDocument = updateDocument
         self.softDeleteDocument = softDeleteDocument
         self.restoreDocument = restoreDocument
         self.markDocumentOpened = markDocumentOpened
@@ -100,6 +122,9 @@ public struct ReadingLibraryActions: Sendable {
             throw ReadingLibraryActionError.unavailable
         },
         loadDocument: { _, _ in nil },
+        updateDocument: { _ in
+            throw ReadingLibraryActionError.unavailable
+        },
         softDeleteDocument: { _, _ in },
         restoreDocument: { _, _ in },
         markDocumentOpened: { _, _ in },

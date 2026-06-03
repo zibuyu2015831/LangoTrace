@@ -68,4 +68,92 @@ struct ReadingTextSegmentationTests {
         #expect(chunks.count == 16)
         #expect(chunks.allSatisfy { !$0.text.isEmpty })
     }
+
+    @Test("sentence segmentation preserves indices within paragraph")
+    func sentenceSegmentationPreservesIndicesWithinParagraph() {
+        let paragraph = "The old clocktower had been silent for fifty years. Leo wanted to solve the mystery."
+
+        let sentences = ReadingTextSegmenter.segmentSentences(
+            paragraph,
+            documentID: "doc-1",
+            contentRevision: 2,
+            structureVersion: 3,
+            blockID: "block-1"
+        )
+
+        #expect(sentences.count == 2)
+        #expect(sentences[0].sentenceIndex == 0)
+        #expect(sentences[1].sentenceIndex == 1)
+        #expect(sentences[0].text == "The old clocktower had been silent for fifty years.")
+        #expect(sentences[1].characterOffset > sentences[0].characterOffset)
+    }
+
+    @Test("short document selection uses full document context")
+    func shortDocumentSelectionUsesFullDocumentContext() throws {
+        let document = """
+        The old clocktower had been silent for fifty years. Leo wanted to solve the mystery.
+        """
+
+        let paragraphs = ReadingTextSegmenter.segmentParagraphs(
+            document,
+            documentID: "doc-1",
+            contentRevision: 1
+        )
+        let sentence = try #require(ReadingTextSegmenter.segmentSentences(
+            document,
+            documentID: "doc-1",
+            contentRevision: 1,
+            structureVersion: 1,
+            blockID: "block-1"
+        ).first)
+
+        let context = ReadingTextSegmenter.makeSentenceSelectionContext(
+            sentence,
+            documentID: "doc-1",
+            contentRevision: 1,
+            structureVersion: 1,
+            paragraphs: paragraphs,
+            fullDocumentText: document
+        )
+
+        #expect(context.contextMode == .fullDocument)
+        #expect(context.contextText == document)
+    }
+
+    @Test("long document selection uses adjacent paragraph context")
+    func longDocumentSelectionUsesAdjacentParagraphContext() throws {
+        let first = String(repeating: "First paragraph sentence. ", count: 30)
+        let second = String(repeating: "Middle paragraph sentence. ", count: 30)
+        let third = String(repeating: "Last paragraph sentence. ", count: 30)
+        let document = "\(first)\n\n\(second)\n\n\(third)"
+
+        let paragraphs = ReadingTextSegmenter.segmentParagraphs(
+            document,
+            documentID: "doc-1",
+            contentRevision: 1
+        )
+        let middleParagraph = paragraphs[1]
+        let sentence = try #require(ReadingTextSegmenter.segmentSentences(
+            middleParagraph.text,
+            documentID: "doc-1",
+            contentRevision: 1,
+            structureVersion: 1,
+            blockID: "block-2",
+            paragraphIndex: 1
+        ).first)
+
+        let context = ReadingTextSegmenter.makeSentenceSelectionContext(
+            sentence,
+            documentID: "doc-1",
+            contentRevision: 1,
+            structureVersion: 1,
+            paragraphs: paragraphs,
+            fullDocumentText: document
+        )
+
+        #expect(context.contextMode == .adjacentParagraphs)
+        #expect(context.contextText.contains(first.trimmingCharacters(in: .whitespacesAndNewlines)))
+        #expect(context.contextText.contains(second.trimmingCharacters(in: .whitespacesAndNewlines)))
+        #expect(context.contextText.contains(third.trimmingCharacters(in: .whitespacesAndNewlines)))
+    }
 }

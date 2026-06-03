@@ -4,8 +4,8 @@
 
 ## 最新状态摘要
 
-- 最近审查轮次：`2026-05-24-project-wide-code-doc-test-audit`。
-- 最近完成时间：2026-05-24。
+- 最近审查轮次：`2026-06-03-reading-lifecycle-governance`。
+- 最近完成时间：2026-06-03。
 - 待用户澄清的问题数：0。
 - 延后项：4。
 
@@ -13,6 +13,7 @@
 
 | 轮次 ID | 类型 | 启动时间 | 完成时间 | 状态 | 当前事实源 | 后续覆盖记录 | 可作为依据 | 链接 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `2026-06-03-reading-lifecycle-governance` | 专项审查 | 2026-06-03 | 2026-06-03 | Verified | `docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/012-reading-learning-domain.md`、`docs/workflows/add-platform-screen.md`、`docs/platform-page-inventory.md` | `docs/plans/done/2026-06-03-docs-reading-lifecycle-and-crud-governance.md` | Yes | [README](rounds/2026-06-03-reading-lifecycle-governance/README.md) |
 | `2026-05-24-project-wide-code-doc-test-audit` | 项目级复杂审查 | 2026-05-24 | 2026-05-24 | Verified | `docs/review/rounds/2026-05-24-project-wide-code-doc-test-audit/` | `docs/plans/done/2026-05-24-bug-learning-content-store-language-space-switch.md`、`docs/plans/done/2026-05-24-bug-learning-material-cancel-provider-request.md`、`docs/plans/done/2026-05-24-chore-project-wide-audit-remediation.md` | Yes | [README](rounds/2026-05-24-project-wide-code-doc-test-audit/README.md) |
 | `2026-05-23-one-tap-learning-material-flow` | 专项审查 | 2026-05-23 | 2026-05-23 | Verified | `docs/product-main-reference.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/learning-content/impl.md`、`docs/platform-page-inventory.md`、`docs/prompts/learning-material/one-tap-learning-material.md` | `docs/plans/done/2026-05-22-feature-one-tap-learning-material-flow.md` | Yes | [README](rounds/2026-05-23-one-tap-learning-material-flow/README.md) |
 | `2026-05-22-doc-system-ai-coding-quality-alignment` | 专项审查 | 2026-05-22 | 2026-05-22 | Verified | `docs/README.md`、`docs/product-main-reference.md`、`docs/platform-page-inventory.md`、`docs/spec/README.md`、`docs/spec/010-apple-platform-interaction-and-accessibility.md`、`docs/testing/README.md` | `docs/plans/done/2026-05-22-docs-doc-system-ai-coding-quality-alignment.md` | Yes | [README](rounds/2026-05-22-doc-system-ai-coding-quality-alignment/README.md) |
@@ -43,6 +44,7 @@
 
 | 日期 | 触发原因 | 触发的轮次 | 涉及文档 |
 | --- | --- | --- | --- |
+| 2026-06-03 | 阅读纵向切片已完成且三端阅读 UI 重构后，文档体系仍缺少用户主数据默认生命周期规则，且阅读主方案仍残留在 `active/`；需要 focused review 修正文档漂移并沉淀 CRUD 分层规范 | `2026-06-03-reading-lifecycle-governance` | `docs/plans/done/2026-06-01-feature-reading-ai-tts-vertical-slice.md`、`docs/reference/research/2026-06-01-reading-integration-assessment.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/012-reading-learning-domain.md`、`docs/workflows/add-platform-screen.md` |
 | 2026-05-23 | 本地媒体派生资产与 TTS 音频缓存基础设施落地触发数据库 schema、Data file store、Speech 文件校验、TTS direct playback 前置、隐私 / 备份 / 导出 / 同步边界专项文档影响检查 | 未创建独立 review round；由 `docs/plans/done/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md` 实施记录承载 | `docs/README.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/011-tts-provider-configuration-and-playback.md`、`docs/plans/done/2026-05-23-feature-direct-sentence-tts-playback.md`、`docs/plans/done/2026-05-23-feature-local-media-artifact-store-and-tts-audio-cache.md` |
 | 2026-05-23 | 一键生成学习材料闭环落地触发数据库 schema、GRDB repository、AI Provider 真实学习请求、Prompt Registry、Keychain 编排、iPhone 记录详情主流程和隐私披露边界专项文档影响检查 | `2026-05-23-one-tap-learning-material-flow` | `docs/plans/done/2026-05-22-feature-one-tap-learning-material-flow.md`、`docs/product-main-reference.md`、`docs/spec/005-ai-provider-prompt-and-privacy.md`、`docs/spec/007-data-storage-migration-export-and-attachments.md`、`docs/spec/learning-content/impl.md`、`docs/platform-page-inventory.md`、`docs/prompts/learning-material/one-tap-learning-material.md` |
 | 2026-05-22 | 用户要求从系统架构师和资深 Apple 应用交互师角度审查 docs 文档体系，审查发现 iPhone IA、Onboarding 持久化和 Apple 三端交互 / 可访问性规范入口存在事实漂移或缺口 | `2026-05-22-doc-system-ai-coding-quality-alignment` | `docs/README.md`、`docs/product-main-reference.md`、`docs/platform-page-inventory.md`、`docs/spec/README.md`、`docs/spec/010-apple-platform-interaction-and-accessibility.md`、`docs/testing/README.md` |

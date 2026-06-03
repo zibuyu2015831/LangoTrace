@@ -1,10 +1,10 @@
 # 阅读基础设施与 AI/TTS 纵向切片方案
 
-状态：Implemented
+状态：Verified
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-01
-最后更新日期：2026-06-01
+最后更新日期：2026-06-03
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `subagent-driven-development` or `executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -2421,6 +2421,7 @@ scripts/verify.sh
 - 2026-06-01：阶段提交 `0c83778 Resolve reading verification gates`：对本轮 Reading 新增文件执行 SwiftFormat 机械格式化，并提交完整验证前的最终门禁修复。阶段验证已运行 `swift test --package-path Packages/LangoTraceData --filter 'GRDBReadingLibraryRepositoryTests|AppDatabaseReadingMigrationTests'`、`swift test --package-path Packages/LangoTraceUI --filter 'ReadingLibraryStoreTests|ReadingDocumentStoreAIAndTTSTests|ReadingPresentationTests|AIProviderSettingsTests|AIProviderSettingsProbeTests'`、`swift test --package-path Packages/LangoTraceCore`、`swiftlint --no-cache --quiet`、`swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore` 和 `git diff --check`。
 - 2026-06-01：阶段提交 `c8ca39b Mark reading vertical slice implemented`：将 active plan 状态更新为 `Implemented`，补齐主要阶段实施记录和最终完整验证记录。最终完整验证通过 `scripts/verify.sh`，覆盖 XcodeGen、各 Swift package 测试、Tooling 单元测试、iPhone / iPad / macOS 构建、macOS App tests、SwiftLint、SwiftFormat、`scripts/check-docs.sh`、`git diff --check` 和 `git status --short`；其中 SwiftLint 报告 208 个 warning、0 个 serious，SwiftFormat 报告 0/277 个文件需要格式化，`scripts/check-docs.sh` 返回 ok，最终 `git status --short` 无输出。
 - 2026-06-01：完成后审查发现 Reading active plan 第 11 节 tracking checklist 未勾选，且 `GRDBReadingLibraryRepository` 对 collection/tag membership、lifecycle event、import item 和 AI explanation operation summary 的 `(document_id, space_id)` 组合缺少 repository 级归属校验。已补充跨语言空间 document id 拒绝测试并修复为写入前验证 document 属于目标 language space；本轮验证已运行 `swift test --package-path Packages/LangoTraceData --filter GRDBReadingLibraryRepositoryTests`、`swift test --package-path Packages/LangoTraceData --filter 'GRDBReadingLibraryRepositoryTests|AppDatabaseReadingMigrationTests'`、`scripts/check-docs.sh`、docs 占位词检索、`swiftlint lint Packages/LangoTraceData/Sources/LangoTraceData/GRDBReadingLibraryRepository.swift Packages/LangoTraceData/Tests/LangoTraceDataTests/Reading/GRDBReadingLibraryRepositoryTests.swift`、`swiftformat Packages/LangoTraceData/Sources/LangoTraceData/GRDBReadingLibraryRepository.swift Packages/LangoTraceData/Tests/LangoTraceDataTests/Reading/GRDBReadingLibraryRepositoryTests.swift --cache ignore`、`git diff --check` 和 `scripts/verify.sh`。
+- 2026-06-03：在不改变 Reading domain、AI 请求边界和 TTS 边界的前提下，继续通过 `docs/plans/done/2026-06-03-refactor-reading-library-ui-redesign.md` 和 `docs/plans/done/2026-06-03-refactor-reading-workbench-ipad-mac.md` 完成三端阅读 UI 信息结构重整；当前纵向切片的功能闭环与页面事实源已由上述 done plan 和 `docs/platform-page-inventory.md` 收口，本方案据此归档为 `Verified`。
 
 ## 18. 完成标准
 

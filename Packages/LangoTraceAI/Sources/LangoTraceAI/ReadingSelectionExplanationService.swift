@@ -30,8 +30,13 @@ public enum ReadingSelectionExplanationPromptRegistry {
             native_language_code: \(input.nativeLanguageCode)
             target_language_code: \(input.targetLanguageCode)
             proficiency_level_code: \(input.proficiencyLevelCode)
+            selection_scope: \(input.selectionScope.rawValue)
             selected_text: \(input.selectedText)
             containing_sentence: \(input.containingSentence)
+            previous_sentence: \(input.previousSentence ?? "")
+            next_sentence: \(input.nextSentence ?? "")
+            containing_paragraph: \(input.containingParagraph)
+            context_mode: \(input.contextMode.rawValue)
             context_text: \(input.contextText)
 
             Return fields:

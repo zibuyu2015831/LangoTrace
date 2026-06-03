@@ -26,7 +26,12 @@ struct ReadingMarkdownBlockRendererTests {
         let rendered = ReadingMarkdownBlockRenderer.render(
             document: document,
             appearance: .default,
-            platform: .phone
+            platform: .phone,
+            identity: ReadingDocumentRenderIdentity(
+                documentID: "doc-1",
+                contentRevision: 1,
+                structureVersion: 1
+            )
         )
 
         #expect(rendered.blocks.count > 1)
@@ -48,8 +53,26 @@ struct ReadingMarkdownBlockRendererTests {
         var accessible = ReadingAppearanceProfile.default
         accessible.lineSpacing = 8
 
-        let first = ReadingMarkdownBlockRenderer.render(document: document, appearance: compact, platform: .phone)
-        let second = ReadingMarkdownBlockRenderer.render(document: document, appearance: accessible, platform: .phone)
+        let first = ReadingMarkdownBlockRenderer.render(
+            document: document,
+            appearance: compact,
+            platform: .phone,
+            identity: ReadingDocumentRenderIdentity(
+                documentID: "doc-1",
+                contentRevision: 1,
+                structureVersion: 1
+            )
+        )
+        let second = ReadingMarkdownBlockRenderer.render(
+            document: document,
+            appearance: accessible,
+            platform: .phone,
+            identity: ReadingDocumentRenderIdentity(
+                documentID: "doc-1",
+                contentRevision: 1,
+                structureVersion: 1
+            )
+        )
 
         #expect(first.blocks.map(\.id) == second.blocks.map(\.id))
         #expect(first.blocks.map(\.sourceRangeDescription) == second.blocks.map(\.sourceRangeDescription))

@@ -7,47 +7,46 @@ struct ReadingLibraryView: View {
     @ObservedObject var store: ReadingLibraryStore
     let explanationAction: ReadingExplanationAction
     let ttsAction: ReadingTTSAction
+    var onOpenPhoneDocument: ((String) -> Void)?
+    @StateObject private var documentStore: ReadingDocumentStore
     @State private var importTitle = ""
     @State private var importBody = ""
     @State private var isImportSheetPresented = false
     @State private var isFileImporterPresented = false
-    @State private var selectedText: String?
-    @State private var selectedSentenceID: String?
-    @State private var explanationResult: ReadingSelectionExplanationResult?
-    @State private var explanationState: ReadingAsyncState = .idle
-    @State private var audioState: ReadingAsyncState = .idle
-    @State private var selectionGeneration = 0
     @State private var collectionDrafts: [String: String] = [:]
     @State private var tagDrafts: [String: String] = [:]
 
-    private var activePresentation: ReadingDocumentPresentation {
-        if let selectedPresentation = store.selectedPresentation {
-            return selectedPresentation
-        }
-        let markdown = """
-        # Reading
-
-        Import pasted text, `.txt`, or Markdown documents into the local reading library.
-
-        > AI explanation and TTS are explicit actions for the selected text or sentence.
-        """
-        return ReadingMarkdownBlockRenderer.render(
-            document: ReadingMarkdownParser.parse(markdown, sourceFormat: .markdown),
-            appearance: .default,
-            platform: platform
-        )
+    init(
+        platform: ReadingPlatformRole,
+        store: ReadingLibraryStore,
+        explanationAction: @escaping ReadingExplanationAction,
+        ttsAction: @escaping ReadingTTSAction,
+        onOpenPhoneDocument: ((String) -> Void)? = nil
+    ) {
+        self.platform = platform
+        self.store = store
+        self.explanationAction = explanationAction
+        self.ttsAction = ttsAction
+        self.onOpenPhoneDocument = onOpenPhoneDocument
+        _documentStore = StateObject(wrappedValue: ReadingDocumentStore(
+            documentID: store.selectedDocument?.id ?? "",
+            spaceID: store.languageSpace.id,
+            contentRevision: store.selectedDocument?.contentRevision ?? 1,
+            nativeLanguageCode: store.languageSpace.nativeLanguageCode,
+            targetLanguageCode: store.languageSpace.targetLanguageCode,
+            proficiencyLevelCode: store.languageSpace.level.rawValue,
+            explanationAction: explanationAction,
+            ttsAction: ttsAction
+        ))
     }
 
     var body: some View {
         Group {
             switch platform {
             case .phone:
-                NavigationStack {
-                    libraryAndReader
-                        .navigationTitle(localizedString("tab.reading"))
-                }
+                phoneLibraryHome
             case .pad, .mac:
-                libraryAndReader
+                desktopLibraryAndReader
             }
         }
         .sheet(isPresented: $isImportSheetPresented) {
@@ -78,176 +77,830 @@ struct ReadingLibraryView: View {
         .task {
             await store.reload()
         }
+        .task(id: documentStoreSyncKey) {
+            syncDocumentStore()
+        }
+        .sheet(isPresented: editorPresentedBinding) {
+            if let document = store.selectedDocument {
+                ReadingDocumentEditorSheet(
+                    title: draftTitleBinding,
+                    draftBody: draftBodyBinding,
+                    saveState: documentStore.saveState,
+                    saveFailure: documentStore.saveFailure,
+                    canSave: documentStore.canSaveDraft,
+                    sourceFormat: document.sourceFormat,
+                    onCancel: { documentStore.cancelEditing() },
+                    onSave: { Task { await saveEdits(document) } }
+                )
+            }
+        }
     }
 
-    private var libraryAndReader: some View {
+    private var phoneLibraryHome: some View {
+        ReadingPhoneLibraryHomeView(
+            store: store,
+            isImportSheetPresented: $isImportSheetPresented,
+            isFileImporterPresented: $isFileImporterPresented,
+            onOpenDocument: { documentID in
+                Task {
+                    await store.openDocument(documentID, platform: .phone)
+                    guard store.selectedDocument?.id == documentID else { return }
+                    onOpenPhoneDocument?(documentID)
+                }
+            }
+        )
+    }
+
+    private var desktopLibraryAndReader: some View {
         let layout = ReadingLayoutModel.platform(platform)
         return ViewThatFits(in: .horizontal) {
             HStack(alignment: .top, spacing: 0) {
-                libraryPane
-                    .frame(width: platform == .mac ? 300 : 280)
+                libraryWorkbenchPane(layout: layout)
                 Divider()
-                readerPane
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if layout.primaryColumnCount == 3 {
+                readerWorkbenchPane(layout: layout)
+                if layout.showsPersistentInspector {
                     Divider()
-                    inspectorPane
-                        .frame(width: 260)
+                    inspectorWorkbenchPane(layout: layout)
                 }
             }
+            .background(LangoTraceDesign.ColorToken.surfaceBase)
+
             VStack(spacing: 0) {
                 libraryPane
                 Divider()
                 readerPane
-                Divider()
-                inspectorPane
+                if layout.showsPersistentInspector {
+                    Divider()
+                    inspectorPane
+                }
             }
         }
+    }
+
+    private func libraryWorkbenchPane(layout: ReadingLayoutModel) -> some View {
+        libraryPane
+            .frame(width: layout.workspaceStyle == .balancedWorkbench ? 316 : 292)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .background(LangoTraceDesign.ColorToken.surfaceSidebar)
+    }
+
+    private func readerWorkbenchPane(layout: ReadingLayoutModel) -> some View {
+        ScrollView {
+            readerWorkbenchBody(layout: layout)
+                .padding(.horizontal, layout.workspaceStyle == .balancedWorkbench ? 28 : 24)
+                .padding(.vertical, 24)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .background(LangoTraceDesign.ColorToken.surfaceBase)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private func inspectorWorkbenchPane(layout: ReadingLayoutModel) -> some View {
+        inspectorPane
+            .frame(width: layout.workspaceStyle == .balancedWorkbench ? 292 : 268)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 20)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .background(LangoTraceDesign.ColorToken.surfaceInspector)
     }
 
     private var libraryPane: some View {
         ReadingLibraryPane(
             store: store,
+            platform: platform,
             isImportSheetPresented: $isImportSheetPresented,
             isFileImporterPresented: $isFileImporterPresented,
             collectionDrafts: $collectionDrafts,
-            tagDrafts: $tagDrafts
+            tagDrafts: $tagDrafts,
+            onOpenDocument: { documentID in
+                Task { await store.openDocument(documentID, platform: platform) }
+            }
         )
     }
 
     private var readerPane: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: activePresentation.style.paragraphSpacing) {
-                ForEach(activePresentation.blocks, id: \.id) { block in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Button {
-                            select(block)
-                        } label: {
-                            ReadingBlockView(block: block, style: activePresentation.style)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .buttonStyle(.plain)
-                        if selectedSentenceID == block.id {
-                            HStack(spacing: 8) {
-                                Button {
-                                    Task { await explainSelectedText() }
-                                } label: {
-                                    Label(localizedString("reading.action.explain"), systemImage: "sparkles")
-                                }
-                                .disabled(explanationState == .loading)
-
-                                Button {
-                                    Task { await play(block) }
-                                } label: {
-                                    Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
-                                }
-                                .disabled(audioState == .loading)
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                    }
+        Group {
+            if let document = store.selectedDocument {
+                if let presentation = store.selectedPresentation {
+                    readerContent(document: document, presentation: presentation, includeOuterPadding: true)
+                } else {
+                    ReadingReaderEmptyState()
                 }
+            } else {
+                ReadingReaderEmptyState()
             }
-            .padding(24)
-            .frame(maxWidth: activePresentation.style.readingWidth.points, alignment: .leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private func readerWorkbenchBody(layout: ReadingLayoutModel) -> some View {
+        Group {
+            if let document = store.selectedDocument {
+                if let presentation = store.selectedPresentation {
+                    readerContent(document: document, presentation: presentation, includeOuterPadding: false)
+                } else {
+                    ReadingReaderEmptyState()
+                        .frame(
+                            maxWidth: layout.workspaceStyle == .balancedWorkbench ? 780 : 720,
+                            minHeight: layout.workspaceStyle == .balancedWorkbench ? 460 : 420,
+                            alignment: .center
+                        )
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                ReadingReaderEmptyState()
+                    .frame(
+                        maxWidth: layout.workspaceStyle == .balancedWorkbench ? 780 : 720,
+                        minHeight: layout.workspaceStyle == .balancedWorkbench ? 460 : 420,
+                        alignment: .center
+                    )
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private func readerContent(
+        document: ReadingLibraryDocumentContent,
+        presentation: ReadingDocumentPresentation,
+        includeOuterPadding: Bool
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            ReadingDocumentHeader(document: document) {
+                documentStore.beginEditing(document: document)
+            }
+            ReadingDocumentCanvas(
+                presentation: presentation,
+                selectedSentenceID: documentStore.selectedSentenceID,
+                onSelectSentence: { sentence in
+                    documentStore.selectSelection(sentence.selection)
+                },
+                onClearSelection: {
+                    documentStore.clearSelection()
+                }
+            )
+        }
+        .padding(includeOuterPadding ? 24 : 28)
+        .frame(maxWidth: presentation.style.readingWidth.points + 56, alignment: .leading)
+        .background(LangoTraceDesign.ColorToken.surfacePanel)
+        .overlay {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(LangoTraceDesign.ColorToken.borderSubtle)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var inspectorPane: some View {
         ReadingInspectorPane(
-            selectedText: selectedText,
-            explanationResult: explanationResult
+            selection: documentStore.selectedSelection,
+            explanationResult: documentStore.explanationResult,
+            explanationState: documentStore.explanationState,
+            audioState: documentStore.audioState,
+            onExplain: { documentStore.explainSelection() },
+            onListen: { documentStore.playSelectionSentence() }
         )
     }
 
-    private func select(_ block: ReadingBlockPresentation) {
-        selectionGeneration += 1
-        selectedText = block.text
-        selectedSentenceID = block.id
-        explanationResult = nil
-        explanationState = .idle
-        audioState = .idle
+    private var documentStoreSyncKey: String {
+        let selectedID = store.selectedDocument?.id ?? "none"
+        let revision = store.selectedDocument?.contentRevision ?? 0
+        return "\(store.languageSpace.id)|\(selectedID)|\(revision)"
     }
 
-    private func explainSelectedText() async {
-        guard let selectedText, let selectedSentenceID else { return }
-        selectionGeneration += 1
-        let token = selectionGeneration
-        let documentID = store.selectedDocument?.id ?? ""
-        let spaceID = store.languageSpace.id
-        explanationState = .loading
-        do {
-            let result = try await explanationAction(
-                ReadingExplanationRequest(
-                    documentID: documentID,
-                    spaceID: spaceID,
-                    selectedText: selectedText,
-                    sentenceID: selectedSentenceID,
-                    containingSentence: selectedText,
-                    contextText: selectedText,
-                    nativeLanguageCode: store.languageSpace.nativeLanguageCode,
-                    targetLanguageCode: store.languageSpace.targetLanguageCode,
-                    proficiencyLevelCode: store.languageSpace.level.rawValue
-                )
+    private var editorPresentedBinding: Binding<Bool> {
+        Binding(
+            get: { documentStore.isEditorPresented },
+            set: { presented in
+                if !presented {
+                    documentStore.cancelEditing()
+                }
+            }
+        )
+    }
+
+    private var draftTitleBinding: Binding<String> {
+        Binding(
+            get: { documentStore.draftTitle },
+            set: { documentStore.updateDraft(title: $0, body: documentStore.draftBody) }
+        )
+    }
+
+    private var draftBodyBinding: Binding<String> {
+        Binding(
+            get: { documentStore.draftBody },
+            set: { documentStore.updateDraft(title: documentStore.draftTitle, body: $0) }
+        )
+    }
+
+    private func syncDocumentStore() {
+        if let document = store.selectedDocument {
+            documentStore.replaceDocument(
+                documentID: document.id,
+                spaceID: document.spaceID,
+                contentRevision: document.contentRevision
             )
-            guard isCurrentSelection(
-                token: token,
-                text: selectedText,
-                sentenceID: selectedSentenceID,
-                documentID: documentID,
-                spaceID: spaceID
-            ) else { return }
-            explanationResult = result
-            explanationState = .idle
-        } catch {
-            guard isCurrentSelection(
-                token: token,
-                text: selectedText,
-                sentenceID: selectedSentenceID,
-                documentID: documentID,
-                spaceID: spaceID
-            ) else { return }
-            explanationState = .failed
+        } else {
+            documentStore.replaceDocument(documentID: "", spaceID: store.languageSpace.id, contentRevision: 1)
         }
     }
 
-    private func play(_ block: ReadingBlockPresentation) async {
-        selectionGeneration += 1
-        let token = selectionGeneration
-        let documentID = store.selectedDocument?.id ?? ""
-        let spaceID = store.languageSpace.id
-        audioState = .loading
-        await ttsAction(
-            ReadingTTSRequest(
-                documentID: documentID,
-                spaceID: spaceID,
-                sentenceID: block.id,
-                text: block.text,
-                targetLanguageCode: store.languageSpace.targetLanguageCode
+    private func saveEdits(_ document: ReadingLibraryDocumentContent) async {
+        do {
+            documentStore.markSavingEdit()
+            let input = try ReadingDocumentUpdateInput(
+                documentID: document.id,
+                spaceID: document.spaceID,
+                title: documentStore.draftTitle,
+                body: documentStore.draftBody,
+                sourceFormat: document.sourceFormat
             )
-        )
-        guard isCurrentSelection(
-            token: token,
-            text: block.text,
-            sentenceID: block.id,
+            let updated = try await store.saveDocumentEdits(input, platform: platform)
+            documentStore.completeSavingEdit(with: updated)
+        } catch {
+            documentStore.failSavingEdit(error)
+        }
+    }
+}
+
+struct ReadingDocumentDetailView: View {
+    let platform: ReadingPlatformRole
+    let documentID: String
+    @ObservedObject var store: ReadingLibraryStore
+    let explanationAction: ReadingExplanationAction
+    let ttsAction: ReadingTTSAction
+    @StateObject private var documentStore: ReadingDocumentStore
+
+    init(
+        platform: ReadingPlatformRole,
+        documentID: String,
+        store: ReadingLibraryStore,
+        explanationAction: @escaping ReadingExplanationAction,
+        ttsAction: @escaping ReadingTTSAction
+    ) {
+        self.platform = platform
+        self.documentID = documentID
+        self.store = store
+        self.explanationAction = explanationAction
+        self.ttsAction = ttsAction
+        _documentStore = StateObject(wrappedValue: ReadingDocumentStore(
             documentID: documentID,
-            spaceID: spaceID
-        ) else { return }
-        audioState = .idle
+            spaceID: store.languageSpace.id,
+            contentRevision: store.selectedDocument?.contentRevision ?? 1,
+            nativeLanguageCode: store.languageSpace.nativeLanguageCode,
+            targetLanguageCode: store.languageSpace.targetLanguageCode,
+            proficiencyLevelCode: store.languageSpace.level.rawValue,
+            explanationAction: explanationAction,
+            ttsAction: ttsAction
+        ))
     }
 
-    private func isCurrentSelection(
-        token: Int,
-        text: String,
-        sentenceID: String,
-        documentID: String,
-        spaceID: String
-    ) -> Bool {
-        token == selectionGeneration
-            && selectedText == text
-            && selectedSentenceID == sentenceID
-            && (store.selectedDocument?.id ?? "") == documentID
-            && store.languageSpace.id == spaceID
+    var body: some View {
+        Group {
+            if activeDocument != nil {
+                if let presentation = activePresentation {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            ReadingDocumentCanvas(
+                                presentation: presentation,
+                                selectedSentenceID: documentStore.selectedSentenceID,
+                                onSelectSentence: { sentence in
+                                    documentStore.selectSelection(sentence.selection)
+                                },
+                                onClearSelection: {
+                                    documentStore.clearSelection()
+                                }
+                            )
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
+                        .frame(maxWidth: presentation.style.readingWidth.points, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                } else {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            } else {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .navigationTitle(activeDocument?.title ?? localizedString("tab.reading"))
+        .readingInlineTitleDisplayMode()
+        .task(id: documentID) {
+            if activeDocument?.id != documentID {
+                await store.openDocument(documentID, platform: platform)
+            }
+        }
+        .task(id: detailDocumentSyncKey) {
+            syncDetailDocumentStore()
+        }
+        .toolbar {
+            if let document = activeDocument {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        documentStore.beginEditing(document: document)
+                    } label: {
+                        Image(systemName: "square.and.pencil")
+                    }
+                    .accessibilityLabel(localizedString("settings.languageSpace.management.edit"))
+                }
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if let selection = documentStore.selectedSelection {
+                if documentStore.compactLearningPanelState != .hidden {
+                    ReadingCompactLearningPanel(
+                        selection: selection,
+                        explanationResult: documentStore.explanationResult,
+                        explanationState: documentStore.explanationState,
+                        audioState: documentStore.audioState,
+                        panelState: documentStore.compactLearningPanelState,
+                        onExplain: { documentStore.explainSelection() },
+                        onListen: { documentStore.playSelectionSentence() },
+                        onClear: { documentStore.clearSelection() }
+                    )
+                }
+            }
+        }
+        .sheet(isPresented: editorPresentedBinding) {
+            if let document = activeDocument {
+                ReadingDocumentEditorSheet(
+                    title: draftTitleBinding,
+                    draftBody: draftBodyBinding,
+                    saveState: documentStore.saveState,
+                    saveFailure: documentStore.saveFailure,
+                    canSave: documentStore.canSaveDraft,
+                    sourceFormat: document.sourceFormat,
+                    onCancel: { documentStore.cancelEditing() },
+                    onSave: { Task { await saveDetailEdits(document) } }
+                )
+            }
+        }
+    }
+
+    private var activeDocument: ReadingLibraryDocumentContent? {
+        guard store.selectedDocument?.id == documentID else { return nil }
+        return store.selectedDocument
+    }
+
+    private var activePresentation: ReadingDocumentPresentation? {
+        guard activeDocument != nil else { return nil }
+        return store.selectedPresentation
+    }
+
+    private var detailDocumentSyncKey: String {
+        let revision = activeDocument?.contentRevision ?? 0
+        return "\(store.languageSpace.id)|\(documentID)|\(revision)"
+    }
+
+    private var editorPresentedBinding: Binding<Bool> {
+        Binding(
+            get: { documentStore.isEditorPresented },
+            set: { presented in
+                if !presented {
+                    documentStore.cancelEditing()
+                }
+            }
+        )
+    }
+
+    private var draftTitleBinding: Binding<String> {
+        Binding(
+            get: { documentStore.draftTitle },
+            set: { documentStore.updateDraft(title: $0, body: documentStore.draftBody) }
+        )
+    }
+
+    private var draftBodyBinding: Binding<String> {
+        Binding(
+            get: { documentStore.draftBody },
+            set: { documentStore.updateDraft(title: documentStore.draftTitle, body: $0) }
+        )
+    }
+
+    private func syncDetailDocumentStore() {
+        if let document = activeDocument {
+            documentStore.replaceDocument(
+                documentID: document.id,
+                spaceID: document.spaceID,
+                contentRevision: document.contentRevision
+            )
+        }
+    }
+
+    private func saveDetailEdits(_ document: ReadingLibraryDocumentContent) async {
+        do {
+            documentStore.markSavingEdit()
+            let input = try ReadingDocumentUpdateInput(
+                documentID: document.id,
+                spaceID: document.spaceID,
+                title: documentStore.draftTitle,
+                body: documentStore.draftBody,
+                sourceFormat: document.sourceFormat
+            )
+            let updated = try await store.saveDocumentEdits(input, platform: platform)
+            documentStore.completeSavingEdit(with: updated)
+        } catch {
+            documentStore.failSavingEdit(error)
+        }
+    }
+}
+
+private struct ReadingPhoneLibraryHomeView: View {
+    @ObservedObject var store: ReadingLibraryStore
+    @Binding var isImportSheetPresented: Bool
+    @Binding var isFileImporterPresented: Bool
+    let onOpenDocument: (String) -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                header
+                if showsEmptyLibraryState {
+                    ReadingEmptyLibraryCard(
+                        onPaste: { isImportSheetPresented = true },
+                        onImportFile: { isFileImporterPresented = true }
+                    )
+                } else {
+                    actionsBar
+                    searchField
+                    filterControls
+                    documentList
+                    deletedDocuments
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 28)
+        }
+        .navigationTitle(localizedString("tab.reading"))
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(localizedString("tab.reading"))
+                .font(.largeTitle.weight(.semibold))
+                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+            Text(localizedString("reading.library.subtitle"))
+                .font(.body)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+        }
+    }
+
+    private var actionsBar: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) {
+                pasteButton
+                importFileButton
+            }
+            VStack(alignment: .leading, spacing: 10) {
+                pasteButton
+                importFileButton
+            }
+        }
+    }
+
+    private var pasteButton: some View {
+        Button {
+            isImportSheetPresented = true
+        } label: {
+            Label(localizedString("reading.library.import.paste"), systemImage: "doc.on.clipboard")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+    }
+
+    private var importFileButton: some View {
+        Button {
+            isFileImporterPresented = true
+        } label: {
+            Label(localizedString("reading.library.import.file"), systemImage: "doc.badge.plus")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.large)
+    }
+
+    private var searchField: some View {
+        TextField(
+            localizedString("reading.library.search.placeholder"),
+            text: Binding(
+                get: { store.searchText },
+                set: { value in
+                    Task { await store.updateSearchText(value) }
+                }
+            )
+        )
+        .textFieldStyle(.roundedBorder)
+    }
+
+    private var filterControls: some View {
+        ReadingLibraryFilterControls(store: store)
+    }
+
+    private var documentList: some View {
+        Group {
+            if store.filteredDocuments.isEmpty {
+                ContentUnavailableView(
+                    localizedString("reading.library.empty.title"),
+                    systemImage: "book.closed",
+                    description: Text(localizedString("reading.library.empty.body"))
+                )
+            } else {
+                LazyVStack(alignment: .leading, spacing: 12) {
+                    ForEach(store.filteredDocuments, id: \.id) { document in
+                        ReadingLibraryDocumentRow(document: document) {
+                            onOpenDocument(document.id)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var deletedDocuments: some View {
+        if !store.deletedDocuments.isEmpty {
+            DisclosureGroup(localizedString("reading.library.deleted")) {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(store.deletedDocuments, id: \.id) { document in
+                        HStack {
+                            Text(document.title)
+                                .font(.callout)
+                            Spacer()
+                            Button {
+                                Task { await store.restore(document.id) }
+                            } label: {
+                                Image(systemName: "arrow.uturn.backward")
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel(localizedString("reading.library.restore"))
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                .padding(.top, 8)
+            }
+            .padding(.top, 4)
+        }
+    }
+
+    private var showsEmptyLibraryState: Bool {
+        store.documents.isEmpty
+            && store.deletedDocuments.isEmpty
+            && store.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && store.selectedCollectionFilter == nil
+            && store.selectedTagFilter == nil
+    }
+}
+
+private struct ReadingDocumentHeader: View {
+    let document: ReadingLibraryDocumentContent
+    var onEdit: (() -> Void)?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(document.title)
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                    Text(localizedString("reading.library.subtitle"))
+                        .font(.callout)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                }
+
+                Spacer(minLength: 0)
+                HStack(spacing: 8) {
+                    Text(document.sourceFormat.rawValue)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(LangoTraceDesign.ColorToken.surfaceBase)
+                        .clipShape(.capsule)
+                    if let onEdit {
+                        Button(action: onEdit) {
+                            Image(systemName: "square.and.pencil")
+                        }
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel(localizedString("settings.languageSpace.management.edit"))
+                    }
+                }
+            }
+
+            HStack(spacing: 8) {
+                Label(storeLine, systemImage: "globe")
+                    .font(.caption)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+        }
+    }
+
+    private var storeLine: String {
+        document.targetLanguageCode.uppercased()
+    }
+}
+
+private struct ReadingDocumentEditorSheet: View {
+    @Binding var title: String
+    @Binding var draftBody: String
+    let saveState: ReadingAsyncState
+    let saveFailure: ReadingDocumentSaveFailure?
+    let canSave: Bool
+    let sourceFormat: ReadingSourceFormat
+    let onCancel: () -> Void
+    let onSave: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 16) {
+                TextField(localizedString("entryEditor.titleField"), text: $title)
+                    .textFieldStyle(.roundedBorder)
+                TextEditor(text: $draftBody)
+                    .scrollContentBackground(.hidden)
+                    .padding(12)
+                    .frame(minHeight: 320)
+                    .background(LangoTraceDesign.ColorToken.surfacePanel)
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                HStack {
+                    Text(sourceFormat.rawValue)
+                        .font(.caption)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    Spacer()
+                    if let saveFailure {
+                        Text(localizedString(saveFailure.messageKey))
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+            .padding(20)
+            .navigationTitle(localizedString("settings.languageSpace.management.editTitle"))
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(localizedString("common.cancel"), action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(localizedString("common.save"), action: onSave)
+                        .disabled(saveState == .loading || !canSave)
+                }
+            }
+        }
+    }
+}
+
+private struct ReadingDocumentCanvas: View {
+    let presentation: ReadingDocumentPresentation
+    let selectedSentenceID: String?
+    let onSelectSentence: (ReadingSentencePresentation) -> Void
+    let onClearSelection: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: presentation.style.paragraphSpacing) {
+            ForEach(presentation.blocks, id: \.id) { block in
+                if block.sentences.isEmpty {
+                    ReadingBlockView(block: block, style: presentation.style)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 4)
+                } else {
+                    sentenceBlock(block)
+                }
+            }
+        }
+    }
+
+    private func sentenceBlock(_ block: ReadingBlockPresentation) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(block.sentences, id: \.id) { sentence in
+                Button {
+                    if selectedSentenceID == sentence.id {
+                        onClearSelection()
+                    } else {
+                        onSelectSentence(sentence)
+                    }
+                } label: {
+                    Text(sentence.text)
+                        .font(blockFont(block.kind))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(
+                                    selectedSentenceID == sentence.id
+                                        ? LangoTraceDesign.ColorToken.surfaceSidebar
+                                        : .clear
+                                )
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func blockFont(_ kind: ReadingMarkdownBlockKind) -> Font {
+        switch kind {
+        case let .heading(level):
+            switch level {
+            case 1: .system(.title, design: .default, weight: .bold)
+            case 2: .system(.title2, design: .default, weight: .bold)
+            default: .system(.title3, design: .default, weight: .semibold)
+            }
+        case .blockquote:
+            .body.italic()
+        case .unorderedList, .orderedList:
+            .body
+        case .paragraph, .codeBlock, .horizontalRule, .unsupported:
+            .body
+        }
+    }
+}
+
+private struct ReadingEmptyLibraryCard: View {
+    let onPaste: () -> Void
+    let onImportFile: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Image(systemName: "book.closed")
+                .font(.title2)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                .frame(width: 52, height: 52)
+                .background(LangoTraceDesign.ColorToken.surfacePanel)
+                .clipShape(.circle)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(localizedString("reading.library.empty.title"))
+                    .font(.title3.weight(.semibold))
+                Text(localizedString("reading.library.empty.body"))
+                    .font(.body)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+            VStack(alignment: .leading, spacing: 10) {
+                Button(action: onPaste) {
+                    Label(localizedString("reading.library.import.paste"), systemImage: "doc.on.clipboard")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+
+                Button(action: onImportFile) {
+                    Label(localizedString("reading.library.import.file"), systemImage: "doc.badge.plus")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(LangoTraceDesign.ColorToken.surfaceBase)
+        .overlay {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(LangoTraceDesign.ColorToken.borderSubtle)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+    }
+}
+
+private struct ReadingReaderEmptyState: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Image(systemName: "text.book.closed")
+                .font(.title2)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                .frame(width: 52, height: 52)
+                .background(LangoTraceDesign.ColorToken.surfacePanel)
+                .clipShape(.circle)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(localizedString("reading.library.empty.title"))
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                Text(localizedString("reading.inspector.body"))
+                    .font(.body)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(LangoTraceDesign.ColorToken.surfacePanel)
+        .overlay {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(LangoTraceDesign.ColorToken.borderSubtle)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func readingInlineTitleDisplayMode() -> some View {
+        #if os(iOS)
+            navigationBarTitleDisplayMode(.inline)
+        #else
+            self
+        #endif
     }
 }
