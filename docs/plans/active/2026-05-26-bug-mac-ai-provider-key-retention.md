@@ -57,14 +57,38 @@
 - `KeychainAIProviderCredentialStore` 写入新 item 时按平台处理 accessibility：iOS / iPad 保留 `kSecAttrAccessible...ThisDeviceOnly`；macOS 当前传统 login keychain 路径不写该属性，避免在无 Data Protection Keychain entitlement 的 Debug 构建中创建需要认证 UI 的 item。
 - macOS 新建传统 login keychain item 时显式设置 `kSecAttrAccess`，通过 Security.framework 的 `SecAccessCreate` 语义把当前创建 app 设为 trusted application，减少后续读取同一 item 时触发 ACL 认证 UI 的概率。该调用仅限 macOS login keychain 分支，并通过动态符号调用隔离已废弃 API 的编译 warning。
 - 设置页加载和保存成功后不再主动解析 Keychain secret 来回填 API Key 输入框。页面只加载非敏感 profile / endpoint / credential metadata；用户输入新 API Key 才会写入 Keychain；测试已保存配置或真实 AI 请求时才按显式动作读取 secret。这样进入设置界面本身不应再触发登录钥匙串认证弹窗。
-- 已保存密钥的长期查看 / 替换 UX 由 `docs/plans/active/2026-05-27-feature-ai-provider-saved-credential-disclosure.md` 承接：已有 credential 时 API Key 字段显示 `已保存到本机 Keychain`，用户点击小眼睛后才解析 Keychain 并把明文加载到同一可编辑输入框。本 Mac bug 方案继续只追踪 macOS Keychain 可访问性、签名 / ACL 和 no-UI 诊断问题。
+- 已保存密钥的长期查看 / 替换 UX 由 `docs/plans/done/2026-05-27-feature-ai-provider-saved-credential-disclosure.md`（已 Verified 并移入 done/）承接：已有 credential 时 API Key 字段显示 `已保存到本机 Keychain`，用户点击小眼睛后才解析 Keychain 并把明文加载到同一可编辑输入框。本 Mac bug 方案继续只追踪 macOS Keychain 可访问性、签名 / ACL 和 no-UI 诊断问题。
 - 不采用“Mac 端完全绕过系统 Keychain、自行维护密钥”的方案作为本轮修复。原因：如果加密密钥也保存在 App 容器，实际安全性接近本地可读的混淆存储；若再把主密钥放入 Keychain，仍会回到同一授权问题。长期可选路线是使用稳定 Apple Development / Distribution 签名和正式 Keychain access group，或在未来新增用户明确选择的低安全级别本地密钥库，但这会改变敏感凭证安全边界，需要单独 ADR / spec 讨论。
 
 ## 验证计划
 
 - `swift test --package-path Packages/LangoTraceAI --filter KeychainAIProviderCredentialStoreTests`
 - `swift test --package-path Packages/LangoTraceCore --filter DiagnosticsTests`
-- `swift test --package-path Packages/LangoTraceUI --filter AIProviderLoadedSecretRepairTests/settingsViewRecordsCredentialResolveFailuresWithoutLoggingSecrets`
+- `swift test --package-path Packages/LangoTraceUI --filter AIProviderLoadedSecretRepairTests`（覆盖 `settingsViewDoesNotResolveSecretsWhenLoadingOrSavingProfile`、`settingsViewDoesNotLogSecretMetadataWhileAvoidingLoadTimeResolution`、`settingsActionsExposeNonLoggingCredentialResolver`）
 - `swift test --package-path Packages/LangoTraceUI --filter AIProviderSettingsTests`
 - `xcodebuild -quiet -scheme LangoTrace-macOS -project LangoTrace.xcodeproj -destination 'platform=macOS,arch=arm64' build`
 - 重启本地 macOS Debug app 后，让用户重新进入 AI Provider 设置页并采集 macOS `log show`。
+
+## 复查结论（2026-06-05，基于代码）
+
+子代理对照代码复查后，确认以下事实并修正了文档：
+
+已落地且与代码一致：
+
+- `ai_provider_settings.credential_resolve_failed` 事件名存在（`DiagnosticEvent.swift:45`，`DiagnosticsTests.swift:26` 仅校验名称字符串）。
+- `KeychainAIProviderCredentialStore` 的 `hasSecret` / `resolveSecret` / duplicate update / delete 均走 `nonInteractiveQuery`：`LAContext.interactionNotAllowed = true` + `kSecUseAuthenticationContext` + `kSecUseAuthenticationUIFail` 等价值（`KeychainAIProviderCredentialStore.swift:110-126`，调用点 33/48/68/88）。
+- 平台化 accessibility：macOS 跳过 `kSecAttrAccessible…ThisDeviceOnly`，iOS/iPad 保留（`shouldSetAccessibleAttribute` `:128-136`，`accessibleValue` `:170-179`）。
+- macOS 新建 login keychain item 通过 `dlopen`/`dlsym` 动态解析 `SecAccessCreate` 设置 trusted application，并以 `#if os(macOS)` 隔离（`:138-168`）。
+- 设置页加载和保存成功路径不再主动解析 secret 回填 API Key，只读非敏感 metadata；secret 仅在显式 reveal 动作中读取（`AIProviderSettingsView.swift:199-206`、`:256-259`、`revealCredential` `:352-371`；守卫测试 `AIProviderSettingsTests.swift:903-928`）。
+- 隐私边界在类型层成立：`DiagnosticAttribute` 是封闭枚举，无任何 case 承载 API Key、完整 Keychain service/account、请求头或密钥尾号；持久化层只解码白名单 key（`GRDBDiagnosticEventRepository.swift:75-99`）。
+
+需修正的文档不准确项（已在本轮修订）：
+
+- “实施”第 52-55 行描述把 settings-load resolver 改为 `do/catch` 并在失败时记录 `credential_resolve_failed`，但后续“进入设置页不再主动解析 secret”一轮已移除加载期解析，导致该诊断事件**在生产代码中没有任何 emit 点**（`rg aiProviderSettingsCredentialFailed` 仅命中枚举定义与名称单测）。reveal 失败路径只把稳定分类返回给 UI，不写诊断事件。因此目标 3 / 4（让日志区分 item 缺失 / 不可访问 / profile 未加载）目前只在 UI 返回值层部分满足，未通过诊断事件交付。后续若要真正交付目标 3/4，应在 `revealCredential` 失败路径补 emit；或显式声明该事件有意保留为未来扩展，并说明目标 4 在无该事件时如何达成。
+- 引用的已保存密钥披露方案路径由 `active/` 修正为 `done/`（已 Verified）。
+- 验证命令引用的测试 `AIProviderLoadedSecretRepairTests/settingsViewRecordsCredentialResolveFailuresWithoutLoggingSecrets` 不存在，已改为真实 struct 与函数。
+
+完成状态判定：**未解决 / 仍为开放调查态，不应移入 done。**
+
+- 本方案无 Done Criteria 章节，仅有 5 条目标；目标 5（读取/检测/更新/删除不反复弹登录钥匙串，且失败时返回稳定错误并进入诊断）在 ad-hoc 签名、无 TeamIdentifier、无 keychain access group 的传统 login keychain 组合下，单靠 `LAContext.interactionNotAllowed` + `kSecUseAuthenticationUIFail` 无法保证完全无弹窗（见“当前证据”第 34 行）。代码缓解降低了弹窗频率，但缺少一次干净的 macOS 人工复测记录证明重建后可静默读取。
+- 边界结论：该 bug 在当前签名 / Keychain 组合下不能被完全消除。残余决策（稳定 Apple Development/Distribution 签名 + 正式 keychain access group，或用户显式选择的低安全级本地密钥库）会改变敏感凭证安全边界，属于 ADR / spec 轨道，需单独立项（“实施”第 61 行已指向该方向）。该残余边界已沉淀为架构备忘录 `docs/architecture/notes/2026-06-05-macos-ai-provider-credential-signing-notes.md`，后续相关方案创建前必须读取。在补足上述任一收口前，本方案不可标记为已解决。

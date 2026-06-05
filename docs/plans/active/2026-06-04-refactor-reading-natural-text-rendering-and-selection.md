@@ -10,6 +10,7 @@
 
 - 2026-06-04：用户在阅读功能深度 UX 评估中指出，当前自动对文本进行句子拆分、每句渲染为独立 Button 行的模型破坏了原始阅读体验；希望保持用户原始输入的文本连续性，改为用户选中文字后才出现学习功能菜单。
 - 2026-06-04：用户要求创建正式 active plan 并完成自审。本方案尚未获得生产代码实现授权。
+- 2026-06-05：基于代码的复查（子代理）确认本方案对当前代码的描述基本准确（`sentenceBlock` Button 行渲染、`segmentSentences` 双重调用 ~`ReadingTextSegmentation.swift:265`、`selectText`/`selectSelection`/`ReadingCompactLearningPanel` 已存在、`selectTextFragment`/`makeFragmentSelectionContext` 均不存在、spec/012 §5 选择契约引用属实）。本轮已修正以下文档不准确项：§2.1 与 H1 行号 `774-820`→`774-802`；H2/H4 行号 `783-799`/`783-800`→`777-799`（指向 Button 手势而非 label）；§4 代码范围误将 Phase B 的 `selectTextFragment` / `textFragment` scope 列入 Phase A，已标注为 Phase B 延后并与 §5/§6.5 对齐；§5/§16/§17 残留“几何估算 fallback”措辞已与 §6.1 已否决几何方案的结论对齐为“点击选中 block 内第一个未选中句子”；§6.1 补充 `highlightColor: Color` 的 `import SwiftUI` / 颜色 token 测试编译约束。本方案仍为 Draft，待用户回答 §15 两个开放问题后方可进入 Phase A 实现。
 
 ## 1. 需求描述
 
@@ -26,7 +27,7 @@
 
 `ReadingMarkdownBlockRenderer.sentencePresentations()`（`ReadingMarkdownBlockRenderer.swift`）在渲染时对每个 selectable block 调用 `ReadingTextSegmenter.segmentSentences()`，把句子列表写入 `ReadingBlockPresentation.sentences`。
 
-`ReadingDocumentCanvas.sentenceBlock()`（`ReadingViews.swift:774-820`）把同一 block 内的所有句子通过 `ForEach + Button` 垂直堆叠：
+`ReadingDocumentCanvas.sentenceBlock()`（`ReadingViews.swift:774-802`）把同一 block 内的所有句子通过 `ForEach + Button` 垂直堆叠：
 
 ```swift
 VStack(alignment: .leading, spacing: 2) {
@@ -55,10 +56,10 @@ VStack(alignment: .leading, spacing: 2) {
 
 | 编号 | 问题 | 代码位置 |
 |------|------|----------|
-| H1 | 句子拆分为 Button 行，段落感完全丢失 | `ReadingViews.swift:774-820` |
-| H2 | ScrollView 中每行 Button 极易滚动误触 | `ReadingViews.swift:783-799` |
+| H1 | 句子拆分为 Button 行，段落感完全丢失 | `ReadingViews.swift:774-802` |
+| H2 | ScrollView 中每行 Button 极易滚动误触 | `ReadingViews.swift:777-799` |
 | H3 | 无法选择单词或短语，只能选整句 | 架构级缺失 |
-| H4 | 系统长按选词/翻译被 Button 手势覆盖 | `ReadingViews.swift:783-800` |
+| H4 | 系统长按选词/翻译被 Button 手势覆盖 | `ReadingViews.swift:777-799` |
 | M1 | 学习面板出现/消失无动画过渡 | `ReadingViews.swift:409-424` |
 
 ## 3. 目标
@@ -75,9 +76,9 @@ VStack(alignment: .leading, spacing: 2) {
 
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingViews.swift`：核心渲染变更（`ReadingDocumentCanvas`）
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingMarkdownBlockRenderer.swift`：句子数据保留但渲染模型解耦
-- `Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingDocumentStore.swift`：补充文本片段选择入口（`selectTextFragment`）
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingDocumentStore.swift`：Phase A 不新增 `selectTextFragment`（片段选择入口划入独立 Phase B plan，见 §6.5）；句子点击经 View 层 `handleSentenceTap` 复用既有 `onSelectSentence` → `selectSelection`，本文件本阶段不改动
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingViewComponents.swift`：学习面板动画包裹
-- `Packages/LangoTraceCore/Sources/LangoTraceCore/ReadingTextSegmentation.swift`：补充 `textFragment` scope 的 selection context 构建
+- `Packages/LangoTraceCore/Sources/LangoTraceCore/ReadingTextSegmentation.swift`：Phase A 不新增 `textFragment` scope 的 `makeFragmentSelectionContext`（划入 Phase B，见 §6.5）；仅复用既有 `segmentSentences` / `makeSentenceSelectionContext`，本阶段只在 §7 测试 #5 中对既有句子切分的 `characterOffset` 连续性补充断言
 - `Packages/LangoTraceUI/Tests/LangoTraceUITests/Reading/ReadingPresentationTests.swift`：更新并补充 TDD 测试
 - `Packages/LangoTraceUI/Tests/LangoTraceUITests/Reading/ReadingDocumentStoreAIAndTTSTests.swift`：补充片段选择路径测试
 
@@ -97,7 +98,7 @@ VStack(alignment: .leading, spacing: 2) {
 - 不实现自定义 FlowLayout 或 TextKit 2 深度集成。
 - 不实现 `selectTextFragment` Store 方法或 Phase B 的系统文本选择 → 学习面板路径（划入独立 Phase B plan）。
 - 不修复预存的 `segmentSentences` 双重调用性能问题（后续优化 plan）。
-- macOS Phase A 不保证与 iOS 完全一致的句子点击体验——macOS 使用几何估算 fallback，显式标注为过渡方案。
+- macOS Phase A 不保证与 iOS 完全一致的句子点击体验——macOS 使用“点击选中 block 内第一个未选中句子”的 tap fallback（§6.1 已否决几何估算方案），显式标注为过渡方案。
 
 ## 6. 推荐方案
 
@@ -153,6 +154,8 @@ extension ReadingBlockPresentation {
 ```
 
 该函数返回完整的 `AttributedString`，其中非选中句 span 携带 percent-encoded URL 的 `link` 属性，选中句 span 携带 `backgroundColor`。将逻辑放在扩展方法中，使其可在 SPM `swift test` 中通过 `@Suite` 直接测试，无需实例化 SwiftUI 视图。
+
+注意：`highlightColor: Color` 引用 SwiftUI `Color`，而红测文件 `ReadingPresentationTests.swift` 当前仅 `@testable import LangoTraceUI`。新增测试需补 `import SwiftUI` 才能引用 `Color`；或将签名改为接受平台无关颜色 token（如既有 `LangoTraceDesign` 颜色抽象），使纯函数不依赖 SwiftUI。实施时需在第一批红测落地前确定该签名，避免红测无法编译。
 
 **URL percent-encoding 要求**：构建 URL 时对 blockID 和 sentenceID 必须做 percent-encoding：
 
@@ -353,7 +356,7 @@ scripts/verify.sh
 
 ## 16. 完成标准
 
-- 阅读 Canvas 中块级文本连续渲染，无多行 Button 断行感（iOS/iPadOS 使用 AttributedString URL-link，macOS 使用几何估算 fallback）。
+- 阅读 Canvas 中块级文本连续渲染，无多行 Button 断行感（iOS/iPadOS 使用 AttributedString URL-link，macOS 使用“点击选中 block 内第一个未选中句子”的 tap fallback）。
 - 系统长按选词功能恢复（`.textSelection(.enabled)`）。
 - 点击文本中的句子可触发学习面板（iOS/iPadOS URL-link 路径；macOS tap fallback 路径）。
 - 学习面板出现/消失有动画过渡。
@@ -365,7 +368,7 @@ scripts/verify.sh
 ## 17. 剩余风险
 
 - `AttributedString.link` 在 iOS/iPadOS `Text` 中需要 `environment(\.openURL)` 拦截，否则会尝试真实 URL 打开。必须确保拦截环境在 iPhone 详情页和 iPad 工作台的每个渲染路径上都正确配置。
-- macOS Phase A 使用几何估算 fallback，精度有限（特别是多行回绕文本场景），是显式的过渡方案，不应视为生产质量交互。Phase B 通过 `NSTextView` 包装替换。
+- macOS Phase A 使用“点击选中 block 内第一个未选中句子”的 tap fallback（§6.1 已否决几何估算方案），不保证句子级精确命中（特别是多行回绕文本场景），是显式的过渡方案，不应视为生产质量交互。Phase B 通过 `NSTextView` 包装替换。
 - 选中句高亮用 `AttributedString.backgroundColor` 实现（iOS 15+/macOS 12+）。若出现平台兼容问题，备用方案是在 `Text` 上叠加透明 `overlay` 高亮层。
 - `AttributedString.backgroundColor` 与系统文本选择高亮色（蓝色）在同一 `Text` 上可能叠加显示，造成视觉混乱。Phase A 接受该视觉现象；若需消除，可在 `.onAppear` 时检测选择状态并清除句子背景色（后续优化）。
 - Phase A 只实现 URL-link 句子点击，不实现"系统拖选文字 → 学习面板"的联通。用户若希望拖选单词后直接触发解释，Phase A 不满足；此边界已在用户确认记录中明确。
