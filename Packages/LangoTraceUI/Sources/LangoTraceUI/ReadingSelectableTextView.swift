@@ -334,9 +334,10 @@ struct ReadingSelectableTextView: NSViewRepresentable {
 
         if let range = committedHighlightRange {
             let highlight = NSColor(name: nil) { appearance in
-                appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-                    ? NSColor(sRGBRed: 0x72 / 255.0, green: 0xD2 / 255.0, blue: 0xBF / 255.0, alpha: 0.22)
-                    : NSColor(sRGBRed: 0x12 / 255.0, green: 0x6B / 255.0, blue: 0x5D / 255.0, alpha: 0.15)
+                let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                let darkColor = NSColor(sRGBRed: 0x72 / 255.0, green: 0xD2 / 255.0, blue: 0xBF / 255.0, alpha: 0.22)
+                let lightColor = NSColor(sRGBRed: 0x12 / 255.0, green: 0x6B / 255.0, blue: 0x5D / 255.0, alpha: 0.15)
+                return isDark ? darkColor : lightColor
             }
             storage.addAttribute(.backgroundColor, value: highlight, range: range)
         }
@@ -432,7 +433,7 @@ struct ReadingSelectableTextView: NSViewRepresentable {
             self.onSelectionCleared = onSelectionCleared
         }
 
-        @objc func selectionDidChange(_ notification: Notification) {
+        @MainActor @objc func selectionDidChange(_ notification: Notification) {
             debounceWork?.cancel()
             guard let textView else { return }
             let nsRange = textView.selectedRange()

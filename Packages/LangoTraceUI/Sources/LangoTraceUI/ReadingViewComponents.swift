@@ -104,7 +104,7 @@ struct ReadingLibraryDocumentRow: View {
                     )
             }
             .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .shadow(color: Color(.systemGray4).opacity(isSelected ? 0 : 0.35), radius: 4, x: 0, y: 1)
+            .shadow(color: Color.black.opacity(isSelected ? 0 : 0.08), radius: 4, x: 0, y: 1)
         }
         .buttonStyle(.plain)
         .accessibilityHint(localizedString("tab.reading"))
