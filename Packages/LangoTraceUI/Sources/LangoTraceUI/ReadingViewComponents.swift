@@ -452,6 +452,9 @@ struct ReadingInspectorPane: View {
                             if audioState == .loading {
                                 ProgressView()
                                     .controlSize(.small)
+                            } else if audioState == .failed {
+                                Label(localizedString("reading.audio.failed"), systemImage: "speaker.slash")
+                                    .foregroundStyle(LangoTraceDesign.ColorToken.warning)
                             } else {
                                 Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
                             }
@@ -546,6 +549,9 @@ struct ReadingCompactLearningPanel: View {
                         if audioState == .loading {
                             ProgressView()
                                 .controlSize(.small)
+                        } else if audioState == .failed {
+                            Label(localizedString("reading.audio.failed"), systemImage: "speaker.slash")
+                                .foregroundStyle(LangoTraceDesign.ColorToken.warning)
                         } else {
                             Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
                         }

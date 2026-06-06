@@ -5343,6 +5343,23 @@
         }
       }
     },
+    "reading.audio.failed": {
+      "comment": "Listen button failure label shown inline in the button.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失败"
+          }
+        }
+      }
+    },
     "reading.panel.failed": {
       "comment": "Compact reading learning panel failure copy.",
       "localizations": {
