@@ -234,6 +234,7 @@ struct ReadingLibraryView: View {
             ReadingDocumentCanvas(
                 presentation: presentation,
                 selectedSelection: documentStore.selectedSelection,
+                explainedSentenceIDs: documentStore.explainedSentenceIDs,
                 onSelectFragment: { text, block, offset, length in
                     documentStore.selectTextFragment(
                         selectedText: text,
@@ -376,6 +377,7 @@ struct ReadingDocumentDetailView: View {
                                 ReadingDocumentCanvas(
                                     presentation: presentation,
                                     selectedSelection: documentStore.selectedSelection,
+                                    explainedSentenceIDs: documentStore.explainedSentenceIDs,
                                     onSelectFragment: { text, block, offset, length in
                                         documentStore.selectTextFragment(
                                             selectedText: text,
@@ -788,6 +790,7 @@ private struct ReadingDocumentEditorSheet: View {
 private struct ReadingDocumentCanvas: View {
     let presentation: ReadingDocumentPresentation
     let selectedSelection: ReadingSelectionContext?
+    var explainedSentenceIDs: Set<String> = []
     var onSelectFragment: (String, ReadingBlockPresentation, Int, Int) -> Void
     var onClearSelection: () -> Void
     @State private var blockHeights: [String: CGFloat] = [:]
@@ -827,12 +830,25 @@ private struct ReadingDocumentCanvas: View {
             return NSRange(startIdx ..< endIdx, in: text)
         }()
 
+        let explainedRanges: [NSRange] = block.sentences
+            .filter { explainedSentenceIDs.contains($0.id) }
+            .compactMap { sentence in
+                let text = block.text
+                let sel = sentence.selection
+                guard
+                    let start = text.index(text.startIndex, offsetBy: sel.characterOffset, limitedBy: text.endIndex),
+                    let end = text.index(start, offsetBy: sel.characterLength, limitedBy: text.endIndex)
+                else { return nil }
+                return NSRange(start ..< end, in: text)
+            }
+
         return ReadingSelectableTextView(
             blockText: block.text,
             blockKind: block.kind,
             inlineRuns: block.inlineRuns,
             lineSpacing: presentation.style.lineSpacing,
             committedHighlightRange: committedRange,
+            explainedSentenceRanges: explainedRanges,
             onSelectionChange: { text, offset, length in
                 onSelectFragment(text, block, offset, length)
             },

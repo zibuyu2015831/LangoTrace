@@ -48,6 +48,7 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
         let inlineRuns: [ReadingInlinePresentation]
         let lineSpacing: Double
         let committedHighlightRange: NSRange?
+        var explainedSentenceRanges: [NSRange] = []
         var onSelectionChange: (String, Int, Int) -> Void
         var onSelectionCleared: () -> Void
         @Binding var height: CGFloat
@@ -92,6 +93,12 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
             }
             context.coordinator.blockText = blockText
 
+            let rangesChanged = context.coordinator.lastExplainedRanges != explainedSentenceRanges
+            if needsRebuild || rangesChanged {
+                applyExplainedUnderlines(to: textView, ranges: explainedSentenceRanges)
+                context.coordinator.lastExplainedRanges = explainedSentenceRanges
+            }
+
             context.coordinator.isApplyingCommittedHighlight = true
             applyCommittedHighlight(to: textView)
             if committedHighlightRange != nil {
@@ -122,6 +129,26 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
                         : UIColor(red: 0x12 / 255.0, green: 0x6B / 255.0, blue: 0x5D / 255.0, alpha: 0.15)
                 }
                 storage.addAttribute(.backgroundColor, value: highlight, range: range)
+            }
+        }
+
+        private func applyExplainedUnderlines(to textView: UITextView, ranges: [NSRange]) {
+            let storage = textView.textStorage
+            let fullRange = NSRange(location: 0, length: storage.length)
+            storage.removeAttribute(.underlineStyle, range: fullRange)
+            storage.removeAttribute(.underlineColor, range: fullRange)
+            guard !ranges.isEmpty else { return }
+            let underlineColor = UIColor { traits in
+                traits.userInterfaceStyle == .dark
+                    ? UIColor(red: 0x72 / 255.0, green: 0xD2 / 255.0, blue: 0xBF / 255.0, alpha: 0.55)
+                    : UIColor(red: 0x12 / 255.0, green: 0x6B / 255.0, blue: 0x5D / 255.0, alpha: 0.55)
+            }
+            for range in ranges {
+                let clampedLoc = min(range.location, storage.length)
+                let safeRange = NSRange(location: clampedLoc, length: min(range.length, storage.length - clampedLoc))
+                guard safeRange.length > 0 else { continue }
+                storage.addAttribute(.underlineStyle, value: NSUnderlineStyle.patternDot.rawValue, range: safeRange)
+                storage.addAttribute(.underlineColor, value: underlineColor, range: safeRange)
             }
         }
 
@@ -205,6 +232,7 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
             var blockText: String
             var lastRenderedText: String = ""
             var lastRenderedKind: ReadingMarkdownBlockKind = .paragraph
+            var lastExplainedRanges: [NSRange] = []
             var onSelectionChange: (String, Int, Int) -> Void
             var onSelectionCleared: () -> Void
             /// Guards against re-entrant textViewDidChangeSelection calls triggered by
@@ -264,6 +292,7 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
         let inlineRuns: [ReadingInlinePresentation]
         let lineSpacing: Double
         let committedHighlightRange: NSRange?
+        var explainedSentenceRanges: [NSRange] = []
         var onSelectionChange: (String, Int, Int) -> Void
         var onSelectionCleared: () -> Void
         @Binding var height: CGFloat
@@ -316,6 +345,12 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
             }
             context.coordinator.blockText = blockText
 
+            let rangesChanged = context.coordinator.lastExplainedRanges != explainedSentenceRanges
+            if needsRebuild || rangesChanged {
+                applyExplainedUnderlines(to: nsView, ranges: explainedSentenceRanges)
+                context.coordinator.lastExplainedRanges = explainedSentenceRanges
+            }
+
             applyCommittedHighlight(to: nsView)
 
             if let layoutManager = nsView.layoutManager, let textContainer = nsView.textContainer {
@@ -352,6 +387,29 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
                     return isDark ? darkColor : lightColor
                 }
                 storage.addAttribute(.backgroundColor, value: highlight, range: range)
+            }
+        }
+
+        private func applyExplainedUnderlines(to textView: NSTextView, ranges: [NSRange]) {
+            guard let storage = textView.textStorage else { return }
+            let fullRange = NSRange(location: 0, length: storage.length)
+            storage.removeAttribute(.underlineStyle, range: fullRange)
+            storage.removeAttribute(.underlineColor, range: fullRange)
+            guard !ranges.isEmpty else { return }
+            let underlineColor = NSColor(name: nil) { appearance in
+                let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                let rD: CGFloat = 0x72 / 255.0, gD: CGFloat = 0xD2 / 255.0, bD: CGFloat = 0xBF / 255.0
+                let rL: CGFloat = 0x12 / 255.0, gL: CGFloat = 0x6B / 255.0, bL: CGFloat = 0x5D / 255.0
+                return isDark
+                    ? NSColor(srgbRed: rD, green: gD, blue: bD, alpha: 0.55)
+                    : NSColor(srgbRed: rL, green: gL, blue: bL, alpha: 0.55)
+            }
+            for range in ranges {
+                let clampedLoc = min(range.location, storage.length)
+                let safeRange = NSRange(location: clampedLoc, length: min(range.length, storage.length - clampedLoc))
+                guard safeRange.length > 0 else { continue }
+                storage.addAttribute(.underlineStyle, value: NSUnderlineStyle.patternDot.rawValue, range: safeRange)
+                storage.addAttribute(.underlineColor, value: underlineColor, range: safeRange)
             }
         }
 
@@ -431,6 +489,7 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
             var blockText: String
             var lastRenderedText: String = ""
             var lastRenderedKind: ReadingMarkdownBlockKind = .paragraph
+            var lastExplainedRanges: [NSRange] = []
             var onSelectionChange: (String, Int, Int) -> Void
             var onSelectionCleared: () -> Void
             weak var textView: NSTextView?
