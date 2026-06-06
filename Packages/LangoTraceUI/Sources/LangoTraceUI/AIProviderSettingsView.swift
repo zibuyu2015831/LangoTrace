@@ -364,8 +364,10 @@ private extension AIProviderSettingsView {
             applyRevealedSecret(secret, for: purpose)
             return .succeeded(secret)
         } catch let failure as AIProviderCredentialResolveFailure {
+            await recordCredentialRevealFailedEvent(category: failure.category)
             return .failed(revealFailure(from: failure.category))
         } catch {
+            await recordCredentialRevealFailedEvent(category: .credentialInaccessible)
             return .failed(.credentialInaccessible)
         }
     }
@@ -713,6 +715,25 @@ private extension AIProviderSettingsView {
                 level: outcome == .failed ? .error : .info,
                 outcome: outcome,
                 attributes: [.operationID(operationID)] + attributes,
+                createdAt: Date()
+            )
+        )
+    }
+
+    func recordCredentialRevealFailedEvent(
+        category: AIProviderValidationErrorCategory
+    ) async {
+        await actions.recordDiagnosticEvent(
+            DiagnosticEvent(
+                id: UUID().uuidString,
+                name: .aiProviderSettingsCredentialFailed,
+                domain: .aiProviderSettings,
+                level: .warning,
+                outcome: .failed,
+                attributes: [
+                    .failurePhase("credential_reveal"),
+                    .errorCategory(category.rawValue),
+                ],
                 createdAt: Date()
             )
         )

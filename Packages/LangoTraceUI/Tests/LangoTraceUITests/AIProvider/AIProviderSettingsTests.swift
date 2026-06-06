@@ -928,6 +928,15 @@ struct AIProviderLoadedSecretRepairTests {
         #expect(!source.contains("credential.keychainService"))
     }
 
+    @Test("Reveal credential failure emits credential_resolve_failed diagnostic event")
+    func revealCredentialFailureEmitsCredentialResolveFailedDiagnosticEvent() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
+        // revealCredential failure path must emit the credential_resolve_failed diagnostic event
+        #expect(source.contains(".aiProviderSettingsCredentialFailed"))
+        // the event must carry a failure_phase attribute identifying the reveal stage
+        #expect(source.contains("credential_reveal"))
+    }
+
     @Test("Settings source wires reveal only to independent API key fields")
     func settingsSourceWiresRevealOnlyToIndependentAPIKeyFields() throws {
         let viewSource = try String(

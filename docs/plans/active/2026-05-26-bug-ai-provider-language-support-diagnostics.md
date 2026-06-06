@@ -1,10 +1,10 @@
 # AI Provider language support diagnostics
 
-状态：In Progress
+状态：Implemented - Pending Manual Verification
 自审核状态：Not Reviewed
 类型：bug
 创建日期：2026-05-26
-最后更新日期：2026-05-26
+最后更新日期：2026-06-06
 
 ## User Confirmation
 
@@ -91,13 +91,29 @@ scripts/verify.sh
 - 2026-05-26: Updated normal app diagnostics so warning/error events are written to system logs without requiring `LANGOTRACE_DIAGNOSTICS=1`; setting the environment variable still allows lower log levels.
 - 2026-05-26: Verified shared iPhone/iPad/macOS settings seam through `AIProviderSettingsTests`; all three platforms still route through `SettingsCapabilityDetailView -> AIProviderSettingsView`.
 - 2026-05-26: Installed and relaunched the updated iPad simulator build for manual retesting. New process PID: `55492`.
+- 2026-06-06: Confirmed full implementation via code review. All three changes are present in code: `AIProviderLanguageSupportFailureReason` enum, `languageSupportFailureReason` diagnostic attribute propagation in probe service, and `ConsoleDiagnosticLogger` defaulting to `.warning` without environment override. Manual runtime verification remains.
 
 ## Done Criteria
 
-- Three-platform settings seam remains shared.
-- Language support failures include a non-sensitive failure reason in diagnostic attributes.
-- Normal runtime logs can show warning/error probe diagnostics without requiring a launch environment override.
-- Focused tests pass.
+- [x] Three-platform settings seam remains shared.
+- [x] Language support failures include a non-sensitive failure reason in diagnostic attributes.
+- [x] Normal runtime logs can show warning/error probe diagnostics without requiring a launch environment override.
+- [x] Focused tests pass.
+- [ ] **Manual runtime verification**: `language_support_failure_reason` appears in `logs/latest.log` when language support fails on iPad simulator.
+
+## Pending Manual Verification
+
+Run the AI Provider test on iPad simulator with a configured text endpoint and a language space, then capture logs:
+
+```bash
+scripts/capture-runtime-log --last 30m
+```
+
+In `logs/latest.log`, look for a line containing `ai_provider_configuration.probe_partial` or `ai_provider_configuration.probe_failed` with a `language_support_failure_reason=<reason>` attribute. Expected reason values: `unsupported_language_code`, `missing_sample_json`, `sample_too_short`, `script_mismatch`, or `natural_language_mismatch`.
+
+If the failure reason is present in logs, move this plan to `docs/plans/done/`.
+
+If no failure-reason field appears, check whether `ConsoleDiagnosticLogger` is actually wired into `AppEnvironment.makeDiagnosticLogger` for the running build (simulator PID may be stale — reinstall if needed).
 
 ## Remaining Risk
 
