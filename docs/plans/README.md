@@ -47,11 +47,14 @@ docs/plans/done/YYYY-MM-DD-<type>-<topic>.md
 - 目标、范围和不做什么。
 - 证据与决策依据。
 - 来源于 review round、health ledger 或运行期诊断时的 finding id / trigger id 与 work item 对照。
+- 约束映射与验证路径。
 - 涉及的代码文件路径。
 - 参考的代码文件路径。
 - 涉及的文档路径。
 - 实施方案。
+- 严格方案自审核记录。
 - 复查方法。
+- TDD / 测试落点。
 - 验证命令。
 - 文档影响检查。
 - 实施记录。
@@ -115,6 +118,8 @@ bug 方案还必须包含：
 - 文档治理任务创建前必须先搜索 `docs/plans/active/`、`docs/plans/done/` 和 `docs/review/INDEX.md`。若已有 active plan 处理同一问题，应追加到现有方案；若已完成任务的问题复发，应新建方案并引用旧任务，而不是重开或改写旧记录。
 - 文档治理任务若涉及 ADR、产品主参考、核心 spec、文档权威关系或历史记录删除，必须在用户确认记录中写明确认范围。
 - `docs/plans/plan-review-protocol.md` 只管理实现前方案审核；代码或文档变更完成后的日常文档影响检查、事件触发专项审查和里程碑轻量全审仍以 `docs/review/README.md` 为准。
+- 如果任务涉及新功能、bug 修复、架构调整或行为变化，方案必须在"TDD / 测试落点"章节写明测试落点（Package、文件、测试函数名）、先失败用例和聚焦验证命令；如果不新增单元测试，必须说明原因与剩余风险。
+- "约束映射与验证路径"章节只记录已有 LangoTrace 权威文档来源的规则；不允许把外部参考项目、done plan 历史方案或 AI 推断直接升级为 blocker；可参考 `docs/_meta/documentation-constraints.md` 快速定位相关约束来源。
 
 ## 6. 当前状态
 

@@ -1,10 +1,10 @@
 # 文档约束索引与任务方案模板优化方案
 
-状态：Draft
+状态：Verified
 自审核状态：Reviewed
 类型：docs
 创建日期：2026-05-23
-最后更新日期：2026-06-01
+最后更新日期：2026-06-06（实施收口）
 
 ## 用户确认记录
 
@@ -52,6 +52,8 @@
 - `docs/plan-review-protocol.md` 是外来文档，当前仍包含 `AnvilDeck`、`dev_docs/plans/active/`、`dev_docs/memos/` 和强制 commit 规则；这些内容与 LangoTrace 当前文档体系冲突。
 
 ## 3. 目标
+
+> 范围说明（2026-06-06 自审补充）：以下目标中关于「任务类型口径一致」「`docs/plans/plan-review-protocol.md` 改造」属于已交付的子范围 A，已由 `docs/plans/done/2026-06-01-docs-plan-review-protocol-adoption.md` 承接，本 active plan 不再执行，仅作历史保留。本方案当前仅跟踪子范围 B：`docs/_meta/documentation-constraints.md` 约束路由索引，以及 `docs/plans/README.md` 与模板新增「约束映射与验证路径」「TDD / 测试落点」必填字段（两项经磁盘核验当前均未落地）。
 
 本任务完成后必须达到：
 
@@ -312,9 +314,12 @@
 
 ### 11.6 更新入口发现路径
 
-如果新增 `docs/_meta/documentation-constraints.md` 后没有入口能发现它，则执行：
+新增 `docs/_meta/documentation-constraints.md` 后必须执行（`_meta` 受保护规则目录的强制登记要求，不是条件分支）：
 
-- 在 `docs/_meta/directory-responsibilities.md` 登记该文件职责。
+- 在 `docs/_meta/directory-responsibilities.md` 登记该文件职责。`directory-responsibilities.md` 是 `_meta` 文件职责的强制登记表，新增 `_meta` 长期文件若不登记必然在该权威表中缺席，违反 `_meta` 自身治理规则；与 done 方案对 `plan-review-protocol.md` 的处理保持一致。
+
+以下按需执行，保持克制：
+
 - 在 `docs/review/README.md` 或 `docs/README.md` 中加入轻量引用，说明它是约束索引，不是新事实源。
 
 入口更新必须克制，避免把根入口变成长篇规则集合。
@@ -369,6 +374,35 @@
 
 是否允许进入实现：本轮用户已明确授权“立即进行该方案的优化和完善”，因此允许执行方案自审核协议改造子范围；不自动扩展到约束路由索引落地。
 
+### 11.10 严格方案自审核记录（子范围 B，2026-06-06）
+
+审核日期：2026-06-06
+
+审核方式：隔离审查（两个只读子代理）+ 主会话核验。
+
+审核轮次：双轮。第一轮系统架构与权威边界；第二轮验证命令、文档影响与可恢复性（本任务为 docs-only，无 Swift 代码，TDD 红绿路径替换为文档验证命令有效性）。
+
+未使用隔离审查的原因：不适用，已使用隔离子代理。主会话用只读 `rg` / `test` 命令复核了下列关键发现。
+
+发现摘要（已逐条与磁盘核验）：
+
+- P1（已修，验证命令失效）：第 13 节退出目录扫描对全 `docs` 扫描，命中 directory-responsibilities / README / review / archive 等当前合法登记（实测 `superpowers`、`guidelines` 模式 exit 0），断言 `exit 1` 使门禁恒为 FAIL。已改为只扫本方案落点。
+- P1（已修，验证命令失效）：第 13 节针对尚未创建的 `docs/_meta/documentation-constraints.md` 的 `rg` 在文件缺失时返回 IO error（实测 exit 2），既非命中也非无命中。已加 `test -f` 守卫并注明仅在子范围 B 创建文件后运行。
+- P2（已修）：第 13 节类型口径命令在双引号内含反引号字面量会触发命令替换。已改单引号断言。
+- P1（已修，范围口径）：第 3 节目标与第 16 节完成标准仍混入已交付的子范围 A 条目（任务类型口径、`plan-review-protocol.md` 改造），实现者照此可能回改已 Verified 的 done 方案。已在两节加范围收敛标注。
+- P1（已修，强制登记被降级）：11.6 把 `docs/_meta/directory-responsibilities.md` 登记写成条件分支，但它是 `_meta` 文件职责的强制登记表。已提升为必做项。
+- P2（记录，留实施时处理）：11.4 新增「TDD / 测试落点」章节与模板既有「严格方案自审核记录」「验证命令」存在语义重叠风险；实施前应先比对模板现有章节，明确非重叠职责边界，避免模板膨胀。
+- P2（记录，留实施时处理）：`severity`（blocker/warn/info）与 review 的 P0-P3、plan 自审核的 P0-P3 三套语义并存；`domain_trigger` 与「不复制领域正文」缺机械判据。实施时应在索引「字段说明」节写明语义隔离，并给 domain_trigger 设句式硬上限。
+- P3（已修）：头部「最后更新日期」由 2026-06-01 同步为 2026-06-06。
+
+核验确认：子范围 A 已全部落地且与磁盘一致（`docs/plans/plan-review-protocol.md` 存在、旧根 `docs/plan-review-protocol.md` 已删、`_meta` 任务类型含 `docs`、README 含「自审核状态」二态）；子范围 B 两个必填字段经 `rg` 确认确未落地，2026-06-05「尚未落地」判断准确。
+
+写回修改：本轮已修订第 3、11.6、第 13、第 16 节及头部日期；P2 设计项作为实施前待办记录在本节与第 17 节剩余风险。
+
+仍需用户确认的问题：子范围 B（`docs/_meta/documentation-constraints.md` 约束路由索引 + README/模板两个必填字段）是否获准进入实现。
+
+是否允许进入实现：否。主状态保持 `Draft`，等待用户对子范围 B 的明确授权；本轮仅完成方案自审与文档级修订。
+
 ## 12. 复查方法
 
 - 对照 `docs/plans/README.md` 和 `docs/plans/examples/task-plan-template.md`，确认新增章节在规则和模板中都有对应。
@@ -388,11 +422,13 @@
 # 结构列举，人工确认新增文件落点和历史目录没有异常恢复。
 find docs -maxdepth 4 -type f | sort
 
-# 应无命中：已退出或旧目录引用不应出现在当前文档中。
-if rg "docs/guidelines|guidelines/" docs --glob '!plans/done/*' --glob '!archive/*'; then exit 1; fi
-if rg "docs/superpowers|superpowers/" docs --glob '!plans/done/*' --glob '!archive/*'; then exit 1; fi
-if rg "docs/worklogs|worklogs/" docs --glob '!plans/done/*' --glob '!archive/*'; then exit 1; fi
-if rg "docs/resear[ch]|research/open-source-reference[s]" docs --glob '!plans/done/*'; then exit 1; fi
+# 应无命中：本方案落点文档不应引入已退出目录路径。
+# 注（2026-06-06 自审修正）：原命令对全 docs 扫描，会命中 directory-responsibilities / README /
+# review / archive 中对已退出目录的合法登记与说明（实测 exit 0），导致门禁恒为 FAIL。
+# 因此只扫本方案实际落点，且不扫以登记退出目录为职责的 directory-responsibilities.md。
+SCOPE="docs/plans/README.md docs/plans/examples/task-plan-template.md"
+test -f docs/_meta/documentation-constraints.md && SCOPE="$SCOPE docs/_meta/documentation-constraints.md"
+if rg -n "docs/guidelines/|docs/superpowers/|docs/worklogs/|research/open-source-references" $SCOPE; then exit 1; fi
 
 # 应无命中：新增长期规则文档不应引入外部 constraint pipeline 承诺。
 if rg -n "constraints\\.json|audit_v2|variant-trigger|variant scatter|by_module" docs/_meta docs/README.md docs/review/README.md docs/plans/README.md docs/plans/examples/task-plan-template.md; then exit 1; fi
@@ -400,14 +436,20 @@ if rg -n "constraints\\.json|audit_v2|variant-trigger|variant scatter|by_module"
 # 应无命中：占位词不应出现在当前 docs，模板和示例除外。
 if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'; then exit 1; fi
 
-# 应有命中：任务类型口径应同时包含 docs。
-rg -n "feature / bug / refactor / research / chore / docs|`docs`" docs/_meta/documentation-system.md docs/plans/README.md docs/plans/examples/task-plan-template.md
+# 应有命中：任务类型口径应同时包含 docs（_meta 与 README 用分行 bullet `- `docs``，模板用单行枚举 `chore / docs`）。
+# 注（2026-06-06 自审修正）：原命令在双引号内含反引号字面量会触发命令替换；改为单引号且兼容两种写法，逐文件断言均命中。
+for f in docs/_meta/documentation-system.md docs/plans/README.md docs/plans/examples/task-plan-template.md; do
+  rg -nq -e '- `docs`' -e 'chore / docs' "$f" || { echo "缺少 docs 类型口径: $f"; exit 1; }
+done
 
-# 应有命中：新索引必须声明自身只作路由，不作事实源或裁决源。
-rg -n "约束路由索引|不是产品决策源|不是.*事实源|不是.*裁决源|以原始权威文档为准" docs/_meta/documentation-constraints.md
-
-# 应有命中：首批约束必须带 lifecycle 和冲突处理字段。
-rg -n "状态：active|状态：superseded|状态：invalidated|状态：needs-review|冲突处理|替代关系" docs/_meta/documentation-constraints.md
+# 注（2026-06-06 自审修正）：以下针对 docs/_meta/documentation-constraints.md 的检查仅在子范围 B 创建该文件后才有意义；
+# 文件创建前 rg 因文件缺失返回 IO error（exit 2），不是“无命中”，不应在创建前纳入门禁。
+if [ -f docs/_meta/documentation-constraints.md ]; then
+  # 应有命中：新索引必须声明自身只作路由，不作事实源或裁决源。
+  rg -n "约束路由索引|不是产品决策源|不是.*事实源|不是.*裁决源|以原始权威文档为准" docs/_meta/documentation-constraints.md
+  # 应有命中：首批约束必须带 lifecycle 和冲突处理字段。
+  rg -n "状态：active|状态：superseded|状态：invalidated|状态：needs-review|冲突处理|替代关系" docs/_meta/documentation-constraints.md
+fi
 
 # 应无命中：方案自审核协议不应保留外来项目名或 dev_docs 路径。
 if rg -n "AnvilDeck|dev_docs" docs/plans/plan-review-protocol.md docs/plans/README.md docs/README.md docs/_meta/documentation-system.md docs/_meta/directory-responsibilities.md; then exit 1; fi
@@ -451,7 +493,13 @@ git status --short
 - 2026-06-05：按用户确认拆分本方案。已完成的子范围 A（方案自审核协议改造、任务类型口径修正、`自审核状态` 二态规范、目录职责登记）拆出为独立 Verified 方案 `docs/plans/done/2026-06-01-docs-plan-review-protocol-adoption.md`。本 active plan 自此只跟踪子范围 B：`docs/_meta/documentation-constraints.md` 约束路由索引，以及与之耦合的 `docs/plans/README.md` / 模板“约束映射与验证路径”“TDD / 测试落点”必填字段；该子范围待用户确认后实施，因此保留 `Draft` 主状态。下方第 1-17 节中关于协议改造的目标、实施与验证内容已由 done 方案承接，仅作历史保留。
 - 2026-06-05：基于文档现状的复查（子代理）确认子范围 A（方案自审核协议改造、任务类型口径修正、目录职责登记）已全部落地且与磁盘一致（`docs/plans/plan-review-protocol.md` 存在且无 `AnvilDeck`/`dev_docs`；`docs/_meta/documentation-system.md` 任务类型含 `docs`；`docs/plans/README.md` 已含 `自审核状态` 二态说明与协议引用；旧根目录 `docs/plan-review-protocol.md` 已删除）。澄清范围口径以纠正可能的误读：第 3 节目标与 11.3 / 11.4 把“`docs/plans/README.md` 与模板新增‘约束映射与验证路径’和‘TDD / 测试落点’必填字段 / 章节”列为本方案交付物，但这两项**当前尚未落地**——`README.md` 必填内容清单与 `task-plan-template.md` 章节均无对应条目。它们与子范围 B（`docs/_meta/documentation-constraints.md` 约束路由索引）耦合，一并延后至用户确认后实施，不属于已交付内容。子范围 B 仍正确地未创建并标注为待确认。主状态保持 `Draft` 以表示约束路由索引及其配套必填字段未获准实施；这是作者有意的信号（见 2026-06-01 记录），本轮不改主状态，仅补充范围澄清。
 
+- 2026-06-06：按方案自审核协议对子范围 B 执行双轮隔离自审核（两个只读子代理 + 主会话核验），结论记入 11.10。修订写回：第 13 节修正两类失效验证命令（退出目录全 docs 扫描误报、未创建文件 rg 报 exit 2、类型口径反引号命令替换）；第 3 / 16 节加范围收敛标注；11.6 将 `directory-responsibilities` 登记提升为必做；头部日期同步为 2026-06-06。剩余 P2 设计项（TDD 章节与模板既有章节去重、severity/P0-P3 语义隔离、domain_trigger 句式硬上限）记入第 17 节，留子范围 B 实施时处理。主状态保持 `Draft`，待用户确认。未运行 `scripts/verify.sh`，原因是本轮只修改文档。
+
+- 2026-06-06（实施收口）：用户确认子范围 B 后实施。创建 `docs/_meta/documentation-constraints.md`（14 条约束，DOC-CONST-001 至 DOC-CONST-014，含 plan_gate / approval_gate / test_gate / doc_impact / authority_boundary / domain_trigger 六类，字段说明节含 severity 语义隔离声明，domain_trigger 项规则摘要均以"应回到 `<path>` 检查"结尾）；在 `docs/_meta/directory-responsibilities.md` 登记新文件职责；在 `docs/plans/README.md` 必填内容中新增"约束映射与验证路径"和"TDD / 测试落点"两项，使用规则中新增 TDD 和约束映射的规范条款；将 `docs/plans/examples/task-plan-template.md` 从 18 节扩充为 20 节（新增第 7 节"约束映射与验证路径"和第 15 节"TDD / 测试落点"，其余章节重新编号，新旧章节职责无语义重叠）。运行全部 11 项验证命令，均通过（退出目录扫描无命中、无 pipeline 承诺、无占位词、三文件类型口径命中、路由声明命中、生命周期字段命中、目录职责登记命中、无 AnvilDeck / dev_docs 残留、git diff --check 通过）。未运行 `scripts/verify.sh`，原因是文档-only 任务，不修改 Swift 源码、工程配置、Package、资源或验证脚本。主状态更新为 `Verified`。
+
 ## 16. 完成标准
+
+> 范围说明（2026-06-06 自审补充）：以下含子范围 A 已交付项（任务类型口径、`docs/plans/plan-review-protocol.md`），仅作历史保留；本方案剩余完成标准为子范围 B 的约束路由索引文件与两个必填字段。
 
 - 用户确认本方案可实施。
 - `docs/_meta/documentation-system.md` 与 `docs/plans/README.md` 的任务类型口径一致。
@@ -471,3 +519,5 @@ git status --short
 - 如果首批约束写得过硬，可能误把参考输入或阶段性建议升级为 blocker；实施时必须逐条核对 source。
 - 如果源文档后续更新但索引未同步，约束可能过期；因此每条约束必须带生命周期状态，源文档状态不明时降级为 `needs-review`。
 - 任务方案模板增强后，后续方案会更完整，但也会更长；实施时需要保持字段有用，不把模板变成形式主义清单。
+- 子范围 B 实施时（2026-06-06 自审记录）：新增「TDD / 测试落点」章节须先与模板既有「严格方案自审核记录」「验证命令」比对，明确非重叠职责边界，否则会与现有章节语义重复造成模板膨胀。
+- 子范围 B 实施时（2026-06-06 自审记录）：`severity`（blocker/warn/info）须在索引「字段说明」节显式声明与 review P0-P3、plan 自审核 P0-P3 的语义隔离；`domain_trigger` 项须设句式硬上限（如以「应回到 `<path>` 检查」结尾、规则摘要不超过一句），否则易把领域规则正文复制进索引，触发第二事实源漂移。
