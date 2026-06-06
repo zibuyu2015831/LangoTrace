@@ -28,6 +28,16 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
 #if canImport(UIKit)
 import UIKit
 
+/// UITextView subclass that blocks all responder actions, preventing the system
+/// edit menu (Copy / Translate / Look Up) from being constructed or animated.
+/// `canPerformAction` is queried before the menu is built; returning false here
+/// stops it at the source rather than dismissing it after the animation starts.
+private final class ReadingNonMenuTextView: UITextView {
+    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        false
+    }
+}
+
 /// A SwiftUI-hosted UITextView that exposes system text selection events via callbacks.
 /// One instance is created per Markdown block. `isEditable = false`, `isSelectable = true`.
 /// Uses NSAttributedString for block-kind-aware typography (headings, body, blockquote, code)
@@ -50,7 +60,7 @@ struct ReadingSelectableTextView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> UITextView {
-        let textView = UITextView(frame: .zero)
+        let textView = ReadingNonMenuTextView(frame: .zero)
         textView.isEditable = false
         textView.isSelectable = true
         textView.isScrollEnabled = false
@@ -210,18 +220,6 @@ struct ReadingSelectableTextView: UIViewRepresentable {
             self.blockText = ""
             self.onSelectionChange = onSelectionChange
             self.onSelectionCleared = onSelectionCleared
-        }
-
-        // MARK: - System edit menu suppression (iOS 18, deployment target)
-        // Returns nil to prevent UIEditMenuInteraction from showing the system
-        // copy/translate/look-up menu. VoiceOver's "speak selection" gesture is
-        // a separate mechanism and is not affected by this delegate method.
-        func textView(
-            _ textView: UITextView,
-            editMenuForTextIn range: NSRange,
-            suggestedActions: [UIMenuElement]
-        ) -> UIMenu? {
-            nil
         }
 
         func textViewDidChangeSelection(_ textView: UITextView) {

@@ -1,5 +1,19 @@
 import LangoTraceCore
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
+private func copyToPasteboard(_ text: String) {
+    #if canImport(UIKit)
+    UIPasteboard.general.string = text
+    #elseif canImport(AppKit)
+    NSPasteboard.general.clearContents()
+    NSPasteboard.general.setString(text, forType: .string)
+    #endif
+}
 
 struct ReadingImportSheetView: View {
     @Binding var importTitle: String
@@ -564,6 +578,17 @@ struct ReadingCompactLearningPanel: View {
                         .lineLimit(2)
                 }
                 Spacer()
+                Button {
+                    copyToPasteboard(selection.selectedText)
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        .frame(width: 28, height: 28)
+                        .background(LangoTraceDesign.ColorToken.surfaceMuted)
+                        .clipShape(.circle)
+                }
+                .buttonStyle(.plain)
                 Button(action: onClear) {
                     Image(systemName: "xmark")
                         .font(.footnote.weight(.semibold))
