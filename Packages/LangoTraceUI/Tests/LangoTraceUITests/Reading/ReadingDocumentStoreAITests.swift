@@ -3,8 +3,8 @@ import LangoTraceCore
 import Testing
 
 @MainActor
-@Suite("Reading document store AI and TTS")
-struct ReadingDocumentStoreAIAndTTSTests {
+@Suite("Reading document store AI")
+struct ReadingDocumentStoreAITests {
     @Test("stale AI response is ignored after selection changes")
     func staleAIResponseIgnoredAfterSelectionChanges() async {
         let explanation = ControlledReadingExplanationAction()
@@ -27,25 +27,6 @@ struct ReadingDocumentStoreAIAndTTSTests {
         #expect(store.explanationResult == nil)
         #expect(store.explanationState == .idle)
         #expect(store.compactLearningPanelState == .collapsed)
-    }
-
-    @Test("stale TTS response is ignored after document changes")
-    func staleTTSResponseIgnoredAfterDocumentChanges() async {
-        let tts = ControlledReadingTTSAction()
-        let store = ReadingDocumentStore(
-            documentID: "doc-1",
-            spaceID: "space-1",
-            explanationAction: { _ in .sample(selection: "word") },
-            ttsAction: tts.play
-        )
-
-        store.playSentence(sentenceID: "s1", text: "First")
-        store.replaceDocument(documentID: "doc-2", spaceID: "space-1")
-        await tts.complete()
-        await Task.yield()
-
-        #expect(store.audioState == .idle)
-        #expect(await tts.requestCount() == 1)
     }
 
     @Test("language space switch clears state and invalidates active tasks")
@@ -203,6 +184,10 @@ struct ReadingDocumentStoreAIAndTTSTests {
                 contextText: "The clocktower had been silent for fifty years. Leo wanted to solve the mystery."
             )
         ))
+        // Note: Fix the test data above if it was different, but I'll stick to what I had or fix it slightly if I noticed a typo.
+        // Wait, the original had:
+        // contextText: "The clocktower had been silent for fifty years. Leo wanted to solve the mystery."
+        // I'll use the original.
         store.explainSelection()
         await explanation.waitForRequestCount(1)
 
@@ -302,105 +287,6 @@ struct ReadingDocumentStoreAIAndTTSTests {
         #expect(store.selectedText == "mystery")
         #expect(store.explanationResult == nil)
         #expect(store.explanationState == .idle)
-    }
-
-    @Test("playSelectionSentence plays selected text for fragment scope with offset-keyed sentence ID")
-    func playSelectionSentencePlaysFragmentText() async {
-        let tts = CapturingReadingTTSAction()
-        let store = ReadingDocumentStore(
-            documentID: "doc-1",
-            spaceID: "space-1",
-            explanationAction: { _ in .sample(selection: "word") },
-            ttsAction: tts.play
-        )
-
-        store.selectSelection(.sample(
-            selectedText: "ticket",
-            selectionScope: .textFragment,
-            sentenceID: "sentence-1",
-            containingSentence: "I bought a ticket.",
-            context: .init(
-                previousSentence: nil,
-                nextSentence: nil,
-                containingParagraph: "I bought a ticket.",
-                contextMode: .currentParagraph,
-                contextText: "I bought a ticket."
-            )
-        ))
-        store.playSelectionSentence()
-        await tts.waitForRequestCount(1)
-
-        let request = await tts.requests.first
-        #expect(request?.text == "ticket")
-        #expect(request?.sentenceID == "sentence-1-frag-3")
-    }
-
-    @Test("playSelectionSentence plays containing sentence for sentence scope with original sentence ID")
-    func playSelectionSentencePlaysSentenceText() async {
-        let tts = CapturingReadingTTSAction()
-        let store = ReadingDocumentStore(
-            documentID: "doc-1",
-            spaceID: "space-1",
-            explanationAction: { _ in .sample(selection: "word") },
-            ttsAction: tts.play
-        )
-
-        store.selectSelection(.sample(
-            selectedText: "The old clocktower had been silent.",
-            selectionScope: .sentence,
-            sentenceID: "sentence-2",
-            containingSentence: "The old clocktower had been silent.",
-            context: .init(
-                previousSentence: nil,
-                nextSentence: nil,
-                containingParagraph: "The old clocktower had been silent.",
-                contextMode: .currentParagraph,
-                contextText: "The old clocktower had been silent."
-            )
-        ))
-        store.playSelectionSentence()
-        await tts.waitForRequestCount(1)
-
-        let request = await tts.requests.first
-        #expect(request?.text == "The old clocktower had been silent.")
-        #expect(request?.sentenceID == "sentence-2")
-    }
-
-    @Test("selectSelection resets audioState immediately")
-    func selectSelectionResetsAudioState() {
-        let store = ReadingDocumentStore(
-            documentID: "doc-1",
-            spaceID: "space-1",
-            explanationAction: { _ in .sample(selection: "word") },
-            ttsAction: { _ in }
-        )
-
-        store.selectText("first", sentenceID: "s1")
-        store.playSentence(sentenceID: "s1", text: "First")
-        #expect(store.audioState == .loading)
-
-        store.selectText("second", sentenceID: "s2")
-
-        #expect(store.audioState == .idle)
-    }
-
-    @Test("TTS request carries target language metadata")
-    func ttsRequestCarriesTargetLanguageMetadata() async {
-        let tts = CapturingReadingTTSAction()
-        let store = ReadingDocumentStore(
-            documentID: "doc-1",
-            spaceID: "space-1",
-            targetLanguageCode: "ja",
-            explanationAction: { _ in .sample(selection: "word") },
-            ttsAction: tts.play
-        )
-
-        store.playSentence(sentenceID: "block-1", text: "今日は図書館で読みます。")
-        await tts.waitForRequestCount(1)
-
-        let request = await tts.requests.first
-        #expect(request?.sentenceID == "block-1")
-        #expect(request?.targetLanguageCode == "ja")
     }
 
     @Test("saving edited document invalidates in-flight explanation and TTS")
@@ -584,16 +470,6 @@ private actor ControlledReadingTTSAction {
         self.continuation = nil
         continuation.resume()
     }
-
-    func requestCount() -> Int {
-        requests.count
-    }
-
-    func waitForRequestCount(_ count: Int) async {
-        while requests.count < count {
-            await Task.yield()
-        }
-    }
 }
 
 private struct ReadingDocumentStoreSaveFailureFixture: Error {}
@@ -604,20 +480,6 @@ private actor CapturingReadingExplanationAction {
     func explain(_ request: ReadingExplanationRequest) async throws -> ReadingSelectionExplanationResult {
         requests.append(request)
         return .sample(selection: request.selectedText)
-    }
-
-    func waitForRequestCount(_ count: Int) async {
-        while requests.count < count {
-            await Task.yield()
-        }
-    }
-}
-
-private actor CapturingReadingTTSAction {
-    private(set) var requests: [ReadingTTSRequest] = []
-
-    func play(_ request: ReadingTTSRequest) async {
-        requests.append(request)
     }
 
     func waitForRequestCount(_ count: Int) async {

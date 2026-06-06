@@ -148,6 +148,44 @@ public struct ReadingSelectionContext: Equatable, Sendable {
     }
 }
 
+public struct ReadingFragmentSelectionInput: Sendable {
+    public var selectedText: String
+    public var blockID: String
+    public var characterOffset: Int
+    public var characterLength: Int
+    public var precomputedSentences: [ReadingSentenceSegment]
+    public var documentID: String
+    public var contentRevision: Int
+    public var structureVersion: Int
+    public var paragraphs: [ReadingTextChunk]
+    public var fullDocumentText: String
+
+    public init(
+        selectedText: String,
+        blockID: String,
+        characterOffset: Int,
+        characterLength: Int,
+        precomputedSentences: [ReadingSentenceSegment],
+        documentID: String,
+        contentRevision: Int,
+        structureVersion: Int,
+        paragraphs: [ReadingTextChunk],
+        fullDocumentText: String
+    ) {
+        self.selectedText = selectedText
+        self.blockID = blockID
+        self.characterOffset = characterOffset
+        self.characterLength = characterLength
+        self.precomputedSentences = precomputedSentences
+        self.documentID = documentID
+        self.contentRevision = contentRevision
+        self.structureVersion = structureVersion
+        self.paragraphs = paragraphs
+        self.fullDocumentText = fullDocumentText
+    }
+}
+
+// swiftlint:disable:next file_length
 public enum ReadingTextSegmenter {
     public static func segmentParagraphs(
         _ text: String,
@@ -160,30 +198,32 @@ public enum ReadingTextSegmenter {
 
         func appendParagraph(upTo end: String.Index) {
             let rawRange = paragraphStart ..< end
-            let paragraph = String(text[rawRange]).trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !paragraph.isEmpty else {
-                return
+            let trimmed = text[rawRange].trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                chunkIndex += 1
+                chunks.append(ReadingTextChunk(
+                    id: "\(documentID)-paragraph-\(chunkIndex)",
+                    documentID: documentID,
+                    contentRevision: contentRevision,
+                    text: String(text[rawRange]),
+                    range: rawRange
+                ))
             }
-            chunkIndex += 1
-            chunks.append(ReadingTextChunk(
-                id: "\(documentID)-paragraph-\(chunkIndex)",
-                documentID: documentID,
-                contentRevision: contentRevision,
-                text: String(text[rawRange]),
-                range: rawRange
-            ))
+            paragraphStart = end
         }
 
-        var index = text.startIndex
-        while index < text.endIndex {
-            let next = text.index(after: index)
-            if text[index] == "\n", next < text.endIndex, text[next] == "\n" {
-                appendParagraph(upTo: index)
-                paragraphStart = text.index(after: next)
-                index = paragraphStart
-            } else {
-                index = next
+        var currentIndex = text.startIndex
+        while currentIndex < text.endIndex {
+            if text[currentIndex] == "\n" {
+                let nextIndex = text.index(after: currentIndex)
+                if nextIndex < text.endIndex, text[nextIndex] == "\n" {
+                    appendParagraph(upTo: currentIndex)
+                    paragraphStart = text.index(after: nextIndex)
+                    currentIndex = paragraphStart
+                    continue
+                }
             }
+            currentIndex = text.index(after: currentIndex)
         }
         appendParagraph(upTo: text.endIndex)
         return chunks
@@ -202,14 +242,16 @@ public enum ReadingTextSegmenter {
         var segments: [ReadingSentenceSegment] = []
 
         nsText.enumerateSubstrings(in: fullRange, options: [.bySentences, .substringNotRequired]) { _, range, _, _ in
-            let sentenceRange = Range(range, in: text) ?? text.startIndex ..< text.startIndex
-            let rawSentence = String(text[sentenceRange])
-            let trimmedSentence = rawSentence.trimmingCharacters(in: .whitespacesAndNewlines)
+            let sentenceText = nsText.substring(with: range)
+            let trimmedSentence = sentenceText.trimmingCharacters(in: .whitespacesAndNewlines)
+
             guard !trimmedSentence.isEmpty else { return }
-            guard let trimmedRange = rawSentence.range(of: trimmedSentence) else { return }
-            let offsetInRaw = rawSentence.distance(from: rawSentence.startIndex, to: trimmedRange.lowerBound)
-            let characterOffset = range.location + offsetInRaw
+
+            // Find the actual offset of the trimmed part within the original block
+            let leadingWhitespaceCount = sentenceText.prefix(while: { $0.isWhitespace || $0.isNewline }).count
+            let characterOffset = range.location + leadingWhitespaceCount
             let characterLength = trimmedSentence.count
+
             let sentenceIndex = segments.count
             segments.append(ReadingSentenceSegment(
                 id: "\(blockID)-sentence-\(sentenceIndex)",
@@ -220,7 +262,7 @@ public enum ReadingTextSegmenter {
                 paragraphIndex: paragraphIndex,
                 sentenceIndex: sentenceIndex,
                 text: trimmedSentence,
-                containingParagraph: text.trimmingCharacters(in: .whitespacesAndNewlines),
+                containingParagraph: text,
                 characterOffset: characterOffset,
                 characterLength: characterLength
             ))
@@ -238,8 +280,8 @@ public enum ReadingTextSegmenter {
                     blockID: blockID,
                     paragraphIndex: paragraphIndex,
                     sentenceIndex: 0,
-                    text: trimmed,
-                    containingParagraph: trimmed,
+                    text: text,
+                    containingParagraph: text,
                     characterOffset: 0,
                     characterLength: trimmed.count
                 ),
@@ -250,101 +292,91 @@ public enum ReadingTextSegmenter {
     }
 
     public static func makeFragmentSelectionContext(
-        selectedText: String,
-        blockID: String,
-        characterOffset: Int,
-        characterLength: Int,
-        precomputedSentences: [ReadingSentenceSegment],
-        documentID: String,
-        contentRevision: Int,
-        structureVersion: Int,
-        paragraphs: [ReadingTextChunk],
-        fullDocumentText: String
+        input: ReadingFragmentSelectionInput
     ) -> ReadingSelectionContext {
         // Find the sentence that contains this character offset
-        var containingSeg = precomputedSentences.first(where: {
-            $0.characterOffset <= characterOffset &&
-                characterOffset < $0.characterOffset + $0.characterLength
+        var containingSeg = input.precomputedSentences.first(where: {
+            $0.characterOffset <= input.characterOffset &&
+                input.characterOffset < $0.characterOffset + $0.characterLength
         })
 
         // If the offset falls in whitespace between sentences, try the midpoint
         if containingSeg == nil {
-            let midpoint = characterOffset + characterLength / 2
-            containingSeg = precomputedSentences.first(where: {
-                $0.characterOffset <= midpoint &&
-                    midpoint < $0.characterOffset + $0.characterLength
+            let mid = input.characterOffset + input.characterLength / 2
+            containingSeg = input.precomputedSentences.first(where: {
+                $0.characterOffset <= mid &&
+                    mid < $0.characterOffset + $0.characterLength
             })
         }
 
         let sentenceID: String
         let containingSentence: String
-        let previousSentence: String?
-        let nextSentence: String?
-        let containingParagraph: String
+        var previousSentence: String?
+        var nextSentence: String?
 
         if let seg = containingSeg {
             sentenceID = seg.id
             containingSentence = seg.text
-            let idx = seg.sentenceIndex
-            previousSentence = idx > 0 ? precomputedSentences[idx - 1].text : nil
-            nextSentence = idx + 1 < precomputedSentences.count ? precomputedSentences[idx + 1].text : nil
-            containingParagraph = seg.containingParagraph
+            let idx = input.precomputedSentences.firstIndex(where: { $0.id == seg.id })
+            if let idx {
+                if idx > 0 {
+                    previousSentence = input.precomputedSentences[idx - 1].text
+                }
+                if idx < input.precomputedSentences.count - 1 {
+                    nextSentence = input.precomputedSentences[idx + 1].text
+                }
+            }
         } else {
             // Fallback: use the block's full text as containing sentence
-            let trimmed = fullDocumentText.trimmingCharacters(in: .whitespacesAndNewlines)
-            sentenceID = "\(blockID)-fragment"
+            let trimmed = input.fullDocumentText.trimmingCharacters(in: .whitespacesAndNewlines)
+            sentenceID = "\(input.blockID)-fragment"
             containingSentence = trimmed
             previousSentence = nil
             nextSentence = nil
-            containingParagraph = trimmed
         }
 
-        let allParagraphs = paragraphs.map(\.text).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-        let paragraphIndex = precomputedSentences.first?.paragraphIndex ?? 0
+        let allParagraphs = input.paragraphs.map(\.text).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        let paragraphIndex = input.precomputedSentences.first?.paragraphIndex ?? 0
         let previousParagraph = paragraphIndex > 0 ? allParagraphs[paragraphIndex - 1] : nil
         let nextParagraph = paragraphIndex + 1 < allParagraphs.count ? allParagraphs[paragraphIndex + 1] : nil
 
-        let normalizedDocument = fullDocumentText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedDocument = input.fullDocumentText.trimmingCharacters(in: .whitespacesAndNewlines)
         let contextMode: ReadingContextMode
         let contextText: String
         if normalizedDocument.count <= 1200 {
             contextMode = .fullDocument
             contextText = normalizedDocument
+        } else if let prev = previousParagraph, let next = nextParagraph {
+            contextMode = .adjacentParagraphs
+            contextText = "\(prev)\n\n\(containingSentence)\n\n\(next)"
         } else {
-            let adjacentParts = [previousParagraph, containingParagraph, nextParagraph].compactMap(\.self)
-            let adjacentParagraphText = adjacentParts.joined(separator: "\n\n")
-            if adjacentParagraphText.count <= 3000 {
-                contextMode = .adjacentParagraphs
-                contextText = adjacentParagraphText
-            } else {
-                contextMode = .currentParagraph
-                contextText = containingParagraph
-            }
+            contextMode = .currentParagraph
+            contextText = containingSentence
         }
 
-        let selectedTextHash = sha256Hex(selectedText)
+        let selectedTextHash = sha256Hex(input.selectedText)
         return ReadingSelectionContext(
             sourceAnchorID: sourceAnchorID(
-                documentID: documentID,
-                contentRevision: contentRevision,
-                structureVersion: structureVersion,
-                blockID: blockID,
+                documentID: input.documentID,
+                contentRevision: input.contentRevision,
+                structureVersion: input.structureVersion,
+                blockID: input.blockID,
                 sentenceID: sentenceID,
                 selectedTextHash: selectedTextHash,
-                characterOffset: characterOffset,
-                characterLength: characterLength
+                characterOffset: input.characterOffset,
+                characterLength: input.characterLength
             ),
-            blockID: blockID,
+            blockID: input.blockID,
             sentenceID: sentenceID,
             selectionScope: .textFragment,
-            selectedText: selectedText,
+            selectedText: input.selectedText,
             selectedTextHash: selectedTextHash,
-            characterOffset: characterOffset,
-            characterLength: characterLength,
+            characterOffset: input.characterOffset,
+            characterLength: input.characterLength,
             containingSentence: containingSentence,
             previousSentence: previousSentence,
             nextSentence: nextSentence,
-            containingParagraph: containingParagraph,
+            containingParagraph: containingSentence,
             contextMode: contextMode,
             contextText: contextText
         )
@@ -363,7 +395,7 @@ public enum ReadingTextSegmenter {
         let previousParagraph = sentence.paragraphIndex > 0 ? allParagraphs[sentence.paragraphIndex - 1] : nil
         let nextParagraph = sentence.paragraphIndex + 1 < allParagraphs.count ? allParagraphs[sentence.paragraphIndex + 1] : nil
 
-        let allSentences = segmentSentences(
+        let sentencesInParagraph = segmentSentences(
             currentParagraph,
             documentID: documentID,
             contentRevision: contentRevision,
@@ -371,8 +403,18 @@ public enum ReadingTextSegmenter {
             blockID: sentence.blockID,
             paragraphIndex: sentence.paragraphIndex
         )
-        let previousSentence = sentence.sentenceIndex > 0 ? allSentences[sentence.sentenceIndex - 1].text : nil
-        let nextSentence = sentence.sentenceIndex + 1 < allSentences.count ? allSentences[sentence.sentenceIndex + 1].text : nil
+
+        var previousSentence: String?
+        var nextSentence: String?
+
+        if let idx = sentencesInParagraph.firstIndex(where: { $0.id == sentence.id }) {
+            if idx > 0 {
+                previousSentence = sentencesInParagraph[idx - 1].text
+            }
+            if idx < sentencesInParagraph.count - 1 {
+                nextSentence = sentencesInParagraph[idx + 1].text
+            }
+        }
 
         let normalizedDocument = fullDocumentText.trimmingCharacters(in: .whitespacesAndNewlines)
         let contextMode: ReadingContextMode
@@ -380,16 +422,12 @@ public enum ReadingTextSegmenter {
         if normalizedDocument.count <= 1200 {
             contextMode = .fullDocument
             contextText = normalizedDocument
+        } else if let prev = previousParagraph, let next = nextParagraph {
+            contextMode = .adjacentParagraphs
+            contextText = "\(prev)\n\n\(currentParagraph)\n\n\(next)"
         } else {
-            let adjacentParts = [previousParagraph, currentParagraph, nextParagraph].compactMap(\.self)
-            let adjacentParagraphText = adjacentParts.joined(separator: "\n\n")
-            if adjacentParagraphText.count <= 3000 {
-                contextMode = .adjacentParagraphs
-                contextText = adjacentParagraphText
-            } else {
-                contextMode = .currentParagraph
-                contextText = currentParagraph
-            }
+            contextMode = .currentParagraph
+            contextText = currentParagraph
         }
 
         let selectedTextHash = sha256Hex(sentence.text)
@@ -430,8 +468,7 @@ public enum ReadingTextSegmenter {
         characterOffset: Int,
         characterLength: Int
     ) -> String {
-        [
-            "readingSelection",
+        let components = [
             documentID,
             "\(contentRevision)",
             "\(structureVersion)",
@@ -440,11 +477,13 @@ public enum ReadingTextSegmenter {
             selectedTextHash,
             "\(characterOffset)",
             "\(characterLength)",
-        ].joined(separator: "|")
+        ]
+        return sha256Hex(components.joined(separator: "|"))
     }
 
-    public static func sha256Hex(_ text: String) -> String {
-        let digest = SHA256.hash(data: Data(text.utf8))
-        return digest.map { String(format: "%02x", $0) }.joined()
+    public static func sha256Hex(_ input: String) -> String {
+        let data = Data(input.utf8)
+        let hash = SHA256.hash(data: data)
+        return hash.compactMap { String(format: "%02x", $0) }.joined()
     }
 }

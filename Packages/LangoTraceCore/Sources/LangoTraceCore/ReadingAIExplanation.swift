@@ -1,3 +1,5 @@
+import Foundation
+
 public struct ReadingSelectionExplanationInput: Equatable, Sendable {
     public var documentID: String
     public var sourceAnchorID: String

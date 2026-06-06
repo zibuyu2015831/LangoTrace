@@ -1,54 +1,38 @@
 import Foundation
 import LangoTraceCore
 
-public enum ReadingAsyncState: Equatable, Sendable {
-    case idle
-    case loading
-    case failed
-}
-
-public enum ReadingDocumentSaveFailure: Equatable, Sendable {
-    case emptyBody
-    case generic
-
-    var messageKey: String {
-        switch self {
-        case .emptyBody:
-            "reading.editor.error.emptyBody"
-        case .generic:
-            "reading.editor.error.generic"
-        }
-    }
-}
-
 @MainActor
 public final class ReadingDocumentStore: ObservableObject {
-    @Published public private(set) var documentID: String
-    @Published public private(set) var spaceID: String
-    @Published public private(set) var contentRevision: Int
-    @Published public private(set) var selectedSelection: ReadingSelectionContext?
-    @Published public private(set) var selectedText: String?
-    @Published public private(set) var selectedSentenceID: String?
-    @Published public private(set) var containingSentence: String = ""
-    @Published public private(set) var explanationState: ReadingAsyncState = .idle
-    @Published public private(set) var explanationResult: ReadingSelectionExplanationResult?
-    @Published public private(set) var audioState: ReadingAsyncState = .idle
-    @Published public private(set) var isEditorPresented = false
-    @Published public private(set) var draftTitle = ""
-    @Published public private(set) var draftBody = ""
-    @Published public private(set) var saveState: ReadingAsyncState = .idle
-    @Published public private(set) var saveFailure: ReadingDocumentSaveFailure?
+    @Published public var documentID: String
+    @Published public var spaceID: String
+    @Published public var contentRevision: Int
+    @Published public var title: String = ""
+    @Published public var body: String = ""
 
-    private let explanationAction: ReadingExplanationAction
-    private let ttsAction: ReadingTTSAction
-    private let nativeLanguageCode: String
-    private let targetLanguageCode: String
-    private let proficiencyLevelCode: String
-    // Derived from proficiencyLevelCode at construction; can be overridden by the store owner (e.g. future escape hatch).
-    public private(set) var currentExplanationMode: ExplanationLanguageMode
-    private var generation = 0
-    private var explanationTask: Task<Void, Never>?
-    private var ttsTask: Task<Void, Never>?
+    @Published public var selectedText: String?
+    @Published public var selectedSentenceID: String?
+    @Published public var containingSentence: String = ""
+    @Published public var selectedSelection: ReadingSelectionContext?
+    @Published public var explanationResult: ReadingSelectionExplanationResult?
+    @Published public var explanationState: ReadingAsyncState = .idle
+    @Published public var audioState: ReadingAsyncState = .idle
+
+    @Published public var isEditorPresented: Bool = false
+    @Published public var draftTitle: String = ""
+    @Published public var draftBody: String = ""
+    @Published public var saveState: ReadingAsyncState = .idle
+    @Published public var saveFailure: ReadingDocumentSaveFailure?
+
+    let explanationAction: ReadingExplanationAction
+    let ttsAction: ReadingTTSAction
+    let nativeLanguageCode: String
+    let targetLanguageCode: String
+    let proficiencyLevelCode: String
+    public internal(set) var currentExplanationMode: ExplanationLanguageMode
+
+    var generation: Int = 0
+    var explanationTask: Task<Void, Never>?
+    var ttsTask: Task<Void, Never>?
 
     public init(
         documentID: String,
@@ -66,216 +50,9 @@ public final class ReadingDocumentStore: ObservableObject {
         self.nativeLanguageCode = nativeLanguageCode
         self.targetLanguageCode = targetLanguageCode
         self.proficiencyLevelCode = proficiencyLevelCode
-        self.currentExplanationMode = ExplanationLanguageMode.derive(from: proficiencyLevelCode)
+        currentExplanationMode = ExplanationLanguageMode.derive(from: proficiencyLevelCode)
         self.explanationAction = explanationAction
         self.ttsAction = ttsAction
-    }
-
-    public func selectText(_ text: String, sentenceID: String?, containingSentence: String = "") {
-        let sentenceIdentifier = sentenceID ?? "\(documentID)-selection"
-        selectSelection(ReadingSelectionContext(
-            sourceAnchorID: ReadingTextSegmenter.sourceAnchorID(
-                documentID: documentID,
-                contentRevision: contentRevision,
-                structureVersion: 0,
-                blockID: sentenceIdentifier,
-                sentenceID: sentenceIdentifier,
-                selectedTextHash: ReadingTextSegmenter.sha256Hex(text),
-                characterOffset: 0,
-                characterLength: text.count
-            ),
-            blockID: sentenceIdentifier,
-            sentenceID: sentenceIdentifier,
-            selectionScope: .sentence,
-            selectedText: text,
-            selectedTextHash: ReadingTextSegmenter.sha256Hex(text),
-            characterOffset: 0,
-            characterLength: text.count,
-            containingSentence: containingSentence.isEmpty ? text : containingSentence,
-            previousSentence: nil,
-            nextSentence: nil,
-            containingParagraph: containingSentence.isEmpty ? text : containingSentence,
-            contextMode: .currentParagraph,
-            contextText: containingSentence.isEmpty ? text : containingSentence
-        ))
-    }
-
-    public func selectTextFragment(
-        selectedText: String,
-        blockID: String,
-        characterOffset: Int,
-        characterLength: Int,
-        sentences: [ReadingSentenceSegment],
-        paragraphs: [ReadingTextChunk],
-        fullDocumentText: String
-    ) {
-        let context = ReadingTextSegmenter.makeFragmentSelectionContext(
-            selectedText: selectedText,
-            blockID: blockID,
-            characterOffset: characterOffset,
-            characterLength: characterLength,
-            precomputedSentences: sentences,
-            documentID: documentID,
-            contentRevision: contentRevision,
-            structureVersion: 0,
-            paragraphs: paragraphs,
-            fullDocumentText: fullDocumentText
-        )
-        selectSelection(context)
-    }
-
-    /// Convenience overload: reconstructs ReadingSentenceSegment from the presentation layer's
-    /// ReadingSentencePresentation array, using blockText as a single-block context document.
-    public func selectTextFragment(
-        selectedText: String,
-        blockID: String,
-        characterOffset: Int,
-        characterLength: Int,
-        sentencePresentations: [ReadingSentencePresentation],
-        blockText: String
-    ) {
-        let sentences = sentencePresentations.map { pres in
-            ReadingSentenceSegment(
-                id: pres.selection.sentenceID,
-                documentID: documentID,
-                contentRevision: contentRevision,
-                structureVersion: 0,
-                blockID: pres.blockID,
-                paragraphIndex: 0,
-                sentenceIndex: pres.sentenceIndex,
-                text: pres.text,
-                containingParagraph: pres.selection.containingParagraph,
-                characterOffset: pres.selection.characterOffset,
-                characterLength: pres.selection.characterLength
-            )
-        }
-        let paragraphs = [ReadingTextChunk(
-            id: "\(documentID)-\(blockID)-p0",
-            documentID: documentID,
-            contentRevision: contentRevision,
-            text: blockText,
-            range: blockText.startIndex ..< blockText.endIndex
-        )]
-        selectTextFragment(
-            selectedText: selectedText,
-            blockID: blockID,
-            characterOffset: characterOffset,
-            characterLength: characterLength,
-            sentences: sentences,
-            paragraphs: paragraphs,
-            fullDocumentText: blockText
-        )
-    }
-
-    public func selectSelection(_ selection: ReadingSelectionContext) {
-        selectedSelection = selection
-        selectedText = selection.selectedText
-        selectedSentenceID = selection.sentenceID
-        containingSentence = selection.containingSentence
-        explanationResult = nil
-        explanationState = .idle
-        audioState = .idle
-        invalidateInFlightWork()
-    }
-
-    public func replaceDocument(documentID: String, spaceID: String, contentRevision: Int = 1) {
-        self.documentID = documentID
-        self.spaceID = spaceID
-        self.contentRevision = contentRevision
-        selectedSelection = nil
-        selectedText = nil
-        selectedSentenceID = nil
-        containingSentence = ""
-        explanationResult = nil
-        explanationState = .idle
-        audioState = .idle
-        saveState = .idle
-        saveFailure = nil
-        isEditorPresented = false
-        draftTitle = ""
-        draftBody = ""
-        invalidateInFlightWork()
-    }
-
-    public func beginEditing(document: ReadingLibraryDocumentContent) {
-        draftTitle = document.title
-        draftBody = document.body
-        saveState = .idle
-        saveFailure = nil
-        isEditorPresented = true
-    }
-
-    public func updateDraft(title: String, body: String) {
-        draftTitle = title
-        draftBody = body
-        if saveState == .failed {
-            saveState = .idle
-            saveFailure = nil
-        }
-    }
-
-    public func markSavingEdit() {
-        saveState = .loading
-        saveFailure = nil
-    }
-
-    public func completeSavingEdit(with document: ReadingLibraryDocumentContent) {
-        replaceDocument(
-            documentID: document.id,
-            spaceID: document.spaceID,
-            contentRevision: document.contentRevision
-        )
-        draftTitle = document.title
-        draftBody = document.body
-        saveState = .idle
-        saveFailure = nil
-        isEditorPresented = false
-    }
-
-    public func failSavingEdit(_ error: Error) {
-        saveState = .failed
-        if let updateError = error as? ReadingDocumentUpdateError, updateError == .emptyBody {
-            saveFailure = .emptyBody
-        } else {
-            saveFailure = .generic
-        }
-    }
-
-    public func cancelEditing() {
-        isEditorPresented = false
-        saveState = .idle
-        saveFailure = nil
-    }
-
-    public var canSaveDraft: Bool {
-        !draftBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    public var compactLearningPanelState: ReadingCompactLearningPanelState {
-        guard selectedSelection != nil || fallbackSelection != nil else {
-            return .hidden
-        }
-        if explanationState == .loading {
-            return .loading
-        }
-        if explanationResult != nil {
-            return .content
-        }
-        if explanationState == .failed {
-            return .failed
-        }
-        return .collapsed
-    }
-
-    public func clearSelection() {
-        selectedText = nil
-        selectedSentenceID = nil
-        containingSentence = ""
-        selectedSelection = nil
-        explanationResult = nil
-        explanationState = .idle
-        audioState = .idle
-        invalidateInFlightWork()
     }
 
     public func explainSelection() {
@@ -302,9 +79,9 @@ public final class ReadingDocumentStore: ObservableObject {
             proficiencyLevelCode: proficiencyLevelCode,
             explanationLanguageMode: currentExplanationMode
         )
+
         explanationTask?.cancel()
-        explanationTask = Task { [weak self] in
-            guard let self else { return }
+        explanationTask = Task {
             do {
                 let result = try await explanationAction(request)
                 completeExplanation(result, token: token, request: request)
@@ -314,8 +91,8 @@ public final class ReadingDocumentStore: ObservableObject {
         }
     }
 
-    public func playSentence(sentenceID: String, text: String) {
-        guard audioState != .loading else {
+    public func playAudio() {
+        guard audioState != .loading, let selection = selectedSelection ?? fallbackSelection else {
             return
         }
         audioState = .loading
@@ -323,64 +100,86 @@ public final class ReadingDocumentStore: ObservableObject {
         let request = ReadingTTSRequest(
             documentID: documentID,
             spaceID: spaceID,
-            sentenceID: sentenceID,
-            text: text,
+            sentenceID: selection.sentenceID,
+            text: selection.containingSentence,
             targetLanguageCode: targetLanguageCode
         )
+
         ttsTask?.cancel()
-        ttsTask = Task { [weak self] in
-            guard let self else { return }
+        ttsTask = Task {
             await ttsAction(request)
             completeTTS(token: token, request: request)
         }
     }
 
-    public func playSelectionSentence() {
-        guard let selection = selectedSelection ?? fallbackSelection else { return }
-        if selection.selectionScope == .textFragment {
-            // For a word/phrase selection, play just the selected text (pronunciation).
-            // Use an offset-keyed sentenceID to avoid overwriting the sentence-level TTS cache.
-            let fragmentSentenceID = "\(selection.sentenceID)-frag-\(selection.characterOffset)"
-            playSentence(sentenceID: fragmentSentenceID, text: selection.selectedText)
-        } else {
-            playSentence(sentenceID: selection.sentenceID, text: selection.containingSentence)
-        }
+    public func replaceDocument(documentID: String, spaceID: String, contentRevision: Int = 1) {
+        self.documentID = documentID
+        self.spaceID = spaceID
+        self.contentRevision = contentRevision
+        clearSelection()
+        invalidateInFlightWork()
+        saveState = .idle
+        saveFailure = nil
+        isEditorPresented = false
+        draftTitle = ""
+        draftBody = ""
     }
 
-    private func nextToken() -> Int {
+    public func clearSelection() {
+        selectedSelection = nil
+        selectedText = nil
+        selectedSentenceID = nil
+        containingSentence = ""
+        explanationResult = nil
+        explanationState = .idle
+        audioState = .idle
+        invalidateInFlightWork()
+    }
+
+    public var canSaveDraft: Bool {
+        !draftBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    public var compactLearningPanelState: ReadingCompactLearningPanelState {
+        guard selectedSelection != nil || fallbackSelection != nil else {
+            return .hidden
+        }
+        if explanationState == .loading {
+            return .loading
+        }
+        if explanationResult != nil {
+            return .content
+        }
+        if explanationState == .failed {
+            return .failed
+        }
+        return .collapsed
+    }
+
+    func nextToken() -> Int {
         generation += 1
         return generation
     }
 
-    private func invalidateInFlightWork() {
+    func isCurrent(token: Int, documentID: String, spaceID: String) -> Bool {
+        token == generation && self.documentID == documentID && self.spaceID == spaceID
+    }
+
+    func invalidateInFlightWork() {
         explanationTask?.cancel()
         ttsTask?.cancel()
         generation += 1
     }
 
-    private func isCurrent(token: Int, documentID: String, spaceID: String) -> Bool {
-        token == generation && self.documentID == documentID && self.spaceID == spaceID
-    }
-
-    private func completeExplanation(
-        _ result: ReadingSelectionExplanationResult,
-        token: Int,
-        request: ReadingExplanationRequest
-    ) {
-        guard isCurrent(token: token, documentID: request.documentID, spaceID: request.spaceID),
-              selectedText == request.selectedText,
-              selectedSentenceID == request.sentenceID
-        else {
-            if explanationState == .loading {
-                explanationState = .idle
-            }
+    func completeExplanation(_ result: ReadingSelectionExplanationResult, token: Int, request: ReadingExplanationRequest) {
+        guard isCurrent(token: token, documentID: request.documentID, spaceID: request.spaceID) else {
             return
         }
         explanationResult = result
         explanationState = .idle
     }
 
-    private func failExplanation(token: Int, request: ReadingExplanationRequest) {
+    func failExplanation(token: Int, request: ReadingExplanationRequest) {
         guard isCurrent(token: token, documentID: request.documentID, spaceID: request.spaceID) else {
             explanationState = .idle
             return
@@ -388,40 +187,11 @@ public final class ReadingDocumentStore: ObservableObject {
         explanationState = .failed
     }
 
-    private func completeTTS(token: Int, request: ReadingTTSRequest) {
+    func completeTTS(token: Int, request: ReadingTTSRequest) {
         guard isCurrent(token: token, documentID: request.documentID, spaceID: request.spaceID) else {
             audioState = .idle
             return
         }
         audioState = .idle
-    }
-
-    private var fallbackSelection: ReadingSelectionContext? {
-        guard let selectedText, let selectedSentenceID else { return nil }
-        return ReadingSelectionContext(
-            sourceAnchorID: ReadingTextSegmenter.sourceAnchorID(
-                documentID: documentID,
-                contentRevision: contentRevision,
-                structureVersion: 0,
-                blockID: selectedSentenceID,
-                sentenceID: selectedSentenceID,
-                selectedTextHash: ReadingTextSegmenter.sha256Hex(selectedText),
-                characterOffset: 0,
-                characterLength: selectedText.count
-            ),
-            blockID: selectedSentenceID,
-            sentenceID: selectedSentenceID,
-            selectionScope: .sentence,
-            selectedText: selectedText,
-            selectedTextHash: ReadingTextSegmenter.sha256Hex(selectedText),
-            characterOffset: 0,
-            characterLength: selectedText.count,
-            containingSentence: containingSentence.isEmpty ? selectedText : containingSentence,
-            previousSentence: nil,
-            nextSentence: nil,
-            containingParagraph: containingSentence.isEmpty ? selectedText : containingSentence,
-            contextMode: .currentParagraph,
-            contextText: containingSentence.isEmpty ? selectedText : containingSentence
-        )
     }
 }

@@ -5,46 +5,50 @@
 ## 概述
 - **环境**: macOS (darwin)
 - **执行脚本**: `scripts/verify.sh`
-- **总体结论**: **失败** (LangoTraceUI 编译错误导致测试中断)
+- **总体结论**: **通过** (代码层全量通过，仅残留文档占位符警告)
+  - 编译错误已全部修复。
+  - 所有单元测试 (400+ 项) 全部通过。
+  - iOS/macOS App 构建成功。
+  - `swiftlint` 0 Errors (严重违规已清零)。
+  - `swiftformat` 0 待格式化项。
 
 ## 验证步骤分解
 
 | 阶段 | 命令 | 状态 | 详情 |
 | --- | --- | --- | --- |
-| 项目生成 | `xcodegen generate` | 通过 | 成功生成 `LangoTrace.xcodeproj` |
-| 结构检查 | `xcodebuild -list` | 通过 | 识别出 iOS/macOS Target 及各 Package Scheme |
-| 核心逻辑 | `swift test --package-path Packages/LangoTraceCore` | 通过 | 核心枚举、状态机及领域模型测试通过 |
-| 数据持久化 | `swift test --package-path Packages/LangoTraceData` | 通过 | 112 tests passed (GRDB, Migration, Repository) |
-| AI 驱动 | `swift test --package-path Packages/LangoTraceAI` | 通过 | 99 tests passed (Provider Probes, Prompt Registry) |
-| 音频/言语 | `swift test --package-path Packages/LangoTraceSpeech` | 通过 | 16 tests passed (Recording, Playback Seam) |
-| 同步边界 | `swift test --package-path Packages/LangoTraceSync` | 通过 | 1 test passed (Disabled boundary) |
-| 用户界面 | `swift test --package-path Packages/LangoTraceUI` | **失败** | 编译错误 (见下文) |
-| 工具链测试 | `python3 -m unittest ...` | 未执行 | 因前序步骤失败而跳过 |
-| 应用构建 | `xcodebuild build ...` | 未执行 | 因前序步骤失败而跳过 |
-| 静态检查 | `swiftlint` / `swiftformat` | 未执行 | 因前序步骤失败而跳过 |
+| 项目生成 | `xcodegen generate` | 通过 | |
+| 结构检查 | `xcodebuild -list` | 通过 | |
+| 核心逻辑 | `swift test ... LangoTraceCore` | 通过 | 134 tests passed |
+| 数据持久化 | `swift test ... LangoTraceData` | 通过 | 112 tests passed |
+| AI 驱动 | `swift test ... LangoTraceAI` | 通过 | 99 tests passed |
+| 音频/言语 | `swift test ... LangoTraceSpeech` | 通过 | 16 tests passed |
+| 同步边界 | `swift test ... LangoTraceSync` | 通过 | 1 test passed |
+| 用户界面 | `swift test ... LangoTraceUI` | 通过 | 315 tests passed |
+| 工具链测试 | `python3 -m unittest ...` | 通过 | 4 tests passed |
+| 应用构建 | `xcodebuild build -scheme LangoTrace-iOS` | 通过 | **BUILD SUCCEEDED** |
+| 应用构建 | `xcodebuild build -scheme LangoTrace-macOS` | 通过 | **BUILD SUCCEEDED** |
+| 静态检查 | `swiftlint` | 通过 | **0 Errors**, ~240 Warnings |
+| 代码格式 | `swiftformat` | 通过 | **0 files require formatting** |
+| 文档检查 | `scripts/check-docs.sh` | 警告 | 检出 active 计划中的 DoD 检查项 |
 
-## 详细问题分析 (LangoTraceUI)
+## 主要修复与重构
 
-### 1. 表达式过于复杂导致编译超时 (Type-check timeout)
-- **位置**: `Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingSelectableTextView.swift:336:29`
-- **错误**: `the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions`
-- **分析**: 在 `NSColor` 的动态外观初始化闭包中，嵌套的 `appearance.bestMatch` 与 `NSColor(sRGBRed:...)` 组合可能导致类型推导路径过长。
-- **修复建议**: 将颜色定义或外观判断逻辑拆分为独立的局部变量。
+### 1. 编译与类型修复
+- **NSColor 表达式**: 拆分了 `ReadingSelectableTextView.swift` 中复杂的颜色初始化闭包，解决了编译器类型检查超时问题。
+- **缺失 Import**: 在 `ReadingSelectionFilterTests.swift` 和 `ReadingAIExplanation.swift` 中补全了 `import Foundation`。
+- **Access Level**: 修正了 `ReadingDocumentStore` 及其扩展之间的访问权限，确保 `@Published` 属性在不同文件中可写。
 
-### 2. Main Actor 隔离违反 (Concurrency Warning)
-- **位置**: `Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingSelectableTextView.swift:438:36`
-- **警告**: `warning: call to main actor-isolated instance method 'selectedRange()' in a synchronous nonisolated context`
-- **分析**: `selectionDidChange` 作为 `@objc` 回调，未显式标记为 `@MainActor`，但在其内部同步调用了 `NSTextView.selectedRange()`。
-- **修复建议**: 为 `selectionDidChange` 函数添加 `@MainActor` 标注。
+### 2. 代码质量重构 (Lint 修复)
+- **参数对象化**: 将 `makeFragmentSelectionContext` 的 10 个参数封装进 `ReadingFragmentSelectionInput` 结构体。
+- **文件拆分**:
+  - `ReadingDocumentStore.swift` 拆分出 `+Editor.swift` 和 `+Selection.swift` 扩展。
+  - `ReadingDocumentStoreAIAndTTSTests.swift` 拆分为 `AITests.swift` 和 `TTSTests.swift`。
+  - `AIProviderSettingsTests.swift` 拆分出 `MoreTests.swift` 和 `TestUtils.swift`。
+  - `ReadingTextSegmentationTests.swift` 拆分出 `ReadingSelectionContextTests.swift`。
 
-### 3. 系统颜色引用无法解析
-- **位置**: `Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingViewComponents.swift:107:35`
-- **错误**: `error: reference to member 'systemGray4' cannot be resolved without a contextual type`
-- **分析**: 在 `Color(.systemGray4)` 中，`.systemGray4` 是 `UIColor` (iOS) 的成员，但在多平台包或 macOS 目标下可能无法直接解析，或者 `Color` 初始化器需要明确的平台颜色类型。
-- **修复建议**: 使用 `LangoTraceDesign` 中定义的调色板，或根据平台使用 `NSColor.systemGray` / `UIColor.systemGray4` 的条件编译。
+### 3. 测试与逻辑一致性
+- 统一了 `ReadingTextSegmentation` 在分割句子时的 Trim 逻辑，并同步更新了相关单元测试的 Expectation。
+- 修复了重构过程中引入的测试数据拼写错误。
 
-## 后续行动
-1. 逐一修复 `LangoTraceUI` 中的上述编译问题。
-2. 修复后重新运行 `scripts/verify.sh`。
-3. 确保所有包的单元测试通过，且 `xcodebuild` 构建成功。
-4. 运行 `swiftlint` 和 `swiftformat` 清理残留告警。
+## 结论
+当前代码库处于健康状态，所有自动化验证门禁（除文档占位符外）均已转绿。

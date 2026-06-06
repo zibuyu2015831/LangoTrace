@@ -50,13 +50,13 @@ struct ReadingDocumentStoreSelectionTests {
     }
 
     @Test("selectTextFragment builds selection context with textFragment scope")
-    func selectTextFragmentBuildsSelectionContextWithFragmentScope() {
+    func selectTextFragmentBuildsSelectionContextWithFragmentScope() throws {
         let store = Self.makeStore()
         let (blockText, sentences, paragraphs) = Self.makeBlockData()
         let selectedText = "clocktower"
-        let offset = blockText.distance(
+        let offset = try blockText.distance(
             from: blockText.startIndex,
-            to: blockText.range(of: selectedText)!.lowerBound
+            to: #require(blockText.range(of: selectedText)?.lowerBound)
         )
 
         store.selectTextFragment(
@@ -74,7 +74,7 @@ struct ReadingDocumentStoreSelectionTests {
     }
 
     @Test("selectTextFragment clears existing explanation result")
-    func selectTextFragmentClearsExistingExplanationResult() async {
+    func selectTextFragmentClearsExistingExplanationResult() async throws {
         let store = Self.makeStore()
         let (blockText, sentences, paragraphs) = Self.makeBlockData()
 
@@ -93,9 +93,9 @@ struct ReadingDocumentStoreSelectionTests {
         await Task.yield()
 
         let selectedText = "clocktower"
-        let offset = blockText.distance(
+        let offset = try blockText.distance(
             from: blockText.startIndex,
-            to: blockText.range(of: selectedText)!.lowerBound
+            to: #require(blockText.range(of: selectedText)?.lowerBound)
         )
         store.selectTextFragment(
             selectedText: selectedText,
@@ -112,13 +112,13 @@ struct ReadingDocumentStoreSelectionTests {
     }
 
     @Test("selectTextFragment updates selectedText and selectedSentenceID")
-    func selectTextFragmentUpdatesSelectedTextAndSentenceID() {
+    func selectTextFragmentUpdatesSelectedTextAndSentenceID() throws {
         let store = Self.makeStore()
         let (blockText, sentences, paragraphs) = Self.makeBlockData()
         let selectedText = "Leo"
-        let offset = blockText.distance(
+        let offset = try blockText.distance(
             from: blockText.startIndex,
-            to: blockText.range(of: selectedText)!.lowerBound
+            to: #require(blockText.range(of: selectedText)?.lowerBound)
         )
 
         store.selectTextFragment(
@@ -139,7 +139,7 @@ struct ReadingDocumentStoreSelectionTests {
     }
 
     @Test("selectTextFragment convenience overload reconstructs sentence data from presentation layer")
-    func selectTextFragmentConvenienceOverloadWorksFromPresentationLayer() {
+    func selectTextFragmentConvenienceOverloadWorksFromPresentationLayer() throws {
         let store = Self.makeStore()
         let (blockText, sentences, paragraphs) = Self.makeBlockData()
         let sentencePresentations = sentences.map { seg in
@@ -159,9 +159,9 @@ struct ReadingDocumentStoreSelectionTests {
             )
         }
         let selectedText = "clocktower"
-        let offset = blockText.distance(
+        let offset = try blockText.distance(
             from: blockText.startIndex,
-            to: blockText.range(of: selectedText)!.lowerBound
+            to: #require(blockText.range(of: selectedText)?.lowerBound)
         )
 
         store.selectTextFragment(

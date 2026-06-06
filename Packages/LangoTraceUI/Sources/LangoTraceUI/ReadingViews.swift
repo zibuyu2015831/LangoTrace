@@ -839,7 +839,6 @@ private struct ReadingDocumentCanvas: View {
         .frame(height: blockHeights[block.id, default: 44])
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-
 }
 
 private struct ReadingEmptyLibraryCard: View {

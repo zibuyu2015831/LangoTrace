@@ -5,13 +5,13 @@ extension ReadingSourceFormat {
     /// Markdown, EPUB and PDF retain their standard product names unchanged.
     var displayName: String {
         switch self {
-        case .pastedText:  return localizedString("reading.source.pastedText")
-        case .plainText:   return localizedString("reading.source.plainText")
-        case .markdown:    return "Markdown"
-        case .epub:        return "EPUB"
-        case .pdf:         return "PDF"
-        case .htmlClip:    return localizedString("reading.source.htmlClip")
-        case .webArticle:  return localizedString("reading.source.webArticle")
+        case .pastedText: localizedString("reading.source.pastedText")
+        case .plainText: localizedString("reading.source.plainText")
+        case .markdown: "Markdown"
+        case .epub: "EPUB"
+        case .pdf: "PDF"
+        case .htmlClip: localizedString("reading.source.htmlClip")
+        case .webArticle: localizedString("reading.source.webArticle")
         }
     }
 }

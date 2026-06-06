@@ -1,10 +1,9 @@
-@testable import LangoTraceUI
 import LangoTraceCore
+@testable import LangoTraceUI
 import Testing
 
 @Suite("ReadingSourceFormat displayName")
 struct ReadingSourceFormatDisplayTests {
-
     @Test("All cases return non-rawValue display names")
     func allCasesReturnReadableName() {
         let cases: [ReadingSourceFormat] = [

@@ -1,3 +1,4 @@
+import Foundation
 @testable import LangoTraceUI
 import Testing
 
@@ -29,7 +30,7 @@ struct CharacterRangeConversionTests {
     @Test("characterRange converts basic ASCII NSRange correctly")
     func characterRangeConvertsASCII() {
         let text = "Hello world"
-        let nsRange = NSRange(location: 6, length: 5)  // "world"
+        let nsRange = NSRange(location: 6, length: 5) // "world"
         let result = characterRange(from: nsRange, in: text)
         #expect(result?.offset == 6)
         #expect(result?.length == 5)
@@ -38,7 +39,7 @@ struct CharacterRangeConversionTests {
     @Test("characterRange handles CJK text where each character is one code unit")
     func characterRangeHandlesCJK() {
         let text = "今日は"
-        let nsRange = NSRange(location: 1, length: 2)  // "日は"
+        let nsRange = NSRange(location: 1, length: 2) // "日は"
         let result = characterRange(from: nsRange, in: text)
         #expect(result?.offset == 1)
         #expect(result?.length == 2)
@@ -48,7 +49,7 @@ struct CharacterRangeConversionTests {
     func characterRangeHandlesEmoji() {
         // "Hi 👋 there": "Hi " = 3 UTF-16 units, "👋" = 2 UTF-16 units
         let text = "Hi \u{1F44B} there"
-        let nsRange = NSRange(location: 3, length: 2)  // the emoji "👋"
+        let nsRange = NSRange(location: 3, length: 2) // the emoji "👋"
         let result = characterRange(from: nsRange, in: text)
         // Swift String counts "👋" as 1 character, at Swift offset 3
         #expect(result?.offset == 3)

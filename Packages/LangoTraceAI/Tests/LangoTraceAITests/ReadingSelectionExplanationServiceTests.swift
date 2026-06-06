@@ -344,7 +344,7 @@ private func explanationJSONV2(grammaticalNote: String? = "Noun, countable.") ->
     """
 }
 
-// Keep backward-compatible alias for existing tests
+/// Keep backward-compatible alias for existing tests
 private func explanationJSON(grammaticalNote: String? = "Noun, countable.") -> String {
     explanationJSONV3(grammaticalNote: grammaticalNote)
 }

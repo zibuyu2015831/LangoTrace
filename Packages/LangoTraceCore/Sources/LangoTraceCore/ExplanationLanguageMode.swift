@@ -6,13 +6,13 @@ public enum ExplanationLanguageMode: String, CaseIterable, Codable, Sendable {
     public static func derive(from levelCode: String) -> ExplanationLanguageMode {
         switch levelCode {
         case LanguageLevel.a1.rawValue, LanguageLevel.a2.rawValue:
-            return .sourceLanguage
+            .sourceLanguage
         case LanguageLevel.b1.rawValue, LanguageLevel.b2.rawValue:
-            return .bilingualBridge
+            .bilingualBridge
         case LanguageLevel.c1.rawValue, LanguageLevel.c2.rawValue:
-            return .targetImmersion
+            .targetImmersion
         default:
-            return .bilingualBridge
+            .bilingualBridge
         }
     }
 }
