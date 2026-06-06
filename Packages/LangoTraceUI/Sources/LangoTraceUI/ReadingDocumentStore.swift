@@ -171,6 +171,7 @@ public final class ReadingDocumentStore: ObservableObject {
         containingSentence = selection.containingSentence
         explanationResult = nil
         explanationState = .idle
+        audioState = .idle
         invalidateInFlightWork()
     }
 

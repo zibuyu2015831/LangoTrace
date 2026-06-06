@@ -390,6 +390,59 @@ struct ReadingLibraryMetadataEditors: View {
     }
 }
 
+private struct ReadingActionPill: View {
+    let titleKey: String
+    let systemImage: String
+    let isPrimary: Bool
+    var isLoading: Bool = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            pillContent
+                .foregroundStyle(foregroundColor)
+                .font(.callout.weight(.semibold))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .frame(minHeight: 44)
+                .background(backgroundColor)
+                .clipShape(Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(
+                            isPrimary ? Color.clear : LangoTraceDesign.ColorToken.borderSubtle,
+                            lineWidth: 1
+                        )
+                }
+        }
+        .buttonStyle(.plain)
+        .disabled(isLoading)
+    }
+
+    @ViewBuilder
+    private var pillContent: some View {
+        if isLoading {
+            HStack(spacing: 6) {
+                ProgressView()
+                    .controlSize(.small)
+                    .tint(foregroundColor)
+                Text(localizedString(titleKey))
+            }
+        } else {
+            Label(localizedString(titleKey), systemImage: systemImage)
+        }
+    }
+
+    private var foregroundColor: Color {
+        if isPrimary { return LangoTraceDesign.ColorToken.primaryActionForeground }
+        return LangoTraceDesign.ColorToken.accent
+    }
+
+    private var backgroundColor: Color {
+        isPrimary ? LangoTraceDesign.ColorToken.primaryActionFill : LangoTraceDesign.ColorToken.surfaceAccentMuted
+    }
+}
+
 struct ReadingInspectorPane: View {
     let selection: ReadingSelectionContext?
     let explanationResult: ReadingSelectionExplanationResult?
@@ -433,36 +486,21 @@ struct ReadingInspectorPane: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 HStack(spacing: 10) {
-                    Button(action: onExplain) {
-                        Group {
-                            if explanationState == .loading {
-                                ProgressView()
-                                    .controlSize(.small)
-                            } else {
-                                Label(localizedString("reading.action.explain"), systemImage: "sparkles")
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(explanationState == .loading)
-
-                    Button(action: onListen) {
-                        Group {
-                            if audioState == .loading {
-                                ProgressView()
-                                    .controlSize(.small)
-                            } else if audioState == .failed {
-                                Label(localizedString("reading.audio.failed"), systemImage: "speaker.slash")
-                                    .foregroundStyle(LangoTraceDesign.ColorToken.warning)
-                            } else {
-                                Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(audioState == .loading)
+                    ReadingActionPill(
+                        titleKey: "reading.action.explain",
+                        systemImage: "sparkles",
+                        isPrimary: true,
+                        isLoading: explanationState == .loading,
+                        action: onExplain
+                    )
+                    ReadingActionPill(
+                        titleKey: "common.listen",
+                        systemImage: "speaker.wave.2",
+                        isPrimary: false,
+                        isLoading: audioState == .loading,
+                        action: onListen
+                    )
+                    Spacer(minLength: 0)
                 }
 
                 ReadingExplanationResultView(
@@ -528,58 +566,45 @@ struct ReadingCompactLearningPanel: View {
             .padding(.horizontal, 20)
 
             HStack(spacing: 10) {
-                Button(action: onExplain) {
-                    Group {
-                        if explanationState == .loading {
-                            ProgressView()
-                                .controlSize(.small)
-                                .tint(.white)
-                        } else {
-                            Label(localizedString("reading.action.explain"), systemImage: "sparkles")
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.regular)
-                .disabled(explanationState == .loading)
-
-                Button(action: onListen) {
-                    Group {
-                        if audioState == .loading {
-                            ProgressView()
-                                .controlSize(.small)
-                        } else if audioState == .failed {
-                            Label(localizedString("reading.audio.failed"), systemImage: "speaker.slash")
-                                .foregroundStyle(LangoTraceDesign.ColorToken.warning)
-                        } else {
-                            Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-                .disabled(audioState == .loading)
+                ReadingActionPill(
+                    titleKey: "reading.action.explain",
+                    systemImage: "sparkles",
+                    isPrimary: true,
+                    isLoading: explanationState == .loading,
+                    action: onExplain
+                )
+                ReadingActionPill(
+                    titleKey: "common.listen",
+                    systemImage: "speaker.wave.2",
+                    isPrimary: false,
+                    isLoading: audioState == .loading,
+                    action: onListen
+                )
+                Spacer(minLength: 0)
             }
             .padding(.horizontal, 20)
-            .padding(.top, 16)
+            .padding(.top, 14)
 
             ReadingExplanationResultView(
                 result: panelState == .content ? explanationResult : nil,
-                state: panelState == .loading ? .loading : (panelState == .failed ? .failed : .idle)
+                state: panelState == .loading ? .loading : (panelState == .failed ? .failed : .idle),
+                cardBackground: LangoTraceDesign.ColorToken.surfaceMuted
             )
             .padding(.horizontal, 20)
             .padding(.top, 12)
 
             Spacer().frame(height: 24)
         }
-        .background(.ultraThinMaterial)
+        .background {
+            LangoTraceDesign.ColorToken.surfacePanel
+                .ignoresSafeArea(edges: .bottom)
+        }
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(LangoTraceDesign.ColorToken.borderSubtle)
                 .frame(height: 0.5)
         }
+        .shadow(color: LangoTraceDesign.ColorToken.shadow, radius: 8, x: 0, y: -3)
     }
 }
 
@@ -588,6 +613,7 @@ struct ReadingCompactLearningPanel: View {
 struct ReadingExplanationResultView: View {
     let result: ReadingSelectionExplanationResult?
     let state: ReadingAsyncState
+    var cardBackground: Color = LangoTraceDesign.ColorToken.surfacePanel
 
     var body: some View {
         Group {
@@ -607,7 +633,7 @@ struct ReadingExplanationResultView: View {
             } else if let result {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(result.shortExplanation)
-                        .font(.callout)
+                        .font(.body)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
 
@@ -649,7 +675,7 @@ struct ReadingExplanationResultView: View {
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(LangoTraceDesign.ColorToken.surfacePanel)
+                .background(cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
         }
@@ -666,7 +692,7 @@ private struct ReadingResultRow: View {
             Text(label)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .frame(minWidth: 36, alignment: .leading)
+                .frame(minWidth: 48, alignment: .leading)
             Text(value)
                 .font(.callout)
                 .italic(isItalic)

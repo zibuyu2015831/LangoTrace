@@ -10,9 +10,9 @@ public struct ReadingSelectionExplanationRenderedPrompt: Equatable, Sendable {
 }
 
 public enum ReadingSelectionExplanationPromptRegistry {
-    public static let promptID = "builtin.reading.selection_explanation.v1"
-    public static let promptVersion = "1"
-    public static let schemaVersion = "reading_selection_explanation.v1"
+    public static let promptID = "builtin.reading.selection_explanation.v2"
+    public static let promptVersion = "2"
+    public static let schemaVersion = "reading_selection_explanation.v2"
 
     public static func prompt(input: ReadingSelectionExplanationInput) -> ReadingSelectionExplanationRenderedPrompt {
         ReadingSelectionExplanationRenderedPrompt(
@@ -46,6 +46,7 @@ public enum ReadingSelectionExplanationPromptRegistry {
             - meaning_in_native_language
             - usage_note
             - example_sentence
+            - grammatical_note (null if not applicable)
             """
         )
     }
@@ -211,6 +212,7 @@ private extension ReadingSelectionExplanationService {
                 "meaning_in_native_language",
                 "usage_note",
                 "example_sentence",
+                "grammatical_note",
             ],
             "properties": [
                 "schema_version": [
@@ -222,6 +224,7 @@ private extension ReadingSelectionExplanationService {
                 "meaning_in_native_language": ["type": "string"],
                 "usage_note": ["type": "string"],
                 "example_sentence": ["type": "string"],
+                "grammatical_note": ["type": ["string", "null"]],
             ],
         ]
     }
@@ -274,13 +277,15 @@ private extension ReadingSelectionExplanationService {
         else {
             throw ReadingSelectionExplanationServiceError(category: .invalidStructuredResponse)
         }
+        let grammaticalNote = object["grammatical_note"] as? String
         return ReadingSelectionExplanationResult(
             schemaVersion: schemaVersion,
             selection: selection,
             shortExplanation: shortExplanation,
             meaningInNativeLanguage: meaning,
             usageNote: usage,
-            exampleSentence: example
+            exampleSentence: example,
+            grammaticalNote: grammaticalNote
         )
     }
 

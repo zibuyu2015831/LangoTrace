@@ -4,9 +4,9 @@
 
 ## 1. 基本信息
 
-- Prompt id：`builtin.reading.selection_explanation.v1`
-- Prompt version：`1`
-- Schema version：`reading_selection_explanation.v1`
+- Prompt id：`builtin.reading.selection_explanation.v2`
+- Prompt version：`2`
+- Schema version：`reading_selection_explanation.v2`
 - 所属功能：阅读资料选区解释。
 - 调用模块：`ReadingSelectionExplanationPromptRegistry`、`ReadingSelectionExplanationService`
 - 代码位置：`Packages/LangoTraceAI/Sources/LangoTraceAI/ReadingSelectionExplanationService.swift`
@@ -35,16 +35,17 @@
 
 ```json
 {
-  "schema_version": "reading_selection_explanation.v1",
+  "schema_version": "reading_selection_explanation.v2",
   "selection": "ticket",
   "short_explanation": "A travel noun in this sentence.",
   "meaning_in_native_language": "票",
   "usage_note": "Used for trains, events, and travel.",
-  "example_sentence": "I bought a ticket online."
+  "example_sentence": "I bought a ticket online.",
+  "grammatical_note": "Noun, countable."
 }
 ```
 
-Parser 必须拒绝缺字段、schema version 不匹配、非 JSON object 和不受支持 Provider adapter。
+`grammatical_note` 为可选字段（模型可返回 `null`）；其余字段均为必填。Parser 必须拒绝缺必填字段、schema version 不匹配、非 JSON object 和不受支持 Provider adapter。
 
 ## 4. English Prompt
 
@@ -58,7 +59,7 @@ User template:
 
 ```text
 task: explain_reading_selection
-schema_version: reading_selection_explanation.v1
+schema_version: reading_selection_explanation.v2
 native_language_code: {native_language_code}
 target_language_code: {target_language_code}
 proficiency_level_code: {proficiency_level_code}
@@ -73,6 +74,7 @@ Return fields:
 - meaning_in_native_language
 - usage_note
 - example_sentence
+- grammatical_note (null if not applicable)
 ```
 
 ## 5. 中文审阅版本
@@ -87,7 +89,7 @@ User template：
 
 ```text
 任务：解释阅读选区
-schema_version: reading_selection_explanation.v1
+schema_version: reading_selection_explanation.v2
 母语代码：{native_language_code}
 目标语言代码：{target_language_code}
 学习等级代码：{proficiency_level_code}
@@ -102,6 +104,7 @@ schema_version: reading_selection_explanation.v1
 - meaning_in_native_language
 - usage_note
 - example_sentence
+- grammatical_note（不适用时返回 null）
 ```
 
 中文版本用于审阅隐私和业务语义，实际代码发送英文版本。
@@ -109,3 +112,4 @@ schema_version: reading_selection_explanation.v1
 ## 6. 版本记录
 
 - 2026-06-01：新增 v1。原因：Reading vertical slice 接入真实选区解释请求，需要登记完整 Prompt、输入变量、结构化输出和隐私边界。
+- 2026-06-06：升级 v2。新增 `grammatical_note` 可选字段（nullable），schema 和 prompt 同步更新，以补全 UI 层 `ReadingExplanationResultView` 已有的语法行渲染路径。

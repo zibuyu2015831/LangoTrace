@@ -17,14 +17,15 @@ struct ReadingSelectionExplanationServiceTests {
             )
         )
 
-        #expect(prompt.id == "builtin.reading.selection_explanation.v1")
-        #expect(prompt.version == "1")
+        #expect(prompt.id == "builtin.reading.selection_explanation.v2")
+        #expect(prompt.version == "2")
         #expect(prompt.user.contains("selected_text: 図書館"))
         #expect(prompt.user.contains("selection_scope: text_fragment"))
         #expect(prompt.user.contains("context_mode: current_paragraph"))
         #expect(prompt.user.contains("previous_sentence: 朝ごはんを食べました。"))
         #expect(prompt.user.contains("next_sentence: 静かな午後でした。"))
         #expect(prompt.user.contains("containing_paragraph: 朝ごはんを食べました。今日は图书馆で読みます。静かな午後でした。"))
+        #expect(prompt.user.contains("grammatical_note"))
     }
 
     @Test("service builds chat request with selection limited payload and parses response")
@@ -57,6 +58,36 @@ struct ReadingSelectionExplanationServiceTests {
         #expect(requests[0].httpBodyText?.contains("context_mode: full_document") == true)
         #expect(result.selection == "ticket")
         #expect(result.shortExplanation == "A travel noun in this sentence.")
+        #expect(result.grammaticalNote == "Noun, countable.")
+    }
+
+    @Test("service parses grammatical_note when present and returns nil when absent")
+    func servicesParsesGrammaticalNote() async throws {
+        let withNote = try CapturingReadingExplanationHTTPClient(responses: [
+            .success(AIProviderHTTPResponse(statusCode: 200, body: chatResponse(explanationJSON(grammaticalNote: "Noun, countable.")))),
+        ])
+        let withNull = try CapturingReadingExplanationHTTPClient(responses: [
+            .success(AIProviderHTTPResponse(statusCode: 200, body: chatResponse(explanationJSON(grammaticalNote: nil)))),
+        ])
+        let service = ReadingSelectionExplanationService(httpClient: withNote)
+        let serviceNull = ReadingSelectionExplanationService(httpClient: withNull)
+        let input = sampleInput(
+            selection: "ticket",
+            containingSentence: "I bought a ticket.",
+            contextText: "I bought a ticket.",
+            selectionScope: .textFragment,
+            contextMode: .fullDocument
+        )
+
+        let resultWithNote = try await service.explain(
+            ReadingSelectionExplanationServiceRequest(endpoint: endpoint(adapterKind: .openAICompatibleChat), plaintextSecret: nil, input: input)
+        )
+        let resultWithNull = try await serviceNull.explain(
+            ReadingSelectionExplanationServiceRequest(endpoint: endpoint(adapterKind: .openAICompatibleChat), plaintextSecret: nil, input: input)
+        )
+
+        #expect(resultWithNote.grammaticalNote == "Noun, countable.")
+        #expect(resultWithNull.grammaticalNote == nil)
     }
 
     @Test("service maps cancellation without parsing or returning stale content")
@@ -148,15 +179,17 @@ private func sampleInput(
     )
 }
 
-private func explanationJSON() -> String {
-    """
+private func explanationJSON(grammaticalNote: String? = "Noun, countable.") -> String {
+    let note = grammaticalNote.map { "\"\($0)\"" } ?? "null"
+    return """
     {
-      "schema_version": "reading_selection_explanation.v1",
+      "schema_version": "reading_selection_explanation.v2",
       "selection": "ticket",
       "short_explanation": "A travel noun in this sentence.",
       "meaning_in_native_language": "票",
       "usage_note": "Used for trains, events, and travel.",
-      "example_sentence": "I bought a ticket online."
+      "example_sentence": "I bought a ticket online.",
+      "grammatical_note": \(note)
     }
     """
 }

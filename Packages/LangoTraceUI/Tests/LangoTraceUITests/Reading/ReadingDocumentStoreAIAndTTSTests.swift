@@ -258,6 +258,86 @@ struct ReadingDocumentStoreAIAndTTSTests {
         #expect(store.explanationState == .idle)
     }
 
+    @Test("playSelectionSentence plays selected text for fragment scope with offset-keyed sentence ID")
+    func playSelectionSentencePlaysFragmentText() async {
+        let tts = CapturingReadingTTSAction()
+        let store = ReadingDocumentStore(
+            documentID: "doc-1",
+            spaceID: "space-1",
+            explanationAction: { _ in .sample(selection: "word") },
+            ttsAction: tts.play
+        )
+
+        store.selectSelection(.sample(
+            selectedText: "ticket",
+            selectionScope: .textFragment,
+            sentenceID: "sentence-1",
+            containingSentence: "I bought a ticket.",
+            context: .init(
+                previousSentence: nil,
+                nextSentence: nil,
+                containingParagraph: "I bought a ticket.",
+                contextMode: .currentParagraph,
+                contextText: "I bought a ticket."
+            )
+        ))
+        store.playSelectionSentence()
+        await tts.waitForRequestCount(1)
+
+        let request = await tts.requests.first
+        #expect(request?.text == "ticket")
+        #expect(request?.sentenceID == "sentence-1-frag-3")
+    }
+
+    @Test("playSelectionSentence plays containing sentence for sentence scope with original sentence ID")
+    func playSelectionSentencePlaysSentenceText() async {
+        let tts = CapturingReadingTTSAction()
+        let store = ReadingDocumentStore(
+            documentID: "doc-1",
+            spaceID: "space-1",
+            explanationAction: { _ in .sample(selection: "word") },
+            ttsAction: tts.play
+        )
+
+        store.selectSelection(.sample(
+            selectedText: "The old clocktower had been silent.",
+            selectionScope: .sentence,
+            sentenceID: "sentence-2",
+            containingSentence: "The old clocktower had been silent.",
+            context: .init(
+                previousSentence: nil,
+                nextSentence: nil,
+                containingParagraph: "The old clocktower had been silent.",
+                contextMode: .currentParagraph,
+                contextText: "The old clocktower had been silent."
+            )
+        ))
+        store.playSelectionSentence()
+        await tts.waitForRequestCount(1)
+
+        let request = await tts.requests.first
+        #expect(request?.text == "The old clocktower had been silent.")
+        #expect(request?.sentenceID == "sentence-2")
+    }
+
+    @Test("selectSelection resets audioState immediately")
+    func selectSelectionResetsAudioState() {
+        let store = ReadingDocumentStore(
+            documentID: "doc-1",
+            spaceID: "space-1",
+            explanationAction: { _ in .sample(selection: "word") },
+            ttsAction: { _ in }
+        )
+
+        store.selectText("first", sentenceID: "s1")
+        store.playSentence(sentenceID: "s1", text: "First")
+        #expect(store.audioState == .loading)
+
+        store.selectText("second", sentenceID: "s2")
+
+        #expect(store.audioState == .idle)
+    }
+
     @Test("TTS request carries target language metadata")
     func ttsRequestCarriesTargetLanguageMetadata() async {
         let tts = CapturingReadingTTSAction()

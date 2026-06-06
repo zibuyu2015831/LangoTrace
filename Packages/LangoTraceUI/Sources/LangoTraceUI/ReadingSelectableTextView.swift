@@ -97,7 +97,11 @@ struct ReadingSelectableTextView: UIViewRepresentable {
         storage.removeAttribute(.backgroundColor, range: fullRange)
 
         if let range = committedHighlightRange {
-            let highlight = UIColor.systemYellow.withAlphaComponent(0.35)
+            let highlight = UIColor { traits in
+                traits.userInterfaceStyle == .dark
+                    ? UIColor(red: 0x72 / 255.0, green: 0xD2 / 255.0, blue: 0xBF / 255.0, alpha: 0.22)
+                    : UIColor(red: 0x12 / 255.0, green: 0x6B / 255.0, blue: 0x5D / 255.0, alpha: 0.15)
+            }
             storage.addAttribute(.backgroundColor, value: highlight, range: range)
         }
     }
@@ -289,6 +293,14 @@ struct ReadingSelectableTextView: NSViewRepresentable {
         context.coordinator.blockText = blockText
 
         applyCommittedHighlight(to: nsView)
+
+        if let layoutManager = nsView.layoutManager, let textContainer = nsView.textContainer {
+            layoutManager.ensureLayout(for: textContainer)
+            let usedHeight = layoutManager.usedRect(for: textContainer).height
+            if abs(usedHeight - height) > 0.5 {
+                DispatchQueue.main.async { self.height = usedHeight }
+            }
+        }
     }
 
     private func applyCommittedHighlight(to textView: NSTextView) {
@@ -297,11 +309,12 @@ struct ReadingSelectableTextView: NSViewRepresentable {
         storage.removeAttribute(.backgroundColor, range: fullRange)
 
         if let range = committedHighlightRange {
-            storage.addAttribute(
-                .backgroundColor,
-                value: NSColor.systemYellow.withAlphaComponent(0.35),
-                range: range
-            )
+            let highlight = NSColor(name: nil) { appearance in
+                appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                    ? NSColor(sRGBRed: 0x72 / 255.0, green: 0xD2 / 255.0, blue: 0xBF / 255.0, alpha: 0.22)
+                    : NSColor(sRGBRed: 0x12 / 255.0, green: 0x6B / 255.0, blue: 0x5D / 255.0, alpha: 0.15)
+            }
+            storage.addAttribute(.backgroundColor, value: highlight, range: range)
         }
     }
 
