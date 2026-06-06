@@ -277,6 +277,44 @@ private struct AIProviderProbeCapabilityList: View {
     }
 }
 
+/// Transient play confirmation button: briefly switches to speaker.wave.3 (louder icon)
+/// on tap to confirm audio was triggered, then reverts. Follows §4.19 pattern adapted
+/// for play actions where audio playback itself is the primary feedback but has latency.
+private struct AIProviderSpeechPreviewButton: View {
+    let resource: TTSAudioPreviewResource
+    var onPlay: @MainActor (TTSAudioPreviewResource) -> Void
+
+    @State private var isTriggered = false
+
+    var body: some View {
+        Button {
+            guard !isTriggered else { return }
+            onPlay(resource)
+            withAnimation(.snappy) { isTriggered = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                withAnimation(.snappy) { isTriggered = false }
+            }
+        } label: {
+            Image(systemName: isTriggered ? "speaker.wave.3" : "speaker.wave.2")
+                .font(.callout.weight(.semibold))
+                .foregroundStyle(
+                    isTriggered
+                        ? LangoTraceDesign.ColorToken.accent
+                        : LangoTraceDesign.ColorToken.textSecondary
+                )
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+                .contentTransition(.symbolEffect(.replace))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(localizedText(
+            isTriggered
+                ? "aiProviderSettings.probeCapability.speechPreviewPlaying"
+                : "aiProviderSettings.probeCapability.speechPreview"
+        ))
+    }
+}
+
 private struct AIProviderProbeCapabilityRow: View {
     let capability: AIProviderProbeCapability
     let result: AIProviderProbeCapabilityResult?
@@ -297,14 +335,10 @@ private struct AIProviderProbeCapabilityRow: View {
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
             if let previewResource = speechPreviewResource {
-                Button {
-                    onPlaySpeechPreview(previewResource)
-                } label: {
-                    Image(systemName: "speaker.wave.2")
-                        .frame(width: 32, height: 32)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(localizedText("aiProviderSettings.probeCapability.speechPreview"))
+                AIProviderSpeechPreviewButton(
+                    resource: previewResource,
+                    onPlay: onPlaySpeechPreview
+                )
             }
         }
         .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)

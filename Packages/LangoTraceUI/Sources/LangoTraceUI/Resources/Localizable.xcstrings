@@ -5241,6 +5241,23 @@
         }
       }
     },
+    "reading.document.edit": {
+      "comment": "Accessibility label for the edit reading document icon button.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Document"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑文档"
+          }
+        }
+      }
+    },
     "reading.import.title.placeholder": {
       "comment": "Placeholder for pasted reading document title.",
       "localizations": {
@@ -15212,7 +15229,7 @@
       }
     },
     "aiProviderSettings.probeCapability.speechPreview": {
-      "comment": "Accessibility label for the speech synthesis preview playback button.",
+      "comment": "Accessibility label for the speech synthesis preview playback button (default state).",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -15224,6 +15241,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "试听测试语音"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.probeCapability.speechPreviewPlaying": {
+      "comment": "Accessibility label for the speech synthesis preview button when audio was just triggered.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playing test voice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在播放测试语音"
           }
         }
       }

@@ -429,7 +429,7 @@ struct ReadingDocumentDetailView: View {
                     } label: {
                         Image(systemName: "square.and.pencil")
                     }
-                    .accessibilityLabel(localizedString("settings.languageSpace.management.edit"))
+                    .accessibilityLabel(localizedString("reading.document.edit"))
                 }
             }
         }
@@ -699,7 +699,7 @@ private struct ReadingDocumentHeader: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 HStack(spacing: 8) {
-                    Text(document.sourceFormat.rawValue)
+                    Text(document.sourceFormat.displayName)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                         .padding(.horizontal, 8)
@@ -711,7 +711,7 @@ private struct ReadingDocumentHeader: View {
                             Image(systemName: "square.and.pencil")
                         }
                         .buttonStyle(.bordered)
-                        .accessibilityLabel(localizedString("settings.languageSpace.management.edit"))
+                        .accessibilityLabel(localizedString("reading.document.edit"))
                     }
                 }
             }
