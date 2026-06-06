@@ -249,6 +249,107 @@ public enum ReadingTextSegmenter {
         return segments
     }
 
+    public static func makeFragmentSelectionContext(
+        selectedText: String,
+        blockID: String,
+        characterOffset: Int,
+        characterLength: Int,
+        precomputedSentences: [ReadingSentenceSegment],
+        documentID: String,
+        contentRevision: Int,
+        structureVersion: Int,
+        paragraphs: [ReadingTextChunk],
+        fullDocumentText: String
+    ) -> ReadingSelectionContext {
+        // Find the sentence that contains this character offset
+        var containingSeg = precomputedSentences.first(where: {
+            $0.characterOffset <= characterOffset &&
+                characterOffset < $0.characterOffset + $0.characterLength
+        })
+
+        // If the offset falls in whitespace between sentences, try the midpoint
+        if containingSeg == nil {
+            let midpoint = characterOffset + characterLength / 2
+            containingSeg = precomputedSentences.first(where: {
+                $0.characterOffset <= midpoint &&
+                    midpoint < $0.characterOffset + $0.characterLength
+            })
+        }
+
+        let sentenceID: String
+        let containingSentence: String
+        let previousSentence: String?
+        let nextSentence: String?
+        let containingParagraph: String
+
+        if let seg = containingSeg {
+            sentenceID = seg.id
+            containingSentence = seg.text
+            let idx = seg.sentenceIndex
+            previousSentence = idx > 0 ? precomputedSentences[idx - 1].text : nil
+            nextSentence = idx + 1 < precomputedSentences.count ? precomputedSentences[idx + 1].text : nil
+            containingParagraph = seg.containingParagraph
+        } else {
+            // Fallback: use the block's full text as containing sentence
+            let trimmed = fullDocumentText.trimmingCharacters(in: .whitespacesAndNewlines)
+            sentenceID = "\(blockID)-fragment"
+            containingSentence = trimmed
+            previousSentence = nil
+            nextSentence = nil
+            containingParagraph = trimmed
+        }
+
+        let allParagraphs = paragraphs.map(\.text).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        let paragraphIndex = precomputedSentences.first?.paragraphIndex ?? 0
+        let previousParagraph = paragraphIndex > 0 ? allParagraphs[paragraphIndex - 1] : nil
+        let nextParagraph = paragraphIndex + 1 < allParagraphs.count ? allParagraphs[paragraphIndex + 1] : nil
+
+        let normalizedDocument = fullDocumentText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let contextMode: ReadingContextMode
+        let contextText: String
+        if normalizedDocument.count <= 1200 {
+            contextMode = .fullDocument
+            contextText = normalizedDocument
+        } else {
+            let adjacentParts = [previousParagraph, containingParagraph, nextParagraph].compactMap(\.self)
+            let adjacentParagraphText = adjacentParts.joined(separator: "\n\n")
+            if adjacentParagraphText.count <= 3000 {
+                contextMode = .adjacentParagraphs
+                contextText = adjacentParagraphText
+            } else {
+                contextMode = .currentParagraph
+                contextText = containingParagraph
+            }
+        }
+
+        let selectedTextHash = sha256Hex(selectedText)
+        return ReadingSelectionContext(
+            sourceAnchorID: sourceAnchorID(
+                documentID: documentID,
+                contentRevision: contentRevision,
+                structureVersion: structureVersion,
+                blockID: blockID,
+                sentenceID: sentenceID,
+                selectedTextHash: selectedTextHash,
+                characterOffset: characterOffset,
+                characterLength: characterLength
+            ),
+            blockID: blockID,
+            sentenceID: sentenceID,
+            selectionScope: .textFragment,
+            selectedText: selectedText,
+            selectedTextHash: selectedTextHash,
+            characterOffset: characterOffset,
+            characterLength: characterLength,
+            containingSentence: containingSentence,
+            previousSentence: previousSentence,
+            nextSentence: nextSentence,
+            containingParagraph: containingParagraph,
+            contextMode: contextMode,
+            contextText: contextText
+        )
+    }
+
     public static func makeSentenceSelectionContext(
         _ sentence: ReadingSentenceSegment,
         documentID: String,

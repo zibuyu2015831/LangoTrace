@@ -43,12 +43,18 @@ Markdown presentation is controlled by `ReadingAppearanceProfile`. Style is a pr
 
 ## 5. Selection And Source Anchor
 
-Sentence selection is the default supported reading-learning selection model on compact iPhone detail. Paragraph remains the reading layout unit, but the learning action target defaults to sentence rather than whole block. The first stable delivery may defer true fragment UI selection, but the request and anchor contract must already distinguish:
+Text selection uses native platform text selection: `UITextView` (iOS/iPadOS) and `NSTextView` (macOS) per Markdown block. Each block is rendered as a continuous, selectable text view — not as a list of sentence buttons. System-native gestures (double-tap = word, long-press + drag = arbitrary fragment, triple-tap = sentence) drive selection.
+
+Sentence data produced by `ReadingTextSegmenter.segmentSentences()` is **retained** as a data-layer and AI-context resource. It is no longer a visual rendering unit. `makeFragmentSelectionContext()` uses pre-computed sentences to identify the `containingSentence`, `previousSentence`, and `nextSentence` for any arbitrary character-range selection.
+
+The supported reading-learning selection scopes are:
 
 - `selection_scope = sentence`
 - `selection_scope = text_fragment`
 
-Manual selection records selected text, limited context, character offset and character length, and must not depend on English whitespace tokenization. CJK, Japanese, accented Latin text and RTL snippets are valid inputs.
+Both scopes produce a fully-populated `ReadingSelectionContext` with `characterOffset`, `characterLength`, `blockID`, `sentenceID` (the containing sentence), and context fields. `makeFragmentSelectionContext(precomputedSentences:)` accepts a pre-computed sentence array to avoid re-running the NLTokenizer on every selection change.
+
+Manual selection records selected text, limited context, character offset and character length, and must not depend on English whitespace tokenization. CJK, Japanese, accented Latin text and RTL snippets are valid inputs. A minimum of 2 non-whitespace characters is required to trigger the learning panel.
 
 `ReadingSourceAnchor` must include document id, content revision, structure version, block id, selected text hash and character range. If content revision, structure version, block id, selected text hash or range no longer matches the current document structure, the anchor is stale and must not silently point at another text.
 

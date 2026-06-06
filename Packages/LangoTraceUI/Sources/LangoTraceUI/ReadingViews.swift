@@ -229,9 +229,16 @@ struct ReadingLibraryView: View {
             }
             ReadingDocumentCanvas(
                 presentation: presentation,
-                selectedSentenceID: documentStore.selectedSentenceID,
-                onSelectSentence: { sentence in
-                    documentStore.selectSelection(sentence.selection)
+                selectedSelection: documentStore.selectedSelection,
+                onSelectFragment: { text, block, offset, length in
+                    documentStore.selectTextFragment(
+                        selectedText: text,
+                        blockID: block.id,
+                        characterOffset: offset,
+                        characterLength: length,
+                        sentencePresentations: block.sentences,
+                        blockText: block.text
+                    )
                 },
                 onClearSelection: {
                     documentStore.clearSelection()
@@ -361,9 +368,16 @@ struct ReadingDocumentDetailView: View {
                         VStack(alignment: .leading, spacing: 20) {
                             ReadingDocumentCanvas(
                                 presentation: presentation,
-                                selectedSentenceID: documentStore.selectedSentenceID,
-                                onSelectSentence: { sentence in
-                                    documentStore.selectSelection(sentence.selection)
+                                selectedSelection: documentStore.selectedSelection,
+                                onSelectFragment: { text, block, offset, length in
+                                    documentStore.selectTextFragment(
+                                        selectedText: text,
+                                        blockID: block.id,
+                                        characterOffset: offset,
+                                        characterLength: length,
+                                        sentencePresentations: block.sentences,
+                                        blockText: block.text
+                                    )
                                 },
                                 onClearSelection: {
                                     documentStore.clearSelection()
@@ -407,21 +421,24 @@ struct ReadingDocumentDetailView: View {
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            if let selection = documentStore.selectedSelection {
-                if documentStore.compactLearningPanelState != .hidden {
-                    ReadingCompactLearningPanel(
-                        selection: selection,
-                        explanationResult: documentStore.explanationResult,
-                        explanationState: documentStore.explanationState,
-                        audioState: documentStore.audioState,
-                        panelState: documentStore.compactLearningPanelState,
-                        onExplain: { documentStore.explainSelection() },
-                        onListen: { documentStore.playSelectionSentence() },
-                        onClear: { documentStore.clearSelection() }
-                    )
-                }
+            if let selection = documentStore.selectedSelection,
+               documentStore.compactLearningPanelState != .hidden
+            {
+                ReadingCompactLearningPanel(
+                    selection: selection,
+                    explanationResult: documentStore.explanationResult,
+                    explanationState: documentStore.explanationState,
+                    audioState: documentStore.audioState,
+                    panelState: documentStore.compactLearningPanelState,
+                    onExplain: { documentStore.explainSelection() },
+                    onListen: { documentStore.playSelectionSentence() },
+                    onClear: { documentStore.clearSelection() }
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.22), value: documentStore.compactLearningPanelState)
             }
         }
+        .animation(.easeInOut(duration: 0.22), value: documentStore.selectedSelection != nil)
         .sheet(isPresented: editorPresentedBinding) {
             if let document = activeDocument {
                 ReadingDocumentEditorSheet(
@@ -753,9 +770,10 @@ private struct ReadingDocumentEditorSheet: View {
 
 private struct ReadingDocumentCanvas: View {
     let presentation: ReadingDocumentPresentation
-    let selectedSentenceID: String?
-    let onSelectSentence: (ReadingSentencePresentation) -> Void
-    let onClearSelection: () -> Void
+    let selectedSelection: ReadingSelectionContext?
+    var onSelectFragment: (String, ReadingBlockPresentation, Int, Int) -> Void
+    var onClearSelection: () -> Void
+    @State private var blockHeights: [String: CGFloat] = [:]
 
     var body: some View {
         VStack(alignment: .leading, spacing: presentation.style.paragraphSpacing) {
@@ -765,58 +783,49 @@ private struct ReadingDocumentCanvas: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, 4)
                 } else {
-                    sentenceBlock(block)
+                    selectableBlock(block)
                 }
             }
         }
     }
 
-    private func sentenceBlock(_ block: ReadingBlockPresentation) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            ForEach(block.sentences, id: \.id) { sentence in
-                Button {
-                    if selectedSentenceID == sentence.id {
-                        onClearSelection()
-                    } else {
-                        onSelectSentence(sentence)
-                    }
-                } label: {
-                    Text(sentence.text)
-                        .font(blockFont(block.kind))
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(
-                                    selectedSentenceID == sentence.id
-                                        ? LangoTraceDesign.ColorToken.surfaceSidebar
-                                        : .clear
-                                )
-                        )
-                }
-                .buttonStyle(.plain)
-            }
-        }
+    private func selectableBlock(_ block: ReadingBlockPresentation) -> some View {
+        let committedRange: NSRange? = {
+            guard let sel = selectedSelection, sel.blockID == block.id else { return nil }
+            let text = block.text
+            guard
+                let startIdx = text.index(
+                    text.startIndex,
+                    offsetBy: sel.characterOffset,
+                    limitedBy: text.endIndex
+                ),
+                let endIdx = text.index(
+                    startIdx,
+                    offsetBy: sel.characterLength,
+                    limitedBy: text.endIndex
+                )
+            else { return nil }
+            return NSRange(startIdx ..< endIdx, in: text)
+        }()
+
+        return ReadingSelectableTextView(
+            blockText: block.text,
+            committedHighlightRange: committedRange,
+            onSelectionChange: { text, offset, length in
+                onSelectFragment(text, block, offset, length)
+            },
+            onSelectionCleared: {
+                onClearSelection()
+            },
+            height: Binding(
+                get: { blockHeights[block.id, default: 44] },
+                set: { blockHeights[block.id] = $0 }
+            )
+        )
+        .frame(height: blockHeights[block.id, default: 44])
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func blockFont(_ kind: ReadingMarkdownBlockKind) -> Font {
-        switch kind {
-        case let .heading(level):
-            switch level {
-            case 1: .system(.title, design: .default, weight: .bold)
-            case 2: .system(.title2, design: .default, weight: .bold)
-            default: .system(.title3, design: .default, weight: .semibold)
-            }
-        case .blockquote:
-            .body.italic()
-        case .unorderedList, .orderedList:
-            .body
-        case .paragraph, .codeBlock, .horizontalRule, .unsupported:
-            .body
-        }
-    }
 }
 
 private struct ReadingEmptyLibraryCard: View {

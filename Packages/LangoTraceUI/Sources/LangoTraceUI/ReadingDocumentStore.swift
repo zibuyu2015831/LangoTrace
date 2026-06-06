@@ -97,6 +97,73 @@ public final class ReadingDocumentStore: ObservableObject {
         ))
     }
 
+    public func selectTextFragment(
+        selectedText: String,
+        blockID: String,
+        characterOffset: Int,
+        characterLength: Int,
+        sentences: [ReadingSentenceSegment],
+        paragraphs: [ReadingTextChunk],
+        fullDocumentText: String
+    ) {
+        let context = ReadingTextSegmenter.makeFragmentSelectionContext(
+            selectedText: selectedText,
+            blockID: blockID,
+            characterOffset: characterOffset,
+            characterLength: characterLength,
+            precomputedSentences: sentences,
+            documentID: documentID,
+            contentRevision: contentRevision,
+            structureVersion: 0,
+            paragraphs: paragraphs,
+            fullDocumentText: fullDocumentText
+        )
+        selectSelection(context)
+    }
+
+    /// Convenience overload: reconstructs ReadingSentenceSegment from the presentation layer's
+    /// ReadingSentencePresentation array, using blockText as a single-block context document.
+    public func selectTextFragment(
+        selectedText: String,
+        blockID: String,
+        characterOffset: Int,
+        characterLength: Int,
+        sentencePresentations: [ReadingSentencePresentation],
+        blockText: String
+    ) {
+        let sentences = sentencePresentations.map { pres in
+            ReadingSentenceSegment(
+                id: pres.selection.sentenceID,
+                documentID: documentID,
+                contentRevision: contentRevision,
+                structureVersion: 0,
+                blockID: pres.blockID,
+                paragraphIndex: 0,
+                sentenceIndex: pres.sentenceIndex,
+                text: pres.text,
+                containingParagraph: pres.selection.containingParagraph,
+                characterOffset: pres.selection.characterOffset,
+                characterLength: pres.selection.characterLength
+            )
+        }
+        let paragraphs = [ReadingTextChunk(
+            id: "\(documentID)-\(blockID)-p0",
+            documentID: documentID,
+            contentRevision: contentRevision,
+            text: blockText,
+            range: blockText.startIndex ..< blockText.endIndex
+        )]
+        selectTextFragment(
+            selectedText: selectedText,
+            blockID: blockID,
+            characterOffset: characterOffset,
+            characterLength: characterLength,
+            sentences: sentences,
+            paragraphs: paragraphs,
+            fullDocumentText: blockText
+        )
+    }
+
     public func selectSelection(_ selection: ReadingSelectionContext) {
         selectedSelection = selection
         selectedText = selection.selectedText
