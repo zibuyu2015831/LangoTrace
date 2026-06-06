@@ -1,4 +1,7 @@
 import Foundation
+import LangoTraceCore
+
+public typealias ExplanationCacheStorage = ReadingExplanationCacheRepositoryProtocol
 
 public enum ReadingAsyncState: Equatable, Sendable {
     case idle

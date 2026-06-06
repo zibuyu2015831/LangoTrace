@@ -101,7 +101,7 @@ struct PadWorkspaceContentView: View {
     @ObservedObject var readingLibraryStore: ReadingLibraryStore
     let readingExplanationAction: ReadingExplanationAction
     let readingTTSAction: ReadingTTSAction
-    let readingCacheRepository: (any ReadingExplanationCacheRepositoryProtocol)?
+    let readingCacheStorage: (any ExplanationCacheStorage)?
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -144,7 +144,7 @@ struct PadWorkspaceContentView: View {
                     store: readingLibraryStore,
                     explanationAction: readingExplanationAction,
                     ttsAction: readingTTSAction,
-                    cacheRepository: readingCacheRepository
+                    cacheStorage: readingCacheStorage
                 )
             case let .settings(kind):
                 settingDetail(kind: kind)

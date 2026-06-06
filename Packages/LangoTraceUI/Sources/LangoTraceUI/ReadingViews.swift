@@ -7,7 +7,7 @@ struct ReadingLibraryView: View {
     @ObservedObject var store: ReadingLibraryStore
     let explanationAction: ReadingExplanationAction
     let ttsAction: ReadingTTSAction
-    let cacheRepository: (any ReadingExplanationCacheRepositoryProtocol)?
+    let cacheStorage: (any ExplanationCacheStorage)?
     var onOpenPhoneDocument: ((String) -> Void)?
     @StateObject private var documentStore: ReadingDocumentStore
     @State private var importTitle = ""
@@ -22,14 +22,14 @@ struct ReadingLibraryView: View {
         store: ReadingLibraryStore,
         explanationAction: @escaping ReadingExplanationAction,
         ttsAction: @escaping ReadingTTSAction,
-        cacheRepository: (any ReadingExplanationCacheRepositoryProtocol)? = nil,
+        cacheStorage: (any ExplanationCacheStorage)? = nil,
         onOpenPhoneDocument: ((String) -> Void)? = nil
     ) {
         self.platform = platform
         self.store = store
         self.explanationAction = explanationAction
         self.ttsAction = ttsAction
-        self.cacheRepository = cacheRepository
+        self.cacheStorage = cacheStorage
         self.onOpenPhoneDocument = onOpenPhoneDocument
         _documentStore = StateObject(wrappedValue: ReadingDocumentStore(
             documentID: store.selectedDocument?.id ?? "",
@@ -40,7 +40,7 @@ struct ReadingLibraryView: View {
             proficiencyLevelCode: store.languageSpace.level.rawValue,
             explanationAction: explanationAction,
             ttsAction: ttsAction,
-            cacheRepository: cacheRepository
+            cacheStorage: cacheStorage
         ))
     }
 

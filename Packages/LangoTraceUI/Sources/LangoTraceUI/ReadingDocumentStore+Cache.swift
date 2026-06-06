@@ -5,7 +5,7 @@ extension ReadingDocumentStore {
     // Called on document open / replace
     @MainActor
     func loadCacheForDocument() async {
-        guard let repo = cacheRepository else { return }
+        guard let repo = cacheStorage else { return }
         let docID = documentID
         let rev = contentRevision
         do {
@@ -35,7 +35,7 @@ extension ReadingDocumentStore {
     /// Fetch the cached entry for the overlapping sentence and display it.
     public func showOverlappingExplainedSentenceResult() {
         guard let sentenceID = overlappingExplainedSentenceID else { return }
-        let repo = cacheRepository
+        let repo = cacheStorage
         let docID = documentID
         let rev = contentRevision
         Task { @MainActor in
@@ -59,7 +59,7 @@ extension ReadingDocumentStore {
 
         if let existing = explanationCache[cacheKey] {
             explanationCache.removeValue(forKey: cacheKey)
-            let repo = cacheRepository
+            let repo = cacheStorage
             Task { try? await repo?.delete(id: existing.id) }
         }
 

@@ -41,7 +41,7 @@ public struct GRDBReadingExplanationCacheRepository: ReadingExplanationCacheRepo
             updatedAt: entry.updatedAt.timeIntervalSinceReferenceDate
         )
         try await databaseQueue.write { db in
-            try record.save(db)
+            try record.insert(db, onConflict: .replace)
         }
     }
 

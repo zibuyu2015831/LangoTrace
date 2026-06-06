@@ -188,7 +188,7 @@ func aiProviderRepositorySavesTTSSettingsInSameProfileTransaction() async throws
         ttsVoiceProfiles: [voice]
     )
 
-    let stored = try await database.databaseQueue.read { db in
+    let stored = try database.databaseQueue.read { db in
         try Row.fetchOne(
             db,
             sql: """

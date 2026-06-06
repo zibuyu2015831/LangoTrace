@@ -36,7 +36,7 @@ public final class ReadingDocumentStore: ObservableObject {
     var explanationTask: Task<Void, Never>?
     var ttsTask: Task<Void, Never>?
     var explanationCache: [String: ReadingExplanationCacheEntry] = [:]
-    let cacheRepository: (any ReadingExplanationCacheRepositoryProtocol)?
+    let cacheStorage: (any ExplanationCacheStorage)?
 
     public init(
         documentID: String,
@@ -47,7 +47,7 @@ public final class ReadingDocumentStore: ObservableObject {
         proficiencyLevelCode: String = "",
         explanationAction: @escaping ReadingExplanationAction,
         ttsAction: @escaping ReadingTTSAction,
-        cacheRepository: (any ReadingExplanationCacheRepositoryProtocol)? = nil
+        cacheStorage: (any ExplanationCacheStorage)? = nil
     ) {
         self.documentID = documentID
         self.spaceID = spaceID
@@ -58,7 +58,7 @@ public final class ReadingDocumentStore: ObservableObject {
         currentExplanationMode = ExplanationLanguageMode.derive(from: proficiencyLevelCode)
         self.explanationAction = explanationAction
         self.ttsAction = ttsAction
-        self.cacheRepository = cacheRepository
+        self.cacheStorage = cacheStorage
     }
 
     public func explainSelection() {
@@ -227,7 +227,7 @@ public final class ReadingDocumentStore: ObservableObject {
         explanationCache[cacheKey] = entry
         explainedSentenceIDs.insert(selection.sentenceID)
 
-        let repo = cacheRepository
+        let repo = cacheStorage
         Task { try? await repo?.insert(entry) }
     }
 

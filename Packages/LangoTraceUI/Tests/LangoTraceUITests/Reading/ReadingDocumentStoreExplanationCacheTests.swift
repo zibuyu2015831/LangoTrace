@@ -19,7 +19,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
                 return .sample(selection: "test")
             },
             ttsAction: { _ in },
-            cacheRepository: mockRepo
+            cacheStorage: mockRepo
         )
 
         // Seed a selection and manually populate the in-memory cache by completing an explain.
@@ -68,7 +68,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
             spaceID: "space-1",
             explanationAction: controlled.explain,
             ttsAction: { _ in },
-            cacheRepository: mockRepo
+            cacheStorage: mockRepo
         )
 
         let selection = ReadingSelectionContext.cacheTestSample(
@@ -140,7 +140,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
             spaceID: "space-1",
             explanationAction: controlled.explain,
             ttsAction: { _ in },
-            cacheRepository: mockRepo
+            cacheStorage: mockRepo
         )
 
         let selection = ReadingSelectionContext.cacheTestSample(
@@ -191,7 +191,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
             spaceID: "space-1",
             explanationAction: controlled.explain,
             ttsAction: { _ in },
-            cacheRepository: mockRepo
+            cacheStorage: mockRepo
         )
 
         let selection = ReadingSelectionContext.cacheTestSample(

@@ -17,7 +17,7 @@ struct MacWorkspaceContentView: View {
     @ObservedObject var readingLibraryStore: ReadingLibraryStore
     let readingExplanationAction: ReadingExplanationAction
     let readingTTSAction: ReadingTTSAction
-    let readingCacheRepository: (any ReadingExplanationCacheRepositoryProtocol)?
+    let readingCacheStorage: (any ExplanationCacheStorage)?
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -47,7 +47,7 @@ struct MacWorkspaceContentView: View {
                 store: readingLibraryStore,
                 explanationAction: readingExplanationAction,
                 ttsAction: readingTTSAction,
-                cacheRepository: readingCacheRepository
+                cacheStorage: readingCacheStorage
             )
         case let .practiceSentenceList(entryID):
             practiceSentenceList(entryID: entryID)
@@ -89,7 +89,7 @@ struct MacWorkspaceContentView: View {
                 store: readingLibraryStore,
                 explanationAction: readingExplanationAction,
                 ttsAction: readingTTSAction,
-                cacheRepository: readingCacheRepository
+                cacheStorage: readingCacheStorage
             )
         case .practice:
             practiceContent

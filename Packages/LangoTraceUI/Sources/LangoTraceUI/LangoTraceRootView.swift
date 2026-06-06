@@ -22,7 +22,7 @@ public struct LangoTraceRootView: View {
     private let readingLibraryActions: ReadingLibraryActions
     private let readingExplanationAction: ReadingExplanationAction
     private let readingTTSAction: ReadingTTSAction
-    private let readingCacheRepository: (any ReadingExplanationCacheRepositoryProtocol)?
+    private let readingCacheStorage: (any ExplanationCacheStorage)?
     private let practiceActions: PracticeActions
     private let interfaceLanguagePreference: InterfaceLanguagePreference
     private let appearancePreference: AppearancePreference
@@ -48,7 +48,7 @@ public struct LangoTraceRootView: View {
             throw ReadingLibraryActionError.unavailable
         },
         readingTTSAction: @escaping ReadingTTSAction = { _ in },
-        readingCacheRepository: (any ReadingExplanationCacheRepositoryProtocol)? = nil,
+        readingCacheStorage: (any ExplanationCacheStorage)? = nil,
         practiceActions: PracticeActions = .disabled,
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         appearancePreference: AppearancePreference = .system,
@@ -71,7 +71,7 @@ public struct LangoTraceRootView: View {
         self.readingLibraryActions = readingLibraryActions
         self.readingExplanationAction = readingExplanationAction
         self.readingTTSAction = readingTTSAction
-        self.readingCacheRepository = readingCacheRepository
+        self.readingCacheStorage = readingCacheStorage
         self.practiceActions = practiceActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
@@ -112,7 +112,7 @@ public struct LangoTraceRootView: View {
                         readingLibraryActions: readingLibraryActions,
                         readingExplanationAction: readingExplanationAction,
                         readingTTSAction: readingTTSAction,
-                        readingCacheRepository: readingCacheRepository,
+                        readingCacheStorage: readingCacheStorage,
                         practiceActions: practiceActions,
                         interfaceLanguagePreference: interfaceLanguagePreference,
                         appearancePreference: appearancePreference,
@@ -174,7 +174,7 @@ private struct PlatformMainView: View {
     let readingLibraryActions: ReadingLibraryActions
     let readingExplanationAction: ReadingExplanationAction
     let readingTTSAction: ReadingTTSAction
-    let readingCacheRepository: (any ReadingExplanationCacheRepositoryProtocol)?
+    let readingCacheStorage: (any ExplanationCacheStorage)?
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -196,7 +196,7 @@ private struct PlatformMainView: View {
         readingLibraryActions: ReadingLibraryActions,
         readingExplanationAction: @escaping ReadingExplanationAction,
         readingTTSAction: @escaping ReadingTTSAction,
-        readingCacheRepository: (any ReadingExplanationCacheRepositoryProtocol)? = nil,
+        readingCacheStorage: (any ExplanationCacheStorage)? = nil,
         practiceActions: PracticeActions,
         interfaceLanguagePreference: InterfaceLanguagePreference,
         appearancePreference: AppearancePreference,
@@ -214,7 +214,7 @@ private struct PlatformMainView: View {
         self.readingLibraryActions = readingLibraryActions
         self.readingExplanationAction = readingExplanationAction
         self.readingTTSAction = readingTTSAction
-        self.readingCacheRepository = readingCacheRepository
+        self.readingCacheStorage = readingCacheStorage
         self.practiceActions = practiceActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
@@ -250,7 +250,7 @@ private struct PlatformMainView: View {
                     readingLibraryStore: readingLibraryStore,
                     readingExplanationAction: readingExplanationAction,
                     readingTTSAction: readingTTSAction,
-                    readingCacheRepository: readingCacheRepository,
+                    readingCacheStorage: readingCacheStorage,
                     practiceActions: practiceActions,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     appearancePreference: appearancePreference,
@@ -269,7 +269,7 @@ private struct PlatformMainView: View {
                     readingLibraryStore: readingLibraryStore,
                     readingExplanationAction: readingExplanationAction,
                     readingTTSAction: readingTTSAction,
-                    readingCacheRepository: readingCacheRepository,
+                    readingCacheStorage: readingCacheStorage,
                     practiceActions: practiceActions,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     appearancePreference: appearancePreference,
@@ -289,7 +289,7 @@ private struct PlatformMainView: View {
                 readingLibraryStore: readingLibraryStore,
                 readingExplanationAction: readingExplanationAction,
                 readingTTSAction: readingTTSAction,
-                readingCacheRepository: readingCacheRepository,
+                readingCacheStorage: readingCacheStorage,
                 practiceActions: practiceActions,
                 interfaceLanguagePreference: interfaceLanguagePreference,
                 appearancePreference: appearancePreference,
