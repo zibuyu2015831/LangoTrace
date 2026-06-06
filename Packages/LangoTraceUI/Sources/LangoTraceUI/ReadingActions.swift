@@ -16,6 +16,7 @@ public struct ReadingExplanationRequest: Equatable, Sendable {
     public var nativeLanguageCode: String
     public var targetLanguageCode: String
     public var proficiencyLevelCode: String
+    public var explanationLanguageMode: ExplanationLanguageMode
 
     public init(
         documentID: String,
@@ -32,7 +33,8 @@ public struct ReadingExplanationRequest: Equatable, Sendable {
         contextText: String = "",
         nativeLanguageCode: String = "",
         targetLanguageCode: String = "",
-        proficiencyLevelCode: String = ""
+        proficiencyLevelCode: String = "",
+        explanationLanguageMode: ExplanationLanguageMode = .bilingualBridge
     ) {
         self.documentID = documentID
         self.spaceID = spaceID
@@ -49,6 +51,7 @@ public struct ReadingExplanationRequest: Equatable, Sendable {
         self.nativeLanguageCode = nativeLanguageCode
         self.targetLanguageCode = targetLanguageCode
         self.proficiencyLevelCode = proficiencyLevelCode
+        self.explanationLanguageMode = explanationLanguageMode
     }
 }
 

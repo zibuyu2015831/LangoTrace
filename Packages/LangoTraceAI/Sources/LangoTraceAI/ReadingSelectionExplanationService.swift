@@ -10,9 +10,9 @@ public struct ReadingSelectionExplanationRenderedPrompt: Equatable, Sendable {
 }
 
 public enum ReadingSelectionExplanationPromptRegistry {
-    public static let promptID = "builtin.reading.selection_explanation.v2"
-    public static let promptVersion = "2"
-    public static let schemaVersion = "reading_selection_explanation.v2"
+    public static let promptID = "builtin.reading.selection_explanation.v3"
+    public static let promptVersion = "3"
+    public static let schemaVersion = "reading_selection_explanation.v3"
 
     public static func prompt(input: ReadingSelectionExplanationInput) -> ReadingSelectionExplanationRenderedPrompt {
         ReadingSelectionExplanationRenderedPrompt(
@@ -30,6 +30,7 @@ public enum ReadingSelectionExplanationPromptRegistry {
             native_language_code: \(input.nativeLanguageCode)
             target_language_code: \(input.targetLanguageCode)
             proficiency_level_code: \(input.proficiencyLevelCode)
+            explanation_language_mode: \(input.explanationLanguageMode.rawValue)
             selection_scope: \(input.selectionScope.rawValue)
             selected_text: \(input.selectedText)
             containing_sentence: \(input.containingSentence)
@@ -39,16 +40,55 @@ public enum ReadingSelectionExplanationPromptRegistry {
             context_mode: \(input.contextMode.rawValue)
             context_text: \(input.contextText)
 
+            Language directives (follow exactly):
+            \(languageDirectives(for: input))
+
             Return fields:
             - schema_version
             - selection
             - short_explanation
-            - meaning_in_native_language
+            - meaning_in_native_language (always required — brief native-language gloss)
+            - grammatical_note (null if not applicable)
             - usage_note
             - example_sentence
-            - grammatical_note (null if not applicable)
+            - example_sentence_translation (native-language translation of example_sentence, or null for targetImmersion)
+            - explanation_language_mode (echo back the mode used)
             """
         )
+    }
+
+    private static func languageDirectives(for input: ReadingSelectionExplanationInput) -> String {
+        let native = input.nativeLanguageCode
+        let target = input.targetLanguageCode
+        switch input.explanationLanguageMode {
+        case .sourceLanguage:
+            return """
+            - short_explanation: \(native)
+            - grammatical_note: \(native)
+            - usage_note: \(native)
+            - example_sentence: \(target)
+            - example_sentence_translation: \(native) (translate the example_sentence)
+            - meaning_in_native_language: \(native)
+            """
+        case .bilingualBridge:
+            return """
+            - short_explanation: \(target)
+            - grammatical_note: \(native)
+            - usage_note: \(target)
+            - example_sentence: \(target)
+            - example_sentence_translation: \(native) (translate the example_sentence)
+            - meaning_in_native_language: \(native)
+            """
+        case .targetImmersion:
+            return """
+            - short_explanation: \(target)
+            - grammatical_note: \(target)
+            - usage_note: \(target)
+            - example_sentence: \(target)
+            - example_sentence_translation: null
+            - meaning_in_native_language: \(native) (brief gloss only)
+            """
+        }
     }
 }
 
@@ -109,7 +149,7 @@ public struct ReadingSelectionExplanationService: Sendable {
             throw ReadingSelectionExplanationServiceError(category: .providerRejected)
         }
         let text = try parseText(from: response.body, adapterKind: endpoint.adapterKind)
-        return try parseResult(text)
+        return try parseResult(text, requestedMode: request.input.explanationLanguageMode)
     }
 }
 
@@ -210,9 +250,11 @@ private extension ReadingSelectionExplanationService {
                 "selection",
                 "short_explanation",
                 "meaning_in_native_language",
+                "grammatical_note",
                 "usage_note",
                 "example_sentence",
-                "grammatical_note",
+                "example_sentence_translation",
+                "explanation_language_mode",
             ],
             "properties": [
                 "schema_version": [
@@ -222,9 +264,11 @@ private extension ReadingSelectionExplanationService {
                 "selection": ["type": "string"],
                 "short_explanation": ["type": "string"],
                 "meaning_in_native_language": ["type": "string"],
+                "grammatical_note": ["type": ["string", "null"]],
                 "usage_note": ["type": "string"],
                 "example_sentence": ["type": "string"],
-                "grammatical_note": ["type": ["string", "null"]],
+                "example_sentence_translation": ["type": ["string", "null"]],
+                "explanation_language_mode": ["type": "string"],
             ],
         ]
     }
@@ -262,7 +306,7 @@ private extension ReadingSelectionExplanationService {
         }
     }
 
-    func parseResult(_ text: String) throws -> ReadingSelectionExplanationResult {
+    func parseResult(_ text: String, requestedMode: ExplanationLanguageMode) throws -> ReadingSelectionExplanationResult {
         let trimmed = stripCodeFence(text.trimmingCharacters(in: .whitespacesAndNewlines))
         guard
             let data = trimmed.data(using: .utf8),
@@ -278,6 +322,10 @@ private extension ReadingSelectionExplanationService {
             throw ReadingSelectionExplanationServiceError(category: .invalidStructuredResponse)
         }
         let grammaticalNote = object["grammatical_note"] as? String
+        let translation = object["example_sentence_translation"] as? String
+        // explanation_language_mode echoed from model; fall back to requestedMode if absent/unknown
+        let modeRaw = object["explanation_language_mode"] as? String ?? ""
+        let mode = ExplanationLanguageMode(rawValue: modeRaw) ?? requestedMode
         return ReadingSelectionExplanationResult(
             schemaVersion: schemaVersion,
             selection: selection,
@@ -285,7 +333,9 @@ private extension ReadingSelectionExplanationService {
             meaningInNativeLanguage: meaning,
             usageNote: usage,
             exampleSentence: example,
-            grammaticalNote: grammaticalNote
+            exampleSentenceTranslation: translation,
+            grammaticalNote: grammaticalNote,
+            explanationLanguageMode: mode
         )
     }
 

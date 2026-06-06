@@ -12,6 +12,7 @@ public struct ReadingSelectionExplanationInput: Equatable, Sendable {
     public var nativeLanguageCode: String
     public var targetLanguageCode: String
     public var proficiencyLevelCode: String
+    public var explanationLanguageMode: ExplanationLanguageMode
 
     public init(
         documentID: String,
@@ -26,7 +27,8 @@ public struct ReadingSelectionExplanationInput: Equatable, Sendable {
         contextText: String,
         nativeLanguageCode: String,
         targetLanguageCode: String,
-        proficiencyLevelCode: String
+        proficiencyLevelCode: String,
+        explanationLanguageMode: ExplanationLanguageMode = .bilingualBridge
     ) {
         self.documentID = documentID
         self.sourceAnchorID = sourceAnchorID
@@ -41,6 +43,7 @@ public struct ReadingSelectionExplanationInput: Equatable, Sendable {
         self.nativeLanguageCode = nativeLanguageCode
         self.targetLanguageCode = targetLanguageCode
         self.proficiencyLevelCode = proficiencyLevelCode
+        self.explanationLanguageMode = explanationLanguageMode
     }
 }
 
@@ -51,7 +54,9 @@ public struct ReadingSelectionExplanationResult: Equatable, Sendable {
     public var meaningInNativeLanguage: String
     public var usageNote: String
     public var exampleSentence: String
+    public var exampleSentenceTranslation: String?
     public var grammaticalNote: String?
+    public var explanationLanguageMode: ExplanationLanguageMode
 
     public init(
         schemaVersion: String,
@@ -60,7 +65,9 @@ public struct ReadingSelectionExplanationResult: Equatable, Sendable {
         meaningInNativeLanguage: String,
         usageNote: String,
         exampleSentence: String,
-        grammaticalNote: String? = nil
+        exampleSentenceTranslation: String? = nil,
+        grammaticalNote: String? = nil,
+        explanationLanguageMode: ExplanationLanguageMode = .bilingualBridge
     ) {
         self.schemaVersion = schemaVersion
         self.selection = selection
@@ -68,7 +75,9 @@ public struct ReadingSelectionExplanationResult: Equatable, Sendable {
         self.meaningInNativeLanguage = meaningInNativeLanguage
         self.usageNote = usageNote
         self.exampleSentence = exampleSentence
+        self.exampleSentenceTranslation = exampleSentenceTranslation
         self.grammaticalNote = grammaticalNote
+        self.explanationLanguageMode = explanationLanguageMode
     }
 }
 

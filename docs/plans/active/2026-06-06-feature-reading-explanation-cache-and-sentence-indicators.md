@@ -84,26 +84,28 @@ related_adrs:
 
 ```sql
 CREATE TABLE reading_explanation_cache (
-  id                TEXT    PRIMARY KEY,
-  document_id       TEXT    NOT NULL REFERENCES reading_documents(id) ON DELETE CASCADE,
-  space_id          TEXT    NOT NULL,
-  content_revision  INTEGER NOT NULL,
-  structure_version INTEGER NOT NULL,
-  selection_scope   TEXT    NOT NULL,   -- 'sentence' | 'text_fragment'
-  source_anchor_id  TEXT    NOT NULL,
-  sentence_id       TEXT    NOT NULL,   -- 含义：包含该选区的句子 ID，始终非空（text_fragment 也记录其 containingSentence）
-  block_id          TEXT    NOT NULL,
-  char_offset       INTEGER NOT NULL,
-  char_length       INTEGER NOT NULL,
-  selected_text     TEXT    NOT NULL,
-  selected_text_hash TEXT   NOT NULL,
-  result_json       TEXT    NOT NULL,
-  provider_id       TEXT,
-  model_id          TEXT,
-  created_at        TEXT    NOT NULL,
-  updated_at        TEXT    NOT NULL
+  id                        TEXT    PRIMARY KEY,
+  document_id               TEXT    NOT NULL REFERENCES reading_documents(id) ON DELETE CASCADE,
+  space_id                  TEXT    NOT NULL,
+  content_revision          INTEGER NOT NULL,
+  structure_version         INTEGER NOT NULL,
+  selection_scope           TEXT    NOT NULL,   -- 'sentence' | 'text_fragment'
+  source_anchor_id          TEXT    NOT NULL,
+  explanation_language_mode TEXT    NOT NULL,   -- 'sourceLanguage' | 'bilingualBridge' | 'targetImmersion'
+  sentence_id               TEXT    NOT NULL,   -- 含义：包含该选区的句子 ID，始终非空（text_fragment 也记录其 containingSentence）
+  block_id                  TEXT    NOT NULL,
+  char_offset               INTEGER NOT NULL,
+  char_length               INTEGER NOT NULL,
+  selected_text             TEXT    NOT NULL,
+  selected_text_hash        TEXT    NOT NULL,
+  result_json               TEXT    NOT NULL,
+  provider_id               TEXT,
+  model_id                  TEXT,
+  created_at                TEXT    NOT NULL,
+  updated_at                TEXT    NOT NULL
 );
-CREATE UNIQUE INDEX idx_rec_source_anchor ON reading_explanation_cache(document_id, source_anchor_id);
+-- 三元唯一索引：同 anchor + 同 mode = 同一缓存条目；mode 不同视为独立条目，无需主动失效
+CREATE UNIQUE INDEX idx_rec_source_anchor ON reading_explanation_cache(document_id, source_anchor_id, explanation_language_mode);
 CREATE INDEX idx_rec_sentence ON reading_explanation_cache(document_id, content_revision, sentence_id);
 ```
 
@@ -116,7 +118,7 @@ CREATE INDEX idx_rec_sentence ON reading_explanation_cache(document_id, content_
 ```swift
 public protocol ReadingExplanationCacheRepositoryProtocol: Sendable {
     func insert(_ entry: ReadingExplanationCacheEntry) async throws
-    func lookup(documentID: String, sourceAnchorID: String) async throws -> ReadingExplanationCacheEntry?
+    func lookup(documentID: String, sourceAnchorID: String, mode: ExplanationLanguageMode) async throws -> ReadingExplanationCacheEntry?
     func lookupBySentenceID(documentID: String, contentRevision: Int, sentenceID: String) async throws -> ReadingExplanationCacheEntry?
     func loadExplainedSentenceIDs(documentID: String, contentRevision: Int) async throws -> Set<String>
     func delete(id: String) async throws
@@ -124,7 +126,7 @@ public protocol ReadingExplanationCacheRepositoryProtocol: Sendable {
 }
 ```
 
-**新增 Core 类型：`ReadingExplanationCacheEntry`**（`LangoTraceCore`，Codable + Sendable）
+**新增 Core 类型：`ReadingExplanationCacheEntry`**（`LangoTraceCore`，Codable + Sendable）——包含 `explanationLanguageMode: ExplanationLanguageMode` 字段，用于命中判断和唯一索引。
 
 ### 3.2 AI 服务层（LangoTraceAI / LangoTraceUI）
 
@@ -146,9 +148,9 @@ func regenerateExplanation(for context: ReadingSelectionContext) async
 
 `explainSelection(context:)` 流程变更：
 
-1. 查 `explanationCache[context.sourceAnchorID]`。
+1. 查 `explanationCache[context.sourceAnchorID + ":" + currentExplanationMode.rawValue]`（mode-aware 键）。
 2. 命中 → 直接发布结果，状态设为 `.loaded(result, source: .cache)`。
-3. 未命中 → 触发 AI 请求，成功后：
+3. 未命中 → 触发 AI 请求（携带 `currentExplanationMode`），成功后：
    a. 调用 `cacheRepository.insert(entry)` 写入 DB。
    b. 更新 `explanationCache` 和 `explainedSentenceIDs`。
 4. 文档打开时调用 `pruneStale` 并加载 `explainedSentenceIDs`、初始化内存缓存。

@@ -4253,6 +4253,23 @@
         }
       }
     },
+    "settings.languageSpace.management.explanationLanguageAdaptsToLevel": {
+      "comment": "Footnote in language space editor under Level picker, explaining that the explanation language mode adapts automatically.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explanation language adapts automatically to your level."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解释语言会随学习等级自动调整。"
+          }
+        }
+      }
+    },
     "settings.languageSpace.management.title": {
       "comment": "Language space management title.",
       "localizations": {

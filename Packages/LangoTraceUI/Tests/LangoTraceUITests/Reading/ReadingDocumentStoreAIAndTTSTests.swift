@@ -89,6 +89,52 @@ struct ReadingDocumentStoreAIAndTTSTests {
         #expect(store.explanationState == .loading)
     }
 
+    @Test("store derives explanation mode from proficiency level code at construction")
+    func storeDerviesExplanationModeFromLevelCode() {
+        let a1Store = ReadingDocumentStore(
+            documentID: "doc-1", spaceID: "space-1",
+            proficiencyLevelCode: "A1",
+            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in }
+        )
+        let b2Store = ReadingDocumentStore(
+            documentID: "doc-1", spaceID: "space-1",
+            proficiencyLevelCode: "B2",
+            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in }
+        )
+        let c1Store = ReadingDocumentStore(
+            documentID: "doc-1", spaceID: "space-1",
+            proficiencyLevelCode: "C1",
+            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in }
+        )
+        let emptyStore = ReadingDocumentStore(
+            documentID: "doc-1", spaceID: "space-1",
+            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in }
+        )
+        #expect(a1Store.currentExplanationMode == .sourceLanguage)
+        #expect(b2Store.currentExplanationMode == .bilingualBridge)
+        #expect(c1Store.currentExplanationMode == .targetImmersion)
+        #expect(emptyStore.currentExplanationMode == .bilingualBridge) // fallback
+    }
+
+    @Test("explanation request carries explanation language mode from store")
+    func explanationRequestCarriesLanguageMode() async {
+        let explanation = CapturingReadingExplanationAction()
+        let store = ReadingDocumentStore(
+            documentID: "doc-1",
+            spaceID: "space-1",
+            proficiencyLevelCode: "A1",
+            explanationAction: explanation.explain,
+            ttsAction: { _ in }
+        )
+
+        store.selectText("ticket", sentenceID: "s1")
+        store.explainSelection()
+        await explanation.waitForRequestCount(1)
+
+        let request = await explanation.requests.first
+        #expect(request?.explanationLanguageMode == .sourceLanguage)
+    }
+
     @Test("explanation request carries selection sentence context and language metadata")
     func explanationRequestCarriesContextAndLanguageMetadata() async {
         let explanation = CapturingReadingExplanationAction()
@@ -584,7 +630,7 @@ private actor CapturingReadingTTSAction {
 private extension ReadingSelectionExplanationResult {
     static func sample(selection: String) -> ReadingSelectionExplanationResult {
         ReadingSelectionExplanationResult(
-            schemaVersion: "reading_selection_explanation.v2",
+            schemaVersion: "reading_selection_explanation.v3",
             selection: selection,
             shortExplanation: "Explanation",
             meaningInNativeLanguage: "释义",

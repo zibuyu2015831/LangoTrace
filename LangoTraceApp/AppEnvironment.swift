@@ -180,8 +180,8 @@ private func makeReadingExplanationAction(
     { request in
         let database = try databaseFactory.database()
         let readingRepository = GRDBReadingLibraryRepository(database: database)
-        let promptID = "builtin.reading.selection_explanation.v1"
-        let promptVersion = "1"
+        let promptID = ReadingSelectionExplanationPromptRegistry.promptID
+        let promptVersion = ReadingSelectionExplanationPromptRegistry.promptVersion
         let configurationRepository = GRDBAIProviderConfigurationRepository(
             database: database
         )
@@ -239,7 +239,8 @@ private func makeReadingExplanationAction(
                         contextText: request.contextText,
                         nativeLanguageCode: request.nativeLanguageCode,
                         targetLanguageCode: request.targetLanguageCode,
-                        proficiencyLevelCode: request.proficiencyLevelCode
+                        proficiencyLevelCode: request.proficiencyLevelCode,
+                        explanationLanguageMode: request.explanationLanguageMode
                     )
                 )
             )

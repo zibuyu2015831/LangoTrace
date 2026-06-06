@@ -5,7 +5,7 @@ import Testing
 private extension ReadingSelectionExplanationResult {
     static func sample(selection: String) -> ReadingSelectionExplanationResult {
         ReadingSelectionExplanationResult(
-            schemaVersion: "reading_selection_explanation.v2",
+            schemaVersion: "reading_selection_explanation.v3",
             selection: selection,
             shortExplanation: "Explanation",
             meaningInNativeLanguage: "释义",

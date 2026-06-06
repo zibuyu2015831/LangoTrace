@@ -44,6 +44,8 @@ public final class ReadingDocumentStore: ObservableObject {
     private let nativeLanguageCode: String
     private let targetLanguageCode: String
     private let proficiencyLevelCode: String
+    // Derived from proficiencyLevelCode at construction; can be overridden by the store owner (e.g. future escape hatch).
+    public private(set) var currentExplanationMode: ExplanationLanguageMode
     private var generation = 0
     private var explanationTask: Task<Void, Never>?
     private var ttsTask: Task<Void, Never>?
@@ -64,6 +66,7 @@ public final class ReadingDocumentStore: ObservableObject {
         self.nativeLanguageCode = nativeLanguageCode
         self.targetLanguageCode = targetLanguageCode
         self.proficiencyLevelCode = proficiencyLevelCode
+        self.currentExplanationMode = ExplanationLanguageMode.derive(from: proficiencyLevelCode)
         self.explanationAction = explanationAction
         self.ttsAction = ttsAction
     }
@@ -296,7 +299,8 @@ public final class ReadingDocumentStore: ObservableObject {
             contextText: selection.contextText,
             nativeLanguageCode: nativeLanguageCode,
             targetLanguageCode: targetLanguageCode,
-            proficiencyLevelCode: proficiencyLevelCode
+            proficiencyLevelCode: proficiencyLevelCode,
+            explanationLanguageMode: currentExplanationMode
         )
         explanationTask?.cancel()
         explanationTask = Task { [weak self] in

@@ -185,6 +185,20 @@ private struct LanguageSpaceEditorCard: View {
                     }
                     .pickerStyle(.menu)
                 }
+
+                editorDivider
+
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "text.bubble")
+                        .font(.footnote)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        .padding(.top, 1)
+                    localizedText("settings.languageSpace.management.explanationLanguageAdaptsToLevel")
+                        .font(.footnote)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.vertical, 10)
             }
             .padding(.leading, 18)
             .padding(.trailing, 16)
