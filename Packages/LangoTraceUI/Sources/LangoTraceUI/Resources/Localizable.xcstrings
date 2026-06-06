@@ -17491,6 +17491,91 @@
           }
         }
       }
+    },
+    "reading.source.pastedText": {
+      "comment": "Display name for pasted text reading source format.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasted Text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "粘贴文本"
+          }
+        }
+      }
+    },
+    "reading.source.plainText": {
+      "comment": "Display name for plain text file reading source format.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plain Text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纯文本"
+          }
+        }
+      }
+    },
+    "reading.source.htmlClip": {
+      "comment": "Display name for HTML clip reading source format.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web Clip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网页剪藏"
+          }
+        }
+      }
+    },
+    "reading.source.webArticle": {
+      "comment": "Display name for web article reading source format.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web Article"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网页文章"
+          }
+        }
+      }
+    },
+    "reading.panel.explanation.title": {
+      "comment": "Section header label in the compact learning panel for the AI explanation result.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Explanation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 解释"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

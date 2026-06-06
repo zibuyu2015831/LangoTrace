@@ -364,30 +364,42 @@ struct ReadingDocumentDetailView: View {
         Group {
             if activeDocument != nil {
                 if let presentation = activePresentation {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 20) {
-                            ReadingDocumentCanvas(
-                                presentation: presentation,
-                                selectedSelection: documentStore.selectedSelection,
-                                onSelectFragment: { text, block, offset, length in
-                                    documentStore.selectTextFragment(
-                                        selectedText: text,
-                                        blockID: block.id,
-                                        characterOffset: offset,
-                                        characterLength: length,
-                                        sentencePresentations: block.sentences,
-                                        blockText: block.text
-                                    )
-                                },
-                                onClearSelection: {
-                                    documentStore.clearSelection()
-                                }
-                            )
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 20) {
+                                ReadingDocumentCanvas(
+                                    presentation: presentation,
+                                    selectedSelection: documentStore.selectedSelection,
+                                    onSelectFragment: { text, block, offset, length in
+                                        documentStore.selectTextFragment(
+                                            selectedText: text,
+                                            blockID: block.id,
+                                            characterOffset: offset,
+                                            characterLength: length,
+                                            sentencePresentations: block.sentences,
+                                            blockText: block.text
+                                        )
+                                    },
+                                    onClearSelection: {
+                                        documentStore.clearSelection()
+                                    }
+                                )
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                            .frame(maxWidth: presentation.style.readingWidth.points, alignment: .leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
-                        .frame(maxWidth: presentation.style.readingWidth.points, alignment: .leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .onChange(of: documentStore.selectedSelection?.blockID) { _, blockID in
+                            guard let blockID else { return }
+                            withAnimation(.easeInOut(duration: 0.22)) {
+                                // Scroll to the containing block so selected text remains
+                                // visible above the compact learning panel. safeAreaInset
+                                // already reserves the panel height in the safe area, so
+                                // scrollTo(.bottom) lands just above the panel edge.
+                                proxy.scrollTo(blockID, anchor: .bottom)
+                            }
+                        }
                     }
                 } else {
                     ProgressView()
@@ -586,7 +598,7 @@ private struct ReadingPhoneLibraryHomeView: View {
             Label(localizedString("reading.library.import.paste"), systemImage: "doc.on.clipboard")
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent)
+        .buttonStyle(.bordered)
         .controlSize(.large)
     }
 
@@ -779,8 +791,10 @@ private struct ReadingDocumentCanvas: View {
                     ReadingBlockView(block: block, style: presentation.style)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, 4)
+                        .id(block.id)
                 } else {
                     selectableBlock(block)
+                        .id(block.id)
                 }
             }
         }

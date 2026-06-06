@@ -57,7 +57,7 @@ struct ReadingLibraryDocumentRow: View {
                             .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
                             .multilineTextAlignment(.leading)
                         HStack(spacing: 6) {
-                            Text(document.sourceFormat.rawValue)
+                            Text(document.sourceFormat.displayName)
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                                 .padding(.horizontal, 8)
@@ -90,6 +90,7 @@ struct ReadingLibraryDocumentRow: View {
                     )
             }
             .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: Color(.systemGray4).opacity(isSelected ? 0 : 0.35), radius: 4, x: 0, y: 1)
         }
         .buttonStyle(.plain)
         .accessibilityHint(localizedString("tab.reading"))
@@ -169,7 +170,7 @@ struct ReadingLibraryPane: View {
             Label(localizedString("reading.library.import.paste"), systemImage: "doc.on.clipboard")
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent)
+        .buttonStyle(.bordered)
         .controlSize(platform == .mac ? .regular : .large)
     }
 
@@ -538,6 +539,15 @@ struct ReadingCompactLearningPanel: View {
                 .frame(maxWidth: .infinity)
                 .padding(.top, 10)
                 .padding(.bottom, 14)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 20, coordinateSpace: .local)
+                        .onEnded { value in
+                            if value.translation.height > 50 {
+                                onClear()
+                            }
+                        }
+                )
 
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 5) {
@@ -586,13 +596,25 @@ struct ReadingCompactLearningPanel: View {
             .padding(.horizontal, 20)
             .padding(.top, 14)
 
+            if panelState == .content || panelState == .loading || panelState == .failed {
+                HStack {
+                    Text(localizedString("reading.panel.explanation.title"))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 14)
+                .padding(.bottom, 2)
+            }
+
             ReadingExplanationResultView(
                 result: panelState == .content ? explanationResult : nil,
                 state: panelState == .loading ? .loading : (panelState == .failed ? .failed : .idle),
                 cardBackground: LangoTraceDesign.ColorToken.surfaceMuted
             )
             .padding(.horizontal, 20)
-            .padding(.top, 12)
+            .padding(.top, panelState == .content || panelState == .loading || panelState == .failed ? 4 : 12)
 
             Spacer().frame(height: 24)
         }

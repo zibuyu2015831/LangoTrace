@@ -82,7 +82,16 @@ struct ReadingSelectableTextView: UIViewRepresentable {
         }
         context.coordinator.blockText = blockText
 
+        context.coordinator.isApplyingCommittedHighlight = true
         applyCommittedHighlight(to: textView)
+        if committedHighlightRange != nil {
+            // Remove the blue iOS selection handles once the teal highlight is committed.
+            // Setting selectedRange triggers textViewDidChangeSelection, which is suppressed
+            // by isApplyingCommittedHighlight above. The teal background color is stored in
+            // textStorage attributes and is unaffected by this selectedRange assignment.
+            textView.selectedRange = NSRange(location: NSNotFound, length: 0)
+        }
+        context.coordinator.isApplyingCommittedHighlight = false
 
         let proposedWidth = textView.bounds.width > 0 ? textView.bounds.width : UIScreen.main.bounds.width
         let size = textView.sizeThatFits(CGSize(width: proposedWidth, height: .greatestFiniteMagnitude))
@@ -188,6 +197,10 @@ struct ReadingSelectableTextView: UIViewRepresentable {
         var lastRenderedKind: ReadingMarkdownBlockKind = .paragraph
         var onSelectionChange: (String, Int, Int) -> Void
         var onSelectionCleared: () -> Void
+        /// Guards against re-entrant textViewDidChangeSelection calls triggered by
+        /// clearing selectedRange inside applyCommittedHighlight. All paths run on
+        /// DispatchQueue.main so there is no cross-thread race.
+        var isApplyingCommittedHighlight = false
         private var debounceWork: DispatchWorkItem?
 
         init(
@@ -199,7 +212,20 @@ struct ReadingSelectableTextView: UIViewRepresentable {
             self.onSelectionCleared = onSelectionCleared
         }
 
+        // MARK: - System edit menu suppression (iOS 18, deployment target)
+        // Returns nil to prevent UIEditMenuInteraction from showing the system
+        // copy/translate/look-up menu. VoiceOver's "speak selection" gesture is
+        // a separate mechanism and is not affected by this delegate method.
+        func textView(
+            _ textView: UITextView,
+            editMenuForTextIn range: NSRange,
+            suggestedActions: [UIMenuElement]
+        ) -> UIMenu? {
+            nil
+        }
+
         func textViewDidChangeSelection(_ textView: UITextView) {
+            guard !isApplyingCommittedHighlight else { return }
             debounceWork?.cancel()
             let nsRange = textView.selectedRange
             guard nsRange.length > 0 else {
