@@ -407,6 +407,30 @@ iPhone 上的管理类 sheet 常用于创建、编辑、重命名、配置少量
 - 关键操作的视觉反馈不能人为延长业务提交、阻塞主线程或制造假成功；如果保存很快完成，可以通过持久的 saved / failed 状态面板保持可见结果。
 - 操作反馈必须支持辅助功能：按钮执行中状态、结果标题、错误说明和可恢复路径应被 VoiceOver 识别，不能只靠颜色或转圈动画。
 
+### 4.19 图标按钮瞬态确认反馈
+
+图标按钮执行即时、不可逆但 UI 中**无可见结果变化**的动作（如复制、分享、导出到剪贴板）时，用户无法判断操作是否已完成。此类按钮必须使用瞬态确认反馈，在短暂成功状态后自动复位。
+
+**适用场景**：
+
+- 动作成功执行，但页面内容本身不会因此变化（复制文本、分享链接、导出到剪贴板）。
+- 按钮为图标按钮（无文字标签），结果歧义性更高。
+- 不适用：动作结果在 UI 中已明确可见（如折叠面板、删除行、切换 toggle），这些有内在反馈，无需图标切换。
+
+**规则**：
+
+1. **成功图标**：统一使用 `checkmark`，不为不同操作类型自定义不同成功图标。
+2. **成功状态颜色**：图标前景色切换为 `LangoTraceDesign.ColorToken.accent`，背景切换为 `surfaceAccentMuted`；默认状态使用 `textSecondary` 前景和 `surfaceMuted` 背景。
+3. **持续时长**：1.5 秒。足够用户感知，不阻断连续操作。
+4. **动画**：使用 `.snappy` 曲线驱动状态切换；图标符号使用 `.contentTransition(.symbolEffect(.replace))` 做替换动画（iOS 17+ / macOS 14+，符合当前部署目标）。
+5. **防重触发**：成功状态持续期间忽略重复点击（`guard !isSuccess else { return }`）。
+6. **可访问性**：`accessibilityLabel` 随状态切换，默认态使用"复制"，成功态使用"已复制"（各 locale 使用对应本地化 key `common.copy` / `common.copied`）。
+7. **提取为私有 View**：此模式应提取为独立私有 View 持有 `@State`，不内联在父 View 中，以免父 View 重绘导致 `@State` 被意外重置。
+
+**参考实现**：`ReadingViewComponents.swift` 中的 `ReadingCopyButton`（`ReadingCompactLearningPanel` 使用）。
+
+**扩展**：未来复制词条、导出句子、分享学习记录等同类图标按钮，均应复用此模式或提取为通用 `TransientConfirmButton` 组件。
+
 ## 5. 可演进部分
 
 - 多品牌或完整主题注册表。
@@ -475,4 +499,5 @@ AI 在创建或修改 UI 前应先确认：
 - 2026-05-23：补充 iPhone 状态反馈 sheet 规则。原因：AI Provider 测试结果面板曾误套任务型 sheet 的标题结构，造成顶部拥挤、调试表格感和禁用主按钮噪声；规范明确反馈型 sheet 用状态 chrome、grouped result card 和状态可用操作。影响范围：AI Provider 测试结果、保存 / 导出 / 同步结果反馈和后续状态面板。是否需要 ADR：否。
 - 2026-05-24：补充 AI Provider 测试结果完成态标题规则。原因：人工截图复查发现测试完成后把 `测试成功` 作为 sheet 顶部标题会显得局促且层级不稳；完成态应回到中性面板标题，具体可用性由 grouped capability rows 表达。影响范围：`AIProviderProbeResultPanelContent`、AI Provider 测试结果 sheet 和后续状态反馈面板。是否需要 ADR：否。
 - 2026-05-24：补充状态反馈 sheet 成功态操作权重规则。原因：AI Provider 测试成功后底部 prominent `重新测试` 按钮不是主路径，却增加高度并挤压顶部 chrome；成功态隐藏该按钮，非成功态保留重试恢复操作。影响范围：AI Provider 测试结果 sheet、保存 / 导出 / 同步反馈和后续状态反馈面板。是否需要 ADR：否。
+- 2026-06-06：新增 §4.19 图标按钮瞬态确认反馈规范。原因：阅读面板「复制」图标按钮实现暴露了图标按钮无可见结果时的反馈缺口；将 `checkmark` 切换 + 1.5s 自动复位 + `.symbolEffect(.replace)` + `guard !isSuccess` 防重触发 + 可访问 label 状态切换的组合沉淀为通用规则，以便后续复制词条、导出句子和分享场景复用。影响范围：`ReadingCopyButton`、后续图标操作按钮、未来 `TransientConfirmButton` 通用组件。是否需要 ADR：否，属于 UI 交互模式约束。
 - 2026-05-24：补充系统级设置详情标题规则。原因：AI Provider 配置属于跨语言空间系统级设置，内容区重复 `AI Provider` 和当前语言空间方向会误导归属并浪费首屏空间；导航标题保留，内容区直接进入表单。影响范围：`SettingsCapabilityDetailView`、AI Provider 设置页和后续系统级配置页。是否需要 ADR：否。

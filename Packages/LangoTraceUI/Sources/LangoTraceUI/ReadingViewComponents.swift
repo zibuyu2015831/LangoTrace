@@ -535,6 +535,50 @@ struct ReadingInspectorPane: View {
     }
 }
 
+// MARK: - Transient copy button
+
+/// Icon-only copy button that briefly switches to a checkmark on success.
+/// Conforms to the §4.19 transient icon confirmation pattern: 1.5 s success
+/// state, `.snappy` animation, `.symbolEffect(.replace)` icon transition,
+/// accent color in success state, re-trigger guard.
+private struct ReadingCopyButton: View {
+    let text: String
+    @State private var isCopied = false
+
+    var body: some View {
+        Button {
+            guard !isCopied else { return }
+            copyToPasteboard(text)
+            withAnimation(.snappy) { isCopied = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation(.snappy) { isCopied = false }
+            }
+        } label: {
+            Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(
+                    isCopied
+                        ? LangoTraceDesign.ColorToken.accent
+                        : LangoTraceDesign.ColorToken.textSecondary
+                )
+                .frame(width: 28, height: 28)
+                .background(
+                    isCopied
+                        ? LangoTraceDesign.ColorToken.surfaceAccentMuted
+                        : LangoTraceDesign.ColorToken.surfaceMuted
+                )
+                .clipShape(.circle)
+                .contentTransition(.symbolEffect(.replace))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(
+            isCopied
+                ? localizedString("common.copied")
+                : localizedString("common.copy")
+        )
+    }
+}
+
 struct ReadingCompactLearningPanel: View {
     let selection: ReadingSelectionContext
     let explanationResult: ReadingSelectionExplanationResult?
@@ -578,17 +622,7 @@ struct ReadingCompactLearningPanel: View {
                         .lineLimit(2)
                 }
                 Spacer()
-                Button {
-                    copyToPasteboard(selection.selectedText)
-                } label: {
-                    Image(systemName: "doc.on.doc")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                        .frame(width: 28, height: 28)
-                        .background(LangoTraceDesign.ColorToken.surfaceMuted)
-                        .clipShape(.circle)
-                }
-                .buttonStyle(.plain)
+                ReadingCopyButton(text: selection.selectedText)
                 Button(action: onClear) {
                     Image(systemName: "xmark")
                         .font(.footnote.weight(.semibold))
