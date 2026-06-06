@@ -249,10 +249,10 @@ struct ReadingLibraryView: View {
         .frame(maxWidth: presentation.style.readingWidth.points + 56, alignment: .leading)
         .background(LangoTraceDesign.ColorToken.surfacePanel)
         .overlay {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(LangoTraceDesign.ColorToken.borderSubtle)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -679,23 +679,18 @@ private struct ReadingDocumentHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(document.title)
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                    Text(localizedString("reading.library.subtitle"))
-                        .font(.callout)
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                }
+                Text(document.title)
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer(minLength: 0)
                 HStack(spacing: 8) {
                     Text(document.sourceFormat.rawValue)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(LangoTraceDesign.ColorToken.surfaceBase)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(LangoTraceDesign.ColorToken.surfaceMuted)
                         .clipShape(.capsule)
                     if let onEdit {
                         Button(action: onEdit) {
@@ -870,10 +865,10 @@ private struct ReadingEmptyLibraryCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(LangoTraceDesign.ColorToken.surfaceBase)
         .overlay {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(LangoTraceDesign.ColorToken.borderSubtle)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
 
@@ -895,14 +890,14 @@ private struct ReadingReaderEmptyState: View {
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
             }
         }
-        .padding(28)
+        .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(LangoTraceDesign.ColorToken.surfacePanel)
         .overlay {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(LangoTraceDesign.ColorToken.borderSubtle)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
 

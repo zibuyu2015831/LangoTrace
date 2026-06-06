@@ -74,7 +74,7 @@ struct ReadingLibraryDocumentRow: View {
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .fill(
                         isSelected
                             ? LangoTraceDesign.ColorToken.surfacePanel
@@ -82,14 +82,14 @@ struct ReadingLibraryDocumentRow: View {
                     )
             )
             .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .stroke(
                         isSelected
-                            ? LangoTraceDesign.ColorToken.textSecondary
+                            ? LangoTraceDesign.ColorToken.accent.opacity(0.4)
                             : LangoTraceDesign.ColorToken.borderSubtle
                     )
             }
-            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityHint(localizedString("tab.reading"))
@@ -400,30 +400,37 @@ struct ReadingInspectorPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(localizedString("reading.inspector.title"))
                     .font(.headline)
-                Text(localizedString("reading.inspector.body"))
-                    .font(.callout)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                if selection == nil {
+                    Text(localizedString("reading.inspector.body"))
+                        .font(.callout)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                }
             }
 
             if let selection {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(selection.scopeTitle)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text(selection.scopeTitle)
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
+                            .clipShape(Capsule())
+                        Spacer()
+                    }
                     Text(selection.selectedText)
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                    Text(selection.contextModeTitle)
-                        .font(.caption)
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        .lineLimit(4)
                 }
-                .padding(14)
+                .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(LangoTraceDesign.ColorToken.surfacePanel)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .background(LangoTraceDesign.ColorToken.surfaceSelected)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 HStack(spacing: 10) {
                     Button(action: onExplain) {
@@ -459,25 +466,16 @@ struct ReadingInspectorPane: View {
                     result: explanationResult,
                     state: explanationState
                 )
-            } else {
-                emptyBody
             }
         }
-        .padding(18)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(LangoTraceDesign.ColorToken.surfaceBase)
         .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(LangoTraceDesign.ColorToken.borderSubtle)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-    }
-
-    private var emptyBody: some View {
-        Text(localizedString("reading.inspector.body"))
-            .font(.callout)
-            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-    }
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 }
 
 struct ReadingCompactLearningPanel: View {
@@ -491,18 +489,23 @@ struct ReadingCompactLearningPanel: View {
     let onClear: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 0) {
             Capsule()
                 .fill(LangoTraceDesign.ColorToken.borderSubtle)
-                .frame(width: 44, height: 5)
+                .frame(width: 36, height: 4)
                 .frame(maxWidth: .infinity)
-                .padding(.top, 4)
+                .padding(.top, 10)
+                .padding(.bottom, 14)
 
             HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 5) {
                     Text(selection.scopeTitle)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
+                        .clipShape(Capsule())
                     Text(selection.selectedText)
                         .font(.title3.weight(.semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
@@ -513,12 +516,13 @@ struct ReadingCompactLearningPanel: View {
                     Image(systemName: "xmark")
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                        .frame(width: 32, height: 32)
-                        .background(LangoTraceDesign.ColorToken.surfacePanel)
+                        .frame(width: 28, height: 28)
+                        .background(LangoTraceDesign.ColorToken.surfaceMuted)
                         .clipShape(.circle)
                 }
                 .buttonStyle(.plain)
             }
+            .padding(.horizontal, 20)
 
             HStack(spacing: 10) {
                 Button(action: onExplain) {
@@ -532,9 +536,9 @@ struct ReadingCompactLearningPanel: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 20)
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
                 .disabled(explanationState == .loading)
 
                 Button(action: onListen) {
@@ -547,25 +551,28 @@ struct ReadingCompactLearningPanel: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 20)
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.regular)
                 .disabled(audioState == .loading)
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
 
             ReadingExplanationResultView(
                 result: panelState == .content ? explanationResult : nil,
                 state: panelState == .loading ? .loading : (panelState == .failed ? .failed : .idle)
             )
+            .padding(.horizontal, 20)
+            .padding(.top, 12)
+
+            Spacer().frame(height: 24)
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 24)
-        .padding(.top, 12)
         .background(.ultraThinMaterial)
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(LangoTraceDesign.ColorToken.borderSubtle)
-                .frame(height: 1)
+                .frame(height: 0.5)
         }
     }
 }
@@ -592,50 +599,49 @@ struct ReadingExplanationResultView: View {
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else if let result {
-                VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 12) {
                     Text(result.shortExplanation)
                         .font(.callout)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(.bottom, 12)
 
-                    Divider()
-                        .padding(.bottom, 10)
+                    let hasMetadata = !result.meaningInNativeLanguage.isEmpty
+                        || result.grammaticalNote?.isEmpty == false
+                        || !result.usageNote.isEmpty
+                        || !result.exampleSentence.isEmpty
+                    if hasMetadata {
+                        Divider()
 
-                    ReadingResultRow(
-                        label: localizedString("reading.result.translation"),
-                        value: result.meaningInNativeLanguage
-                    )
-
-                    if let grammar = result.grammaticalNote, !grammar.isEmpty {
-                        ReadingResultRow(
-                            label: localizedString("reading.result.grammar"),
-                            value: grammar
-                        )
-                    }
-
-                    if !result.usageNote.isEmpty {
-                        ReadingResultRow(
-                            label: localizedString("reading.result.usage"),
-                            value: result.usageNote
-                        )
-                    }
-
-                    if !result.exampleSentence.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(localizedString("reading.result.example"))
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                            Text(result.exampleSentence)
-                                .font(.callout)
-                                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                                .italic()
-                                .fixedSize(horizontal: false, vertical: true)
+                        VStack(alignment: .leading, spacing: 6) {
+                            if !result.meaningInNativeLanguage.isEmpty {
+                                ReadingResultRow(
+                                    label: localizedString("reading.result.translation"),
+                                    value: result.meaningInNativeLanguage
+                                )
+                            }
+                            if let grammar = result.grammaticalNote, !grammar.isEmpty {
+                                ReadingResultRow(
+                                    label: localizedString("reading.result.grammar"),
+                                    value: grammar
+                                )
+                            }
+                            if !result.usageNote.isEmpty {
+                                ReadingResultRow(
+                                    label: localizedString("reading.result.usage"),
+                                    value: result.usageNote
+                                )
+                            }
+                            if !result.exampleSentence.isEmpty {
+                                ReadingResultRow(
+                                    label: localizedString("reading.result.example"),
+                                    value: result.exampleSentence,
+                                    isItalic: true
+                                )
+                            }
                         }
-                        .padding(.top, 4)
                     }
                 }
-                .padding(14)
+                .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(LangoTraceDesign.ColorToken.surfacePanel)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -647,6 +653,7 @@ struct ReadingExplanationResultView: View {
 private struct ReadingResultRow: View {
     let label: String
     let value: String
+    var isItalic = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -656,10 +663,14 @@ private struct ReadingResultRow: View {
                 .frame(minWidth: 36, alignment: .leading)
             Text(value)
                 .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                .italic(isItalic)
+                .foregroundStyle(
+                    isItalic
+                        ? LangoTraceDesign.ColorToken.textSecondary
+                        : LangoTraceDesign.ColorToken.textPrimary
+                )
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.bottom, 6)
     }
 }
 
