@@ -347,6 +347,37 @@ struct ReadingTextSegmentationTests {
         #expect(longContext.contextMode != .fullDocument)
     }
 
+    @Test("fragment selection context with empty sentence array falls back to block text")
+    func fragmentSelectionContextWithEmptySentencesUsesBlockText() {
+        let blockText = "Some text without precomputed segments."
+        let blockID = "block-x"
+        let paragraphs = ReadingTextSegmenter.segmentParagraphs(
+            blockText,
+            documentID: "doc-1",
+            contentRevision: 1
+        )
+
+        let context = ReadingTextSegmenter.makeFragmentSelectionContext(
+            selectedText: "text",
+            blockID: blockID,
+            characterOffset: 5,
+            characterLength: 4,
+            precomputedSentences: [],
+            documentID: "doc-1",
+            contentRevision: 1,
+            structureVersion: 1,
+            paragraphs: paragraphs,
+            fullDocumentText: blockText
+        )
+
+        #expect(context.selectionScope == .textFragment)
+        #expect(context.selectedText == "text")
+        #expect(context.sentenceID == "\(blockID)-fragment")
+        #expect(context.containingSentence == blockText.trimmingCharacters(in: .whitespacesAndNewlines))
+        #expect(context.previousSentence == nil)
+        #expect(context.nextSentence == nil)
+    }
+
     @Test("sentence segmentation produces continuous non-overlapping character offsets")
     func sentenceSegmentationProducesContinuousCharacterOffsets() {
         let blockText = "The old clocktower had been silent for fifty years. Leo wanted to solve the mystery. He climbed the stairs at midnight."

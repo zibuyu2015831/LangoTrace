@@ -101,6 +101,7 @@ Reading library and document stores must guard asynchronous import, load, update
 
 ## Change Log
 
+- 2026-06-06: Rewrote §5 Selection And Source Anchor. Text selection is now UITextView (iOS/iPadOS) / NSTextView (macOS) per Markdown block; sentence-button rendering is retired. `makeFragmentSelectionContext(precomputedSentences:)` added; pre-computed sentences remain a data-layer resource for AI context. 150 ms debounce in coordinator; ≥2 non-whitespace character minimum to trigger the learning panel. Persistent yellow highlight written back to UITextView/NSTextView after selection triggers the panel. Panel slide-in/out animation added to compact learning panel.
 - 2026-06-03: Clarified that `ReadingDocument` is user-owned primary data and must default to a full lifecycle design rather than import-only behavior.
 - 2026-06-03: Updated the current slice facts after landing ReadingDocument title/body editing, controlled editor entry and revision-based stale invalidation.
 - 2026-06-03: Updated the selection and presentation contract to sentence-first reading actions, dynamic context modes and non-modal compact learning panel delivery.
