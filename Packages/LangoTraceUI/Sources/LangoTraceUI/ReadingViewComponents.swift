@@ -517,6 +517,7 @@ struct ReadingInspectorPane: View {
                 .stroke(LangoTraceDesign.ColorToken.borderSubtle)
         }
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
 }
 
 struct ReadingCompactLearningPanel: View {
