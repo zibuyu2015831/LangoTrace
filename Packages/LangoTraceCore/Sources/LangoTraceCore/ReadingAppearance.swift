@@ -7,6 +7,7 @@ public enum ReadingTypographyRole: Equatable, Hashable, Sendable {
 }
 
 public enum ReadingInlineRole: Equatable, Hashable, Sendable {
+    case plain
     case link
     case inlineCode
     case emphasis
@@ -54,7 +55,7 @@ public struct ReadingAppearanceProfile: Equatable, Sendable {
             .listItem,
             .codeBlock,
         ],
-        inlineRoles: [.link, .inlineCode, .emphasis, .strong],
+        inlineRoles: [.plain, .link, .inlineCode, .emphasis, .strong],
         colorRoles: [
             .background,
             .foreground,

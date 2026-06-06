@@ -1,4 +1,5 @@
 import Foundation
+import LangoTraceCore
 import SwiftUI
 
 // MARK: - Selection filter
@@ -29,8 +30,13 @@ import UIKit
 
 /// A SwiftUI-hosted UITextView that exposes system text selection events via callbacks.
 /// One instance is created per Markdown block. `isEditable = false`, `isSelectable = true`.
+/// Uses NSAttributedString for block-kind-aware typography (headings, body, blockquote, code)
+/// and inline styling (bold, italic, code spans).
 struct ReadingSelectableTextView: UIViewRepresentable {
     let blockText: String
+    let blockKind: ReadingMarkdownBlockKind
+    let inlineRuns: [ReadingInlinePresentation]
+    let lineSpacing: Double
     let committedHighlightRange: NSRange?
     var onSelectionChange: (String, Int, Int) -> Void
     var onSelectionCleared: () -> Void
@@ -57,16 +63,27 @@ struct ReadingSelectableTextView: UIViewRepresentable {
     }
 
     func updateUIView(_ textView: UITextView, context: Context) {
-        if textView.text != blockText {
-            textView.text = blockText
-        }
-        context.coordinator.blockText = blockText
         context.coordinator.onSelectionChange = onSelectionChange
         context.coordinator.onSelectionCleared = onSelectionCleared
 
+        let needsRebuild =
+            context.coordinator.lastRenderedText != blockText
+            || context.coordinator.lastRenderedKind != blockKind
+        if needsRebuild {
+            let attrStr = Self.makeAttributedString(
+                text: blockText,
+                kind: blockKind,
+                inlineRuns: inlineRuns,
+                lineSpacing: lineSpacing
+            )
+            textView.attributedText = attrStr
+            context.coordinator.lastRenderedText = blockText
+            context.coordinator.lastRenderedKind = blockKind
+        }
+        context.coordinator.blockText = blockText
+
         applyCommittedHighlight(to: textView)
 
-        // Compute intrinsic height so SwiftUI can size the view correctly
         let proposedWidth = textView.bounds.width > 0 ? textView.bounds.width : UIScreen.main.bounds.width
         let size = textView.sizeThatFits(CGSize(width: proposedWidth, height: .greatestFiniteMagnitude))
         if abs(size.height - height) > 0.5 {
@@ -75,18 +92,96 @@ struct ReadingSelectableTextView: UIViewRepresentable {
     }
 
     private func applyCommittedHighlight(to textView: UITextView) {
-        // Clear any prior highlight attributes
-        let fullRange = NSRange(location: 0, length: (textView.text as NSString).length)
-        textView.textStorage.removeAttribute(.backgroundColor, range: fullRange)
+        let storage = textView.textStorage
+        let fullRange = NSRange(location: 0, length: storage.length)
+        storage.removeAttribute(.backgroundColor, range: fullRange)
 
         if let range = committedHighlightRange {
-            let highlightColor = UIColor.systemYellow.withAlphaComponent(0.35)
-            textView.textStorage.addAttribute(.backgroundColor, value: highlightColor, range: range)
+            let highlight = UIColor.systemYellow.withAlphaComponent(0.35)
+            storage.addAttribute(.backgroundColor, value: highlight, range: range)
+        }
+    }
+
+    // MARK: - Attributed string construction
+
+    static func makeAttributedString(
+        text: String,
+        kind: ReadingMarkdownBlockKind,
+        inlineRuns: [ReadingInlinePresentation],
+        lineSpacing: Double
+    ) -> NSAttributedString {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = CGFloat(lineSpacing)
+
+        let baseFont = blockFont(for: kind)
+        let baseColor: UIColor = kind == .blockquote ? .secondaryLabel : .label
+
+        let runsText = inlineRuns.map(\.text).joined()
+        if !inlineRuns.isEmpty, runsText == text {
+            let result = NSMutableAttributedString()
+            for run in inlineRuns {
+                let font = inlineFont(role: run.role, base: baseFont)
+                let color = run.role == .link ? UIColor.link : baseColor
+                var attrs: [NSAttributedString.Key: Any] = [
+                    .font: font,
+                    .foregroundColor: color,
+                    .paragraphStyle: paragraphStyle,
+                ]
+                if run.role == .inlineCode {
+                    attrs[.backgroundColor] = UIColor.systemGray6
+                }
+                result.append(NSAttributedString(string: run.text, attributes: attrs))
+            }
+            return result
+        }
+
+        return NSAttributedString(string: text, attributes: [
+            .font: baseFont,
+            .foregroundColor: baseColor,
+            .paragraphStyle: paragraphStyle,
+        ])
+    }
+
+    private static func blockFont(for kind: ReadingMarkdownBlockKind) -> UIFont {
+        switch kind {
+        case let .heading(level):
+            switch level {
+            case 1:
+                return UIFont.preferredFont(forTextStyle: .title2).withSymbolicTraits(.traitBold)
+            case 2:
+                return UIFont.preferredFont(forTextStyle: .title3).withSymbolicTraits(.traitBold)
+            default:
+                return UIFont.preferredFont(forTextStyle: .headline)
+            }
+        case .blockquote:
+            return UIFont.preferredFont(forTextStyle: .body).withSymbolicTraits(.traitItalic)
+        case .codeBlock:
+            return UIFont.monospacedSystemFont(
+                ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize - 1,
+                weight: .regular
+            )
+        default:
+            return UIFont.preferredFont(forTextStyle: .body)
+        }
+    }
+
+    private static func inlineFont(role: ReadingInlineRole, base: UIFont) -> UIFont {
+        switch role {
+        case .plain, .link:
+            return base
+        case .emphasis:
+            return base.withSymbolicTraits(.traitItalic)
+        case .strong:
+            return base.withSymbolicTraits(.traitBold)
+        case .inlineCode:
+            return UIFont.monospacedSystemFont(ofSize: base.pointSize - 1, weight: .regular)
         }
     }
 
     final class Coordinator: NSObject, UITextViewDelegate {
         var blockText: String
+        var lastRenderedText: String = ""
+        var lastRenderedKind: ReadingMarkdownBlockKind = .paragraph
         var onSelectionChange: (String, Int, Int) -> Void
         var onSelectionCleared: () -> Void
         private var debounceWork: DispatchWorkItem?
@@ -122,13 +217,24 @@ struct ReadingSelectableTextView: UIViewRepresentable {
     }
 }
 
+private extension UIFont {
+    func withSymbolicTraits(_ traits: UIFontDescriptor.SymbolicTraits) -> UIFont {
+        let descriptor = fontDescriptor.withSymbolicTraits(traits) ?? fontDescriptor
+        return UIFont(descriptor: descriptor, size: pointSize)
+    }
+}
+
 #elseif canImport(AppKit)
 import AppKit
 
 /// A SwiftUI-hosted NSTextView that exposes system text selection events via callbacks.
 /// Does NOT wrap in NSScrollView — SwiftUI manages layout and scrolling.
+/// Uses NSAttributedString for block-kind-aware typography and inline styling.
 struct ReadingSelectableTextView: NSViewRepresentable {
     let blockText: String
+    let blockKind: ReadingMarkdownBlockKind
+    let inlineRuns: [ReadingInlinePresentation]
+    let lineSpacing: Double
     let committedHighlightRange: NSRange?
     var onSelectionChange: (String, Int, Int) -> Void
     var onSelectionCleared: () -> Void
@@ -163,12 +269,24 @@ struct ReadingSelectableTextView: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSTextView, context: Context) {
-        if nsView.string != blockText {
-            nsView.string = blockText
-        }
-        context.coordinator.blockText = blockText
         context.coordinator.onSelectionChange = onSelectionChange
         context.coordinator.onSelectionCleared = onSelectionCleared
+
+        let needsRebuild =
+            context.coordinator.lastRenderedText != blockText
+            || context.coordinator.lastRenderedKind != blockKind
+        if needsRebuild {
+            let attrStr = Self.makeAttributedString(
+                text: blockText,
+                kind: blockKind,
+                inlineRuns: inlineRuns,
+                lineSpacing: lineSpacing
+            )
+            nsView.textStorage?.setAttributedString(attrStr)
+            context.coordinator.lastRenderedText = blockText
+            context.coordinator.lastRenderedKind = blockKind
+        }
+        context.coordinator.blockText = blockText
 
         applyCommittedHighlight(to: nsView)
     }
@@ -179,12 +297,90 @@ struct ReadingSelectableTextView: NSViewRepresentable {
         storage.removeAttribute(.backgroundColor, range: fullRange)
 
         if let range = committedHighlightRange {
-            storage.addAttribute(.backgroundColor, value: NSColor.systemYellow.withAlphaComponent(0.35), range: range)
+            storage.addAttribute(
+                .backgroundColor,
+                value: NSColor.systemYellow.withAlphaComponent(0.35),
+                range: range
+            )
+        }
+    }
+
+    // MARK: - Attributed string construction
+
+    static func makeAttributedString(
+        text: String,
+        kind: ReadingMarkdownBlockKind,
+        inlineRuns: [ReadingInlinePresentation],
+        lineSpacing: Double
+    ) -> NSAttributedString {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = CGFloat(lineSpacing)
+
+        let baseFont = blockFont(for: kind)
+        let baseColor: NSColor = kind == .blockquote ? .secondaryLabelColor : .labelColor
+
+        let runsText = inlineRuns.map(\.text).joined()
+        if !inlineRuns.isEmpty, runsText == text {
+            let result = NSMutableAttributedString()
+            for run in inlineRuns {
+                let font = inlineFont(role: run.role, base: baseFont)
+                let color = run.role == .link ? NSColor.linkColor : baseColor
+                var attrs: [NSAttributedString.Key: Any] = [
+                    .font: font,
+                    .foregroundColor: color,
+                    .paragraphStyle: paragraphStyle,
+                ]
+                if run.role == .inlineCode {
+                    attrs[.backgroundColor] = NSColor.windowBackgroundColor
+                }
+                result.append(NSAttributedString(string: run.text, attributes: attrs))
+            }
+            return result
+        }
+
+        return NSAttributedString(string: text, attributes: [
+            .font: baseFont,
+            .foregroundColor: baseColor,
+            .paragraphStyle: paragraphStyle,
+        ])
+    }
+
+    private static func blockFont(for kind: ReadingMarkdownBlockKind) -> NSFont {
+        let bodySize = NSFont.systemFontSize
+        switch kind {
+        case let .heading(level):
+            switch level {
+            case 1: return NSFont.boldSystemFont(ofSize: bodySize + 6)
+            case 2: return NSFont.boldSystemFont(ofSize: bodySize + 3)
+            default: return NSFont.boldSystemFont(ofSize: bodySize + 1)
+            }
+        case .blockquote:
+            let base = NSFont.systemFont(ofSize: bodySize)
+            return NSFontManager.shared.convert(base, toHaveTrait: .italicFontMask)
+        case .codeBlock:
+            return NSFont.monospacedSystemFont(ofSize: bodySize - 1, weight: .regular)
+        default:
+            return NSFont.systemFont(ofSize: bodySize)
+        }
+    }
+
+    private static func inlineFont(role: ReadingInlineRole, base: NSFont) -> NSFont {
+        switch role {
+        case .plain, .link:
+            return base
+        case .emphasis:
+            return NSFontManager.shared.convert(base, toHaveTrait: .italicFontMask)
+        case .strong:
+            return NSFontManager.shared.convert(base, toHaveTrait: .boldFontMask)
+        case .inlineCode:
+            return NSFont.monospacedSystemFont(ofSize: base.pointSize - 1, weight: .regular)
         }
     }
 
     final class Coordinator: NSObject {
         var blockText: String
+        var lastRenderedText: String = ""
+        var lastRenderedKind: ReadingMarkdownBlockKind = .paragraph
         var onSelectionChange: (String, Int, Int) -> Void
         var onSelectionCleared: () -> Void
         weak var textView: NSTextView?
@@ -201,7 +397,7 @@ struct ReadingSelectableTextView: NSViewRepresentable {
 
         @objc func selectionDidChange(_ notification: Notification) {
             debounceWork?.cancel()
-            guard let textView = textView else { return }
+            guard let textView else { return }
             let nsRange = textView.selectedRange()
             guard nsRange.length > 0 else {
                 onSelectionCleared()

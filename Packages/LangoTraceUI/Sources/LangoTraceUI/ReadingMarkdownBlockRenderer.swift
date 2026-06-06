@@ -96,7 +96,7 @@ public enum ReadingMarkdownBlockRenderer {
     private static func inlinePresentation(for run: ReadingInlineRun) -> ReadingInlinePresentation {
         let role: ReadingInlineRole = switch run.kind {
         case .plain:
-            .emphasis
+            .plain
         case .emphasis:
             .emphasis
         case .strong:

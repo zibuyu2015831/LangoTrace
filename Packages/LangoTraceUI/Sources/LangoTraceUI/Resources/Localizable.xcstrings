@@ -3831,169 +3831,409 @@
     "languageSpace.switcher.add": {
       "comment": "Add learning language action in the phone language space switcher.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Add Learning Language" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "添加学习语言" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Learning Language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加学习语言"
+          }
+        }
       }
     },
     "languageSpace.switcher.allSection": {
       "comment": "All language spaces section title in the phone switcher.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "All Language Spaces" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "所有语言空间" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Language Spaces"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有语言空间"
+          }
+        }
       }
     },
     "languageSpace.switcher.currentBadge": {
       "comment": "Current language space badge in the phone switcher.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Current" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前"
+          }
+        }
       }
     },
     "languageSpace.switcher.headerSummary": {
       "comment": "Short header summary for the phone language space switcher.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Switch the learning context for records, practice, and memory." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "切换记录、练习和记忆使用的学习上下文。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch the learning context for records, practice, and memory."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换记录、练习和记忆使用的学习上下文。"
+          }
+        }
       }
     },
     "languageSpace.switcher.localFirstFootnote": {
       "comment": "Local-first footnote in the phone language space switcher.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Your data stays on this device by default. Switching spaces does not change the app interface language." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "数据默认保存在本机。切换语言空间不会改变 App 界面语言。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your data stays on this device by default. Switching spaces does not change the app interface language."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据默认保存在本机。切换语言空间不会改变 App 界面语言。"
+          }
+        }
       }
     },
     "languageSpace.switcher.manage": {
       "comment": "Manage language spaces action in the phone switcher.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Manage Language Spaces" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "管理语言空间" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage Language Spaces"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理语言空间"
+          }
+        }
       }
     },
     "languageSpace.switcher.title": {
       "comment": "Phone language space switcher title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Language Spaces" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语言空间" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language Spaces"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言空间"
+          }
+        }
       }
     },
     "settings.languageSpace.management.add": {
       "comment": "Add language space action.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Add Space" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "新增空间" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增空间"
+          }
+        }
       }
     },
     "settings.languageSpace.management.allSection": {
       "comment": "All language spaces section title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "All Language Spaces" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "所有语言空间" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Language Spaces"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有语言空间"
+          }
+        }
       }
     },
     "settings.languageSpace.management.currentBadge": {
       "comment": "Current language space badge.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Current" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前"
+          }
+        }
       }
     },
     "settings.languageSpace.management.currentSection": {
       "comment": "Current language space section title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Current Space" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前空间" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current Space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前空间"
+          }
+        }
       }
     },
     "settings.languageSpace.management.delete": {
       "comment": "Delete language space action.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Delete" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "删除" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
       }
     },
     "settings.languageSpace.management.deleteCurrentFallbackMessage": {
       "comment": "Delete current language space fallback message.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "This space will be removed from the active list. LangoTrace will switch to your most recently used remaining space." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "该空间会从当前列表移除。语迹会切换到最近使用的其他空间。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This space will be removed from the active list. LangoTrace will switch to your most recently used remaining space."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该空间会从当前列表移除。语迹会切换到最近使用的其他空间。"
+          }
+        }
       }
     },
     "settings.languageSpace.management.deleteLastSpaceMessage": {
       "comment": "Delete final language space message.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "This space will be removed from the active list. This version has no restore entry, and you will return to the language-space creation flow." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "该空间会从当前列表移除。当前版本没有恢复入口，删除后会回到创建语言空间流程。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This space will be removed from the active list. This version has no restore entry, and you will return to the language-space creation flow."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该空间会从当前列表移除。当前版本没有恢复入口，删除后会回到创建语言空间流程。"
+          }
+        }
       }
     },
     "settings.languageSpace.management.deleteMessage": {
       "comment": "Delete language space message.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "This space will be removed from the active list. This version has no restore entry." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "该空间会从当前列表移除。当前版本没有恢复入口。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This space will be removed from the active list. This version has no restore entry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该空间会从当前列表移除。当前版本没有恢复入口。"
+          }
+        }
       }
     },
     "settings.languageSpace.management.deleteTitle": {
       "comment": "Delete language space confirmation title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Delete Language Space?" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "删除语言空间？" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Language Space?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除语言空间？"
+          }
+        }
       }
     },
     "settings.languageSpace.management.duplicateNameWarning": {
       "comment": "Duplicate language space name warning.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "A space with this name already exists. You can still save it." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已有同名空间，仍可继续保存。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A space with this name already exists. You can still save it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有同名空间，仍可继续保存。"
+          }
+        }
       }
     },
     "settings.languageSpace.management.edit": {
       "comment": "Edit language space action.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Edit" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "编辑" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑"
+          }
+        }
       }
     },
     "settings.languageSpace.management.editTitle": {
       "comment": "Edit language space sheet title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Edit Space" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "编辑空间" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑空间"
+          }
+        }
       }
     },
     "settings.languageSpace.management.name": {
       "comment": "Language space name field label.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Space Name" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "空间名称" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space Name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间名称"
+          }
+        }
       }
     },
     "settings.languageSpace.management.noSpacesBody": {
       "comment": "No language spaces empty body.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Create a language space to start saving your learning context locally." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "创建语言空间后，语迹会在本地保存你的学习上下文。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a language space to start saving your learning context locally."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建语言空间后，语迹会在本地保存你的学习上下文。"
+          }
+        }
       }
     },
     "settings.languageSpace.management.noSpacesTitle": {
       "comment": "No language spaces empty title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No Language Spaces" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂无语言空间" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Language Spaces"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无语言空间"
+          }
+        }
       }
     },
     "settings.languageSpace.management.selectSpacePrompt": {
       "comment": "Prompt to select a language space.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Select a language space." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请选择一个语言空间。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a language space."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择一个语言空间。"
+          }
+        }
       }
     },
     "settings.languageSpace.management.title": {
       "comment": "Language space management title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Language Spaces" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语言空间" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language Spaces"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言空间"
+          }
+        }
       }
     },
     "settings.languageSpace.nextRequirement": {
@@ -14685,288 +14925,698 @@
     "aiProviderSettings.testState.testing": {
       "comment": "Testing state for AI provider synthetic request.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Testing request" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在测试" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testing request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在测试"
+          }
+        }
       }
     },
     "aiProviderSettings.testState.succeeded": {
       "comment": "Succeeded state for AI provider synthetic request.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Test succeeded" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试成功" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test succeeded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试成功"
+          }
+        }
       }
     },
     "aiProviderSettings.testState.partial": {
       "comment": "Partial state for AI provider synthetic request.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Partially available" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "部分可用" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partially available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分可用"
+          }
+        }
       }
     },
     "aiProviderSettings.testState.failed": {
       "comment": "Failed state for AI provider synthetic request.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Test failed" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试失败" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试失败"
+          }
+        }
       }
     },
     "aiProviderSettings.testState.cancelled": {
       "comment": "Cancelled state for AI provider synthetic request.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Test cancelled" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试已取消" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试已取消"
+          }
+        }
       }
     },
     "aiProviderSettings.testState.unsupportedProvider": {
       "comment": "Unsupported provider state for first-phase AI provider synthetic request.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Provider test not supported yet" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前 Provider 暂不支持测试" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider test not supported yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前 Provider 暂不支持测试"
+          }
+        }
       }
     },
     "aiProviderSettings.probeResult.title": {
       "comment": "Title for AI provider probe result panel.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Test request" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试请求" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试请求"
+          }
+        }
       }
     },
     "aiProviderSettings.probeResult.retry": {
       "comment": "Retry button title for AI provider probe result panel.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Test again" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重新测试" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新测试"
+          }
+        }
       }
     },
     "aiProviderSettings.probeResult.close": {
       "comment": "Close button accessibility title for AI provider probe result panel.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Close" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "关闭" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapability.textReply": {
       "comment": "Capability row title for text reply probe.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Text reply" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "文本回复" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text reply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文本回复"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapability.structuredJSON": {
       "comment": "Capability row title for structured JSON probe.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "JSON output" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "JSON 输出" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON output"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON 输出"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapability.languageSupport": {
       "comment": "Capability row title for target language support probe.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Language support" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语言支持" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言支持"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapability.imageUnderstanding": {
       "comment": "Capability row title for image understanding probe.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Image understanding" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "图片理解" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image understanding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片理解"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapability.speechSynthesis": {
       "comment": "Capability row title for speech synthesis probe.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Speech generation" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语音生成" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech generation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音生成"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapability.speechPreview": {
       "comment": "Accessibility label for the speech synthesis preview playback button.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Play test voice" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "试听测试语音" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play test voice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试听测试语音"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapability.embedding": {
       "comment": "Capability row title for embedding probe.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Embedding" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "向量化" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embedding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向量化"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityStatus.notConfigured": {
       "comment": "Capability status for not configured.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Not configured" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未配置" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未配置"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityStatus.notEnabled": {
       "comment": "Capability status for not enabled.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Not enabled" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未启用" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not enabled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未启用"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityStatus.testing": {
       "comment": "Capability status for testing.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Testing" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试中" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试中"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityStatus.succeeded": {
       "comment": "Capability status for succeeded.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Available" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可用" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityStatus.failed": {
       "comment": "Capability status for failed.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Issue" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "异常" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "异常"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.missingCredential": {
       "comment": "Capability failure status when no credential is available.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Missing key" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "缺少密钥" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missing key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺少密钥"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.credentialInaccessible": {
       "comment": "Capability failure status when the stored credential cannot be read.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Key unavailable" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "密钥不可用" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密钥不可用"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.networkUnavailable": {
       "comment": "Capability failure status for network errors.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Network issue" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "网络异常" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network issue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络异常"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.timeout": {
       "comment": "Capability failure status for request timeouts.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Timed out" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请求超时" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timed out"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求超时"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.providerRejected": {
       "comment": "Capability failure status when the provider rejects the request.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Rejected" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请求被拒" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求被拒"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.authenticationFailed": {
       "comment": "Capability failure status for provider authentication failure.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Auth failed" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "认证失败" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auth failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "认证失败"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.unsupportedModel": {
       "comment": "Capability failure status when the provider reports an unsupported model or path.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Model unavailable" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "模型不可用" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型不可用"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.unsupportedEndpointPurpose": {
       "comment": "Capability failure status when the endpoint purpose is not supported by the current probe.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Not supported" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂不支持" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not supported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.invalidResponse": {
       "comment": "Capability failure status for malformed or unexpected provider responses.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Invalid response" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "响应异常" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid response"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "响应异常"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.invalidAudioResponse": {
       "comment": "Capability failure status for invalid audio responses.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Invalid audio" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "音频异常" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid audio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音频异常"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.invalidVoice": {
       "comment": "Capability failure status when the selected TTS voice is invalid.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Check voice" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "检查音色" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check voice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查音色"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.unsupportedLanguage": {
       "comment": "Capability failure status when the current TTS voice or route does not support the target language.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Language unsupported" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语言不支持" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language unsupported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言不支持"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.unsupportedAudioFormat": {
       "comment": "Capability failure status when the returned TTS audio format is unsupported.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Format unsupported" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "格式不支持" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format unsupported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "格式不支持"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.audioDecodeFailed": {
       "comment": "Capability failure status when TTS audio cannot be decoded.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Decode failed" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "解码失败" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decode failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解码失败"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.rateLimited": {
       "comment": "Capability failure status when the provider rate limits the TTS request.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Rate limited" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请求受限" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rate limited"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求受限"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.quotaExceeded": {
       "comment": "Capability failure status when the provider quota is exhausted.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Quota exceeded" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "额度不足" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quota exceeded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "额度不足"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityError.invalidEmbeddingResponse": {
       "comment": "Capability failure status for invalid embedding responses.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Invalid vectors" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "向量异常" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid vectors"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向量异常"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityStatus.cancelled": {
       "comment": "Capability status for cancelled.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Cancelled" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已取消" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityStatus.unsupported": {
       "comment": "Capability status for unsupported.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Not supported yet" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂不支持测试" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not supported yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持测试"
+          }
+        }
       }
     },
     "aiProviderSettings.probeCapabilityStatus.notRun": {
       "comment": "Capability status for not run.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Not run" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未测试" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not run"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未测试"
+          }
+        }
       }
     },
     "aiProviderSettings.ttsModel.title": {
@@ -15346,960 +15996,1484 @@
     "syncSettings.s3.accessKey.title": {
       "comment": "S3 access key field label.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Access Key ID" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Access Key ID" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access Key ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access Key ID"
+          }
+        }
       }
     },
     "syncSettings.s3.bucket.title": {
       "comment": "S3 bucket field label.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Bucket" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Bucket" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bucket"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bucket"
+          }
+        }
       }
     },
     "syncSettings.s3.close": {
       "comment": "Close button for object storage draft.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Back to sync settings" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "返回同步设置" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to sync settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回同步设置"
+          }
+        }
       }
     },
     "syncSettings.s3.connection.title": {
       "comment": "S3 connection section title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Connection draft" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "连接草稿" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接草稿"
+          }
+        }
       }
     },
     "syncSettings.s3.endpoint.title": {
       "comment": "S3 endpoint field label.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Endpoint" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Endpoint" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endpoint"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endpoint"
+          }
+        }
       }
     },
     "syncSettings.s3.header.body": {
       "comment": "Object storage draft header body.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Create a local preview for AWS S3, Cloudflare R2, MinIO, or a custom endpoint. Credentials are not saved or tested in this version." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "为 AWS S3、Cloudflare R2、MinIO 或自定义 endpoint 创建本机预览。本版本不会保存或测试凭证。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a local preview for AWS S3, Cloudflare R2, MinIO, or a custom endpoint. Credentials are not saved or tested in this version."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为 AWS S3、Cloudflare R2、MinIO 或自定义 endpoint 创建本机预览。本版本不会保存或测试凭证。"
+          }
+        }
       }
     },
     "syncSettings.s3.header.title": {
       "comment": "Object storage draft header title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Object storage draft" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "对象存储草稿" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Object storage draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对象存储草稿"
+          }
+        }
       }
     },
     "syncSettings.s3.https.title": {
       "comment": "S3 HTTPS toggle label.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Require HTTPS" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "要求 HTTPS" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Require HTTPS"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要求 HTTPS"
+          }
+        }
       }
     },
     "syncSettings.s3.navigationTitle": {
       "comment": "Navigation title for object storage sync draft.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Object Storage" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "对象存储" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Object Storage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对象存储"
+          }
+        }
       }
     },
     "syncSettings.s3.pathPrefix.title": {
       "comment": "S3 path prefix field label.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Path Prefix" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Path Prefix" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Path Prefix"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Path Prefix"
+          }
+        }
       }
     },
     "syncSettings.s3.pathStyle.title": {
       "comment": "S3 path-style access toggle label.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Path-style access" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Path-style access" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Path-style access"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Path-style access"
+          }
+        }
       }
     },
     "syncSettings.s3.provider.picker": {
       "comment": "Accessibility label for S3 provider picker.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Object storage provider" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "对象存储 Provider" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Object storage provider"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对象存储 Provider"
+          }
+        }
       }
     },
     "syncSettings.s3.provider.title": {
       "comment": "S3 provider section title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Provider" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Provider" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider"
+          }
+        }
       }
     },
     "syncSettings.s3.region.title": {
       "comment": "S3 region field label.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Region" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Region" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Region"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Region"
+          }
+        }
       }
     },
     "syncSettings.s3.secretKey.hide": {
       "comment": "Hide secret access key button.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Hide Secret Access Key" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "隐藏 Secret Access Key" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Secret Access Key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏 Secret Access Key"
+          }
+        }
       }
     },
     "syncSettings.s3.secretKey.placeholder": {
       "comment": "Secret access key placeholder.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Local draft only" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "仅本机草稿" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local draft only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅本机草稿"
+          }
+        }
       }
     },
     "syncSettings.s3.secretKey.show": {
       "comment": "Show secret access key button.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Show Secret Access Key" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "显示 Secret Access Key" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Secret Access Key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示 Secret Access Key"
+          }
+        }
       }
     },
     "syncSettings.s3.secretKey.title": {
       "comment": "Secret access key field label.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Secret Access Key" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Secret Access Key" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secret Access Key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secret Access Key"
+          }
+        }
       }
     },
     "syncSettings.s3.security.body": {
       "comment": "Object storage security boundary body.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Use a dedicated bucket or prefix and least-privilege credentials. The current draft does not save secrets, write secure storage, test the connection, or upload life records." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请使用专用 bucket 或 prefix，并配置最小权限凭证。当前草稿不会保存密钥、写入安全存储、测试连接或上传生活记录。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use a dedicated bucket or prefix and least-privilege credentials. The current draft does not save secrets, write secure storage, test the connection, or upload life records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请使用专用 bucket 或 prefix，并配置最小权限凭证。当前草稿不会保存密钥、写入安全存储、测试连接或上传生活记录。"
+          }
+        }
       }
     },
     "syncSettings.s3.security.title": {
       "comment": "Object storage security boundary title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Credential boundary" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "凭证边界" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credential boundary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "凭证边界"
+          }
+        }
       }
     },
     "syncSettings.s3.validation.complete": {
       "comment": "Complete local object storage draft state.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Draft fields complete" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "草稿字段完整" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft fields complete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿字段完整"
+          }
+        }
       }
     },
     "syncSettings.s3.validation.missing": {
       "comment": "Missing object storage draft fields state.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Required fields missing" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "必填字段缺失" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required fields missing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必填字段缺失"
+          }
+        }
       }
     },
     "syncSettings.scope.aiGeneratedContent.summary": {
       "comment": "AI generated content sync scope summary.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Generated study material can be included when sync is implemented." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "真实同步接入后，AI 生成的学习材料可进入同步范围。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generated study material can be included when sync is implemented."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实同步接入后，AI 生成的学习材料可进入同步范围。"
+          }
+        }
       }
     },
     "syncSettings.scope.aiGeneratedContent.title": {
       "comment": "AI generated content sync scope title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "AI generated content" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "AI 生成内容" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI generated content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 生成内容"
+          }
+        }
       }
     },
     "syncSettings.scope.audioAttachments.summary": {
       "comment": "Audio attachment sync scope summary.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Audio can contain sensitive life context and consume more cloud storage." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "音频可能包含更敏感的生活语境，也会占用更多云端空间。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio can contain sensitive life context and consume more cloud storage."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音频可能包含更敏感的生活语境，也会占用更多云端空间。"
+          }
+        }
       }
     },
     "syncSettings.scope.audioAttachments.title": {
       "comment": "Audio attachment sync scope title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Audio attachments" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "音频附件" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio attachments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音频附件"
+          }
+        }
       }
     },
     "syncSettings.scope.credentials.summary": {
       "comment": "Credential sync scope summary.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "AI keys, object storage secrets, and recovery keys never enter sync data." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "AI Key、对象存储密钥和恢复密钥永不进入同步数据。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI keys, object storage secrets, and recovery keys never enter sync data."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Key、对象存储密钥和恢复密钥永不进入同步数据。"
+          }
+        }
       }
     },
     "syncSettings.scope.credentials.title": {
       "comment": "Credential sync scope title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Keys and credentials" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "密钥与凭证" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keys and credentials"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密钥与凭证"
+          }
+        }
       }
     },
     "syncSettings.scope.learningProgress.summary": {
       "comment": "Learning progress sync scope summary.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Learning material, practice history, and progress are stable sync candidates." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "学习材料、练习历史和进度属于稳定同步候选。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learning material, practice history, and progress are stable sync candidates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "学习材料、练习历史和进度属于稳定同步候选。"
+          }
+        }
       }
     },
     "syncSettings.scope.learningProgress.title": {
       "comment": "Learning progress sync scope title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Learning material and progress" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "学习材料和进度" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learning material and progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "学习材料和进度"
+          }
+        }
       }
     },
     "syncSettings.scope.lifeEntries.summary": {
       "comment": "Life entries sync scope summary.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Your written life records are the primary sync data after you enable a real adapter." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "真实 Adapter 启用后，你写下的生活记录会是主要同步数据。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your written life records are the primary sync data after you enable a real adapter."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实 Adapter 启用后，你写下的生活记录会是主要同步数据。"
+          }
+        }
       }
     },
     "syncSettings.scope.lifeEntries.title": {
       "comment": "Life entries sync scope title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Life records" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "生活记录" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Life records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生活记录"
+          }
+        }
       }
     },
     "syncSettings.scope.photoAttachments.summary": {
       "comment": "Photo attachment sync scope summary.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Photos are optional because they can be private and large." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "照片可能更私密且体积更大，因此默认不进入同步。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos are optional because they can be private and large."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片可能更私密且体积更大，因此默认不进入同步。"
+          }
+        }
       }
     },
     "syncSettings.scope.photoAttachments.title": {
       "comment": "Photo attachment sync scope title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Photo attachments" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "照片附件" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo attachments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片附件"
+          }
+        }
       }
     },
     "syncSettings.scope.promptPresets.summary": {
       "comment": "Prompt preset sync scope summary.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Non-sensitive preset settings can follow your devices; provider secrets do not." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "非敏感 Prompt Preset 设置可以跟随设备，Provider 密钥不会同步。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non-sensitive preset settings can follow your devices; provider secrets do not."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非敏感 Prompt Preset 设置可以跟随设备，Provider 密钥不会同步。"
+          }
+        }
       }
     },
     "syncSettings.scope.promptPresets.title": {
       "comment": "Prompt preset sync scope title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Prompt Presets" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "Prompt Preset" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt Presets"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt Preset"
+          }
+        }
       }
     },
     "syncSettings.scope.state.included": {
       "comment": "Included sync scope state.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Included" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可同步" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Included"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可同步"
+          }
+        }
       }
     },
     "syncSettings.scope.state.localOnly": {
       "comment": "Local-only credential scope state.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Local only" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "仅本机" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅本机"
+          }
+        }
       }
     },
     "syncSettings.scope.state.localRebuild": {
       "comment": "Local rebuild sync scope state.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Rebuild locally" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "本地重建" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rebuild locally"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地重建"
+          }
+        }
       }
     },
     "syncSettings.scope.state.offByDefault": {
       "comment": "Off by default sync scope state.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Default off" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "默认关闭" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认关闭"
+          }
+        }
       }
     },
     "syncSettings.scope.title": {
       "comment": "Sync scope section title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Sync scope" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "同步范围" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync scope"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同步范围"
+          }
+        }
       }
     },
     "syncSettings.scope.vectorIndex.summary": {
       "comment": "Vector index sync scope summary.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Vector indexes are derived data and should be rebuilt on each device." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "向量索引是派生数据，应在每台设备本地重建。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vector indexes are derived data and should be rebuilt on each device."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向量索引是派生数据，应在每台设备本地重建。"
+          }
+        }
       }
     },
     "syncSettings.scope.vectorIndex.title": {
       "comment": "Vector index sync scope title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Vector index" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "向量索引" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vector index"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向量索引"
+          }
+        }
       }
     },
     "syncSettings.status.previewOnly": {
       "comment": "Preview-only sync state label.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Preview only" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "仅预览" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅预览"
+          }
+        }
       }
     },
     "syncSettings.status.summary": {
       "comment": "Sync status summary.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Data stays on this device. Enabling real sync later will only include the content you choose, and conflicts will preserve versions instead of silently overwriting them." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "数据仍保存在这台设备。后续真实启用同步时，只会同步你选择的内容；发生冲突时会优先保留版本，而不是静默覆盖。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data stays on this device. Enabling real sync later will only include the content you choose, and conflicts will preserve versions instead of silently overwriting them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据仍保存在这台设备。后续真实启用同步时，只会同步你选择的内容；发生冲突时会优先保留版本，而不是静默覆盖。"
+          }
+        }
       }
     },
     "syncSettings.status.title": {
       "comment": "Sync status card title.",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Data stays local" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "数据保留在本机" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data stays local"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据保留在本机"
+          }
+        }
       }
     },
     "onboarding.level.a1.title": {
-        "comment": "Onboarding A1 level short title.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Beginner"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "入门"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Principiante"
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "入門"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Débutant"
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Anfänger"
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "입문"
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Начальный"
-                }
-            }
+      "comment": "Onboarding A1 level short title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入门"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Principiante"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入門"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Débutant"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anfänger"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입문"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начальный"
+          }
         }
+      }
     },
     "onboarding.level.a1.description": {
-        "comment": "Onboarding A1 level description.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You know a few words and phrases."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "认识少量词句，刚开始学"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Conoces algunas palabras y frases."
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "少しの単語や表現を知っている段階です。"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Vous connaissez quelques mots et expressions."
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Du kennst einige Wörter und Wendungen."
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "몇 가지 단어와 표현을 아는 단계입니다."
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Вы знаете несколько слов и фраз."
-                }
-            }
+      "comment": "Onboarding A1 level description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You know a few words and phrases."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "认识少量词句，刚开始学"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conoces algunas palabras y frases."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "少しの単語や表現を知っている段階です。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous connaissez quelques mots et expressions."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kennst einige Wörter und Wendungen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "몇 가지 단어와 표현을 아는 단계입니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы знаете несколько слов и фраз."
+          }
         }
+      }
     },
     "onboarding.level.a2.title": {
-        "comment": "Onboarding A2 level short title.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Elementary"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "初级"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Elemental"
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "初級"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Élémentaire"
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Grundlagen"
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "초급"
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Элементарный"
-                }
-            }
+      "comment": "Onboarding A2 level short title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elementary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初级"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elemental"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初級"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Élémentaire"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grundlagen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "초급"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Элементарный"
+          }
         }
+      }
     },
     "onboarding.level.a2.description": {
-        "comment": "Onboarding A2 level description.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You can use simple everyday sentences."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "能说简单日常句子"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Puedes usar frases sencillas del día a día."
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "簡単な日常文を使えます。"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Vous pouvez utiliser des phrases simples du quotidien."
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Du kannst einfache Alltagssätze verwenden."
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "간단한 일상 문장을 사용할 수 있습니다."
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Вы можете использовать простые повседневные фразы."
-                }
-            }
+      "comment": "Onboarding A2 level description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can use simple everyday sentences."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "能说简单日常句子"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes usar frases sencillas del día a día."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "簡単な日常文を使えます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous pouvez utiliser des phrases simples du quotidien."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kannst einfache Alltagssätze verwenden."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "간단한 일상 문장을 사용할 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы можете использовать простые повседневные фразы."
+          }
         }
+      }
     },
     "onboarding.level.b1.title": {
-        "comment": "Onboarding B1 level short title.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Everyday"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "日常交流"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Cotidiano"
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "日常会話"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Conversation courante"
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Alltag"
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "일상 회화"
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Повседневный"
-                }
-            }
+      "comment": "Onboarding B1 level short title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everyday"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日常交流"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cotidiano"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日常会話"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversation courante"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alltag"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "일상 회화"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повседневный"
+          }
         }
+      }
     },
     "onboarding.level.b1.description": {
-        "comment": "Onboarding B1 level description.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You can handle common travel and daily situations."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "能处理旅行、生活中的常见表达"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Puedes manejar viajes y situaciones cotidianas."
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "旅行や日常生活のよくある場面に対応できます。"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Vous pouvez gérer les situations courantes du voyage et du quotidien."
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Du kommst in Reisen und Alltagssituationen zurecht."
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "여행과 일상에서 흔한 상황을 다룰 수 있습니다."
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Вы справляетесь с типичными ситуациями в поездках и быту."
-                }
-            }
+      "comment": "Onboarding B1 level description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can handle common travel and daily situations."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "能处理旅行、生活中的常见表达"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes manejar viajes y situaciones cotidianas."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旅行や日常生活のよくある場面に対応できます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous pouvez gérer les situations courantes du voyage et du quotidien."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kommst in Reisen und Alltagssituationen zurecht."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "여행과 일상에서 흔한 상황을 다룰 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы справляетесь с типичными ситуациями в поездках и быту."
+          }
         }
+      }
     },
     "onboarding.level.b2.title": {
-        "comment": "Onboarding B2 level short title.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Independent"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "独立表达"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Independiente"
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "自立表現"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Autonome"
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Selbstständig"
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "독립 표현"
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Самостоятельный"
-                }
-            }
+      "comment": "Onboarding B2 level short title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Independent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "独立表达"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Independiente"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自立表現"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autonome"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selbstständig"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "독립 표현"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Самостоятельный"
+          }
         }
+      }
     },
     "onboarding.level.b2.description": {
-        "comment": "Onboarding B2 level description.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You can describe experiences and explain opinions."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "能较完整表达观点和经历"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Puedes describir experiencias y explicar opiniones."
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "経験や意見をある程度まとまって表現できます。"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Vous pouvez décrire des expériences et expliquer vos opinions."
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Du kannst Erlebnisse beschreiben und Meinungen erklären."
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "경험과 의견을 비교적 온전하게 표현할 수 있습니다."
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Вы можете описывать опыт и объяснять мнения."
-                }
-            }
+      "comment": "Onboarding B2 level description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can describe experiences and explain opinions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "能较完整表达观点和经历"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes describir experiencias y explicar opiniones."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "経験や意見をある程度まとまって表現できます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous pouvez décrire des expériences et expliquer vos opinions."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kannst Erlebnisse beschreiben und Meinungen erklären."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "경험과 의견을 비교적 온전하게 표현할 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы можете описывать опыт и объяснять мнения."
+          }
         }
+      }
     },
     "onboarding.level.c1.title": {
-        "comment": "Onboarding C1 level short title.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Advanced"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "熟练表达"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Avanzado"
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "上級"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Avancé"
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Fortgeschritten"
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "고급"
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Продвинутый"
-                }
-            }
+      "comment": "Onboarding C1 level short title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "熟练表达"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avanzado"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上級"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avancé"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortgeschritten"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "고급"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продвинутый"
+          }
         }
+      }
     },
     "onboarding.level.c1.description": {
-        "comment": "Onboarding C1 level description.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You can discuss complex topics naturally."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "能自然讨论复杂话题"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Puedes hablar con naturalidad sobre temas complejos."
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "複雑な話題も自然に話し合えます。"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Vous pouvez discuter naturellement de sujets complexes."
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Du kannst komplexe Themen natürlich besprechen."
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "복잡한 주제도 자연스럽게 논의할 수 있습니다."
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Вы можете естественно обсуждать сложные темы."
-                }
-            }
+      "comment": "Onboarding C1 level description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can discuss complex topics naturally."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "能自然讨论复杂话题"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes hablar con naturalidad sobre temas complejos."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複雑な話題も自然に話し合えます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous pouvez discuter naturellement de sujets complexes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kannst komplexe Themen natürlich besprechen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "복잡한 주제도 자연스럽게 논의할 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы можете естественно обсуждать сложные темы."
+          }
         }
+      }
     },
     "onboarding.level.c2.title": {
-        "comment": "Onboarding C2 level short title.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Proficient"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "高级掌握"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Dominio alto"
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "高度運用"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Maîtrise élevée"
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Sehr sicher"
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "고급 숙련"
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Свободное владение"
-                }
-            }
+      "comment": "Onboarding C2 level short title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proficient"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高级掌握"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dominio alto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高度運用"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maîtrise élevée"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sehr sicher"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "고급 숙련"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свободное владение"
+          }
         }
+      }
     },
     "onboarding.level.c2.description": {
-        "comment": "Onboarding C2 level description.",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You can use the language in demanding professional or academic contexts."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "接近专业、学术或高强度使用"
-                }
-            },
-            "es": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Puedes usarlo en contextos profesionales o académicos exigentes."
-                }
-            },
-            "ja": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "専門・学術など高負荷の場面でも使えます。"
-                }
-            },
-            "fr": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Vous pouvez l’utiliser dans des contextes professionnels ou académiques exigeants."
-                }
-            },
-            "de": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Du kannst die Sprache in anspruchsvollen beruflichen oder akademischen Kontexten nutzen."
-                }
-            },
-            "ko": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "전문적이거나 학술적인 고난도 상황에서도 사용할 수 있습니다."
-                }
-            },
-            "ru": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Вы можете использовать язык в сложных профессиональных или академических ситуациях."
-                }
-            }
+      "comment": "Onboarding C2 level description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can use the language in demanding professional or academic contexts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接近专业、学术或高强度使用"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes usarlo en contextos profesionales o académicos exigentes."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "専門・学術など高負荷の場面でも使えます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous pouvez l’utiliser dans des contextes professionnels ou académiques exigeants."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kannst die Sprache in anspruchsvollen beruflichen oder akademischen Kontexten nutzen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전문적이거나 학술적인 고난도 상황에서도 사용할 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы можете использовать язык в сложных профессиональных или академических ситуациях."
+          }
         }
+      }
+    },
+    "reading.result.translation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "释义"
+          }
+        }
+      }
+    },
+    "reading.result.grammar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grammar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语法"
+          }
+        }
+      }
+    },
+    "reading.result.usage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用法"
+          }
+        }
+      }
+    },
+    "reading.result.example": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Example"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例句"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

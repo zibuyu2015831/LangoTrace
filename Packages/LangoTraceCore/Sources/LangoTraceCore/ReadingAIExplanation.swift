@@ -51,6 +51,7 @@ public struct ReadingSelectionExplanationResult: Equatable, Sendable {
     public var meaningInNativeLanguage: String
     public var usageNote: String
     public var exampleSentence: String
+    public var grammaticalNote: String?
 
     public init(
         schemaVersion: String,
@@ -58,7 +59,8 @@ public struct ReadingSelectionExplanationResult: Equatable, Sendable {
         shortExplanation: String,
         meaningInNativeLanguage: String,
         usageNote: String,
-        exampleSentence: String
+        exampleSentence: String,
+        grammaticalNote: String? = nil
     ) {
         self.schemaVersion = schemaVersion
         self.selection = selection
@@ -66,6 +68,7 @@ public struct ReadingSelectionExplanationResult: Equatable, Sendable {
         self.meaningInNativeLanguage = meaningInNativeLanguage
         self.usageNote = usageNote
         self.exampleSentence = exampleSentence
+        self.grammaticalNote = grammaticalNote
     }
 }
 

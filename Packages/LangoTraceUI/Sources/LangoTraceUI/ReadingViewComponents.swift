@@ -403,7 +403,7 @@ struct ReadingInspectorPane: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(localizedString("reading.inspector.title"))
                     .font(.headline)
-                Text(inspectorSubtitle)
+                Text(localizedString("reading.inspector.body"))
                     .font(.callout)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
             }
@@ -427,31 +427,38 @@ struct ReadingInspectorPane: View {
 
                 HStack(spacing: 10) {
                     Button(action: onExplain) {
-                        Label(localizedString("reading.action.explain"), systemImage: "sparkles")
-                            .frame(maxWidth: .infinity)
+                        Group {
+                            if explanationState == .loading {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Label(localizedString("reading.action.explain"), systemImage: "sparkles")
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(explanationState == .loading)
 
                     Button(action: onListen) {
-                        Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
-                            .frame(maxWidth: .infinity)
+                        Group {
+                            if audioState == .loading {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
                     .disabled(audioState == .loading)
-
-                    Menu {
-                        Button(localizedString("reading.action.translate")) {}
-                            .disabled(true)
-                        Button(localizedString("reading.action.grammar")) {}
-                            .disabled(true)
-                    } label: {
-                        Label(localizedString("reading.action.more"), systemImage: "ellipsis.circle")
-                            .frame(minWidth: 44, minHeight: 44)
-                    }
                 }
 
-                explanationBody
+                ReadingExplanationResultView(
+                    result: explanationResult,
+                    state: explanationState
+                )
             } else {
                 emptyBody
             }
@@ -466,49 +473,10 @@ struct ReadingInspectorPane: View {
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
-    @ViewBuilder
-    private var explanationBody: some View {
-        if explanationState == .loading {
-            VStack(alignment: .leading, spacing: 10) {
-                ProgressView()
-                Text(localizedString("reading.inspector.body"))
-                    .font(.callout)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            }
-        } else if let explanationResult {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(explanationResult.shortExplanation)
-                    .font(.callout)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                Text(explanationResult.meaningInNativeLanguage)
-                    .font(.callout)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            }
-        } else if explanationState == .failed {
-            VStack(alignment: .leading, spacing: 10) {
-                Label(localizedString("reading.inspector.title"), systemImage: "exclamationmark.circle")
-                    .font(.callout.weight(.semibold))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                Text(localizedString("reading.inspector.body"))
-                    .font(.callout)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            }
-        } else {
-            emptyBody
-        }
-    }
-
     private var emptyBody: some View {
         Text(localizedString("reading.inspector.body"))
             .font(.callout)
             .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-    }
-
-    private var inspectorSubtitle: String {
-        if explanationState == .loading {
-            return localizedString("reading.library.subtitle")
-        }
-        return localizedString("reading.inspector.body")
     }
 }
 
@@ -531,78 +499,67 @@ struct ReadingCompactLearningPanel: View {
                 .padding(.top, 4)
 
             HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(selection.scopeTitle)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     Text(selection.selectedText)
-                        .font(.headline)
+                        .font(.title3.weight(.semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                    Text(selection.contextModeTitle)
-                        .font(.caption)
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        .lineLimit(2)
                 }
                 Spacer()
                 Button(action: onClear) {
                     Image(systemName: "xmark")
                         .font(.footnote.weight(.semibold))
-                        .frame(width: 36, height: 36)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        .frame(width: 32, height: 32)
+                        .background(LangoTraceDesign.ColorToken.surfacePanel)
+                        .clipShape(.circle)
                 }
                 .buttonStyle(.plain)
             }
 
             HStack(spacing: 10) {
                 Button(action: onExplain) {
-                    Label(localizedString("reading.action.explain"), systemImage: "sparkles")
-                        .frame(maxWidth: .infinity)
+                    Group {
+                        if explanationState == .loading {
+                            ProgressView()
+                                .controlSize(.small)
+                                .tint(.white)
+                        } else {
+                            Label(localizedString("reading.action.explain"), systemImage: "sparkles")
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 20)
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(explanationState == .loading)
 
                 Button(action: onListen) {
-                    Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
-                        .frame(maxWidth: .infinity)
+                    Group {
+                        if audioState == .loading {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Label(localizedString("common.listen"), systemImage: "speaker.wave.2")
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 20)
                 }
                 .buttonStyle(.bordered)
                 .disabled(audioState == .loading)
-
-                Menu {
-                    Button(localizedString("reading.action.translate")) {}
-                        .disabled(true)
-                    Button(localizedString("reading.action.grammar")) {}
-                        .disabled(true)
-                } label: {
-                    Label(localizedString("reading.action.more"), systemImage: "ellipsis.circle")
-                        .frame(minWidth: 44, minHeight: 44)
-                }
             }
 
-            Group {
-                if panelState == .loading {
-                    HStack(spacing: 10) {
-                        ProgressView()
-                        Text(localizedString("reading.panel.loading"))
-                            .font(.callout)
-                            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                    }
-                } else if panelState == .content, let explanationResult {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(explanationResult.shortExplanation)
-                            .font(.callout)
-                            .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                        Text(explanationResult.meaningInNativeLanguage)
-                            .font(.callout)
-                            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                    }
-                } else if panelState == .failed {
-                    Text(localizedString("reading.panel.failed"))
-                        .font(.callout)
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                }
-            }
+            ReadingExplanationResultView(
+                result: panelState == .content ? explanationResult : nil,
+                state: panelState == .loading ? .loading : (panelState == .failed ? .failed : .idle)
+            )
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 12)
+        .padding(.bottom, 24)
         .padding(.top, 12)
         .background(.ultraThinMaterial)
         .overlay(alignment: .top) {
@@ -610,6 +567,99 @@ struct ReadingCompactLearningPanel: View {
                 .fill(LangoTraceDesign.ColorToken.borderSubtle)
                 .frame(height: 1)
         }
+    }
+}
+
+// MARK: - Shared explanation result display
+
+struct ReadingExplanationResultView: View {
+    let result: ReadingSelectionExplanationResult?
+    let state: ReadingAsyncState
+
+    var body: some View {
+        Group {
+            if state == .loading {
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text(localizedString("reading.panel.loading"))
+                        .font(.callout)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else if state == .failed {
+                Text(localizedString("reading.panel.failed"))
+                    .font(.callout)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else if let result {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(result.shortExplanation)
+                        .font(.callout)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.bottom, 12)
+
+                    Divider()
+                        .padding(.bottom, 10)
+
+                    ReadingResultRow(
+                        label: localizedString("reading.result.translation"),
+                        value: result.meaningInNativeLanguage
+                    )
+
+                    if let grammar = result.grammaticalNote, !grammar.isEmpty {
+                        ReadingResultRow(
+                            label: localizedString("reading.result.grammar"),
+                            value: grammar
+                        )
+                    }
+
+                    if !result.usageNote.isEmpty {
+                        ReadingResultRow(
+                            label: localizedString("reading.result.usage"),
+                            value: result.usageNote
+                        )
+                    }
+
+                    if !result.exampleSentence.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(localizedString("reading.result.example"))
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                            Text(result.exampleSentence)
+                                .font(.callout)
+                                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                                .italic()
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(.top, 4)
+                    }
+                }
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(LangoTraceDesign.ColorToken.surfacePanel)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+        }
+    }
+}
+
+private struct ReadingResultRow: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(label)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                .frame(minWidth: 36, alignment: .leading)
+            Text(value)
+                .font(.callout)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.bottom, 6)
     }
 }
 

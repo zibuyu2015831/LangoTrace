@@ -810,6 +810,9 @@ private struct ReadingDocumentCanvas: View {
 
         return ReadingSelectableTextView(
             blockText: block.text,
+            blockKind: block.kind,
+            inlineRuns: block.inlineRuns,
+            lineSpacing: presentation.style.lineSpacing,
             committedHighlightRange: committedRange,
             onSelectionChange: { text, offset, length in
                 onSelectFragment(text, block, offset, length)

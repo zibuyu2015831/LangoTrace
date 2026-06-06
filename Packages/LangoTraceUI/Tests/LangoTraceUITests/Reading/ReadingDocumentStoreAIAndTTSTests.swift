@@ -504,12 +504,13 @@ private actor CapturingReadingTTSAction {
 private extension ReadingSelectionExplanationResult {
     static func sample(selection: String) -> ReadingSelectionExplanationResult {
         ReadingSelectionExplanationResult(
-            schemaVersion: "reading_selection_explanation.v1",
+            schemaVersion: "reading_selection_explanation.v2",
             selection: selection,
             shortExplanation: "Explanation",
             meaningInNativeLanguage: "释义",
             usageNote: "Usage",
-            exampleSentence: "Example."
+            exampleSentence: "Example.",
+            grammaticalNote: "Noun, singular."
         )
     }
 }

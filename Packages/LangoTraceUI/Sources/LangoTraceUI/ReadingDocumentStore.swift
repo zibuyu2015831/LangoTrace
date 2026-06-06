@@ -332,7 +332,14 @@ public final class ReadingDocumentStore: ObservableObject {
 
     public func playSelectionSentence() {
         guard let selection = selectedSelection ?? fallbackSelection else { return }
-        playSentence(sentenceID: selection.sentenceID, text: selection.containingSentence)
+        if selection.selectionScope == .textFragment {
+            // For a word/phrase selection, play just the selected text (pronunciation).
+            // Use an offset-keyed sentenceID to avoid overwriting the sentence-level TTS cache.
+            let fragmentSentenceID = "\(selection.sentenceID)-frag-\(selection.characterOffset)"
+            playSentence(sentenceID: fragmentSentenceID, text: selection.selectedText)
+        } else {
+            playSentence(sentenceID: selection.sentenceID, text: selection.containingSentence)
+        }
     }
 
     private func nextToken() -> Int {
