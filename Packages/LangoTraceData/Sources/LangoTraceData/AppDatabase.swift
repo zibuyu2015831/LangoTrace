@@ -79,6 +79,9 @@ private extension AppDatabase {
         migrator.registerMigration("v13_upgrade_reading_lifecycle_events_for_document_updates") { db in
             try upgradeReadingLifecycleEventsForDocumentUpdatesIfNeeded(db)
         }
+        migrator.registerMigration("v14_create_reading_explanation_cache") { db in
+            try createReadingExplanationCache(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 

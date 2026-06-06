@@ -9,6 +9,7 @@ struct MacMainView: View {
     @ObservedObject var readingLibraryStore: ReadingLibraryStore
     let readingExplanationAction: ReadingExplanationAction
     let readingTTSAction: ReadingTTSAction
+    let readingCacheRepository: (any ReadingExplanationCacheRepositoryProtocol)?
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -248,6 +249,7 @@ private extension MacMainView {
                 readingLibraryStore: readingLibraryStore,
                 readingExplanationAction: readingExplanationAction,
                 readingTTSAction: readingTTSAction,
+                readingCacheRepository: readingCacheRepository,
                 practiceActions: practiceActions,
                 interfaceLanguagePreference: interfaceLanguagePreference,
                 appearancePreference: appearancePreference,

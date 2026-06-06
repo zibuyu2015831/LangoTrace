@@ -49,7 +49,7 @@ public struct ReadingSelectionExplanationInput: Equatable, Sendable {
     }
 }
 
-public struct ReadingSelectionExplanationResult: Equatable, Sendable {
+public struct ReadingSelectionExplanationResult: Codable, Equatable, Sendable {
     public var schemaVersion: String
     public var selection: String
     public var shortExplanation: String

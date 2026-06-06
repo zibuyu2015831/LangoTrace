@@ -322,6 +322,40 @@ extension AppDatabase {
         """)
     }
 
+    static func createReadingExplanationCache(_ db: Database) throws {
+        try db.execute(sql: """
+        CREATE TABLE reading_explanation_cache (
+          id                        TEXT    PRIMARY KEY,
+          document_id               TEXT    NOT NULL REFERENCES reading_documents(id) ON DELETE CASCADE,
+          space_id                  TEXT    NOT NULL,
+          content_revision          INTEGER NOT NULL,
+          structure_version         INTEGER NOT NULL,
+          selection_scope           TEXT    NOT NULL,
+          source_anchor_id          TEXT    NOT NULL,
+          explanation_language_mode TEXT    NOT NULL,
+          sentence_id               TEXT    NOT NULL,
+          block_id                  TEXT    NOT NULL,
+          char_offset               INTEGER NOT NULL,
+          char_length               INTEGER NOT NULL,
+          selected_text             TEXT    NOT NULL,
+          selected_text_hash        TEXT    NOT NULL,
+          result_json               TEXT    NOT NULL,
+          provider_id               TEXT,
+          model_id                  TEXT,
+          created_at                REAL    NOT NULL,
+          updated_at                REAL    NOT NULL
+        )
+        """)
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_rec_source_anchor
+          ON reading_explanation_cache(document_id, source_anchor_id, explanation_language_mode)
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_rec_sentence
+          ON reading_explanation_cache(document_id, content_revision, sentence_id)
+        """)
+    }
+
     private static func addReadingTTSSourceColumnsIfNeeded(_ db: Database) throws {
         guard try db.tableExists("tts_audio_artifacts") else {
             return

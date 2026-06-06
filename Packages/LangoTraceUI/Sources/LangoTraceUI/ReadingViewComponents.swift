@@ -463,8 +463,10 @@ struct ReadingInspectorPane: View {
     let explanationResult: ReadingSelectionExplanationResult?
     var explanationState: ReadingAsyncState = .idle
     var audioState: ReadingAsyncState = .idle
+    var explanationSource: ExplanationResultSource?
     let onExplain: () -> Void
     let onListen: () -> Void
+    var onRegenerate: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -488,6 +490,15 @@ struct ReadingInspectorPane: View {
                             .padding(.vertical, 3)
                             .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
                             .clipShape(Capsule())
+                        if explanationSource == .cache {
+                            HStack(spacing: 4) {
+                                Image(systemName: "bookmark.fill")
+                                    .font(.caption2)
+                                Text(localizedString("reading.explanation.source.cached"))
+                                    .font(.caption2)
+                            }
+                            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        }
                         Spacer()
                     }
                     Text(selection.selectedText)
@@ -515,6 +526,14 @@ struct ReadingInspectorPane: View {
                         isLoading: audioState == .loading,
                         action: onListen
                     )
+                    if explanationSource == .cache, let onRegenerate {
+                        ReadingActionPill(
+                            titleKey: "reading.explanation.regenerate",
+                            systemImage: "arrow.clockwise",
+                            isPrimary: false,
+                            action: onRegenerate
+                        )
+                    }
                     Spacer(minLength: 0)
                 }
 
@@ -585,9 +604,11 @@ struct ReadingCompactLearningPanel: View {
     let explanationState: ReadingAsyncState
     let audioState: ReadingAsyncState
     let panelState: ReadingCompactLearningPanelState
+    var explanationSource: ExplanationResultSource?
     let onExplain: () -> Void
     let onListen: () -> Void
     let onClear: () -> Void
+    var onRegenerate: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -609,13 +630,24 @@ struct ReadingCompactLearningPanel: View {
 
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(selection.scopeTitle)
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(LangoTraceDesign.ColorToken.accent)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
-                        .clipShape(Capsule())
+                    HStack(spacing: 6) {
+                        Text(selection.scopeTitle)
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
+                            .clipShape(Capsule())
+                        if explanationSource == .cache {
+                            HStack(spacing: 4) {
+                                Image(systemName: "bookmark.fill")
+                                    .font(.caption2)
+                                Text(localizedString("reading.explanation.source.cached"))
+                                    .font(.caption2)
+                            }
+                            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        }
+                    }
                     Text(selection.selectedText)
                         .font(.title3.weight(.semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
@@ -650,6 +682,14 @@ struct ReadingCompactLearningPanel: View {
                     isLoading: audioState == .loading,
                     action: onListen
                 )
+                if explanationSource == .cache, let onRegenerate {
+                    ReadingActionPill(
+                        titleKey: "reading.explanation.regenerate",
+                        systemImage: "arrow.clockwise",
+                        isPrimary: false,
+                        action: onRegenerate
+                    )
+                }
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 20)

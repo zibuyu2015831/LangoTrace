@@ -48,7 +48,7 @@ public struct ReadingSelection: Equatable, Sendable {
     }
 }
 
-public enum ReadingSelectionScope: String, Equatable, Hashable, Sendable {
+public enum ReadingSelectionScope: String, Codable, Equatable, Hashable, Sendable {
     case sentence
     case textFragment = "text_fragment"
 }

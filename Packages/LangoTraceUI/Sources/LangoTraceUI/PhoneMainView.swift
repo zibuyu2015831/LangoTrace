@@ -9,6 +9,7 @@ struct PhoneMainView: View {
     @ObservedObject var readingLibraryStore: ReadingLibraryStore
     let readingExplanationAction: ReadingExplanationAction
     let readingTTSAction: ReadingTTSAction
+    let readingCacheRepository: (any ReadingExplanationCacheRepositoryProtocol)?
     let practiceActions: PracticeActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
@@ -50,6 +51,7 @@ struct PhoneMainView: View {
                     store: readingLibraryStore,
                     explanationAction: readingExplanationAction,
                     ttsAction: readingTTSAction,
+                    cacheRepository: readingCacheRepository,
                     onOpenPhoneDocument: { documentID in
                         navigationPath.append(.readingDocument(documentID))
                     }

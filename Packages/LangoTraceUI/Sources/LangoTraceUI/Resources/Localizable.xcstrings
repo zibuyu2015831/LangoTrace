@@ -17661,6 +17661,57 @@
           }
         }
       }
+    },
+    "reading.explanation.source.cached": {
+      "comment": "Badge shown next to the scope capsule when the explanation result comes from cache.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已缓存"
+          }
+        }
+      }
+    },
+    "reading.explanation.regenerate": {
+      "comment": "Action button to discard a cached explanation and request a fresh one from AI.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regenerate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新生成"
+          }
+        }
+      }
+    },
+    "reading.explanation.contains.explained.sentence": {
+      "comment": "Hint shown when the selected text fragment overlaps a sentence that already has a cached explanation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contains an explained sentence · View"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该选区包含已解析句子 · 查看"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

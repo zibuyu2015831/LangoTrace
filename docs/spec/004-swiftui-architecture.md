@@ -168,6 +168,27 @@ Entry 保存只创建用户原始记录，不应自动补齐完整 Rendering、P
 - Practice 和 Memory 可以从已有 Rendering 或 seed 数据展示；缺少 Rendering 时应显示 unavailable / next action，而不是默默生成假数据。
 - 保存 Entry 不得被描述成已经生成学习材料；只有用户在详情页显式触发 `生成学习材料` 或 `重新生成` 时才发送当前文本给已配置 Provider。iPhone / iPad / macOS 可复用同一内容视图和 action seam，但平台外壳仍负责各自导航、窗口、sheet 和后续人工验收。
 
+### 4.10 跨平台颜色适配规则
+
+跨平台 SwiftUI 文件（不在 `#if canImport(UIKit)` 或 `#if canImport(AppKit)` 块内的代码）不允许直接使用需要平台颜色上下文的初始化器，例如 `Color(.systemGray4)` 或 `Color(UIColor.systemGray4)`。这类调用在多平台 Package 的 macOS target 或 iOS target 下会因无法推断颜色类型而编译失败。
+
+强制规则：
+
+- 跨平台颜色优先使用 `LangoTraceDesign.ColorToken` 语义令牌（如 `ColorToken.borderSubtle`、`ColorToken.surfacePanel`）。
+- 无对应令牌时，使用 SwiftUI 内置语义颜色（`Color.secondary`、`Color.primary`）或 `Color.black.opacity(…)` / `Color.white.opacity(…)`。
+- 必须使用 `UIColor`/`NSColor` 特定类型时，将相关代码放进 `#if canImport(UIKit)` / `#elseif canImport(AppKit)` 条件编译块，不允许在外部裸用。
+- `UIColor { traitCollection in }` / `NSColor(name:) { appearance in }` 动态适应闭包内，每个颜色值必须先提取为局部常量再返回，不允许在单个返回表达式中内联多个 sRGB 构造器调用；否则编译器类型推导路径过长会导致类型检查超时错误。
+
+### 4.11 UIViewRepresentable / NSViewRepresentable 并发规则
+
+`UIViewRepresentable` / `NSViewRepresentable` 的 `Coordinator` 中注册的 `@objc` Notification 回调若直接访问 `NSTextView`/`UITextView` 的 `@MainActor` 隔离属性或方法（如 `selectedRange()`、`textStorage`、`string`），必须在方法签名前标注 `@MainActor`。
+
+强制规则：
+
+- `@MainActor @objc func selectionDidChange(…)` — Notification 选择器调用了 `NSTextView.selectedRange()` 这类 `@MainActor` API，必须标注。
+- 若回调通过 `notification.object as? NSTextView` 等方式获取视图引用后再访问其属性，同样需要 `@MainActor` 标注。
+- 在严格并发模式下，未标注时编译器发出 `call to main actor-isolated … in a synchronous nonisolated context` warning；该 warning 未来将升级为错误。不允许用 `nonisolated(unsafe)` 绕过。
+
 ## 5. 可演进部分
 
 以下内容需结合最低系统版本和实际 SwiftUI 工程再确定：
@@ -190,6 +211,9 @@ Entry 保存只创建用户原始记录，不应自动补齐完整 Rendering、P
 - 在 SwiftUI View 中直接创建 GRDB `DatabaseQueue`、拼 SQL、管理 migration 或修复 `app_state`。
 - 为了快速实现，把语言空间、Entry、Prompt 和设置状态都塞进一个全局对象。
 - 在 iPhone/iPad/macOS 上强行复用完全相同的大页面。
+- 在跨平台 SwiftUI 文件中裸用 `Color(.systemGray4)` 等需要 `UIColor`/`NSColor` 上下文的初始化器，未做条件编译隔离。
+- 在 `UIColor`/`NSColor` 动态适应闭包中内联多个 sRGB 构造器的三元表达式，导致编译器类型检查超时。
+- `@objc` Notification 回调直接调用 `@MainActor` 隔离的 UIKit/AppKit API，未标注 `@MainActor`。
 
 ## 7. AI 开发提示
 
@@ -216,3 +240,4 @@ AI 在写 SwiftUI 代码前应先回答：
 - 2026-05-20：补充管理页与编辑器拆分规则。原因：语言空间管理页新增编辑 sheet 后触发文件长度 warning，最终将列表管理与多字段编辑器拆分为 `LanguageSpaceManagementView` 和 `LanguageSpaceEditorView`，该模式应复用于后续 Provider、同步和记录编辑类页面。影响范围：LangoTraceUI 管理页、editor sheet、源码组织测试和 SwiftLint 文件长度治理。是否需要 ADR：否。
 - 2026-05-20：补充保存类异步操作和诊断关联规则。原因：AI Provider 配置保存现在跨 UI、AI service、Keychain、Data repository 和诊断日志，需要明确 input invalid、真实失败、operation id 和 best-effort logging 的职责边界。影响范围：SwiftUI 保存入口、AI Provider 设置、后续同步 / 导出 / AI 请求状态机。是否需要 ADR：否。
 - 2026-05-23：更新 Entry / LearningMaterial 生成边界。原因：一键学习材料生成已从本地预览推进到三端共享 `EntryDetailView` 的真实 AI Provider action seam，且用户保存 Entry 后仍需显式触发生成；规范不应继续把本地预览描述为真实主路径。影响范围：PhoneMainView、PadMainSections、MacWorkspaceContentView、EntryDetailView、LearningContentStore、AppEnvironment。是否需要 ADR：否，沿用本地优先和三端共享业务逻辑决策。
+- 2026-06-07：新增 §4.10 跨平台颜色适配规则、§4.11 UIViewRepresentable 并发规则，并在 §6 补充三条反例。原因：verify.sh 检测到 `Color(.systemGray4)` 跨平台编译失败、`NSColor` 动态颜色闭包类型推导超时、`@objc` 选择器调用 `@MainActor` API 并发 warning 三类问题，均已在代码中修复；将根本原因写入规范，防止后续同类问题复发。影响范围：所有含 UIViewRepresentable / NSViewRepresentable 的跨平台文件、所有在 SwiftUI 文件中使用平台特定颜色 API 的场景。是否需要 ADR：否。

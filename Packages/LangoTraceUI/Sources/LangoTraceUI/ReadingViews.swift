@@ -7,6 +7,7 @@ struct ReadingLibraryView: View {
     @ObservedObject var store: ReadingLibraryStore
     let explanationAction: ReadingExplanationAction
     let ttsAction: ReadingTTSAction
+    let cacheRepository: (any ReadingExplanationCacheRepositoryProtocol)?
     var onOpenPhoneDocument: ((String) -> Void)?
     @StateObject private var documentStore: ReadingDocumentStore
     @State private var importTitle = ""
@@ -21,12 +22,14 @@ struct ReadingLibraryView: View {
         store: ReadingLibraryStore,
         explanationAction: @escaping ReadingExplanationAction,
         ttsAction: @escaping ReadingTTSAction,
+        cacheRepository: (any ReadingExplanationCacheRepositoryProtocol)? = nil,
         onOpenPhoneDocument: ((String) -> Void)? = nil
     ) {
         self.platform = platform
         self.store = store
         self.explanationAction = explanationAction
         self.ttsAction = ttsAction
+        self.cacheRepository = cacheRepository
         self.onOpenPhoneDocument = onOpenPhoneDocument
         _documentStore = StateObject(wrappedValue: ReadingDocumentStore(
             documentID: store.selectedDocument?.id ?? "",
@@ -36,7 +39,8 @@ struct ReadingLibraryView: View {
             targetLanguageCode: store.languageSpace.targetLanguageCode,
             proficiencyLevelCode: store.languageSpace.level.rawValue,
             explanationAction: explanationAction,
-            ttsAction: ttsAction
+            ttsAction: ttsAction,
+            cacheRepository: cacheRepository
         ))
     }
 
@@ -262,8 +266,10 @@ struct ReadingLibraryView: View {
             explanationResult: documentStore.explanationResult,
             explanationState: documentStore.explanationState,
             audioState: documentStore.audioState,
+            explanationSource: documentStore.explanationSource,
             onExplain: { documentStore.explainSelection() },
-            onListen: { documentStore.playSelectionSentence() }
+            onListen: { documentStore.playSelectionSentence() },
+            onRegenerate: { documentStore.regenerateExplanation() }
         )
     }
 
@@ -443,9 +449,11 @@ struct ReadingDocumentDetailView: View {
                     explanationState: documentStore.explanationState,
                     audioState: documentStore.audioState,
                     panelState: documentStore.compactLearningPanelState,
+                    explanationSource: documentStore.explanationSource,
                     onExplain: { documentStore.explainSelection() },
                     onListen: { documentStore.playSelectionSentence() },
-                    onClear: { documentStore.clearSelection() }
+                    onClear: { documentStore.clearSelection() },
+                    onRegenerate: { documentStore.regenerateExplanation() }
                 )
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .animation(.easeInOut(duration: 0.22), value: documentStore.compactLearningPanelState)

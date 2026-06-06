@@ -16,6 +16,7 @@ struct AppEnvironment {
     let readingLibraryActions: ReadingLibraryActions
     let readingExplanationAction: ReadingExplanationAction
     let readingTTSAction: ReadingTTSAction
+    let readingCacheRepository: (any ReadingExplanationCacheRepositoryProtocol)?
     let practiceActions: PracticeActions
     let aiProviderSettingsActions: AIProviderSettingsActions
     let aiProvider: any AIProvider
@@ -70,6 +71,9 @@ struct AppEnvironment {
             readingTTSAction: makeReadingTTSAction(
                 sentenceAudioPlaybackActions: sentenceAudioPlaybackCoordinatorBox.actions()
             ),
+            readingCacheRepository: (try? GRDBReadingExplanationCacheRepository(
+                database: databaseFactory.database()
+            )),
             practiceActions: (
                 try? PracticeActionsAssembly.makeActions(
                     database: databaseFactory.database(),

@@ -16,6 +16,8 @@ public final class ReadingDocumentStore: ObservableObject {
     @Published public var explanationResult: ReadingSelectionExplanationResult?
     @Published public var explanationState: ReadingAsyncState = .idle
     @Published public var audioState: ReadingAsyncState = .idle
+    @Published public var explainedSentenceIDs: Set<String> = []
+    @Published public var explanationSource: ExplanationResultSource?
 
     @Published public var isEditorPresented: Bool = false
     @Published public var draftTitle: String = ""
@@ -33,6 +35,8 @@ public final class ReadingDocumentStore: ObservableObject {
     var generation: Int = 0
     var explanationTask: Task<Void, Never>?
     var ttsTask: Task<Void, Never>?
+    var explanationCache: [String: ReadingExplanationCacheEntry] = [:]
+    let cacheRepository: (any ReadingExplanationCacheRepositoryProtocol)?
 
     public init(
         documentID: String,
@@ -42,7 +46,8 @@ public final class ReadingDocumentStore: ObservableObject {
         targetLanguageCode: String = "",
         proficiencyLevelCode: String = "",
         explanationAction: @escaping ReadingExplanationAction,
-        ttsAction: @escaping ReadingTTSAction
+        ttsAction: @escaping ReadingTTSAction,
+        cacheRepository: (any ReadingExplanationCacheRepositoryProtocol)? = nil
     ) {
         self.documentID = documentID
         self.spaceID = spaceID
@@ -53,13 +58,24 @@ public final class ReadingDocumentStore: ObservableObject {
         currentExplanationMode = ExplanationLanguageMode.derive(from: proficiencyLevelCode)
         self.explanationAction = explanationAction
         self.ttsAction = ttsAction
+        self.cacheRepository = cacheRepository
     }
 
     public func explainSelection() {
         guard explanationState != .loading, let selection = selectedSelection ?? fallbackSelection else {
             return
         }
+
+        let cacheKey = "\(selection.sourceAnchorID):\(currentExplanationMode.rawValue)"
+        if let cached = explanationCache[cacheKey] {
+            explanationResult = cached.result
+            explanationSource = .cache
+            explanationState = .idle
+            return
+        }
+
         explanationState = .loading
+        explanationSource = nil
         let token = nextToken()
         let request = ReadingExplanationRequest(
             documentID: documentID,
@@ -84,7 +100,7 @@ public final class ReadingDocumentStore: ObservableObject {
         explanationTask = Task {
             do {
                 let result = try await explanationAction(request)
-                completeExplanation(result, token: token, request: request)
+                completeExplanation(result, token: token, request: request, selection: selection)
             } catch {
                 failExplanation(token: token, request: request)
             }
@@ -123,6 +139,9 @@ public final class ReadingDocumentStore: ObservableObject {
         isEditorPresented = false
         draftTitle = ""
         draftBody = ""
+        explanationCache = [:]
+        explainedSentenceIDs = []
+        Task { await loadCacheForDocument() }
     }
 
     public func clearSelection() {
@@ -132,6 +151,7 @@ public final class ReadingDocumentStore: ObservableObject {
         containingSentence = ""
         explanationResult = nil
         explanationState = .idle
+        explanationSource = nil
         audioState = .idle
         invalidateInFlightWork()
     }
@@ -171,12 +191,44 @@ public final class ReadingDocumentStore: ObservableObject {
         generation += 1
     }
 
-    func completeExplanation(_ result: ReadingSelectionExplanationResult, token: Int, request: ReadingExplanationRequest) {
+    func completeExplanation(
+        _ result: ReadingSelectionExplanationResult,
+        token: Int,
+        request: ReadingExplanationRequest,
+        selection: ReadingSelectionContext
+    ) {
         guard isCurrent(token: token, documentID: request.documentID, spaceID: request.spaceID) else {
             return
         }
         explanationResult = result
+        explanationSource = .fresh
         explanationState = .idle
+
+        let cacheKey = "\(selection.sourceAnchorID):\(result.explanationLanguageMode.rawValue)"
+        let entry = ReadingExplanationCacheEntry(
+            id: UUID().uuidString,
+            documentID: request.documentID,
+            spaceID: request.spaceID,
+            contentRevision: contentRevision,
+            structureVersion: 0,
+            selectionScope: selection.selectionScope,
+            sourceAnchorID: selection.sourceAnchorID,
+            explanationLanguageMode: result.explanationLanguageMode,
+            sentenceID: selection.sentenceID,
+            blockID: selection.blockID,
+            charOffset: selection.characterOffset,
+            charLength: selection.characterLength,
+            selectedText: selection.selectedText,
+            selectedTextHash: selection.selectedTextHash,
+            result: result,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        explanationCache[cacheKey] = entry
+        explainedSentenceIDs.insert(selection.sentenceID)
+
+        let repo = cacheRepository
+        Task { try? await repo?.insert(entry) }
     }
 
     func failExplanation(token: Int, request: ReadingExplanationRequest) {
