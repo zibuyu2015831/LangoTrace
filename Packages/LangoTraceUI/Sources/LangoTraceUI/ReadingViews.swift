@@ -398,6 +398,7 @@ struct ReadingDocumentDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .langoPageBackground()
         .navigationTitle(activeDocument?.title ?? localizedString("tab.reading"))
         .readingInlineTitleDisplayMode()
         .task(id: documentID) {
@@ -551,6 +552,7 @@ private struct ReadingPhoneLibraryHomeView: View {
             .padding(.bottom, 28)
         }
         .navigationTitle(localizedString("tab.reading"))
+        .langoPageBackground()
     }
 
     private var header: some View {

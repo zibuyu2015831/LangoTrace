@@ -234,6 +234,22 @@ iPad 和 macOS 上，语言空间和设置入口默认属于 Sidebar 底部工�
 - 深色模式中，`accent` 可以用于小面积文字、图标、状态、普通 bordered 按钮和译文高亮；所有 `.borderedProminent` filled primary CTA 必须使用 `primaryActionFill` / `primaryActionForeground` 等主操作专用 token，开关开启态必须使用 `switchOnFill`，避免高亮色块压过内容层级或造成白字对比不足。
 - 高对比、reduce transparency 和未来多品牌主题仍是后续能力，不能因为当前 light / dark token 已接入就写成已完成。
 
+### 4.9.1 页面背景一致性强制规则
+
+语迹的视觉基调依赖 **warm paper**（暖纸底色）与 iOS/macOS 系统 `systemBackground`（纯白）的明确区分。iOS 的 `ScrollView`、`NavigationStack`、`Form` 等容器在未设置背景时默认渲染系统白色，与语迹 `paper`（`#F6F1E8` 浅色 / `#101A18` 深色）产生明显色差。
+
+以下是强制规则：
+
+**新增 iPhone 级页面视图时**（作为 `TabView` 直接子项或 `NavigationStack` 的 destination），必须在 ScrollView 或根容器上调用 `.langoPageBackground()`；不能依赖系统默认背景或父视图背景向下继承。已有的 `PhonePage` 模板已内置该调用，直接使用 `PhonePage` 即满足要求。独立构建的 ScrollView 页（不通过 `PhonePage`）必须在 ScrollView 本体上显式调用 `.langoPageBackground()`。
+
+**新增 iPad / macOS 级页面视图时**，参照已有的 `PadMainView`、`MacMainView` 用 `.langoPageBackground()` 的方式；局部 pane（如 sidebar、inspector）使用对应的 surface token（`surfaceSidebar`、`surfaceInspector`），不使用系统默认背景。
+
+**Group、条件分支、ProgressView 等中间层容器**不会自动继承 `.langoPageBackground()`；若页面的 body 是 `Group { if ... { ScrollView } else { ProgressView } }` 结构，必须在 Group 的修饰链上（而非内部 ScrollView 上）调用 `.langoPageBackground()`，确保所有分支状态下背景一致。
+
+**设计一致性验证**：新增页面实现后，应在 iOS Simulator 中分别验证浅色模式和深色模式下的背景颜色与相邻 tab 是否一致，不能仅凭"代码看起来应该对"通过。
+
+**违规示例（已修复）**：`ReadingPhoneLibraryHomeView` 和 `ReadingPhoneDocumentView` 在 2026-06-06 因遗漏 `.langoPageBackground()` 导致阅读 tab 背景呈 iOS 系统白色，与其他 tab 的 warm paper 产生明显断层。根因是独立构建的 ScrollView 没有复用 `PhonePage` 模板，也没有显式检查背景一致性。
+
 Action hierarchy：
 
 - Primary action：创建 Entry、生成学习材料、继续练习等主路径动作；每个主区域同时只保留少量主动作。本地预览只能作为开发期 seed / mock 状态，不应在真实记录详情中替代 `生成学习材料` 主动作。
