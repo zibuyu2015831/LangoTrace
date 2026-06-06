@@ -168,7 +168,7 @@ public enum ReadingExplanationCacheError: Error {
 
 // MARK: - GRDB record
 
-private struct ReadingExplanationCacheRecord: FetchableRecord, PersistableRecord {
+private struct ReadingExplanationCacheRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "reading_explanation_cache"
 
     var id: String
