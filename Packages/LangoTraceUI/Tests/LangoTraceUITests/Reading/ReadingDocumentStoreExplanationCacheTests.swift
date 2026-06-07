@@ -8,7 +8,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
     // MARK: - Cache hit: result delivered without calling explanationAction
 
     @Test("cache hit delivers result without AI request")
-    func cacheHitDeliversResultWithoutAIRequest() async throws {
+    func cacheHitDeliversResultWithoutAIRequest() async {
         let mockRepo = MockReadingExplanationCacheRepository()
         let counter = CallCounter()
         let store = ReadingDocumentStore(
@@ -60,7 +60,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
     // MARK: - Cache miss: calls explanationAction and populates cache
 
     @Test("cache miss calls explanationAction and populates cache")
-    func cacheMissCallsExplanationActionAndPopulatesCache() async throws {
+    func cacheMissCallsExplanationActionAndPopulatesCache() async {
         let mockRepo = MockReadingExplanationCacheRepository()
         let controlled = ControlledCacheExplanationAction()
         let store = ReadingDocumentStore(
@@ -132,7 +132,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
     // MARK: - regenerateExplanation fires new AI request
 
     @Test("regenerateExplanation fires new AI request")
-    func regenerateExplanationFiresNewAIRequest() async throws {
+    func regenerateExplanationFiresNewAIRequest() async {
         let mockRepo = MockReadingExplanationCacheRepository()
         let controlled = ControlledCacheExplanationAction()
         let store = ReadingDocumentStore(
@@ -183,7 +183,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
     // MARK: - explanationSource reflects cache vs fresh
 
     @Test("explanationSource reflects cache vs fresh")
-    func explanationSourceReflectsOrigin() async throws {
+    func explanationSourceReflectsOrigin() async {
         let mockRepo = MockReadingExplanationCacheRepository()
         let controlled = ControlledCacheExplanationAction()
         let store = ReadingDocumentStore(
@@ -225,7 +225,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
     // MARK: - clearSelection resets explanationSource
 
     @Test("clearSelection resets explanationSource")
-    func clearSelectionResetsSource() async {
+    func clearSelectionResetsSource() {
         let store = ReadingDocumentStore(
             documentID: "doc-1",
             spaceID: "space-1",
@@ -314,7 +314,7 @@ private actor ControlledCacheExplanationAction {
 
     func complete(_ result: Result<ReadingSelectionExplanationResult, Error>) {
         guard let cont = continuation else { return }
-        self.continuation = nil
+        continuation = nil
         cont.resume(with: result)
     }
 

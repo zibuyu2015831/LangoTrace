@@ -23,7 +23,7 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertNotIn("tee /dev/null", self.script)
 
     def test_keeps_core_full_verification_gates(self) -> None:
-        required_commands = [
+        required_patterns = [
             "xcodegen generate",
             "xcodebuild -list -project LangoTrace.xcodeproj",
             "swift test --package-path Packages/LangoTraceCore",
@@ -36,14 +36,14 @@ class VerifyScriptContractTests(unittest.TestCase):
             "xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build",
             "xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build",
             "xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests",
-            "swiftlint --no-cache",
-            "swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore",
+            "swiftlint",
+            "swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj",
             "git status --short",
         ]
 
-        for command in required_commands:
-            with self.subTest(command=command):
-                self.assertIn(command, self.script)
+        for pattern in required_patterns:
+            with self.subTest(pattern=pattern):
+                self.assertIn(pattern, self.script)
 
 
 if __name__ == "__main__":

@@ -90,7 +90,7 @@ struct LangoTraceApp: App {
             readingLibraryActions: environment.readingLibraryActions,
             readingExplanationAction: environment.readingExplanationAction,
             readingTTSAction: environment.readingTTSAction,
-            readingCacheRepository: environment.readingCacheRepository,
+            readingCacheStorage: environment.readingCacheStorage,
             practiceActions: environment.practiceActions,
             interfaceLanguagePreference: interfaceLanguagePreference,
             appearancePreference: appearancePreference,

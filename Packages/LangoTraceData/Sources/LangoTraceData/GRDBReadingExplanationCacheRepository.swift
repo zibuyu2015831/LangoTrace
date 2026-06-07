@@ -54,8 +54,8 @@ public struct GRDBReadingExplanationCacheRepository: ReadingExplanationCacheRepo
             let record = try ReadingExplanationCacheRecord
                 .filter(
                     Column("document_id") == documentID &&
-                    Column("source_anchor_id") == sourceAnchorID &&
-                    Column("explanation_language_mode") == mode.rawValue
+                        Column("source_anchor_id") == sourceAnchorID &&
+                        Column("explanation_language_mode") == mode.rawValue
                 )
                 .fetchOne(db)
             return record.flatMap { toEntry($0) }
@@ -71,8 +71,8 @@ public struct GRDBReadingExplanationCacheRepository: ReadingExplanationCacheRepo
             let record = try ReadingExplanationCacheRecord
                 .filter(
                     Column("document_id") == documentID &&
-                    Column("content_revision") == contentRevision &&
-                    Column("sentence_id") == sentenceID
+                        Column("content_revision") == contentRevision &&
+                        Column("sentence_id") == sentenceID
                 )
                 .fetchOne(db)
             return record.flatMap { toEntry($0) }
@@ -87,10 +87,10 @@ public struct GRDBReadingExplanationCacheRepository: ReadingExplanationCacheRepo
             let records = try ReadingExplanationCacheRecord
                 .filter(
                     Column("document_id") == documentID &&
-                    Column("content_revision") == contentRevision
+                        Column("content_revision") == contentRevision
                 )
                 .fetchAll(db)
-            return Set(records.map { $0.sentenceID })
+            return Set(records.map(\.sentenceID))
         }
     }
 

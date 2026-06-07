@@ -1,10 +1,10 @@
 import Foundation
 import LangoTraceCore
 
-extension ReadingDocumentStore {
-    // Called on document open / replace
+public extension ReadingDocumentStore {
+    /// Called on document open / replace
     @MainActor
-    func loadCacheForDocument() async {
+    internal func loadCacheForDocument() async {
         guard let repo = cacheStorage else { return }
         let docID = documentID
         let rev = contentRevision
@@ -23,7 +23,7 @@ extension ReadingDocumentStore {
 
     /// Returns the sentenceID when the current fragment selection's containing sentence has
     /// a prior explanation but the exact sourceAnchorID is not in memory cache.
-    public var overlappingExplainedSentenceID: String? {
+    var overlappingExplainedSentenceID: String? {
         guard let selection = selectedSelection,
               selection.selectionScope == .textFragment,
               explainedSentenceIDs.contains(selection.sentenceID) else { return nil }
@@ -33,7 +33,7 @@ extension ReadingDocumentStore {
     }
 
     /// Fetch the cached entry for the overlapping sentence and display it.
-    public func showOverlappingExplainedSentenceResult() {
+    func showOverlappingExplainedSentenceResult() {
         guard let sentenceID = overlappingExplainedSentenceID else { return }
         let repo = cacheStorage
         let docID = documentID
@@ -53,7 +53,7 @@ extension ReadingDocumentStore {
     }
 
     /// Delete the current explanation from cache and fire a fresh AI request.
-    public func regenerateExplanation() {
+    func regenerateExplanation() {
         guard let selection = selectedSelection ?? fallbackSelection else { return }
         let cacheKey = "\(selection.sourceAnchorID):\(currentExplanationMode.rawValue)"
 

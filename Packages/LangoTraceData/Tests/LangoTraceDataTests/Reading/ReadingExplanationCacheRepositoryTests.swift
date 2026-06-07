@@ -299,7 +299,7 @@ private func makeSampleEntry(
         result: result,
         providerID: "openai",
         modelID: "gpt-4o",
-        createdAt: Date(timeIntervalSinceReferenceDate: 1_000),
-        updatedAt: Date(timeIntervalSinceReferenceDate: 1_000)
+        createdAt: Date(timeIntervalSinceReferenceDate: 1000),
+        updatedAt: Date(timeIntervalSinceReferenceDate: 1000)
     )
 }
