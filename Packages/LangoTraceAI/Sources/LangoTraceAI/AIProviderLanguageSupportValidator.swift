@@ -169,10 +169,10 @@ private extension AIProviderLanguageSupportValidator {
     func validateLength(_ sample: String, for target: TargetLanguage) -> Bool {
         if target.usesVisibleCharacterCount {
             let count = visibleCharacterCount(sample)
-            return (35 ... 140).contains(count)
+            return (30 ... 140).contains(count)
         }
         let count = wordCount(sample)
-        return (25 ... 120).contains(count)
+        return (20 ... 120).contains(count)
     }
 
     func visibleCharacterCount(_ sample: String) -> Int {

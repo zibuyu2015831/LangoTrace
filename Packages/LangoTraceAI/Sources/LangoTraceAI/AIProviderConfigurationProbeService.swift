@@ -632,9 +632,9 @@ private extension AIProviderConfigurationProbeService {
         Configuration test. Generate a natural sample in \(targetLanguageName).
         Return exactly one JSON object with exactly one field named sample.
         The sample must be written only in \(targetLanguageName).
-        For Chinese, Japanese, or Korean, write about 50 visible characters.
-        For English, French, German, or Spanish, write about 50 words.
-        The sample should describe a person recording an ordinary moment from daily life.
+        For Chinese, Japanese, or Korean, write at least 60 visible characters.
+        For English, French, German, or Spanish, write at least 50 words.
+        The sample should describe a person recording an ordinary moment from daily life in detail.
         Do not include translation, language names, markdown, code fences, explanations, or any other text.
         """
     }

@@ -97,7 +97,7 @@ func openAICompatibleChatProbeRunsLanguageSupportAfterStructuredJSONSuccess() as
     let languageBody = try #require(String(data: requests[2].httpBody ?? Data(), encoding: .utf8))
     #expect(languageBody.contains("field named sample"))
     #expect(languageBody.contains("English"))
-    #expect(languageBody.contains("about 50 words"))
+    #expect(languageBody.contains("at least 50 words"))
     #expect(!languageBody.contains("life record"))
     #expect(!languageBody.contains("Prompt Preset"))
 }
