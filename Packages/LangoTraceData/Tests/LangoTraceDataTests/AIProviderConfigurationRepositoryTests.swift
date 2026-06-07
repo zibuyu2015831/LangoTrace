@@ -177,7 +177,7 @@ func aiProviderRepositorySavesTTSSettingsInSameProfileTransaction() async throws
         endpointID: "endpoint-tts",
         languageCode: "en",
         adapterKind: .openAIAudioSpeech,
-        modelName: "gpt-4o-mini-tts",
+        modelName: "tts-1",
         voiceID: "coral",
         outputFormat: .mp3
     )
@@ -216,7 +216,7 @@ func aiProviderRepositoryCanResaveTTSSettingsForSameEndpoint() async throws {
         endpointID: "endpoint-tts",
         languageCode: "en",
         adapterKind: .openAIAudioSpeech,
-        modelName: "gpt-4o-mini-tts",
+        modelName: "tts-1",
         voiceID: "coral",
         outputFormat: .mp3
     )
@@ -225,7 +225,7 @@ func aiProviderRepositoryCanResaveTTSSettingsForSameEndpoint() async throws {
         endpointID: "endpoint-tts",
         languageCode: "en",
         adapterKind: .openAIAudioSpeech,
-        modelName: "gpt-4o-mini-tts",
+        modelName: "tts-1",
         voiceID: "nova",
         outputFormat: .wav
     )
@@ -436,7 +436,7 @@ private func ttsProfile() throws -> AIProviderConfigurationProfile {
             providerPresetID: "openai",
             adapterKind: .openAIResponses,
             baseURL: "https://api.openai.com/v1",
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             credentialID: "credential-1",
             supportsImageInput: false,
             imageInputEnabled: false

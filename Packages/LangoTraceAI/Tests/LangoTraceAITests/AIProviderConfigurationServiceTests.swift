@@ -589,7 +589,7 @@ func configurationServiceMergesDraftTTSProbeIntoSingleResultWithoutPersistence()
         endpointID: "draft-tts-endpoint",
         languageCode: "en",
         adapterKind: .openAIAudioSpeech,
-        modelName: "gpt-4o-mini-tts",
+        modelName: "tts-1",
         voiceID: "coral",
         outputFormat: .mp3,
         providerParameters: ["response_format": .string("mp3")]
@@ -619,7 +619,7 @@ func configurationServiceMergesDraftTTSProbeIntoSingleResultWithoutPersistence()
                 providerPresetID: "openai",
                 adapterKind: .openAICompatibleChat,
                 baseURL: "https://api.openai.com/v1",
-                modelName: "gpt-4o-mini-tts",
+                modelName: "tts-1",
                 credentialID: "draft-text-credential",
                 supportsImageInput: false,
                 imageInputEnabled: false
@@ -1151,7 +1151,7 @@ private func ttsSaveInput() -> AIProviderProfileSaveInput {
                 providerPresetID: "openai",
                 adapterKind: .openAIResponses,
                 baseURL: "https://api.openai.com/v1",
-                modelName: "gpt-4o-mini-tts",
+                modelName: "tts-1",
                 credentialMode: .sharedWithPurpose(.textGeneration),
                 supportsImageInput: false,
                 imageInputEnabled: false
@@ -1326,7 +1326,7 @@ private func savedProfileWithTTS(
             providerPresetID: "openai",
             adapterKind: .openAIResponses,
             baseURL: "https://api.openai.com/v1",
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             credentialID: "credential-1",
             supportsImageInput: false,
             imageInputEnabled: false
@@ -1360,7 +1360,7 @@ private func savedProfileWithTTS(
         endpointID: "endpoint-tts",
         languageCode: "en",
         adapterKind: .openAIAudioSpeech,
-        modelName: "gpt-4o-mini-tts",
+        modelName: "tts-1",
         voiceID: "coral",
         outputFormat: .mp3,
         providerParameters: ["response_format": .string("mp3")],

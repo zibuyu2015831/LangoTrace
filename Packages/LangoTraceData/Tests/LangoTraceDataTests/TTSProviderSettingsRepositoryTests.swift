@@ -31,7 +31,7 @@ struct TTSProviderSettingsRepositoryTests {
             endpointID: "endpoint-tts",
             languageCode: "en",
             adapterKind: .openAIAudioSpeech,
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             voiceID: "coral",
             outputFormat: .mp3
         )
@@ -40,7 +40,7 @@ struct TTSProviderSettingsRepositoryTests {
             endpointID: "endpoint-tts",
             languageCode: "ja",
             adapterKind: .openAIAudioSpeech,
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             voiceID: "alloy",
             outputFormat: .mp3
         )
@@ -66,7 +66,7 @@ struct TTSProviderSettingsRepositoryTests {
             endpointID: "endpoint-tts",
             languageCode: "en",
             adapterKind: .openAIAudioSpeech,
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             voiceID: "coral",
             outputFormat: .mp3
         )
@@ -83,7 +83,7 @@ struct TTSProviderSettingsRepositoryTests {
             status: .succeeded,
             errorCategory: nil,
             providerPresetID: "openai",
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             durationMilliseconds: 210,
             createdAt: Date(timeIntervalSince1970: 300)
         )
@@ -109,7 +109,7 @@ struct TTSProviderSettingsRepositoryTests {
             endpointID: "endpoint-tts",
             languageCode: "en",
             adapterKind: .openAIAudioSpeech,
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             voiceID: "coral",
             outputFormat: .mp3
         )
@@ -126,7 +126,7 @@ struct TTSProviderSettingsRepositoryTests {
             status: .failed,
             errorCategory: .invalidVoice,
             providerPresetID: "openai",
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             durationMilliseconds: 210,
             createdAt: Date(timeIntervalSince1970: 320)
         )
@@ -165,7 +165,7 @@ struct TTSProviderSettingsRepositoryTests {
                 providerPresetID: "openai",
                 adapterKind: .openAIResponses,
                 baseURL: "https://api.openai.com/v1",
-                modelName: "gpt-4o-mini-tts",
+                modelName: "tts-1",
                 credentialID: "credential-1",
                 supportsImageInput: false,
                 imageInputEnabled: false

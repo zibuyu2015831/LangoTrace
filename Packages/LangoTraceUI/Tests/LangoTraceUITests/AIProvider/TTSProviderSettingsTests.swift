@@ -64,7 +64,7 @@ struct TTSProviderSettingsTests {
         draft.text.endpoint.independentCredential.apiKeyDraft = "sk-openrouter"
         draft.speech.isEnabled = true
 
-        #expect(draft.speech.endpoint.model == "openai/gpt-4o-mini-tts-2025-12-15")
+        #expect(draft.speech.endpoint.model == "openai/tts-1")
         #expect(draft.speech.voiceID == "nova")
         #expect(draft.saveReadiness == .readyForRequest)
 
@@ -75,7 +75,7 @@ struct TTSProviderSettingsTests {
 
         #expect(snapshot.requestedCapabilities.contains(.speechSynthesis))
         #expect(snapshot.ttsEndpoint?.providerPresetID == "openrouter")
-        #expect(snapshot.ttsEndpoint?.modelName == "openai/gpt-4o-mini-tts-2025-12-15")
+        #expect(snapshot.ttsEndpoint?.modelName == "openai/tts-1")
         #expect(snapshot.ttsSettings?.adapterKind == .openRouterAudioSpeech)
         #expect(snapshot.ttsVoiceProfile?.voiceID == "nova")
         #expect(snapshot.ttsPlaintextSecret == "sk-openrouter")
@@ -86,7 +86,7 @@ struct TTSProviderSettingsTests {
         var draft = AIProviderDraftConfiguration(provider: .openAI)
         draft.text.endpoint.independentCredential.apiKeyDraft = "sk-test"
         draft.speech.isEnabled = true
-        draft.speech.endpoint.model = "gpt-4o-mini-tts"
+        draft.speech.endpoint.model = "tts-1"
         draft.speech.voiceID = "coral"
         draft.speech.outputFormat = .mp3
         draft.speech.speed = 1.0
@@ -113,7 +113,7 @@ struct TTSProviderSettingsTests {
             endpointID: "endpoint-tts",
             languageCode: "ja",
             adapterKind: .openAIAudioSpeech,
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             voiceID: "alloy",
             voiceDisplayName: "Alloy",
             outputFormat: .wav,
@@ -135,7 +135,7 @@ struct TTSProviderSettingsTests {
         var draft = AIProviderDraftConfiguration(provider: .openAI)
         draft.text.endpoint.independentCredential.apiKeyDraft = "sk-test"
         draft.speech.isEnabled = true
-        draft.speech.endpoint.model = "gpt-4o-mini-tts"
+        draft.speech.endpoint.model = "tts-1"
         draft.speech.voiceID = "coral"
 
         let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
@@ -256,7 +256,7 @@ private func loadedTTSEndpoint(now: Date) throws -> AIProviderEndpointConfigurat
             providerPresetID: "openai",
             adapterKind: .openAIResponses,
             baseURL: "https://api.openai.com/v1",
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             credentialID: "credential",
             supportsImageInput: false,
             imageInputEnabled: false

@@ -19,7 +19,7 @@ struct SentenceTTSGenerationContractTests {
             diagnostics: SentenceTTSGenerationDiagnostics(
                 providerPresetID: "openai",
                 endpointPurpose: .tts,
-                modelName: "gpt-4o-mini-tts",
+                modelName: "tts-1",
                 outputFormat: .mp3,
                 textLengthBucket: .short,
                 byteSizeBucket: .small,

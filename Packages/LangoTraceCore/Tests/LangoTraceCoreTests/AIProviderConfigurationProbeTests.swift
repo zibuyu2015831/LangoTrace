@@ -81,7 +81,7 @@ func capabilityProbeResultCarriesEndpointMetadataForMixedProfileProbes() {
         endpointID: "endpoint-tts",
         endpointPurpose: .tts,
         providerPresetID: "openrouter",
-        modelName: "openai/gpt-4o-mini-tts",
+        modelName: "openai/tts-1",
         configurationFingerprint: "tts-fingerprint"
     )
 

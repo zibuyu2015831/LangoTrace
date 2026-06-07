@@ -16,7 +16,7 @@ func voiceProfileFingerprintChangesOnlyForOutputAffectingFields() throws {
         endpointID: "endpoint-tts",
         languageCode: "en",
         adapterKind: .openAIAudioSpeech,
-        modelName: "gpt-4o-mini-tts",
+        modelName: "tts-1",
         voiceID: "coral",
         outputFormat: .mp3,
         speed: 1.0,
@@ -43,7 +43,7 @@ func voiceProfileSuccessfulFingerprintUpdatesOnlyAfterSuccessfulProbe() throws {
         endpointID: "endpoint-tts",
         languageCode: "en",
         adapterKind: .openAIAudioSpeech,
-        modelName: "gpt-4o-mini-tts",
+        modelName: "tts-1",
         voiceID: "coral",
         outputFormat: .mp3
     )
@@ -67,7 +67,7 @@ func providerParameterAllowlistRejectsUnknownKeys() throws {
             endpointID: "endpoint-tts",
             languageCode: "en",
             adapterKind: .openAIAudioSpeech,
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             voiceID: "coral",
             outputFormat: .mp3,
             providerParameters: ["unknown": .string("value")]
@@ -80,7 +80,7 @@ func providerParameterAllowlistRejectsUnknownKeys() throws {
             endpointID: "endpoint-tts",
             languageCode: "en",
             adapterKind: .openRouterAudioSpeech,
-            modelName: "openai/gpt-4o-mini-tts",
+            modelName: "openai/tts-1",
             voiceID: "coral",
             outputFormat: .mp3,
             providerParameters: [

@@ -389,9 +389,9 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
     var defaultSpeechModel: String {
         switch self {
         case .openAI:
-            "gpt-4o-mini-tts"
+            "tts-1"
         case .openRouter:
-            "openai/gpt-4o-mini-tts-2025-12-15"
+            "openai/tts-1"
         default:
             ""
         }
@@ -570,7 +570,7 @@ extension AIProviderAdapterKind {
                 canProbeText: true,
                 canProbeStructuredJSON: true,
                 canProbeImageInput: true,
-                canProbeSpeechSynthesis: false,
+                canProbeSpeechSynthesis: true,
                 canProbeEmbedding: true
             )
         case .anthropicMessages, .geminiGenerateContent:

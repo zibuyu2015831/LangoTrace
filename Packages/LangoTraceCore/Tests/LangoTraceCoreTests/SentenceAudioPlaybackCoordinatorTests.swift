@@ -41,7 +41,7 @@ struct SentenceAudioPlaybackCoordinatorTests {
             diagnostics: SentenceTTSGenerationDiagnostics(
                 providerPresetID: "openai",
                 endpointPurpose: .tts,
-                modelName: "gpt-4o-mini-tts",
+                modelName: "tts-1",
                 outputFormat: .mp3,
                 textLengthBucket: .short,
                 byteSizeBucket: .small,
@@ -276,7 +276,7 @@ private actor FakeGenerator: SentenceTTSGenerating {
             diagnostics: SentenceTTSGenerationDiagnostics(
                 providerPresetID: "openai",
                 endpointPurpose: .tts,
-                modelName: "gpt-4o-mini-tts",
+                modelName: "tts-1",
                 outputFormat: .mp3,
                 textLengthBucket: .short,
                 byteSizeBucket: .small,
@@ -435,7 +435,7 @@ private func playableConfiguration() throws -> PlayableTTSConfiguration {
             providerPresetID: "openai",
             adapterKind: .openAIResponses,
             baseURL: "https://api.openai.com/v1",
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             credentialID: "credential-1",
             supportsImageInput: false,
             imageInputEnabled: false
@@ -448,7 +448,7 @@ private func playableConfiguration() throws -> PlayableTTSConfiguration {
         endpointID: "endpoint-tts",
         languageCode: "en",
         adapterKind: .openAIAudioSpeech,
-        modelName: "gpt-4o-mini-tts",
+        modelName: "tts-1",
         voiceID: "coral",
         outputFormat: .mp3
     )

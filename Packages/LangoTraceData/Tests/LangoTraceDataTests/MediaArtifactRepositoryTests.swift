@@ -84,7 +84,7 @@ struct MediaArtifactRepositoryTests {
         )
         _ = try await repository.commitTTSAudioArtifact(MediaArtifactTestFixtures.commitInput())
 
-        let changedKey = MediaArtifactTestFixtures.key(modelName: "gpt-4o-mini-tts-v2")
+        let changedKey = MediaArtifactTestFixtures.key(modelName: "tts-1-v2")
 
         #expect(try await repository.ttsAudioArtifactMetadata(for: changedKey) == .miss)
     }
@@ -411,7 +411,7 @@ enum MediaArtifactTestFixtures {
             endpointID: "endpoint-tts",
             languageCode: "en",
             adapterKind: .openAIAudioSpeech,
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             voiceID: "alloy",
             outputFormat: .mp3,
             lastSuccessfulConfigurationFingerprint: "fingerprint-1",
@@ -460,7 +460,7 @@ enum MediaArtifactTestFixtures {
     static func key(
         sentenceSource: TTSSentenceSource = .learningMaterialSentence(materialID: "material-1", sentenceIndex: 0),
         sentenceTextHash: String = "sentence-hash-1",
-        modelName: String = "gpt-4o-mini-tts",
+        modelName: String = "tts-1",
         outputFormat: TTSAudioFormat = .mp3
     ) -> TTSAudioArtifactKey {
         TTSAudioArtifactKey(
@@ -615,7 +615,7 @@ enum MediaArtifactTestFixtures {
                 providerPresetID: "openai",
                 adapterKind: .openAIResponses,
                 baseURL: "https://api.openai.com/v1",
-                modelName: "gpt-4o-mini-tts",
+                modelName: "tts-1",
                 credentialID: nil,
                 supportsImageInput: false,
                 imageInputEnabled: false

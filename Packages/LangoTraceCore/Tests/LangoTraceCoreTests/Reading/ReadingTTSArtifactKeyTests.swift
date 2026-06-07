@@ -42,7 +42,7 @@ struct ReadingTTSArtifactKeyTests {
             ttsVoiceProfileID: "voice-en",
             adapterKind: "openai_audio_speech",
             adapterVersion: "2026-05-23",
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             voiceIDHash: "voice-hash",
             outputFormat: .mp3,
             sampleRate: nil,

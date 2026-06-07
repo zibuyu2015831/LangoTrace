@@ -35,7 +35,7 @@ func draftTTSProbeSendsCurrentLanguageFixedTextAndReturnsEndpointMetadata() asyn
     #expect(result.endpointMetadata?.endpointID == "tts-endpoint")
     #expect(result.endpointMetadata?.endpointPurpose == .tts)
     #expect(result.endpointMetadata?.providerPresetID == "openai")
-    #expect(result.endpointMetadata?.modelName == "gpt-4o-mini-tts")
+    #expect(result.endpointMetadata?.modelName == "tts-1")
     #expect(result.endpointMetadata?.configurationFingerprint == voiceProfile.configurationFingerprint)
 
     let requests = await httpClient.requests
@@ -203,7 +203,7 @@ private func ttsEndpoint() -> AIProviderEndpointInput {
         providerPresetID: "openai",
         adapterKind: .openAICompatibleChat,
         baseURL: "https://api.openai.com/v1",
-        modelName: "gpt-4o-mini-tts",
+        modelName: "tts-1",
         credentialID: "credential-1",
         supportsImageInput: false,
         imageInputEnabled: false
@@ -216,7 +216,7 @@ private func makeVoiceProfile(languageCode: String) throws -> TTSVoiceProfile {
         endpointID: "tts-endpoint",
         languageCode: languageCode,
         adapterKind: .openAIAudioSpeech,
-        modelName: "gpt-4o-mini-tts",
+        modelName: "tts-1",
         voiceID: "coral",
         outputFormat: .mp3,
         providerParameters: ["response_format": .string("mp3")]

@@ -101,7 +101,7 @@ func mediaArtifactMigrationCreatesTablesConstraintsAndActiveKeyUniqueness() thro
                 'artifact-2', 'learningMaterialSentence', 'entry-1', 'material-1', NULL,
                 0, 'sentence-hash', 'en', 'profile-1', 'endpoint-tts',
                 'voice-en', 'openai_audio_speech', '2026-05-23',
-                'gpt-4o-mini-tts', 'voice-hash', 'mp3', NULL, 1.0, NULL,
+                'tts-1', 'voice-hash', 'mp3', NULL, 1.0, NULL,
                 NULL, NULL, NULL, 'fingerprint'
             )
             """
@@ -445,7 +445,7 @@ private func insertMediaArtifactPrerequisites(_ db: Database) throws {
             request_timeout_seconds, created_at, updated_at, deleted_at
         ) VALUES (
             'endpoint-tts', 'profile-1', 'tts', 1, 'openai', 'openAIResponses',
-            'https://api.openai.com/v1', 'gpt-4o-mini-tts', NULL, 0, 0, NULL, 1, 1, NULL
+            'https://api.openai.com/v1', 'tts-1', NULL, 0, 0, NULL, 1, 1, NULL
         )
         """
     )
@@ -458,7 +458,7 @@ private func insertMediaArtifactPrerequisites(_ db: Database) throws {
             configuration_fingerprint, last_successful_configuration_fingerprint,
             last_test_status, last_test_error_category, last_tested_at, created_at, updated_at
         ) VALUES (
-            'voice-en', 'endpoint-tts', 'en', 'openai_audio_speech', 'gpt-4o-mini-tts',
+            'voice-en', 'endpoint-tts', 'en', 'openai_audio_speech', 'tts-1',
             'alloy', NULL, 'mp3', NULL, 1.0, NULL, NULL, NULL, NULL, 0, '{}',
             'fingerprint', 'fingerprint', 'succeeded', NULL, 1, 1, 1
         )

@@ -11,7 +11,7 @@ func openAITTSAdapterBuildsAudioSpeechRequest() throws {
         endpointID: "endpoint-tts",
         languageCode: "en",
         adapterKind: .openAIAudioSpeech,
-        modelName: "gpt-4o-mini-tts",
+        modelName: "tts-1",
         voiceID: "coral",
         outputFormat: .mp3,
         instructions: "Calm and clear."
@@ -21,7 +21,7 @@ func openAITTSAdapterBuildsAudioSpeechRequest() throws {
         input: TTSProviderAdapterRequestInput(
             endpointID: "endpoint-tts",
             baseURL: "https://api.openai.com/v1",
-            modelName: "gpt-4o-mini-tts",
+            modelName: "tts-1",
             voiceProfile: voice,
             plaintextSecret: "sk-test",
             text: "Today I wrote one short sentence for practice."
@@ -32,7 +32,7 @@ func openAITTSAdapterBuildsAudioSpeechRequest() throws {
     #expect(request.httpMethod == "POST")
     #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer sk-test")
     let body = try #require(String(data: request.httpBody ?? Data(), encoding: .utf8))
-    #expect(body.contains(#""model":"gpt-4o-mini-tts""#))
+    #expect(body.contains(#""model":"tts-1""#))
     #expect(body.contains(#""voice":"coral""#))
     #expect(body.contains(#""response_format":"mp3""#))
     #expect(body.contains(#""instructions":"Calm and clear.""#))
@@ -47,7 +47,7 @@ func openRouterTTSAdapterBuildsAudioSpeechRequest() throws {
         endpointID: "endpoint-tts",
         languageCode: "en",
         adapterKind: .openRouterAudioSpeech,
-        modelName: "openai/gpt-4o-mini-tts",
+        modelName: "openai/tts-1",
         voiceID: "coral",
         outputFormat: .mp3
     )
@@ -56,7 +56,7 @@ func openRouterTTSAdapterBuildsAudioSpeechRequest() throws {
         input: TTSProviderAdapterRequestInput(
             endpointID: "endpoint-tts",
             baseURL: "https://openrouter.ai/api/v1",
-            modelName: "openai/gpt-4o-mini-tts",
+            modelName: "openai/tts-1",
             voiceProfile: voice,
             plaintextSecret: "or-test",
             text: "Today I wrote one short sentence for practice."
@@ -66,7 +66,7 @@ func openRouterTTSAdapterBuildsAudioSpeechRequest() throws {
     #expect(request.url?.absoluteString == "https://openrouter.ai/api/v1/audio/speech")
     #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer or-test")
     let body = try #require(String(data: request.httpBody ?? Data(), encoding: .utf8))
-    #expect(body.contains(#""model":"openai\/gpt-4o-mini-tts""#))
+    #expect(body.contains(#""model":"openai\/tts-1""#))
     #expect(body.contains(#""voice":"coral""#))
 }
 
