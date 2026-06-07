@@ -73,7 +73,8 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 3. 同一功能有多个测试文件或预计继续扩展时，在 package test target 内创建功能子目录，例如 `Packages/LangoTraceUI/Tests/LangoTraceUITests/AIProvider/`。
 4. 新任务方案应说明测试落点、先失败的行为用例、聚焦验证命令和完整验证命令；如果不新增单元测试，必须说明原因和剩余风险。
 5. UI 代码的单元测试优先覆盖状态机、presentation model、source-boundary 和本地化 key；真实点击、截图和模拟器验证作为补充，不替代可自动化测试。
-6. 完成前至少运行聚焦 package 测试；涉及 Swift 工程行为时继续运行 `scripts/verify.sh`。
+6. 验证策略：日常开发优先采用**轻量验证**。如果开发了某个 Package（如 UI 或 Data），仅验证对应的 Package 测试（如 `swift test --package-path Packages/LangoTraceUI`）。
+7. 全量验证约束：`scripts/verify.sh` 涉及全量编译和多模拟器构建，极度消耗性能且可能导致环境超时。**除非用户明确要求跑全量验证，或者涉及跨模块重构、CI 合并前，否则不要主动运行该脚本。**
 
 ## 2. 项目当前状态
 
@@ -485,7 +486,7 @@ git status --short
 
 如果文档任务涉及代码实现状态、核心决策、跨文档一致性或阶段性完成，还应按 [文档审查机制](review/README.md) 做语义检查，确认当前事实、决策、计划和过程记录没有混用。
 
-涉及 Swift 工程任务时，根据实际工程状态检查：
+涉及 Swift 工程任务时，根据实际工程状态检查（注意：`verify.sh` 负载极高，非必要不跑全量）：
 
 ```bash
 scripts/verify.sh
