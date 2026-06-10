@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>macOS · 练习 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  /* macOS 桌面密度覆盖 */
+  .sidebar { width: 240px; padding: 12px 10px; }
+  .side-section { font-size: 11px; font-weight: 720; letter-spacing: 0.06em; color: var(--faint); padding: 2px 10px 4px; }
+  .side-item { min-height: 34px; padding: 6px 10px; gap: 9px; font-size: 13.5px; border-radius: 9px; }
+  .side-item .count { font-size: 11px; }
+  .side-footer { padding-top: 9px; }
+  .side-footer .space-name { font-size: 12.5px; }
+  .side-footer .space-dir { font-size: 11px; }
+  .side-footer .footer-icons .icon-btn { width: 32px; height: 32px; }
+  .window-title { font-size: 13px; font-weight: 650; white-space: nowrap; }
+  .mac-toolbar .spacer { flex: 1; }
+  .mac-toolbar .search-field { flex: 1; max-width: 260px; min-height: 32px; padding: 5px 12px; font-size: 13px; border-radius: 9px; }
+  .mac-toolbar .search-field .kbd { margin-left: auto; }
+  .mac-toolbar .icon-btn { width: 34px; height: 34px; border-radius: 9px; }
+  .mac-toolbar .btn-sm { min-height: 30px; padding: 4px 12px; font-size: 12.5px; border-radius: 9px; }
+
+  /* 练习两列 */
+  .practice-split { flex: 1; display: flex; min-height: 0; }
+  .plist { width: 300px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 14px 12px; border-right: 1px solid var(--hairline); overflow: auto; }
+  .plist-head { padding: 0 11px 8px; }
+  .plist-head .plist-title { font-size: 13px; font-weight: 680; }
+  .plist-head .plist-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .s-row { display: flex; align-items: center; gap: 10px; padding: 8px 11px; min-height: 36px; border-radius: var(--r-sm); cursor: pointer; }
+  .s-row:hover { background: rgba(23, 32, 30, 0.05); }
+  .s-row.active { background: var(--accent-tint); }
+  .s-num { width: 18px; flex: none; font-size: 11px; font-weight: 700; color: var(--faint); letter-spacing: 0.04em; }
+  .s-row.active .s-num { color: var(--accent-deep); }
+  .s-text { flex: 1; min-width: 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .s-row.active .s-text { color: var(--accent-deep); font-weight: 620; }
+  .s-done { width: 18px; height: 18px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--accent-tint); color: var(--accent-deep); }
+  .s-row.active .s-done { background: var(--surface); }
+  .s-todo { width: 18px; flex: none; }
+
+  .session { flex: 1; min-width: 0; overflow: auto; padding: 32px; }
+  .session-inner { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+
+  .target-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); box-shadow: var(--shadow-card); padding: 20px 22px 14px; }
+  .target-card .target-sentence { font-size: 20px; font-weight: 620; line-height: 1.5; color: var(--ink); }
+  .target-card .reveal-row { display: flex; gap: 6px; margin-top: 12px; }
+  .target-card .btn-sm { min-height: 28px; padding: 3px 12px; font-size: 12.5px; border-radius: 8px; }
+
+  .ops-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); box-shadow: var(--shadow-card); padding: 20px 22px 14px; }
+  .op-row { display: flex; align-items: center; justify-content: center; gap: 32px; }
+  .op-row .op-btn { min-height: 32px; min-width: 0; padding: 4px 14px; font-size: 12.5px; }
+  .rec-btn {
+    width: 72px; height: 72px; flex: none; border-radius: 50%; border: 0;
+    background: var(--accent); color: var(--on-accent);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    box-shadow: var(--shadow-card);
+  }
+  .rec-btn:hover { background: var(--accent-deep); }
+  .rec-btn .rec-label { font-size: 10.5px; font-weight: 680; }
+  .ops-card .rec-meta { margin-top: 12px; text-align: center; font-size: 11.5px; color: var(--muted); font-weight: 580; }
+
+  .session-nav { display: flex; align-items: center; justify-content: space-between; padding: 0 4px; }
+  .session-nav .btn-sm { min-height: 28px; padding: 3px 10px; font-size: 12.5px; border-radius: 8px; }
+  .session-nav .nav-pos { font-size: 12.5px; font-weight: 650; color: var(--muted); }
+
+  /* Inspector */
+  .inspector { gap: 10px; overflow: auto; }
+  .inspector h3 { margin-top: 6px; }
+  .inspector h3:first-child { margin-top: 0; }
+  .ctx-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: 12px; }
+  .ctx-card .ctx-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 3px 0; }
+  .ctx-card .k { color: var(--muted); }
+  .ctx-card .v { font-weight: 620; text-align: right; }
+  .progress-track { margin-top: 9px; height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
+  .progress-fill { width: 40%; height: 100%; border-radius: 3px; background: var(--accent); }
+  .foot-card { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: 10px 12px; font-size: 11.5px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · macOS</div>
+  <div class="proto-header">
+    <h1>练习 · 单句跟读</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">macOS 练习形态（已实现路径）：左列是当前记录的句子列表，右侧是单句跟读会话区。听示范、录音、回放与 iPhone / iPad 共享同一套练习 action seam，录音默认只保存在本机。</p>
+
+  <div class="proto-stage">
+    <div class="device-mac">
+      <div class="screen">
+
+        <div class="mac-titlebar">
+          <div class="traffic-lights"><span class="tl-close"></span><span class="tl-min"></span><span class="tl-max"></span></div>
+          <div class="mac-toolbar">
+            <button class="icon-btn" aria-label="切换侧栏">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg>
+            </button>
+            <span class="window-title">语迹 — 英语空间</span>
+            <span class="spacer"></span>
+            <div class="search-field">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8L21 21"/></svg>
+              搜索
+              <span class="kbd">⌘K</span>
+            </div>
+            <button class="btn btn-primary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+              新建记录
+            </button>
+            <button class="icon-btn" aria-label="切换 Inspector">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M14.5 4.5v15"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="workbench">
+          <aside class="sidebar">
+            <div class="side-section">工作台</div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/><circle cx="12" cy="14.8" r="1.4" fill="currentColor" stroke="none"/></svg>
+              今日 <span class="count">2</span>
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M9 8.5h6M9 12.5h6M9 16.5h4"/></svg>
+              全部记录 <span class="count">24</span>
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>
+              阅读
+            </div>
+            <div class="side-item active">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>
+              练习
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/></svg>
+              记忆 <span class="count">5</span>
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v9M8.5 9l3.5 3.5L15.5 9"/><path d="M4 14.5v3A2.5 2.5 0 0 0 6.5 20h11a2.5 2.5 0 0 0 2.5-2.5v-3"/></svg>
+              导入导出
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+              设置
+            </div>
+            <div class="sidebar-spacer"></div>
+            <div class="side-footer">
+              <div>
+                <div class="space-name">英语空间</div>
+                <div class="space-dir">中文 → English</div>
+              </div>
+              <div class="footer-icons">
+                <button class="icon-btn" aria-label="AI Provider 状态">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l1.6 4.1 4.1 1.6-4.1 1.6L12 15.4l-1.6-4.1L6.3 9.7l4.1-1.6L12 4z"/><path d="M18.5 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="同步状态">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a8 8 0 0 0-14.3-3.8"/><path d="M5.5 3.5v4.3h4.3"/><path d="M4 12.5a8 8 0 0 0 14.3 3.8"/><path d="M18.5 20.5v-4.3h-4.3"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="设置">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          <div class="main-pane">
+            <div class="practice-split">
+
+              <div class="plist">
+                <div class="plist-head">
+                  <div class="plist-title">夜跑路线换了</div>
+                  <div class="plist-sub">已练 2 / 5</div>
+                </div>
+                <div class="s-row">
+                  <span class="s-num">01</span>
+                  <span class="s-text">I moved my night run to the new riverside trail.</span>
+                  <span class="s-done" role="img" aria-label="已练">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg>
+                  </span>
+                </div>
+                <div class="s-row active">
+                  <span class="s-num">02</span>
+                  <span class="s-text">The street lights there are much brighter than in the park.</span>
+                  <span class="s-done" role="img" aria-label="已练">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg>
+                  </span>
+                </div>
+                <div class="s-row">
+                  <span class="s-num">03</span>
+                  <span class="s-text">Halfway through, I saw someone teaching a dog to swim.</span>
+                  <span class="s-todo"></span>
+                </div>
+                <div class="s-row">
+                  <span class="s-num">04</span>
+                  <span class="s-text">The dog kept paddling back to the wooden steps.</span>
+                  <span class="s-todo"></span>
+                </div>
+                <div class="s-row">
+                  <span class="s-num">05</span>
+                  <span class="s-text">I ended up running an extra kilometer without noticing.</span>
+                  <span class="s-todo"></span>
+                </div>
+              </div>
+
+              <div class="session">
+                <div class="session-inner">
+
+                  <div class="target-card">
+                    <p class="target-sentence">The street lights there are much brighter than in the park.</p>
+                    <div class="reveal-row">
+                      <button class="btn btn-quiet btn-sm">查看释义</button>
+                      <button class="btn btn-quiet btn-sm">查看讲解</button>
+                    </div>
+                  </div>
+
+                  <div class="ops-card">
+                    <div class="op-row">
+                      <button class="op-btn" aria-label="听示范">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+                        听示范
+                      </button>
+                      <button class="rec-btn" aria-label="再录一次">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>
+                        <span class="rec-label">再录一次</span>
+                      </button>
+                      <button class="op-btn" aria-label="回放录音">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5L8 5.5z"/></svg>
+                        回放录音
+                      </button>
+                    </div>
+                    <div class="rec-meta">上次录音 · 8 秒 · 保存在本机</div>
+                  </div>
+
+                  <div class="session-nav">
+                    <button class="btn btn-quiet btn-sm">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+                      上一句
+                    </button>
+                    <span class="nav-pos">第 2 / 5 句</span>
+                    <button class="btn btn-quiet btn-sm">
+                      下一句
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <aside class="inspector">
+            <h3>练习上下文</h3>
+            <div class="ctx-card">
+              <div class="ctx-row"><span class="k">记录</span><span class="v">夜跑路线换了</span></div>
+              <div class="ctx-row"><span class="k">进度</span><span class="v">已练 2 / 5</span></div>
+              <div class="progress-track" role="img" aria-label="进度 2 / 5"><div class="progress-fill"></div></div>
+            </div>
+
+            <h3>录音</h3>
+            <div class="foot-card">练习录音默认只保存在本机：不会自动发送给 AI Provider，不包含在默认导出中，也不参与同步。</div>
+          </aside>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>独立主滚动</strong>：句子列表与单句会话区各自滚动，不被工作台外层 ScrollView 包裹，避免长列表与会话操作互相干扰。</li>
+      <li><strong>与 iPhone / iPad 共享 action seam</strong>：听示范、录音、回放复用同一套 <code>PracticeActions</code> 与 practice session / recording metadata，macOS 只改变布局密度，不另建练习数据路径。</li>
+      <li><strong>录音边界</strong>：练习录音默认本机保存，不自动上传、不默认导出、不同步；Inspector 中以 footnote 常驻披露。</li>
+      <li><strong>释义与讲解默认收起</strong>：跟读时先听后看，「查看释义 / 查看讲解」是显式展开动作，避免视觉答案干扰开口练习。</li>
+      <li><strong>桌面快捷键是后续方向</strong>：空格开始 / 停止录音、左右方向键切换句子等键盘路径需要独立方案，本页只固定布局与命令位。</li>
+      <li>当前闭环为单句跟读完成态：无后台录音、无语音识别、无发音评分。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
