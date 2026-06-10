@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPad · 学习工作台 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  /* iPad 状态行 */
+  .ipad-status {
+    flex: none;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 24px 0;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .ipad-status .status-left { display: flex; gap: 10px; }
+
+  /* 右侧 inspector 外侧留白（iPad 硬性规范） */
+  .inspector { margin: 12px 12px 12px 0; border: 1px solid var(--hairline); border-radius: var(--r-md); }
+
+  /* iPad 触控目标 */
+  .workbench .side-item { min-height: 44px; }
+  .op-btn { min-height: 44px; }
+
+  /* pane-toolbar */
+  .pane-toolbar .search-field { width: 300px; }
+  .pane-toolbar .spacer { flex: 1; }
+
+  /* 左栏：小号筛选 chips */
+  .sidebar .chips { padding: 2px 4px 6px; }
+  .sidebar .chip { padding: 4px 11px; min-height: 28px; font-size: 12px; }
+
+  /* 左栏：时间线行 */
+  .timeline-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 9px 12px;
+    min-height: 44px;
+    border-radius: var(--r-sm);
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+  }
+  .timeline-row:hover { background: rgba(23, 32, 30, 0.05); }
+  .timeline-row.active { background: var(--accent-tint); }
+  .timeline-row .tr-time { font-size: 11px; font-weight: 640; color: var(--faint); }
+  .timeline-row.active .tr-time { color: var(--accent-deep); }
+  .timeline-row .tr-title { font-size: 14px; font-weight: 640; color: var(--ink); }
+  .timeline-row .tr-excerpt {
+    font-size: 12px; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .side-divider { border-top: 1px solid var(--hairline); margin: 10px 4px 6px; }
+
+  /* 中央内容列 */
+  .pane-scroll { flex: 1; overflow-y: auto; padding: 28px; }
+  .content-col {
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .entry-heading h2 { font-size: 24px; font-weight: 740; letter-spacing: -0.01em; }
+  .entry-heading .entry-meta { margin-top: 3px; font-size: var(--fs-footnote); color: var(--faint); font-weight: 620; }
+
+  /* 动态文本卡（与 iPhone 记录详情同构） */
+  .text-card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-card);
+    padding: 12px 16px 16px;
+  }
+  .text-card .tools { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+  .text-card .tools .card-kicker { flex: 1; }
+  .text-card .tools .icon-btn { color: var(--muted); }
+  .text-card .body { font-size: var(--fs-body); line-height: 1.65; color: var(--ink); }
+  .text-card .body.target { font-size: 16px; }
+
+  .sentence-card.current { border-color: var(--accent); }
+
+  /* 右栏卡片 */
+  .inspector { overflow-y: auto; }
+  .inspector .card { padding: 12px 14px; box-shadow: none; }
+  .insp-sentence .is-en { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.5; }
+  .insp-sentence .is-zh { margin-top: 4px; font-size: 12px; color: var(--muted); }
+  .mem-cand { display: flex; align-items: center; gap: 10px; }
+  .mem-cand + .mem-cand { margin-top: 8px; }
+  .mem-cand .mc-body { flex: 1; min-width: 0; }
+  .mem-cand .mc-en { font-size: 14px; font-weight: 650; color: var(--target-lang); }
+  .mem-cand .mc-zh { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .preview-card .pv-title { font-size: 13px; font-weight: 680; }
+  .preview-card .pv-row {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: var(--r-xs);
+    background: var(--surface-2);
+    border: 1px solid var(--hairline);
+    font-size: 12px;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .preview-card .pv-foot { margin-top: 8px; font-size: 11.5px; color: var(--faint); line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPad</div>
+  <div class="proto-header">
+    <h1>学习工作台 · 三栏布局</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">iPad 主界面（已实现）。左侧时间线侧栏、中央记录学习区、右侧学习面板组成三栏工作台；中央内容列是视觉焦点，记录详情复用与 iPhone 同构的动态文本卡与逐句学习卡。</p>
+
+  <div class="proto-stage">
+    <div class="device-ipad">
+      <div class="screen">
+        <div class="ipad-status">
+          <div class="status-left"><span>9:41</span><span>6月11日 周四</span></div>
+          <div class="status-icons">
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="pane-toolbar">
+          <button class="icon-btn" aria-label="收起侧栏">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg>
+          </button>
+          <div class="search-field">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+            搜索记录
+          </div>
+          <span class="spacer"></span>
+          <button class="btn btn-primary btn-sm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            新建记录
+          </button>
+          <button class="icon-btn" aria-label="收起学习面板">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M14.5 4.5v15"/></svg>
+          </button>
+        </div>
+
+        <div class="workbench">
+          <div class="sidebar">
+            <div class="chips" aria-label="时间线筛选">
+              <button class="chip active">全部</button>
+              <button class="chip">照片</button>
+              <button class="chip">待练习</button>
+              <button class="chip">已记忆</button>
+            </div>
+
+            <div class="timeline-day"><span class="day-label">今天</span><span class="day-sub">6月11日 周四</span></div>
+            <button class="timeline-row active">
+              <span class="tr-time">08:42</span>
+              <span class="tr-title">公司楼下的咖啡车</span>
+              <span class="tr-excerpt">楼下新来了一辆咖啡车，老板说每天只来三个小时…</span>
+            </button>
+            <button class="timeline-row">
+              <span class="tr-time">07:15</span>
+              <span class="tr-title">清晨的雨</span>
+              <span class="tr-excerpt">出门前下了一阵小雨，地铁口的台阶湿漉漉的…</span>
+            </button>
+
+            <div class="timeline-day"><span class="day-label">昨天</span><span class="day-sub">6月10日 周三</span></div>
+            <button class="timeline-row">
+              <span class="tr-time">19:30</span>
+              <span class="tr-title">夜跑路线换了</span>
+              <span class="tr-excerpt">换到河边那条新步道，路灯比公园里亮…</span>
+            </button>
+
+            <div class="side-divider"></div>
+            <div class="side-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>
+              阅读
+            </div>
+            <div class="side-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/></svg>
+              记忆
+            </div>
+            <div class="side-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14V3M7.5 7.5L12 3l4.5 4.5"/><path d="M4.5 14.5v4A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5v-4"/></svg>
+              导入导出
+            </div>
+
+            <div class="sidebar-spacer"></div>
+            <div class="side-footer">
+              <div>
+                <div class="space-name">英语空间</div>
+                <div class="space-dir">中文 → English</div>
+              </div>
+              <div class="footer-icons">
+                <button class="icon-btn" aria-label="AI 状态">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="同步状态">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 12a7.8 7.8 0 0 1 13.2-5.6"/><path d="M17.6 2.6v4.4h-4.4"/><path d="M19.8 12a7.8 7.8 0 0 1-13.2 5.6"/><path d="M6.4 21.4V17h4.4"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="设置">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="main-pane">
+            <div class="pane-scroll">
+              <div class="content-col">
+                <div class="entry-heading">
+                  <h2>公司楼下的咖啡车</h2>
+                  <div class="entry-meta">今天 08:42</div>
+                </div>
+
+                <div class="text-card">
+                  <div class="tools">
+                    <span class="card-kicker">中文记录</span>
+                    <button class="icon-btn" aria-label="编辑原文">
+                      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+                    </button>
+                  </div>
+                  <p class="body">楼下新来了一辆咖啡车，老板说每天只来三个小时。排队的时候闻到现磨豆子的味道，突然觉得周四也没那么难熬。</p>
+                </div>
+
+                <div class="text-card">
+                  <div class="tools">
+                    <span class="card-kicker accent">English 表达</span>
+                    <button class="icon-btn" aria-label="编辑学习文本">
+                      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+                    </button>
+                    <button class="icon-btn" aria-label="重新分析">
+                      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 3v4.5h-4.5"/></svg>
+                    </button>
+                  </div>
+                  <p class="body target">A new coffee cart showed up outside our office, and the owner says he only stays for three hours a day. While I was waiting in line, the smell of freshly ground beans suddenly made Thursday feel a lot easier.</p>
+                </div>
+
+                <div class="section-label">逐句学习</div>
+
+                <div class="sentence-card current">
+                  <div class="sentence-ops">
+                    <span class="sentence-index">01</span>
+                    <span class="spacer"></span>
+                    <button class="op-btn" aria-label="听这一句">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+                      听
+                    </button>
+                    <button class="op-btn" aria-label="进入练习">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/></svg>
+                      练
+                    </button>
+                  </div>
+                  <p class="sentence-target">A new coffee cart showed up outside our office.</p>
+                  <p class="sentence-native">楼下新来了一辆咖啡车。</p>
+                </div>
+
+                <div class="sentence-card">
+                  <div class="sentence-ops">
+                    <span class="sentence-index">02</span>
+                    <span class="spacer"></span>
+                    <button class="op-btn" aria-label="听这一句">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+                      听
+                    </button>
+                    <button class="op-btn" aria-label="进入练习">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/></svg>
+                      练
+                    </button>
+                  </div>
+                  <p class="sentence-target">The owner says he only stays for three hours a day.</p>
+                  <p class="sentence-native">老板说每天只来三个小时。</p>
+                  <div class="sentence-note">「stays for three hours」中的 stay 表示短暂停留营业；用 only 前置强调时间之短，比 just three hours 语气更口语化。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="inspector">
+            <h3>当前句子</h3>
+            <div class="card card-plain insp-sentence">
+              <p class="is-en">A new coffee cart showed up outside our office.</p>
+              <p class="is-zh">楼下新来了一辆咖啡车。</p>
+            </div>
+
+            <h3>记忆提取</h3>
+            <div>
+              <div class="card card-plain mem-cand">
+                <div class="mc-body">
+                  <div class="mc-en">show up</div>
+                  <div class="mc-zh">（突然）出现、来了</div>
+                </div>
+                <button class="btn btn-quiet btn-sm">加入记忆</button>
+              </div>
+              <div class="card card-plain mem-cand">
+                <div class="mc-body">
+                  <div class="mc-en">coffee cart</div>
+                  <div class="mc-zh">流动咖啡车</div>
+                </div>
+                <button class="btn btn-quiet btn-sm">加入记忆</button>
+              </div>
+            </div>
+
+            <h3>请求预览</h3>
+            <div class="card card-plain preview-card">
+              <div class="pv-title">将发送的内容</div>
+              <div class="pv-row">学习文本 · 218 字符</div>
+              <p class="pv-foot">仅在你点击生成时发送给 OpenAI</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>三栏均可收起</strong>：pane-toolbar 最左 / 最右两个切换按钮分别控制时间线侧栏与学习面板；与已实现的 iPad 边缘手势判定共享同一折叠状态。</li>
+      <li><strong>嵌入式标题策略</strong>：大屏详情把记录标题嵌入内容列顶部，与 iPhone 的 navigation title 策略不同；策略由入口显式选择，不随窗口宽度自动切换。</li>
+      <li><strong>请求预览只出现在 entry 学习上下文</strong>：「将发送的内容」摘要 + 字符数 + Provider 名称在点击生成前可见；页面浏览与滚动不触发任何 AI 请求。</li>
+      <li><strong>专注态</strong>：左右两栏都收起后，中央内容列保持约 640px 阅读宽度居中，进入无干扰的学习专注态。</li>
+      <li><strong>筛选语义三端共享</strong>：侧栏 chips（全部 / 照片 / 待练习 / 已记忆）与 iPhone 时间线筛选共用同一语义，不在 iPad 上发明独立筛选概念。</li>
+      <li>side-footer 常驻当前语言空间「英语空间 · 中文 → English」与 AI / 同步 / 设置三个图标入口，状态用图标 + 可点击详情表达，不靠颜色单独传达。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

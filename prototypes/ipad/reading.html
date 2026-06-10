@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPad · 阅读工作台 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  /* iPad 状态行 */
+  .ipad-status {
+    flex: none;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 24px 0;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .ipad-status .status-left { display: flex; gap: 10px; }
+
+  /* 右侧 inspector 外侧留白（iPad 硬性规范） */
+  .inspector { margin: 12px 12px 12px 0; border: 1px solid var(--hairline); border-radius: var(--r-md); overflow-y: auto; }
+
+  /* iPad 触控目标 */
+  .workbench .side-item { min-height: 44px; }
+  .op-btn { min-height: 44px; }
+
+  .pane-toolbar .pane-title { font-size: 16px; font-weight: 680; }
+  .pane-toolbar .spacer { flex: 1; }
+
+  /* 左栏：资料库 */
+  .sidebar .search-field { margin: 2px 4px 8px; }
+  .import-actions { display: flex; gap: 8px; padding: 0 4px 8px; }
+  .import-actions .btn { flex: 1; }
+  .sidebar .chips { padding: 2px 4px 8px; }
+  .sidebar .chip { padding: 4px 11px; min-height: 28px; font-size: 12px; }
+
+  .doc-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    min-height: 44px;
+    border-radius: var(--r-sm);
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+  }
+  .doc-row:hover { background: rgba(23, 32, 30, 0.05); }
+  .doc-row.active { background: var(--accent-tint); }
+  .doc-row .dr-title {
+    font-size: 14px; font-weight: 640; color: var(--ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .doc-row .dr-sub { font-size: 12px; color: var(--muted); }
+  .doc-row.active .dr-sub { color: var(--accent-deep); }
+
+  /* 中央：阅读画布 */
+  .pane-scroll { flex: 1; overflow-y: auto; padding: 28px; }
+  .reading-col {
+    max-width: 620px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .doc-heading h2 { font-size: 24px; font-weight: 740; letter-spacing: -0.01em; line-height: 1.3; }
+  .doc-heading .doc-meta { margin-top: 4px; font-size: var(--fs-footnote); color: var(--faint); font-weight: 620; }
+  .doc-tools { display: flex; justify-content: flex-end; margin: 4px 0 2px; }
+  .reading-body p {
+    font-size: 16.5px;
+    line-height: 1.75;
+    color: var(--ink);
+    margin: 0 0 18px;
+  }
+  .highlight {
+    background: var(--highlight);
+    border-radius: 4px;
+    padding: 1px 3px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  /* 右栏卡片 */
+  .inspector .card { padding: 12px 14px; box-shadow: none; }
+  .quote-card {
+    border-left: 3px solid var(--accent);
+    font-size: 14px;
+    font-weight: 620;
+    color: var(--target-lang);
+    line-height: 1.5;
+  }
+  .explain-card .ex-body { font-size: 13px; color: var(--ink-2); line-height: 1.65; }
+  .explain-card .ex-ops { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  .insp-foot { font-size: 11.5px; color: var(--faint); line-height: 1.55; padding: 0 4px; }
+  .inspector .insp-spacer { flex: 1; }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPad</div>
+  <div class="proto-header">
+    <h1>阅读工作台</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">iPad 阅读页（已实现）。左侧资料库管理导入的英文材料，中央是约 620px 的阅读画布，选中文本后的解释结果由右侧学习面板承载；解释只在用户选中后显式请求。</p>
+
+  <div class="proto-stage">
+    <div class="device-ipad">
+      <div class="screen">
+        <div class="ipad-status">
+          <div class="status-left"><span>9:41</span><span>6月11日 周四</span></div>
+          <div class="status-icons">
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="pane-toolbar">
+          <button class="icon-btn" aria-label="收起资料库">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg>
+          </button>
+          <span class="pane-title">阅读</span>
+          <span class="spacer"></span>
+          <button class="icon-btn" aria-label="收起学习面板">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M14.5 4.5v15"/></svg>
+          </button>
+        </div>
+
+        <div class="workbench">
+          <div class="sidebar">
+            <div class="search-field">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+              搜索资料
+            </div>
+            <div class="import-actions">
+              <button class="btn btn-secondary btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4.5" width="14" height="17" rx="2"/><path d="M9 4.5a3 3 0 0 1 6 0"/><path d="M9 11h6M9 15h4"/></svg>
+                粘贴文本
+              </button>
+              <button class="btn btn-secondary btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5h7l5 5V20a1.5 1.5 0 0 1-1.5 1.5H6.5A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1.5-1.5z"/><path d="M13.5 2.5V8H19"/></svg>
+                导入文件
+              </button>
+            </div>
+            <div class="chips" aria-label="资料筛选">
+              <button class="chip active">全部</button>
+              <button class="chip">收藏</button>
+              <button class="chip">通勤</button>
+            </div>
+
+            <button class="doc-row active">
+              <span class="dr-title">The Quiet Power of Morning Routines</span>
+              <span class="dr-sub">1,240 词 · 读到 42%</span>
+            </button>
+            <button class="doc-row">
+              <span class="dr-title">Why Cities Are Planting More Trees</span>
+              <span class="dr-sub">980 词 · 已读完</span>
+            </button>
+            <button class="doc-row">
+              <span class="dr-title">Running After Dark: Notes from the Riverside</span>
+              <span class="dr-sub">1,520 词 · 未开始</span>
+            </button>
+            <button class="doc-row">
+              <span class="dr-title">The Subway Etiquette Debate</span>
+              <span class="dr-sub">640 词 · 读到 18%</span>
+            </button>
+
+            <div class="sidebar-spacer"></div>
+            <div class="side-footer">
+              <div>
+                <div class="space-name">英语空间</div>
+                <div class="space-dir">中文 → English</div>
+              </div>
+              <div class="footer-icons">
+                <button class="icon-btn" aria-label="AI 状态">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="同步状态">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 12a7.8 7.8 0 0 1 13.2-5.6"/><path d="M17.6 2.6v4.4h-4.4"/><path d="M19.8 12a7.8 7.8 0 0 1-13.2 5.6"/><path d="M6.4 21.4V17h4.4"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="设置">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="main-pane">
+            <div class="pane-scroll">
+              <div class="reading-col">
+                <div class="doc-heading">
+                  <h2>The Quiet Power of Morning Routines</h2>
+                  <div class="doc-meta">1,240 词 · 读到 42%</div>
+                </div>
+                <div class="doc-tools">
+                  <button class="btn btn-quiet btn-sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+                    编辑
+                  </button>
+                </div>
+                <div class="reading-body">
+                  <p>Most advice about mornings focuses on willpower: wake up earlier, move faster, do more before nine. But the people who actually keep their routines rarely describe them as a battle. They talk about small anchors instead — the same mug, the same chair by the window, the same ten quiet minutes before anyone else is awake.</p>
+                  <p>Researchers who study habits point out that a routine works not because it is impressive, but because it removes decisions. When the first hour of the day runs on rails, you don't spend energy negotiating with yourself. You simply <span class="highlight">ease into the day</span>, and the harder choices arrive after your attention has warmed up.</p>
+                  <p>That may be why the most durable routines look almost boring from the outside. A short walk, a page of notes, a slow cup of coffee — none of it would make a striking photo. Yet repeated over months, these unremarkable minutes quietly decide what kind of day, and eventually what kind of year, you end up having.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="inspector">
+            <h3>选中内容</h3>
+            <div class="card card-plain quote-card">ease into the day</div>
+
+            <h3>解释</h3>
+            <div class="card card-plain explain-card">
+              <p class="ex-body">「ease into the day」指不慌不忙地、循序渐进地进入一天的状态。ease into 强调动作平缓、没有阻力，常用于慢慢适应新环境或新节奏。类似表达还有 settle into the day，但 ease 更突出轻松感。</p>
+              <div class="ex-ops">
+                <button class="op-btn" aria-label="听这个短语">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+                  听
+                </button>
+                <button class="btn btn-quiet btn-sm">加入记忆</button>
+              </div>
+            </div>
+
+            <div class="insp-spacer"></div>
+            <p class="insp-foot">解释在你选中文本后请求，不会自动发送全文。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>sentence-first selection seam 三端共享</strong>：选中以句子 / 短语为最小单位，选区与解释请求走与 iPhone、macOS 相同的 action seam，平台只决定结果的承载容器。</li>
+      <li><strong>结果由右侧 inspector 承载</strong>：iPad 上选中后的引用、解释与操作固定在右侧学习面板，不使用 iPhone 的底部面板，阅读画布不被遮挡。</li>
+      <li><strong>inspector 折叠时的降级</strong>：学习面板收起后，解释降级为画布底部的 compact 面板，保持「选中 → 解释」路径可用。</li>
+      <li><strong>隐私边界</strong>：解释只发送选中句段及必要上下文，不自动发送全文；底部 footnote 在面板内持续可见。</li>
+      <li><strong>编辑走受控 sheet</strong>：「编辑」打开受控编辑 sheet，阅读画布本身不进入可编辑态，避免误触改动正文。</li>
+      <li>持久高亮使用浅黄 highlight token，表示已沉淀过的短语；进度以「字数 · 读到 n%」文字表达，不只靠进度条颜色。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
