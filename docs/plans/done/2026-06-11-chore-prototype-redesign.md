@@ -1,6 +1,6 @@
 # 多端 HTML 原型重建（prototypes redesign）
 
-- 状态：User Approved
+- 状态：Verified
 - 自审核状态：Reviewed
 - 类型：chore
 - 创建日期：2026-06-11
@@ -77,7 +77,7 @@
 
 ## 涉及的文档路径
 
-- `docs/plans/active/2026-06-11-chore-prototype-redesign.md`（本方案）。
+- `docs/plans/done/2026-06-11-chore-prototype-redesign.md`（本方案，创建于 `docs/plans/active/`，完成后移入 done）。
 - `prototypes/README.md`（新原型入口说明）。
 - `docs/README.md` 5.2 节引用的原型路径 `prototypes/langotrace-multi-device-prototype/README.md` 需要更新为新入口。
 
@@ -126,7 +126,7 @@ prototypes/
 1. **问题**：直接删除 `appearance-theme-review/` 会销毁用户审核通过的色板证据，违反保守文档自进化原则"历史证据优先保留"。**修订**：移入 `prototypes/archive/`，README 标注 archived 状态。
 2. **问题**：把听写 / 回译直接画进练习 Tab 首层会违反页面清单第 8 节红线。**修订**：放入句子列表层级的练习方式切换，并在原型页面标注"目标设计"。
 3. **问题**：`docs/README.md` 5.2 节链接旧原型 README，删除后产生死链。**修订**：阶段 7 同步更新该引用并跑 `scripts/check-docs.sh`。
-4. **问题**：原型若用 `TODO` / `待定` 等占位词会触发 verify 的文档占位扫描（仅扫 docs/，原型不在扫描范围，但 README 在 prototypes/ 下也不在 docs/ 内）。**修订**：占位扫描仅针对 `docs/`，prototypes 不受影响；仍避免在任何新文件中使用占位词。
+4. **问题**：原型若使用文档占位标记词会触发 verify 的文档占位扫描（仅扫 docs/，原型不在扫描范围，但 README 在 prototypes/ 下也不在 docs/ 内）。**修订**：占位扫描仅针对 `docs/`，prototypes 不受影响；仍避免在任何新文件中使用占位词。
 5. **TDD 落点**：纯静态 HTML / CSS 原型与文档，无可自动化行为，按 CLAUDE.md 1.4 第 9 条豁免单元测试；验证以链接检查、文档检查和人工目检为主。
 6. **剩余风险**：见文末。
 
@@ -170,8 +170,14 @@ EOF
 
 ## 实施记录
 
-- 2026-06-11：阶段 1 完成，方案创建并自审核。
-- （后续阶段完成后追加。）
+- 2026-06-11：阶段 1 完成，方案创建并自审核（commit `04977c4`）。
+- 2026-06-11：阶段 2 完成，删除 `langotrace-multi-device-prototype/`（17 文件），归档两个已审核原型到 `prototypes/archive/` 并添加归档 README（commit `41e425e`）。
+- 2026-06-11：阶段 3 完成，`shared/tokens.css` + `shared/components.css`（基于已审核色板）、`index.html` 总览、`README.md` 和 iPhone 样板页 record / entry-detail（commit `2244652`）。
+- 2026-06-11：阶段 4 完成，iPhone 全部 18 页（commit `8ec91eb`）。
+- 2026-06-11：阶段 5 完成，iPad 5 页（commit `e9eda44`）。
+- 2026-06-11：阶段 6 完成，macOS 7 页（commit `86e2da8`）。
+- 2026-06-11：阶段 7 完成，更新 `docs/README.md`、`docs/development/project-initialization.md`、`docs/development/environment.md` 中的原型路径引用（done plans 作为历史记录不改写）。验证：原型内部链接检查通过（30 页无死链）、全部页面含设计说明块、占位词扫描通过、`scripts/check-docs.sh` 通过、`git diff --check` 通过。
+- 实施偏差：实际页面数为 iPhone 18 / iPad 5 / macOS 7（方案阶段 4-6 列表一致，无 scope 缩减）；done 目录下历史 plan 中的旧原型路径保留原样，属历史证据不回改。
 
 ## 完成标准
 

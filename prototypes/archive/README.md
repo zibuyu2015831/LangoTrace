@@ -5,4 +5,4 @@
 - `appearance-theme-review/`：2026-05-23 用户审核通过的浅色 / 深色色板基准，结论已落地 `LangoTraceDesign.swift` 与 spec 003。
 - `practice-session-prompt-card/`：单句练习内容卡交互原型，结论已落地 spec 003 与 `PracticePromptCard.swift`。
 
-当前原型入口见 `prototypes/README.md`。归档原因与决策记录见 `docs/plans/active/2026-06-11-chore-prototype-redesign.md`（完成后移入 `docs/plans/done/`）。
+当前原型入口见 `prototypes/README.md`。归档原因与决策记录见 `docs/plans/done/2026-06-11-chore-prototype-redesign.md`。

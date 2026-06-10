@@ -211,7 +211,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - [Apple 三端交互与可访问性规范](spec/010-apple-platform-interaction-and-accessibility.md)
 - [导航与路由规范](spec/002-navigation-and-routing.md)
 - [界面国际化与语言边界规范](spec/006-interface-localization-and-language-boundaries.md)
-- `prototypes/langotrace-multi-device-prototype/README.md`
+- `prototypes/README.md`
 
 适用任务：
 

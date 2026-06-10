@@ -587,7 +587,7 @@ swift test --package-path Packages/LangoTraceCore
 # 完整验证（所有 package + 构建 + SwiftLint + SwiftFormat）
 scripts/verify.sh
 
-# 阶段 DoD 检查（完成后，确认无 TODO / TBD）
+# 阶段 DoD 检查（完成后，确认无占位标记）
 rg "TO[D]O|TB[D]|待补[充]" \
   Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingSourceFormatDisplay.swift \
   Packages/LangoTraceUI/Sources/LangoTraceUI/ReadingSelectableTextView.swift \

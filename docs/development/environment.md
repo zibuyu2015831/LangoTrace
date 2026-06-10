@@ -102,7 +102,7 @@ iOS 26.5 (26.5 - 23F77) - com.apple.CoreSimulator.SimRuntime.iOS-26-5
 当前项目状态：
 
 - 产品文档位于 `docs/`。
-- 静态 HTML 原型位于 `prototypes/langotrace-multi-device-prototype/`。
+- 静态 HTML 原型位于 `prototypes/`，入口为 `prototypes/index.html`。
 - SwiftUI Multiplatform 工程已创建。
 - XcodeGen 配置位于 `project.yml`。
 - Xcode 工程位于 `LangoTrace.xcodeproj`。

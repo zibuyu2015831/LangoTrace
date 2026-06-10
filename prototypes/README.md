@@ -2,7 +2,7 @@
 
 本目录是语迹 iPhone / iPad / macOS 三端页面的静态 HTML 原型集，覆盖已实现页面与路线中待开发页面的目标设计。原型是设计基准，不是实现事实源：当前实现事实以 `docs/platform-page-inventory.md` 为准；页面与区块若标注「目标设计」，表示尚未实现，落地前仍需独立 active plan 和用户确认。
 
-重建背景与设计决策记录见任务方案 `docs/plans/active/2026-06-11-chore-prototype-redesign.md`（完成后移入 `docs/plans/done/`）。
+重建背景与设计决策记录见任务方案 `docs/plans/done/2026-06-11-chore-prototype-redesign.md`。
 
 ## 打开方式
 

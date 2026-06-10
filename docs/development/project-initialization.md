@@ -20,7 +20,7 @@
 - `docs/technical-framework-roadmap.md`：技术路线参考。
 - `docs/development/environment.md`：本机开发环境记录。
 - `docs/reference/README.md`：参考项目使用指南。
-- `prototypes/langotrace-multi-device-prototype/`：静态 HTML 多端原型。
+- `prototypes/`：多端静态 HTML 原型，入口见 `prototypes/README.md`。
 - `project.yml`：XcodeGen 工程定义。
 - `LangoTrace.xcodeproj`：由 XcodeGen 生成的 Xcode 工程。
 - `LangoTraceApp/`：App 入口、环境装配、启动状态和资源。
