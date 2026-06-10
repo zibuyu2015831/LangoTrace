@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 设置 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .privacy-note {
+    background: var(--surface-2);
+    padding: 14px 16px;
+    font-size: var(--fs-footnote);
+    color: var(--muted);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>设置列表</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">从记录页右上角 gear 推入的设置主列表。分组只到「语言空间 / 通用 / 能力」三层，row 右侧只显示低干扰的当前值；本地优先作为页面底部的产品摘要出现，不做成状态 badge。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <button class="nav-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+            记录
+          </button>
+          <div class="nav-title">设置</div>
+          <span style="width:56px"></span>
+        </div>
+
+        <div class="app-main">
+          <div class="app-scroll" style="padding-top:6px; gap:8px">
+
+            <div class="section-label">语言空间</div>
+            <div class="list">
+              <div class="row">
+                <span class="row-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14.5 14.5 0 0 1 0 18M12 3a14.5 14.5 0 0 0 0 18"/></svg>
+                </span>
+                <div class="row-body"><div class="row-title">语言空间</div></div>
+                <span class="row-value">英语空间</span>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+              </div>
+            </div>
+
+            <div class="section-label">通用</div>
+            <div class="list">
+              <div class="row">
+                <span class="row-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 17.5L8.5 6l5 11.5"/><path d="M5 13.7h7"/><circle cx="17.5" cy="14.5" r="3"/><path d="M20.5 11.5v6"/></svg>
+                </span>
+                <div class="row-body"><div class="row-title">界面语言</div></div>
+                <span class="row-value">跟随系统</span>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+              </div>
+              <div class="row">
+                <span class="row-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></svg>
+                </span>
+                <div class="row-body"><div class="row-title">外观</div></div>
+                <span class="row-value">浅色</span>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+              </div>
+            </div>
+
+            <div class="section-label">能力</div>
+            <div class="list">
+              <div class="row">
+                <span class="row-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z"/></svg>
+                </span>
+                <div class="row-body"><div class="row-title">AI Provider</div></div>
+                <span class="row-value">已配置</span>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+              </div>
+              <div class="row">
+                <span class="row-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h12.5"/><path d="M13 4l3.5 3.5L13 11"/><path d="M20 16.5H7.5"/><path d="M11 13l-3.5 3.5L11 20"/></svg>
+                </span>
+                <div class="row-body"><div class="row-title">同步</div></div>
+                <span class="row-value">未启用</span>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+              </div>
+              <div class="row">
+                <span class="row-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7" ry="2.8"/><path d="M5 5.5v13c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-13"/><path d="M5 12c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8"/></svg>
+                </span>
+                <div class="row-body"><div class="row-title">本地数据</div></div>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+              </div>
+              <div class="row">
+                <span class="row-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20.5v-13"/><path d="M4.5 11L8 7.5l3.5 3.5"/><path d="M16 3.5v13"/><path d="M12.5 13l3.5 3.5 3.5-3.5"/></svg>
+                </span>
+                <div class="row-body"><div class="row-title">导入导出</div></div>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+              </div>
+              <div class="row">
+                <span class="row-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.8v5.4c0 4.6-3 7.7-7 9.8-4-2.1-7-5.2-7-9.8V5.8L12 3z"/></svg>
+                </span>
+                <div class="row-body"><div class="row-title">隐私</div></div>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+              </div>
+            </div>
+
+            <div class="card card-plain privacy-note" style="margin-top:8px">
+              语迹是本地优先应用。你的记录、录音和学习材料默认只保存在这台设备上。
+            </div>
+
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>设置不是一级 Tab</strong>：保持四 Tab 红线，设置从记录页右上角 gear 推入，返回回到记录。</li>
+      <li><strong>主列表不带状态 badge</strong>：row 右侧只用 <code>.row-value</code> 显示低干扰当前值（未启用 / 已配置 / 跟随系统 / 浅色）；通过 / 失败等能力状态只出现在对应二级页里。</li>
+      <li><strong>本地优先是产品原则</strong>：以页面底部一段摘要文案呈现，不做成 pill 或徽章，也不暗示「开启后才本地」。</li>
+      <li><strong>row-icon 语义统一</strong>：globe（语言空间）、Aa（界面语言）、半月（外观）、sparkles（AI）、双向箭头（同步）、圆柱（本地数据）、上下箭头（导入导出）、盾牌（隐私），全部 stroke 线性图标。</li>
+      <li>能力分组的每一行都是推入式二级页入口；行高 ≥ 52pt，整行可点。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

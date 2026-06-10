@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 阅读详情 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .doc-body {
+    padding: 8px 24px 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .doc-body p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+  .hl {
+    background: var(--highlight);
+    border-radius: 3px;
+    padding: 1px 2px;
+  }
+  .study-panel {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 40px;
+    z-index: 20;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-float);
+    padding: 14px 16px;
+  }
+  .study-quote {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--fs-sub);
+    font-weight: 680;
+    color: var(--target-lang);
+  }
+  .study-quote::before {
+    content: "";
+    width: 3px;
+    height: 18px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .study-explain {
+    margin-top: 8px;
+    font-size: var(--fs-sub);
+    line-height: 1.65;
+    color: var(--ink-2);
+  }
+  .study-ops {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+  }
+  .study-ops .spacer { flex: 1; }
+  .study-ops .icon-btn { width: 40px; height: 40px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>阅读详情 · 选中即学</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">连续排版的英文正文 + 底部 compact 学习面板。用系统原生文本选择手势取词，面板只解释当前选中的片段；持久高亮标记之前学过的位置。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <button class="nav-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+            阅读
+          </button>
+          <div class="nav-title">The Coffee Cart Economy</div>
+          <button class="btn btn-quiet btn-sm">编辑</button>
+        </div>
+
+        <div class="app-main">
+          <div class="doc-body">
+            <p>Every morning at seven, a small coffee cart rolls up to the corner outside our office building. The owner, a quiet man in his fifties, sets up his grinder, lines up his cups, and waits. He never advertises. He says the smell does the work for him.</p>
+            <p>What makes the cart interesting is not the coffee itself, but the way it changes the street. Strangers who normally rush past each other start to form a loose, patient line. Regulars learn each other's orders, and someone always holds a spot for the nurse who gets off the night shift. The cart runs on a kind of <span class="hl">word of mouth</span> economy: nobody promotes it online, yet the line grows a little longer every week.</p>
+            <p>Economists like to study markets with prices and contracts, but most of daily life runs on softer rules. A cart that shows up on time, a vendor who remembers your name — these small reliabilities are worth more than any loyalty program, and they are almost impossible to copy.</p>
+          </div>
+        </div>
+
+        <div class="study-panel">
+          <div class="study-quote">word of mouth</div>
+          <p class="study-explain">指「口口相传、口碑」，强调信息靠人与人之间的口头传播。这里说咖啡车靠 word of mouth economy 运转，即完全由口碑驱动、没有任何线上宣传的小生意。</p>
+          <div class="study-ops">
+            <button class="op-btn" aria-label="听这个片段">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+              听
+            </button>
+            <span class="spacer"></span>
+            <button class="icon-btn" aria-label="收起学习面板">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>原生选择手势</strong>：取词复用 Apple 系统选择——双击选单词、长按拖动选片段、三击选整句；不在正文上叠加逐句按钮，保持连续阅读的排版。</li>
+      <li><strong>150ms debounce</strong>：选择稳定 150ms 后才触发学习面板，避免拖动选择过程中面板内容反复闪动。</li>
+      <li><strong>新选择先 collapsed</strong>：产生新选择时面板先以收起态出现（只显示选中文本与展开入口），不直接展开上一个片段的旧解释误导用户。</li>
+      <li><strong>显式发送边界</strong>：解释请求只发送选中片段及必要的上下文窗口，不自动发送全文；面板出现本身不发起 AI 请求，由用户的选择动作显式触发。</li>
+      <li><strong>不自动 TTS</strong>：「听」需要点击才播放选中片段；打开文档、滚动、选择都不会自动发声。</li>
+      <li><strong>持久高亮</strong>：浅黄高亮标记此前查过的片段，重读时可直接点击唤回解释；高亮数据保存在本机。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

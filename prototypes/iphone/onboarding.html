@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 首次启动设置 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .ob-intro {
+    padding: 18px 24px 4px;
+  }
+  .ob-intro h2 {
+    font-size: var(--fs-title1);
+    font-weight: 760;
+    letter-spacing: -0.02em;
+  }
+  .ob-intro p {
+    margin-top: 6px;
+    font-size: var(--fs-sub);
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .ob-scroll { padding: 10px 20px 18px; }
+  .check { color: var(--accent); }
+  .chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 2px 2px;
+  }
+  .level-options { display: flex; flex-direction: column; gap: 10px; }
+  .level-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    padding: 13px 14px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+    cursor: pointer;
+  }
+  .level-card:hover { background: var(--surface-2); }
+  .level-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-tint);
+  }
+  .level-card .lv-title { font-size: var(--fs-body); font-weight: 660; color: var(--ink); }
+  .level-card .lv-sub { font-size: var(--fs-footnote); color: var(--muted); margin-top: 1px; line-height: 1.45; }
+  .level-card .lv-check {
+    margin-left: auto;
+    width: 22px; height: 22px; flex: none;
+    border-radius: 50%;
+    border: 1.5px solid var(--hairline-strong);
+    display: flex; align-items: center; justify-content: center;
+    color: transparent;
+    background: var(--surface);
+  }
+  .level-card.selected .lv-check {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .ob-footer {
+    flex: none;
+    padding: 12px 20px 8px;
+    border-top: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .ob-footnote {
+    text-align: center;
+    font-size: var(--fs-footnote);
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>首次启动设置 · 创建语言空间</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">Welcome 之后的单屏设置：先问母语、目标语言和水平自评，再创建第一个语言空间。不要求选择数据目录，数据默认进入 App 私有容器。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="ob-intro">
+          <h2>创建你的第一个语言空间</h2>
+          <p>一个语言空间对应一门正在学的语言。先告诉语迹你的母语、想学什么、目前到哪一步。</p>
+        </div>
+
+        <div class="app-main">
+          <div class="app-scroll ob-scroll">
+
+            <div class="section-label">母语</div>
+            <div class="list">
+              <button class="row">
+                <div class="row-body"><div class="row-title">中文</div></div>
+                <span class="check">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+                </span>
+              </button>
+              <button class="row">
+                <div class="row-body"><div class="row-title">English</div></div>
+              </button>
+              <button class="row">
+                <div class="row-body"><div class="row-title">日本語</div></div>
+              </button>
+            </div>
+
+            <div class="section-label">目标语言</div>
+            <div class="card">
+              <div class="chip-grid" role="listbox" aria-label="选择目标语言">
+                <button class="chip active">English</button>
+                <button class="chip">日本語</button>
+                <button class="chip">Français</button>
+                <button class="chip">Deutsch</button>
+                <button class="chip">Español</button>
+                <button class="chip">한국어</button>
+              </div>
+            </div>
+
+            <div class="section-label">水平自评</div>
+            <div class="level-options" role="radiogroup" aria-label="水平自评">
+              <button class="level-card" role="radio" aria-checked="false">
+                <span>
+                  <span class="lv-title">初学</span>
+                  <p class="lv-sub">刚开始接触，先从简单短句和高频表达学起</p>
+                </span>
+                <span class="lv-check"></span>
+              </button>
+              <button class="level-card selected" role="radio" aria-checked="true">
+                <span>
+                  <span class="lv-title">进阶</span>
+                  <p class="lv-sub">能读能听日常内容，想让表达更自然、更准确</p>
+                </span>
+                <span class="lv-check">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+                </span>
+              </button>
+              <button class="level-card" role="radio" aria-checked="false">
+                <span>
+                  <span class="lv-title">流利</span>
+                  <p class="lv-sub">日常交流没有障碍，关注细微语感和地道用法</p>
+                </span>
+                <span class="lv-check"></span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="ob-footer">
+          <button class="btn btn-primary btn-block">创建英语空间</button>
+          <p class="ob-footnote">不需要选择数据目录，数据保存在 App 私有容器</p>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>不默认创建空间</strong>：首次启动必须经过母语 / 目标语言 / 水平自评三问，确认后才创建第一个语言空间；不存在「跳过」后台默认建空间的路径。</li>
+      <li><strong>CTA 实时反映选择</strong>：按钮文案随目标语言变化（选 English 时为「创建英语空间」），让用户在点击前就确认结果。</li>
+      <li><strong>compact 底部 sticky CTA</strong>：iPhone 上 CTA 固定在底部毛玻璃条内，滚动内容不遮挡；iPad / macOS 宽屏布局改为内容流内 CTA，不做全宽吸底。</li>
+      <li><strong>水平自评是输入而非测试</strong>：三张可选卡各带一行用途说明，自评只影响后续 AI 生成材料的难度倾向，可随时在设置中修改。</li>
+      <li><strong>数据目录零决策</strong>：footnote 明确数据进入 App 私有容器，首次启动不出现文件夹选择器，降低进入门槛。</li>
+      <li><strong>选中状态不只靠颜色</strong>：母语行用 checkmark、目标语言用实底 chip、水平卡用边框 + 圆形勾选三种形态共同表达选中。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

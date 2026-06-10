@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 照片写作 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .photo-frame {
+    aspect-ratio: 16 / 10;
+    border-radius: var(--r-md);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-card);
+    background:
+      radial-gradient(120% 90% at 18% 18%, rgba(244, 226, 188, 0.9) 0%, rgba(244, 226, 188, 0) 55%),
+      radial-gradient(80% 70% at 82% 30%, rgba(214, 188, 156, 0.7) 0%, rgba(214, 188, 156, 0) 60%),
+      radial-gradient(110% 80% at 60% 95%, rgba(108, 128, 116, 0.65) 0%, rgba(108, 128, 116, 0) 62%),
+      linear-gradient(168deg, #e9d9bd 0%, #cdbb9d 38%, #9fae9f 72%, #6f8276 100%);
+  }
+  .guide-card .guide-title {
+    font-size: var(--fs-body);
+    font-weight: 660;
+    color: var(--ink);
+  }
+  .guide-card .guide-chips {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .editor-area {
+    min-height: 140px;
+    padding: 12px 14px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface);
+    font-size: var(--fs-body);
+    line-height: 1.65;
+    color: var(--ink);
+  }
+  .editor-area .caret {
+    display: inline-block;
+    width: 2px;
+    height: 1.15em;
+    margin-left: 1px;
+    vertical-align: -0.18em;
+    border-radius: 1px;
+    background: var(--accent);
+  }
+  .pw-footer {
+    flex: none;
+    padding: 12px 20px 8px;
+    border-top: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .pw-footnote {
+    text-align: center;
+    font-size: var(--fs-footnote);
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>照片写作</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">从记录 Tab「用照片开始」进入的写作页：照片在上方提供语境，引导卡降低开口成本，正文仍然是一句中文生活记录。照片与文字都只保存在本机。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <button class="nav-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+            记录
+          </button>
+          <div class="nav-title">照片写作</div>
+          <span style="width:56px"></span>
+        </div>
+
+        <div class="app-main">
+          <div class="app-scroll" style="padding-top:6px">
+
+            <div class="photo-frame" role="img" aria-label="示例生活照片：傍晚的街角面包店，暖黄的橱窗灯光"></div>
+
+            <div class="card guide-card">
+              <p class="guide-title">照片里发生了什么？用一句话记下来</p>
+              <div class="guide-chips">
+                <button class="chip">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M2.8 12s3.4-6.2 9.2-6.2S21.2 12 21.2 12s-3.4 6.2-9.2 6.2S2.8 12 2.8 12z"/></svg>
+                  描述场景
+                </button>
+                <button class="chip">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 7.5 3.5c0 5.4-7.5 10-7.5 10z"/></svg>
+                  记下感受
+                </button>
+              </div>
+            </div>
+
+            <div class="editor-area" role="textbox" aria-label="正文">面包店傍晚开始打折，玻璃柜里只剩最后两个可颂，店员把灯调得更暖了。<span class="caret"></span></div>
+
+          </div>
+        </div>
+
+        <div class="pw-footer">
+          <button class="btn btn-primary btn-block">保存记录</button>
+          <p class="pw-footnote">照片仅保存在本机，不会自动发送 AI Provider</p>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>当前实现为 Local Mock</strong>：照片来自本地模拟资源；PhotosUI 选图、相机、OCR 与照片上传尚未接入，但页面按真实流程的结构设计，后续替换照片来源即可。</li>
+      <li><strong>照片提供语境而非内容</strong>：照片占上半屏建立「此刻」，引导卡只给两个轻量方向（描述场景 / 记下感受），不生成范文、不代写。</li>
+      <li><strong>隐私边界</strong>：保存按钮下方 footnote 明确照片仅保存在本机；只有用户之后在详情页显式触发 AI 能力时，相关内容才会发送 Provider。</li>
+      <li><strong>与「写一句」同构</strong>：正文输入区复用 TextEditor 风格与低初始高度，保存同样只写入本机记录主路径，照片作为本地媒体资产关联。</li>
+      <li><strong>pushed 页面 chrome</strong>：nav-bar 返回「记录」，无 tab bar；保存 CTA 固定底部，滚动内容不被遮挡。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
