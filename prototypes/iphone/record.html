@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 记录 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .hero-action {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    text-align: left;
+  }
+  .hero-action:hover { background: var(--surface-2); }
+  .hero-action.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .hero-action.primary:hover { background: var(--accent-deep); }
+  .hero-action .ha-icon {
+    width: 38px; height: 38px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent-tint); color: var(--accent-deep);
+  }
+  .hero-action.primary .ha-icon { background: rgba(255,255,255,0.16); color: var(--on-accent); }
+  .hero-action .ha-title { font-size: var(--fs-title3); font-weight: 700; }
+  .hero-action .ha-sub { font-size: var(--fs-footnote); opacity: 0.75; line-height: 1.4; }
+
+  .entry-card {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 14px 16px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+  }
+  .entry-card:hover { background: var(--surface-2); }
+  .entry-top { display: flex; align-items: center; gap: 8px; }
+  .entry-time { font-size: var(--fs-caption); color: var(--faint); font-weight: 620; }
+  .entry-top .pill { margin-left: auto; }
+  .entry-title { font-size: var(--fs-body); font-weight: 680; }
+  .entry-excerpt {
+    font-size: var(--fs-sub); color: var(--muted); line-height: 1.55;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .entry-photo {
+    display: flex; align-items: center; gap: 10px; margin-top: 2px;
+  }
+  .photo-thumb {
+    width: 44px; height: 44px; flex: none; border-radius: 10px;
+    background: linear-gradient(135deg, #cfd9d2 0%, #aebfb4 60%, #93a89c 100%);
+    border: 1px solid var(--hairline);
+  }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>记录 Tab · 生活时间线</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">iPhone 首屏。顶部保留语言空间胶囊与设置入口，Hero 提供两个高频记录动作；列表区从"最近记录"演进为按日分组的生活时间线，附带轻量筛选 <span class="tag-target-design">目标设计</span>。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="context-header">
+          <button class="capsule">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14.5 14.5 0 0 1 0 18M12 3a14.5 14.5 0 0 0 0 18"/></svg>
+            英语空间 <span class="dir">中文 → English</span>
+          </button>
+          <button class="icon-btn" aria-label="设置">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+          </button>
+        </div>
+
+        <div class="page-title-large">记录</div>
+
+        <div class="app-main">
+          <div class="app-scroll">
+            <div class="hero">
+              <button class="hero-action primary">
+                <span class="ha-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+                </span>
+                <span class="ha-title">写一句</span>
+                <span class="ha-sub">用母语记下此刻，再变成 English 学习材料</span>
+              </button>
+              <button class="hero-action">
+                <span class="ha-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M8.5 6l1.5-2.5h4L15.5 6"/><circle cx="12" cy="13" r="3.4"/></svg>
+                </span>
+                <span class="ha-title">用照片开始</span>
+                <span class="ha-sub">从一张生活照片出发，引导今天的表达</span>
+              </button>
+            </div>
+
+            <div class="chips" role="tablist" aria-label="时间线筛选">
+              <button class="chip active">全部</button>
+              <button class="chip">照片</button>
+              <button class="chip">待练习</button>
+              <button class="chip">已沉淀</button>
+            </div>
+
+            <div class="timeline-day"><span class="day-label">今天</span><span class="day-sub">6月11日 周四</span></div>
+
+            <div class="entry-card">
+              <div class="entry-top">
+                <span class="entry-time">08:42</span>
+                <span class="pill pill-ready">学习材料 · 3 句</span>
+              </div>
+              <div class="entry-title">公司楼下的咖啡车</div>
+              <p class="entry-excerpt">楼下新来了一辆咖啡车，老板说每天只来三个小时。排队的时候闻到现磨豆子的味道，突然觉得周四也没那么难熬。</p>
+            </div>
+
+            <div class="entry-card">
+              <div class="entry-top">
+                <span class="entry-time">07:15</span>
+                <span class="pill pill-neutral">未生成</span>
+              </div>
+              <div class="entry-title">清晨的雨</div>
+              <p class="entry-excerpt">出门前下了一阵小雨，地铁口的台阶湿漉漉的，大家都把伞收得很慢。</p>
+            </div>
+
+            <div class="timeline-day"><span class="day-label">昨天</span><span class="day-sub">6月10日 周三</span></div>
+
+            <div class="entry-card">
+              <div class="entry-top">
+                <span class="entry-time">19:30</span>
+                <span class="pill pill-ready">学习材料 · 5 句</span>
+              </div>
+              <div class="entry-title">夜跑路线换了</div>
+              <div class="entry-photo">
+                <span class="photo-thumb" role="img" aria-label="照片缩略图"></span>
+                <p class="entry-excerpt">换到河边那条新步道，路灯比公园里亮，跑到一半看到有人在教狗游泳。</p>
+              </div>
+            </div>
+
+            <div class="timeline-day"><span class="day-label">6月9日</span><span class="day-sub">周二</span></div>
+
+            <div class="entry-card">
+              <div class="entry-top">
+                <span class="entry-time">12:08</span>
+                <span class="pill pill-warn">基于旧记录</span>
+              </div>
+              <div class="entry-title">午餐时的争论</div>
+              <p class="entry-excerpt">同事们为"远程办公到底算不算上班"争了半个小时，谁也没说服谁。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-bar">
+          <div class="tab-item active">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+            记录
+          </div>
+          <div class="tab-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>
+            阅读
+          </div>
+          <div class="tab-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>
+            练习
+          </div>
+          <div class="tab-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/></svg>
+            记忆
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>保持现有红线</strong>：四 Tab + 顶部 gear；首屏直接进入可用体验，无营销内容；Hero 不恢复旧的「听」入口。</li>
+      <li><strong>时间线分组与筛选为目标设计</strong>：当前实现是平铺的最近记录列表；按日分组、筛选 chips（全部 / 照片 / 待练习 / 已沉淀）对应路线中的「完整生活记录时间线、跨端筛选」，落地需在 <code>PhoneRecordWorkspaceView</code> 引入分组 section，并与 iPad <code>PadFilter</code> 共享筛选语义。</li>
+      <li><strong>状态 pill 语义</strong>：「学习材料 · n 句」= 已生成；「未生成」= 中性，不是错误；「基于旧记录」= 原文已被编辑，材料待显式重新生成。文案 + tone 共同表达，不只靠颜色。</li>
+      <li><strong>照片记录</strong>：缩略图仅本地展示；照片只有在用户显式触发 AI 能力时才会发送 Provider。</li>
+      <li>卡片层级克制：时间线卡片不嵌套子卡片，正文两行截断，标题单行。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

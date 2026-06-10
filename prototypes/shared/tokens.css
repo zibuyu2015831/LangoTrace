@@ -1,0 +1,98 @@
+/* 语迹 LangoTrace 原型设计 token
+   基准：2026-05-23 已审核外观色板（暖纸面 / 墨色 / 松绿 accent）。
+   本文件只定义 token 与画布基础，组件样式见 components.css。 */
+
+:root {
+  color-scheme: light;
+
+  /* 画布（原型页面背景，非 App 内部） */
+  --canvas: #ede8de;
+  --canvas-grad-top: #f6f1e8;
+  --canvas-grad-bottom: #e7e0d3;
+
+  /* App 表面 */
+  --app-bg: #f5f1e9;
+  --surface: #fffdf8;
+  --surface-2: #faf6ee;
+  --surface-3: #f1ecdf;
+  --hairline: rgba(23, 32, 30, 0.10);
+  --hairline-strong: rgba(23, 32, 30, 0.16);
+
+  /* 文字 */
+  --ink: #17201e;
+  --ink-2: #3c4845;
+  --muted: #5e6c66;
+  --faint: #8a958f;
+
+  /* 主 accent：松绿 */
+  --accent: #126b5d;
+  --accent-deep: #0d564b;
+  --accent-tint: #e3eeea;
+  --accent-tint-2: #d2e4de;
+  --on-accent: #f6fbf9;
+
+  /* 学习语义色 */
+  --target-lang: #126b5d;      /* 目标语言内容 */
+  --native-lang: #5e6c66;      /* 母语对照内容 */
+  --highlight: #f4ecd2;        /* 阅读选中 / 高亮（浅黄） */
+
+  /* 状态色（不作为唯一状态信息） */
+  --warn: #a06a1f;
+  --warn-tint: #f5ead4;
+  --error: #a8412f;
+  --error-tint: #f6e3de;
+  --info-tint: #e9e9f2;
+
+  /* 圆角 */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-pill: 999px;
+
+  /* 阴影：克制、低饱和 */
+  --shadow-card: 0 1px 2px rgba(23, 32, 30, 0.04), 0 4px 14px rgba(23, 32, 30, 0.05);
+  --shadow-float: 0 2px 6px rgba(23, 32, 30, 0.08), 0 14px 36px rgba(23, 32, 30, 0.12);
+  --shadow-device: 0 24px 60px rgba(23, 32, 30, 0.22), 0 8px 22px rgba(23, 32, 30, 0.12);
+
+  /* 字体 */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+          "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  /* 字号（手机屏内基准） */
+  --fs-caption: 11px;
+  --fs-footnote: 12px;
+  --fs-sub: 13px;
+  --fs-body: 15px;
+  --fs-title3: 17px;
+  --fs-title2: 20px;
+  --fs-title1: 24px;
+  --fs-large: 30px;
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--canvas); }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--canvas-grad-top) 0%, var(--canvas) 60%, var(--canvas-grad-bottom) 100%);
+  background-attachment: fixed;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, p { margin: 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font: inherit; cursor: pointer; }
+svg { display: block; flex: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
