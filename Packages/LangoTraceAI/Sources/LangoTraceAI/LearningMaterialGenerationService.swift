@@ -119,9 +119,26 @@ private extension LearningMaterialGenerationService {
             throw LearningMaterialGenerationServiceError(category: .networkUnavailable)
         }
         guard (200 ..< 300).contains(response.statusCode) else {
-            throw LearningMaterialGenerationServiceError(category: .providerRejected)
+            throw LearningMaterialGenerationServiceError(
+                category: failureCategory(forHTTPStatusCode: response.statusCode)
+            )
         }
         return try parseText(from: response.body, adapterKind: endpoint.adapterKind)
+    }
+
+    func failureCategory(forHTTPStatusCode statusCode: Int) -> LearningMaterialGenerationFailureCategory {
+        switch AIProviderHTTPStatusErrorMapper.errorCategory(forHTTPStatusCode: statusCode) {
+        case .authenticationFailed:
+            // Closest existing Core case for 401/403; the enum has no
+            // dedicated authenticationFailed case yet.
+            .credentialMissing
+        case .unsupportedModel:
+            .unsupportedModel
+        default:
+            // Includes 429: the Core enum has no rateLimited case yet, so the
+            // closest existing classification is providerRejected.
+            .providerRejected
+        }
     }
 
     func normalizedGenerationEndpoint(_ input: AIProviderEndpointInput) throws -> AIProviderEndpointInput {
@@ -147,7 +164,9 @@ private extension LearningMaterialGenerationService {
         secret: String?,
         prompt: LearningMaterialRenderedPrompt
     ) throws -> URLRequest {
-        guard let url = URL(string: endpointURL(endpoint)) else {
+        let suffix = endpoint.adapterKind == .openAIResponses ? "responses" : "chat/completions"
+        guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: endpoint.baseURL, pathSuffix: suffix)
+        else {
             throw LearningMaterialGenerationServiceError(category: .providerNotConfigured)
         }
         var request = URLRequest(url: url)
@@ -186,15 +205,6 @@ private extension LearningMaterialGenerationService {
             request.timeoutInterval = timeout
         }
         return request
-    }
-
-    func endpointURL(_ endpoint: AIProviderEndpointInput) -> String {
-        let trimmed = endpoint.baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        let suffix = endpoint.adapterKind == .openAIResponses ? "responses" : "chat/completions"
-        if trimmed.hasSuffix(suffix) {
-            return trimmed
-        }
-        return "\(trimmed)/\(suffix)"
     }
 
     func responseFormat(for prompt: LearningMaterialRenderedPrompt) -> [String: Any] {
@@ -395,23 +405,13 @@ private extension LearningMaterialGenerationService {
         }
         switch adapterKind {
         case .openAICompatibleChat:
-            guard let choices = object["choices"] as? [[String: Any]],
-                  let first = choices.first,
-                  let message = first["message"] as? [String: Any],
-                  let content = message["content"] as? String
+            guard let text = OpenAICompatibleResponseTextParser.chatCompletionsText(fromResponseObject: object)
             else {
                 throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
             }
-            return content
+            return text
         case .openAIResponses:
-            if let outputText = object["output_text"] as? String {
-                return outputText
-            }
-            guard let output = object["output"] as? [[String: Any]],
-                  let first = output.first,
-                  let content = first["content"] as? [[String: Any]],
-                  let text = content.first?["text"] as? String
-            else {
+            guard let text = OpenAICompatibleResponseTextParser.responsesText(fromResponseObject: object) else {
                 throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
             }
             return text
@@ -435,9 +435,28 @@ private extension LearningMaterialGenerationService {
         }
         guard response.schemaVersion == LearningMaterialPromptRegistry.schemaVersion,
               let inputKind = LearningMaterialInputKind(rawValue: response.inputKind),
-              !response.learningText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              !response.learningText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              response.learningText.count <= ResponseLimit.maximumLearningTextLength,
+              response.revisionNotes.count <= ResponseLimit.maximumRevisionNotes
         else {
             throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+        }
+        let revisionSummary = try response.revisionNotes.enumerated().map { index, revision -> LearningRevision in
+            guard let category = LearningRevision.Category(rawValue: revision.category),
+                  isWithinLimit(revision.originalText, maximumLength: ResponseLimit.maximumExampleLength),
+                  isWithinLimit(revision.revisedText, maximumLength: ResponseLimit.maximumExampleLength),
+                  isWithinLimit(revision.reasonNative, maximumLength: ResponseLimit.maximumExplanationLength)
+            else {
+                throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+            }
+            return LearningRevision(
+                id: "revision-\(index)",
+                originalText: revision.originalText,
+                revisedText: revision.revisedText,
+                reasonNative: revision.reasonNative,
+                category: category,
+                position: index
+            )
         }
         let analysis = try materialAnalysis(from: response.analysis)
         return LearningMaterialGenerationResult(
@@ -446,16 +465,7 @@ private extension LearningMaterialGenerationService {
             inputKind: inputKind,
             promptMode: .automaticLearningMaterial,
             learningText: response.learningText,
-            revisionSummary: response.revisionNotes.enumerated().map { index, revision in
-                LearningRevision(
-                    id: "revision-\(index)",
-                    originalText: revision.originalText,
-                    revisedText: revision.revisedText,
-                    reasonNative: revision.reasonNative,
-                    category: LearningRevision.Category(rawValue: revision.category) ?? .clarity,
-                    position: index
-                )
-            },
+            revisionSummary: revisionSummary,
             analysis: analysis,
             metadata: LearningMaterialGenerationMetadata(
                 promptID: prompt.id,
@@ -489,21 +499,13 @@ private extension LearningMaterialGenerationService {
         )
     }
 
+    /// Strips one wrapping Markdown code fence (the only documented tolerance
+    /// in the prompt registry parsing contract) and requires the remaining
+    /// text to be a single JSON document. Natural-language prose around the
+    /// JSON object is rejected as an invalid structured response.
     func jsonData(fromModelText text: String) throws -> Data {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let data = trimmed.data(using: .utf8),
-           (try? JSONSerialization.jsonObject(with: data)) != nil
-        {
-            return data
-        }
-        guard let start = trimmed.firstIndex(of: "{"),
-              let end = trimmed.lastIndex(of: "}"),
-              start <= end
-        else {
-            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
-        }
-        let jsonSlice = trimmed[start ... end]
-        guard let data = String(jsonSlice).data(using: .utf8),
+        let trimmed = stripCodeFence(text.trimmingCharacters(in: .whitespacesAndNewlines))
+        guard let data = trimmed.data(using: .utf8),
               (try? JSONSerialization.jsonObject(with: data)) != nil
         else {
             throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
@@ -511,47 +513,147 @@ private extension LearningMaterialGenerationService {
         return data
     }
 
+    func stripCodeFence(_ text: String) -> String {
+        guard text.hasPrefix("```") else {
+            return text
+        }
+        var lines = text.split(separator: "\n", omittingEmptySubsequences: false)
+        if lines.first?.hasPrefix("```") == true {
+            lines.removeFirst()
+        }
+        if lines.last?.hasPrefix("```") == true {
+            lines.removeLast()
+        }
+        return lines.joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Array and string limits mirrored from the registry contract in
+    /// `docs/prompts/learning-material/one-tap-learning-material.md`.
+    enum ResponseLimit {
+        static let maximumSentences = 20
+        static let maximumMemoryCandidates = 12
+        static let maximumPracticeCandidates = 6
+        static let maximumRevisionNotes = 12
+        static let maximumGrammarNotesPerSentence = 3
+        static let maximumKeyPointsPerSentence = 3
+        static let maximumLearningTextLength = 12_000
+        static let maximumTitleLength = 80
+        static let maximumPointLength = 160
+        static let maximumNoteLength = 400
+        static let maximumExplanationLength = 500
+        static let maximumExampleLength = 600
+        static let maximumSentenceLength = 800
+    }
+
+    func isWithinLimit(_ value: String, maximumLength: Int) -> Bool {
+        !value.isEmpty && value.count <= maximumLength
+    }
+
     func materialAnalysis(from response: AnalysisResponse) throws -> LearningMaterialAnalysis {
-        guard response.analysisBasis == "learningText", !response.sentences.isEmpty else {
+        guard response.analysisBasis == "learningText" else {
             throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
         }
-        return LearningMaterialAnalysis(
+        guard !response.sentences.isEmpty,
+              response.sentences.count <= ResponseLimit.maximumSentences,
+              response.memoryCandidates.count <= ResponseLimit.maximumMemoryCandidates,
+              response.practiceCandidates.count <= ResponseLimit.maximumPracticeCandidates
+        else {
+            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+        }
+        return try LearningMaterialAnalysis(
             status: .fresh,
             sourceTextHash: "",
             sentences: response.sentences.enumerated().map { index, sentence in
-                LearningSentenceAnalysis(
-                    id: "sentence-\(index)",
-                    nativeSentence: sentence.nativeSentence,
-                    targetSentence: sentence.targetSentence,
-                    literalTranslation: sentence.literalTranslation,
-                    naturalTranslation: sentence.naturalTranslation,
-                    grammarNotes: sentence.grammarNotes.map(\.displayText),
-                    keyPoints: sentence.keyPoints.map(\.displayText),
-                    position: index
-                )
+                try validatedSentenceAnalysis(sentence, index: index)
             },
             memoryCandidates: response.memoryCandidates.enumerated().map { index, candidate in
-                LearningMemoryCandidate(
-                    id: "memory-\(index)",
-                    sentenceID: sentenceID(for: candidate.sentencePosition, in: response.sentences),
-                    kind: LearningMemoryCandidate.Kind(rawValue: candidate.kind) ?? .phrase,
-                    text: candidate.text,
-                    explanationNative: candidate.explanationNative,
-                    exampleTarget: candidate.exampleTarget,
-                    exampleNative: candidate.exampleNative,
-                    difficulty: LearningMemoryCandidate.Difficulty(rawValue: candidate.difficulty) ?? .medium
-                )
+                try validatedMemoryCandidate(candidate, index: index, sentences: response.sentences)
             },
             practiceCandidates: response.practiceCandidates.enumerated().map { index, candidate in
-                LearningPracticeCandidate(
-                    id: "practice-\(index)",
-                    sentenceID: sentenceID(for: candidate.sentencePosition, in: response.sentences),
-                    kind: LearningPracticeCandidate.Kind(rawValue: candidate.kind) ?? .backTranslation,
-                    title: candidate.titleNative,
-                    promptText: candidate.promptText,
-                    answerText: candidate.answerText
-                )
+                try validatedPracticeCandidate(candidate, index: index, sentences: response.sentences)
             }
+        )
+    }
+
+    func validatedSentenceAnalysis(
+        _ sentence: SentenceResponse,
+        index: Int
+    ) throws -> LearningSentenceAnalysis {
+        guard sentence.grammarNotes.count <= ResponseLimit.maximumGrammarNotesPerSentence,
+              sentence.keyPoints.count <= ResponseLimit.maximumKeyPointsPerSentence,
+              isWithinLimit(sentence.nativeSentence, maximumLength: ResponseLimit.maximumSentenceLength),
+              isWithinLimit(sentence.targetSentence, maximumLength: ResponseLimit.maximumSentenceLength),
+              isWithinLimit(sentence.literalTranslation, maximumLength: ResponseLimit.maximumSentenceLength),
+              isWithinLimit(sentence.naturalTranslation, maximumLength: ResponseLimit.maximumSentenceLength),
+              sentence.grammarNotes.allSatisfy({ note in
+                  isWithinLimit(note.pointNative, maximumLength: ResponseLimit.maximumPointLength)
+                      && isWithinLimit(note.explanationNative, maximumLength: ResponseLimit.maximumNoteLength)
+              }),
+              sentence.keyPoints.allSatisfy({ keyPoint in
+                  isWithinLimit(keyPoint.text, maximumLength: ResponseLimit.maximumPointLength)
+                      && isWithinLimit(keyPoint.explanationNative, maximumLength: ResponseLimit.maximumNoteLength)
+              })
+        else {
+            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+        }
+        return LearningSentenceAnalysis(
+            id: "sentence-\(index)",
+            nativeSentence: sentence.nativeSentence,
+            targetSentence: sentence.targetSentence,
+            literalTranslation: sentence.literalTranslation,
+            naturalTranslation: sentence.naturalTranslation,
+            grammarNotes: sentence.grammarNotes.map(\.displayText),
+            keyPoints: sentence.keyPoints.map(\.displayText),
+            position: index
+        )
+    }
+
+    func validatedMemoryCandidate(
+        _ candidate: MemoryCandidateResponse,
+        index: Int,
+        sentences: [SentenceResponse]
+    ) throws -> LearningMemoryCandidate {
+        guard let kind = LearningMemoryCandidate.Kind(rawValue: candidate.kind),
+              let difficulty = LearningMemoryCandidate.Difficulty(rawValue: candidate.difficulty),
+              isWithinLimit(candidate.text, maximumLength: ResponseLimit.maximumPointLength),
+              isWithinLimit(candidate.explanationNative, maximumLength: ResponseLimit.maximumExplanationLength),
+              isWithinLimit(candidate.exampleTarget, maximumLength: ResponseLimit.maximumExampleLength),
+              isWithinLimit(candidate.exampleNative, maximumLength: ResponseLimit.maximumExampleLength)
+        else {
+            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+        }
+        return LearningMemoryCandidate(
+            id: "memory-\(index)",
+            sentenceID: sentenceID(for: candidate.sentencePosition, in: sentences),
+            kind: kind,
+            text: candidate.text,
+            explanationNative: candidate.explanationNative,
+            exampleTarget: candidate.exampleTarget,
+            exampleNative: candidate.exampleNative,
+            difficulty: difficulty
+        )
+    }
+
+    func validatedPracticeCandidate(
+        _ candidate: PracticeCandidateResponse,
+        index: Int,
+        sentences: [SentenceResponse]
+    ) throws -> LearningPracticeCandidate {
+        guard let kind = LearningPracticeCandidate.Kind(rawValue: candidate.kind),
+              isWithinLimit(candidate.titleNative, maximumLength: ResponseLimit.maximumTitleLength),
+              isWithinLimit(candidate.promptText, maximumLength: ResponseLimit.maximumExampleLength),
+              isWithinLimit(candidate.answerText, maximumLength: ResponseLimit.maximumExampleLength)
+        else {
+            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+        }
+        return LearningPracticeCandidate(
+            id: "practice-\(index)",
+            sentenceID: sentenceID(for: candidate.sentencePosition, in: sentences),
+            kind: kind,
+            title: candidate.titleNative,
+            promptText: candidate.promptText,
+            answerText: candidate.answerText
         )
     }
 

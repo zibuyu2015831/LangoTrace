@@ -84,7 +84,8 @@ private extension TTSConfigurationProbeService {
                     modelName: endpoint.modelName,
                     voiceProfile: voiceProfile,
                     plaintextSecret: plaintextSecret,
-                    text: fixedTestText(languageCode: voiceProfile.languageCode)
+                    text: fixedTestText(languageCode: voiceProfile.languageCode),
+                    requestTimeoutSeconds: endpoint.requestTimeoutSeconds
                 )
             )
             let response = try await httpClient.send(request)

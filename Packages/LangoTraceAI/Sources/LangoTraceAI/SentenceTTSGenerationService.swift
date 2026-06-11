@@ -34,7 +34,8 @@ public struct SentenceTTSGenerationService: SentenceTTSGenerating {
             modelName: request.playableConfiguration.endpoint.modelName,
             voiceProfile: request.playableConfiguration.voiceProfile,
             plaintextSecret: request.plaintextSecret,
-            text: request.audioRequest.targetText
+            text: request.audioRequest.targetText,
+            requestTimeoutSeconds: request.playableConfiguration.endpoint.requestTimeoutSeconds
         ))
 
         let httpResponse: AIProviderHTTPResponse
@@ -56,7 +57,7 @@ public struct SentenceTTSGenerationService: SentenceTTSGenerating {
             httpResponse.body,
             preferredExtension: request.artifactKey.outputFormat.rawValue
         )
-        let elapsedMilliseconds = Int(startedAt.duration(to: ContinuousClock.now).components.seconds * 1000)
+        let elapsedMilliseconds = Self.elapsedMilliseconds(for: startedAt.duration(to: ContinuousClock.now))
         let byteSize = Int64(httpResponse.body.count)
         return SentenceTTSGenerationResult(
             stagedFile: stagedFile,
@@ -71,9 +72,19 @@ public struct SentenceTTSGenerationService: SentenceTTSGenerating {
                 textLengthBucket: .bucket(for: request.audioRequest.targetText),
                 byteSizeBucket: byteSizeBucket(for: byteSize),
                 durationBucket: durationBucket(for: validation.metadata?.durationSeconds),
-                elapsedMilliseconds: max(elapsedMilliseconds, 0)
+                elapsedMilliseconds: elapsedMilliseconds
             )
         )
+    }
+}
+
+extension SentenceTTSGenerationService {
+    /// Converts a `Duration` to whole milliseconds without truncating
+    /// sub-second elapsed time to zero.
+    static func elapsedMilliseconds(for duration: Duration) -> Int {
+        let components = duration.components
+        let milliseconds = components.seconds * 1000 + components.attoseconds / 1_000_000_000_000_000
+        return max(0, Int(clamping: milliseconds))
     }
 }
 

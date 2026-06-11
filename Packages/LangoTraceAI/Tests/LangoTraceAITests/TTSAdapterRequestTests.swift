@@ -37,6 +37,96 @@ func openAITTSAdapterBuildsAudioSpeechRequest() throws {
     #expect(body.contains(#""response_format":"mp3""#))
     #expect(body.contains(#""instructions":"Calm and clear.""#))
     #expect(body.contains("Today I wrote one short sentence for practice."))
+    #expect(!body.contains(#""speed""#))
+}
+
+@Test("OpenAI TTS adapter serializes configured voice profile speed with OpenAI range clamping")
+func openAITTSAdapterSerializesConfiguredSpeed() throws {
+    let adapter = OpenAIAudioSpeechAdapter()
+
+    func request(speed: Double?) throws -> String {
+        let voice = try TTSVoiceProfile.make(
+            id: "voice-en",
+            endpointID: "endpoint-tts",
+            languageCode: "en",
+            adapterKind: .openAIAudioSpeech,
+            modelName: "tts-1",
+            voiceID: "coral",
+            outputFormat: .mp3,
+            speed: speed
+        )
+        let request = try adapter.makeRequest(
+            input: TTSProviderAdapterRequestInput(
+                endpointID: "endpoint-tts",
+                baseURL: "https://api.openai.com/v1",
+                modelName: "tts-1",
+                voiceProfile: voice,
+                plaintextSecret: "sk-test",
+                text: "Today I wrote one short sentence for practice."
+            )
+        )
+        return try #require(String(data: request.httpBody ?? Data(), encoding: .utf8))
+    }
+
+    #expect(try request(speed: 1.5).contains(#""speed":1.5"#))
+    #expect(try request(speed: 9).contains(#""speed":4"#))
+    #expect(try request(speed: 0.1).contains(#""speed":0.25"#))
+    #expect(try !request(speed: nil).contains(#""speed""#))
+}
+
+@Test("TTS adapter applies the configured request timeout to the URL request")
+func ttsAdapterAppliesConfiguredRequestTimeout() throws {
+    let adapter = OpenAIAudioSpeechAdapter()
+    let voice = try TTSVoiceProfile.make(
+        id: "voice-en",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .openAIAudioSpeech,
+        modelName: "tts-1",
+        voiceID: "coral",
+        outputFormat: .mp3
+    )
+
+    let request = try adapter.makeRequest(
+        input: TTSProviderAdapterRequestInput(
+            endpointID: "endpoint-tts",
+            baseURL: "https://api.openai.com/v1",
+            modelName: "tts-1",
+            voiceProfile: voice,
+            plaintextSecret: "sk-test",
+            text: "Today I wrote one short sentence for practice.",
+            requestTimeoutSeconds: 42
+        )
+    )
+
+    #expect(request.timeoutInterval == 42)
+}
+
+@Test("TTS adapter deduplicates a base URL that already contains the audio speech suffix")
+func ttsAdapterDeduplicatesBaseURLContainingAudioSpeechSuffix() throws {
+    let adapter = OpenAIAudioSpeechAdapter()
+    let voice = try TTSVoiceProfile.make(
+        id: "voice-en",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .openAIAudioSpeech,
+        modelName: "tts-1",
+        voiceID: "coral",
+        outputFormat: .mp3
+    )
+
+    let request = try adapter.makeRequest(
+        input: TTSProviderAdapterRequestInput(
+            endpointID: "endpoint-tts",
+            baseURL: "https://api.openai.com/v1/audio/speech",
+            modelName: "tts-1",
+            voiceProfile: voice,
+            plaintextSecret: "sk-test",
+            text: "Today I wrote one short sentence for practice."
+        )
+    )
+
+    #expect(request.url?.absoluteString == "https://api.openai.com/v1/audio/speech")
 }
 
 @Test("OpenRouter TTS adapter uses OpenRouter endpoint and keeps model dependent inputs manual")

@@ -346,6 +346,53 @@ func providerFailuresMapToValidationCategories() async throws {
 
     let timeoutResult = try await timeoutService.probeDraftConfiguration(draftInput())
     #expect(timeoutResult.capability(.textReply)?.errorCategory == .timeout)
+
+    let rateLimitedClient = CapturingProbeHTTPClient(
+        responses: [.http(statusCode: 429, body: #"{"error":"slow down"}"#)]
+    )
+    let rateLimitedService = AIProviderConfigurationProbeService(httpClient: rateLimitedClient)
+
+    let rateLimitedResult = try await rateLimitedService.probeDraftConfiguration(draftInput())
+    #expect(rateLimitedResult.overallStatus == .failed)
+    #expect(rateLimitedResult.capability(.textReply)?.errorCategory == .rateLimited)
+}
+
+@Test("Probe requests carry the configured endpoint request timeout")
+func probeRequestsCarryConfiguredEndpointRequestTimeout() async throws {
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"choices":[{"message":{"content":"OK"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"{\"ok\":true}"}}]}"#),
+    ])
+    let service = AIProviderConfigurationProbeService(httpClient: httpClient)
+
+    _ = try await service.probeDraftConfiguration(
+        draftInput(adapterKind: .openAICompatibleChat, requestTimeoutSeconds: 45)
+    )
+
+    let requests = await httpClient.requests
+    #expect(requests.count == 2)
+    #expect(requests.allSatisfy { $0.timeoutInterval == 45 })
+}
+
+@Test("Probe deduplicates a base URL that already contains the operation suffix")
+func probeDeduplicatesBaseURLAlreadyContainingOperationSuffix() async throws {
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"choices":[{"message":{"content":"OK"}}]}"#),
+        .json(#"{"choices":[{"message":{"content":"{\"ok\":true}"}}]}"#),
+    ])
+    let service = AIProviderConfigurationProbeService(httpClient: httpClient)
+
+    _ = try await service.probeDraftConfiguration(
+        draftInput(
+            adapterKind: .openAICompatibleChat,
+            baseURL: "https://api.example.com/v1/chat/completions"
+        )
+    )
+
+    let requests = await httpClient.requests
+    #expect(requests.allSatisfy {
+        $0.url?.absoluteString == "https://api.example.com/v1/chat/completions"
+    })
 }
 
 @Test("Cancelled probes record cancellation without treating it as a validation failure")
@@ -477,7 +524,8 @@ private func draftInput(
     plaintextSecret: String? = "sk-test",
     supportsImageInput: Bool = true,
     imageInputEnabled: Bool = false,
-    languageContext: AIProviderProbeLanguageContext? = nil
+    languageContext: AIProviderProbeLanguageContext? = nil,
+    requestTimeoutSeconds: Double? = nil
 ) -> AIProviderConfigurationProbeDraftInput {
     AIProviderConfigurationProbeDraftInput(
         endpoint: AIProviderEndpointInput(
@@ -491,7 +539,8 @@ private func draftInput(
             modelName: modelName,
             credentialID: plaintextSecret == nil ? nil : "credential-1",
             supportsImageInput: supportsImageInput,
-            imageInputEnabled: imageInputEnabled
+            imageInputEnabled: imageInputEnabled,
+            requestTimeoutSeconds: requestTimeoutSeconds
         ),
         plaintextSecret: plaintextSecret,
         languageContext: languageContext,

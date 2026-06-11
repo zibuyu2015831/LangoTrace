@@ -8,6 +8,7 @@ public struct TTSProviderAdapterRequestInput: Sendable {
     public var voiceProfile: TTSVoiceProfile
     public var plaintextSecret: String?
     public var text: String
+    public var requestTimeoutSeconds: TimeInterval?
 
     public init(
         endpointID: AIProviderEndpointID,
@@ -15,7 +16,8 @@ public struct TTSProviderAdapterRequestInput: Sendable {
         modelName: String,
         voiceProfile: TTSVoiceProfile,
         plaintextSecret: String?,
-        text: String
+        text: String,
+        requestTimeoutSeconds: TimeInterval? = nil
     ) {
         self.endpointID = endpointID
         self.baseURL = baseURL
@@ -23,6 +25,7 @@ public struct TTSProviderAdapterRequestInput: Sendable {
         self.voiceProfile = voiceProfile
         self.plaintextSecret = plaintextSecret
         self.text = text
+        self.requestTimeoutSeconds = requestTimeoutSeconds
     }
 }
 
@@ -46,14 +49,20 @@ public struct OpenRouterAudioSpeechAdapter: TTSProviderAdapter {
     }
 }
 
+private let openAISpeechMinimumSpeed = 0.25
+private let openAISpeechMaximumSpeed = 4.0
+
 private func makeOpenAIStyleAudioSpeechRequest(input: TTSProviderAdapterRequestInput) throws -> URLRequest {
-    guard let baseURL = URL(string: input.baseURL) else {
+    guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: input.baseURL, pathSuffix: "audio/speech")
+    else {
         throw AIProviderConfigurationError.invalidBaseURL
     }
-    let url = baseURL.appendingPathComponent("audio").appendingPathComponent("speech")
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    if let timeout = input.requestTimeoutSeconds {
+        request.timeoutInterval = timeout
+    }
     if let plaintextSecret = input.plaintextSecret, !plaintextSecret.isEmpty {
         request.setValue("Bearer \(plaintextSecret)", forHTTPHeaderField: "Authorization")
     }
@@ -64,6 +73,9 @@ private func makeOpenAIStyleAudioSpeechRequest(input: TTSProviderAdapterRequestI
         "voice": input.voiceProfile.voiceID,
         "response_format": input.voiceProfile.outputFormat.rawValue,
     ]
+    if let speed = input.voiceProfile.speed {
+        body["speed"] = min(max(speed, openAISpeechMinimumSpeed), openAISpeechMaximumSpeed)
+    }
     if let instructions = input.voiceProfile.instructions, !instructions.isEmpty {
         body["instructions"] = instructions
     }

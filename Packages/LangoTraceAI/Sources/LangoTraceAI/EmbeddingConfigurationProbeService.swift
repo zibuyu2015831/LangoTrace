@@ -159,12 +159,8 @@ private extension EmbeddingConfigurationProbeService {
     }
 
     func embeddingsURL(baseURL: String) throws -> URL {
-        guard var components = URLComponents(string: baseURL) else {
-            throw AIProviderConfigurationError.invalidBaseURL
-        }
-        let basePath = components.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        components.path = "/" + ([basePath, "embeddings"].filter { !$0.isEmpty }.joined(separator: "/"))
-        guard let url = components.url else {
+        guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: baseURL, pathSuffix: "embeddings")
+        else {
             throw AIProviderConfigurationError.invalidBaseURL
         }
         return url
@@ -188,16 +184,7 @@ private extension EmbeddingConfigurationProbeService {
     }
 
     func errorCategory(forHTTPStatusCode statusCode: Int) -> AIProviderValidationErrorCategory {
-        switch statusCode {
-        case 401, 403:
-            .authenticationFailed
-        case 404:
-            .unsupportedModel
-        case 429:
-            .rateLimited
-        default:
-            .providerRejected
-        }
+        AIProviderHTTPStatusErrorMapper.errorCategory(forHTTPStatusCode: statusCode)
     }
 
     func isFirstStageProvider(_ providerPresetID: String) -> Bool {

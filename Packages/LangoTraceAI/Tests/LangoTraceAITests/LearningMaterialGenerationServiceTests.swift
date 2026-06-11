@@ -228,6 +228,109 @@ func learningMaterialGenerationServiceRejectsMissingAnalysisFields() async throw
     }
 }
 
+@Test("Learning material generation service rejects invalid revision category instead of coercing")
+func learningMaterialGenerationServiceRejectsInvalidRevisionCategory() async throws {
+    await expectGenerationRejects(
+        generationJSON(inputKind: "targetWriting", revisionCategory: "vocabulary")
+    )
+}
+
+@Test("Learning material generation service rejects invalid memory candidate kind instead of coercing")
+func learningMaterialGenerationServiceRejectsInvalidMemoryCandidateKind() async throws {
+    await expectGenerationRejects(
+        generationJSON(inputKind: "nativeRecord", memoryKind: "vocabulary")
+    )
+}
+
+@Test("Learning material generation service rejects invalid memory candidate difficulty instead of coercing")
+func learningMaterialGenerationServiceRejectsInvalidMemoryCandidateDifficulty() async throws {
+    await expectGenerationRejects(
+        generationJSON(inputKind: "nativeRecord", memoryDifficulty: "impossible")
+    )
+}
+
+@Test("Learning material generation service rejects invalid practice candidate kind instead of coercing")
+func learningMaterialGenerationServiceRejectsInvalidPracticeCandidateKind() async throws {
+    await expectGenerationRejects(
+        generationJSON(inputKind: "nativeRecord", practiceKind: "writing")
+    )
+}
+
+@Test("Learning material generation service rejects prose wrapped around the JSON object")
+func learningMaterialGenerationServiceRejectsProseWrappedJSON() async throws {
+    await expectGenerationRejects("""
+    Sure! Here is the learning material you asked for:
+    \(generationJSON(inputKind: "nativeRecord"))
+    Hope this helps!
+    """)
+}
+
+@Test("Learning material generation service rejects analyses above the documented array limits")
+func learningMaterialGenerationServiceRejectsOverLimitArrays() async throws {
+    await expectAnalysisRejects(analysisJSON(sentenceCount: 21))
+    await expectAnalysisRejects(analysisJSON(memoryCandidateCount: 13))
+    await expectAnalysisRejects(analysisJSON(practiceCandidateCount: 7))
+}
+
+@Test("Learning material generation service accepts analyses at the documented array limits")
+func learningMaterialGenerationServiceAcceptsAnalysesAtArrayLimits() async throws {
+    let httpClient = try CapturingLearningMaterialHTTPClient(responses: [
+        .success(.init(
+            statusCode: 200,
+            body: chatResponse(analysisJSON(sentenceCount: 20, memoryCandidateCount: 12, practiceCandidateCount: 6))
+        )),
+    ])
+    let service = LearningMaterialGenerationService(httpClient: httpClient)
+
+    let result = try await service.analyze(sampleAnalysisRequest())
+
+    #expect(result.analysis.sentences.count == 20)
+    #expect(result.analysis.memoryCandidates.count == 12)
+    #expect(result.analysis.practiceCandidates.count == 6)
+}
+
+@Test("Learning material generation service maps provider HTTP status codes to failure categories")
+func learningMaterialGenerationServiceMapsProviderHTTPStatusCodes() async throws {
+    await expectGenerationHTTPStatus(401, mapsTo: .credentialMissing)
+    await expectGenerationHTTPStatus(403, mapsTo: .credentialMissing)
+    await expectGenerationHTTPStatus(404, mapsTo: .unsupportedModel)
+    await expectGenerationHTTPStatus(429, mapsTo: .providerRejected)
+    await expectGenerationHTTPStatus(500, mapsTo: .providerRejected)
+}
+
+@Test("Learning material generation service parses Responses output with a leading reasoning item")
+func learningMaterialGenerationServiceParsesResponsesOutputWithLeadingReasoningItem() async throws {
+    let payload = generationJSON(inputKind: "nativeRecord")
+    let body: [String: Any] = [
+        "output": [
+            ["type": "reasoning", "summary": [String]()],
+            [
+                "type": "message",
+                "content": [
+                    ["type": "output_text", "text": payload],
+                ],
+            ],
+        ],
+    ]
+    let httpClient = try CapturingLearningMaterialHTTPClient(responses: [
+        .success(.init(statusCode: 200, body: JSONSerialization.data(withJSONObject: body))),
+    ])
+    let service = LearningMaterialGenerationService(httpClient: httpClient)
+
+    let result = try await service.generate(
+        LearningMaterialServiceGenerationRequest(
+            endpoint: endpoint(adapterKind: .openAIResponses),
+            plaintextSecret: "sk-test-secret",
+            input: sampleGenerationInput(sourceText: "今天我去咖啡馆。"),
+            operationID: DiagnosticOperationID(rawValue: "op-reasoning"),
+            lengthBucket: .short
+        )
+    )
+
+    #expect(result.inputKind == .nativeRecord)
+    #expect(result.learningText == "I went to a cafe today.")
+}
+
 @Test("Learning material generation service rejects unsupported adapters before HTTP")
 func learningMaterialGenerationServiceRejectsUnsupportedAdaptersBeforeHTTP() async throws {
     let httpClient = CapturingLearningMaterialHTTPClient(responses: [])
@@ -245,4 +348,84 @@ func learningMaterialGenerationServiceRejectsUnsupportedAdaptersBeforeHTTP() asy
         )
     }
     #expect(await httpClient.requests.isEmpty)
+}
+
+private func sampleAnalysisRequest() -> LearningMaterialServiceAnalysisRequest {
+    LearningMaterialServiceAnalysisRequest(
+        endpoint: endpoint(adapterKind: .openAICompatibleChat),
+        plaintextSecret: "sk-test-secret",
+        input: LearningMaterialAnalysisInput(
+            materialID: "material-1",
+            learningText: "I went to a cafe today.",
+            nativeLanguageCode: "zh-Hans",
+            targetLanguageCode: "en",
+            proficiencyLevelCode: "b1"
+        ),
+        operationID: DiagnosticOperationID(rawValue: "op-analyze-validation"),
+        lengthBucket: .short
+    )
+}
+
+private func expectGenerationRejects(_ payload: String) async {
+    do {
+        let httpClient = try CapturingLearningMaterialHTTPClient(responses: [
+            .success(.init(statusCode: 200, body: chatResponse(payload))),
+        ])
+        let service = LearningMaterialGenerationService(httpClient: httpClient)
+        _ = try await service.generate(
+            LearningMaterialServiceGenerationRequest(
+                endpoint: endpoint(adapterKind: .openAICompatibleChat),
+                plaintextSecret: "sk-test-secret",
+                input: sampleGenerationInput(sourceText: "今天我去咖啡馆。"),
+                operationID: DiagnosticOperationID(rawValue: "op-rejects"),
+                lengthBucket: .short
+            )
+        )
+        Issue.record("Expected invalid structured response error")
+    } catch let error as LearningMaterialGenerationServiceError {
+        #expect(error.category == .invalidStructuredResponse)
+    } catch {
+        Issue.record("Unexpected error: \(error)")
+    }
+}
+
+private func expectAnalysisRejects(_ payload: String) async {
+    do {
+        let httpClient = try CapturingLearningMaterialHTTPClient(responses: [
+            .success(.init(statusCode: 200, body: chatResponse(payload))),
+        ])
+        let service = LearningMaterialGenerationService(httpClient: httpClient)
+        _ = try await service.analyze(sampleAnalysisRequest())
+        Issue.record("Expected invalid structured response error")
+    } catch let error as LearningMaterialGenerationServiceError {
+        #expect(error.category == .invalidStructuredResponse)
+    } catch {
+        Issue.record("Unexpected error: \(error)")
+    }
+}
+
+private func expectGenerationHTTPStatus(
+    _ statusCode: Int,
+    mapsTo category: LearningMaterialGenerationFailureCategory
+) async {
+    let httpClient = CapturingLearningMaterialHTTPClient(responses: [
+        .success(.init(statusCode: statusCode, body: Data(#"{"error":"provider failure"}"#.utf8))),
+    ])
+    let service = LearningMaterialGenerationService(httpClient: httpClient)
+    do {
+        _ = try await service.generate(
+            LearningMaterialServiceGenerationRequest(
+                endpoint: endpoint(adapterKind: .openAICompatibleChat),
+                plaintextSecret: "sk-test-secret",
+                input: sampleGenerationInput(sourceText: "今天我去咖啡馆。"),
+                operationID: DiagnosticOperationID(rawValue: "op-status-\(statusCode)"),
+                lengthBucket: .short
+            )
+        )
+        Issue.record("Expected failure for HTTP \(statusCode)")
+    } catch let error as LearningMaterialGenerationServiceError {
+        #expect(error.category == category)
+    } catch {
+        Issue.record("Unexpected error: \(error)")
+    }
 }

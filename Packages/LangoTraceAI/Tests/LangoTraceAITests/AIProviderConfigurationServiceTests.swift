@@ -349,6 +349,162 @@ func configurationServiceTestsSavedTTSVoiceProfileWithoutUpdatingTextValidationO
     #expect(await repository.recordedTTSOutcomeLanguageCodes == ["en"])
 }
 
+@Test("Configuration service surfaces TTS credential store failures as failed speech synthesis result")
+func configurationServiceSurfacesTTSCredentialStoreFailuresAsFailedSpeechSynthesis() async throws {
+    let savedTTS = try savedProfileWithTTS()
+    let repository = StubAIProviderConfigurationRepository(
+        profile: savedTTS.profile,
+        ttsSettings: savedTTS.settings,
+        ttsVoiceProfile: savedTTS.voiceProfile
+    )
+    let store = TrackingAIProviderCredentialStore(resolveError: AIProviderCredentialStoreError.missingCredential)
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: AIProviderConfigurationProbeService(
+            httpClient: CapturingProbeHTTPClient(responses: [])
+        ),
+        ttsConfigurationProbeService: TTSConfigurationProbeService(
+            httpClient: CapturingProbeHTTPClient(responses: []),
+            audioValidationService: AcceptingTTSAudioValidationService()
+        ),
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let result = try await service.testDefaultConfiguration(
+        languageContext: AIProviderProbeLanguageContext(languageCode: "en"),
+        operationID: DiagnosticOperationID(rawValue: "operation-tts-credential-failure")
+    )
+
+    let speechResult = try #require(result.capabilities.first { $0.capability == .speechSynthesis })
+    #expect(speechResult.status == .failed)
+    #expect(speechResult.errorCategory == .missingCredential)
+    #expect(speechResult.endpointMetadata?.endpointID == "endpoint-tts")
+}
+
+@Test("Configuration service merged result fails when a required TTS capability fails")
+func configurationServiceMergedResultFailsWhenRequiredTTSCapabilityFails() async throws {
+    let savedTTS = try savedProfileWithTTS()
+    let repository = StubAIProviderConfigurationRepository(
+        profile: savedTTS.profile,
+        ttsSettings: savedTTS.settings,
+        ttsVoiceProfile: savedTTS.voiceProfile
+    )
+    let textHTTPClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"OK"}]}]}"#),
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"{\"ok\":true}"}]}]}"#),
+    ])
+    let ttsHTTPClient = CapturingProbeHTTPClient(responses: [
+        .http(statusCode: 401, body: Data(#"{"error":"bad key"}"#.utf8), contentType: "application/json"),
+    ])
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: TrackingAIProviderCredentialStore(),
+        configurationProbeService: AIProviderConfigurationProbeService(httpClient: textHTTPClient),
+        ttsConfigurationProbeService: TTSConfigurationProbeService(
+            httpClient: ttsHTTPClient,
+            audioValidationService: AcceptingTTSAudioValidationService()
+        ),
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let result = try await service.testDefaultConfiguration(
+        languageContext: AIProviderProbeLanguageContext(languageCode: "en"),
+        operationID: DiagnosticOperationID(rawValue: "operation-tts-required-failure")
+    )
+
+    #expect(result.overallStatus == .failed)
+    #expect(result.capabilities.first { $0.capability == .textReply }?.status == .succeeded)
+    #expect(result.capabilities.first { $0.capability == .speechSynthesis }?.status == .failed)
+}
+
+@Test("Configuration service resolves shared credentials independent of endpoint order")
+func configurationServiceResolvesSharedCredentialsIndependentOfEndpointOrder() async throws {
+    let repository = StubAIProviderConfigurationRepository(profile: nil)
+    let store = TrackingAIProviderCredentialStore()
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        clock: { Date(timeIntervalSince1970: 100) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    // The TTS endpoint sharing the text-generation credential comes FIRST.
+    let profile = try await service.saveDefaultProfile(AIProviderProfileSaveInput(
+        displayName: "Default AI Provider",
+        endpoints: [
+            AIProviderEndpointSaveInput(
+                purpose: .tts,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "tts-1",
+                credentialMode: .sharedWithPurpose(.textGeneration),
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+            AIProviderEndpointSaveInput(
+                purpose: .textGeneration,
+                isEnabled: true,
+                providerPresetID: "openai",
+                adapterKind: .openAIResponses,
+                baseURL: "https://api.openai.com/v1",
+                modelName: "gpt-5.2",
+                credentialMode: .newSecret(
+                    AIProviderCredentialSecretSaveInput(
+                        kind: .apiKey,
+                        label: "OpenAI API Key",
+                        plaintextSecret: "sk-test"
+                    )
+                ),
+                supportsImageInput: true,
+                imageInputEnabled: false
+            ),
+        ]
+    ))
+
+    let ttsEndpoint = try #require(profile.endpoints.first { $0.purpose == .tts })
+    let textEndpoint = try #require(profile.endpoints.first { $0.purpose == .textGeneration })
+    #expect(ttsEndpoint.credentialID != nil)
+    #expect(ttsEndpoint.credentialID == textEndpoint.credentialID)
+}
+
+@Test("Configuration service rejects shared credential references that cannot be resolved")
+func configurationServiceRejectsUnresolvableSharedCredentialReferences() async throws {
+    let repository = StubAIProviderConfigurationRepository(profile: nil)
+    let store = TrackingAIProviderCredentialStore()
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        clock: { Date(timeIntervalSince1970: 100) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    do {
+        _ = try await service.saveDefaultProfile(AIProviderProfileSaveInput(
+            displayName: "Default AI Provider",
+            endpoints: [
+                AIProviderEndpointSaveInput(
+                    purpose: .tts,
+                    isEnabled: true,
+                    providerPresetID: "openai",
+                    adapterKind: .openAIResponses,
+                    baseURL: "https://api.openai.com/v1",
+                    modelName: "tts-1",
+                    credentialMode: .sharedWithPurpose(.textGeneration),
+                    supportsImageInput: false,
+                    imageInputEnabled: false
+                ),
+            ]
+        ))
+        Issue.record("Expected save to fail for unresolvable shared credential")
+    } catch let failure as AIProviderConfigurationSaveFailure {
+        #expect(failure.category == .missingRequiredAPIKey)
+    }
+    #expect(await repository.savedProfile == nil)
+}
+
 @Test("Configuration service reports playable TTS only for matching successful fingerprint and language")
 func configurationServiceReportsPlayableTTSOnlyForMatchingSuccessfulFingerprintAndLanguage() async throws {
     let savedTTS = try savedProfileWithTTS(lastTestStatus: .succeeded, markSuccessfulFingerprint: true)

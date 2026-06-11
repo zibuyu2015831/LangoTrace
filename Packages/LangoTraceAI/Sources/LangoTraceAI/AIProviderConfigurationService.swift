@@ -393,7 +393,7 @@ private extension AIProviderConfigurationProbeResult {
         let required: Set<AIProviderProbeCapability> = [.textReply, .structuredJSON, .speechSynthesis]
         let requiredResults = capabilities.filter { required.contains($0.capability) }
         guard !requiredResults.contains(where: { $0.status == .failed || $0.status == .unsupported }) else {
-            return requiredResults.contains(where: { $0.status == .succeeded }) ? .failed : .failed
+            return .failed
         }
         return requiredResults.allSatisfy { result in
             result.status == .succeeded || result.status == .notEnabled || result.status == .notConfigured
@@ -595,27 +595,24 @@ private extension AIProviderConfigurationService {
                     )
                 )
             }
-            let secret = try await resolveSecretForProbe(
-                endpoint: ttsEndpoint,
-                credentialsByID: credentialsByID,
-                credentialStore: credentialStore
-            )
+            let secret: String?
+            do {
+                secret = try await resolveSecretForProbe(
+                    endpoint: ttsEndpoint,
+                    credentialsByID: credentialsByID,
+                    credentialStore: credentialStore
+                )
+            } catch let error as AIProviderCredentialStoreError {
+                return textResult.replacingCapabilityResult(
+                    ttsPreflightFailureResult(
+                        endpoint: ttsEndpoint,
+                        category: validationErrorCategory(for: error)
+                    )
+                )
+            }
             let speechResult = await ttsConfigurationProbeService.probeDraftTTSConfiguration(
                 TTSDraftProbeInput(
-                    endpoint: AIProviderEndpointInput(
-                        id: ttsEndpoint.id,
-                        profileID: ttsEndpoint.profileID,
-                        purpose: ttsEndpoint.purpose,
-                        isEnabled: ttsEndpoint.isEnabled,
-                        providerPresetID: ttsEndpoint.providerPresetID,
-                        adapterKind: ttsEndpoint.adapterKind,
-                        baseURL: ttsEndpoint.baseURL,
-                        modelName: ttsEndpoint.modelName,
-                        credentialID: ttsEndpoint.credentialID,
-                        supportsImageInput: ttsEndpoint.supportsImageInput,
-                        imageInputEnabled: ttsEndpoint.imageInputEnabled,
-                        requestTimeoutSeconds: ttsEndpoint.requestTimeoutSeconds
-                    ),
+                    endpoint: ttsEndpoint.makeProbeInput(),
                     settings: settings,
                     voiceProfile: voiceProfile,
                     plaintextSecret: secret
@@ -623,8 +620,31 @@ private extension AIProviderConfigurationService {
             )
             return textResult.replacingCapabilityResult(speechResult)
         } catch {
-            return textResult
+            // TTS settings / voice profile store failures must surface as an
+            // explicit speechSynthesis failure instead of silently keeping the
+            // text-only result (which renders as "not enabled").
+            return textResult.replacingCapabilityResult(
+                ttsPreflightFailureResult(endpoint: ttsEndpoint, category: .credentialInaccessible)
+            )
         }
+    }
+
+    func ttsPreflightFailureResult(
+        endpoint: AIProviderEndpointConfiguration,
+        category: AIProviderValidationErrorCategory
+    ) -> AIProviderProbeCapabilityResult {
+        AIProviderProbeCapabilityResult(
+            capability: .speechSynthesis,
+            status: .failed,
+            errorCategory: category,
+            durationMilliseconds: nil,
+            endpointMetadata: AIProviderEndpointProbeMetadata(
+                endpointID: endpoint.id,
+                endpointPurpose: .tts,
+                providerPresetID: endpoint.providerPresetID,
+                modelName: endpoint.modelName
+            )
+        )
     }
 
     func mergedSavedEmbeddingProbeResult(
@@ -823,14 +843,45 @@ private extension AIProviderConfigurationService {
             existingCredentialsByID: existingCredentialsByID
         )
 
-        for endpointInput in input.endpoints {
-            let credentialID = try await credentialID(
-                for: endpointInput,
-                context: credentialContext,
-                credentialsByPurpose: credentialsByPurpose,
-                credentials: &credentials,
-                createdReferences: &createdReferences
-            )
+        // Pass 1: materialize credentials owned by endpoints (`existing` /
+        // `newSecret`) so shared-credential resolution does not depend on
+        // endpoint order.
+        var ownedCredentialIDsByEndpointIndex: [Int: AIProviderCredentialID] = [:]
+        for (index, endpointInput) in input.endpoints.enumerated() {
+            switch endpointInput.credentialMode {
+            case .none, .sharedWithPurpose:
+                continue
+            case .existing, .newSecret:
+                let credentialID = try await ownedCredentialID(
+                    for: endpointInput,
+                    context: credentialContext,
+                    credentials: &credentials,
+                    createdReferences: &createdReferences
+                )
+                ownedCredentialIDsByEndpointIndex[index] = credentialID
+                if let credentialID {
+                    credentialsByPurpose[endpointInput.purpose] = credentialID
+                }
+            }
+        }
+
+        // Pass 2: build endpoints, resolving shared credentials from the
+        // complete purpose map; an unresolvable shared credential is an input
+        // error rather than a silently credential-less endpoint.
+        for (index, endpointInput) in input.endpoints.enumerated() {
+            let credentialID: AIProviderCredentialID?
+            switch endpointInput.credentialMode {
+            case .none:
+                credentialID = nil
+            case let .sharedWithPurpose(purpose):
+                guard let sharedCredentialID = credentialsByPurpose[purpose] else {
+                    throw AIProviderConfigurationError.missingRequiredAPIKey
+                }
+                credentialID = sharedCredentialID
+                credentialsByPurpose[endpointInput.purpose] = sharedCredentialID
+            case .existing, .newSecret:
+                credentialID = ownedCredentialIDsByEndpointIndex[index]
+            }
             let endpoint = try endpointConfiguration(
                 from: endpointInput,
                 profileID: profileID,
@@ -838,9 +889,6 @@ private extension AIProviderConfigurationService {
                 createdAt: now
             )
             endpoints.append(endpoint)
-            if let credentialID {
-                credentialsByPurpose[endpointInput.purpose] = credentialID
-            }
         }
 
         let profile = AIProviderConfigurationProfile(
@@ -1009,15 +1057,14 @@ private extension AIProviderConfigurationService {
         }
     }
 
-    func credentialID(
+    func ownedCredentialID(
         for endpointInput: AIProviderEndpointSaveInput,
         context: CredentialMaterializationContext,
-        credentialsByPurpose: [AIProviderEndpointPurpose: AIProviderCredentialID],
         credentials: inout [AIProviderCredentialMetadata],
         createdReferences: inout [AIProviderCredentialKeychainReference]
     ) async throws -> AIProviderCredentialID? {
         switch endpointInput.credentialMode {
-        case .none:
+        case .none, .sharedWithPurpose:
             return nil
         case let .existing(credentialID):
             if let credential = context.existingCredentialsByID[credentialID],
@@ -1026,8 +1073,6 @@ private extension AIProviderConfigurationService {
                 credentials.append(credential)
             }
             return credentialID
-        case let .sharedWithPurpose(purpose):
-            return credentialsByPurpose[purpose]
         case let .newSecret(secretInput):
             let secret = secretInput.plaintextSecret.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !secret.isEmpty else {

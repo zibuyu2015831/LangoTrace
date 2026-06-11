@@ -1,5 +1,5 @@
 import Foundation
-import LangoTraceAI
+@testable import LangoTraceAI
 import LangoTraceCore
 import Testing
 
@@ -26,6 +26,7 @@ struct SentenceTTSGenerationServiceTests {
         let sentRequest = try await #require(httpClient.lastRequest)
         #expect(sentRequest.value(forHTTPHeaderField: "Authorization") == "Bearer sk-short-lived")
         #expect(sentRequest.url?.absoluteString == "https://api.openai.com/v1/audio/speech")
+        #expect(sentRequest.timeoutInterval == 30)
         #expect(await stagingWriter.writes.count == 1)
         #expect(result.stagedFile.relativeStagingPath == "staging/tts-1.mp3")
         #expect(result.mimeType == "audio/mpeg")
@@ -71,6 +72,15 @@ struct SentenceTTSGenerationServiceTests {
             _ = try await service.generateSpeech(generationRequest(text: "Hello"))
         }
         #expect(await stagingWriter.writes.isEmpty)
+    }
+
+    @Test("Elapsed milliseconds keep sub-second precision instead of truncating to whole seconds")
+    func elapsedMillisecondsKeepSubSecondPrecision() {
+        #expect(SentenceTTSGenerationService.elapsedMilliseconds(for: .milliseconds(750)) == 750)
+        #expect(SentenceTTSGenerationService.elapsedMilliseconds(for: .milliseconds(1250)) == 1250)
+        #expect(SentenceTTSGenerationService.elapsedMilliseconds(for: .seconds(2)) == 2000)
+        #expect(SentenceTTSGenerationService.elapsedMilliseconds(for: .zero) == 0)
+        #expect(SentenceTTSGenerationService.elapsedMilliseconds(for: .milliseconds(-5)) == 0)
     }
 }
 

@@ -466,6 +466,9 @@ private extension AIProviderConfigurationProbeService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let timeout = endpoint.requestTimeoutSeconds {
+            request.timeoutInterval = timeout
+        }
         if let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             request.setValue("Bearer \(secret)", forHTTPHeaderField: "Authorization")
         }
@@ -474,13 +477,9 @@ private extension AIProviderConfigurationProbeService {
     }
 
     func probeURL(for endpoint: AIProviderEndpointInput) throws -> URL {
-        guard var components = URLComponents(string: endpoint.baseURL) else {
-            throw AIProviderConfigurationError.invalidBaseURL
-        }
-        let basePath = components.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         let suffix = endpoint.adapterKind == .openAIResponses ? "responses" : "chat/completions"
-        components.path = "/" + ([basePath, suffix].filter { !$0.isEmpty }.joined(separator: "/"))
-        guard let url = components.url else {
+        guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: endpoint.baseURL, pathSuffix: suffix)
+        else {
             throw AIProviderConfigurationError.invalidBaseURL
         }
         return url
@@ -578,31 +577,11 @@ private extension AIProviderConfigurationProbeService {
     }
 
     func parseChatText(from object: [String: Any]) -> String {
-        guard let choices = object["choices"] as? [[String: Any]] else {
-            return ""
-        }
-        return choices.compactMap { choice in
-            let message = choice["message"] as? [String: Any]
-            return message?["content"] as? String
-        }.joined(separator: "\n")
+        OpenAICompatibleResponseTextParser.chatCompletionsText(fromResponseObject: object) ?? ""
     }
 
     func parseResponsesText(from object: [String: Any]) -> String {
-        guard let output = object["output"] as? [[String: Any]] else {
-            return ""
-        }
-        var chunks: [String] = []
-        for outputItem in output {
-            guard let content = outputItem["content"] as? [[String: Any]] else {
-                continue
-            }
-            for contentItem in content where contentItem["type"] as? String == "output_text" {
-                if let text = contentItem["text"] as? String {
-                    chunks.append(text)
-                }
-            }
-        }
-        return chunks.joined(separator: "\n")
+        OpenAICompatibleResponseTextParser.responsesText(fromResponseObject: object) ?? ""
     }
 
     func isStrictOKJSON(_ text: String) -> Bool {
@@ -736,14 +715,7 @@ private extension AIProviderConfigurationProbeService {
     }
 
     func errorCategory(forHTTPStatusCode statusCode: Int) -> AIProviderValidationErrorCategory {
-        switch statusCode {
-        case 401, 403:
-            .authenticationFailed
-        case 404:
-            .unsupportedModel
-        default:
-            .providerRejected
-        }
+        AIProviderHTTPStatusErrorMapper.errorCategory(forHTTPStatusCode: statusCode)
     }
 
     func durationMilliseconds(since start: Date) -> Int {

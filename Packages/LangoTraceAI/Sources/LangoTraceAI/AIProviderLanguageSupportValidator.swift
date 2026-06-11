@@ -166,13 +166,14 @@ private extension AIProviderLanguageSupportValidator {
         return candidate.isEmpty ? nil : candidate
     }
 
+    /// Only a lower bound is enforced. Verbose-but-valid samples must not be
+    /// rejected, and the failure reason vocabulary has no "too long" case, so
+    /// an upper bound would misreport long samples as `sampleTooShort`.
     func validateLength(_ sample: String, for target: TargetLanguage) -> Bool {
         if target.usesVisibleCharacterCount {
-            let count = visibleCharacterCount(sample)
-            return (30 ... 140).contains(count)
+            return visibleCharacterCount(sample) >= 30
         }
-        let count = wordCount(sample)
-        return (20 ... 120).contains(count)
+        return wordCount(sample) >= 20
     }
 
     func visibleCharacterCount(_ sample: String) -> Int {
