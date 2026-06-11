@@ -1,14 +1,33 @@
 import Foundation
 @testable import LangoTrace
 import LangoTraceAI
+import LangoTraceCore
 import LangoTraceData
 import LangoTraceSpeech
 import LangoTraceSync
 import XCTest
 
 final class AppEnvironmentBootstrapTests: XCTestCase {
+    private var temporaryDirectory: URL!
+
+    override func setUpWithError() throws {
+        temporaryDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AppEnvironmentBootstrapTests-\(UUID().uuidString)", isDirectory: true)
+    }
+
+    override func tearDownWithError() throws {
+        if let temporaryDirectory {
+            try? FileManager.default.removeItem(at: temporaryDirectory)
+        }
+        temporaryDirectory = nil
+    }
+
+    private var temporaryDatabaseURL: URL {
+        temporaryDirectory.appendingPathComponent("LangoTrace.sqlite", isDirectory: false)
+    }
+
     func testBootstrapUsesPersistentLearningContentRepositoryBoundary() {
-        let environment = AppEnvironment.bootstrap()
+        let environment = AppEnvironment.bootstrap(databaseURL: temporaryDatabaseURL)
         let repositoryType = String(describing: type(of: environment.learningContentRepository))
 
         XCTAssertEqual(repositoryType, "GRDBLearningContentRepositoryBridge")
@@ -17,11 +36,29 @@ final class AppEnvironmentBootstrapTests: XCTestCase {
     }
 
     func testBootstrapKeepsUnimplementedExternalServicesDisabled() {
-        let environment = AppEnvironment.bootstrap()
+        let environment = AppEnvironment.bootstrap(databaseURL: temporaryDatabaseURL)
 
         XCTAssertTrue(environment.aiProvider is DisabledAIProvider)
         XCTAssertTrue(environment.speechService is DisabledSpeechService)
         XCTAssertTrue(environment.syncService is DisabledSyncService)
+    }
+
+    func testMakeDiagnosticLoggerStaysDisabledWithoutExplicitOptIn() {
+        let logger = makeDiagnosticLogger(
+            databaseFactory: SharedAppDatabaseFactory(databaseURL: temporaryDatabaseURL),
+            environment: [:]
+        )
+
+        XCTAssertTrue(logger is DisabledDiagnosticLogger)
+    }
+
+    func testMakeDiagnosticLoggerEnablesConsoleLoggingOnlyWhenOptedIn() {
+        let logger = makeDiagnosticLogger(
+            databaseFactory: SharedAppDatabaseFactory(databaseURL: temporaryDatabaseURL),
+            environment: ["LANGOTRACE_DIAGNOSTICS": "1"]
+        )
+
+        XCTAssertTrue(logger is ConsoleDiagnosticLogger)
     }
 
     func testAIProviderSettingsResolverMapsKeychainFailuresToCoreFailure() throws {

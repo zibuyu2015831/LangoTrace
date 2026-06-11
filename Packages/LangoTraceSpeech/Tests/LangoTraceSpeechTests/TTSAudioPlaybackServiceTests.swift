@@ -83,6 +83,48 @@ struct TTSAudioPlaybackServiceTests {
 
         #expect(!monitor.hasCompleted)
     }
+
+    @Test("Playback completion monitor replaces a pending fallback when rescheduled")
+    func playbackCompletionMonitorReplacesPendingFallbackWhenRescheduled() async throws {
+        let monitor = TTSAudioPlaybackCompletionMonitor()
+
+        monitor.completeAfterPlaybackDuration(10, grace: 0)
+        monitor.completeAfterPlaybackDuration(0.001, grace: 0.001)
+        monitor.cancelFallbackCompletion()
+        try await Task.sleep(nanoseconds: 5_000_000)
+
+        #expect(!monitor.hasCompleted)
+    }
+
+    @Test("Playback completion monitor stays consistent under concurrent fallback access")
+    func playbackCompletionMonitorStaysConsistentUnderConcurrentFallbackAccess() async {
+        // Exercises the lock-protected fallback task state; the pre-fix code raced on
+        // `fallbackTask` between scheduling, cancellation, and completion (visible under TSan).
+        for _ in 0 ..< 50 {
+            let monitor = TTSAudioPlaybackCompletionMonitor()
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask {
+                    monitor.completeAfterPlaybackDuration(0.0001, grace: 0)
+                }
+                group.addTask {
+                    monitor.cancelFallbackCompletion()
+                }
+                group.addTask {
+                    monitor.completeAfterPlaybackDuration(10, grace: 0)
+                }
+                group.addTask {
+                    monitor.complete(.failure(.cancelled))
+                }
+            }
+
+            switch await monitor.result() {
+            case .success:
+                break
+            case let .failure(failure):
+                #expect(failure == .cancelled)
+            }
+        }
+    }
 }
 
 private actor CapturingPlaybackEngine: TTSAudioPlaybackEngine {

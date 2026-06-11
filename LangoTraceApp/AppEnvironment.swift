@@ -11,7 +11,6 @@ struct AppEnvironment {
     let makeLanguageSpaceRepository: @Sendable () throws -> any LanguageSpaceRepository
     let learningContentRepository: any LearningContentRepository
     let learningMaterialGenerationActions: LearningMaterialGenerationActions
-    let makeSentenceAudioPlaybackCoordinator: @Sendable () throws -> SentenceAudioPlaybackCoordinator
     let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
     let readingLibraryActions: ReadingLibraryActions
     let readingExplanationAction: ReadingExplanationAction
@@ -25,11 +24,14 @@ struct AppEnvironment {
 
     // AppEnvironment assembles the cross-package production graph in one place.
     // swiftlint:disable:next function_body_length
-    static func bootstrap() -> AppEnvironment {
-        let databaseFactory = SharedAppDatabaseFactory()
+    static func bootstrap(databaseURL: URL? = nil) -> AppEnvironment {
+        let databaseFactory = SharedAppDatabaseFactory(databaseURL: databaseURL)
         let credentialStore = KeychainAIProviderCredentialStore()
         let diagnosticLogger = makeDiagnosticLogger(databaseFactory: databaseFactory)
-        let learningContentRepository = makeLearningContentRepository(databaseFactory: databaseFactory)
+        let learningContentRepository = makeLearningContentRepository(
+            databaseFactory: databaseFactory,
+            diagnosticLogger: diagnosticLogger
+        )
         let ttsPreviewStore = InMemoryTTSAudioPreviewStore()
         let ttsPreviewPlaybackService = DefaultTTSAudioPreviewPlaybackService(previewStore: ttsPreviewStore)
         let sentenceAudioPlaybackCoordinatorBox = SentenceAudioPlaybackCoordinatorBox {
@@ -39,6 +41,40 @@ struct AppEnvironment {
                 credentialStore: credentialStore,
                 diagnosticLogger: diagnosticLogger,
                 ttsPreviewStore: ttsPreviewStore
+            )
+        }
+
+        let readingCacheStorage: (any ReadingExplanationCacheRepositoryProtocol)?
+        do {
+            readingCacheStorage = try GRDBReadingExplanationCacheRepository(
+                database: databaseFactory.database()
+            )
+        } catch {
+            readingCacheStorage = nil
+            recordBootstrapComponentFailure(
+                component: "reading_explanation_cache",
+                error: error,
+                name: .aiProviderConfigurationDatabaseWriteFailed,
+                domain: .dataStorage,
+                diagnosticLogger: diagnosticLogger
+            )
+        }
+
+        let practiceActions: PracticeActions
+        do {
+            practiceActions = try PracticeActionsAssembly.makeActions(
+                database: databaseFactory.database(),
+                mediaArtifactsRoot: SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot(),
+                diagnosticLogger: diagnosticLogger
+            )
+        } catch {
+            practiceActions = .disabled
+            recordBootstrapComponentFailure(
+                component: "practice_actions",
+                error: error,
+                name: .practiceRecordingFailed,
+                domain: .practiceRecording,
+                diagnosticLogger: diagnosticLogger
             )
         }
 
@@ -53,15 +89,6 @@ struct AppEnvironment {
                 databaseFactory: databaseFactory,
                 credentialStore: credentialStore
             ),
-            makeSentenceAudioPlaybackCoordinator: {
-                try SentenceAudioPlaybackAssembly.makeCoordinator(
-                    database: databaseFactory.database(),
-                    mediaArtifactsRoot: SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot(),
-                    credentialStore: credentialStore,
-                    diagnosticLogger: diagnosticLogger,
-                    ttsPreviewStore: ttsPreviewStore
-                )
-            },
             sentenceAudioPlaybackActions: sentenceAudioPlaybackCoordinatorBox.actions(),
             readingLibraryActions: makeReadingLibraryActions(databaseFactory: databaseFactory),
             readingExplanationAction: makeReadingExplanationAction(
@@ -71,16 +98,8 @@ struct AppEnvironment {
             readingTTSAction: makeReadingTTSAction(
                 sentenceAudioPlaybackActions: sentenceAudioPlaybackCoordinatorBox.actions()
             ),
-            readingCacheStorage: (try? GRDBReadingExplanationCacheRepository(
-                database: databaseFactory.database()
-            )),
-            practiceActions: (
-                try? PracticeActionsAssembly.makeActions(
-                    database: databaseFactory.database(),
-                    mediaArtifactsRoot: SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot(),
-                    diagnosticLogger: diagnosticLogger
-                )
-            ) ?? .disabled,
+            readingCacheStorage: readingCacheStorage,
+            practiceActions: practiceActions,
             aiProviderSettingsActions: AIProviderSettingsActions(
                 loadDefaultProfile: {
                     let service = try makeAIProviderConfigurationService(
@@ -334,14 +353,49 @@ private func makeReadingLibraryActions(
 }
 
 private func makeLearningContentRepository(
-    databaseFactory: SharedAppDatabaseFactory
+    databaseFactory: SharedAppDatabaseFactory,
+    diagnosticLogger: any DiagnosticLogging
 ) -> any LearningContentRepository {
     do {
         return try GRDBLearningContentRepositoryBridge(
             repository: GRDBLearningContentRepository(database: databaseFactory.database())
         )
     } catch {
+        recordBootstrapComponentFailure(
+            component: "learning_content_repository",
+            error: error,
+            name: .aiProviderConfigurationDatabaseWriteFailed,
+            domain: .dataStorage,
+            diagnosticLogger: diagnosticLogger
+        )
         return UnavailableLearningContentRepository()
+    }
+}
+
+// Bootstrap fallbacks must not fail silently. There is no dedicated bootstrap event name in
+// `DiagnosticEventName` yet, so storage-related fallbacks reuse the closest database failure
+// name with `.dataStorage` domain and a `bootstrap_*` failure phase attribute.
+private func recordBootstrapComponentFailure(
+    component: String,
+    error: Error,
+    name: DiagnosticEventName,
+    domain: DiagnosticDomain,
+    diagnosticLogger: any DiagnosticLogging
+) {
+    let event = DiagnosticEvent(
+        id: UUID().uuidString,
+        name: name,
+        domain: domain,
+        level: .error,
+        outcome: .failed,
+        attributes: [
+            .failurePhase("bootstrap_\(component)"),
+            .errorCategory(String(describing: type(of: error))),
+        ],
+        createdAt: Date()
+    )
+    Task {
+        await diagnosticLogger.record(event)
     }
 }
 
@@ -715,9 +769,14 @@ private extension AIProviderConfigurationProfile {
     }
 }
 
-private final class SharedAppDatabaseFactory: @unchecked Sendable {
+final class SharedAppDatabaseFactory: @unchecked Sendable {
     private let lock = NSLock()
+    private let databaseURLOverride: URL?
     private var cachedDatabase: AppDatabase?
+
+    init(databaseURL: URL? = nil) {
+        databaseURLOverride = databaseURL
+    }
 
     func database() throws -> AppDatabase {
         lock.lock()
@@ -726,9 +785,8 @@ private final class SharedAppDatabaseFactory: @unchecked Sendable {
         if let cachedDatabase {
             return cachedDatabase
         }
-        let database = try AppDatabase.persistent(
-            at: LanguageSpaceDatabaseLocation.defaultDatabaseURL()
-        )
+        let databaseURL = try databaseURLOverride ?? LanguageSpaceDatabaseLocation.defaultDatabaseURL()
+        let database = try AppDatabase.persistent(at: databaseURL)
         cachedDatabase = database
         return database
     }
@@ -758,19 +816,21 @@ private func makeAIProviderConfigurationService(
     )
 }
 
-private func makeDiagnosticLogger(
+// Diagnostics are disabled by default (spec 008); console logging is only attached
+// when the user explicitly opts in through LANGOTRACE_DIAGNOSTICS=1.
+func makeDiagnosticLogger(
     databaseFactory: SharedAppDatabaseFactory,
     environment: [String: String] = ProcessInfo.processInfo.environment
 ) -> any DiagnosticLogging {
     var loggers: [any DiagnosticLogging] = []
 
-    loggers.append(
-        ConsoleDiagnosticLogger(
-            minimumLevel: environment["LANGOTRACE_DIAGNOSTICS"] == "1"
-                ? diagnosticLevel(from: environment["LANGOTRACE_LOG_LEVEL"])
-                : .warning
+    if environment["LANGOTRACE_DIAGNOSTICS"] == "1" {
+        loggers.append(
+            ConsoleDiagnosticLogger(
+                minimumLevel: diagnosticLevel(from: environment["LANGOTRACE_LOG_LEVEL"])
+            )
         )
-    )
+    }
 
     if environment["LANGOTRACE_DIAGNOSTIC_STORE"] == "1",
        let repository = try? GRDBDiagnosticEventRepository(database: databaseFactory.database())
@@ -799,10 +859,6 @@ private func diagnosticLevel(from value: String?) -> DiagnosticLevel {
     default:
         .info
     }
-}
-
-extension EnvironmentValues {
-    @Entry var appEnvironment: AppEnvironment = .bootstrap()
 }
 
 @MainActor

@@ -95,35 +95,31 @@ struct TTSAudioValidationTests {
         #expect(resource.persistentFileURL == nil)
         #expect(await previewStore.audioData(for: resource) == wav)
     }
-}
 
-private func wavFixture(sampleRate: Int, samples: Int) -> Data {
-    let channelCount = 1
-    let bitsPerSample = 16
-    let blockAlign = channelCount * bitsPerSample / 8
-    let byteRate = sampleRate * blockAlign
-    let dataSize = samples * blockAlign
-    let chunkSize = 36 + dataSize
-    var data = Data()
-    data.append(contentsOf: "RIFF".utf8)
-    data.append(UInt32(chunkSize).littleEndianData)
-    data.append(contentsOf: "WAVEfmt ".utf8)
-    data.append(UInt32(16).littleEndianData)
-    data.append(UInt16(1).littleEndianData)
-    data.append(UInt16(channelCount).littleEndianData)
-    data.append(UInt32(sampleRate).littleEndianData)
-    data.append(UInt32(byteRate).littleEndianData)
-    data.append(UInt16(blockAlign).littleEndianData)
-    data.append(UInt16(bitsPerSample).littleEndianData)
-    data.append(contentsOf: "data".utf8)
-    data.append(UInt32(dataSize).littleEndianData)
-    data.append(Data(repeating: 0, count: dataSize))
-    return data
-}
+    @Test("Preview store keeps only the most recent preview audio by default")
+    func previewStoreKeepsOnlyMostRecentPreviewAudioByDefault() async {
+        let previewStore = InMemoryTTSAudioPreviewStore()
 
-private extension FixedWidthInteger {
-    var littleEndianData: Data {
-        var value = littleEndian
-        return Data(bytes: &value, count: MemoryLayout<Self>.size)
+        let first = await previewStore.storePreviewAudio(Data("first".utf8), format: .wav)
+        let second = await previewStore.storePreviewAudio(Data("second".utf8), format: .wav)
+
+        #expect(await previewStore.audioData(for: first) == nil)
+        #expect(await previewStore.audioData(for: second) == Data("second".utf8))
+    }
+
+    @Test("Preview store supports removing a single preview and clearing all previews")
+    func previewStoreSupportsRemovingSinglePreviewAndClearingAllPreviews() async {
+        let previewStore = InMemoryTTSAudioPreviewStore(maxRetainedPreviews: 2)
+
+        let first = await previewStore.storePreviewAudio(Data("first".utf8), format: .wav)
+        let second = await previewStore.storePreviewAudio(Data("second".utf8), format: .wav)
+        await previewStore.removeAudio(for: first)
+
+        #expect(await previewStore.audioData(for: first) == nil)
+        #expect(await previewStore.audioData(for: second) == Data("second".utf8))
+
+        await previewStore.removeAll()
+
+        #expect(await previewStore.audioData(for: second) == nil)
     }
 }

@@ -87,6 +87,41 @@ struct PracticeRecordingServiceTests {
         await #expect(throws: PracticeRecordingFailure.fileTooLarge) {
             try await service.stop(recordingID: "recording-1")
         }
+
+        #expect(await engine.events.contains(.discardStagedRecording("staging/recording-1.m4a")))
+    }
+
+    @Test("Recording service discards staged file when recording exceeds duration limit")
+    func recordingServiceDiscardsStagedFileWhenRecordingExceedsDurationLimit() async throws {
+        let engine = FakePracticeRecordingEngine(stopResult: PracticeRecordingEngineStopResult(
+            stagedFile: MediaArtifactStagedFileReference(
+                relativeStagingPath: "staging/recording-1.m4a",
+                byteSize: 9,
+                contentHash: "too-long"
+            ),
+            durationSeconds: 120,
+            byteSize: 9,
+            contentHash: "too-long"
+        ))
+        let service = PracticeRecordingService(
+            engine: engine,
+            limits: PracticeRecordingLimits(maxDurationSeconds: 60, maxByteSize: 10)
+        )
+
+        try await service.start(
+            PracticeRecordingStartRequest(
+                sessionID: "session-1",
+                recordingID: "recording-1",
+                stagingRelativePath: "staging/recording-1.m4a",
+                format: .m4a
+            )
+        )
+
+        await #expect(throws: PracticeRecordingFailure.durationTooLong) {
+            try await service.stop(recordingID: "recording-1")
+        }
+
+        #expect(await engine.events.contains(.discardStagedRecording("staging/recording-1.m4a")))
     }
 }
 
@@ -96,6 +131,7 @@ private actor FakePracticeRecordingEngine: PracticeRecordingEngine {
         case start(String)
         case stop(String)
         case cancel(String)
+        case discardStagedRecording(String)
     }
 
     private let permission: PracticeMicrophonePermission
@@ -135,5 +171,9 @@ private actor FakePracticeRecordingEngine: PracticeRecordingEngine {
 
     func cancel(recordingID: String) async {
         events.append(.cancel(recordingID))
+    }
+
+    func discardStagedRecording(_ stagedFile: MediaArtifactStagedFileReference) async {
+        events.append(.discardStagedRecording(stagedFile.relativeStagingPath))
     }
 }

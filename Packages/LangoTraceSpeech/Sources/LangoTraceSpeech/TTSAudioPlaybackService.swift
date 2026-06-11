@@ -74,7 +74,8 @@ private extension TTSAudioPlaybackService {
                 throw TTSAudioPlaybackEngineError.fileUnavailable
             }
             do {
-                playbackDelegate?.complete(.failure(.cancelled))
+                stop()
+                activatePlaybackAudioSessionIfAvailable()
                 let player = try AVAudioPlayer(contentsOf: fileURL)
                 let playbackDelegate = AVAudioPlayerCompletionDelegate()
                 player.delegate = playbackDelegate
@@ -120,6 +121,18 @@ private extension TTSAudioPlaybackService {
             playbackDelegate?.complete(.failure(.cancelled))
             playbackDelegate = nil
         }
+
+        // On iOS the default `.soloAmbient` session is muted by the silent switch, which makes
+        // user-triggered TTS playback appear broken. Activating a `.playback` spoken-audio session
+        // is idempotent and kept non-fatal: if activation fails, `player.play()` surfaces the
+        // failure through the existing engine error mapping.
+        private func activatePlaybackAudioSessionIfAvailable() {
+            #if os(iOS)
+                let session = AVAudioSession.sharedInstance()
+                try? session.setCategory(.playback, mode: .spokenAudio)
+                try? session.setActive(true)
+            #endif
+        }
     }
 
     class TTSAudioPlaybackCompletionMonitor: NSObject, @unchecked Sendable {
@@ -162,8 +175,7 @@ private extension TTSAudioPlaybackService {
 
         func completeAfterPlaybackDuration(_ duration: TimeInterval, grace: TimeInterval = 0.5) {
             let delay = max(0, duration + grace)
-            fallbackTask?.cancel()
-            fallbackTask = Task { [weak self] in
+            let task = Task { [weak self] in
                 let nanoseconds = UInt64(delay * 1_000_000_000)
                 try? await Task.sleep(nanoseconds: nanoseconds)
                 guard !Task.isCancelled else {
@@ -171,6 +183,11 @@ private extension TTSAudioPlaybackService {
                 }
                 self?.complete(.success(()))
             }
+            lock.lock()
+            let previousTask = fallbackTask
+            fallbackTask = task
+            lock.unlock()
+            previousTask?.cancel()
         }
 
         func cancelFallbackCompletion() {

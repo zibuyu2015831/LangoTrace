@@ -8,6 +8,7 @@ import LangoTraceSpeech
 actor AppPracticeRecordingEngine: PracticeRecordingEngine {
     private let fileStore: LocalMediaArtifactFileStore
     private var activeRecorder: AVAudioRecorder?
+    private var activeRequest: PracticeRecordingStartRequest?
     private var activeURL: URL?
 
     init(fileStore: LocalMediaArtifactFileStore) {
@@ -60,35 +61,42 @@ actor AppPracticeRecordingEngine: PracticeRecordingEngine {
             throw PracticeRecordingFailure.startFailed
         }
         activeRecorder = recorder
+        activeRequest = request
         activeURL = url
     }
 
     func stop(recordingID _: String) async throws -> PracticeRecordingEngineStopResult {
-        guard let recorder = activeRecorder, let activeURL else {
+        guard let recorder = activeRecorder, let activeRequest, let activeURL else {
             throw PracticeRecordingFailure.noActiveRecording
         }
+        // `AVAudioRecorder.currentTime` resets to zero once the recorder stops,
+        // so the duration must be captured before calling `stop()`.
+        let durationSeconds = recorder.currentTime
         recorder.stop()
         activeRecorder = nil
+        self.activeRequest = nil
         self.activeURL = nil
         #if os(iOS)
             try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         #endif
         let data = try Data(contentsOf: activeURL)
+        let contentHash = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
         return PracticeRecordingEngineStopResult(
             stagedFile: MediaArtifactStagedFileReference(
-                relativeStagingPath: "staging/\(activeURL.lastPathComponent)",
+                relativeStagingPath: activeRequest.stagingRelativePath,
                 byteSize: Int64(data.count),
-                contentHash: SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+                contentHash: contentHash
             ),
-            durationSeconds: recorder.currentTime,
+            durationSeconds: durationSeconds,
             byteSize: Int64(data.count),
-            contentHash: SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+            contentHash: contentHash
         )
     }
 
     func cancel(recordingID _: String) async {
         activeRecorder?.stop()
         activeRecorder = nil
+        activeRequest = nil
         if let activeURL {
             try? FileManager.default.removeItem(at: activeURL)
         }
@@ -96,6 +104,15 @@ actor AppPracticeRecordingEngine: PracticeRecordingEngine {
         #if os(iOS)
             try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         #endif
+    }
+
+    func discardStagedRecording(_ stagedFile: MediaArtifactStagedFileReference) async {
+        guard let url = try? fileStore.absoluteURLForInternalUse(
+            relativePath: stagedFile.relativeStagingPath
+        ) else {
+            return
+        }
+        try? FileManager.default.removeItem(at: url)
     }
 
     private var recordingSettings: [String: Any] {

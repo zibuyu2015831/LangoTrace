@@ -8,8 +8,25 @@ import LangoTraceUI
 import XCTest
 
 final class AppEnvironmentPracticeBootstrapTests: XCTestCase {
+    private var temporaryDirectory: URL!
+
+    override func setUpWithError() throws {
+        temporaryDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AppEnvironmentPracticeBootstrapTests-\(UUID().uuidString)", isDirectory: true)
+    }
+
+    override func tearDownWithError() throws {
+        if let temporaryDirectory {
+            try? FileManager.default.removeItem(at: temporaryDirectory)
+        }
+        temporaryDirectory = nil
+    }
+
     func testBootstrapDoesNotFallBackToDisabledPracticeActions() async throws {
-        let environment = AppEnvironment.bootstrap()
+        let environment = AppEnvironment.bootstrap(
+            databaseURL: temporaryDirectory
+                .appendingPathComponent("LangoTrace.sqlite", isDirectory: false)
+        )
         let languageRepository = try environment.makeLanguageSpaceRepository()
         let languageSpace = try languageRepository.createLanguageSpace(
             input: CreateLanguageSpaceInput(

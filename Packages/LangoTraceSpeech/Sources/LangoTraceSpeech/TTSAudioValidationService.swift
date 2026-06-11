@@ -42,9 +42,13 @@ public struct DefaultTTSAudioValidationService: TTSAudioValidationService {
 }
 
 public actor InMemoryTTSAudioPreviewStore: TTSAudioPreviewStore {
+    private let maxRetainedPreviews: Int
     private var audioByID: [String: Data] = [:]
+    private var retainedIDsInInsertionOrder: [String] = []
 
-    public init() {}
+    public init(maxRetainedPreviews: Int = 1) {
+        self.maxRetainedPreviews = max(1, maxRetainedPreviews)
+    }
 
     public func storePreviewAudio(
         _ bytes: Data,
@@ -52,6 +56,10 @@ public actor InMemoryTTSAudioPreviewStore: TTSAudioPreviewStore {
     ) -> TTSAudioPreviewResource {
         let id = UUID().uuidString
         audioByID[id] = bytes
+        retainedIDsInInsertionOrder.append(id)
+        while retainedIDsInInsertionOrder.count > maxRetainedPreviews {
+            audioByID[retainedIDsInInsertionOrder.removeFirst()] = nil
+        }
         return TTSAudioPreviewResource(
             id: id,
             storage: .memory,
@@ -68,12 +76,26 @@ public actor InMemoryTTSAudioPreviewStore: TTSAudioPreviewStore {
         }
         return audioByID[id]
     }
+
+    public func removeAudio(for resource: TTSAudioPreviewResource) {
+        guard let id = resource.id else {
+            return
+        }
+        audioByID[id] = nil
+        retainedIDsInInsertionOrder.removeAll { $0 == id }
+    }
+
+    public func removeAll() {
+        audioByID.removeAll()
+        retainedIDsInInsertionOrder.removeAll()
+    }
 }
 
 #if canImport(AVFoundation)
     public actor DefaultTTSAudioPreviewPlaybackService: TTSAudioPreviewPlaybackService {
         private let previewStore: any TTSAudioPreviewStore
-        private var activePlayers: [String: AVAudioPlayer] = [:]
+        private var activePlayer: AVAudioPlayer?
+        private var cleanupTask: Task<Void, Never>?
 
         public init(previewStore: any TTSAudioPreviewStore) {
             self.previewStore = previewStore
@@ -86,12 +108,47 @@ public actor InMemoryTTSAudioPreviewStore: TTSAudioPreviewStore {
             guard let bytes = await previewStore.audioData(for: resource) else {
                 throw TTSAudioPreviewPlaybackError.missingPreviewAudio
             }
+            stopActivePreview()
             let player = try AVAudioPlayer(data: bytes)
             player.prepareToPlay()
             guard player.play() else {
                 throw TTSAudioPreviewPlaybackError.playbackFailed
             }
-            activePlayers[resource.id ?? UUID().uuidString] = player
+            activePlayer = player
+            scheduleCleanup(afterPlaybackDuration: player.duration)
+        }
+
+        var activePreviewPlayerCount: Int {
+            activePlayer == nil ? 0 : 1
+        }
+
+        private func stopActivePreview() {
+            cleanupTask?.cancel()
+            cleanupTask = nil
+            activePlayer?.stop()
+            activePlayer = nil
+        }
+
+        private func scheduleCleanup(afterPlaybackDuration duration: TimeInterval, grace: TimeInterval = 0.5) {
+            let delay = max(0, duration + grace)
+            cleanupTask = Task { [weak self] in
+                let nanoseconds = UInt64(delay * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: nanoseconds)
+                guard !Task.isCancelled else {
+                    return
+                }
+                await self?.releaseFinishedPreviewPlayer()
+            }
+        }
+
+        private func releaseFinishedPreviewPlayer() {
+            // Re-check on the actor: a replacement preview may have cancelled this cleanup
+            // after the sleep already finished, in which case the new player must survive.
+            guard !Task.isCancelled else {
+                return
+            }
+            activePlayer = nil
+            cleanupTask = nil
         }
     }
 #else

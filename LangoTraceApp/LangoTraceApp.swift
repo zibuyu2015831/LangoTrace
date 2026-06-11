@@ -8,6 +8,10 @@ import SwiftUI
 
 @main
 struct LangoTraceApp: App {
+    /// Placeholder language space ID used to resolve settings capabilities
+    /// before any real language space has been restored or created.
+    private static let settingsCapabilitiesPlaceholderSpaceID = "bootstrap"
+
     private let environment: AppEnvironment
     private let interfaceLanguagePreferenceStore: UserDefaultsInterfaceLanguageStore
     private let appearancePreferenceStore: UserDefaultsAppearancePreferenceStore
@@ -55,7 +59,6 @@ struct LangoTraceApp: App {
                     }
                 )
                 .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
-                .environment(\.appEnvironment, environment)
                 .environment(\.aiProviderSettingsActions, environment.aiProviderSettingsActions)
                 .preferredColorScheme(appearancePreference.preferredColorScheme)
             }
@@ -113,7 +116,6 @@ struct LangoTraceApp: App {
             }
         )
         .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
-        .environment(\.appEnvironment, environment)
         .environment(\.aiProviderSettingsActions, environment.aiProviderSettingsActions)
         .preferredColorScheme(appearancePreference.preferredColorScheme)
         .task {
@@ -129,7 +131,7 @@ struct LangoTraceApp: App {
 
     private var settingsCapabilities: [SettingsCapability] {
         environment.learningContentRepository.settingsCapabilities(
-            for: session.currentLanguageSpace?.id ?? "bootstrap"
+            for: session.currentLanguageSpace?.id ?? Self.settingsCapabilitiesPlaceholderSpaceID
         )
     }
 

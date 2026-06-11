@@ -82,6 +82,13 @@ public protocol PracticeRecordingEngine: Sendable {
     func start(_ request: PracticeRecordingStartRequest) async throws
     func stop(recordingID: String) async throws -> PracticeRecordingEngineStopResult
     func cancel(recordingID: String) async
+    /// Removes a staged recording file that will never be committed, for example when a
+    /// stopped recording exceeds the configured size or duration limits.
+    func discardStagedRecording(_ stagedFile: MediaArtifactStagedFileReference) async
+}
+
+public extension PracticeRecordingEngine {
+    func discardStagedRecording(_: MediaArtifactStagedFileReference) async {}
 }
 
 public actor PracticeRecordingService {
@@ -131,9 +138,11 @@ public actor PracticeRecordingService {
             let result = try await engine.stop(recordingID: recordingID)
             self.activeRecordingID = nil
             guard result.byteSize <= limits.maxByteSize else {
+                await engine.discardStagedRecording(result.stagedFile)
                 throw PracticeRecordingFailure.fileTooLarge
             }
             guard result.durationSeconds <= limits.maxDurationSeconds else {
+                await engine.discardStagedRecording(result.stagedFile)
                 throw PracticeRecordingFailure.durationTooLong
             }
             return result

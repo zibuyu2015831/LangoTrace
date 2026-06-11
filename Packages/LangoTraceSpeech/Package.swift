@@ -26,7 +26,10 @@ let package = Package(
         ),
         .testTarget(
             name: "LangoTraceSpeechTests",
-            dependencies: ["LangoTraceSpeech"]
+            dependencies: [
+                "LangoTraceSpeech",
+                .product(name: "LangoTraceCore", package: "LangoTraceCore"),
+            ]
         ),
     ]
 )

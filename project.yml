@@ -43,6 +43,8 @@ targets:
     info:
       path: LangoTraceApp/Supporting/Info-iOS.plist
       properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleLocalizations:
           - en
           - zh-Hans
@@ -62,7 +64,6 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTED_PLATFORMS: iphonesimulator iphoneos
     dependencies:
-      - sdk: AppIntents.framework
       - package: LangoTraceCore
         product: LangoTraceCore
       - package: LangoTraceUI
@@ -88,6 +89,8 @@ targets:
     info:
       path: LangoTraceApp/Supporting/Info-macOS.plist
       properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleLocalizations:
           - en
           - zh-Hans
@@ -106,7 +109,6 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SUPPORTED_PLATFORMS: macosx
     dependencies:
-      - sdk: AppIntents.framework
       - package: LangoTraceCore
         product: LangoTraceCore
       - package: LangoTraceUI
@@ -153,9 +155,6 @@ schemes:
         LangoTrace-iOS: all
     run:
       config: Debug
-    test:
-      config: Debug
-      gatherCoverageData: true
 
   LangoTrace-macOS:
     build:

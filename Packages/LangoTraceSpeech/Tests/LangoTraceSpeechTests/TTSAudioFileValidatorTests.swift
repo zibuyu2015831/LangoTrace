@@ -12,8 +12,12 @@ struct TTSAudioFileValidatorTests {
         try write(Data(), to: root.appendingPathComponent("staging/empty.tmp"))
         try write(Data("not audio".utf8), to: root.appendingPathComponent("staging/text.tmp"))
 
-        let empty = await validator.validateTTSAudioFile(input(relativePath: "staging/empty.tmp"))
-        let text = await validator.validateTTSAudioFile(input(relativePath: "staging/text.tmp"))
+        let empty = await validator.validateTTSAudioFile(
+            input(relativePath: "staging/empty.tmp", byteSize: 0)
+        )
+        let text = await validator.validateTTSAudioFile(
+            input(relativePath: "staging/text.tmp", byteSize: Int64("not audio".utf8.count))
+        )
 
         #expect(empty.status == .failed(.invalidAudioResponse))
         #expect(text.status == .failed(.audioDecodeFailed))
@@ -26,10 +30,31 @@ struct TTSAudioFileValidatorTests {
         try write(Data("audio".utf8), to: root.appendingPathComponent("staging/audio.tmp"))
 
         let result = await validator.validateTTSAudioFile(
-            input(relativePath: "staging/audio.tmp", byteSizeLimit: 4)
+            input(relativePath: "staging/audio.tmp", byteSize: 5, byteSizeLimit: 4)
         )
 
         #expect(result.status == .failed(.invalidAudioResponse))
+    }
+
+    @Test("File validator rejects files whose declared size does not match the on-disk size")
+    func fileValidatorRejectsDeclaredByteSizeMismatch() async throws {
+        let root = temporaryRoot()
+        let validator = TTSAudioFileValidator(mediaArtifactsRoot: root)
+        let wav = wavFixture(sampleRate: 16000, samples: 3200)
+        try write(wav, to: root.appendingPathComponent("staging/audio.wav"))
+
+        let result = await validator.validateTTSAudioFile(
+            input(
+                relativePath: "staging/audio.wav",
+                byteSize: Int64(wav.count) - 1,
+                declaredFormat: .wav,
+                mimeType: "audio/wav",
+                byteSizeLimit: 10000
+            )
+        )
+
+        #expect(result.status == .failed(.invalidAudioResponse))
+        #expect(result.metadata == nil)
     }
 
     @Test("File validator accepts simple WAV file and reports metadata")
@@ -86,35 +111,4 @@ private func temporaryRoot() -> URL {
 private func write(_ data: Data, to url: URL) throws {
     try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
     try data.write(to: url)
-}
-
-private func wavFixture(sampleRate: Int, samples: Int) -> Data {
-    let channelCount = 1
-    let bitsPerSample = 16
-    let blockAlign = channelCount * bitsPerSample / 8
-    let byteRate = sampleRate * blockAlign
-    let dataSize = samples * blockAlign
-    let chunkSize = 36 + dataSize
-    var data = Data()
-    data.append(contentsOf: "RIFF".utf8)
-    data.append(UInt32(chunkSize).littleEndianData)
-    data.append(contentsOf: "WAVEfmt ".utf8)
-    data.append(UInt32(16).littleEndianData)
-    data.append(UInt16(1).littleEndianData)
-    data.append(UInt16(channelCount).littleEndianData)
-    data.append(UInt32(sampleRate).littleEndianData)
-    data.append(UInt32(byteRate).littleEndianData)
-    data.append(UInt16(blockAlign).littleEndianData)
-    data.append(UInt16(bitsPerSample).littleEndianData)
-    data.append(contentsOf: "data".utf8)
-    data.append(UInt32(dataSize).littleEndianData)
-    data.append(Data(repeating: 0, count: dataSize))
-    return data
-}
-
-private extension FixedWidthInteger {
-    var littleEndianData: Data {
-        var value = littleEndian
-        return Data(bytes: &value, count: MemoryLayout<Self>.size)
-    }
 }

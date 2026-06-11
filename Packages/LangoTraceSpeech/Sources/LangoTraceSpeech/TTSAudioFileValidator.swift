@@ -22,6 +22,12 @@ public struct TTSAudioFileValidator: TTSAudioFileValidating, Sendable {
         }
 
         do {
+            let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+            guard let actualByteSize = (attributes[.size] as? NSNumber)?.int64Value,
+                  actualByteSize == input.stagedFile.byteSize
+            else {
+                return TTSAudioFileValidationResult(status: .failed(.invalidAudioResponse), metadata: nil)
+            }
             let data = try Data(contentsOf: fileURL)
             guard !data.isEmpty else {
                 return TTSAudioFileValidationResult(status: .failed(.invalidAudioResponse), metadata: nil)
