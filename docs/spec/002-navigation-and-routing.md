@@ -210,7 +210,20 @@ iPad 和 macOS 的左右辅助面板属于主工作区的可召回上下文，�
 - 它是启动状态路由、主流程路由、配置路由还是临时任务路由？
 - 它是否适合 Sheet、Modal、Inspector、Popover 或完整页面？
 
-## 8. 变更记录
+## 8. 官方参考
+
+以下 Apple 官方文档是本规范导航与承载约束的依据来源（链接于 2026-06-11 验证可达；若失效，以 HIG 站内检索对应主题为准）：
+
+- [HIG · Navigation and search](https://developer.apple.com/design/human-interface-guidelines/navigation-and-search)：层级导航、平铺导航与搜索入口的组织原则。
+- [HIG · Tab bars](https://developer.apple.com/design/human-interface-guidelines/tab-bars)：Tab 数量克制、目的地命名和不把动作放入 Tab 的官方约束；对应 iPhone 四 Tab 规则。
+- [HIG · Sidebars](https://developer.apple.com/design/human-interface-guidelines/sidebars)与[HIG · Toolbars](https://developer.apple.com/design/human-interface-guidelines/toolbars)：iPad / macOS 工作台的侧栏与工具栏语义。
+- [HIG · Modality](https://developer.apple.com/design/human-interface-guidelines/modality)、[HIG · Sheets](https://developer.apple.com/design/human-interface-guidelines/sheets)与[HIG · Popovers](https://developer.apple.com/design/human-interface-guidelines/popovers)：模态边界、sheet detent 和 popover 适用场景；对应本文档 4.6 节。
+- [HIG · Searching](https://developer.apple.com/design/human-interface-guidelines/searching)：搜索体验组织；后续搜索能力接入时对照。
+- [HIG · Settings](https://developer.apple.com/design/human-interface-guidelines/settings)：设置入口低干扰、不抢占主流程的官方原则。
+- [HIG · The menu bar](https://developer.apple.com/design/human-interface-guidelines/the-menu-bar)：macOS 菜单命令组织与快捷键镜像。
+- [SwiftUI · NavigationStack](https://developer.apple.com/documentation/swiftui/navigationstack)与[SwiftUI · NavigationSplitView](https://developer.apple.com/documentation/swiftui/navigationsplitview)：当前路由实现的框架 API 入口。
+
+## 9. 变更记录
 
 - 2026-05-17：创建第一版导航与路由规范。
 - 2026-05-17：补充路由类型、外部入口和 Sheet/Modal/Inspector 使用边界。原因：避免后续 AI 在页面承载方式上发散。影响范围：导航、路由、平台交互。是否需要 ADR：否。
@@ -230,3 +243,4 @@ iPad 和 macOS 的左右辅助面板属于主工作区的可召回上下文，�
 - 2026-05-23：补充 sheet 标题分类规则。原因：AI Provider 测试结果面板暴露了规范缺口，反馈型 sheet 不应误套任务型 sheet 的导航标题结构。影响范围：iPhone sheet、AI Provider 测试结果、保存 / 导出 / 同步结果面板和后续状态反馈。是否需要 ADR：否。
 - 2026-05-24：补充状态反馈 sheet 完成态标题规则。原因：AI Provider 测试完成后将 `测试成功` 作为顶部标题不够稳重；完成态应以中性标题维持面板上下文，并把结果状态交给分项结果和可用操作表达。影响范围：AI Provider 测试结果、保存 / 导出 / 同步结果面板和后续状态反馈。是否需要 ADR：否。
 - 2026-06-01：将阅读提升为一级学习入口。原因：Reading domain 已落地本地资料库、Markdown / 纯文本阅读、用户显式选区 AI 解释和 reading sentence TTS 纵向切片，三端导航需要把阅读作为正式学习场景而非隐藏入口。影响范围：PhoneRootTab、iPhone Tab、iPad workspace route、macOS workspace section、页面清单和 Reading spec。是否需要 ADR：否，未改变本地优先、语言空间或 SwiftUI Multiplatform 核心决策。
+- 2026-06-11：新增官方参考小节。原因：导航、Tab、sheet、popover 和菜单约束需要可直接对照的 Apple 官方文档入口，降低后续开发检索成本；全部链接经可达性验证。影响范围：规范使用方式，不改变任何既有约束。是否需要 ADR：否。

@@ -31,7 +31,7 @@
 
 - iPhone 交互控件的触控目标不得小于 44pt；iPad 触控入口同样遵守 44pt 底线。
 - 重要文本、输入框、按钮和状态不能被 notch、Dynamic Island、home indicator、sidebar、toolbar、sheet detent 或窗口边缘遮挡。
-- iPhone 不使用汉堡菜单隐藏主导航；当前顶层保持 `记录 / 练习 / 记忆` 三个主目的地。
+- iPhone 不使用汉堡菜单隐藏主导航；当前顶层保持 `记录 / 阅读 / 练习 / 记忆` 四个主目的地，设置经 toolbar gear 稳定可达（与 [002：导航与路由规范](002-navigation-and-routing.md) 一致）。
 - iPad regular width 不得退化为放大的 iPhone Tab。必须优先使用 sidebar、多栏、主内容区和上下文学习面板。
 - iPad 必须考虑 Split View、Slide Over、Stage Manager 和横竖屏尺寸变化；不能假设全屏或固定宽高。
 - macOS 必须有原生 `Settings` scene 或等价系统设置入口；常用桌面命令必须通过 menu command、toolbar 或快捷键稳定可达。
@@ -134,7 +134,20 @@ AI 在新增或修改 Apple 三端 UI 前，必须先回答：
 
 如果无法回答这些问题，应先补任务方案或更新相关 spec，不应直接实现页面。
 
-## 8. 变更记录
+## 8. 官方参考
+
+以下 Apple 官方文档是本规范约束的依据来源，开发时可直接对照（链接于 2026-06-11 验证可达；若失效，以 HIG 站内检索对应主题为准）：
+
+- [HIG · Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility)：可访问性总则；44pt 最小触控目标、VoiceOver 语义、Dynamic Type 和 Reduce Motion 的官方要求。
+- [HIG · Layout](https://developer.apple.com/design/human-interface-guidelines/layout)：safe area、留白、对齐和多尺寸适配原则；本规范关于遮挡和窗口边缘的规则以此为依据。
+- [HIG · Gestures](https://developer.apple.com/design/human-interface-guidelines/gestures)：系统手势优先；自定义手势不得与系统返回、Home indicator 手势冲突。
+- [HIG · Pointing devices](https://developer.apple.com/design/human-interface-guidelines/pointing-devices)：iPad 指针交互、hover 反馈和点击目标尺寸。
+- [HIG · Keyboards](https://developer.apple.com/design/human-interface-guidelines/keyboards)：硬件键盘、快捷键和键盘焦点路径。
+- [HIG · Menus](https://developer.apple.com/design/human-interface-guidelines/menus)与[HIG · The menu bar](https://developer.apple.com/design/human-interface-guidelines/the-menu-bar)：macOS 菜单命令组织、context menu 和快捷键镜像。
+- [HIG · Feedback](https://developer.apple.com/design/human-interface-guidelines/feedback)与[HIG · Loading](https://developer.apple.com/design/human-interface-guidelines/loading)：操作反馈与加载状态的表达底线，对应本规范的状态反馈规则。
+- [Apple Developer · Accessibility](https://developer.apple.com/documentation/accessibility)：accessibility label / value / hint / trait 的 API 层入口。
+
+## 9. 变更记录
 
 - 2026-05-22：创建 Apple 三端交互与可访问性规范。原因：文档体系审查确认相关规则分散在 UI、导航、本地化和测试文档中，需要一个长期入口支撑 AI 辅助编程、Apple 平台体验和可访问性验收。影响范围：iPhone、iPad、macOS UI 任务、测试文档、规范入口和后续人工验证。是否需要 ADR：否，延续 SwiftUI Multiplatform 和三端分平台 UI 决策。
 - 2026-05-23：补充逐句播放控件规则。原因：人工测试发现逐句 `听` 按钮仍打开解释型 sheet，违背播放按钮的即时操作语义；规范要求高频播放 / 暂停在原位反馈，真实 TTS 状态等待 Speech / TTS 服务边界后再暴露。影响范围：`SentencePairView`、逐句播放按钮、VoiceOver label / hint 和后续 TTS 接入。是否需要 ADR：否，属于 Apple 平台交互与可访问性约束。
@@ -142,3 +155,4 @@ AI 在新增或修改 Apple 三端 UI 前，必须先回答：
 - 2026-05-23：补充任务型 sheet 与状态反馈 sheet 的顶部结构边界。原因：AI Provider 测试结果属于操作反馈，不应误用任务型导航标题；状态反馈应使用状态 chrome、`ProgressView` 和真实可用的恢复操作。影响范围：AI Provider 测试、保存 / 导出 / 同步反馈和后续 iPhone sheet。是否需要 ADR：否。
 - 2026-05-24：补充状态反馈 sheet 完成态标题边界。原因：AI Provider 测试完成后把 `测试成功` 放在 sheet 顶部标题区会削弱层级和观感；完成态顶部应保持中性，结果状态落在分项结果、附近状态面板或真实操作上。影响范围：AI Provider 测试结果、保存 / 导出 / 同步反馈和后续 iPhone sheet。是否需要 ADR：否。
 - 2026-05-24：补充状态反馈 sheet 成功态恢复操作边界。原因：成功态 prominent `重新测试` 会误导用户把重试理解为下一步主操作，并在 compact sheet 中挤压内容；成功态隐藏或降级重试，非成功态保留恢复操作。影响范围：AI Provider 测试结果、保存 / 导出 / 同步反馈和后续 iPhone sheet。是否需要 ADR：否。
+- 2026-06-11：修正 iPhone 顶层导航事实并新增官方参考。原因：阅读已于 2026-06-01 提升为一级 Tab，本文档第 3 节仍写三主目的地，与 spec 002 和当前实现不一致；同时为可访问性、布局、手势、指针、键盘和菜单约束补充经验证的 Apple 官方文档链接。影响范围：iPhone IA 表述一致性、后续开发对照官方规范的入口。是否需要 ADR：否，属于事实修正与参考补充。
