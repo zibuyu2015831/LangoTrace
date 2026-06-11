@@ -222,6 +222,45 @@ struct ReadingDocumentStoreExplanationCacheTests {
         #expect(store.explanationSource == .cache)
     }
 
+    // MARK: - Document switch mid cache load discards stale backfill
+
+    @Test("document switch mid cache load discards stale explained sentence backfill")
+    func documentSwitchMidCacheLoadDiscardsStaleBackfill() async {
+        let repo = GatedReadingExplanationCacheRepository(
+            explainedSentenceIDsByDocumentID: [
+                "doc-2": ["stale-sentence"],
+                "doc-3": [],
+            ]
+        )
+        let store = ReadingDocumentStore(
+            documentID: "doc-1",
+            spaceID: "space-1",
+            explanationAction: { _ in .sample(selection: "word") },
+            ttsAction: { _ in },
+            cacheStorage: repo
+        )
+
+        store.replaceDocument(documentID: "doc-2", spaceID: "space-1")
+        await repo.waitForLoadCount(1)
+        store.replaceDocument(documentID: "doc-3", spaceID: "space-1")
+        await repo.waitForLoadCount(2)
+
+        await repo.releaseLoad(documentID: "doc-2")
+        for _ in 0 ..< 20 {
+            await Task.yield()
+        }
+
+        #expect(!store.explainedSentenceIDs.contains("stale-sentence"))
+
+        await repo.releaseLoad(documentID: "doc-3")
+        for _ in 0 ..< 20 {
+            await Task.yield()
+        }
+
+        #expect(store.documentID == "doc-3")
+        #expect(store.explainedSentenceIDs.isEmpty)
+    }
+
     // MARK: - clearSelection resets explanationSource
 
     @Test("clearSelection resets explanationSource")
@@ -328,6 +367,61 @@ private actor CallCounter {
 
     func increment() {
         count += 1
+    }
+}
+
+private actor GatedReadingExplanationCacheRepository: ReadingExplanationCacheRepositoryProtocol {
+    private let explainedSentenceIDsByDocumentID: [String: Set<String>]
+    private var pendingLoads: [(documentID: String, continuation: CheckedContinuation<Void, Never>)] = []
+    private var loadCount = 0
+
+    init(explainedSentenceIDsByDocumentID: [String: Set<String>]) {
+        self.explainedSentenceIDsByDocumentID = explainedSentenceIDsByDocumentID
+    }
+
+    func insert(_: ReadingExplanationCacheEntry) async throws {}
+
+    func lookup(
+        documentID _: String,
+        sourceAnchorID _: String,
+        mode _: ExplanationLanguageMode
+    ) async throws -> ReadingExplanationCacheEntry? {
+        nil
+    }
+
+    func lookupBySentenceID(
+        documentID _: String,
+        contentRevision _: Int,
+        sentenceID _: String
+    ) async throws -> ReadingExplanationCacheEntry? {
+        nil
+    }
+
+    func loadExplainedSentenceIDs(
+        documentID: String,
+        contentRevision _: Int
+    ) async throws -> Set<String> {
+        loadCount += 1
+        await withCheckedContinuation { continuation in
+            pendingLoads.append((documentID: documentID, continuation: continuation))
+        }
+        return explainedSentenceIDsByDocumentID[documentID] ?? []
+    }
+
+    func delete(id _: String) async throws {}
+
+    func pruneStale(documentID _: String, currentContentRevision _: Int) async throws {}
+
+    func releaseLoad(documentID: String) {
+        guard let index = pendingLoads.firstIndex(where: { $0.documentID == documentID }) else { return }
+        let pending = pendingLoads.remove(at: index)
+        pending.continuation.resume()
+    }
+
+    func waitForLoadCount(_ count: Int) async {
+        while loadCount < count {
+            await Task.yield()
+        }
     }
 }
 

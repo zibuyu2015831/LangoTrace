@@ -225,7 +225,7 @@ extension WelcomeView {
     private var wideValueBlock: some View {
         VStack(alignment: .leading, spacing: 14) {
             localizedText("welcome.valueTitle")
-                .font(.system(size: 46, weight: .medium, design: .default))
+                .font(.system(size: wideValueTitleSize, weight: .medium, design: .default))
                 .lineSpacing(8)
                 .fixedSize(horizontal: false, vertical: true)
             welcomeSubtitleText
@@ -322,7 +322,7 @@ extension WelcomeView {
         private var macValueBlock: some View {
             VStack(alignment: .leading, spacing: 16) {
                 localizedText("welcome.valueTitle")
-                    .font(.system(size: 64, weight: .medium, design: .default))
+                    .font(.system(size: macValueTitleSize, weight: .medium, design: .default))
                     .lineSpacing(11)
                     .fixedSize(horizontal: false, vertical: true)
                 welcomeSubtitleText

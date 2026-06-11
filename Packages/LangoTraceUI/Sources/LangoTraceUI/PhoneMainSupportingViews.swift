@@ -6,10 +6,11 @@ struct EntryEditorView: View {
     @Environment(\.dismiss) private var dismiss
 
     let languageSpace: LanguageSpacePreview
-    let onSave: (String, String) -> Void
+    let onSave: (String, String) throws -> Void
 
     @State private var title = ""
     @State private var bodyText = ""
+    @State private var saveErrorKey: String?
 
     var body: some View {
         NavigationStack {
@@ -27,6 +28,12 @@ struct EntryEditorView: View {
                         .accessibilityHint(localizedText("entryEditor.bodyField.accessibilityHint"))
                 } header: {
                     localizedText("entryEditor.section.content")
+                } footer: {
+                    if let saveErrorKey {
+                        localizedText(saveErrorKey)
+                            .font(.footnote)
+                            .foregroundStyle(LangoTraceDesign.ColorToken.stateError)
+                    }
                 }
                 Section {
                     Label {
@@ -49,8 +56,14 @@ struct EntryEditorView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
-                        onSave(title, bodyText)
-                        dismiss()
+                        do {
+                            try onSave(title, bodyText)
+                            saveErrorKey = nil
+                            dismiss()
+                        } catch {
+                            // Keep the draft on screen and surface the failure instead of dismissing.
+                            saveErrorKey = "entryEditor.saveFailed"
+                        }
                     } label: {
                         localizedText("common.save")
                     }
@@ -768,9 +781,7 @@ struct HeroActionCard: View {
     }
 
     private var heroSubtitle: Text {
-        localizedText("hero.subtitle.prefix")
-            + Text(" \(languageSpace.targetLanguage) ")
-            + localizedText("hero.subtitle.suffix")
+        Text(localizedString("hero.subtitle", languageSpace.targetLanguage))
     }
 }
 

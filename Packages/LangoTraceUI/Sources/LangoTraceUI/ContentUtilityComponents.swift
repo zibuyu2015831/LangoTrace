@@ -137,37 +137,3 @@ struct TextPanel: View {
         .langoPanel()
     }
 }
-
-struct AudioPanel: View {
-    private static let waveformHeights = [24, 38, 28, 46, 40, 32, 26, 38, 46, 20]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label {
-                    localizedText("audioPanel.title")
-                } icon: {
-                    Image(systemName: "waveform")
-                }
-                .font(.caption.weight(.bold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                Spacer()
-                Text("0.85x")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            }
-            HStack(alignment: .center, spacing: 5) {
-                ForEach(Self.waveformHeights.indices, id: \.self) { index in
-                    RoundedRectangle(cornerRadius: 5)
-                        .fill(LangoTraceDesign.ColorToken.accent.opacity(0.45))
-                        .frame(width: 8, height: CGFloat(Self.waveformHeights[index]))
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(14)
-            .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
-        .langoPanel()
-    }
-}

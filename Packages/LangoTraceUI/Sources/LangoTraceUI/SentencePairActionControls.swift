@@ -14,7 +14,7 @@ struct SentencePairActionRow: View {
                 isPrimary: false,
                 action: onListen
             )
-            .accessibilityHint(localizedText("practice.listen.hint"))
+            .accessibilityHint(localizedText(playbackState.listenButtonAccessibilityHintKey))
             SentencePairActionButton(
                 titleKey: "common.practice",
                 systemImage: "figure.run",
@@ -26,12 +26,16 @@ struct SentencePairActionRow: View {
     }
 }
 
-private extension SentenceAudioPresentationState {
+extension SentenceAudioPresentationState {
     var listenButtonTitleKey: String {
         switch self {
         case .playing, .generating:
             "common.pause"
-        case .idle, .paused, .requiresConfiguration, .failed:
+        case .failed:
+            "sentenceAudio.listen.retry"
+        case .requiresConfiguration:
+            "sentenceAudio.listen.needsSetup"
+        case .idle, .paused:
             "common.listen"
         }
     }
@@ -42,8 +46,23 @@ private extension SentenceAudioPresentationState {
             "waveform"
         case .playing:
             "pause.fill"
-        case .paused, .idle, .requiresConfiguration, .failed:
+        case .failed:
+            "exclamationmark.arrow.circlepath"
+        case .requiresConfiguration:
+            "speaker.badge.exclamationmark"
+        case .paused, .idle:
             "speaker.wave.2"
+        }
+    }
+
+    var listenButtonAccessibilityHintKey: String {
+        switch self {
+        case .failed:
+            "sentenceAudio.listen.failed.hint"
+        case .requiresConfiguration:
+            "sentenceAudio.listen.needsSetup.hint"
+        case .idle, .paused, .playing, .generating:
+            "practice.listen.hint"
         }
     }
 }

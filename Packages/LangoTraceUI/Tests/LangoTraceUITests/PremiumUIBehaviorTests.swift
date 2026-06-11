@@ -157,7 +157,6 @@ struct PremiumUIBehaviorTests {
 
     @Test("Unavailable capability content uses stable localization keys")
     func unavailableCapabilityContentUsesStableLocalizationKeys() {
-        #expect(PhoneUnavailableAction.photoWriting.content == .photoWriting)
         #expect(MacUnavailableContent(kind: "search").content == .search)
         #expect(MacUnavailableContent(kind: "import-export").content == .importExport)
         #expect(MacUnavailableContent(kind: "unknown").content == .generic)

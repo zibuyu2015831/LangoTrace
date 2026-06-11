@@ -92,11 +92,11 @@ struct PadMainView: View {
             switch sheet {
             case .entryEditor:
                 EntryEditorView(languageSpace: languageSpace) { title, body in
-                    guard let entry = try? contentStore.createEntry(
+                    let entry = try contentStore.createEntry(
                         title: title,
                         body: body,
                         source: .typedText
-                    ) else { return }
+                    )
                     selectedEntryID = entry.id
                     setRoute(.entryDetail(entry.id))
                     presentedSheet = nil

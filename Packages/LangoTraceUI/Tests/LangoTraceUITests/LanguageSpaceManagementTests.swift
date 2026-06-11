@@ -1,4 +1,5 @@
 import Foundation
+import LangoTraceCore
 @testable import LangoTraceUI
 import Testing
 
@@ -47,7 +48,43 @@ struct LanguageSpaceManagementTests {
         #expect(!source.contains("settings.languageSpace.management.rename"))
         #expect(source.contains("UpdateLanguageSpaceInput"))
         #expect(source.contains("onUpdate(space.id, input)"))
-        #expect(source.contains(".id(space.updatedAt)"))
+        // ForEach identity must come from the stable space ID; `.id(space.updatedAt)`
+        // overrode row identity and is intentionally gone.
+        #expect(!source.contains(".id(space.updatedAt)"))
+    }
+
+    @Test("Editor validation keeps native and target languages distinct")
+    func editorValidationKeepsNativeAndTargetLanguagesDistinct() {
+        let normalized = LanguageSpaceEditorValidation.normalizedTargetLanguageCode(
+            nativeLanguageCode: "en",
+            targetLanguageCode: "en"
+        )
+
+        #expect(normalized != "en")
+        #expect(LearningLanguage.find(code: normalized) != nil)
+
+        let unchanged = LanguageSpaceEditorValidation.normalizedTargetLanguageCode(
+            nativeLanguageCode: "zh-Hans",
+            targetLanguageCode: "en"
+        )
+        #expect(unchanged == "en")
+    }
+
+    @Test("Editor save stays disabled for same-language or unknown codes")
+    func editorSaveStaysDisabledForSameLanguageOrUnknownCodes() {
+        #expect(!LanguageSpaceEditorValidation.canSave(nativeLanguageCode: "en", targetLanguageCode: "en"))
+        #expect(!LanguageSpaceEditorValidation.canSave(nativeLanguageCode: "", targetLanguageCode: "en"))
+        #expect(!LanguageSpaceEditorValidation.canSave(nativeLanguageCode: "zh-Hans", targetLanguageCode: "xx"))
+        #expect(LanguageSpaceEditorValidation.canSave(nativeLanguageCode: "zh-Hans", targetLanguageCode: "en"))
+    }
+
+    @Test("Editor adjusts target language when native language changes into a collision")
+    func editorAdjustsTargetLanguageOnNativeChangeCollision() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "LanguageSpaceEditorView.swift"), encoding: .utf8)
+
+        #expect(source.contains(".onChange(of: nativeLanguageCode)"))
+        #expect(source.contains("LanguageSpaceEditorValidation.normalizedTargetLanguageCode("))
+        #expect(source.contains(".disabled(!LanguageSpaceEditorValidation.canSave("))
     }
 
     @Test("Management editor uses existing localized picker keys")

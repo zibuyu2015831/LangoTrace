@@ -75,14 +75,47 @@ struct ReadingLibraryStoreTests {
         )
         let store = ReadingLibraryStore(
             languageSpace: .preview(id: "space-a", targetLanguageCode: "en"),
-            actions: actions.actions
+            actions: actions.actions,
+            searchReloadDebounce: .zero
         )
 
-        await store.updateSearchText(" travel ")
+        store.updateSearchText(" travel ")
+        let didLoad = await waitUntilLibraryCondition {
+            store.documents.map(\.id) == ["doc-a"]
+        }
 
-        #expect(store.documents.map(\.id) == ["doc-a"])
+        #expect(didLoad)
         let requests = await actions.listRequests
         #expect(requests.contains { $0.query?.normalized == "travel" && !$0.includeDeleted })
+    }
+
+    @Test("typing updates search text synchronously and keeps the latest value")
+    func typingUpdatesSearchTextSynchronously() async {
+        let actions = FakeReadingLibraryActions(
+            documents: [
+                .summary(id: "doc-a", spaceID: "space-a", title: "Travel Notes"),
+            ]
+        )
+        let store = ReadingLibraryStore(
+            languageSpace: .preview(id: "space-a", targetLanguageCode: "en"),
+            actions: actions.actions,
+            searchReloadDebounce: .zero
+        )
+
+        store.updateSearchText("t")
+        #expect(store.searchText == "t")
+        store.updateSearchText("tr")
+        #expect(store.searchText == "tr")
+        store.updateSearchText("tra")
+
+        // The source of truth must reflect the latest keystroke immediately,
+        // without waiting for any reload to complete.
+        #expect(store.searchText == "tra")
+
+        let didLoad = await waitUntilLibraryCondition {
+            store.documents.map(\.id) == ["doc-a"]
+        }
+        #expect(didLoad)
     }
 
     @Test("soft delete hides active document and restore returns it")
@@ -515,4 +548,16 @@ private extension LanguageSpacePreview {
             level: .a2
         )
     }
+}
+
+@MainActor
+private func waitUntilLibraryCondition(
+    timeoutNanoseconds: UInt64 = 1_000_000_000,
+    condition: @escaping () -> Bool
+) async -> Bool {
+    let deadline = ContinuousClock.now + .nanoseconds(Int(timeoutNanoseconds))
+    while !condition(), ContinuousClock.now < deadline {
+        await Task.yield()
+    }
+    return condition()
 }

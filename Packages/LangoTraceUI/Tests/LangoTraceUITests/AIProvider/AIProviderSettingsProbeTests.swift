@@ -378,6 +378,58 @@ struct AIProviderSettingsProbeTests {
         #expect(draft.textProbeSource == .draft)
     }
 
+    @Test("Edited draft keeps draft probe source after failed save")
+    func editedDraftKeepsDraftProbeSourceAfterFailedSave() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        try draft.applyLoadedProfile(loadedProfile())
+
+        draft.text.endpoint.model = "gpt-5.3"
+        draft.markInputChanged()
+        draft.saveState = .saving
+        draft.saveState = .failed(AIProviderSaveFailureDisplay(
+            phase: .databaseWrite,
+            category: .databaseWriteFailed
+        ))
+
+        #expect(draft.textProbeSource == .draft)
+
+        draft.saveState = .idle
+        #expect(draft.textProbeSource == .draft)
+    }
+
+    @Test("Edited draft keeps draft probe source while save reports missing required fields")
+    func editedDraftKeepsDraftProbeSourceWhileSaveReportsMissingRequiredFields() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        try draft.applyLoadedProfile(loadedProfile())
+
+        draft.text.endpoint.model = ""
+        draft.markInputChanged()
+        draft.saveState = .missingRequiredFields
+
+        #expect(draft.textProbeSource == .draft)
+
+        draft.text.endpoint.model = "gpt-5.3"
+        draft.markInputChanged()
+
+        #expect(draft.saveState == .unsavedChanges)
+        #expect(draft.textProbeSource == .draft)
+    }
+
+    @Test("Completing required fields moves missing-required save state back to unsaved")
+    func completingRequiredFieldsMovesMissingRequiredSaveStateBackToUnsaved() {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.saveState = .missingRequiredFields
+
+        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-incomplete"
+        draft.text.endpoint.model = ""
+        draft.markInputChanged()
+        #expect(draft.saveState == .missingRequiredFields)
+
+        draft.text.endpoint.model = "gpt-5.2"
+        draft.markInputChanged()
+        #expect(draft.saveState == .idle)
+    }
+
     @Test("Settings source has test button without network or bearer calls")
     func settingsSourceHasTestButtonWithoutNetworkOrBearerCalls() throws {
         let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)

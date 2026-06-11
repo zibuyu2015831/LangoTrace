@@ -29,21 +29,6 @@ struct AIProviderSettingsTests {
         #expect(AIProviderPreset.deepSeek.defaultChatModel != "deepseek-reasoner")
     }
 
-    @Test("Draft model validates save readiness without persisting credentials")
-    func draftModelValidatesSaveReadinessWithoutPersistingCredentials() {
-        var draft = AIProviderDraftConfiguration(provider: .openAI)
-
-        #expect(draft.text.endpoint.independentCredential.apiKeyStorage == .encryptedStoragePending)
-        #expect(draft.saveReadiness == .missingRequiredFields)
-        #expect(draft.saveState == .idle)
-
-        draft.text.endpoint.independentCredential.apiKeyDraft = "sk-local-draft"
-        #expect(draft.saveReadiness == .readyForRequest)
-
-        draft.saveMockConfiguration()
-        #expect(draft.saveState == .saved)
-    }
-
     @Test("Draft save states expose independent saving saved and failed titles")
     func draftSaveStatesExposeIndependentSavingSavedAndFailedTitles() {
         let failure = AIProviderSaveFailureDisplay(

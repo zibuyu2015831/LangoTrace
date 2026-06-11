@@ -107,9 +107,11 @@ struct PracticeSessionRouteSeed: Hashable {
         guard let navigationContext,
               let index = navigationContext.index(for: sentenceID)
         else {
+            // Degraded projection without navigation context: keep position/total readable
+            // by treating the current sentence as the last known one.
             return PracticeSessionNavigationProjection(
                 currentPosition: sentenceIndex + 1,
-                totalCount: 1,
+                totalCount: max(1, sentenceIndex + 1),
                 positionKey: "practice.navigation.position",
                 boundaryKey: nil
             )

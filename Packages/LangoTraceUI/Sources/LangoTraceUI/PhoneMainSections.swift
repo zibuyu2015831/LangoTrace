@@ -28,13 +28,15 @@ struct PhoneRecordWorkspaceView: View {
             if entries.isEmpty {
                 EmptyEntryPanel(onNewEntry: onNewEntry)
             } else {
-                ForEach(entries) { entry in
-                    EntryCard(
-                        entry: entry,
-                        targetLanguage: languageSpace.targetLanguage,
-                        rendering: renderingForEntry(entry),
-                        action: { onSelectEntry(entry) }
-                    )
+                LazyVStack(alignment: .leading, spacing: 20) {
+                    ForEach(entries) { entry in
+                        EntryCard(
+                            entry: entry,
+                            targetLanguage: languageSpace.targetLanguage,
+                            rendering: renderingForEntry(entry),
+                            action: { onSelectEntry(entry) }
+                        )
+                    }
                 }
             }
         }
@@ -64,11 +66,13 @@ struct PracticeView: View {
                     systemImage: "waveform"
                 )
             } else {
-                ForEach(entries) { entry in
-                    PracticeEntryCard(
-                        projection: projection(for: entry),
-                        action: { onPractice(entry) }
-                    )
+                LazyVStack(alignment: .leading, spacing: 20) {
+                    ForEach(entries) { entry in
+                        PracticeEntryCard(
+                            projection: projection(for: entry),
+                            action: { onPractice(entry) }
+                        )
+                    }
                 }
             }
         }

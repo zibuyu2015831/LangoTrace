@@ -172,7 +172,7 @@ public struct LangoTraceSettingsSceneView: View {
                 )
                 LocalizedTextPanel(
                     titleKey: settingsCurrentBoundaryTitleKey,
-                    textKey: "settings.sync.detail"
+                    textKey: "settings.noLanguageSpace.boundary"
                 )
             }
             .padding(24)

@@ -99,25 +99,32 @@ struct SettingsCapabilityDetailView: View {
         .padding(.top, 4)
     }
 
+    @ViewBuilder
     private var aiProviderSettingsContainer: some View {
-        let languageSpace = requiredLanguageSpace
-
-        return AIProviderSettingsView(
-            languageContext: AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)
-        )
-        .frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)
-    }
-
-    private var syncSettingsContainer: some View {
-        SyncSettingsView(languageSpace: requiredLanguageSpace)
-            .frame(maxWidth: syncSettingsContentMaxWidth, alignment: .leading)
-    }
-
-    private var requiredLanguageSpace: LanguageSpacePreview {
-        guard let languageSpace else {
-            preconditionFailure("Space-scoped settings require a real language space.")
+        if let languageSpace {
+            AIProviderSettingsView(
+                languageContext: AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)
+            )
+            .frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)
+        } else {
+            // Defensive boundary: never crash when a space-scoped detail is shown without a space.
+            noLanguageSpaceBoundaryContent(
+                localizationKeys: settingsCapabilityDetailLocalizationKeys(for: capability.kind)
+            )
         }
-        return languageSpace
+    }
+
+    @ViewBuilder
+    private var syncSettingsContainer: some View {
+        if let languageSpace {
+            SyncSettingsView(languageSpace: languageSpace)
+                .frame(maxWidth: syncSettingsContentMaxWidth, alignment: .leading)
+        } else {
+            // Defensive boundary: never crash when a space-scoped detail is shown without a space.
+            noLanguageSpaceBoundaryContent(
+                localizationKeys: settingsCapabilityDetailLocalizationKeys(for: capability.kind)
+            )
+        }
     }
 
     private var aiProviderSettingsContentMaxWidth: CGFloat {

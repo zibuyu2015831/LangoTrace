@@ -135,6 +135,17 @@ struct PracticeRouteSeedTests {
         #expect(seed.neighboringSeed(direction: .next, capturedAt: Date()) == nil)
     }
 
+    @Test("Route seed without navigation context keeps degraded position within total count")
+    func routeSeedWithoutNavigationContextKeepsDegradedPositionWithinTotalCount() {
+        let seed = PracticeSessionRouteSeed(snapshot: snapshot(sentenceIndex: 2))
+
+        let projection = seed.navigationProjection
+
+        #expect(projection.currentPosition == 3)
+        #expect(projection.totalCount == 3)
+        #expect(projection.currentPosition <= projection.totalCount)
+    }
+
     @Test("Practice entry card projection has stable line limits")
     func practiceEntryCardProjectionHasStableLineLimits() {
         let projection = PracticeEntryCardProjection(
@@ -150,6 +161,46 @@ struct PracticeRouteSeedTests {
         #expect(projection.previewLineLimit == 2)
         #expect(projection.metadataLineLimit == 1)
         #expect(projection.estimatedRegularHeightRange == 112 ... 132)
+    }
+
+    @Test("Practice entry card accessibility label combines title status and counts")
+    func practiceEntryCardAccessibilityLabelCombinesTitleStatusAndCounts() {
+        let card = PracticeEntryCard(
+            projection: PracticeEntryCardProjection(
+                title: "Morning commute",
+                targetPreview: "Preview",
+                sentenceCount: 8,
+                completedCount: 3,
+                problemCount: 2,
+                statusText: "In progress"
+            ),
+            action: {}
+        )
+
+        let label = card.accessibilityLabelText
+
+        #expect(label.contains("Morning commute"))
+        #expect(label.contains("In progress"))
+        #expect(label.contains("3"))
+        #expect(label.contains("8"))
+        #expect(label.contains("2"))
+    }
+
+    @Test("Practice entry card omits the problem fragment when nothing needs review")
+    func practiceEntryCardOmitsProblemFragmentWhenNothingNeedsReview() {
+        let card = PracticeEntryCard(
+            projection: PracticeEntryCardProjection(
+                title: "Morning commute",
+                targetPreview: "Preview",
+                sentenceCount: 8,
+                completedCount: 3,
+                problemCount: 0,
+                statusText: "In progress"
+            ),
+            action: {}
+        )
+
+        #expect(!card.accessibilityLabelText.contains(localizedString("practice.entryCard.problems", "0")))
     }
 
     @Test("Practice prompt card presentation hides translation until user asks")
@@ -272,12 +323,12 @@ private func makeRendering(sentenceCount: Int) -> LearningRendering {
     )
 }
 
-private func snapshot() -> PracticeSentenceSnapshot {
+private func snapshot(sentenceIndex: Int = 0) -> PracticeSentenceSnapshot {
     PracticeSentenceSnapshot(
         entryID: "entry-1",
         learningMaterialID: "material-1",
         sentenceID: "sentence-1",
-        sentenceIndex: 0,
+        sentenceIndex: sentenceIndex,
         targetTextSnapshot: "Target sentence 1.",
         targetTextHash: String(repeating: "a", count: 64),
         targetLanguageCode: "en",

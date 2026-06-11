@@ -18,6 +18,7 @@ private func copyToPasteboard(_ text: String) {
 struct ReadingImportSheetView: View {
     @Binding var importTitle: String
     @Binding var importBody: String
+    var errorTextKey: String?
     let onCancel: () -> Void
     let onSave: () -> Void
 
@@ -32,6 +33,15 @@ struct ReadingImportSheetView: View {
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(LangoTraceDesign.ColorToken.borderSubtle)
                     }
+                if let errorTextKey {
+                    Label {
+                        Text(localizedString(errorTextKey))
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.stateError)
+                }
                 Spacer()
             }
             .padding(20)
@@ -104,7 +114,12 @@ struct ReadingLibraryDocumentRow: View {
                     )
             }
             .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .shadow(color: Color.black.opacity(isSelected ? 0 : 0.08), radius: 4, x: 0, y: 1)
+            .shadow(
+                color: isSelected ? Color.clear : LangoTraceDesign.ColorToken.shadow,
+                radius: 4,
+                x: 0,
+                y: 1
+            )
         }
         .buttonStyle(.plain)
         .accessibilityHint(localizedString("tab.reading"))
@@ -147,6 +162,15 @@ struct ReadingLibraryPane: View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader(titleKey: "tab.reading", subtitleKey: "reading.library.subtitle")
             importButtons
+            if store.importState == .failed {
+                Label {
+                    Text(localizedString("reading.import.error.generic"))
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle")
+                }
+                .font(.footnote)
+                .foregroundStyle(LangoTraceDesign.ColorToken.stateError)
+            }
             searchField
         }
     }
@@ -157,7 +181,7 @@ struct ReadingLibraryPane: View {
             text: Binding(
                 get: { store.searchText },
                 set: { value in
-                    Task { await store.updateSearchText(value) }
+                    store.updateSearchText(value)
                 }
             )
         )
@@ -588,6 +612,12 @@ private struct ReadingCopyButton: View {
                 )
                 .clipShape(.circle)
                 .contentTransition(.symbolEffect(.replace))
+                // Keep the 28pt visual while extending the hit area to the minimum touch target.
+                .frame(
+                    width: LangoTraceDesign.Density.minimumTouchTarget,
+                    height: LangoTraceDesign.Density.minimumTouchTarget
+                )
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(
@@ -662,8 +692,15 @@ struct ReadingCompactLearningPanel: View {
                         .frame(width: 28, height: 28)
                         .background(LangoTraceDesign.ColorToken.surfaceMuted)
                         .clipShape(.circle)
+                        // Keep the 28pt visual while extending the hit area to the minimum touch target.
+                        .frame(
+                            width: LangoTraceDesign.Density.minimumTouchTarget,
+                            height: LangoTraceDesign.Density.minimumTouchTarget
+                        )
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(localizedString("common.close"))
             }
             .padding(.horizontal, 20)
 

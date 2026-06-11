@@ -3,7 +3,6 @@ import LangoTraceCore
 
 enum AIProviderAPIKeyStorage: Equatable {
     case encryptedStoragePending
-    case keychainUnavailableInMock
 }
 
 enum AIProviderCredentialReference: Equatable {
@@ -332,6 +331,7 @@ struct AIProviderDraftConfiguration: Equatable {
     var saveState: AIProviderSaveState
     var testState: AIProviderTestState
     private var hasPersistedConfiguration: Bool
+    private var hasUnsavedEdits: Bool
 
     init(provider: AIProviderPreset) {
         profileID = nil
@@ -341,6 +341,7 @@ struct AIProviderDraftConfiguration: Equatable {
         saveState = .idle
         testState = .idle
         hasPersistedConfiguration = false
+        hasUnsavedEdits = false
     }
 
     var saveReadiness: AIProviderTestReadiness {
@@ -383,33 +384,10 @@ struct AIProviderDraftConfiguration: Equatable {
     }
 
     var textProbeSource: AIProviderTextProbeSource {
-        if hasPersistedConfiguration, saveState != .unsavedChanges {
+        if hasPersistedConfiguration, !hasUnsavedEdits {
             return .savedProfile
         }
         return .draft
-    }
-
-    var testReadiness: AIProviderTestReadiness {
-        saveReadiness
-    }
-
-    mutating func runMockTest() {
-        guard textProbeReadiness == .readyForRequest else {
-            testState = .missingRequiredFields
-            return
-        }
-
-        testState = .testing
-    }
-
-    mutating func saveMockConfiguration() {
-        guard saveReadiness == .readyForRequest else {
-            saveState = .missingRequiredFields
-            return
-        }
-
-        hasPersistedConfiguration = true
-        saveState = .saved
     }
 
     func makeProfileSaveInput(
@@ -591,6 +569,7 @@ struct AIProviderDraftConfiguration: Equatable {
     ) {
         applyLoadedProfile(profile, resolvedSecretsByCredentialID: resolvedSecretsByCredentialID)
         hasPersistedConfiguration = true
+        hasUnsavedEdits = false
         saveState = .saved
         testState = .idle
     }
@@ -633,6 +612,7 @@ struct AIProviderDraftConfiguration: Equatable {
         clearPlaintextSecrets()
         applyResolvedSecrets(resolvedSecretsByCredentialID)
         hasPersistedConfiguration = profile.status == .configured
+        hasUnsavedEdits = false
         saveState = .idle
         testState = .idle
     }
@@ -657,10 +637,15 @@ struct AIProviderDraftConfiguration: Equatable {
     }
 
     mutating func markInputChanged() {
+        hasUnsavedEdits = true
         switch saveState {
         case .idle, .saved, .failed:
             saveState = hasPersistedConfiguration ? .unsavedChanges : .idle
-        case .missingRequiredFields, .unsavedChanges, .saving:
+        case .missingRequiredFields:
+            if saveReadiness == .readyForRequest {
+                saveState = hasPersistedConfiguration ? .unsavedChanges : .idle
+            }
+        case .unsavedChanges, .saving:
             break
         }
         testState = .idle

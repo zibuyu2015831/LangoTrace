@@ -104,6 +104,38 @@ struct ReadingDocumentStoreTTSTests {
         #expect(store.audioState == .idle)
     }
 
+    @Test("late stale TTS completion keeps the newer request loading")
+    func lateStaleTTSCompletionKeepsNewerRequestLoading() async {
+        let tts = ControlledReadingTTSAction()
+        let store = ReadingDocumentStore(
+            documentID: "doc-1",
+            spaceID: "space-1",
+            explanationAction: { _ in .sample(selection: "word") },
+            ttsAction: tts.play
+        )
+
+        store.playSentence(sentenceID: "s1", text: "First")
+        await tts.waitForRequestCount(1)
+
+        store.selectText("second", sentenceID: "s2")
+        store.playSentence(sentenceID: "s2", text: "Second")
+        await tts.waitForRequestCount(2)
+        #expect(store.audioState == .loading)
+
+        await tts.complete()
+        for _ in 0 ..< 20 {
+            await Task.yield()
+        }
+
+        #expect(store.audioState == .loading)
+
+        await tts.complete()
+        while store.audioState == .loading {
+            await Task.yield()
+        }
+        #expect(store.audioState == .idle)
+    }
+
     @Test("TTS request carries target language metadata")
     func ttsRequestCarriesTargetLanguageMetadata() async {
         let tts = CapturingReadingTTSAction()
@@ -161,23 +193,28 @@ private extension ReadingSelectionContext {
 
 private actor ControlledReadingTTSAction {
     private(set) var requests: [ReadingTTSRequest] = []
-    private var continuation: CheckedContinuation<Void, Never>?
+    private var continuations: [CheckedContinuation<Void, Never>] = []
 
     func play(_ request: ReadingTTSRequest) async {
         requests.append(request)
         await withCheckedContinuation { continuation in
-            self.continuation = continuation
+            continuations.append(continuation)
         }
     }
 
     func complete() {
-        guard let continuation else { return }
-        self.continuation = nil
-        continuation.resume()
+        guard !continuations.isEmpty else { return }
+        continuations.removeFirst().resume()
     }
 
     func requestCount() -> Int {
         requests.count
+    }
+
+    func waitForRequestCount(_ count: Int) async {
+        while requests.count < count {
+            await Task.yield()
+        }
     }
 }
 

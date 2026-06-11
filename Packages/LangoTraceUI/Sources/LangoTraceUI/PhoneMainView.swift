@@ -189,11 +189,11 @@ struct PhoneMainView: View {
                 switch sheet {
                 case .entryEditor:
                     EntryEditorView(languageSpace: languageSpace) { title, body in
-                        guard let entry = try? contentStore.createEntry(
+                        let entry = try contentStore.createEntry(
                             title: title,
                             body: body,
                             source: .typedText
-                        ) else { return }
+                        )
                         presentedSheet = nil
                         navigationPath.append(.entryDetail(entry.id))
                     }
@@ -205,11 +205,6 @@ struct PhoneMainView: View {
                     } onDismiss: {
                         presentedSheet = nil
                     }
-                case let .unavailable(action):
-                    UnavailableCapabilityView(content: action.content) {
-                        presentedSheet = nil
-                    }
-                    .presentationDetents([.medium, .large])
                 case .languageSpaceSwitcher:
                     NavigationStack {
                         LanguageSpaceSwitcherSheet(
@@ -291,7 +286,6 @@ private enum PhoneRoute: Hashable {
 private enum PhoneSheet: Identifiable {
     case entryEditor
     case photoWritingPreview
-    case unavailable(PhoneUnavailableAction)
     case languageSpaceSwitcher
 
     var id: String {
@@ -300,8 +294,6 @@ private enum PhoneSheet: Identifiable {
             "entry-editor"
         case .photoWritingPreview:
             "photo-writing-preview"
-        case let .unavailable(action):
-            "unavailable-\(action.rawValue)"
         case .languageSpaceSwitcher:
             "language-space-switcher"
         }

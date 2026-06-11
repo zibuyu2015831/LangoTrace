@@ -57,15 +57,20 @@ struct ReadingLibraryView: View {
             ReadingImportSheetView(
                 importTitle: $importTitle,
                 importBody: $importBody,
+                errorTextKey: store.importState == .failed ? "reading.import.error.generic" : nil,
                 onCancel: {
                     isImportSheetPresented = false
                 },
                 onSave: {
                     Task {
-                        try? await store.importPastedText(title: importTitle, body: importBody)
-                        importTitle = ""
-                        importBody = ""
-                        isImportSheetPresented = false
+                        do {
+                            try await store.importPastedText(title: importTitle, body: importBody)
+                            importTitle = ""
+                            importBody = ""
+                            isImportSheetPresented = false
+                        } catch {
+                            // Keep the sheet and draft; store.importState drives the error line.
+                        }
                     }
                 }
             )
@@ -342,6 +347,7 @@ struct ReadingDocumentDetailView: View {
     let explanationAction: ReadingExplanationAction
     let ttsAction: ReadingTTSAction
     @StateObject private var documentStore: ReadingDocumentStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
         platform: ReadingPlatformRole,
@@ -400,7 +406,7 @@ struct ReadingDocumentDetailView: View {
                         }
                         .onChange(of: documentStore.selectedSelection?.blockID) { _, blockID in
                             guard let blockID else { return }
-                            withAnimation(.easeInOut(duration: 0.22)) {
+                            withAnimation(panelAnimation) {
                                 // Scroll to the containing block so selected text remains
                                 // visible above the compact learning panel. safeAreaInset
                                 // already reserves the panel height in the safe area, so
@@ -457,11 +463,11 @@ struct ReadingDocumentDetailView: View {
                     onClear: { documentStore.clearSelection() },
                     onRegenerate: { documentStore.regenerateExplanation() }
                 )
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .animation(.easeInOut(duration: 0.22), value: documentStore.compactLearningPanelState)
+                .transition(panelTransition)
+                .animation(panelAnimation, value: documentStore.compactLearningPanelState)
             }
         }
-        .animation(.easeInOut(duration: 0.22), value: documentStore.selectedSelection != nil)
+        .animation(panelAnimation, value: documentStore.selectedSelection != nil)
         .sheet(isPresented: editorPresentedBinding) {
             if let document = activeDocument {
                 ReadingDocumentEditorSheet(
@@ -476,6 +482,14 @@ struct ReadingDocumentDetailView: View {
                 )
             }
         }
+    }
+
+    private var panelAnimation: Animation? {
+        reduceMotion ? nil : .easeInOut(duration: 0.22)
+    }
+
+    private var panelTransition: AnyTransition {
+        reduceMotion ? .identity : .move(edge: .bottom).combined(with: .opacity)
     }
 
     private var activeDocument: ReadingLibraryDocumentContent? {
@@ -563,6 +577,9 @@ private struct ReadingPhoneLibraryHomeView: View {
                     )
                 } else {
                     actionsBar
+                    if store.importState == .failed {
+                        importFailureNote
+                    }
                     searchField
                     filterControls
                     documentList
@@ -578,14 +595,10 @@ private struct ReadingPhoneLibraryHomeView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(localizedString("tab.reading"))
-                .font(.largeTitle.weight(.semibold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-            Text(localizedString("reading.library.subtitle"))
-                .font(.body)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-        }
+        // The large title comes from navigationTitle; only the subtitle lives here.
+        Text(localizedString("reading.library.subtitle"))
+            .font(.body)
+            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
     }
 
     private var actionsBar: some View {
@@ -623,13 +636,23 @@ private struct ReadingPhoneLibraryHomeView: View {
         .controlSize(.large)
     }
 
+    private var importFailureNote: some View {
+        Label {
+            Text(localizedString("reading.import.error.generic"))
+        } icon: {
+            Image(systemName: "exclamationmark.triangle")
+        }
+        .font(.footnote)
+        .foregroundStyle(LangoTraceDesign.ColorToken.stateError)
+    }
+
     private var searchField: some View {
         TextField(
             localizedString("reading.library.search.placeholder"),
             text: Binding(
                 get: { store.searchText },
                 set: { value in
-                    Task { await store.updateSearchText(value) }
+                    store.updateSearchText(value)
                 }
             )
         )
@@ -761,19 +784,19 @@ private struct ReadingDocumentEditorSheet: View {
                     .background(LangoTraceDesign.ColorToken.surfacePanel)
                     .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 HStack {
-                    Text(sourceFormat.rawValue)
+                    Text(sourceFormat.displayName)
                         .font(.caption)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     Spacer()
                     if let saveFailure {
                         Text(localizedString(saveFailure.messageKey))
                             .font(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(LangoTraceDesign.ColorToken.stateError)
                     }
                 }
             }
             .padding(20)
-            .navigationTitle(localizedString("settings.languageSpace.management.editTitle"))
+            .navigationTitle(localizedString("reading.document.editTitle"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(localizedString("common.cancel"), action: onCancel)

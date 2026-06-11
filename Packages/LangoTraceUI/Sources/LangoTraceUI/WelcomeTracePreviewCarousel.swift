@@ -99,7 +99,7 @@ private struct WelcomeTracePageIndicator: View {
     @Binding var selectedExampleID: String?
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 0) {
             ForEach(Array(examples.enumerated()), id: \.element.id) { _, example in
                 Button {
                     selectedExampleID = example.id
@@ -107,6 +107,13 @@ private struct WelcomeTracePageIndicator: View {
                     Circle()
                         .fill(indicatorColor(for: example))
                         .frame(width: indicatorSize(for: example), height: indicatorSize(for: example))
+                        // Keep the small dot visual while extending the hit area
+                        // to the minimum touch target.
+                        .frame(
+                            width: LangoTraceDesign.Density.minimumTouchTarget,
+                            height: LangoTraceDesign.Density.minimumTouchTarget
+                        )
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(localizedText(example.sceneKey))

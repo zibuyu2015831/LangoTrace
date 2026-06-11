@@ -4,11 +4,13 @@ import SwiftUI
 #if os(macOS)
     struct MacEntryEditorSheet: View {
         let languageSpace: LanguageSpacePreview
+        @Binding var hasDraftContent: Bool
         let onCancel: () -> Void
-        let onSave: (String, String) -> Void
+        let onSave: (String, String) throws -> Void
 
         @State private var title = ""
         @State private var bodyText = ""
+        @State private var saveErrorKey: String?
         @FocusState private var focusedField: Field?
 
         var body: some View {
@@ -20,6 +22,12 @@ import SwiftUI
                 Divider()
                     .overlay(LangoTraceDesign.ColorToken.hairline)
                 footer
+            }
+            .onChange(of: title) {
+                updateDraftContentFlag()
+            }
+            .onChange(of: bodyText) {
+                updateDraftContentFlag()
             }
             .frame(minWidth: 520, idealWidth: 580, maxWidth: 620)
             .background(LangoTraceDesign.ColorToken.paper)
@@ -134,6 +142,11 @@ import SwiftUI
 
         private var footer: some View {
             HStack(spacing: 12) {
+                if let saveErrorKey {
+                    localizedText(saveErrorKey)
+                        .font(.footnote)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.stateError)
+                }
                 Spacer()
                 Button {
                     onCancel()
@@ -145,7 +158,13 @@ import SwiftUI
                 .keyboardShortcut(.cancelAction)
 
                 Button {
-                    onSave(title, bodyText)
+                    do {
+                        try onSave(title, bodyText)
+                        saveErrorKey = nil
+                    } catch {
+                        // Keep the draft on screen and surface the failure instead of closing.
+                        saveErrorKey = "entryEditor.saveFailed"
+                    }
                 } label: {
                     localizedText("common.save")
                         .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
@@ -191,6 +210,11 @@ import SwiftUI
             !bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
 
+        private func updateDraftContentFlag() {
+            hasDraftContent = !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || !bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+
         private enum Field: Hashable {
             case title
             case body
@@ -199,8 +223,9 @@ import SwiftUI
 #else
     struct MacEntryEditorSheet: View {
         let languageSpace: LanguageSpacePreview
+        @Binding var hasDraftContent: Bool
         let onCancel: () -> Void
-        let onSave: (String, String) -> Void
+        let onSave: (String, String) throws -> Void
 
         var body: some View {
             EmptyView()

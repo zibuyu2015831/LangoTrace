@@ -98,7 +98,6 @@ struct LanguageSpaceManagementView: View {
                     } label: {
                         LanguageSpaceManagementRow(space: space, isCurrent: space.id == currentSpaceID)
                     }
-                    .id(space.updatedAt)
                     .buttonStyle(.plain)
                     .listRowBackground(
                         space.id == currentSpaceID

@@ -123,11 +123,10 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
             storage.removeAttribute(.backgroundColor, range: fullRange)
 
             if let range = committedHighlightRange {
-                let highlight = UIColor { traits in
-                    traits.userInterfaceStyle == .dark
-                        ? UIColor(red: 0x72 / 255.0, green: 0xD2 / 255.0, blue: 0xBF / 255.0, alpha: 0.22)
-                        : UIColor(red: 0x12 / 255.0, green: 0x6B / 255.0, blue: 0x5D / 255.0, alpha: 0.15)
-                }
+                let highlight = LangoTraceDesign.PlatformColorToken.accentHighlight(
+                    lightAlpha: 0.15,
+                    darkAlpha: 0.22
+                )
                 storage.addAttribute(.backgroundColor, value: highlight, range: range)
             }
         }
@@ -138,11 +137,10 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
             storage.removeAttribute(.underlineStyle, range: fullRange)
             storage.removeAttribute(.underlineColor, range: fullRange)
             guard !ranges.isEmpty else { return }
-            let underlineColor = UIColor { traits in
-                traits.userInterfaceStyle == .dark
-                    ? UIColor(red: 0x72 / 255.0, green: 0xD2 / 255.0, blue: 0xBF / 255.0, alpha: 0.55)
-                    : UIColor(red: 0x12 / 255.0, green: 0x6B / 255.0, blue: 0x5D / 255.0, alpha: 0.55)
-            }
+            let underlineColor = LangoTraceDesign.PlatformColorToken.accentHighlight(
+                lightAlpha: 0.55,
+                darkAlpha: 0.55
+            )
             for range in ranges {
                 let clampedLoc = min(range.location, storage.length)
                 let safeRange = NSRange(location: clampedLoc, length: min(range.length, storage.length - clampedLoc))
@@ -368,24 +366,10 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
             storage.removeAttribute(.backgroundColor, range: fullRange)
 
             if let range = committedHighlightRange {
-                let highlight = NSColor(name: nil) { appearance in
-                    let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-
-                    // Pre-calculating components to help the compiler's type checker
-                    let rD: CGFloat = 0x72 / 255.0
-                    let gD: CGFloat = 0xD2 / 255.0
-                    let bD: CGFloat = 0xBF / 255.0
-                    let aD: CGFloat = 0.22
-                    let darkColor = NSColor(srgbRed: rD, green: gD, blue: bD, alpha: aD)
-
-                    let rL: CGFloat = 0x12 / 255.0
-                    let gL: CGFloat = 0x6B / 255.0
-                    let bL: CGFloat = 0x5D / 255.0
-                    let aL: CGFloat = 0.15
-                    let lightColor = NSColor(srgbRed: rL, green: gL, blue: bL, alpha: aL)
-
-                    return isDark ? darkColor : lightColor
-                }
+                let highlight = LangoTraceDesign.PlatformColorToken.accentHighlight(
+                    lightAlpha: 0.15,
+                    darkAlpha: 0.22
+                )
                 storage.addAttribute(.backgroundColor, value: highlight, range: range)
             }
         }
@@ -396,14 +380,10 @@ func characterRange(from nsRange: NSRange, in text: String) -> (offset: Int, len
             storage.removeAttribute(.underlineStyle, range: fullRange)
             storage.removeAttribute(.underlineColor, range: fullRange)
             guard !ranges.isEmpty else { return }
-            let underlineColor = NSColor(name: nil) { appearance in
-                let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-                let rD: CGFloat = 0x72 / 255.0, gD: CGFloat = 0xD2 / 255.0, bD: CGFloat = 0xBF / 255.0
-                let rL: CGFloat = 0x12 / 255.0, gL: CGFloat = 0x6B / 255.0, bL: CGFloat = 0x5D / 255.0
-                return isDark
-                    ? NSColor(srgbRed: rD, green: gD, blue: bD, alpha: 0.55)
-                    : NSColor(srgbRed: rL, green: gL, blue: bL, alpha: 0.55)
-            }
+            let underlineColor = LangoTraceDesign.PlatformColorToken.accentHighlight(
+                lightAlpha: 0.55,
+                darkAlpha: 0.55
+            )
             for range in ranges {
                 let clampedLoc = min(range.location, storage.length)
                 let safeRange = NSRange(location: clampedLoc, length: min(range.length, storage.length - clampedLoc))

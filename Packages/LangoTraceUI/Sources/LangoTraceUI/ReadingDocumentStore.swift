@@ -107,27 +107,6 @@ public final class ReadingDocumentStore: ObservableObject {
         }
     }
 
-    public func playAudio() {
-        guard audioState != .loading, let selection = selectedSelection ?? fallbackSelection else {
-            return
-        }
-        audioState = .loading
-        let token = nextToken()
-        let request = ReadingTTSRequest(
-            documentID: documentID,
-            spaceID: spaceID,
-            sentenceID: selection.sentenceID,
-            text: selection.containingSentence,
-            targetLanguageCode: targetLanguageCode
-        )
-
-        ttsTask?.cancel()
-        ttsTask = Task {
-            await ttsAction(request)
-            completeTTS(token: token, request: request)
-        }
-    }
-
     public func replaceDocument(documentID: String, spaceID: String, contentRevision: Int = 1) {
         self.documentID = documentID
         self.spaceID = spaceID
@@ -233,7 +212,7 @@ public final class ReadingDocumentStore: ObservableObject {
 
     func failExplanation(token: Int, request: ReadingExplanationRequest) {
         guard isCurrent(token: token, documentID: request.documentID, spaceID: request.spaceID) else {
-            explanationState = .idle
+            // Stale completion must not touch state owned by a newer request.
             return
         }
         explanationState = .failed
@@ -241,7 +220,7 @@ public final class ReadingDocumentStore: ObservableObject {
 
     func completeTTS(token: Int, request: ReadingTTSRequest) {
         guard isCurrent(token: token, documentID: request.documentID, spaceID: request.spaceID) else {
-            audioState = .idle
+            // Stale completion must not touch state owned by a newer request.
             return
         }
         audioState = .idle

@@ -312,12 +312,12 @@ private extension MacMainView {
         isEntryEditorPresented = false
     }
 
-    func saveEntry(title: String, body: String) {
-        guard let entry = try? contentStore.createEntry(
+    func saveEntry(title: String, body: String) throws {
+        let entry = try contentStore.createEntry(
             title: title,
             body: body,
             source: .typedText
-        ) else { return }
+        )
         selectedEntryID = entry.id
         selectedSection = .entries
         route = .entryDetail(entry.id)
@@ -328,7 +328,9 @@ private extension MacMainView {
 private struct MacEntryEditorOverlay: View {
     let languageSpace: LanguageSpacePreview
     let onCancel: () -> Void
-    let onSave: (String, String) -> Void
+    let onSave: (String, String) throws -> Void
+
+    @State private var hasDraftContent = false
 
     var body: some View {
         ZStack {
@@ -336,11 +338,15 @@ private struct MacEntryEditorOverlay: View {
                 .ignoresSafeArea()
                 .contentShape(Rectangle())
                 .onTapGesture {
+                    // Ignore background taps while the editor holds unsaved input
+                    // so an accidental tap cannot discard a non-empty draft.
+                    guard !hasDraftContent else { return }
                     onCancel()
                 }
 
             MacEntryEditorSheet(
                 languageSpace: languageSpace,
+                hasDraftContent: $hasDraftContent,
                 onCancel: onCancel,
                 onSave: onSave
             )

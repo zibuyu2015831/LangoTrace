@@ -5,8 +5,10 @@ import LangoTraceCore
 @MainActor
 final class ReadingLibraryStore: ObservableObject {
     private let actions: ReadingLibraryActions
+    private let searchReloadDebounce: Duration
     private var listGeneration = 0
     private var documentGeneration = 0
+    private var searchReloadTask: Task<Void, Never>?
 
     @Published private(set) var languageSpace: LanguageSpacePreview
     @Published private(set) var documents: [ReadingLibraryDocumentSummary] = []
@@ -21,10 +23,12 @@ final class ReadingLibraryStore: ObservableObject {
 
     init(
         languageSpace: LanguageSpacePreview,
-        actions: ReadingLibraryActions = .disabled
+        actions: ReadingLibraryActions = .disabled,
+        searchReloadDebounce: Duration = .milliseconds(250)
     ) {
         self.languageSpace = languageSpace
         self.actions = actions
+        self.searchReloadDebounce = searchReloadDebounce
     }
 
     func replaceLanguageSpace(_ languageSpace: LanguageSpacePreview) {
@@ -63,9 +67,24 @@ final class ReadingLibraryStore: ObservableObject {
         }
     }
 
-    func updateSearchText(_ text: String) async {
+    /// Updates the search text synchronously so typing and IME composition stay responsive,
+    /// then schedules a debounced reload that coalesces rapid keystrokes into one query.
+    func updateSearchText(_ text: String) {
+        guard searchText != text else {
+            return
+        }
         searchText = text
-        await reload()
+        searchReloadTask?.cancel()
+        let debounce = searchReloadDebounce
+        searchReloadTask = Task { [weak self] in
+            if debounce > .zero {
+                try? await Task.sleep(for: debounce)
+            }
+            guard !Task.isCancelled else {
+                return
+            }
+            await self?.reload()
+        }
     }
 
     func importPastedText(title: String, body: String) async throws {
@@ -260,6 +279,8 @@ final class ReadingLibraryStore: ObservableObject {
     }
 
     private func invalidateInFlightWork() {
+        searchReloadTask?.cancel()
+        searchReloadTask = nil
         listGeneration += 1
         documentGeneration += 1
     }

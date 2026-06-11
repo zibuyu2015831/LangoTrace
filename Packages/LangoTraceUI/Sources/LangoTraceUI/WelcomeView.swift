@@ -2,6 +2,10 @@ import SwiftUI
 
 struct WelcomeView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @ScaledMetric(relativeTo: .largeTitle) var wideValueTitleSize = LangoTraceDesign.Typography
+        .welcomeWideTitleBaseSize
+    @ScaledMetric(relativeTo: .largeTitle) var macValueTitleSize = LangoTraceDesign.Typography
+        .welcomeMacHeroTitleBaseSize
 
     let onFinished: () -> Void
 

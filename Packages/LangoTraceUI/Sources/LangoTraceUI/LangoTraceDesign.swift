@@ -265,6 +265,11 @@ enum LangoTraceDesign {
         static let bodyEmphasis = Font.body.weight(.semibold)
         static let caption = Font.caption
         static let controlLabel = Font.callout.weight(.semibold)
+
+        /// Welcome hero display title base sizes. Usage sites must scale these with
+        /// `@ScaledMetric(relativeTo: .largeTitle)` so Dynamic Type keeps working (spec 003 §4.9.2).
+        static let welcomeWideTitleBaseSize: CGFloat = 46
+        static let welcomeMacHeroTitleBaseSize: CGFloat = 64
     }
 
     enum Radius {
@@ -292,6 +297,57 @@ enum LangoTraceDesign {
     enum Motion {
         static let panelTransitionDuration: TimeInterval = 0.18
         static let microFeedbackDuration: TimeInterval = 0.12
+    }
+
+    /// Platform (UIKit / AppKit) colors for text-storage attributes that cannot use SwiftUI `Color`.
+    /// Keeps the raw accent component values (light 0x126B5D / dark 0x72D2BF) defined exactly once.
+    enum PlatformColorToken {
+        private static let lightAccentComponents: (red: CGFloat, green: CGFloat, blue: CGFloat) =
+            (0x12 / 255.0, 0x6B / 255.0, 0x5D / 255.0)
+        private static let darkAccentComponents: (red: CGFloat, green: CGFloat, blue: CGFloat) =
+            (0x72 / 255.0, 0xD2 / 255.0, 0xBF / 255.0)
+
+        #if os(iOS)
+            static func accentHighlight(lightAlpha: CGFloat, darkAlpha: CGFloat) -> UIColor {
+                UIColor { traits in
+                    if traits.userInterfaceStyle == .dark {
+                        UIColor(
+                            red: darkAccentComponents.red,
+                            green: darkAccentComponents.green,
+                            blue: darkAccentComponents.blue,
+                            alpha: darkAlpha
+                        )
+                    } else {
+                        UIColor(
+                            red: lightAccentComponents.red,
+                            green: lightAccentComponents.green,
+                            blue: lightAccentComponents.blue,
+                            alpha: lightAlpha
+                        )
+                    }
+                }
+            }
+        #elseif os(macOS)
+            static func accentHighlight(lightAlpha: CGFloat, darkAlpha: CGFloat) -> NSColor {
+                NSColor(name: nil) { appearance in
+                    let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                    if isDark {
+                        return NSColor(
+                            srgbRed: darkAccentComponents.red,
+                            green: darkAccentComponents.green,
+                            blue: darkAccentComponents.blue,
+                            alpha: darkAlpha
+                        )
+                    }
+                    return NSColor(
+                        srgbRed: lightAccentComponents.red,
+                        green: lightAccentComponents.green,
+                        blue: lightAccentComponents.blue,
+                        alpha: lightAlpha
+                    )
+                }
+            }
+        #endif
     }
 }
 

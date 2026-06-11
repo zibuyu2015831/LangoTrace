@@ -38,6 +38,9 @@ struct FilterPill: View {
             .padding(.vertical, 9)
             .background(backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            // Keep the pill visual while extending the hit area to the minimum touch target.
+            .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .focusable()
@@ -83,6 +86,9 @@ struct PadRouteButton: View {
             .foregroundStyle(active ? LangoTraceDesign.ColorToken.whiteInk : LangoTraceDesign.ColorToken.ink)
             .background(active ? LangoTraceDesign.ColorToken.deepTeal : LangoTraceDesign.ColorToken.elevatedPaper)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            // Keep the row visual while extending the hit area to the minimum touch target.
+            .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(localizedText(titleKey))

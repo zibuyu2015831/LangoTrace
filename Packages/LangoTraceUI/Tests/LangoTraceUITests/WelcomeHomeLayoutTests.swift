@@ -85,7 +85,8 @@ struct WelcomeHomeLayoutTests {
         #expect(source.contains("size.height >= 780 ? 600 : 520"))
         #expect(source.contains("size.height >= 780 ? 500 : 450"))
         #expect(source.contains("size.width >= 1180 ? 470 : 400"))
-        #expect(source.contains(".font(.system(size: 64, weight: .medium, design: .default))"))
+        #expect(source.contains(".font(.system(size: macValueTitleSize, weight: .medium, design: .default))"))
+        #expect(!source.contains(".font(.system(size: 64"))
     }
 
     @Test("Mac welcome wide layout keeps the title and card inside the visible window")

@@ -150,7 +150,7 @@ final class LearningContentStore: ObservableObject {
             return
         }
         guard generationState(for: entry).canStartGeneration else {
-            generationStates[entry.id] = .blocked(.operationInProgress)
+            // Keep the in-flight display state untouched; only record the blocked trigger for diagnostics.
             await recordBlockedOperation(for: entry.id, kind: .generate, category: .operationInProgress, bucket: .short)
             return
         }
@@ -191,7 +191,7 @@ final class LearningContentStore: ObservableObject {
         )
         generationStates[entry.id] = .generating(operationID: operationID)
         let result = await task.value
-        guard generationState(for: entry).operationID == operationID else {
+        guard runningOperationsByEntryID[entry.id]?.operationID == operationID else {
             return
         }
         runningOperationsByEntryID[entry.id] = nil
@@ -212,7 +212,13 @@ final class LearningContentStore: ObservableObject {
         entryID: String,
         learningText: String
     ) async {
+        guard runningOperationsByEntryID[entryID] == nil else {
+            return
+        }
         let result = await generationActions.updateLearningText(materialID, learningText)
+        guard runningOperationsByEntryID[entryID] == nil else {
+            return
+        }
         switch result {
         case let .generated(material):
             generatedRenderingsByEntryID[entryID] = Self.rendering(from: material)
@@ -239,7 +245,7 @@ final class LearningContentStore: ObservableObject {
             return
         }
         guard generationState(for: entry).canStartGeneration else {
-            generationStates[entry.id] = .blocked(.operationInProgress)
+            // Keep the in-flight display state untouched; only record the blocked trigger for diagnostics.
             await recordBlockedOperation(for: entry.id, kind: .analyze, category: .operationInProgress, bucket: .short)
             return
         }
@@ -275,7 +281,7 @@ final class LearningContentStore: ObservableObject {
         )
         generationStates[entry.id] = .analyzing(materialID: rendering.id, operationID: operationID)
         let result = await task.value
-        guard generationState(for: entry).operationID == operationID else {
+        guard runningOperationsByEntryID[entry.id]?.operationID == operationID else {
             return
         }
         runningOperationsByEntryID[entry.id] = nil
@@ -432,13 +438,15 @@ extension LearningContentStore {
 
     private func observeSentenceAudioPlaybackState(for sentenceID: String, request: SentenceAudioRequest) {
         sentenceAudioPlaybackObservationTasks[sentenceID]?.cancel()
+        let actions = sentenceAudioPlaybackActions
         sentenceAudioPlaybackObservationTasks[sentenceID] = Task { [weak self] in
-            guard let self else {
-                return
-            }
-            let stream = await sentenceAudioPlaybackActions.stateUpdates(request)
+            let stream = await actions.stateUpdates(request)
             for await state in stream {
                 guard !Task.isCancelled else {
+                    return
+                }
+                // Only hold `self` strongly per event so an unfinished stream cannot keep the store alive.
+                guard let self else {
                     return
                 }
                 await MainActor.run {

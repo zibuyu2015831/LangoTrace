@@ -313,22 +313,3 @@ extension LearningEntry {
         localizedString(source.localizedTitleKey)
     }
 }
-
-extension PracticeSessionStep {
-    var localizedTitleKey: String {
-        switch self {
-        case .prepare:
-            "practiceStep.prepare"
-        case .shadow:
-            "practiceStep.shadow"
-        case .compare:
-            "practiceStep.compare"
-        case .completed:
-            "practiceStep.completed"
-        }
-    }
-
-    var displayTitle: String {
-        localizedString(localizedTitleKey)
-    }
-}

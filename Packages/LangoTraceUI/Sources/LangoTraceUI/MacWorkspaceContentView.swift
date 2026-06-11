@@ -135,13 +135,15 @@ struct MacWorkspaceContentView: View {
     private var entriesContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader(titleKey: "mac.entries.library.title", subtitleKey: "mac.entries.library.subtitle")
-            ForEach(entries) { entry in
-                EntryTimelineRow(
-                    entry: entry,
-                    targetLanguage: languageSpace.targetLanguage,
-                    isSelected: entry.id == selectedEntryID,
-                    action: { onShowEntry(entry) }
-                )
+            LazyVStack(alignment: .leading, spacing: 12) {
+                ForEach(entries) { entry in
+                    EntryTimelineRow(
+                        entry: entry,
+                        targetLanguage: languageSpace.targetLanguage,
+                        isSelected: entry.id == selectedEntryID,
+                        action: { onShowEntry(entry) }
+                    )
+                }
             }
         }
     }

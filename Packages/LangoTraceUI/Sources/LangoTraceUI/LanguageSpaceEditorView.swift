@@ -59,6 +59,12 @@ struct LanguageSpaceEditorView: View {
         .navigationTitle(editorTitle)
         .langoLanguageSpaceInlineNavigationTitle()
         .onAppear(perform: populateFromEditedSpace)
+        .onChange(of: nativeLanguageCode) {
+            targetLanguageCode = LanguageSpaceEditorValidation.normalizedTargetLanguageCode(
+                nativeLanguageCode: nativeLanguageCode,
+                targetLanguageCode: targetLanguageCode
+            )
+        }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button(localizedString("common.cancel")) {
@@ -77,6 +83,10 @@ struct LanguageSpaceEditorView: View {
                         )
                     )
                 }
+                .disabled(!LanguageSpaceEditorValidation.canSave(
+                    nativeLanguageCode: nativeLanguageCode,
+                    targetLanguageCode: targetLanguageCode
+                ))
             }
         }
     }
@@ -116,7 +126,7 @@ struct LanguageSpaceEditorView: View {
             Image(systemName: "exclamationmark.triangle.fill")
         }
         .font(.callout)
-        .foregroundStyle(.orange)
+        .foregroundStyle(LangoTraceDesign.ColorToken.warning)
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -126,6 +136,30 @@ struct LanguageSpaceEditorView: View {
             RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous)
                 .stroke(LangoTraceDesign.ColorToken.gold.opacity(0.28), lineWidth: 1)
         }
+    }
+}
+
+enum LanguageSpaceEditorValidation {
+    /// Mirrors `OnboardingDraft.normalized()`: when the native language collides with the
+    /// current target language, the target falls back to the first available target.
+    static func normalizedTargetLanguageCode(
+        nativeLanguageCode: String,
+        targetLanguageCode: String
+    ) -> String {
+        guard targetLanguageCode == nativeLanguageCode else {
+            return targetLanguageCode
+        }
+        return LearningLanguage.targetLanguages(excludingNativeCode: nativeLanguageCode).first?.code
+            ?? LearningLanguage.defaultTarget.code
+    }
+
+    static func canSave(nativeLanguageCode: String, targetLanguageCode: String) -> Bool {
+        guard LearningLanguage.find(code: nativeLanguageCode) != nil,
+              LearningLanguage.find(code: targetLanguageCode) != nil
+        else {
+            return false
+        }
+        return nativeLanguageCode != targetLanguageCode
     }
 }
 

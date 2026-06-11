@@ -29,6 +29,9 @@ struct LanguageMenu: View {
             .frame(minHeight: 36)
             .background(LangoTraceDesign.ColorToken.hairline.opacity(0.35))
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            // Keep the compact visual while extending the hit area to the minimum touch target.
+            .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+            .contentShape(Rectangle())
         }
         .menuStyle(.button)
         .accessibilityLabel(localizedText(titleKey))

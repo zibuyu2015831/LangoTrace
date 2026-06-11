@@ -916,6 +916,8 @@ struct AIProviderSettingsTextField: View {
                 .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
                 .background(LangoTraceDesign.ColorToken.surfaceMuted)
                 .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
+                // The visual label lives above the field; expose the same title to assistive tech.
+                .accessibilityLabel(localizedText(titleKey))
         }
     }
 }

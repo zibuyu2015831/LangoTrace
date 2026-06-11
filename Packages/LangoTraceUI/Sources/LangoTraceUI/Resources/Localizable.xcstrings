@@ -1112,6 +1112,59 @@
         }
       }
     },
+    "entryEditor.saveFailed": {
+      "comment": "Error line shown in the entry editor when saving a new entry fails; the draft stays on screen.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save this entry. Try again in a moment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能保存这条记录。稍后再试。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo guardar esta entrada. Inténtalo de nuevo en un momento."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この記録を保存できませんでした。しばらくしてからもう一度お試しください。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d'enregistrer cette entrée. Réessayez dans un instant."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Eintrag konnte nicht gespeichert werden. Versuche es gleich noch einmal."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 기록을 저장하지 못했습니다. 잠시 후 다시 시도하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось сохранить эту запись. Повторите попытку позже."
+          }
+        }
+      }
+    },
     "onboarding.createSpace": {
       "comment": "Create language space button title.",
       "localizations": {
@@ -5275,6 +5328,59 @@
         }
       }
     },
+    "reading.document.editTitle": {
+      "comment": "Navigation title of the reading document editor sheet.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Document"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑文档"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar documento"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ドキュメントを編集"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier le document"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dokument bearbeiten"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "문서 편집"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Изменить документ"
+          }
+        }
+      }
+    },
     "reading.import.title.placeholder": {
       "comment": "Placeholder for pasted reading document title.",
       "localizations": {
@@ -6611,40 +6717,6 @@
         }
       }
     },
-    "hero.subtitle.prefix": {
-      "comment": "Hero subtitle prefix before target language name.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Write a sentence, add a photo, or save what you want to say for later"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "写一句、拍一张照片，或把今天想说的话留给之后的"
-          }
-        }
-      }
-    },
-    "hero.subtitle.suffix": {
-      "comment": "Hero subtitle suffix after target language name.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "practice."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "练习。"
-          }
-        }
-      }
-    },
     "hero.title": {
       "comment": "iPhone Today hero title.",
       "localizations": {
@@ -6658,6 +6730,59 @@
           "stringUnit": {
             "state": "translated",
             "value": "今天记录一点生活"
+          }
+        }
+      }
+    },
+    "hero.subtitle": {
+      "comment": "Hero card subtitle. Argument is the target language display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write a sentence, add a photo, or save what you want to say for later %@ practice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写一句、拍一张照片，或把今天想说的话留给之后的%@练习。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribe una frase, añade una foto o guarda lo que quieras decir para practicar %@ más tarde."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一文を書いたり、写真を追加したり、言いたいことを保存して、あとで%@の練習に使いましょう。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Écrivez une phrase, ajoutez une photo ou gardez ce que vous voulez dire pour votre prochaine pratique de %@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schreibe einen Satz, füge ein Foto hinzu oder speichere, was du sagen möchtest, für die spätere %@-Übung."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한 문장을 쓰거나 사진을 추가하거나 하고 싶은 말을 저장해 두었다가 나중에 %@ 연습에 사용하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Напишите предложение, добавьте фото или сохраните то, что хотите сказать, для будущей практики %@."
           }
         }
       }
@@ -17709,6 +17834,430 @@
           "stringUnit": {
             "state": "translated",
             "value": "该选区包含已解析句子 · 查看"
+          }
+        }
+      }
+    },
+    "practice.entryCard.accessibilityLabel": {
+      "comment": "Practice entry card accessibility label. Arguments: 1 title, 2 status, 3 completed count, 4 sentence count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. %2$@. %3$@ of %4$@ sentences completed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@。%2$@。已完成 %3$@ / %4$@ 句。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. %2$@. %3$@ de %4$@ frases completadas."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@。%2$@。%4$@文中%3$@文が完了。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. %2$@. %3$@ phrases terminées sur %4$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. %2$@. %3$@ von %4$@ Sätzen abgeschlossen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. %2$@. %4$@문장 중 %3$@문장 완료."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. %2$@. Завершено предложений: %3$@ из %4$@."
+          }
+        }
+      }
+    },
+    "practice.entryCard.problems": {
+      "comment": "Practice entry card badge for sentences that need review. Argument is the count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ to review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 处待复查"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ por revisar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要確認 %@件"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ à revoir"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ zu überprüfen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "검토할 항목 %@개"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "К проверке: %@"
+          }
+        }
+      }
+    },
+    "reading.import.error.generic": {
+      "comment": "Error line shown when importing pasted text or a file into the reading library fails.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import failed. Check the content and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入失败。请检查内容后重试。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error al importar. Revisa el contenido e inténtalo de nuevo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読み込みに失敗しました。内容を確認してもう一度お試しください。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec de l'importation. Vérifiez le contenu et réessayez."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import fehlgeschlagen. Prüfe den Inhalt und versuche es erneut."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "가져오기에 실패했습니다. 내용을 확인한 후 다시 시도하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось импортировать. Проверьте содержимое и повторите попытку."
+          }
+        }
+      }
+    },
+    "sentenceAudio.listen.failed.hint": {
+      "comment": "Accessibility hint for the listen button after a playback failure.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The last playback failed. Activate to try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次播放失败。点按可重试。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La última reproducción falló. Actívalo para volver a intentarlo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前回の再生に失敗しました。もう一度試すには操作してください。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La dernière lecture a échoué. Activez pour réessayer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die letzte Wiedergabe ist fehlgeschlagen. Aktivieren, um es erneut zu versuchen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지난 재생에 실패했습니다. 다시 시도하려면 활성화하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последнее воспроизведение не удалось. Активируйте, чтобы повторить."
+          }
+        }
+      }
+    },
+    "sentenceAudio.listen.needsSetup": {
+      "comment": "Listen button title when sentence playback requires provider configuration.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listening needs setup"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "播放需要先配置"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La escucha requiere configuración"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再生には設定が必要です"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'écoute nécessite une configuration"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiedergabe muss eingerichtet werden"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "재생하려면 설정이 필요합니다"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для воспроизведения нужна настройка"
+          }
+        }
+      }
+    },
+    "sentenceAudio.listen.needsSetup.hint": {
+      "comment": "Accessibility hint for the listen button when playback requires configuration.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure a speech provider in Settings before listening."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "播放前请先在设置中配置语音 Provider。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configura un proveedor de voz en Ajustes antes de escuchar."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再生する前に、設定で音声プロバイダを設定してください。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurez un fournisseur vocal dans Réglages avant l'écoute."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richte vor dem Anhören einen Sprach-Provider in den Einstellungen ein."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "듣기 전에 설정에서 음성 프로바이더를 구성하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перед прослушиванием настройте голосового провайдера в настройках."
+          }
+        }
+      }
+    },
+    "sentenceAudio.listen.retry": {
+      "comment": "Listen button title when the last sentence playback failed.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry listening"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试播放"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar la escucha"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再生を再試行"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer l'écoute"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiedergabe erneut versuchen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "재생 다시 시도"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторить воспроизведение"
+          }
+        }
+      }
+    },
+    "settings.noLanguageSpace.boundary": {
+      "comment": "Boundary text in the settings scene when no language space exists yet.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a language space first. Settings that belong to a space become usable once one exists."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先创建语言空间。属于空间的设置会在空间创建后开放。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea primero un espacio de idioma. Los ajustes que pertenecen a un espacio estarán disponibles después."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "まず言語スペースを作成してください。スペースに属する設定は、その後に利用できるようになります。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créez d'abord un espace de langue. Les réglages liés à un espace seront ensuite disponibles."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstelle zuerst einen Sprachraum. Einstellungen, die zu einem Raum gehören, werden danach verfügbar."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "먼저 언어 공간을 만드세요. 공간에 속한 설정은 그 후에 사용할 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сначала создайте языковое пространство. Связанные с пространством настройки станут доступны после этого."
           }
         }
       }

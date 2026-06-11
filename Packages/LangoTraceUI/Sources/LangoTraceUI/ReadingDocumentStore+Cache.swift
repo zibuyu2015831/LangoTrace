@@ -14,6 +14,10 @@ public extension ReadingDocumentStore {
                 documentID: docID,
                 contentRevision: rev
             )
+            guard documentID == docID, contentRevision == rev else {
+                // The document changed while loading; discard the stale backfill.
+                return
+            }
             explainedSentenceIDs = ids
             explanationCache = [:]
         } catch {
@@ -44,6 +48,10 @@ public extension ReadingDocumentStore {
                 contentRevision: rev,
                 sentenceID: sentenceID
             ) else { return }
+            guard documentID == docID, contentRevision == rev else {
+                // The document changed while looking up; discard the stale result.
+                return
+            }
             explanationResult = entry.result
             explanationSource = .cache
             explanationState = .idle

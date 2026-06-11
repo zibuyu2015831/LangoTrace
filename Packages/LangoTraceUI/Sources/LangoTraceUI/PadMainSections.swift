@@ -16,55 +16,65 @@ struct PadSidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            SidebarSectionTitle("pad.sidebar.timeline")
-            VStack(spacing: 10) {
-                ForEach(filteredEntries) { entry in
-                    EntryTimelineRow(
-                        entry: entry,
-                        targetLanguage: languageSpace.targetLanguage,
-                        isSelected: entry.id == selectedEntry?.id
-                    ) {
-                        onSelectEntry(entry)
+            // Timeline, filters and routes can grow with real data, so they scroll;
+            // the language-space footer stays pinned below the scroll region.
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    SidebarSectionTitle("pad.sidebar.timeline")
+                    LazyVStack(spacing: 10) {
+                        ForEach(filteredEntries) { entry in
+                            EntryTimelineRow(
+                                entry: entry,
+                                targetLanguage: languageSpace.targetLanguage,
+                                isSelected: entry.id == selectedEntry?.id
+                            ) {
+                                onSelectEntry(entry)
+                            }
+                        }
+                    }
+
+                    SidebarSectionTitle("pad.sidebar.filters")
+                        .padding(.top, 4)
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(PadFilter.allCases, id: \.self) { filter in
+                            FilterPill(
+                                titleKey: filter.titleKey,
+                                count: "\(entries.count { filter.includes(entry: $0, memoryItems: memoryItems) })",
+                                active: activeFilter == filter
+                            ) {
+                                onSelectFilter(filter)
+                            }
+                        }
+                    }
+
+                    SidebarSectionTitle("pad.sidebar.pages")
+                        .padding(.top, 4)
+                    VStack(alignment: .leading, spacing: 8) {
+                        PadRouteButton(titleKey: "tab.reading", systemImage: "book.pages", active: route == .reading) {
+                            onRoute(.reading)
+                        }
+                        PadRouteButton(titleKey: "tab.memory", systemImage: "archivebox", active: route == .memory) {
+                            onRoute(.memory)
+                        }
+                        PadRouteButton(
+                            titleKey: "mac.section.importExport",
+                            systemImage: "tray.and.arrow.down",
+                            active: route == .importExport
+                        ) {
+                            onRoute(.importExport)
+                        }
+                        PadRouteButton(
+                            titleKey: "tab.settings",
+                            systemImage: "gearshape",
+                            active: route == .settingsList
+                        ) {
+                            onRoute(.settingsList)
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-
-            SidebarSectionTitle("pad.sidebar.filters")
-                .padding(.top, 4)
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(PadFilter.allCases, id: \.self) { filter in
-                    FilterPill(
-                        titleKey: filter.titleKey,
-                        count: "\(entries.count { filter.includes(entry: $0, memoryItems: memoryItems) })",
-                        active: activeFilter == filter
-                    ) {
-                        onSelectFilter(filter)
-                    }
-                }
-            }
-
-            SidebarSectionTitle("pad.sidebar.pages")
-                .padding(.top, 4)
-            VStack(alignment: .leading, spacing: 8) {
-                PadRouteButton(titleKey: "tab.reading", systemImage: "book.pages", active: route == .reading) {
-                    onRoute(.reading)
-                }
-                PadRouteButton(titleKey: "tab.memory", systemImage: "archivebox", active: route == .memory) {
-                    onRoute(.memory)
-                }
-                PadRouteButton(
-                    titleKey: "mac.section.importExport",
-                    systemImage: "tray.and.arrow.down",
-                    active: route == .importExport
-                ) {
-                    onRoute(.importExport)
-                }
-                PadRouteButton(titleKey: "tab.settings", systemImage: "gearshape", active: route == .settingsList) {
-                    onRoute(.settingsList)
-                }
-            }
-
-            Spacer()
+            .scrollIndicators(.hidden)
 
             LanguageSpaceFooter(
                 languageSpace: languageSpace,

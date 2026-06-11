@@ -29,6 +29,40 @@ struct ReadingDocumentStoreAITests {
         #expect(store.compactLearningPanelState == .collapsed)
     }
 
+    @Test("late cancelled explanation completion keeps the newer request loading")
+    func lateCancelledExplanationCompletionKeepsNewerRequestLoading() async {
+        let explanation = ControlledReadingExplanationAction()
+        let store = ReadingDocumentStore(
+            documentID: "doc-1",
+            spaceID: "space-1",
+            explanationAction: explanation.explain,
+            ttsAction: { _ in }
+        )
+
+        store.selectText("first", sentenceID: "s1")
+        store.explainSelection()
+        await explanation.waitForRequestCount(1)
+
+        store.selectText("second", sentenceID: "s2")
+        store.explainSelection()
+        await explanation.waitForRequestCount(2)
+        #expect(store.explanationState == .loading)
+
+        await explanation.complete(.failure(CancellationError()))
+        for _ in 0 ..< 20 {
+            await Task.yield()
+        }
+
+        #expect(store.explanationState == .loading)
+        #expect(store.compactLearningPanelState == .loading)
+
+        await explanation.complete(.success(.sample(selection: "second")))
+        while store.explanationState == .loading {
+            await Task.yield()
+        }
+        #expect(store.explanationResult != nil)
+    }
+
     @Test("language space switch clears state and invalidates active tasks")
     func languageSpaceSwitchClearsStateAndInvalidatesActiveTasks() async {
         let explanation = ControlledReadingExplanationAction()
@@ -184,10 +218,6 @@ struct ReadingDocumentStoreAITests {
                 contextText: "The clocktower had been silent for fifty years. Leo wanted to solve the mystery."
             )
         ))
-        // Note: Fix the test data above if it was different, but I'll stick to what I had or fix it slightly if I noticed a typo.
-        // Wait, the original had:
-        // contextText: "The clocktower had been silent for fifty years. Leo wanted to solve the mystery."
-        // I'll use the original.
         store.explainSelection()
         await explanation.waitForRequestCount(1)
 
@@ -415,19 +445,18 @@ private extension ReadingSelectionContext {
 
 private actor ControlledReadingExplanationAction {
     private(set) var requests: [ReadingExplanationRequest] = []
-    private var continuation: CheckedContinuation<ReadingSelectionExplanationResult, Error>?
+    private var continuations: [CheckedContinuation<ReadingSelectionExplanationResult, Error>] = []
 
     func explain(_ request: ReadingExplanationRequest) async throws -> ReadingSelectionExplanationResult {
         requests.append(request)
         return try await withCheckedThrowingContinuation { continuation in
-            self.continuation = continuation
+            continuations.append(continuation)
         }
     }
 
     func complete(_ result: Result<ReadingSelectionExplanationResult, Error>) {
-        guard let continuation else { return }
-        self.continuation = nil
-        continuation.resume(with: result)
+        guard !continuations.isEmpty else { return }
+        continuations.removeFirst().resume(with: result)
     }
 
     func requestCount() -> Int {
