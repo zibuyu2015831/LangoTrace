@@ -18,6 +18,7 @@ func draftTTSProbeSendsCurrentLanguageFixedTextAndReturnsEndpointMetadata() asyn
     let service = TTSConfigurationProbeService(
         httpClient: httpClient,
         audioValidationService: audioValidation,
+        diagnosticLogger: DisabledDiagnosticLogger(),
         clock: { Date(timeIntervalSince1970: 1000) }
     )
     let voiceProfile = try makeVoiceProfile(languageCode: "ja")
@@ -27,7 +28,8 @@ func draftTTSProbeSendsCurrentLanguageFixedTextAndReturnsEndpointMetadata() asyn
             endpoint: ttsEndpoint(),
             settings: TTSProviderSettings(endpointID: "tts-endpoint", adapterKind: .openAIAudioSpeech),
             voiceProfile: voiceProfile,
-            plaintextSecret: "sk-test"
+            plaintextSecret: "sk-test",
+            operationID: DiagnosticOperationID(rawValue: "op-1")
         )
     )
 
@@ -53,7 +55,8 @@ func draftTTSProbeMapsMissingCredentialWithoutSendingHTTP() async throws {
     let httpClient = CapturingTTSProbeHTTPClient(responses: [])
     let service = TTSConfigurationProbeService(
         httpClient: httpClient,
-        audioValidationService: AcceptingTTSAudioValidationService()
+        audioValidationService: AcceptingTTSAudioValidationService(),
+        diagnosticLogger: DisabledDiagnosticLogger()
     )
 
     let result = try await service.probeDraftTTSConfiguration(
@@ -61,7 +64,8 @@ func draftTTSProbeMapsMissingCredentialWithoutSendingHTTP() async throws {
             endpoint: ttsEndpoint(),
             settings: TTSProviderSettings(endpointID: "tts-endpoint", adapterKind: .openAIAudioSpeech),
             voiceProfile: makeVoiceProfile(languageCode: "en"),
-            plaintextSecret: nil
+            plaintextSecret: nil,
+            operationID: DiagnosticOperationID(rawValue: "op-1")
         )
     )
 
@@ -83,7 +87,8 @@ func draftTTSProbeDelegatesAudioValidationFailures() async throws {
     )
     let service = TTSConfigurationProbeService(
         httpClient: httpClient,
-        audioValidationService: FailingTTSAudioValidationService(category: .audioDecodeFailed)
+        audioValidationService: FailingTTSAudioValidationService(category: .audioDecodeFailed),
+        diagnosticLogger: DisabledDiagnosticLogger()
     )
 
     let result = try await service.probeDraftTTSConfiguration(
@@ -91,7 +96,8 @@ func draftTTSProbeDelegatesAudioValidationFailures() async throws {
             endpoint: ttsEndpoint(),
             settings: TTSProviderSettings(endpointID: "tts-endpoint", adapterKind: .openAIAudioSpeech),
             voiceProfile: makeVoiceProfile(languageCode: "en"),
-            plaintextSecret: "sk-test"
+            plaintextSecret: "sk-test",
+            operationID: DiagnosticOperationID(rawValue: "op-1")
         )
     )
 
@@ -113,7 +119,8 @@ func draftTTSProbeRejectsOversizedAudioResponseBeforeValidation() async throws {
     let audioValidation = CountingTTSAudioValidationService()
     let service = TTSConfigurationProbeService(
         httpClient: httpClient,
-        audioValidationService: audioValidation
+        audioValidationService: audioValidation,
+        diagnosticLogger: DisabledDiagnosticLogger()
     )
 
     let result = try await service.probeDraftTTSConfiguration(
@@ -121,7 +128,8 @@ func draftTTSProbeRejectsOversizedAudioResponseBeforeValidation() async throws {
             endpoint: ttsEndpoint(),
             settings: TTSProviderSettings(endpointID: "tts-endpoint", adapterKind: .openAIAudioSpeech),
             voiceProfile: makeVoiceProfile(languageCode: "en"),
-            plaintextSecret: "sk-test"
+            plaintextSecret: "sk-test",
+            operationID: DiagnosticOperationID(rawValue: "op-1")
         )
     )
 
@@ -129,6 +137,121 @@ func draftTTSProbeRejectsOversizedAudioResponseBeforeValidation() async throws {
     #expect(result.errorCategory == .invalidAudioResponse)
     #expect(await audioValidation.validationCount == 0)
 }
+
+@Test("Draft TTS probe decodes streamed SSE audio chunks for OpenRouter multimodal adapter")
+func draftTTSProbeDecodesStreamedSSEAudioChunks() async throws {
+    let ssePayload = "data: {\"choices\":[{\"delta\":{\"audio\":{\"data\":\"AAAA\"}}}]}\n"
+    let httpClient = CapturingTTSProbeHTTPClient(
+        responses: [
+            AIProviderProbeHTTPResponse(
+                statusCode: 200,
+                body: Data(ssePayload.utf8),
+                contentType: "text/event-stream"
+            )
+        ]
+    )
+    let audioValidation = AcceptingTTSAudioValidationService()
+    let service = TTSConfigurationProbeService(
+        httpClient: httpClient,
+        audioValidationService: audioValidation,
+        diagnosticLogger: DisabledDiagnosticLogger()
+    )
+
+    let voiceProfile = try TTSVoiceProfile.make(
+        id: "voice-ja",
+        endpointID: "tts-endpoint",
+        languageCode: "ja",
+        adapterKind: .openRouterMultimodalAudio,
+        modelName: "openai/gpt-audio-mini",
+        voiceID: "alloy",
+        outputFormat: .wav
+    )
+
+    let result = await service.probeDraftTTSConfiguration(
+        TTSDraftProbeInput(
+            endpoint: AIProviderEndpointInput(
+                id: "tts-endpoint",
+                profileID: "profile-1",
+                purpose: .tts,
+                isEnabled: true,
+                providerPresetID: "openrouter",
+                adapterKind: .openAICompatibleChat,
+                baseURL: "https://openrouter.ai/api/v1",
+                modelName: "openai/gpt-audio-mini",
+                credentialID: "credential-1",
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+            settings: TTSProviderSettings(endpointID: "tts-endpoint", adapterKind: .openRouterMultimodalAudio),
+            voiceProfile: voiceProfile,
+            plaintextSecret: "sk-test",
+            operationID: DiagnosticOperationID(rawValue: "op-2")
+        )
+    )
+
+    #expect(result.status == .succeeded)
+    #expect(result.audioMetadata?.format == .wav)
+}
+
+@Test("Draft TTS probe uses WAV validation format for multimodal adapter even when voiceProfile declares MP3")
+func draftTTSProbeUsesWAVFormatForMultimodalAdapterWhenVoiceProfileDeclaresMp3() async throws {
+    // This is the real-world scenario: user configures outputFormat=.mp3 in their voice profile,
+    // but openRouterMultimodalAudio always decodes to WAV (PCM16-wrapped). The probe must validate
+    // against .wav, not .mp3, to avoid a format mismatch causing false invalidAudioResponse failures.
+    let ssePayload = "data: {\"choices\":[{\"delta\":{\"audio\":{\"data\":\"AAAA\"}}}]}\n"
+    let httpClient = CapturingTTSProbeHTTPClient(
+        responses: [
+            AIProviderProbeHTTPResponse(
+                statusCode: 200,
+                body: Data(ssePayload.utf8),
+                contentType: "text/event-stream"
+            )
+        ]
+    )
+    let audioValidation = CapturingTTSAudioValidationService()
+    let service = TTSConfigurationProbeService(
+        httpClient: httpClient,
+        audioValidationService: audioValidation,
+        diagnosticLogger: DisabledDiagnosticLogger()
+    )
+
+    let voiceProfile = try TTSVoiceProfile.make(
+        id: "voice-en",
+        endpointID: "tts-endpoint",
+        languageCode: "en",
+        adapterKind: .openRouterMultimodalAudio,
+        modelName: "openai/gpt-audio-mini",
+        voiceID: "nova",
+        outputFormat: .mp3 // User configured MP3, but multimodal decodes to WAV
+    )
+
+    _ = await service.probeDraftTTSConfiguration(
+        TTSDraftProbeInput(
+            endpoint: AIProviderEndpointInput(
+                id: "tts-endpoint",
+                profileID: "profile-1",
+                purpose: .tts,
+                isEnabled: true,
+                providerPresetID: "openrouter",
+                adapterKind: .openAICompatibleChat,
+                baseURL: "https://openrouter.ai/api/v1",
+                modelName: "openai/gpt-audio-mini",
+                credentialID: "credential-1",
+                supportsImageInput: false,
+                imageInputEnabled: false
+            ),
+            settings: TTSProviderSettings(endpointID: "tts-endpoint", adapterKind: .openRouterMultimodalAudio),
+            voiceProfile: voiceProfile,
+            plaintextSecret: "sk-test",
+            operationID: DiagnosticOperationID(rawValue: "op-3")
+        )
+    )
+
+    // The validation service must have received .wav (the actual decoded format), not .mp3
+    let capturedFormat = await audioValidation.lastDeclaredFormat
+    #expect(capturedFormat == .wav)
+}
+
 
 private actor CapturingTTSProbeHTTPClient: AIProviderProbeHTTPClient {
     private(set) var requests: [URLRequest] = []
@@ -191,6 +314,29 @@ private actor CountingTTSAudioValidationService: TTSAudioValidationService {
     ) async -> TTSAudioValidationResult {
         validationCount += 1
         return TTSAudioValidationResult(status: .failed(.audioDecodeFailed), metadata: nil, previewResource: nil)
+    }
+}
+
+private actor CapturingTTSAudioValidationService: TTSAudioValidationService {
+    private(set) var lastDeclaredFormat: TTSAudioFormat?
+
+    func validateAudio(
+        _ data: Data,
+        declaredFormat: TTSAudioFormat,
+        contentType _: String?,
+        previewPolicy _: TTSAudioPreviewPolicy
+    ) async -> TTSAudioValidationResult {
+        lastDeclaredFormat = declaredFormat
+        return TTSAudioValidationResult(
+            status: .succeeded,
+            metadata: TTSAudioMetadata(
+                format: declaredFormat,
+                byteCount: data.count,
+                durationSeconds: 1.0,
+                sampleRate: nil
+            ),
+            previewResource: nil
+        )
     }
 }
 

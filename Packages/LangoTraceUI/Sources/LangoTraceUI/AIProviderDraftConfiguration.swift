@@ -373,11 +373,15 @@ struct AIProviderDraftConfiguration: Equatable {
         if textProbeReadiness == .readyForRequest {
             return .readyForRequest
         }
+        let textCredential = text.endpoint.independentCredential
+        if speech.isEnabled, speech.isComplete(textCredential: textCredential, textCredentialID: text.endpoint.credentialID) {
+            return .readyForRequest
+        }
         let embeddingDecision = embedding.endpoint.embeddingDecision()
         let hasCompleteEmbeddingProbe = embedding.isEnabled &&
             embeddingDecision.canProbe &&
             embedding.isComplete(
-                textCredential: text.endpoint.independentCredential,
+                textCredential: textCredential,
                 textCredentialID: text.endpoint.credentialID
             )
         return hasCompleteEmbeddingProbe ? .readyForRequest : .missingRequiredFields

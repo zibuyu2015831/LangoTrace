@@ -126,6 +126,8 @@ OPENAI_API_KEY='...' OPENAI_BASE_URL='https://api.openai.com/v1' OPENAI_EMBEDDIN
 - 输出不会打印 API Key、请求体、响应体或 embedding vector；embedding mode 只输出 vector length。
 - 如果脚本返回 `authentication_failed`，应优先检查 API Key、Provider 账号权限和兼容层认证方式；如果脚本通过但 App 失败，再回到 App 日志和 Provider probe 实现排查。
 
+`Tests/AIProviderIntegration/` 提供另一组宿主机集成探针脚本（`test_text_interaction.py`、`test_json_output.py`、`test_embeddings.py`、`test_tts.py`），凭据通过根目录 `.env` 提供（模板见 `.env.example`，`.env` 已被 Git 忽略）。这些脚本面向真实 Provider 账号的手动联调，请求内容固定为合成文本，不发送任何用户正文；它们不进入 `python3 -m unittest discover -s Tests/Tooling` 自动化序列，输出只包含合成请求的回复摘要和字节统计，不得包含 API Key。
+
 ## 模拟器截图验证
 
 涉及 iPhone、iPad、macOS 页面结构、设计系统、导航和主要用户路径的改动，除自动化测试外，应保留一轮模拟器或本机截图验证记录。

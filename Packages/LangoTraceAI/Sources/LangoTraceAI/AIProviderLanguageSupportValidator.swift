@@ -171,9 +171,9 @@ private extension AIProviderLanguageSupportValidator {
     /// an upper bound would misreport long samples as `sampleTooShort`.
     func validateLength(_ sample: String, for target: TargetLanguage) -> Bool {
         if target.usesVisibleCharacterCount {
-            return visibleCharacterCount(sample) >= 30
+            return visibleCharacterCount(sample) >= 15
         }
-        return wordCount(sample) >= 20
+        return wordCount(sample) >= 10
     }
 
     func visibleCharacterCount(_ sample: String) -> Int {
@@ -202,13 +202,13 @@ private extension AIProviderLanguageSupportValidator {
         let counts = ScriptCounts(sample)
         switch target {
         case .simplifiedChinese:
-            return counts.cjk >= 30 && counts.latin < counts.cjk
+            return counts.cjk >= 15 && counts.latin < counts.cjk
         case .japanese:
             return counts.kana > 0
         case .korean:
             return counts.hangul > 0
         case .english, .french, .german, .spanish:
-            return counts.latin >= 30 && counts.cjk == 0 && counts.kana == 0 && counts.hangul == 0
+            return counts.latin >= 15 && counts.cjk == 0 && counts.kana == 0 && counts.hangul == 0
         }
     }
 

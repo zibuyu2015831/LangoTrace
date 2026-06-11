@@ -595,6 +595,18 @@ struct AIProviderSettingsProbeTests {
         ))
     }
 
+    @Test("Complete TTS-only draft allows configuration probe")
+    func ttsOnlyDraftAllowsConfigurationProbe() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        draft.text.textGenerationEnabled = false
+        draft.speech.isEnabled = true
+        draft.speech.endpoint.model = "tts-1"
+        draft.speech.endpoint.credentialReference = .independent
+        draft.speech.endpoint.independentCredential.apiKeyDraft = "sk-test"
+
+        #expect(draft.configurationProbeReadiness == AIProviderTestReadiness.readyForRequest)
+    }
+
     private func loadedProfile() throws -> AIProviderConfigurationProfile {
         try loadedProfile(
             providerPresetID: "openai",

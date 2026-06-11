@@ -58,14 +58,14 @@ private extension TTSAudioResponseValidator {
         case 429:
             return providerBody(body).contains("quota") ? .quotaExceeded : .rateLimited
         default:
-            let body = providerBody(body)
-            if body.contains("voice") {
+            let bodyString = providerBody(body)
+            if bodyString.contains("voice") {
                 return .invalidVoice
             }
-            if body.contains("language") {
+            if bodyString.contains("language") {
                 return .unsupportedLanguage
             }
-            if body.contains("quota") {
+            if bodyString.contains("quota") {
                 return .quotaExceeded
             }
             return .providerRejected

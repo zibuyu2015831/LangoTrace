@@ -51,11 +51,11 @@ struct TTSProviderSettingsTests {
         }
     }
 
-    @Test("OpenAI and OpenRouter use dedicated TTS adapter kinds")
-    func openAIAndOpenRouterUseDedicatedTTSAdapterKinds() {
+    @Test("OpenAI, OpenRouter and Custom use dedicated TTS adapter kinds")
+    func openAIOpenRouterAndCustomUseDedicatedTTSAdapterKinds() {
         #expect(AIProviderPreset.openAI.defaultTTSAdapterKind == .openAIAudioSpeech)
-        #expect(AIProviderPreset.openRouter.defaultTTSAdapterKind == .openRouterAudioSpeech)
-        #expect(AIProviderPreset.customOpenAICompatible.defaultTTSAdapterKind == nil)
+        #expect(AIProviderPreset.openRouter.defaultTTSAdapterKind == .openRouterMultimodalAudio)
+        #expect(AIProviderPreset.customOpenAICompatible.defaultTTSAdapterKind == .customOpenAICompatibleAudioSpeech)
     }
 
     @Test("OpenRouter speech defaults make an enabled TTS draft saveable and probeable")
@@ -64,7 +64,7 @@ struct TTSProviderSettingsTests {
         draft.text.endpoint.independentCredential.apiKeyDraft = "sk-openrouter"
         draft.speech.isEnabled = true
 
-        #expect(draft.speech.endpoint.model == "openai/tts-1")
+        #expect(draft.speech.endpoint.model == "openai/gpt-audio-mini")
         #expect(draft.speech.voiceID == "nova")
         #expect(draft.saveReadiness == .readyForRequest)
 
@@ -75,8 +75,8 @@ struct TTSProviderSettingsTests {
 
         #expect(snapshot.requestedCapabilities.contains(.speechSynthesis))
         #expect(snapshot.ttsEndpoint?.providerPresetID == "openrouter")
-        #expect(snapshot.ttsEndpoint?.modelName == "openai/tts-1")
-        #expect(snapshot.ttsSettings?.adapterKind == .openRouterAudioSpeech)
+        #expect(snapshot.ttsEndpoint?.modelName == "openai/gpt-audio-mini")
+        #expect(snapshot.ttsSettings?.adapterKind == .openRouterMultimodalAudio)
         #expect(snapshot.ttsVoiceProfile?.voiceID == "nova")
         #expect(snapshot.ttsPlaintextSecret == "sk-openrouter")
     }

@@ -28,7 +28,8 @@ enum SentenceAudioPlaybackAssembly {
             ),
             ttsConfigurationProbeService: TTSConfigurationProbeService(
                 httpClient: URLSessionAIProviderProbeHTTPClient(),
-                audioValidationService: DefaultTTSAudioValidationService(previewStore: ttsPreviewStore)
+                audioValidationService: DefaultTTSAudioValidationService(previewStore: ttsPreviewStore),
+                diagnosticLogger: diagnosticLogger
             ),
             diagnosticLogger: diagnosticLogger
         )

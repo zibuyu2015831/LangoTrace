@@ -391,7 +391,9 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
         case .openAI:
             "tts-1"
         case .openRouter:
-            "openai/tts-1"
+            // OpenRouter has no /audio/speech endpoint; the default adapter is
+            // the multimodal chat route, which needs an audio-capable chat model.
+            "openai/gpt-audio-mini"
         default:
             ""
         }
@@ -515,7 +517,9 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
         case .openAI:
             .openAIAudioSpeech
         case .openRouter:
-            .openRouterAudioSpeech
+            .openRouterMultimodalAudio
+        case .customOpenAICompatible:
+            .customOpenAICompatibleAudioSpeech
         default:
             nil
         }
@@ -527,6 +531,8 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
             "coral"
         case .openRouter:
             "nova"
+        case .customOpenAICompatible:
+            "alloy"
         default:
             ""
         }
