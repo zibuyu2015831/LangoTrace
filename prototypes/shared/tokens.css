@@ -90,7 +90,22 @@ body {
 h1, h2, h3, h4, p { margin: 0; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
-button { font: inherit; cursor: pointer; }
+/* 静态原型按钮 reset：清除 UA 默认边框 / 背景 / 内边距 / 居中文本，
+   避免浏览器把列表行、选项行渲染成系统按钮或滚动选择器外观。
+   各按钮类（.btn / .row / .icon-btn / 页面局部类）自行定义完整视觉。 */
+button {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
 svg { display: block; flex: none; }
 
 @media (prefers-reduced-motion: reduce) {

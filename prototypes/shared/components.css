@@ -399,11 +399,13 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  width: 100%; /* button 元素默认收缩适应，块级 .list 容器内必须显式撑满 */
   padding: 13px 16px;
   min-height: 52px;
   border-bottom: 1px solid var(--hairline);
   cursor: pointer;
   background: transparent;
+  text-align: left;
 }
 
 .row:last-child { border-bottom: 0; }
@@ -616,6 +618,7 @@
   font-size: var(--fs-sub);
   font-weight: 620;
   color: var(--muted);
+  text-align: center;
 }
 
 .seg button.active {
