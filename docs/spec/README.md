@@ -44,6 +44,7 @@
 - [009：测试与验证入口规范](009-testing-and-verification.md)
 - [010：Apple 三端交互与可访问性规范](010-apple-platform-interaction-and-accessibility.md)
 - [011：TTS Provider 配置、测试与播放前置规范](011-tts-provider-configuration-and-playback.md)
+- [012：阅读学习域规范](012-reading-learning-domain.md)
 
 当前模块实现地图：
 
@@ -119,7 +120,7 @@ docs/spec/<module>/
 例如：
 
 - 做 App Shell 或页面跳转：读导航与路由规范。
-- 做 SwiftUI 页面或组件：读 UI 设计系统规范和 SwiftUI 架构规范。
+- 做 SwiftUI 页面或组件：读 UI 设计系统规范和 SwiftUI 架构规范；新增或重构页面时同时对照 `prototypes/index.html` 的目标设计基准，约束以 spec 为准。
 - 做 Apple 三端页面、控制、菜单、键盘、指针、Dynamic Type 或 VoiceOver：读 Apple 三端交互与可访问性规范。
 - 做 AI 请求、Prompt、TTS、OCR、写作检查：读 AI Provider、Prompt 与隐私规范。
 - 发现现有代码和规范冲突：先报告冲突，再提出修正规范或修代码的方案。

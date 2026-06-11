@@ -12,6 +12,7 @@
 - `docs/spec/003-ui-design-system.md`：定义视觉、组件、状态和可访问性原则。
 - `docs/review/`：记录一次性审查轮次和当时证据。
 - `docs/plans/`：记录单项任务执行过程。
+- `prototypes/`：三端目标设计基准（2026-06-11 重建，入口 `prototypes/index.html`），表达目标设计而非实现事实；标注「目标设计」的页面以本文档状态为实现判断依据。
 
 后续新增、删除、合并或改名页面时，必须同步更新本文档。
 
@@ -237,3 +238,4 @@ rg "规划中|待配置|当前页面只展示入口边界|不播放真实 TTS|Lo
 
 - 2026-05-27：同步 AI Provider 设置页向量化配置测试实施事实。原因：向量模型 endpoint 已从占位推进到 OpenAI / OpenRouter / Custom OpenAI-compatible 第一阶段固定低敏 embeddings probe，结果携带 embedding endpoint metadata 和 configuration fingerprint，saved profile 结果写 endpoint-scoped validation outcome，不污染文本 profile 全局摘要。影响范围：AIProviderSettingsView、AIProviderDraftConfiguration、AppEnvironment、LangoTraceAI、LangoTraceData、Prompt Registry 和测试文档。是否需要 ADR：否，沿用 ADR-005。
 - 2026-06-01：新增 Reading 一级页面事实。原因：阅读纵向切片已将 iPhone Tab、iPad route、macOS section 接入真实 `ReadingLibraryStore` / GRDB reading repository / Markdown renderer / selection explanation / reading sentence TTS。影响范围：PhoneMainView、PadMainSections、MacWorkspaceContentView、AppEnvironment、LangoTraceCore / Data / AI / UI 和 Reading spec。是否需要 ADR：否，沿用本地优先、语言空间和用户显式触发边界。
+- 2026-06-11：在「本文档不替代」列表加入 `prototypes/` 目标设计基准定位。原因：多端原型已重建并覆盖待开发页面的目标设计，需要在页面事实源侧明确原型表达目标设计而非实现事实，避免原型「目标设计」页面被误读为已实现。影响范围：本文档与 `prototypes/`、`docs/spec/003-ui-design-system.md` 的权威关系标注。是否需要 ADR：否。

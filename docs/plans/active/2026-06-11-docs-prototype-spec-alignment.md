@@ -1,10 +1,10 @@
 # 原型重建后的文档一致性对齐（docs prototype spec alignment）
 
-- 状态：Active
-- 自审核状态：Reviewed
-- 类型：docs
-- 创建日期：2026-06-11
-- 最后更新日期：2026-06-11
+状态：Active
+自审核状态：Reviewed
+类型：docs
+创建日期：2026-06-11
+最后更新日期：2026-06-11
 
 ## 用户确认记录
 
