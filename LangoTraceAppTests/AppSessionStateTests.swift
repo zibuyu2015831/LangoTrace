@@ -70,6 +70,56 @@ final class AppSessionStateTests: XCTestCase {
         XCTAssertEqual(session.phase, .welcome)
     }
 
+    func testRetryAfterFailedRestoreSucceedsWhenStorageRecovers() {
+        let factory = FlakyRepositoryFactory(
+            failuresBeforeSuccess: 1,
+            repository: InMemoryLanguageSpaceRepository(
+                spaces: [makeLanguageSpace(id: "space-1")],
+                currentSpaceID: "space-1"
+            )
+        )
+        let session = AppSessionState(languageSpaceRepositoryFactory: { try factory.make() })
+
+        session.restoreLanguageSpace()
+        XCTAssertEqual(session.recoveryState, .failed)
+        XCTAssertNil(session.currentLanguageSpace)
+
+        // The welcome screen retry button re-runs the same restore entry point.
+        session.restoreLanguageSpace()
+
+        XCTAssertEqual(session.recoveryState, .restored)
+        XCTAssertEqual(session.currentLanguageSpace?.id, "space-1")
+        session.completeWelcome()
+        XCTAssertEqual(session.phase, .main)
+    }
+
+    func testCreateLanguageSpaceWithValidDraftRoutesToMainWithoutRecoveryFailure() {
+        let session = AppSessionState(languageSpaceRepositoryFactory: {
+            InMemoryLanguageSpaceRepository()
+        })
+        session.restoreLanguageSpace()
+        session.completeWelcome()
+        XCTAssertEqual(session.phase, .onboarding)
+
+        session.createLanguageSpace()
+
+        XCTAssertEqual(session.phase, .main)
+        XCTAssertNotNil(session.currentLanguageSpace)
+        XCTAssertEqual(session.recoveryState, .restored)
+    }
+
+    func testCreateLanguageSpaceStorageFailureMarksRecoveryFailedNotDraftFailure() {
+        let session = AppSessionState(languageSpaceRepositoryFactory: {
+            throw LanguageSpaceError.storageUnavailable
+        })
+
+        session.createLanguageSpace()
+
+        // Storage failure (not draft validation) is what marks recovery as failed.
+        XCTAssertEqual(session.recoveryState, .failed)
+        XCTAssertNil(session.currentLanguageSpace)
+    }
+
     func testDeletingLastLanguageSpaceFallsBackToOnboarding() {
         let repository = InMemoryLanguageSpaceRepository(
             spaces: [makeLanguageSpace(id: "space-1")],
@@ -102,6 +152,27 @@ private func makeLanguageSpace(id: String, displayName: String = "English") -> L
         lastOpenedAt: nil,
         deletedAt: nil
     )
+}
+
+private final class FlakyRepositoryFactory: @unchecked Sendable {
+    private let lock = NSLock()
+    private var remainingFailures: Int
+    private let repository: InMemoryLanguageSpaceRepository
+
+    init(failuresBeforeSuccess: Int, repository: InMemoryLanguageSpaceRepository) {
+        remainingFailures = failuresBeforeSuccess
+        self.repository = repository
+    }
+
+    func make() throws -> any LanguageSpaceRepository {
+        lock.lock()
+        defer { lock.unlock() }
+        if remainingFailures > 0 {
+            remainingFailures -= 1
+            throw LanguageSpaceError.storageUnavailable
+        }
+        return repository
+    }
 }
 
 private final class InMemoryLanguageSpaceRepository: LanguageSpaceRepository, @unchecked Sendable {

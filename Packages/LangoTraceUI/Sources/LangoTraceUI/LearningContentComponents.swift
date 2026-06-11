@@ -46,7 +46,14 @@ struct EntryTimelineRow: View {
                 localizedText("entryDetail.title")
             }
         }
-        .accessibilityLabel("\(entry.title)，\(entry.displaySourceTitle)，\(entry.practiceSummary)")
+        .accessibilityLabel(
+            localizedString(
+                "entry.timeline.accessibilityLabel",
+                entry.title,
+                entry.displaySourceTitle,
+                entry.practiceSummary
+            )
+        )
         .accessibilityValue(localizedText(isSelected ? "accessibility.selected" : "accessibility.unselected"))
     }
 
@@ -338,7 +345,10 @@ struct CapabilityStatusRow: View {
     }
 
     private var accessibilityLabelText: Text {
-        showsStatusBadge ? titleText + Text("，") + localizedText(status.localizedTitleKey) : titleText
+        guard showsStatusBadge else {
+            return titleText
+        }
+        return titleText + localizedText("accessibility.listSeparator") + localizedText(status.localizedTitleKey)
     }
 
     private var statusColor: Color {

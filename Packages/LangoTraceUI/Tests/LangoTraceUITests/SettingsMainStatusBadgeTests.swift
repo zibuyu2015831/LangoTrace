@@ -24,8 +24,10 @@ struct SettingsMainStatusBadgeTests {
         #expect(components.contains("showsStatusBadge: Bool = true"))
         #expect(components.contains("if showsStatusBadge {"))
         #expect(components.contains("CapabilityStatusBadge(status: status)"))
-        #expect(components.contains("showsStatusBadge ? titleText + Text(\"，\")"))
-        #expect(components.contains("localizedText(status.localizedTitleKey) : titleText"))
+        #expect(components.contains("guard showsStatusBadge else {"))
+        #expect(components.contains(
+            "titleText + localizedText(\"accessibility.listSeparator\") + localizedText(status.localizedTitleKey)"
+        ))
     }
 
     private func source(named fileName: String) throws -> String {

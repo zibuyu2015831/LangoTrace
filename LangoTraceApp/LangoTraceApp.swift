@@ -33,6 +33,10 @@ struct LangoTraceApp: App {
         )
         _interfaceLanguagePreference = State(initialValue: store.preference)
         _appearancePreference = State(initialValue: appearanceStore.preference)
+        // Apply the chrome language before the first scene body resolves localized
+        // strings. View `onAppear` runs after the first body evaluation, so this is
+        // the only place that reliably covers the first render of every scene.
+        LangoTraceInterfaceChrome.applyLanguage(store.preference)
     }
 
     var body: some Scene {
@@ -51,8 +55,7 @@ struct LangoTraceApp: App {
                     onUpdateLanguageSpace: session.updateLanguageSpace,
                     onDeleteLanguageSpace: session.deleteLanguageSpace,
                     onInterfaceLanguagePreferenceChange: { preference in
-                        interfaceLanguagePreferenceStore.preference = preference
-                        interfaceLanguagePreference = preference
+                        applyInterfaceLanguagePreference(preference)
                     },
                     onAppearancePreferenceChange: { preference in
                         applyAppearancePreference(preference)
@@ -97,19 +100,20 @@ struct LangoTraceApp: App {
             practiceActions: environment.practiceActions,
             interfaceLanguagePreference: interfaceLanguagePreference,
             appearancePreference: appearancePreference,
+            launchRecoveryFailed: session.recoveryState == .failed,
             onboardingDraft: Binding(
                 get: { session.onboardingDraft },
                 set: { session.onboardingDraft = $0 }
             ),
             onWelcomeFinished: session.completeWelcome,
+            onRetryLaunchRecovery: session.restoreLanguageSpace,
             onCreateLanguageSpace: session.createLanguageSpace,
             onAddLanguageSpace: session.addLanguageSpace,
             onSelectLanguageSpace: session.selectLanguageSpace,
             onUpdateLanguageSpace: session.updateLanguageSpace,
             onDeleteLanguageSpace: session.deleteLanguageSpace,
             onInterfaceLanguagePreferenceChange: { preference in
-                interfaceLanguagePreferenceStore.preference = preference
-                interfaceLanguagePreference = preference
+                applyInterfaceLanguagePreference(preference)
             },
             onAppearancePreferenceChange: { preference in
                 applyAppearancePreference(preference)
@@ -133,6 +137,15 @@ struct LangoTraceApp: App {
         environment.learningContentRepository.settingsCapabilities(
             for: session.currentLanguageSpace?.id ?? Self.settingsCapabilitiesPlaceholderSpaceID
         )
+    }
+
+    private func applyInterfaceLanguagePreference(_ preference: InterfaceLanguagePreference) {
+        interfaceLanguagePreferenceStore.preference = preference
+        interfaceLanguagePreference = preference
+        // Keep the chrome resolver in sync even when the main window (and its
+        // onChange path) is not currently in the hierarchy, e.g. the macOS
+        // Settings scene changing the language while the main window is closed.
+        LangoTraceInterfaceChrome.applyLanguage(preference)
     }
 
     private func applyAppearancePreference(_ preference: AppearancePreference) {

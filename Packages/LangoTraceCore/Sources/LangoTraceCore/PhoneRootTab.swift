@@ -13,19 +13,6 @@ public enum PhoneRootTab: String, CaseIterable, Hashable, Identifiable {
         self
     }
 
-    public var title: String {
-        switch self {
-        case .entries:
-            "记录"
-        case .reading:
-            "阅读"
-        case .practice:
-            "练习"
-        case .memory:
-            "记忆"
-        }
-    }
-
     public func tab(after direction: Direction) -> Self {
         let tabs = Self.allCases
         guard let index = tabs.firstIndex(of: self) else {

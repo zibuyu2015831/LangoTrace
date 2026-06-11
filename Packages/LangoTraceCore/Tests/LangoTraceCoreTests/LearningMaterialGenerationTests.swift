@@ -1,3 +1,4 @@
+import Foundation
 import LangoTraceCore
 import Testing
 
@@ -103,6 +104,49 @@ func learningMaterialFailureStatePreservesMaterialRetryContext() {
     #expect(failed.operationID?.rawValue == "op-analyze")
     #expect(failed.materialID == "material-1")
     #expect(failed.analysisIsStale)
+}
+
+@Test("Operation summary factories carry caller-provided timestamps instead of epoch defaults")
+func operationSummaryFactoriesCarryProvidedTimestamps() {
+    let createdAt = Date(timeIntervalSince1970: 1_700_000_000)
+    let completedAt = Date(timeIntervalSince1970: 1_700_000_060)
+    let operationID = DiagnosticOperationID(rawValue: "op-timestamps")
+
+    let started = LearningMaterialOperationSummary.started(
+        operationID: operationID,
+        entryID: "entry-1",
+        kind: .generate,
+        bucket: .short,
+        createdAt: createdAt
+    )
+    #expect(started.createdAt == createdAt)
+    #expect(started.completedAt == nil)
+
+    let failed = LearningMaterialOperationSummary.failed(
+        operationID: operationID,
+        entryID: "entry-1",
+        kind: .generate,
+        failureCategory: .timeout,
+        bucket: .short,
+        createdAt: createdAt,
+        completedAt: completedAt
+    )
+    #expect(failed.createdAt == createdAt)
+    #expect(failed.createdAt != Date(timeIntervalSince1970: 0))
+    #expect(failed.completedAt == completedAt)
+
+    let cancelled = LearningMaterialOperationSummary.cancelled(
+        operationID: operationID,
+        entryID: "entry-1",
+        materialID: "material-1",
+        kind: .analyze,
+        bucket: .short,
+        createdAt: createdAt,
+        completedAt: completedAt
+    )
+    #expect(cancelled.createdAt == createdAt)
+    #expect(cancelled.createdAt != Date(timeIntervalSince1970: 0))
+    #expect(cancelled.completedAt == completedAt)
 }
 
 @Test("Entry source describes capture modality and not AI routing result")

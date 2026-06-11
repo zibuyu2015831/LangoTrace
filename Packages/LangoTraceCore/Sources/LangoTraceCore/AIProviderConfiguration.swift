@@ -547,8 +547,8 @@ public struct AIProviderCredentialMetadata: Equatable, Sendable {
         keychainAccessibility: String = "when_unlocked_this_device_only",
         secretPresence: AIProviderSecretPresence = .unknown,
         cleanupState: AIProviderCredentialCleanupState = .active,
-        createdAt: Date = Date(timeIntervalSince1970: 0),
-        updatedAt: Date = Date(timeIntervalSince1970: 0),
+        createdAt: Date,
+        updatedAt: Date,
         lastResolvedAt: Date? = nil,
         deletedAt: Date? = nil
     ) {

@@ -644,6 +644,7 @@ private func makeLearningMaterialGenerationActions(
                         kind: kind,
                         failureCategory: category,
                         bucket: bucket,
+                        createdAt: Date(),
                         completedAt: Date(),
                         promptID: kind == .analyze
                             ? LearningMaterialPromptRegistry.analysisPromptID
@@ -662,6 +663,7 @@ private func makeLearningMaterialGenerationActions(
                         materialID: materialID,
                         kind: kind,
                         bucket: bucket,
+                        createdAt: Date(),
                         completedAt: Date(),
                         promptID: kind == .analyze
                             ? LearningMaterialPromptRegistry.analysisPromptID
@@ -717,6 +719,7 @@ private func recordLearningMaterialFailure(
             kind: kind,
             failureCategory: category,
             bucket: bucket,
+            createdAt: Date(),
             completedAt: Date(),
             promptID: promptID
         )
@@ -880,6 +883,9 @@ final class AppSessionState: ObservableObject {
         self.languageSpaceRepositoryFactory = languageSpaceRepositoryFactory
     }
 
+    /// Restores the persisted language spaces and current selection. The method is
+    /// intentionally re-runnable from `.failed`: the welcome screen retry button
+    /// calls it again after a failed database open or migration.
     func restoreLanguageSpace() {
         guard recoveryState != .restoring else {
             return
@@ -908,13 +914,14 @@ final class AppSessionState: ObservableObject {
     }
 
     func createLanguageSpace() {
-        do {
-            let input = try onboardingDraft.makeLanguageSpaceInput()
-            addLanguageSpace(input)
-            phase = LaunchRoute.route(hasLanguageSpace: currentLanguageSpace != nil).appPhase
-        } catch {
-            recoveryState = .failed
+        // Draft validation failure is not a storage recovery failure: the draft is
+        // normalized before producing the input, so in practice this cannot throw.
+        // If it ever does, stay on onboarding instead of poisoning `recoveryState`.
+        guard let input = try? onboardingDraft.makeLanguageSpaceInput() else {
+            return
         }
+        addLanguageSpace(input)
+        phase = LaunchRoute.route(hasLanguageSpace: currentLanguageSpace != nil).appPhase
     }
 
     func addLanguageSpace(_ input: CreateLanguageSpaceInput) {

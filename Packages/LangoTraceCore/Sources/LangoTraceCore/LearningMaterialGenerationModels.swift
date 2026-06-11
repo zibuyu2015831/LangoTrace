@@ -626,7 +626,7 @@ public struct LearningMaterialOperationSummary: Equatable, Sendable {
         entryID: String,
         kind: LearningMaterialOperationKind,
         bucket: LearningMaterialEstimatedTokenBucket,
-        createdAt: Date = Date(timeIntervalSince1970: 0),
+        createdAt: Date,
         promptID: String = "builtin.learning_material.generate.v1",
         promptVersion: String = "1"
     ) -> LearningMaterialOperationSummary {
@@ -657,6 +657,7 @@ public struct LearningMaterialOperationSummary: Equatable, Sendable {
         kind: LearningMaterialOperationKind,
         failureCategory: LearningMaterialGenerationFailureCategory,
         bucket: LearningMaterialEstimatedTokenBucket,
+        createdAt: Date,
         completedAt: Date,
         promptID: String = "builtin.learning_material.generate.v1",
         promptVersion: String = "1"
@@ -677,7 +678,7 @@ public struct LearningMaterialOperationSummary: Equatable, Sendable {
             inputKind: nil,
             estimatedTokenBucket: bucket,
             durationMilliseconds: nil,
-            createdAt: Date(timeIntervalSince1970: 0),
+            createdAt: createdAt,
             completedAt: completedAt
         )
     }
@@ -688,6 +689,7 @@ public struct LearningMaterialOperationSummary: Equatable, Sendable {
         materialID: String?,
         kind: LearningMaterialOperationKind,
         bucket: LearningMaterialEstimatedTokenBucket,
+        createdAt: Date,
         completedAt: Date,
         promptID: String = "builtin.learning_material.generate.v1",
         promptVersion: String = "1"
@@ -708,7 +710,7 @@ public struct LearningMaterialOperationSummary: Equatable, Sendable {
             inputKind: nil,
             estimatedTokenBucket: bucket,
             durationMilliseconds: nil,
-            createdAt: Date(timeIntervalSince1970: 0),
+            createdAt: createdAt,
             completedAt: completedAt
         )
     }

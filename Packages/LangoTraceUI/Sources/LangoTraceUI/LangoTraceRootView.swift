@@ -26,8 +26,10 @@ public struct LangoTraceRootView: View {
     private let practiceActions: PracticeActions
     private let interfaceLanguagePreference: InterfaceLanguagePreference
     private let appearancePreference: AppearancePreference
+    private let launchRecoveryFailed: Bool
     @Binding private var onboardingDraft: OnboardingDraft
     private let onWelcomeFinished: () -> Void
+    private let onRetryLaunchRecovery: () -> Void
     private let onCreateLanguageSpace: () -> Void
     private let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
     private let onSelectLanguageSpace: (String) -> Void
@@ -52,8 +54,10 @@ public struct LangoTraceRootView: View {
         practiceActions: PracticeActions = .disabled,
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         appearancePreference: AppearancePreference = .system,
+        launchRecoveryFailed: Bool = false,
         onboardingDraft: Binding<OnboardingDraft>,
         onWelcomeFinished: @escaping () -> Void,
+        onRetryLaunchRecovery: @escaping () -> Void = {},
         onCreateLanguageSpace: @escaping () -> Void,
         onAddLanguageSpace: @escaping (CreateLanguageSpaceInput) -> Void = { _ in },
         onSelectLanguageSpace: @escaping (String) -> Void = { _ in },
@@ -75,8 +79,10 @@ public struct LangoTraceRootView: View {
         self.practiceActions = practiceActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
+        self.launchRecoveryFailed = launchRecoveryFailed
         _onboardingDraft = onboardingDraft
         self.onWelcomeFinished = onWelcomeFinished
+        self.onRetryLaunchRecovery = onRetryLaunchRecovery
         self.onCreateLanguageSpace = onCreateLanguageSpace
         self.onAddLanguageSpace = onAddLanguageSpace
         self.onSelectLanguageSpace = onSelectLanguageSpace
@@ -84,11 +90,6 @@ public struct LangoTraceRootView: View {
         self.onDeleteLanguageSpace = onDeleteLanguageSpace
         self.onInterfaceLanguagePreferenceChange = onInterfaceLanguagePreferenceChange
         self.onAppearancePreferenceChange = onAppearancePreferenceChange
-        LocalizedChromeLanguageResolver.use(
-            languageCode: interfaceLanguagePreference.resolvedLanguageCode(
-                systemLanguageCodes: Bundle.main.preferredLocalizations
-            )
-        )
     }
 
     public var body: some View {
@@ -96,6 +97,14 @@ public struct LangoTraceRootView: View {
             switch effectivePhase {
             case .welcome:
                 WelcomeView(onFinished: onWelcomeFinished)
+                    .safeAreaInset(edge: .bottom) {
+                        if Self.showsLaunchRecoveryFailurePanel(
+                            phase: effectivePhase,
+                            launchRecoveryFailed: launchRecoveryFailed
+                        ) {
+                            LaunchRecoveryFailurePanel(onRetry: onRetryLaunchRecovery)
+                        }
+                    }
             case .onboarding:
                 OnboardingView(
                     draft: $onboardingDraft,
@@ -159,10 +168,58 @@ public struct LangoTraceRootView: View {
     }
 
     private func applyInterfaceChromeLanguage() {
-        let resolvedLanguageCode = interfaceLanguagePreference.resolvedLanguageCode(
-            systemLanguageCodes: Bundle.main.preferredLocalizations
-        )
-        LocalizedChromeLanguageResolver.use(languageCode: resolvedLanguageCode)
+        LangoTraceInterfaceChrome.applyLanguage(interfaceLanguagePreference)
+    }
+
+    /// Presentation rule for surfacing a failed local-storage launch recovery.
+    /// The panel belongs only to the welcome phase, where `completeWelcome`
+    /// intentionally keeps the user until storage recovery succeeds.
+    static func showsLaunchRecoveryFailurePanel(
+        phase: LangoTraceAppPhase,
+        launchRecoveryFailed: Bool
+    ) -> Bool {
+        phase == .welcome && launchRecoveryFailed
+    }
+}
+
+private struct LaunchRecoveryFailurePanel: View {
+    let onRetry: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label {
+                localizedText("launchRecovery.failed.title")
+                    .font(.headline)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.ink)
+            } icon: {
+                Image(systemName: "externaldrive.badge.exclamationmark")
+                    .foregroundStyle(LangoTraceDesign.ColorToken.stateError)
+            }
+            localizedText("launchRecovery.failed.message")
+                .font(.callout)
+                .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+            Button(action: onRetry) {
+                localizedText("launchRecovery.retry")
+                    .font(.callout.weight(.semibold))
+                    .padding(.horizontal, 6)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(LangoTraceDesign.ColorToken.teal)
+        }
+        .padding(16)
+        .frame(maxWidth: 520, alignment: .topLeading)
+        .background(LangoTraceDesign.ColorToken.elevatedPaper)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(LangoTraceDesign.ColorToken.stateError.opacity(0.30), lineWidth: 1)
+        }
+        .langoSoftShadow()
+        .padding(.horizontal, 20)
+        .padding(.bottom, 16)
+        .accessibilityElement(children: .contain)
     }
 }
 

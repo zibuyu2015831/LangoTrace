@@ -1,6 +1,59 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "accessibility.listSeparator": {
+      "comment": "Separator used when joining accessibility label fragments.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "，"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", "
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "、"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", "
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", "
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", "
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", "
+          }
+        }
+      }
+    },
     "app.badge.aiNotConfigured": {
       "comment": "Badge indicating external AI is not configured.",
       "localizations": {
@@ -688,6 +741,59 @@
         }
       }
     },
+    "entry.timeline.accessibilityLabel": {
+      "comment": "Accessibility label for a timeline entry row joining title, source, and practice summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@，%2$@，%3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@、%2$@、%3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        }
+      }
+    },
     "entryDetail.title": {
       "comment": "Navigation title for entry detail.",
       "localizations": {
@@ -1161,6 +1267,165 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не удалось сохранить эту запись. Повторите попытку позже."
+          }
+        }
+      }
+    },
+    "launchRecovery.failed.message": {
+      "comment": "Message shown on the welcome screen when local storage recovery failed.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LangoTrace couldn't open the local storage on this device. Your data stays on this device and is not sent anywhere. Try again, and restart the app if the problem continues."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语迹暂时无法打开本机存储。你的数据仍只保存在本机，不会发送到任何地方。请重试；如果问题持续，请重启 App。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LangoTrace no pudo abrir el almacenamiento local de este dispositivo. Tus datos permanecen en este dispositivo y no se envían a ningún sitio. Inténtalo de nuevo y reinicia la app si el problema continúa."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LangoTrace はこのデバイスのローカルストレージを開けませんでした。データはこのデバイスにのみ保存され、どこにも送信されません。再試行し、問題が続く場合はアプリを再起動してください。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LangoTrace n'a pas pu ouvrir le stockage local de cet appareil. Vos données restent sur cet appareil et ne sont envoyées nulle part. Réessayez, puis redémarrez l'app si le problème persiste."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LangoTrace konnte den lokalen Speicher dieses Geräts nicht öffnen. Deine Daten bleiben auf diesem Gerät und werden nirgendwohin gesendet. Versuche es erneut und starte die App neu, falls das Problem bestehen bleibt."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LangoTrace가 이 기기의 로컬 저장소를 열지 못했습니다. 데이터는 이 기기에만 저장되며 어디로도 전송되지 않습니다. 다시 시도하고, 문제가 계속되면 앱을 재시동하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LangoTrace не удалось открыть локальное хранилище на этом устройстве. Ваши данные остаются на этом устройстве и никуда не отправляются. Повторите попытку и перезапустите приложение, если проблема сохраняется."
+          }
+        }
+      }
+    },
+    "launchRecovery.failed.title": {
+      "comment": "Title shown on the welcome screen when local storage recovery failed.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local data couldn't be loaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地数据暂时无法加载"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron cargar los datos locales"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカルデータを読み込めませんでした"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de charger les données locales"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokale Daten konnten nicht geladen werden"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 데이터를 불러올 수 없음"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось загрузить локальные данные"
+          }
+        }
+      }
+    },
+    "launchRecovery.retry": {
+      "comment": "Retry button for failed local storage recovery.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try Again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再試行"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut versuchen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다시 시도"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторить"
           }
         }
       }
@@ -2009,6 +2274,1119 @@
           "stringUnit": {
             "state": "translated",
             "value": "Практика"
+          }
+        }
+      }
+    },
+    "privacyStatus.ai.summary.configured": {
+      "comment": "AI provider privacy summary when configured. Must not promise a request preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Content is sent only when you explicitly trigger an AI feature. Your API key stays in this device's secure storage."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有你显式触发 AI 功能时，才会发送当前内容。API Key 保存在本机安全存储中。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El contenido solo se envía cuando activas explícitamente una función de IA. Tu API key permanece en el almacenamiento seguro de este dispositivo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 機能を明示的に実行したときにのみ内容が送信されます。API Key はこのデバイスの安全なストレージに保存されます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le contenu n'est envoyé que lorsque vous déclenchez explicitement une fonction IA. Votre clé API reste dans le stockage sécurisé de cet appareil."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inhalte werden nur gesendet, wenn du eine KI-Funktion ausdrücklich auslöst. Dein API-Key bleibt im sicheren Speicher dieses Geräts."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 기능을 직접 실행할 때만 내용이 전송됩니다. API Key는 이 기기의 보안 저장소에 보관됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Содержимое отправляется только тогда, когда вы явно запускаете функцию ИИ. Ваш API-ключ хранится в защищённом хранилище этого устройства."
+          }
+        }
+      }
+    },
+    "privacyStatus.ai.summary.error": {
+      "comment": "AI provider privacy summary when configuration or the last request failed.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The AI provider configuration has an error or the last request failed. Check the provider, model, and key in Settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider 配置存在错误或最近一次请求失败。请在设置中检查 Provider、模型和密钥。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La configuración del provider de IA tiene un error o la última solicitud falló. Revisa el provider, el modelo y la clave en Ajustes."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider の設定にエラーがあるか、直近のリクエストが失敗しました。設定で Provider・モデル・キーを確認してください。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La configuration du provider IA contient une erreur ou la dernière requête a échoué. Vérifiez le provider, le modèle et la clé dans Réglages."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die KI-Provider-Konfiguration hat einen Fehler oder die letzte Anfrage ist fehlgeschlagen. Prüfe Provider, Modell und Schlüssel in den Einstellungen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider 설정에 오류가 있거나 최근 요청이 실패했습니다. 설정에서 Provider, 모델, 키를 확인하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В конфигурации ИИ-провайдера есть ошибка или последний запрос завершился неудачно. Проверьте провайдера, модель и ключ в настройках."
+          }
+        }
+      }
+    },
+    "privacyStatus.ai.summary.notConfigured": {
+      "comment": "AI provider privacy summary when no provider is configured. Must not promise a request preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No text, photo summaries, or related memories are sent right now. After you configure a provider, content is sent only when you explicitly trigger an AI feature."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前不会发送文本、照片摘要或相似记忆。配置后，只有你显式触发 AI 功能时才会发送当前内容。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ahora mismo no se envían textos, resúmenes de fotos ni recuerdos relacionados. Tras configurar un provider, el contenido solo se envía cuando activas explícitamente una función de IA."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在、テキスト・写真の要約・関連する記憶は送信されません。Provider を設定した後も、AI 機能を明示的に実行したときにのみ内容が送信されます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun texte, résumé de photo ou souvenir associé n'est envoyé pour le moment. Après configuration d'un provider, le contenu n'est envoyé que lorsque vous déclenchez explicitement une fonction IA."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Derzeit werden keine Texte, Foto-Zusammenfassungen oder verwandte Erinnerungen gesendet. Nach der Konfiguration werden Inhalte nur gesendet, wenn du eine KI-Funktion ausdrücklich auslöst."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지금은 텍스트, 사진 요약, 관련 기억이 전송되지 않습니다. Provider를 설정한 후에도 AI 기능을 직접 실행할 때만 내용이 전송됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сейчас тексты, сводки фото и связанные воспоминания не отправляются. После настройки провайдера содержимое отправляется только тогда, когда вы явно запускаете функцию ИИ."
+          }
+        }
+      }
+    },
+    "privacyStatus.ai.summary.unavailable": {
+      "comment": "AI provider privacy summary when temporarily unavailable.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI features are temporarily unavailable due to the current platform, network, permission, or configuration conditions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前平台、网络、权限或配置条件导致 AI 能力暂不可用。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las funciones de IA no están disponibles temporalmente debido a las condiciones actuales de plataforma, red, permisos o configuración."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在のプラットフォーム・ネットワーク・権限・設定の状況により、AI 機能は一時的に利用できません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les fonctions IA sont temporairement indisponibles en raison des conditions actuelles de plateforme, de réseau, d'autorisations ou de configuration."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI-Funktionen sind wegen der aktuellen Plattform-, Netzwerk-, Berechtigungs- oder Konfigurationsbedingungen vorübergehend nicht verfügbar."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 플랫폼, 네트워크, 권한 또는 설정 조건으로 인해 AI 기능을 일시적으로 사용할 수 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Функции ИИ временно недоступны из-за текущих условий платформы, сети, разрешений или конфигурации."
+          }
+        }
+      }
+    },
+    "privacyStatus.ai.title": {
+      "comment": "Title for the AI provider privacy status icon.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider de IA"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider IA"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI-Provider"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        }
+      }
+    },
+    "privacyStatus.ai.value.configured": {
+      "comment": "AI provider status value: configured.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已配置"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurado"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定済み"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuré"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konfiguriert"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настроен"
+          }
+        }
+      }
+    },
+    "privacyStatus.ai.value.error": {
+      "comment": "AI provider status value: configuration or request error.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs attention"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要处理"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requiere atención"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要対応"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attention requise"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktion erforderlich"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "확인 필요"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Требует внимания"
+          }
+        }
+      }
+    },
+    "privacyStatus.ai.value.notConfigured": {
+      "comment": "AI provider status value: not configured.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未配置"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin configurar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未設定"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non configuré"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht konfiguriert"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "미설정"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не настроен"
+          }
+        }
+      }
+    },
+    "privacyStatus.ai.value.unavailable": {
+      "comment": "AI provider status value: temporarily unavailable.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temporarily unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不可用"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No disponible por ahora"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一時的に利用できません"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temporairement indisponible"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorübergehend nicht verfügbar"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "일시적으로 사용할 수 없음"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Временно недоступен"
+          }
+        }
+      }
+    },
+    "privacyStatus.help.format": {
+      "comment": "Pattern combining a privacy status title, value, and summary for tooltips.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@. %3$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@：%2$@。%3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@. %3$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@：%2$@。%3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ : %2$@. %3$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@. %3$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@. %3$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@. %3$@"
+          }
+        }
+      }
+    },
+    "privacyStatus.sync.summary.configured": {
+      "comment": "Sync privacy summary when sync is configured.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only data within your configured scope is synced. Keys and unselected data never enter the synced content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅同步你配置范围内的数据。密钥和未选择的数据不会进入同步内容。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo se sincronizan los datos dentro del alcance configurado. Las claves y los datos no seleccionados nunca entran en el contenido sincronizado."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定した範囲内のデータのみ同期されます。キーや選択していないデータが同期内容に含まれることはありません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seules les données dans le périmètre configuré sont synchronisées. Les clés et les données non sélectionnées n'entrent jamais dans le contenu synchronisé."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur Daten innerhalb des konfigurierten Umfangs werden synchronisiert. Schlüssel und nicht ausgewählte Daten gelangen nie in die Sync-Inhalte."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정한 범위 내의 데이터만 동기화됩니다. 키와 선택하지 않은 데이터는 동기화 내용에 포함되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизируются только данные в настроенных пределах. Ключи и невыбранные данные никогда не попадают в синхронизируемое содержимое."
+          }
+        }
+      }
+    },
+    "privacyStatus.sync.summary.error": {
+      "comment": "Sync privacy summary when sync failed or configuration is invalid.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync failed or the configuration is no longer valid. Check the destination, permissions, and network in Settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同步失败或配置失效。请在设置中检查目标位置、权限和网络状态。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sincronización falló o la configuración ya no es válida. Revisa el destino, los permisos y la red en Ajustes."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同期に失敗したか、設定が無効になっています。設定で同期先・権限・ネットワーク状態を確認してください。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La synchronisation a échoué ou la configuration n'est plus valide. Vérifiez la destination, les autorisations et le réseau dans Réglages."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Synchronisierung ist fehlgeschlagen oder die Konfiguration ist ungültig. Prüfe Ziel, Berechtigungen und Netzwerk in den Einstellungen."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동기화에 실패했거나 설정이 더 이상 유효하지 않습니다. 설정에서 대상 위치, 권한, 네트워크 상태를 확인하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизация не удалась или конфигурация устарела. Проверьте назначение, разрешения и сеть в настройках."
+          }
+        }
+      }
+    },
+    "privacyStatus.sync.summary.off": {
+      "comment": "Sync privacy summary when sync is off.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your data stays on this device only. You can configure iCloud, WebDAV, S3, or R2 later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据仅保存在本机。你可以稍后配置 iCloud、WebDAV、S3 或 R2。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus datos se guardan solo en este dispositivo. Puedes configurar iCloud, WebDAV, S3 o R2 más adelante."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データはこのデバイスにのみ保存されます。iCloud・WebDAV・S3・R2 は後で設定できます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vos données restent uniquement sur cet appareil. Vous pourrez configurer iCloud, WebDAV, S3 ou R2 plus tard."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Daten bleiben nur auf diesem Gerät. Du kannst iCloud, WebDAV, S3 oder R2 später konfigurieren."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "데이터는 이 기기에만 저장됩니다. iCloud, WebDAV, S3 또는 R2는 나중에 설정할 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Данные хранятся только на этом устройстве. Позже можно настроить iCloud, WebDAV, S3 или R2."
+          }
+        }
+      }
+    },
+    "privacyStatus.sync.summary.paused": {
+      "comment": "Sync privacy summary while paused.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync is paused. Data keeps being saved on this device and syncs again within the configured scope after you resume."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同步已暂停。数据继续保存在本机，恢复后再同步配置范围内的数据。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sincronización está en pausa. Los datos se siguen guardando en este dispositivo y se sincronizarán de nuevo dentro del alcance configurado al reanudar."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同期は一時停止中です。データは引き続きこのデバイスに保存され、再開後に設定した範囲内で再び同期されます。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La synchronisation est en pause. Les données restent enregistrées sur cet appareil et se synchroniseront à nouveau dans le périmètre configuré après la reprise."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Synchronisierung ist pausiert. Daten werden weiter auf diesem Gerät gespeichert und nach dem Fortsetzen wieder im konfigurierten Umfang synchronisiert."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동기화가 일시 중지되었습니다. 데이터는 계속 이 기기에 저장되며, 재개 후 설정한 범위 내에서 다시 동기화됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизация приостановлена. Данные продолжают сохраняться на этом устройстве и снова синхронизируются в настроенных пределах после возобновления."
+          }
+        }
+      }
+    },
+    "privacyStatus.sync.summary.syncing": {
+      "comment": "Sync privacy summary while syncing.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing data within the configured scope. Sync never includes keys or unselected history."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在同步配置范围内的数据。同步不会包含密钥或未选择的历史记录。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizando los datos dentro del alcance configurado. La sincronización nunca incluye claves ni historial no seleccionado."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定した範囲内のデータを同期しています。同期にキーや選択していない履歴が含まれることはありません。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisation des données dans le périmètre configuré. La synchronisation n'inclut jamais les clés ni l'historique non sélectionné."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten im konfigurierten Umfang werden synchronisiert. Die Synchronisierung enthält nie Schlüssel oder nicht ausgewählten Verlauf."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정한 범위 내의 데이터를 동기화하고 있습니다. 동기화에는 키나 선택하지 않은 기록이 포함되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Идёт синхронизация данных в настроенных пределах. Синхронизация никогда не включает ключи или невыбранную историю."
+          }
+        }
+      }
+    },
+    "privacyStatus.sync.title": {
+      "comment": "Title for the sync privacy status icon.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同步"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronización"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同期"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동기화"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизация"
+          }
+        }
+      }
+    },
+    "privacyStatus.sync.value.configured": {
+      "comment": "Sync status value: configured.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已配置"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurada"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定済み"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurée"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konfiguriert"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настроена"
+          }
+        }
+      }
+    },
+    "privacyStatus.sync.value.error": {
+      "comment": "Sync status value: failure or invalid configuration.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs attention"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要处理"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requiere atención"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要対応"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attention requise"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktion erforderlich"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "확인 필요"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Требует внимания"
+          }
+        }
+      }
+    },
+    "privacyStatus.sync.value.off": {
+      "comment": "Sync status value: off.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未启用"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactivada"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オフ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactivée"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "꺼짐"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выключена"
+          }
+        }
+      }
+    },
+    "privacyStatus.sync.value.paused": {
+      "comment": "Sync status value: paused.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已暂停"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一時停止中"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pause"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausiert"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "일시 중지됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приостановлена"
+          }
+        }
+      }
+    },
+    "privacyStatus.sync.value.syncing": {
+      "comment": "Sync status value: syncing in progress.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同步中"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizando"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同期中"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisation en cours"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisiert"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동기화 중"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Идёт синхронизация"
           }
         }
       }
@@ -11833,7 +13211,7 @@
       }
     },
     "privacyStatus.close": {
-      "comment": "Close button accessibility label for privacy status popover.",
+      "comment": "Accessibility label for closing the privacy status description popover.",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -11845,6 +13223,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "关闭状态说明"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar la descripción del estado"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状態の説明を閉じる"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer la description de l'état"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statusbeschreibung schließen"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "상태 설명 닫기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Закрыть описание статуса"
           }
         }
       }

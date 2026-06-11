@@ -188,6 +188,21 @@ func withLocalizedChromeLanguageCode<T>(_ languageCode: String, operation: () th
     try LocalizedChromeLanguageResolver.withLanguageCode(languageCode, operation: operation)
 }
 
+/// App-facing entry point for applying the interface chrome language outside of
+/// SwiftUI view updates. The App initializer must call this once before the first
+/// scene body resolves localized chrome strings; preference changes are applied
+/// again through the same entry point or the root view's `onChange` path.
+public enum LangoTraceInterfaceChrome {
+    public static func applyLanguage(
+        _ preference: InterfaceLanguagePreference,
+        systemLanguageCodes: [String] = Bundle.main.preferredLocalizations
+    ) {
+        LocalizedChromeLanguageResolver.use(
+            languageCode: preference.resolvedLanguageCode(systemLanguageCodes: systemLanguageCodes)
+        )
+    }
+}
+
 func interfaceLanguagePreferenceTitleKey(for preference: InterfaceLanguagePreference) -> String {
     switch preference {
     case .system:
@@ -255,6 +270,74 @@ extension PhoneRootTab {
             "tab.practice"
         case .memory:
             "tab.memory"
+        }
+    }
+}
+
+extension AIProviderStatus {
+    var localizedTitleKey: String {
+        "privacyStatus.ai.title"
+    }
+
+    var localizedValueKey: String {
+        switch self {
+        case .notConfigured:
+            "privacyStatus.ai.value.notConfigured"
+        case .configured:
+            "privacyStatus.ai.value.configured"
+        case .unavailable:
+            "privacyStatus.ai.value.unavailable"
+        case .error:
+            "privacyStatus.ai.value.error"
+        }
+    }
+
+    var localizedSummaryKey: String {
+        switch self {
+        case .notConfigured:
+            "privacyStatus.ai.summary.notConfigured"
+        case .configured:
+            "privacyStatus.ai.summary.configured"
+        case .unavailable:
+            "privacyStatus.ai.summary.unavailable"
+        case .error:
+            "privacyStatus.ai.summary.error"
+        }
+    }
+}
+
+extension SyncProviderStatus {
+    var localizedTitleKey: String {
+        "privacyStatus.sync.title"
+    }
+
+    var localizedValueKey: String {
+        switch self {
+        case .off:
+            "privacyStatus.sync.value.off"
+        case .configured:
+            "privacyStatus.sync.value.configured"
+        case .syncing:
+            "privacyStatus.sync.value.syncing"
+        case .paused:
+            "privacyStatus.sync.value.paused"
+        case .error:
+            "privacyStatus.sync.value.error"
+        }
+    }
+
+    var localizedSummaryKey: String {
+        switch self {
+        case .off:
+            "privacyStatus.sync.summary.off"
+        case .configured:
+            "privacyStatus.sync.summary.configured"
+        case .syncing:
+            "privacyStatus.sync.summary.syncing"
+        case .paused:
+            "privacyStatus.sync.summary.paused"
+        case .error:
+            "privacyStatus.sync.summary.error"
         }
     }
 }

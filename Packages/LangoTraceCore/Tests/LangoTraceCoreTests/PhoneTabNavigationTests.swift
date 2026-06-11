@@ -4,7 +4,7 @@ import Testing
 struct PhoneTabNavigationTests {
     @Test
     func tabOrderMatchesPrimaryPhoneNavigation() {
-        #expect(PhoneRootTab.allCases.map(\.title) == ["记录", "阅读", "练习", "记忆"])
+        #expect(PhoneRootTab.allCases == [.entries, .reading, .practice, .memory])
     }
 
     @Test

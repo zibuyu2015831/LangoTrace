@@ -213,13 +213,20 @@ func savingGeneratedMaterialSkippedWhenOperationAlreadyCancelled() throws {
     let repository = try makeRepository()
     let entry = try repository.createEntry(sampleDraft(), in: "space-1")
     let operationID = DiagnosticOperationID(rawValue: "operation-cancelled-before-save")
-    try repository.recordOperation(.started(operationID: operationID, entryID: entry.id, kind: .generate, bucket: .short))
+    try repository.recordOperation(.started(
+        operationID: operationID,
+        entryID: entry.id,
+        kind: .generate,
+        bucket: .short,
+        createdAt: Date(timeIntervalSince1970: 100)
+    ))
     try repository.recordOperation(.cancelled(
         operationID: operationID,
         entryID: entry.id,
         materialID: nil,
         kind: .generate,
         bucket: .short,
+        createdAt: Date(timeIntervalSince1970: 100),
         completedAt: Date(timeIntervalSince1970: 150)
     ))
     let result = sampleGenerationResult(entryID: entry.id, spaceID: "space-1")
@@ -341,13 +348,20 @@ func operationSummariesUpdateOneRowForLifecycle() throws {
     let entry = try repository.createEntry(sampleDraft(), in: "space-1")
     let operationID = DiagnosticOperationID(rawValue: "operation-1")
 
-    try repository.recordOperation(.started(operationID: operationID, entryID: entry.id, kind: .generate, bucket: .short))
+    try repository.recordOperation(.started(
+        operationID: operationID,
+        entryID: entry.id,
+        kind: .generate,
+        bucket: .short,
+        createdAt: Date(timeIntervalSince1970: 100)
+    ))
     try repository.recordOperation(.failed(
         operationID: operationID,
         entryID: entry.id,
         kind: .generate,
         failureCategory: .timeout,
         bucket: .short,
+        createdAt: Date(timeIntervalSince1970: 100),
         completedAt: Date(timeIntervalSince1970: 200)
     ))
 
@@ -364,13 +378,20 @@ func operationSummariesKeepCancelledAsTerminalStatus() throws {
     let entry = try repository.createEntry(sampleDraft(), in: "space-1")
     let operationID = DiagnosticOperationID(rawValue: "operation-cancelled")
 
-    try repository.recordOperation(.started(operationID: operationID, entryID: entry.id, kind: .generate, bucket: .short))
+    try repository.recordOperation(.started(
+        operationID: operationID,
+        entryID: entry.id,
+        kind: .generate,
+        bucket: .short,
+        createdAt: Date(timeIntervalSince1970: 100)
+    ))
     try repository.recordOperation(.cancelled(
         operationID: operationID,
         entryID: entry.id,
         materialID: nil,
         kind: .generate,
         bucket: .short,
+        createdAt: Date(timeIntervalSince1970: 100),
         completedAt: Date(timeIntervalSince1970: 200)
     ))
     try repository.recordOperation(.failed(
@@ -379,6 +400,7 @@ func operationSummariesKeepCancelledAsTerminalStatus() throws {
         kind: .generate,
         failureCategory: .cancelled,
         bucket: .short,
+        createdAt: Date(timeIntervalSince1970: 100),
         completedAt: Date(timeIntervalSince1970: 201)
     ))
 

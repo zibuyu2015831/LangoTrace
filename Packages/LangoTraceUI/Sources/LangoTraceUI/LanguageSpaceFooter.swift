@@ -39,9 +39,9 @@ struct LanguageSpaceFooter: View {
 
                 HStack(spacing: isCompact ? 4 : 6) {
                     PrivacyStatusIconButton(
-                        title: aiStatus.title,
-                        value: aiStatus.value,
-                        summary: aiStatus.summary,
+                        title: localizedString(aiStatus.localizedTitleKey),
+                        value: localizedString(aiStatus.localizedValueKey),
+                        summary: localizedString(aiStatus.localizedSummaryKey),
                         systemImage: aiStatus.systemImage,
                         severity: aiStatus.severity,
                         isCompact: isCompact
@@ -54,9 +54,9 @@ struct LanguageSpaceFooter: View {
                     }
 
                     PrivacyStatusIconButton(
-                        title: syncStatus.title,
-                        value: syncStatus.value,
-                        summary: syncStatus.summary,
+                        title: localizedString(syncStatus.localizedTitleKey),
+                        value: localizedString(syncStatus.localizedValueKey),
+                        summary: localizedString(syncStatus.localizedSummaryKey),
                         systemImage: syncStatus.systemImage,
                         severity: syncStatus.severity,
                         isCompact: isCompact
@@ -118,27 +118,27 @@ private enum PrivacyStatusPopover: Identifiable {
     var title: String {
         switch self {
         case let .ai(status):
-            status.title
+            localizedString(status.localizedTitleKey)
         case let .sync(status):
-            status.title
+            localizedString(status.localizedTitleKey)
         }
     }
 
     var value: String {
         switch self {
         case let .ai(status):
-            status.value
+            localizedString(status.localizedValueKey)
         case let .sync(status):
-            status.value
+            localizedString(status.localizedValueKey)
         }
     }
 
     var summary: String {
         switch self {
         case let .ai(status):
-            status.summary
+            localizedString(status.localizedSummaryKey)
         case let .sync(status):
-            status.summary
+            localizedString(status.localizedSummaryKey)
         }
     }
 }
@@ -168,7 +168,7 @@ private struct PrivacyStatusIconButton: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help("\(title)：\(value)。\(summary)")
+        .help(localizedString("privacyStatus.help.format", title, value, summary))
         .accessibilityLabel(title)
         .accessibilityValue(value)
         .accessibilityHint(summary)

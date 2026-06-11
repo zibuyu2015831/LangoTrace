@@ -1,3 +1,4 @@
+import Foundation
 import LangoTraceCore
 import Testing
 
@@ -92,12 +93,16 @@ func endpointConfigurationFingerprintIsStableAndExcludesSensitiveValues() throws
 
 @Test("Credential metadata derives stable non secret Keychain reference fields")
 func credentialMetadataDerivesStableKeychainReferenceFields() {
+    let createdAt = Date(timeIntervalSince1970: 1_700_000_000)
+    let updatedAt = Date(timeIntervalSince1970: 1_700_000_100)
     let metadata = AIProviderCredentialMetadata(
         id: "credential-1",
         profileID: "profile-1",
         providerPresetID: "openai",
         kind: .apiKey,
-        label: "OpenAI API Key"
+        label: "OpenAI API Key",
+        createdAt: createdAt,
+        updatedAt: updatedAt
     )
 
     #expect(metadata.keychainService == "com.langotrace.ai-provider")
@@ -105,6 +110,8 @@ func credentialMetadataDerivesStableKeychainReferenceFields() {
     #expect(metadata.keychainSynchronizable == false)
     #expect(metadata.cleanupState == .active)
     #expect(metadata.secretPresence == .unknown)
+    #expect(metadata.createdAt == createdAt)
+    #expect(metadata.updatedAt == updatedAt)
 }
 
 private func endpointInput(
