@@ -47,6 +47,22 @@ func learningMaterialLengthEstimatorBucketsInput() {
     #expect(LearningMaterialLengthEstimator.estimateTokens(for: "hello 语迹!") == 4)
 }
 
+@Test("Learning material length estimator counts kana and hangul per character like Han text")
+func learningMaterialLengthEstimatorCountsKanaAndHangulPerCharacter() {
+    #expect(LearningMaterialLengthEstimator.estimateTokens(for: "こんにちはせかい") == 8)
+    #expect(LearningMaterialLengthEstimator.estimateTokens(for: "カタカナデス") == 6)
+    #expect(LearningMaterialLengthEstimator.estimateTokens(for: "ｶﾀｶﾅ") == 4)
+    #expect(LearningMaterialLengthEstimator.estimateTokens(for: "안녕하세요") == 5)
+    #expect(
+        LearningMaterialLengthEstimator.estimateTokens(for: "안녕하세요")
+            == LearningMaterialLengthEstimator.estimateTokens(for: "你好你好你")
+    )
+    #expect(
+        LearningMaterialLengthEstimator.estimateTokens(for: "こんにちはせかい")
+            == LearningMaterialLengthEstimator.estimateTokens(for: String(repeating: "语", count: 8))
+    )
+}
+
 @Test("Learning material generation state prevents duplicate operations for same entry")
 func learningMaterialGenerationStatePreventsDuplicateOperations() {
     let operationID = DiagnosticOperationID(rawValue: "op-generate")

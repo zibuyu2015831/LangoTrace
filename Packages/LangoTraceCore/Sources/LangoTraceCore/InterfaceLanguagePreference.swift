@@ -99,6 +99,12 @@ public enum InterfaceLanguagePreference: String, CaseIterable, Equatable, Identi
             return "zh-Hans"
         }
 
+        // System locales often report Chinese without a script subtag ("zh", "zh-CN").
+        // Map those to zh-Hans; Traditional Chinese stays unmatched until zh-Hant is supported.
+        if normalized == "zh" || normalized.hasPrefix("zh-") {
+            return isTraditionalChinese(normalized) ? nil : "zh-Hans"
+        }
+
         for code in supportedLanguageCodes where code != "zh-Hans" {
             if normalized == code || normalized.hasPrefix("\(code)-") {
                 return code
@@ -106,5 +112,13 @@ public enum InterfaceLanguagePreference: String, CaseIterable, Equatable, Identi
         }
 
         return nil
+    }
+
+    private static func isTraditionalChinese(_ normalizedLanguageCode: String) -> Bool {
+        normalizedLanguageCode == "zh-Hant"
+            || normalizedLanguageCode.hasPrefix("zh-Hant-")
+            || normalizedLanguageCode == "zh-TW"
+            || normalizedLanguageCode == "zh-HK"
+            || normalizedLanguageCode == "zh-MO"
     }
 }

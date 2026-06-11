@@ -45,6 +45,32 @@ public enum TTSProviderParameterValue: Equatable, Codable, Sendable {
     case object([String: TTSProviderParameterValue])
 }
 
+public extension TTSProviderParameterValue {
+    /// Canonical sorted-key serialization shared by configuration fingerprints and TTS artifact
+    /// cache keys. The output must stay stable across launches and processes; changing it
+    /// invalidates persisted TTS audio cache keys.
+    static func canonicalSerialization(of parameters: [String: TTSProviderParameterValue]) -> String {
+        parameters.keys.sorted().map { key in
+            "\(key)=\(parameters[key]!.canonicalSerialization)"
+        }.joined(separator: ";")
+    }
+
+    var canonicalSerialization: String {
+        switch self {
+        case let .string(string):
+            "s:\(string)"
+        case let .number(number):
+            "n:\(number)"
+        case let .bool(bool):
+            "b:\(bool)"
+        case let .array(values):
+            "[" + values.map(\.canonicalSerialization).joined(separator: ",") + "]"
+        case let .object(object):
+            "{" + Self.canonicalSerialization(of: object) + "}"
+        }
+    }
+}
+
 public struct TTSProviderSettings: Equatable, Sendable {
     public var endpointID: AIProviderEndpointID
     public var adapterKind: TTSProviderAdapterKind
@@ -317,33 +343,12 @@ private extension TTSVoiceProfile {
         parts.append("style=\(stylePrompt ?? "")")
         parts.append("instructions=\(instructions ?? "")")
         parts.append("streaming=\(streamingMode)")
-        parts.append("parameters=\(canonicalProviderParameters(providerParameters))")
+        parts.append("parameters=\(TTSProviderParameterValue.canonicalSerialization(of: providerParameters))")
         return stableFingerprint(for: parts.joined(separator: "\n"))
-    }
-
-    static func canonicalProviderParameters(_ parameters: [String: TTSProviderParameterValue]) -> String {
-        parameters.keys.sorted().map { key in
-            "\(key)=\(canonical(parameters[key]!))"
-        }.joined(separator: ";")
     }
 
     static func optionalString(_ value: (some Any)?) -> String {
         value.map { "\($0)" } ?? ""
-    }
-
-    static func canonical(_ value: TTSProviderParameterValue) -> String {
-        switch value {
-        case let .string(string):
-            "s:\(string)"
-        case let .number(number):
-            "n:\(number)"
-        case let .bool(bool):
-            "b:\(bool)"
-        case let .array(values):
-            "[" + values.map(canonical).joined(separator: ",") + "]"
-        case let .object(object):
-            "{" + canonicalProviderParameters(object) + "}"
-        }
     }
 
     static func stableFingerprint(for value: String) -> String {

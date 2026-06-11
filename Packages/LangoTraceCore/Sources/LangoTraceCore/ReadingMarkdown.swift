@@ -73,7 +73,10 @@ public enum ReadingMarkdownParser {
             }
         }
 
-        for rawLine in markdown.split(separator: "\n", omittingEmptySubsequences: false) {
+        // Split on "\n", "\r\n", and lone "\r" so CRLF documents keep their line structure.
+        // "\r\n" is a single grapheme cluster, so each separator is exactly one Character and
+        // all source ranges keep pointing into the original input string.
+        for rawLine in markdown.split(omittingEmptySubsequences: false, whereSeparator: isLineBreak) {
             let lineStart = currentIndex
             let lineEnd = markdown.index(lineStart, offsetBy: rawLine.count)
             let nextIndex = lineEnd < markdown.endIndex ? markdown.index(after: lineEnd) : lineEnd
@@ -144,8 +147,12 @@ public enum ReadingMarkdownParser {
         )
     }
 
+    private static func isLineBreak(_ character: Character) -> Bool {
+        character == "\n" || character == "\r\n" || character == "\r"
+    }
+
     private static func isOrderedListLine(_ line: String) -> Bool {
-        guard let dot = line.firstIndex(of: ".") else {
+        guard let dot = line.firstIndex(of: "."), !line[..<dot].isEmpty else {
             return false
         }
         return line[..<dot].allSatisfy(\.isNumber)

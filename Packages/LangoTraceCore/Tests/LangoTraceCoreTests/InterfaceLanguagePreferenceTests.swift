@@ -18,6 +18,18 @@ func interfaceLanguagePreferenceFollowsSystemAndFallsBackToEnglish() {
     )
 }
 
+@Test("Interface language preference maps unscripted Chinese to Simplified Chinese")
+func interfaceLanguagePreferenceMapsUnscriptedChineseToSimplifiedChinese() {
+    #expect(InterfaceLanguagePreference.system.resolvedLanguageCode(systemLanguageCodes: ["zh-CN"]) == "zh-Hans")
+    #expect(InterfaceLanguagePreference.system.resolvedLanguageCode(systemLanguageCodes: ["zh"]) == "zh-Hans")
+    #expect(InterfaceLanguagePreference.system.resolvedLanguageCode(systemLanguageCodes: ["zh-Hans-CN"]) == "zh-Hans")
+    #expect(InterfaceLanguagePreference.system.resolvedLanguageCode(systemLanguageCodes: ["zh_CN"]) == "zh-Hans")
+    #expect(InterfaceLanguagePreference.system.resolvedLanguageCode(systemLanguageCodes: ["zh-SG"]) == "zh-Hans")
+    #expect(InterfaceLanguagePreference.system.resolvedLanguageCode(systemLanguageCodes: ["zh-Hant"]) == "en")
+    #expect(InterfaceLanguagePreference.system.resolvedLanguageCode(systemLanguageCodes: ["zh-TW"]) == "en")
+    #expect(InterfaceLanguagePreference.system.resolvedLanguageCode(systemLanguageCodes: ["zh-HK"]) == "en")
+}
+
 @Test("Interface language preference uses stable storage values")
 func interfaceLanguagePreferenceUsesStableStorageValues() {
     #expect(InterfaceLanguagePreference.system.storageValue == "system")

@@ -59,6 +59,52 @@ func voiceProfileSuccessfulFingerprintUpdatesOnlyAfterSuccessfulProbe() throws {
     #expect(changedAfterSuccess.playbackReadiness == .requiresRetest)
 }
 
+@Test("Provider parameter canonical serialization sorts keys and stays stable")
+func providerParameterCanonicalSerializationSortsKeysAndStaysStable() {
+    let parameters: [String: TTSProviderParameterValue] = [
+        "response_format": .string("mp3"),
+        "provider_options": .object([
+            "order": .array([.string("openai"), .number(1), .bool(true)]),
+            "allow_fallbacks": .bool(false),
+        ]),
+    ]
+
+    let expected = "provider_options={allow_fallbacks=b:false;order=[s:openai,n:1.0,b:true]};response_format=s:mp3"
+    #expect(TTSProviderParameterValue.canonicalSerialization(of: parameters) == expected)
+}
+
+@Test("Voice profile fingerprint ignores provider parameter insertion order")
+func voiceProfileFingerprintIgnoresProviderParameterInsertionOrder() throws {
+    let first = try TTSVoiceProfile.make(
+        id: "voice-or",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .openRouterAudioSpeech,
+        modelName: "openai/tts-1",
+        voiceID: "coral",
+        outputFormat: .mp3,
+        providerParameters: [
+            "response_format": .string("mp3"),
+            "provider_options": .object(["order": .array([.string("openai")])]),
+        ]
+    )
+    let second = try TTSVoiceProfile.make(
+        id: "voice-or",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .openRouterAudioSpeech,
+        modelName: "openai/tts-1",
+        voiceID: "coral",
+        outputFormat: .mp3,
+        providerParameters: [
+            "provider_options": .object(["order": .array([.string("openai")])]),
+            "response_format": .string("mp3"),
+        ]
+    )
+
+    #expect(first.configurationFingerprint == second.configurationFingerprint)
+}
+
 @Test("Provider parameter allowlist rejects unknown keys")
 func providerParameterAllowlistRejectsUnknownKeys() throws {
     #expect(throws: TTSProviderConfigurationError.unsupportedProviderParameter("unknown")) {

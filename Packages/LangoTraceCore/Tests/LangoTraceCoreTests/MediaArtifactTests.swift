@@ -31,6 +31,15 @@ struct MediaArtifactTests {
         #expect(sampleKey(configurationFingerprint: "fingerprint-2").derivationKeyHash != base.derivationKeyHash)
     }
 
+    @Test("TTS audio artifact key hashes negative zero and positive zero identically")
+    func ttsAudioArtifactKeyHashesNegativeZeroAndPositiveZeroIdentically() {
+        let negativeZero = sampleKey(speed: -0.0)
+        let positiveZero = sampleKey(speed: 0.0)
+
+        #expect(negativeZero == positiveZero)
+        #expect(negativeZero.derivationKeyHash == positiveZero.derivationKeyHash)
+    }
+
     @Test("Default media artifact policies are local only and excluded by default")
     func defaultMediaArtifactPoliciesAreLocalOnlyExcludedByDefault() {
         let policy = MediaArtifactPolicy.defaultDerivedMediaPolicy
@@ -75,6 +84,7 @@ struct MediaArtifactTests {
         modelName: String = "tts-1",
         voiceIDHash: String = "voice-hash-1",
         outputFormat: TTSAudioFormat = .mp3,
+        speed: Double? = 1.0,
         configurationFingerprint: String = "fingerprint-1"
     ) -> TTSAudioArtifactKey {
         TTSAudioArtifactKey(
@@ -90,7 +100,7 @@ struct MediaArtifactTests {
             voiceIDHash: voiceIDHash,
             outputFormat: outputFormat,
             sampleRate: nil,
-            speed: 1.0,
+            speed: speed,
             pitch: nil,
             volume: nil,
             instructionsHash: "instructions-hash",

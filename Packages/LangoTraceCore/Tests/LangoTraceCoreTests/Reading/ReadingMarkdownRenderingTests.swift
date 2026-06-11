@@ -53,6 +53,29 @@ struct ReadingMarkdownRenderingTests {
         #expect(document.blocks.allSatisfy { $0.sourceRange != nil })
     }
 
+    @Test("CRLF markdown parses headings lists and paragraphs")
+    func crlfMarkdownParsesBlockStructure() {
+        let markdown = "# Title\r\n\r\nFirst paragraph.\r\n\r\n- Item one\r\n1. Ordered item\r\n\r\nSecond paragraph."
+
+        let document = ReadingMarkdownParser.parse(markdown, sourceFormat: .markdown)
+
+        #expect(document.blocks.contains { $0.kind == .heading(level: 1) && $0.text == "Title" })
+        #expect(document.blocks.contains { $0.kind == .paragraph && $0.text == "First paragraph." })
+        #expect(document.blocks.contains { $0.kind == .unorderedList && $0.text == "Item one" })
+        #expect(document.blocks.contains { $0.kind == .orderedList && $0.text == "Ordered item" })
+        #expect(document.blocks.contains { $0.kind == .paragraph && $0.text == "Second paragraph." })
+        #expect(!document.plainText.contains("\r"))
+    }
+
+    @Test("line starting with a bare dot is a paragraph not an ordered list")
+    func bareDotLineIsNotOrderedList() {
+        let document = ReadingMarkdownParser.parse(". hello world", sourceFormat: .markdown)
+
+        #expect(document.blocks.count == 1)
+        #expect(document.blocks[0].kind == .paragraph)
+        #expect(document.blocks[0].text == ". hello world")
+    }
+
     @Test("unsupported markdown falls back without losing readable text")
     func unsupportedMarkdownFallsBack() {
         let markdown = "<custom-block data-x=\"1\">Hidden</custom-block>\n\nVisible text."

@@ -214,9 +214,9 @@ public enum ReadingTextSegmenter {
 
         var currentIndex = text.startIndex
         while currentIndex < text.endIndex {
-            if text[currentIndex] == "\n" {
+            if isLineBreak(text[currentIndex]) {
                 let nextIndex = text.index(after: currentIndex)
-                if nextIndex < text.endIndex, text[nextIndex] == "\n" {
+                if nextIndex < text.endIndex, isLineBreak(text[nextIndex]) {
                     appendParagraph(upTo: currentIndex)
                     paragraphStart = text.index(after: nextIndex)
                     currentIndex = paragraphStart
@@ -227,6 +227,13 @@ public enum ReadingTextSegmenter {
         }
         appendParagraph(upTo: text.endIndex)
         return chunks
+    }
+
+    /// Treats "\n", "\r\n", and lone "\r" as one line break each. "\r\n" is a single grapheme
+    /// cluster, so CRLF documents segment into paragraphs without rewriting the input string
+    /// and all chunk ranges keep pointing into the original text.
+    private static func isLineBreak(_ character: Character) -> Bool {
+        character == "\n" || character == "\r\n" || character == "\r"
     }
 
     public static func segmentSentences(

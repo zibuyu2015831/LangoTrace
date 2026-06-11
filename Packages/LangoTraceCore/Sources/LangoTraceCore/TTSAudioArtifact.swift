@@ -143,7 +143,10 @@ private extension TTSAudioArtifactKey {
         guard let value else {
             return ""
         }
-        return String(format: "%.6f", locale: Locale(identifier: "en_US_POSIX"), value)
+        // -0.0 == 0.0 for Equatable, so normalize the sign before formatting to keep
+        // equal keys hashing identically.
+        let normalized = value == 0 ? abs(value) : value
+        return String(format: "%.6f", locale: Locale(identifier: "en_US_POSIX"), normalized)
     }
 
     static func sha256Hex(for value: String) -> String {

@@ -56,7 +56,30 @@ struct SentenceAudioPlaybackTests {
         #expect(summary.targetLanguageCode == "en")
         #expect(summary.sentenceIndex == 3)
         #expect(summary.textLengthBucket == .short)
+        #expect(summary.sentenceSource == .learningMaterialSentence(materialID: "material-1", sentenceIndex: 3))
         #expect(!String(describing: summary).contains("private sentence"))
+    }
+
+    @Test("Summaries with the same sentence index but different sources stay distinct")
+    func summariesWithSameIndexButDifferentSourcesStayDistinct() {
+        let material = SentenceAudioRequest(
+            languageSpaceID: "space-1",
+            owner: .learningMaterialSentence(materialID: "material-1", sentenceIndex: 0),
+            sentenceSource: .learningMaterialSentence(materialID: "material-1", sentenceIndex: 0),
+            sentenceIndex: 0,
+            targetText: "Same length sentence.",
+            targetLanguageCode: "en"
+        )
+        let entry = SentenceAudioRequest(
+            languageSpaceID: "space-1",
+            owner: .learningMaterialSentence(materialID: "material-1", sentenceIndex: 0),
+            sentenceSource: .entry(id: "entry-1", sentenceIndex: 0),
+            sentenceIndex: 0,
+            targetText: "Same length sentence.",
+            targetLanguageCode: "en"
+        )
+
+        #expect(material.nonSensitiveSummary != entry.nonSensitiveSummary)
     }
 
     @Test("Playback source exposes only resolver produced file URLs")

@@ -28,6 +28,16 @@ func learningLanguageLookupUsesStableCodes() {
     #expect(LearningLanguage.find(code: "missing") == nil)
 }
 
+@Test("Learning language lookup resolves native and target language codes")
+func learningLanguageLookupResolvesNativeAndTargetLanguageCodes() {
+    for language in LearningLanguage.supportedNativeLanguages {
+        #expect(LearningLanguage.find(code: language.code) == language)
+    }
+    for language in LearningLanguage.supportedTargetLanguages {
+        #expect(LearningLanguage.find(code: language.code) == language)
+    }
+}
+
 @Test("Target language options exclude the selected native language")
 func targetLanguageOptionsExcludeSelectedNativeLanguage() {
     let chineseNativeTargets = LearningLanguage.targetLanguages(excludingNativeCode: "zh-Hans")

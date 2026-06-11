@@ -183,6 +183,125 @@ struct SentenceAudioPlaybackCoordinatorTests {
         #expect(await coordinator.presentationState(for: request) == .idle)
     }
 
+    @Test("Coordinator artifact key provider parameters hash ignores insertion order")
+    func coordinatorArtifactKeyProviderParametersHashIgnoresInsertionOrder() throws {
+        let request = sentenceRequest()
+        let first = try playableConfiguration(providerParameters: [
+            "instructions": .string("Speak slowly"),
+            "response_format": .string("mp3"),
+        ])
+        let second = try playableConfiguration(providerParameters: [
+            "response_format": .string("mp3"),
+            "instructions": .string("Speak slowly"),
+        ])
+
+        let firstKey = SentenceAudioPlaybackCoordinator.artifactKey(for: request, configuration: first)
+        let secondKey = SentenceAudioPlaybackCoordinator.artifactKey(for: request, configuration: second)
+
+        let expectedHash = SentenceAudioPlaybackCoordinator.sha256Hex(
+            for: "instructions=s:Speak slowly;response_format=s:mp3"
+        )
+        #expect(firstKey.providerParametersHash == expectedHash)
+        #expect(secondKey.providerParametersHash == expectedHash)
+        #expect(firstKey.derivationKeyHash == secondKey.derivationKeyHash)
+    }
+
+    @Test("Coordinator keeps presentation state separate for same sentence index in different sources")
+    func coordinatorKeepsPresentationStateSeparateAcrossSentenceSources() async throws {
+        let completion = PlaybackCompletionProbe()
+        let player = FakePlayer(completion: completion.session)
+        let coordinator = try SentenceAudioPlaybackCoordinator(
+            availabilityService: FakeAvailabilityService(status: .available(playableConfiguration())),
+            secretResolver: FakeSecretResolver(secret: "sk-test"),
+            mediaStore: FakeMediaStore(lookup: .hit(mediaArtifact())),
+            generationService: FakeGenerator(),
+            playbackSourceResolver: FakePlaybackSourceResolver(),
+            player: player
+        )
+        let first = sentenceRequest(source: .entry(id: "entry-1", sentenceIndex: 0))
+        let second = sentenceRequest(source: .entry(id: "entry-2", sentenceIndex: 0))
+
+        try await coordinator.handleTap(first)
+
+        #expect(await coordinator.presentationState(for: first).activeKey != nil)
+        #expect(await coordinator.presentationState(for: second) == .idle)
+    }
+
+    @Test("Coordinator reduces generation provider failures to failed state")
+    func coordinatorReducesGenerationProviderFailuresToFailedState() async throws {
+        let coordinator = try SentenceAudioPlaybackCoordinator(
+            availabilityService: FakeAvailabilityService(status: .available(playableConfiguration())),
+            secretResolver: FakeSecretResolver(secret: "sk-test"),
+            mediaStore: FakeMediaStore(lookup: .miss),
+            generationService: ThrowingGenerator(error: SentenceAudioPlaybackFailure.rateLimited),
+            playbackSourceResolver: FakePlaybackSourceResolver(),
+            player: FakePlayer()
+        )
+        let request = sentenceRequest()
+
+        try await coordinator.handleTap(request)
+
+        #expect(await coordinator.presentationState(for: request) == .failed(.rateLimited))
+    }
+
+    @Test("Coordinator reduces unknown generation errors to failed state instead of staying generating")
+    func coordinatorReducesUnknownGenerationErrorsToFailedState() async throws {
+        let coordinator = try SentenceAudioPlaybackCoordinator(
+            availabilityService: FakeAvailabilityService(status: .available(playableConfiguration())),
+            secretResolver: FakeSecretResolver(secret: "sk-test"),
+            mediaStore: FakeMediaStore(lookup: .miss),
+            generationService: ThrowingGenerator(error: URLError(.badServerResponse)),
+            playbackSourceResolver: FakePlaybackSourceResolver(),
+            player: FakePlayer()
+        )
+        let request = sentenceRequest()
+
+        try await coordinator.handleTap(request)
+
+        #expect(await coordinator.presentationState(for: request) == .failed(.playbackFailed))
+    }
+
+    @Test("Coordinator tap during generation cancels the in-flight generation task")
+    func coordinatorTapDuringGenerationCancelsInFlightGenerationTask() async throws {
+        let generator = SuspendingGenerator()
+        let coordinator = try SentenceAudioPlaybackCoordinator(
+            availabilityService: FakeAvailabilityService(status: .available(playableConfiguration())),
+            secretResolver: FakeSecretResolver(secret: "sk-test"),
+            mediaStore: FakeMediaStore(lookup: .miss),
+            generationService: generator,
+            playbackSourceResolver: FakePlaybackSourceResolver(),
+            player: FakePlayer()
+        )
+        let request = sentenceRequest()
+
+        let firstTap = Task {
+            try await coordinator.handleTap(request)
+        }
+        let didStartGenerating = await waitUntil {
+            await generator.startedCount > 0
+        }
+        #expect(didStartGenerating)
+
+        try await coordinator.handleTap(request)
+
+        let didCancelGeneration = await waitUntil {
+            await generator.cancellationCount > 0
+        }
+        #expect(didCancelGeneration)
+        firstTap.cancel()
+        _ = try? await firstTap.value
+        #expect(await coordinator.presentationState(for: request) == .idle)
+    }
+
+    @Test("Coordinator clamps playback duration fallback to a sane upper bound")
+    func coordinatorClampsPlaybackDurationFallback() {
+        let clamped = SentenceAudioPlaybackCoordinator.playbackDurationFallbackNanoseconds(
+            forRemainingSeconds: .greatestFiniteMagnitude
+        )
+        #expect(clamped == UInt64(86_400.0 * 1_000_000_000))
+        #expect(SentenceAudioPlaybackCoordinator.playbackDurationFallbackNanoseconds(forRemainingSeconds: -5) == 0)
+    }
+
     @Test("Coordinator reports configuration issues without external work")
     func coordinatorReportsConfigurationIssues() async throws {
         let generator = FakeGenerator()
@@ -289,6 +408,36 @@ private actor FakeGenerator: SentenceTTSGenerating {
     func generateSentenceTTS(_: SentenceTTSGenerationRequest) async throws -> SentenceTTSGenerationResult {
         requestCount += 1
         return result
+    }
+}
+
+private actor ThrowingGenerator: SentenceTTSGenerating {
+    private let error: any Error
+
+    init(error: any Error) {
+        self.error = error
+    }
+
+    func generateSentenceTTS(_: SentenceTTSGenerationRequest) async throws -> SentenceTTSGenerationResult {
+        throw error
+    }
+}
+
+private actor SuspendingGenerator: SentenceTTSGenerating {
+    private(set) var startedCount = 0
+    private(set) var cancellationCount = 0
+
+    func generateSentenceTTS(_: SentenceTTSGenerationRequest) async throws -> SentenceTTSGenerationResult {
+        startedCount += 1
+        do {
+            while true {
+                try Task.checkCancellation()
+                await Task.yield()
+            }
+        } catch {
+            cancellationCount += 1
+            throw error
+        }
     }
 }
 
@@ -414,18 +563,22 @@ private func waitUntil(
     return true
 }
 
-private func sentenceRequest() -> SentenceAudioRequest {
+private func sentenceRequest(
+    source: TTSSentenceSource = .learningMaterialSentence(materialID: "material-1", sentenceIndex: 0)
+) -> SentenceAudioRequest {
     SentenceAudioRequest(
         languageSpaceID: "space-1",
         owner: .learningMaterialSentence(materialID: "material-1", sentenceIndex: 0),
-        sentenceSource: .learningMaterialSentence(materialID: "material-1", sentenceIndex: 0),
+        sentenceSource: source,
         sentenceIndex: 0,
         targetText: "Today I wrote one sentence.",
         targetLanguageCode: "en"
     )
 }
 
-private func playableConfiguration() throws -> PlayableTTSConfiguration {
+private func playableConfiguration(
+    providerParameters: [String: TTSProviderParameterValue] = [:]
+) throws -> PlayableTTSConfiguration {
     let endpoint = try AIProviderEndpointConfiguration(
         input: AIProviderEndpointInput(
             id: "endpoint-tts",
@@ -450,7 +603,8 @@ private func playableConfiguration() throws -> PlayableTTSConfiguration {
         adapterKind: .openAIAudioSpeech,
         modelName: "tts-1",
         voiceID: "coral",
-        outputFormat: .mp3
+        outputFormat: .mp3,
+        providerParameters: providerParameters
     )
     return PlayableTTSConfiguration(
         endpoint: endpoint,

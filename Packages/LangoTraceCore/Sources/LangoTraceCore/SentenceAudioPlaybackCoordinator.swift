@@ -19,6 +19,8 @@ public actor SentenceAudioPlaybackCoordinator {
     ] = [:]
     private var playbackCompletionTask: Task<Void, Never>?
     private var playbackDurationFallbackTask: Task<Void, Never>?
+    private var activeGenerationTask: Task<MediaArtifact, Error>?
+    private var activeGenerationKey: SentenceAudioKey?
     private var activePlaybackKey: SentenceAudioKey?
     private var activePlaybackRemainingSeconds: TimeInterval?
     private var activePlaybackStartedAt: Date?
@@ -112,8 +114,8 @@ private extension SentenceAudioPlaybackCoordinator {
         switch effect {
         case let .start(key):
             try await start(key: key, request: request, artifactKey: artifactKey, configuration: configuration)
-        case .cancelGeneration:
-            break
+        case let .cancelGeneration(key):
+            cancelActiveGeneration(for: key)
         case let .pause(key):
             pausePlaybackDurationFallback(for: key)
             await player.pause()
@@ -137,35 +139,79 @@ private extension SentenceAudioPlaybackCoordinator {
             try await play(artifact: artifact, key: key)
         case .miss, .invalidated:
             _ = reduceAndNotify(.generationStarted(key))
-            let secret = try await secretResolver.plaintextSecret(for: configuration)
-            guard secret?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
-                _ = reduceAndNotify(.generationFailed(key, .credentialMissing))
+            let artifact: MediaArtifact
+            do {
+                let secret = try await secretResolver.plaintextSecret(for: configuration)
+                guard secret?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+                    _ = reduceAndNotify(.generationFailed(key, .credentialMissing))
+                    return
+                }
+                let generationTask = Task<MediaArtifact, Error> { [self] in
+                    let result = try await generationService.generateSentenceTTS(
+                        SentenceTTSGenerationRequest(
+                            audioRequest: request,
+                            artifactKey: artifactKey,
+                            playableConfiguration: configuration,
+                            plaintextSecret: secret
+                        )
+                    )
+                    return try await mediaStore.commitTTSAudioArtifact(
+                        TTSAudioArtifactCommitInput(
+                            key: artifactKey,
+                            languageSpaceID: request.languageSpaceID,
+                            owner: request.owner,
+                            stagedFile: result.stagedFile,
+                            mimeType: result.mimeType,
+                            durationSeconds: result.durationSeconds,
+                            createdAt: Date()
+                        )
+                    )
+                }
+                activeGenerationTask = generationTask
+                activeGenerationKey = key
+                defer {
+                    clearGenerationTracking(for: key)
+                }
+                artifact = try await generationTask.value
+            } catch is CancellationError {
+                return
+            } catch let failure as SentenceAudioPlaybackFailure {
+                guard failure != .cancelled else {
+                    return
+                }
+                reduceGenerationFailureIfStillGenerating(key, failure: failure)
+                return
+            } catch {
+                reduceGenerationFailureIfStillGenerating(key, failure: .playbackFailed)
                 return
             }
-            let result = try await generationService.generateSentenceTTS(
-                SentenceTTSGenerationRequest(
-                    audioRequest: request,
-                    artifactKey: artifactKey,
-                    playableConfiguration: configuration,
-                    plaintextSecret: secret
-                )
-            )
-            let artifact = try await mediaStore.commitTTSAudioArtifact(
-                TTSAudioArtifactCommitInput(
-                    key: artifactKey,
-                    languageSpaceID: request.languageSpaceID,
-                    owner: request.owner,
-                    stagedFile: result.stagedFile,
-                    mimeType: result.mimeType,
-                    durationSeconds: result.durationSeconds,
-                    createdAt: Date()
-                )
-            )
             guard state.activeKey == key else {
                 return
             }
             try await play(artifact: artifact, key: key)
         }
+    }
+
+    func cancelActiveGeneration(for key: SentenceAudioKey) {
+        guard activeGenerationKey == key else {
+            return
+        }
+        activeGenerationTask?.cancel()
+    }
+
+    func clearGenerationTracking(for key: SentenceAudioKey) {
+        guard activeGenerationKey == key else {
+            return
+        }
+        activeGenerationTask = nil
+        activeGenerationKey = nil
+    }
+
+    func reduceGenerationFailureIfStillGenerating(_ key: SentenceAudioKey, failure: SentenceAudioPlaybackFailure) {
+        guard state.presentationState(for: key) == .generating(key) else {
+            return
+        }
+        _ = reduceAndNotify(.generationFailed(key, failure))
     }
 
     func play(artifact: MediaArtifact, key: SentenceAudioKey) async throws {
@@ -251,7 +297,7 @@ private extension SentenceAudioPlaybackCoordinator {
         playbackDurationFallbackTask?.cancel()
         activePlaybackStartedAt = Date()
         playbackDurationFallbackTask = Task { [self] in
-            let nanoseconds = UInt64(max(0, remaining) * 1_000_000_000)
+            let nanoseconds = Self.playbackDurationFallbackNanoseconds(forRemainingSeconds: remaining)
             try? await Task.sleep(nanoseconds: nanoseconds)
             guard !Task.isCancelled else {
                 return
@@ -335,6 +381,15 @@ private extension SentenceAudioPlaybackCoordinator {
             }
         }
     }
+}
+
+extension SentenceAudioPlaybackCoordinator {
+    static let maxPlaybackDurationFallbackSeconds: TimeInterval = 86_400
+
+    static func playbackDurationFallbackNanoseconds(forRemainingSeconds remaining: TimeInterval) -> UInt64 {
+        let clamped = min(max(0, remaining), maxPlaybackDurationFallbackSeconds)
+        return UInt64(clamped * 1_000_000_000)
+    }
 
     static func artifactKey(
         for request: SentenceAudioRequest,
@@ -360,7 +415,7 @@ private extension SentenceAudioPlaybackCoordinator {
             instructionsHash: voice.instructions.map(sha256Hex(for:)),
             providerParametersHash: voice.providerParameters.isEmpty
                 ? nil
-                : sha256Hex(for: String(describing: voice.providerParameters)),
+                : sha256Hex(for: TTSProviderParameterValue.canonicalSerialization(of: voice.providerParameters)),
             configurationFingerprint: voice.configurationFingerprint
         )
     }

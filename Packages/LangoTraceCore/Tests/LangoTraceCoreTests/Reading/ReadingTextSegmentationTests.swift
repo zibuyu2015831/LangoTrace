@@ -21,6 +21,28 @@ struct ReadingTextSegmentationTests {
         }
     }
 
+    @Test("CRLF text segments into multiple paragraphs with ranges into the original text")
+    func crlfTextSegmentsIntoParagraphs() {
+        let text = "Paragraph 1\r\n\r\nParagraph 2\r\n\r\nParagraph 3"
+        let chunks = ReadingTextSegmenter.segmentParagraphs(text, documentID: "doc-1", contentRevision: 1)
+
+        #expect(chunks.count == 3)
+        #expect(chunks[0].text == "Paragraph 1")
+        #expect(chunks[1].text == "Paragraph 2")
+        #expect(chunks[2].text == "Paragraph 3")
+
+        for chunk in chunks {
+            #expect(text[chunk.range] == chunk.text)
+        }
+
+        let lonelyCarriageReturns = ReadingTextSegmenter.segmentParagraphs(
+            "Alpha\r\rBeta",
+            documentID: "doc-1",
+            contentRevision: 1
+        )
+        #expect(lonelyCarriageReturns.map(\.text) == ["Alpha", "Beta"])
+    }
+
     @Test("sentence segmentation handles mixed CJK and Latin text")
     func sentenceSegmentationHandlesMixedCJK() {
         let text = "Hello world. 你好世界。This is a test. 这是一个测试。"

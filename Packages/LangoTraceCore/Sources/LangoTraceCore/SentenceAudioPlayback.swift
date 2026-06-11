@@ -48,7 +48,8 @@ public struct SentenceAudioRequest: Equatable, Sendable {
             languageSpaceID: languageSpaceID,
             sentenceIndex: sentenceIndex,
             targetLanguageCode: targetLanguageCode,
-            textLengthBucket: .bucket(for: targetText)
+            textLengthBucket: .bucket(for: targetText),
+            sentenceSource: sentenceSource
         )
     }
 }
@@ -58,21 +59,34 @@ public struct SentenceAudioRequestSummary: Equatable, Hashable, Sendable, Custom
     public var sentenceIndex: Int
     public var targetLanguageCode: String
     public var textLengthBucket: SentenceAudioTextLengthBucket
+    /// Identifies which entry / material / document the sentence belongs to so that sentences
+    /// with the same index in different sources never share presentation state. The payload is
+    /// identifier-only and stays non-sensitive.
+    public var sentenceSource: TTSSentenceSource?
 
     public init(
         languageSpaceID: String,
         sentenceIndex: Int,
         targetLanguageCode: String,
-        textLengthBucket: SentenceAudioTextLengthBucket
+        textLengthBucket: SentenceAudioTextLengthBucket,
+        sentenceSource: TTSSentenceSource? = nil
     ) {
         self.languageSpaceID = languageSpaceID
         self.sentenceIndex = sentenceIndex
         self.targetLanguageCode = targetLanguageCode
         self.textLengthBucket = textLengthBucket
+        self.sentenceSource = sentenceSource
     }
 
     public var description: String {
-        "SentenceAudioRequestSummary(languageSpaceID: \(languageSpaceID), sentenceIndex: \(sentenceIndex), targetLanguageCode: \(targetLanguageCode), textLengthBucket: \(textLengthBucket.rawValue))"
+        let fields = [
+            "languageSpaceID: \(languageSpaceID)",
+            "sentenceIndex: \(sentenceIndex)",
+            "targetLanguageCode: \(targetLanguageCode)",
+            "textLengthBucket: \(textLengthBucket.rawValue)",
+            "sentenceSource: \(sentenceSource.map(String.init(describing:)) ?? "nil")",
+        ].joined(separator: ", ")
+        return "SentenceAudioRequestSummary(\(fields))"
     }
 }
 
