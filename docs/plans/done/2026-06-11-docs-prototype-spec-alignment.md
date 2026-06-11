@@ -1,6 +1,6 @@
 # 原型重建后的文档一致性对齐（docs prototype spec alignment）
 
-状态：Active
+状态：Verified
 自审核状态：Reviewed
 类型：docs
 创建日期：2026-06-11
@@ -84,7 +84,9 @@ git status --short
 
 ## 实施记录
 
-- 2026-06-11：阶段 1 完成，方案创建并自审核。
+- 2026-06-11：阶段 1 完成，方案创建并自审核（commit `4617f52`）。
+- 2026-06-11：阶段 2 完成，spec 003 新增 §4.20 静态原型设计基准与变更记录；spec README 补 012 索引和原型基准使用提示；页面清单「本文档不替代」列表加入 `prototypes/` 定位并补变更记录；新增 `docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md`。验证：`scripts/check-docs.sh` 通过、占位扫描通过、`git diff --check` 通过（commit `bfc947a`）。
+- 2026-06-11：阶段 3 完成，方案移入 done。核查结论：docs 其余文档（product-main-reference 7-9 节、technical-framework-roadmap 第 10 节、spec 001 / 002 / 004-012、_meta、development、architecture/002-system-map）与新原型一致，无需修改。
 
 ## 完成标准
 
