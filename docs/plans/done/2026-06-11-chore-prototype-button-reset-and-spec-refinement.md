@@ -1,6 +1,6 @@
 # 原型按钮渲染修复与 spec 体系修订（prototype button reset and spec refinement）
 
-状态：Active
+状态：Verified
 自审核状态：Reviewed
 类型：chore
 创建日期：2026-06-11
@@ -105,7 +105,12 @@ EOF
 
 ## 实施记录
 
-- 2026-06-11：阶段 1 完成，方案创建并自审核。
+- 2026-06-11：阶段 1 完成，方案创建并自审核（commit `30dc4d7`）。
+- 2026-06-11：阶段 2 完成，`tokens.css` 全局按钮 reset（border / background / padding / margin / text-align / appearance），`components.css` 为 `.row` 补 `width: 100%` 与左对齐、为依赖 UA 居中的 `.seg button` 补 `text-align: center`；原型链接检查通过；归档原型不引用 shared CSS，不受影响（commit `9ad525a`）。
+- 2026-06-11：阶段 3 完成，spec 010 修正 iPhone 顶层导航事实为四 Tab 并与 spec 002 互链；spec 002 / 010 新增官方参考小节，全部链接 curl 验证 200（commit `0ebc754`）。
+- 2026-06-11：阶段 4 完成，spec 003 §4.3 三段整段约束重构为 4.3.1-4.3.3 条目子小节（逐句保留语义）；新增 §4.9.2 字号层级与 Dynamic Type 映射基准；新增官方参考小节（commit `12780e6`）。
+- 2026-06-11：阶段 5 完成，新增 `docs/spec/013-practice-learning-domain.md` 并更新 spec README 索引（commit `5e63ebe`）。
+- 2026-06-11：阶段 6 完成，方案移入 done。验证：`scripts/check-docs.sh` 通过、占位扫描通过、原型链接检查通过、`git diff --check` 通过。HIG `inspectors` slug 返回 404，未引用该页。
 
 ## 完成标准
 
