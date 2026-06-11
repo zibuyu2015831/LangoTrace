@@ -103,11 +103,57 @@ macOS：
 
 组件应优先表达产品对象，而不是抽象 UI 样式。
 
-`SentencePairView` 在 iPhone 窄屏中必须优先保障逐句内容的阅读宽度和纵向信息密度。序号和“听 / 练”等句子操作应放在独立顶部操作区，操作按钮保持不小于 44pt 的触控目标；母语对照、目标语言句子和讲解正文不得与多个操作按钮共享同一横向行，避免正文被挤压成过窄的阅读列。短句场景下卡片 padding、序号尺寸和讲解字号应保持克制，避免一个句子占据过多首屏高度。逐句“听”按钮不得打开解释型 sheet；在真实 TTS 接入前，只允许原位轻量反馈，真实直播放能力必须等待 TTS 配置、测试和播放服务边界完成后再接入。
+#### 4.3.1 SentencePairView 句子卡片
 
-单句练习页应把视觉权重留给句子内容和真实可执行动作。页面不应重复显示与导航标题或正文卡片等价的 section header，不应把只读状态做成类似 segmented control 的大块胶囊按钮，也不应在操作区下方追加解释型 step card。顶部内容卡应优先展示目标语言句子；中文释义属于低权重理解辅助，默认只显示 `查看释义` 入口，用户点击后必须能完整查看释义正文，再次点击可收起，展开后不再重复显示 `中文释义` 标题；语法讲解或词句说明属于更深层学习信息，默认收起并通过独立入口查看，多段讲解之间应保留 6-8pt 视觉停顿。`查看释义` 与 `查看讲解` 优先同行显示以节省默认态高度，但 Dynamic Type 或窄屏下可以回退为上下排列，不能压缩文字或缩小触控目标。句间切换时，释义和讲解的展开状态默认重置，避免不同句子长度导致练习控制区持续跳动；默认态高度应由真实可见内容自然决定，不得用固定大高度为隐藏的释义或讲解正文预留空白。用户主动展开释义或讲解时，内容卡可以自然增高，以保证完整阅读。`PracticeControlBar` 只承载 `听`、`回放录音` 和录音主按钮；录音成功后由最近一次 ready recording 派生“已练过”状态，主按钮从 `开始录音` 变为 `再录一次`，不得把手动 `标记完成` 或 `保持完成状态` 做成当前单句页主流程。常驻指导文案、缺少录音提示卡和只用于解释 disabled 状态的说明不应占据主流程空间。`PracticeSentenceNavigationBar` 属于同一篇记录内的内容导航，应放在操作卡之后，左侧为 `上一句`，中间为居中低权重句序 `第 n / m 句`，右侧为 `下一句`。上一句 / 下一句使用 SF Symbols chevron 的低权重 plain/chip 按钮，触控区域不少于 44pt；句序不再额外拼接 `这是第一句` / `这是最后一句`。句间导航不得使用 filled primary CTA、三等分状态块或 `.langoPanel()` 包一层新卡片；Dynamic Type 或窄屏下可以换行，但按钮、句序和操作卡不得互相遮挡。
+- `SentencePairView` 在 iPhone 窄屏中必须优先保障逐句内容的阅读宽度和纵向信息密度。
+- 序号和“听 / 练”等句子操作应放在独立顶部操作区，操作按钮保持不小于 44pt 的触控目标。
+- 母语对照、目标语言句子和讲解正文不得与多个操作按钮共享同一横向行，避免正文被挤压成过窄的阅读列。
+- 短句场景下卡片 padding、序号尺寸和讲解字号应保持克制，避免一个句子占据过多首屏高度。
+- 逐句“听”按钮不得打开解释型 sheet；在真实 TTS 接入前，只允许原位轻量反馈，真实直播放能力必须等待 TTS 配置、测试和播放服务边界完成后再接入。
 
-iPhone 记录详情中的母语原文和目标语言学习文本应优先服务阅读和练习，不应表现成带字段标题的表单。iPhone compact 详情页导航栏使用当前记录标题，不再在正文顶部重复显示记录标题；长记录标题遵循系统 navigation title 单行截断，不使用自定义多行标题或 principal toolbar，空白标题 fallback 到 `记录详情`。记录详情不展示 `可用` / `本地预览` 等能力状态 badge，也不在标题下方常驻来源、目标语言和场景 metadata；这些信息会与正文卡片和逐句操作重复，并削弱首屏内容层级。iPad / macOS 共享详情内容可继续使用嵌入式记录标题来服务分栏和工作台语义，但必须由调用入口显式选择标题呈现策略，不能让 iPhone 标题优化隐式扩散到大屏。详情页使用一致的动态文本卡片：顶部工具区左侧显示 `{母语显示名}记录` / `{目标语言显示名}表达`，右侧放编辑、重新分析或重新生成等 44pt 操作按钮；正文在工具区下方全宽展示，不得再通过右上角悬浮按钮和正文右侧 padding 挤压阅读列。母语原文可以进入专用 sheet 编辑并只保存到本地 Entry；目标语言学习文本继续进入专用 sheet 编辑，编辑后走“待重新分析”状态；若原文变更导致现有学习材料基于旧记录，目标语言卡显示“基于旧记录”并只在用户显式触发时重新生成。所有卡片标题必须来自当前语言空间显示名和本地化格式化 key，不能硬编码“中文记录”或“英文表达”。Sheet 内使用大面积 `TextEditor` 和顶部取消 / 保存操作，不重复显示正文标题；短文本默认使用较低初始高度，长文本默认全高，始终允许用户展开到全高，且输入过程中不得随文本变化实时跳动高度。详情页本身不承载编辑态输入框。
+#### 4.3.2 单句练习页
+
+内容层级：
+
+- 单句练习页应把视觉权重留给句子内容和真实可执行动作。
+- 页面不应重复显示与导航标题或正文卡片等价的 section header，不应把只读状态做成类似 segmented control 的大块胶囊按钮，也不应在操作区下方追加解释型 step card。
+- 顶部内容卡应优先展示目标语言句子；中文释义属于低权重理解辅助，默认只显示 `查看释义` 入口，用户点击后必须能完整查看释义正文，再次点击可收起，展开后不再重复显示 `中文释义` 标题。
+- 语法讲解或词句说明属于更深层学习信息，默认收起并通过独立入口查看，多段讲解之间应保留 6-8pt 视觉停顿。
+- `查看释义` 与 `查看讲解` 优先同行显示以节省默认态高度，但 Dynamic Type 或窄屏下可以回退为上下排列，不能压缩文字或缩小触控目标。
+- 句间切换时，释义和讲解的展开状态默认重置，避免不同句子长度导致练习控制区持续跳动；默认态高度应由真实可见内容自然决定，不得用固定大高度为隐藏的释义或讲解正文预留空白。
+- 用户主动展开释义或讲解时，内容卡可以自然增高，以保证完整阅读。
+
+操作与完成态：
+
+- `PracticeControlBar` 只承载 `听`、`回放录音` 和录音主按钮。
+- 录音成功后由最近一次 ready recording 派生“已练过”状态，主按钮从 `开始录音` 变为 `再录一次`，不得把手动 `标记完成` 或 `保持完成状态` 做成当前单句页主流程。
+- 常驻指导文案、缺少录音提示卡和只用于解释 disabled 状态的说明不应占据主流程空间。
+
+句间导航：
+
+- `PracticeSentenceNavigationBar` 属于同一篇记录内的内容导航，应放在操作卡之后，左侧为 `上一句`，中间为居中低权重句序 `第 n / m 句`，右侧为 `下一句`。
+- 上一句 / 下一句使用 SF Symbols chevron 的低权重 plain/chip 按钮，触控区域不少于 44pt；句序不再额外拼接 `这是第一句` / `这是最后一句`。
+- 句间导航不得使用 filled primary CTA、三等分状态块或 `.langoPanel()` 包一层新卡片；Dynamic Type 或窄屏下可以换行，但按钮、句序和操作卡不得互相遮挡。
+
+#### 4.3.3 记录详情文本卡片与编辑 sheet
+
+标题与 metadata：
+
+- iPhone 记录详情中的母语原文和目标语言学习文本应优先服务阅读和练习，不应表现成带字段标题的表单。
+- iPhone compact 详情页导航栏使用当前记录标题，不再在正文顶部重复显示记录标题；长记录标题遵循系统 navigation title 单行截断，不使用自定义多行标题或 principal toolbar，空白标题 fallback 到 `记录详情`。
+- 记录详情不展示 `可用` / `本地预览` 等能力状态 badge，也不在标题下方常驻来源、目标语言和场景 metadata；这些信息会与正文卡片和逐句操作重复，并削弱首屏内容层级。
+- iPad / macOS 共享详情内容可继续使用嵌入式记录标题来服务分栏和工作台语义，但必须由调用入口显式选择标题呈现策略，不能让 iPhone 标题优化隐式扩散到大屏。
+
+动态文本卡片：
+
+- 详情页使用一致的动态文本卡片：顶部工具区左侧显示 `{母语显示名}记录` / `{目标语言显示名}表达`，右侧放编辑、重新分析或重新生成等 44pt 操作按钮；正文在工具区下方全宽展示，不得再通过右上角悬浮按钮和正文右侧 padding 挤压阅读列。
+- 母语原文可以进入专用 sheet 编辑并只保存到本地 Entry；目标语言学习文本继续进入专用 sheet 编辑，编辑后走“待重新分析”状态；若原文变更导致现有学习材料基于旧记录，目标语言卡显示“基于旧记录”并只在用户显式触发时重新生成。
+- 所有卡片标题必须来自当前语言空间显示名和本地化格式化 key，不能硬编码“中文记录”或“英文表达”。
+
+编辑 sheet：
+
+- Sheet 内使用大面积 `TextEditor` 和顶部取消 / 保存操作，不重复显示正文标题；短文本默认使用较低初始高度，长文本默认全高，始终允许用户展开到全高，且输入过程中不得随文本变化实时跳动高度。
+- 详情页本身不承载编辑态输入框。
 
 ### 4.4 状态设计
 
@@ -266,6 +312,30 @@ Empty / unavailable / loading / error 模式：
 - Loading state 应说明正在处理的对象，避免裸 `ProgressView`。
 - Error state 应保留用户输入或本地记录，并提供重试、返回或查看详情路径。
 - Local preview state 应明确是本地示例，不触发真实 AI、TTS、同步或外部请求。
+
+### 4.9.2 字号层级与 Dynamic Type 映射基准
+
+原型 `prototypes/shared/tokens.css` 定义了完整字号 scale。它是 393pt 固定画布上的**视觉层级基准**，不是实现像素值；SwiftUI 实现必须使用语义 `Font.TextStyle`（自动支持 Dynamic Type），不得把原型 px 硬编码为 `Font.system(size:)`。
+
+层级映射基准（括号内为 HIG 默认 Large 档字号，仅用于理解层级关系）：
+
+| 原型 token | 原型 px | 角色 | SwiftUI 语义样式 |
+| --- | --- | --- | --- |
+| `--fs-large` | 30 | 页面大标题 | `.largeTitle`（34） |
+| `--fs-title1` | 24 | 区块主标题 | `.title2`（22）或 `.title`（28） |
+| `--fs-title2` | 20 | 卡片 / 面板标题 | `.title3`（20） |
+| `--fs-title3` | 17 | 导航标题、强调正文 | `.headline`（17） |
+| `--fs-body` | 15 | 正文、目标语言句子 | `.body`（17）或 `.callout`（16） |
+| `--fs-sub` | 13 | 次级文本、菜单值 | `.subheadline`（15） |
+| `--fs-footnote` | 12 | 辅助说明、披露文案 | `.footnote`（13） |
+| `--fs-caption` | 11 | 标签、状态 pill | `.caption`（12）或 `.caption2`（11） |
+
+使用规则：
+
+- 原型字号整体比 HIG 默认档紧约 1-2pt，属于固定画布上的密度表达；实现以语义样式为准，不追求与原型像素一致。
+- 同一语义层级在三端使用同一 text style；macOS 的更高信息密度通过布局和间距实现，不通过缩小字号实现。
+- 自定义字号只允许出现在 `LangoTraceDesign` token 层并说明原因；启用时必须用 `@ScaledMetric` 或等价机制保持 Dynamic Type 缩放。
+- 官方依据：[HIG · Typography](https://developer.apple.com/design/human-interface-guidelines/typography)（含 Dynamic Type 全部字号表）、[SwiftUI · Font.TextStyle](https://developer.apple.com/documentation/swiftui/font/textstyle)。
 
 ### 4.10 Welcome 与首次解释体验
 
@@ -480,7 +550,18 @@ AI 在创建或修改 UI 前应先确认：
 
 如果没有明确设计 token，先使用局部可替换的命名，不要把颜色、字体和尺寸散落在大量 View 中。
 
-## 8. 变更记录
+## 8. 官方参考
+
+以下 Apple 官方文档是本规范视觉与组件约束的依据来源（链接于 2026-06-11 验证可达；若失效，以 HIG 站内检索对应主题为准）：
+
+- [HIG · Layout](https://developer.apple.com/design/human-interface-guidelines/layout)：留白、对齐、safe area 与多尺寸适配。
+- [HIG · Typography](https://developer.apple.com/design/human-interface-guidelines/typography)：文本样式层级与 Dynamic Type 字号表；对应 4.9.2 节。
+- [HIG · Color](https://developer.apple.com/design/human-interface-guidelines/color)与[HIG · Dark Mode](https://developer.apple.com/design/human-interface-guidelines/dark-mode)：语义颜色、对比度与深色适配；对应 4.9 节 token 边界。
+- [HIG · Buttons](https://developer.apple.com/design/human-interface-guidelines/buttons)：按钮层级、尺寸与角色；对应 Action hierarchy 规则。
+- [HIG · SF Symbols](https://developer.apple.com/design/human-interface-guidelines/sf-symbols)与[SF Symbols App](https://developer.apple.com/sf-symbols/)：图标语言基准；原型中的描边 SVG 图标在实现层应映射到 SF Symbols。
+- [HIG · Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility)：44pt 触控目标、对比度与状态语义；详细验收规则见 [010：Apple 三端交互与可访问性规范](010-apple-platform-interaction-and-accessibility.md)。
+
+## 9. 变更记录
 
 - 2026-05-17：创建第一版 UI 设计系统规范。
 - 2026-05-17：补充可访问性、国际化和 design token 初始边界。原因：付费 App 需要从早期避免视觉一致性和可用性债务。影响范围：UI 设计和 SwiftUI 组件。是否需要 ADR：否。
@@ -513,3 +594,6 @@ AI 在创建或修改 UI 前应先确认：
 - 2026-06-06：新增 §4.19 图标按钮瞬态确认反馈规范。原因：阅读面板「复制」图标按钮实现暴露了图标按钮无可见结果时的反馈缺口；将 `checkmark` 切换 + 1.5s 自动复位 + `.symbolEffect(.replace)` + `guard !isSuccess` 防重触发 + 可访问 label 状态切换的组合沉淀为通用规则，以便后续复制词条、导出句子和分享场景复用。影响范围：`ReadingCopyButton`、后续图标操作按钮、未来 `TransientConfirmButton` 通用组件。是否需要 ADR：否，属于 UI 交互模式约束。
 - 2026-05-24：补充系统级设置详情标题规则。原因：AI Provider 配置属于跨语言空间系统级设置，内容区重复 `AI Provider` 和当前语言空间方向会误导归属并浪费首屏空间；导航标题保留，内容区直接进入表单。影响范围：`SettingsCapabilityDetailView`、AI Provider 设置页和后续系统级配置页。是否需要 ADR：否。
 - 2026-06-11：新增 §4.20 静态原型设计基准。原因：`prototypes/` 已重建为覆盖三端全部页面的目标设计原型集，spec 侧需要指回该设计基准并明确权威关系，避免后续 UI 开发只读 spec 而脱离已确认的页面结构，或反向把原型目标设计当作当前实现事实。影响范围：后续页面新增 / 重构的设计输入流程。是否需要 ADR：否，属于文档间权威关系标注。
+- 2026-06-11：将 §4.3 中 SentencePairView、单句练习页、记录详情文本卡三段整段约束重构为 4.3.1-4.3.3 子小节与条目列表。原因：单段超长文本检索和遵循成本高；本次为纯结构调整，逐句保留原约束语义，不新增、不删除、不放宽任何规则。影响范围：规范可读性，无约束语义变化。是否需要 ADR：否。
+- 2026-06-11：新增 §4.9.2 字号层级与 Dynamic Type 映射基准。原因：原型已形成完整字号 scale，需要明确「原型 px 是视觉层级基准、实现必须用语义 Font.TextStyle」的映射规则，防止把原型像素硬编码进 SwiftUI 并破坏 Dynamic Type。影响范围：`LangoTraceDesign` 字体 token、后续页面实现和 Dynamic Type 验收。是否需要 ADR：否。
+- 2026-06-11：新增官方参考小节。原因：视觉、组件和可访问性约束需要可直接对照的 Apple 官方文档入口；全部链接经可达性验证。影响范围：规范使用方式，不改变任何既有约束。是否需要 ADR：否。
