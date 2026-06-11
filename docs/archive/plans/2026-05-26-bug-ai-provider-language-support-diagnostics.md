@@ -1,3 +1,5 @@
+> 归档说明（2026-06-11）：本方案已按用户决定从 docs/plans/active/ 整体归档，仅作历史证据保留；适用部分由 2026-06-11 系列方案与 Mac 验证清单吸收。详见 docs/archive/plans/README.md。
+
 # AI Provider language support diagnostics
 
 状态：Implemented - Pending Manual Verification

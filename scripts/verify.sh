@@ -38,15 +38,31 @@ heartbeat() {
   done
 }
 
+HEARTBEAT_PID=""
+cleanup_heartbeat() {
+  if [[ -n "$HEARTBEAT_PID" ]]; then
+    kill "$HEARTBEAT_PID" 2>/dev/null || true
+    HEARTBEAT_PID=""
+  fi
+}
+trap cleanup_heartbeat EXIT INT TERM
+
 run_with_heartbeat() {
   local name="$1"
   shift
   echo "==> Running $name"
   heartbeat "$name" &
-  local pid=$!
-  # Run command and filter to keep log size manageable but alive
-  "$@" | grep --line-buffered -iE "error:|warning:|built|failed|linking|passed|suite" || true
-  kill $pid
+  HEARTBEAT_PID=$!
+  # Filter output to keep the log manageable, but never let the filter mask
+  # the build/test command's own exit status (grep returning 1 on no match
+  # must be tolerated; the xcodebuild status must be propagated).
+  "$@" | { grep --line-buffered -iE "error:|warning:|built|failed|linking|passed|suite" || true; }
+  local status=${PIPESTATUS[0]}
+  cleanup_heartbeat
+  if [[ "$status" -ne 0 ]]; then
+    echo "==> $name failed with exit status $status" >&2
+    exit "$status"
+  fi
 }
 
 run_with_heartbeat "LangoTrace-iOS (iPhone 17) build" \
@@ -61,8 +77,8 @@ run_with_heartbeat "LangoTrace-macOS build" \
 run_with_heartbeat "LangoTrace-macOS AppTests" \
   xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests
 
-run swiftlint --cache
-run swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache use
+run swiftlint --no-cache
+run swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore
 
 run scripts/check-docs.sh
 run git diff --check

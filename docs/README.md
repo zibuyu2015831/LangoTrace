@@ -492,7 +492,7 @@ git status --short
 scripts/verify.sh
 ```
 
-当前 `scripts/verify.sh` 展开为：
+当前 `scripts/verify.sh` 的检查序列等价于（构建/测试步骤实际带心跳输出与失败传播包装；以脚本本身为准）：
 
 ```bash
 #!/usr/bin/env bash
@@ -508,17 +508,15 @@ swift test --package-path Packages/LangoTraceAI
 swift test --package-path Packages/LangoTraceSpeech
 swift test --package-path Packages/LangoTraceSync
 swift test --package-path Packages/LangoTraceUI
-python3 -m unittest Tests/Tooling/test_probe_openai_compatible_api.py
+python3 -m unittest discover -s Tests/Tooling -p 'test_*.py'
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
 xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
 xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
 xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests
 swiftlint --no-cache
 swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore
-if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'; then
-  echo "Documentation placeholder scan found entries." >&2
-  exit 1
-fi
+scripts/check-docs.sh
+git diff --check
 git status --short
 ```
 
