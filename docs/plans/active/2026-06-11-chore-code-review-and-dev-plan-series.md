@@ -183,6 +183,11 @@ git status --short
 - 2026-06-11 阶段 2 第二波（跨包顺序实施）：隐私状态文案 Core→UI 本地化下沉（含纠正"请求预览"过度承诺）、启动恢复失败 Welcome 浮出 + 重试、RootView init 全局副作用移除、操作摘要 1970 epoch 时间戳清除。commit `274b7db`。
 - 2026-06-11 阶段 3：三个子代理并行撰写系列方案 15 份（E0a/E0b/E1/E2/R1/E3–E12，含双轮自审核记录，状态 Draft），主会话修正跨引用并通过 `scripts/check-docs.sh`。commit `a2b1be3`。
 - 2026-06-11 阶段 4：创建 [Mac 待验证清单](../../testing/2026-06-11-mac-verification-checklist.md)，回填本方案自审核记录、实施记录与附录 A，文档检查收口。
+- 2026-06-11 阶段 5（用户指令插入）：
+  1. 系列方案文件名加入两位实施顺序编号 01–15（commit `bfe95c7`，命名规则补入 `docs/plans/README.md` §2，`scripts/check-docs.sh` 同步放宽）。
+  2. 合并另一设备分支 `fix/ai-provider-language-support`（commit `78309c1`）：吸收 multimodal TTS adapter、TTS probe 解码、TTS-only probe、probe 诊断事件与宿主机集成探针脚本；合并期修正分支自带的 4 处不一致（playable adapter 守卫滞后、OpenRouter 默认模型与 adapter 不匹配、2 处过期测试断言）并剥除 3 处违反 spec 008 的裸 `os_log`（曾打印 Provider 响应体）；validator 长度阈值取舍：采纳分支放宽下限（15 字符 / 10 词）、保留"不设上限"语义。两份分支方案文档入 `docs/plans/done/`。
+  3. 归档方案二次吸收审计（只读子代理）：发现 6 处缺口并已写回——Mac 清单 §5 补 `LANGOTRACE_DIAGNOSTICS=1` 前提与期望日志行、§4 补阅读选区 VoiceOver 回归项（31）；plan 05 修正"复制按钮"事实错误并补 D3 override 生命周期语义与 A1/C2 抽检项；macOS 凭证签名备忘录补私有常量 `u_AuthUI(F)` 版本兼容提醒并更正 credential_resolve_failed emit 点已落地的事实。
+  4. `docs/testing/` 清理：删除过期的 `2026-05-18-premium-ui-completion-verification.md`（所验证 UI 已被原型重设计取代）与 `2026-06-06-verify-script-results.md`（时点记录已被本轮修复与 Mac 清单取代）；README 登记 `Tests/AIProviderIntegration/` 脚本边界。
 
 偏离方案的记录：
 

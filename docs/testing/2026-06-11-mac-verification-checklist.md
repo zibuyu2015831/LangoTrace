@@ -2,7 +2,7 @@
 
 状态：Open
 创建日期：2026-06-11
-来源：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`（全量代码审查修复，commits `71bfc01`…`a2b1be3`）
+来源：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`（全量代码审查修复，commits `71bfc01`…`a2b1be3`）；2026-06-11 追加 `fix/ai-provider-language-support` 分支合并（multimodal TTS adapter、TTS-only probe、probe 诊断事件）相关验证项。
 
 本次审查与修复在 Linux 环境完成，无 Swift 工具链，所有 Swift 改动仅经过静态审查（全文阅读、调用点 grep、括号配平、xcstrings JSON 校验），**未经编译与测试运行**。切换到 Mac 后按本清单逐项验证；全部通过后在本文件记录结果，并将母方案移入 `docs/plans/done/`。
 
@@ -47,6 +47,14 @@ xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' bui
 - `bootstrap(databaseURL:)` 新参数与 `SharedAppDatabaseFactory` internal 化（TEST-01）。
 - 新增本地化键的 xcstrings 由脚本写入，Xcode 打开后可能重排键序（预期，无需处理）。
 
+2026-06-11 合并 `fix/ai-provider-language-support` 后追加的编译/行为风险点：
+
+- `TTSProviderAdapter` 协议新增 `decodeAudio(from:)` / `decodedAudioFormat(for:)`（带默认实现），新增 multimodal / custom adapter 与 PCM16->WAV 包装，需确认 AI 包编译与既有 adapter 测试通过。
+- `TTSConfigurationProbeService` 构造参数新增 `diagnosticLogger`，所有调用点（App 装配 + 测试）已更新，注意遗漏点。
+- `AIProviderConfigurationService.loadDefaultPlayableTTSConfiguration` 的 adapter 守卫由两种扩为五种（merge 时修正），与 `SentenceTTSGenerationService.adapter(for:)` 必须保持一致。
+- 语言支持 validator 下限放宽为 15 可见字符 / 10 词（合并取舍：采纳分支下限、保留"不设上限"语义），相关阈值测试需通过。
+- multimodal 解码路径下 `SentenceTTSGenerationResult.mimeType` 仍回落原始 `httpResponse.contentType`（可能是 `text/event-stream`），如造成回放或缓存元数据异常，需另立修复项。
+
 ## 3. 数据迁移验证
 
 - 新增 migration `v15_reset_reading_explanation_cache_for_unix_epoch`（DATA-06）：用包含旧版数据库的模拟器升级启动，确认迁移通过、解释缓存被清空后可重新生成。
@@ -88,13 +96,19 @@ xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' bui
 | 28 | AppIntents metadata extractor warning 是否复现（若复现且不可接受，可恢复依赖并在方案中记录） | PROJ-01 |
 | 29 | 构建产物 Info.plist 版本号显示 0.1.0 | PROJ-02 |
 | 30 | 深/浅色模式下阅读选中高亮与下划线颜色与品牌强调色一致 | UIV-27 |
+| 31 | iOS 模拟器开启 VoiceOver，在阅读正文选中文本：VoiceOver 仍能朗读选中内容，学习面板元素可被聚焦与朗读；系统编辑菜单保持不出现 | 归档阅读缺陷方案自审核 P1-A（最终实现为 `ReadingNonMenuTextView.canPerformAction` 全量返回 false，正是当时标记可能影响 VoiceOver 的方案，回归优先级应高于普通项） |
+| 32 | OpenRouter 预设新建 TTS 配置（默认 multimodal adapter + `openai/gpt-audio-mini`）：配置 probe 转 Succeeded，且记录详情逐句"听"能生成并播放（WAV 包装的 PCM16） | 分支合并：multimodal 解码 + playable 配置 adapter 集合扩展 |
+| 33 | 仅启用语音合成（不启用文本生成）的 Provider 配置可发起"测试请求"，错误 API Key 时 TTS 测试显示鉴权失败而非"未启用" | 分支合并：TTS-only probe readiness + 静默 catch 修复 |
+| 34 | 自定义 OpenAI 兼容预设启用 TTS 后保存，逐句"听"可生成播放 | 分支合并：customOpenAICompatibleAudioSpeech 默认 adapter |
 
 ## 5. 归档方案遗留的人工验证项
 
 来自 `docs/archive/plans/`（2026-06-11 整体归档）：
 
-- `2026-05-26-bug-ai-provider-language-support-diagnostics.md`：iPad 模拟器运行 AI Provider 测试，语言支持行失败时用 `scripts/capture-runtime-log --last 30m` 确认日志能区分失败阶段。
-- `2026-05-26-bug-mac-ai-provider-key-retention.md`：macOS 本机验证 Keychain 静默读取（无弹窗）与诊断事件；签名约束跟踪在 `docs/architecture/notes/2026-06-05-macos-ai-provider-credential-signing-notes.md`。
+> 注意：2026-06-11 审查波次 APP-04 已将 console 诊断恢复为 spec 008 默认关闭，`ConsoleDiagnosticLogger` 仅在 `LANGOTRACE_DIAGNOSTICS=1` 时挂载（`LangoTraceApp/AppEnvironment.swift` 的 `makeDiagnosticLogger`）。本节两项验证必须以 `LANGOTRACE_DIAGNOSTICS=1` 启动 App（必要时配合 `LANGOTRACE_LOG_LEVEL=warning`），否则 `scripts/capture-runtime-log` 采不到任何诊断事件，会被误判为修复回归。归档方案中"无需环境变量即可出现 warning 日志"的描述对当前代码已不成立。
+
+- `2026-05-26-bug-ai-provider-language-support-diagnostics.md`：iPad 模拟器运行 AI Provider 测试，语言支持行失败时用 `scripts/capture-runtime-log --last 30m` 确认日志能区分失败阶段。期望日志行：`ai_provider_configuration.probe_partial` 或 `probe_failed` 且带 `language_support_failure_reason=<unsupported_language_code | missing_sample_json | sample_too_short | script_mismatch | natural_language_mismatch>`。
+- `2026-05-26-bug-mac-ai-provider-key-retention.md`：macOS 本机验证 Keychain 静默读取（无弹窗）与诊断事件；签名约束跟踪在 `docs/architecture/notes/2026-06-05-macos-ai-provider-credential-signing-notes.md`。期望日志行：`ai_provider_settings.credential_resolve_failed failed failure_phase=credential_reveal error_category=<稳定分类>`；同一轮中确认设置页加载与显式 reveal 均无登录钥匙串弹窗。
 
 ## 6. 验证结果记录
 

@@ -28,7 +28,8 @@
 - 签名策略：是否引入稳定 Apple Development / Distribution 签名，使 `TeamIdentifier` 固定、Keychain ACL 在重建后保持稳定。
 - Keychain access group：是否配置正式 access group 并迁移到 Data Protection Keychain；这需要对应 entitlement，会改变测试宿主与 Debug 构建行为（当前缺 entitlement 时 `kSecUseDataProtectionKeychain` 返回 `-34018`）。
 - 低安全级本地密钥库：是否提供用户显式选择的本地密钥库作为替代；若加密密钥也存于 App 容器，实际安全性接近本地可读混淆存储，必须有清晰隐私披露。
-- 诊断交付：`ai_provider_settings.credential_resolve_failed` 事件名已存在但当前无生产 emit 点；若要让日志区分 item 缺失 / 不可访问 / profile 未加载，需在 reveal 失败路径补 emit，或显式声明该事件保留为未来扩展。
+- 诊断交付：`ai_provider_settings.credential_resolve_failed` 的生产 emit 点已于 2026-06-11 前落地（`AIProviderSettingsView` reveal 失败分支，守护测试见 `AIProviderSettingsMoreTests`）；本条保留为历史决策背景。
+- 遗留提醒（来自归档方案 `2026-05-26-bug-mac-ai-provider-key-retention.md` 自审核 P3-1）：`KeychainAIProviderCredentialStore.swift` 中 `secUseAuthenticationUIKey` 使用未文档化私有常量 `"u_AuthUI"` / `"u_AuthUIF"` 充当 `kSecUseAuthenticationUI(Fail)` 等价值，尚未记录已验证的 macOS 版本范围。下次触碰该文件（如 E0a 的 AI-12 Keychain dlopen 现代化、AI-21 测试替换）时，应补充已验证版本注释或改用公开 API 常量。
 
 ## 当前任务不实现
 

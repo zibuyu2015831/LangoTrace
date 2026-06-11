@@ -106,7 +106,7 @@
 
 - 不实现标签（通勤 / 科技等用户自建标签 chips）：原型展示了标签筛选，但标签是跨记录 / 阅读的横向能力，应与记录时间线筛选（E1）统一设计，本方案只做 `全部 / 收藏`。
 - 不实现 macOS 右键菜单注入「用语迹解释」（`prototypes/mac/reading.html` 设计）：macOS NSTextView 菜单整合是归档缺陷方案明确排除的独立项，交互模型不同，留待独立方案。
-- 不在学习面板新增复制按钮（归档方案遗留风险 1，需要独立产品确认）。
+- 学习面板复制按钮：归档方案剩余风险 1 已闭环——2026-06-06 已落地 icon-only 复制按钮（`ReadingViewComponents.swift` 的 `ReadingCopyButton`，使用点为 compact 学习面板 header；见 spec 012 Change Log 2026-06-06 (4)），本方案不需要任何动作。
 - 不做阅读 FTS、跨文档搜索、EPUB / PDF 导入（导入格式扩展见 `ReadingImportRegistry` 既有边界）。
 - 不把阅读进度、收藏或解释缓存纳入同步、导出或备份；它们保持本地数据。
 - 不实现全文朗读或批量 TTS 预生成（`docs/architecture/notes/2026-05-24-sentence-tts-playback-infrastructure-extension-notes.md` 明确禁止复用单句低摩擦边界）。
@@ -281,7 +281,7 @@ migration（与 Phase 1 合并为一个 migration，id 在实施时按当时最�
 
 ### Phase 4：解释语言模式收尾
 
-1. （须用户确认解除 D3 Deferred）面板内 mode 切换控件：在解释面板（compact 面板与 iPad / mac inspector 共用组件）加入三档切换；切换更新 `ReadingDocumentStore.currentExplanationMode` 并对当前选区重发请求；结果按 mode 落入既有三元唯一索引缓存，切回即命中（架构已就绪，无迁移）。
+1. （须用户确认解除 D3 Deferred）面板内 mode 切换控件：在解释面板（compact 面板与 iPad / mac inspector 共用组件）加入三档切换；切换更新 `ReadingDocumentStore.currentExplanationMode` 并对当前选区重发请求；结果按 mode 落入既有三元唯一索引缓存，切回即命中（架构已就绪，无迁移）。按归档方案 D3 已获用户确认的语义：mode override 为 session / 文档级状态——关闭文档或切换语言空间后清空，回落到 Level 派生默认值；不作为持久化偏好存储（持久化"解释语言偏好"设置项按归档方案 §2.3 口径留待后续单独立案）；切换必然触发重新请求，不做 UI 层二次翻译。
 2. 控件文案遵守 spec 006：三档名称用界面语言表达（如 母语解释 / 双语过渡 / 目标语言沉浸），不暴露枚举名。
 3. Phase 0 spike 处置：本方案不把 spike 作为代码门禁（控件只是切换已有请求维度，不新增 Prompt 行为）；spike 作为人工验证项保留——在 macOS 真机环境用自备 Provider 运行 `docs/reference/research/spikes/2026-06-06-bilingual-bridge-prompt-stability.py`，PASS / FAIL 与降级决策（FAIL 时 bridge 默认派生降级为 `sourceLanguage`，枚举保留，按归档方案 D6 口径）记录回 spikes 目录与本方案实施记录。
 
@@ -323,6 +323,7 @@ migration（与 Phase 1 合并为一个 migration，id 在实施时按当时最�
 4. iPad：折叠 inspector 后选中文本，compact 面板从底部出现并可触发解释；展开后回到右栏；折叠 / 展开过程不发起任何网络请求（可由 store 测试断言）。
 5. mode 切换：同一选区切换三档，首次切换发起新请求，切回命中缓存（断言 repository 命中而非再次请求）。
 6. 故障路径：migration 失败保持原库不半写入（migration 测试）；进度写回失败不影响阅读主流程（错误进入诊断而非 UI 阻断）；锚点指向已删除 block 时回退百分比定位。
+7. mode 切换控件落地后，对同一选区分别以三档（含 A1 与 C1/C2 水平空间）发送解释请求，人工抽检各字段语言是否符合归档方案 D2 字段表；字段语言遵从为软质量，只抽检不自动断言（吸收自归档方案 §15 复查方法第 2 步）。
 
 ## 15. TDD / 测试落点
 
@@ -394,5 +395,5 @@ deferred / aborted 项是否已从完成叙事中剥离：spike 若 deferred 单
 
 1. 滚动进度采集的三端几何 API 差异（iOS ScrollView 观察与 macOS 行为不完全一致）可能导致百分比口径轻微不一致；以"可视 block 索引 / 总 block 数加权"为统一口径，差异由人工验证兜底。
 2. spike 在当前 Linux 环境无法执行；若长期未执行，bridge 模式在弱模型上的语言遵从风险持续存在（归档方案剩余风险 1 的延续），运行期不因语言漂移硬失败的边界仍然成立。
-3. macOS 右键菜单整合、学习面板复制按钮、VoiceOver 人工回归未纳入本方案，作为已知未关闭项保留（归档方案剩余风险 1–3 的延续），后续按需要独立立案。
+3. macOS 右键菜单整合、VoiceOver 人工回归未纳入本方案，作为已知未关闭项保留（归档方案剩余风险 2–3 的延续），后续按需要独立立案；阅读选区 VoiceOver 回归已列入 Mac 验证清单第 31 项。学习面板复制按钮已于 2026-06-06 落地，不再是未关闭项。
 4. migration 内对存量文档一次性重建结构在大文档库下的耗时未知；早期阶段无真实用户数据，风险可接受，实现时保留单文档重建失败不阻塞整体 migration 的策略。
