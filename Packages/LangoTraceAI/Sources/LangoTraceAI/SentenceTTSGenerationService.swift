@@ -44,23 +44,48 @@ public struct SentenceTTSGenerationService: SentenceTTSGenerating {
             throw playbackFailure(for: error)
         }
 
+        let decodedBody: Data
+        if (200 ... 299).contains(httpResponse.statusCode) {
+            do {
+                decodedBody = try adapter.decodeAudio(from: httpResponse.body)
+            } catch {
+                throw playbackFailure(for: .invalidAudioResponse)
+            }
+        } else {
+            decodedBody = httpResponse.body
+        }
+
+        let validationContentType: String?
+        if (200 ... 299).contains(httpResponse.statusCode),
+           let originalContentType = httpResponse.contentType,
+           !originalContentType.lowercased().contains("audio") {
+            validationContentType = nil
+        } else {
+            validationContentType = httpResponse.contentType
+        }
+
+        let actualAudioFormat = adapter.decodedAudioFormat(for: request.playableConfiguration.voiceProfile)
         let validation = await responseValidator.validate(
-            response: httpResponse,
-            declaredFormat: request.artifactKey.outputFormat,
-            contentType: httpResponse.contentType
+            response: AIProviderHTTPResponse(
+                statusCode: httpResponse.statusCode,
+                body: decodedBody,
+                contentType: httpResponse.contentType
+            ),
+            declaredFormat: actualAudioFormat,
+            contentType: validationContentType
         )
         guard validation.status == .succeeded else {
             throw playbackFailure(for: validation.status)
         }
         let stagedFile = try await stagingWriter.writeTTSAudioToStaging(
-            httpResponse.body,
-            preferredExtension: request.artifactKey.outputFormat.rawValue
+            decodedBody,
+            preferredExtension: actualAudioFormat.rawValue
         )
         let elapsedMilliseconds = Int(startedAt.duration(to: ContinuousClock.now).components.seconds * 1000)
-        let byteSize = Int64(httpResponse.body.count)
+        let byteSize = Int64(decodedBody.count)
         return SentenceTTSGenerationResult(
             stagedFile: stagedFile,
-            mimeType: httpResponse.contentType ?? mimeType(for: request.artifactKey.outputFormat),
+            mimeType: httpResponse.contentType ?? mimeType(for: actualAudioFormat),
             byteSize: byteSize,
             durationSeconds: validation.metadata?.durationSeconds,
             diagnostics: SentenceTTSGenerationDiagnostics(
@@ -82,10 +107,15 @@ private extension SentenceTTSGenerationService {
         switch kind {
         case .openAIAudioSpeech:
             OpenAIAudioSpeechAdapter()
+        case .openAIMultimodalAudio:
+            OpenAIMultimodalAudioSpeechAdapter()
         case .openRouterAudioSpeech:
             OpenRouterAudioSpeechAdapter()
+        case .openRouterMultimodalAudio:
+            OpenRouterMultimodalAudioSpeechAdapter()
+        case .customOpenAICompatibleAudioSpeech:
+            CustomOpenAICompatibleAudioSpeechAdapter()
         case .groqAudioSpeech,
-             .customOpenAICompatibleAudioSpeech,
              .geminiGenerateContentTTS,
              .mistralAudioSpeech,
              .xAITTS,

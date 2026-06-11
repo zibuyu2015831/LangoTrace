@@ -515,7 +515,9 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
         case .openAI:
             .openAIAudioSpeech
         case .openRouter:
-            .openRouterAudioSpeech
+            .openRouterMultimodalAudio
+        case .customOpenAICompatible:
+            .customOpenAICompatibleAudioSpeech
         default:
             nil
         }
@@ -527,6 +529,8 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
             "coral"
         case .openRouter:
             "nova"
+        case .customOpenAICompatible:
+            "alloy"
         default:
             ""
         }

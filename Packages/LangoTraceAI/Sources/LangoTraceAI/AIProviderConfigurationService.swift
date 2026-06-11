@@ -192,7 +192,8 @@ public struct AIProviderConfigurationService: Sendable {
                 endpoint: ttsEndpoint,
                 settings: ttsSettings,
                 voiceProfile: ttsVoiceProfile,
-                plaintextSecret: input.ttsPlaintextSecret
+                plaintextSecret: input.ttsPlaintextSecret,
+                operationID: input.operationID
             )
         )
         let merged = textResult.replacingCapabilityResult(ttsResult)
@@ -214,7 +215,8 @@ public struct AIProviderConfigurationService: Sendable {
         let credentialsByID = Dictionary(uniqueKeysWithValues: profile.credentials.map { ($0.id, $0) })
         let textEndpoint = profile.endpoints.first(where: { $0.purpose == .textGeneration && $0.isEnabled })
         let embeddingEndpoint = profile.endpoints.first(where: { $0.purpose == .embedding && $0.isEnabled })
-        guard textEndpoint != nil || embeddingEndpoint != nil else {
+        let ttsEndpoint = profile.endpoints.first(where: { $0.purpose == .tts && $0.isEnabled })
+        guard textEndpoint != nil || embeddingEndpoint != nil || ttsEndpoint != nil else {
             throw AIProviderConfigurationError.missingRequiredEndpointField
         }
 
@@ -231,7 +233,8 @@ public struct AIProviderConfigurationService: Sendable {
             profile: profile,
             credentialsByID: credentialsByID,
             credentialStore: credentialStore,
-            languageContext: languageContext
+            languageContext: languageContext,
+            operationID: operationID
         )
         result = await mergedSavedEmbeddingProbeResult(
             result,
@@ -565,7 +568,8 @@ private extension AIProviderConfigurationService {
         profile: AIProviderConfigurationProfile,
         credentialsByID: [AIProviderCredentialID: AIProviderCredentialMetadata],
         credentialStore: any AIProviderCredentialStore,
-        languageContext: AIProviderProbeLanguageContext?
+        languageContext: AIProviderProbeLanguageContext?,
+        operationID: DiagnosticOperationID
     ) async -> AIProviderConfigurationProbeResult {
         guard let ttsConfigurationProbeService,
               let languageCode = languageContext?.languageCode,
@@ -602,29 +606,44 @@ private extension AIProviderConfigurationService {
             )
             let speechResult = await ttsConfigurationProbeService.probeDraftTTSConfiguration(
                 TTSDraftProbeInput(
-                    endpoint: AIProviderEndpointInput(
-                        id: ttsEndpoint.id,
-                        profileID: ttsEndpoint.profileID,
-                        purpose: ttsEndpoint.purpose,
-                        isEnabled: ttsEndpoint.isEnabled,
-                        providerPresetID: ttsEndpoint.providerPresetID,
-                        adapterKind: ttsEndpoint.adapterKind,
-                        baseURL: ttsEndpoint.baseURL,
-                        modelName: ttsEndpoint.modelName,
-                        credentialID: ttsEndpoint.credentialID,
-                        supportsImageInput: ttsEndpoint.supportsImageInput,
-                        imageInputEnabled: ttsEndpoint.imageInputEnabled,
-                        requestTimeoutSeconds: ttsEndpoint.requestTimeoutSeconds
-                    ),
+                    endpoint: ttsEndpoint.makeProbeInput(),
                     settings: settings,
                     voiceProfile: voiceProfile,
-                    plaintextSecret: secret
+                    plaintextSecret: secret,
+                    operationID: operationID
                 )
             )
             return textResult.replacingCapabilityResult(speechResult)
+        } catch let error as AIProviderCredentialStoreError {
+            return textResult.replacingCapabilityResult(
+                ttsPreflightFailureResult(
+                    endpoint: ttsEndpoint,
+                    category: validationErrorCategory(for: error)
+                )
+            )
         } catch {
-            return textResult
+            return textResult.replacingCapabilityResult(
+                ttsPreflightFailureResult(endpoint: ttsEndpoint, category: .credentialInaccessible)
+            )
         }
+    }
+
+    func ttsPreflightFailureResult(
+        endpoint: AIProviderEndpointConfiguration,
+        category: AIProviderValidationErrorCategory
+    ) -> AIProviderProbeCapabilityResult {
+        AIProviderProbeCapabilityResult(
+            capability: .speechSynthesis,
+            status: .failed,
+            errorCategory: category,
+            durationMilliseconds: nil,
+            endpointMetadata: AIProviderEndpointProbeMetadata(
+                endpointID: endpoint.id,
+                endpointPurpose: .tts,
+                providerPresetID: endpoint.providerPresetID,
+                modelName: endpoint.modelName
+            )
+        )
     }
 
     func mergedSavedEmbeddingProbeResult(

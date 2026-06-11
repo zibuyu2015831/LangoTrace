@@ -328,7 +328,8 @@ func configurationServiceTestsSavedTTSVoiceProfileWithoutUpdatingTextValidationO
         configurationProbeService: AIProviderConfigurationProbeService(httpClient: textHTTPClient),
         ttsConfigurationProbeService: TTSConfigurationProbeService(
             httpClient: ttsHTTPClient,
-            audioValidationService: AcceptingTTSAudioValidationService()
+            audioValidationService: AcceptingTTSAudioValidationService(),
+            diagnosticLogger: DisabledDiagnosticLogger()
         ),
         clock: { Date(timeIntervalSince1970: 250) },
         idGenerator: IncrementingIDGenerator().next
@@ -581,7 +582,8 @@ func configurationServiceMergesDraftTTSProbeIntoSingleResultWithoutPersistence()
         configurationProbeService: AIProviderConfigurationProbeService(httpClient: textHTTPClient),
         ttsConfigurationProbeService: TTSConfigurationProbeService(
             httpClient: ttsHTTPClient,
-            audioValidationService: AcceptingTTSAudioValidationService()
+            audioValidationService: AcceptingTTSAudioValidationService(),
+            diagnosticLogger: DisabledDiagnosticLogger()
         )
     )
     let voiceProfile = try TTSVoiceProfile.make(

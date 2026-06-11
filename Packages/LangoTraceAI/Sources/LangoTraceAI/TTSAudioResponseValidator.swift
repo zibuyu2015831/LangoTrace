@@ -1,5 +1,6 @@
 import Foundation
 import LangoTraceCore
+import os
 
 public struct TTSAudioResponseValidator: Sendable {
     private let audioValidationService: any TTSAudioValidationService
@@ -58,14 +59,15 @@ private extension TTSAudioResponseValidator {
         case 429:
             return providerBody(body).contains("quota") ? .quotaExceeded : .rateLimited
         default:
-            let body = providerBody(body)
-            if body.contains("voice") {
+            let bodyString = providerBody(body)
+            os_log("LangoTrace Debug: TTS Error Body: %{public}@", type: .error, bodyString)
+            if bodyString.contains("voice") {
                 return .invalidVoice
             }
-            if body.contains("language") {
+            if bodyString.contains("language") {
                 return .unsupportedLanguage
             }
-            if body.contains("quota") {
+            if bodyString.contains("quota") {
                 return .quotaExceeded
             }
             return .providerRejected

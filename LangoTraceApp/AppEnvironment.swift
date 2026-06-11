@@ -749,7 +749,8 @@ private func makeAIProviderConfigurationService(
         ),
         ttsConfigurationProbeService: TTSConfigurationProbeService(
             httpClient: URLSessionAIProviderProbeHTTPClient(),
-            audioValidationService: DefaultTTSAudioValidationService(previewStore: ttsPreviewStore)
+            audioValidationService: DefaultTTSAudioValidationService(previewStore: ttsPreviewStore),
+            diagnosticLogger: diagnosticLogger
         ),
         embeddingConfigurationProbeService: EmbeddingConfigurationProbeService(
             httpClient: URLSessionAIProviderProbeHTTPClient()

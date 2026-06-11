@@ -51,11 +51,11 @@ struct TTSProviderSettingsTests {
         }
     }
 
-    @Test("OpenAI and OpenRouter use dedicated TTS adapter kinds")
-    func openAIAndOpenRouterUseDedicatedTTSAdapterKinds() {
+    @Test("OpenAI, OpenRouter and Custom use dedicated TTS adapter kinds")
+    func openAIOpenRouterAndCustomUseDedicatedTTSAdapterKinds() {
         #expect(AIProviderPreset.openAI.defaultTTSAdapterKind == .openAIAudioSpeech)
         #expect(AIProviderPreset.openRouter.defaultTTSAdapterKind == .openRouterAudioSpeech)
-        #expect(AIProviderPreset.customOpenAICompatible.defaultTTSAdapterKind == nil)
+        #expect(AIProviderPreset.customOpenAICompatible.defaultTTSAdapterKind == .customOpenAICompatibleAudioSpeech)
     }
 
     @Test("OpenRouter speech defaults make an enabled TTS draft saveable and probeable")

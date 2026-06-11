@@ -11,6 +11,8 @@ public enum TTSProviderAdapterKind: String, Codable, CaseIterable, Sendable {
     case dashScopeCosyVoice = "dashscope_cosyvoice"
     case zhipuGLMTTS = "zhipu_glm_tts"
     case siliconFlowAudioSpeech = "siliconflow_audio_speech"
+    case openAIMultimodalAudio = "openai_multimodal_audio"
+    case openRouterMultimodalAudio = "openrouter_multimodal_audio"
 }
 
 public enum TTSAudioFormat: String, Codable, CaseIterable, Sendable {
@@ -379,6 +381,8 @@ private extension TTSProviderAdapterKind {
             ["voice", "response_format", "speed", "volume", "stream"]
         case .siliconFlowAudioSpeech:
             ["response_format", "sample_rate", "speed", "gain", "stream"]
+        case .openAIMultimodalAudio, .openRouterMultimodalAudio:
+            ["response_format", "provider_options"]
         }
     }
 }
