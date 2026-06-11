@@ -45,6 +45,7 @@
 - [010：Apple 三端交互与可访问性规范](010-apple-platform-interaction-and-accessibility.md)
 - [011：TTS Provider 配置、测试与播放前置规范](011-tts-provider-configuration-and-playback.md)
 - [012：阅读学习域规范](012-reading-learning-domain.md)
+- [013：练习学习域规范](013-practice-learning-domain.md)
 
 当前模块实现地图：
 
