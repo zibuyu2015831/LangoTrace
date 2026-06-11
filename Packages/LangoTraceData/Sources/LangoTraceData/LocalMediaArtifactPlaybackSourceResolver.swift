@@ -9,12 +9,12 @@ public struct LocalMediaArtifactPlaybackSourceResolver: MediaArtifactPlaybackSou
     }
 
     public func playbackSource(for artifact: MediaArtifact) async throws -> MediaArtifactPlaybackSource {
-        guard let info = try fileStore.fileInfo(relativePath: artifact.relativeFilePath) else {
+        // Playback resolution validates the cheap byte size only; hashing the whole
+        // file on every resolve is intentionally avoided.
+        guard let byteSize = try fileStore.fileByteSize(relativePath: artifact.relativeFilePath) else {
             throw LocalMediaArtifactStoreError.metadataFileMismatch(.fileMissing)
         }
-        guard info.byteSize == artifact.byteSize,
-              info.contentHash == artifact.contentHash
-        else {
+        guard byteSize == artifact.byteSize else {
             throw LocalMediaArtifactStoreError.metadataFileMismatch(.contentMismatch)
         }
         return try MediaArtifactPlaybackSource(

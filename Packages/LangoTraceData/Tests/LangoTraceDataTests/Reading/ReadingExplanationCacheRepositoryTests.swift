@@ -1,10 +1,42 @@
 import Foundation
+import GRDB
 import LangoTraceCore
 @testable import LangoTraceData
 import Testing
 
 @Suite("Reading explanation cache repository")
 struct ReadingExplanationCacheRepositoryTests {
+    // MARK: - timestamp storage
+
+    @Test("insert stores Unix epoch timestamps consistent with other tables")
+    func insertStoresUnixEpochTimestamps() async throws {
+        let database = try makeTestDatabase()
+        let repo = GRDBReadingExplanationCacheRepository(database: database)
+        var entry = makeSampleEntry(documentID: "doc-1", sourceAnchorID: "anchor-1", mode: .bilingualBridge)
+        entry.createdAt = Date(timeIntervalSince1970: 1_700_000_000)
+        entry.updatedAt = Date(timeIntervalSince1970: 1_700_000_100)
+
+        try await repo.insert(entry)
+
+        let storedCreatedAt = try await database.databaseQueue.read { db in
+            try Double.fetchOne(
+                db,
+                sql: "SELECT created_at FROM reading_explanation_cache WHERE id = ?",
+                arguments: [entry.id]
+            )
+        }
+        #expect(storedCreatedAt == 1_700_000_000)
+
+        let found = try await repo.lookup(
+            documentID: "doc-1",
+            sourceAnchorID: "anchor-1",
+            mode: .bilingualBridge
+        )
+        let unwrapped = try #require(found)
+        #expect(unwrapped.createdAt == Date(timeIntervalSince1970: 1_700_000_000))
+        #expect(unwrapped.updatedAt == Date(timeIntervalSince1970: 1_700_000_100))
+    }
+
     // MARK: - insert and lookup
 
     @Test("insert and lookup by sourceAnchorID returns matching entry")

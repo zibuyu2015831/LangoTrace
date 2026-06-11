@@ -7,7 +7,9 @@ public struct AppDatabase: @unchecked Sendable {
 
     public init(databaseQueue: DatabaseQueue) throws {
         self.databaseQueue = databaseQueue
-        try databaseQueue.write { db in
+        // `PRAGMA foreign_keys` is a no-op inside a transaction, so it must run
+        // outside `write {}` to take effect for externally provided queues.
+        try databaseQueue.writeWithoutTransaction { db in
             try db.execute(sql: "PRAGMA foreign_keys = ON")
         }
         try Self.migrate(databaseQueue)
@@ -81,6 +83,9 @@ private extension AppDatabase {
         }
         migrator.registerMigration("v14_create_reading_explanation_cache") { db in
             try createReadingExplanationCache(db)
+        }
+        migrator.registerMigration("v15_reset_reading_explanation_cache_for_unix_epoch") { db in
+            try resetReadingExplanationCacheForUnixEpoch(db)
         }
         try migrator.migrate(databaseQueue)
     }
@@ -747,11 +752,11 @@ private extension AppDatabase {
     }
 
     static func allowPracticeRecordingMediaDerivationKind(_ db: Database) throws {
-        try db.execute(sql: "PRAGMA foreign_keys = OFF")
+        // `PRAGMA foreign_keys` is a no-op inside the migration transaction, so the
+        // rebuild relies on the migrator's deferred foreign key handling instead.
         try db.execute(sql: "PRAGMA legacy_alter_table = ON")
         defer {
             try? db.execute(sql: "PRAGMA legacy_alter_table = OFF")
-            try? db.execute(sql: "PRAGMA foreign_keys = ON")
         }
 
         try db.execute(sql: """

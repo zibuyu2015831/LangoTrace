@@ -80,22 +80,25 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
         }
     }
 
-    public func updateEntryBody(entryID: String, body: String) throws -> LearningEntry {
+    public func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry {
         let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw LearningContentRepositoryError.emptyEntryBody }
 
         return try databaseQueue.write { db in
-            guard try fetchActiveEntry(id: entryID, db: db) != nil else {
+            guard let existing = try fetchActiveEntry(id: entryID, db: db) else {
                 throw LearningContentRepositoryError.entryNotFound
+            }
+            guard existing.spaceID == spaceID else {
+                throw LearningContentRepositoryError.spaceMismatch
             }
             let now = clock().timeIntervalSince1970
             try db.execute(
                 sql: """
                 UPDATE entries
                 SET body = ?, updated_at = ?
-                WHERE id = ? AND deleted_at IS NULL
+                WHERE id = ? AND space_id = ? AND deleted_at IS NULL
                 """,
-                arguments: [trimmed, now, entryID]
+                arguments: [trimmed, now, entryID, spaceID]
             )
             guard let entry = try fetchActiveEntry(id: entryID, db: db) else {
                 throw LearningContentRepositoryError.entryNotFound
@@ -128,6 +131,9 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
         operationSummary: LearningMaterialOperationSummary
     ) throws -> LearningMaterial {
         try databaseQueue.write { db in
+            guard try !isOperationCancelled(operationSummary.operationID, db: db) else {
+                throw LearningContentRepositoryError.operationCancelled
+            }
             let material = try saveGeneratedMaterial(result, for: entryID, db: db)
             var summary = operationSummary
             summary.materialID = material.id
@@ -420,6 +426,14 @@ private extension GRDBLearningContentRepository {
             """,
             arguments: operationArguments(summary)
         )
+    }
+
+    func isOperationCancelled(_ operationID: DiagnosticOperationID, db: Database) throws -> Bool {
+        try String.fetchOne(
+            db,
+            sql: "SELECT status FROM learning_material_operations WHERE operation_id = ?",
+            arguments: [operationID.rawValue]
+        ) == LearningMaterialOperationStatus.cancelled.rawValue
     }
 
     func activeLanguageSpaceExists(_ id: String, db: Database) throws -> Bool {
@@ -827,6 +841,7 @@ public enum LearningContentRepositoryError: Error, Equatable, Sendable {
     case materialNotFound
     case entryMismatch
     case spaceMismatch
+    case operationCancelled
 }
 
 private struct VersionedStringList: Codable {

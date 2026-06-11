@@ -37,8 +37,8 @@ public struct GRDBReadingExplanationCacheRepository: ReadingExplanationCacheRepo
             resultJSON: resultJSON,
             providerID: entry.providerID,
             modelID: entry.modelID,
-            createdAt: entry.createdAt.timeIntervalSinceReferenceDate,
-            updatedAt: entry.updatedAt.timeIntervalSinceReferenceDate
+            createdAt: entry.createdAt.timeIntervalSince1970,
+            updatedAt: entry.updatedAt.timeIntervalSince1970
         )
         try await databaseQueue.write { db in
             try record.insert(db, onConflict: .replace)
@@ -154,8 +154,8 @@ private extension GRDBReadingExplanationCacheRepository {
             result: result,
             providerID: record.providerID,
             modelID: record.modelID,
-            createdAt: Date(timeIntervalSinceReferenceDate: record.createdAt),
-            updatedAt: Date(timeIntervalSinceReferenceDate: record.updatedAt)
+            createdAt: Date(timeIntervalSince1970: record.createdAt),
+            updatedAt: Date(timeIntervalSince1970: record.updatedAt)
         )
     }
 }

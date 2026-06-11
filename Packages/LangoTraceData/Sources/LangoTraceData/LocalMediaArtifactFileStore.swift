@@ -20,10 +20,16 @@ public enum LocalMediaArtifactFileStoreError: Error, Equatable, Sendable {
 public struct LocalMediaArtifactFileStore: TTSAudioStagingWriting, @unchecked Sendable {
     public let rootDirectory: URL
     private let fileManager: FileManager
+    private let clock: @Sendable () -> Date
 
-    public init(rootDirectory: URL, fileManager: FileManager = .default) throws {
+    public init(
+        rootDirectory: URL,
+        fileManager: FileManager = .default,
+        clock: @escaping @Sendable () -> Date = Date.init
+    ) throws {
         self.rootDirectory = rootDirectory
         self.fileManager = fileManager
+        self.clock = clock
         try fileManager.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
         var values = URLResourceValues()
         values.isExcludedFromBackup = true
@@ -91,6 +97,14 @@ public struct LocalMediaArtifactFileStore: TTSAudioStagingWriting, @unchecked Se
         return LocalMediaArtifactFileInfo(byteSize: Int64(data.count), contentHash: Self.sha256Hex(data))
     }
 
+    public func fileByteSize(relativePath: String) throws -> Int64? {
+        let url = try url(for: relativePath)
+        guard fileManager.fileExists(atPath: url.path) else {
+            return nil
+        }
+        return try byteSize(at: url)
+    }
+
     public func removeStagingFiles() throws -> MediaArtifactCleanupResult {
         let stagingURL = try url(for: "staging")
         guard fileManager.fileExists(atPath: stagingURL.path) else {
@@ -105,6 +119,7 @@ public struct LocalMediaArtifactFileStore: TTSAudioStagingWriting, @unchecked Se
         var deleted = 0
         var failed = 0
         var reclaimed: Int64 = 0
+        let protectionCutoff = clock().addingTimeInterval(-Self.stagingFileProtectionSeconds)
         let files = try fileManager.contentsOfDirectory(
             at: stagingURL,
             includingPropertiesForKeys: nil,
@@ -112,6 +127,10 @@ public struct LocalMediaArtifactFileStore: TTSAudioStagingWriting, @unchecked Se
         )
         for file in files {
             do {
+                // Protect freshly staged files that may still belong to in-flight commits.
+                guard try modificationDate(at: file) <= protectionCutoff else {
+                    continue
+                }
                 reclaimed += try byteSize(at: file)
                 try fileManager.removeItem(at: file)
                 deleted += 1
@@ -133,6 +152,8 @@ public struct LocalMediaArtifactFileStore: TTSAudioStagingWriting, @unchecked Se
 }
 
 private extension LocalMediaArtifactFileStore {
+    static let stagingFileProtectionSeconds: TimeInterval = 3600
+
     func url(for relativePath: String) throws -> URL {
         guard !relativePath.isEmpty,
               !relativePath.hasPrefix("/"),
@@ -142,8 +163,9 @@ private extension LocalMediaArtifactFileStore {
         }
         let url = rootDirectory.appendingPathComponent(relativePath)
         let standardizedRoot = rootDirectory.standardizedFileURL.path
+        let rootPrefix = standardizedRoot.hasSuffix("/") ? standardizedRoot : standardizedRoot + "/"
         let standardizedURL = url.standardizedFileURL.path
-        guard standardizedURL.hasPrefix(standardizedRoot) else {
+        guard standardizedURL.hasPrefix(rootPrefix) else {
             throw LocalMediaArtifactFileStoreError.unsafeRelativePath
         }
         return url
@@ -152,6 +174,11 @@ private extension LocalMediaArtifactFileStore {
     func byteSize(at url: URL) throws -> Int64 {
         let attributes = try fileManager.attributesOfItem(atPath: url.path)
         return (attributes[.size] as? NSNumber)?.int64Value ?? 0
+    }
+
+    func modificationDate(at url: URL) throws -> Date {
+        let attributes = try fileManager.attributesOfItem(atPath: url.path)
+        return attributes[.modificationDate] as? Date ?? .distantPast
     }
 
     static func sha256Hex(_ data: Data) -> String {

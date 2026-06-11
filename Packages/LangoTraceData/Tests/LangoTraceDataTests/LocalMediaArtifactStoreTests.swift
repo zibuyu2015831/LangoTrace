@@ -74,6 +74,43 @@ struct LocalMediaArtifactStoreTests {
         #expect(resolved?.id == artifact.id)
     }
 
+    @Test("Facade rolls back practice recording reservation without foreign key errors when staging is missing")
+    func facadeRollsBackPracticeRecordingReservationWhenStagingIsMissing() async throws {
+        let harness = try await FacadeHarness()
+        try await MediaArtifactTestFixtures.seedPracticeSession(in: harness.database)
+        let input = MediaArtifactTestFixtures.practiceRecordingCommitInput(
+            stagedFile: MediaArtifactStagedFileReference(
+                relativeStagingPath: "staging/never-written.tmp",
+                byteSize: 512,
+                contentHash: "practice-content-hash"
+            )
+        )
+
+        await #expect(throws: LocalMediaArtifactFileStoreError.missingStagedFile) {
+            _ = try await harness.store.commitPracticeRecordingArtifact(input)
+        }
+
+        let recordingCount = try await harness.database.databaseQueue.read { db in
+            try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM practice_recordings") ?? -1
+        }
+        #expect(try await MediaArtifactTestFixtures.mediaArtifactCount(in: harness.database) == 0)
+        #expect(recordingCount == 0)
+    }
+
+    @Test("Facade invalidates metadata when committed file size no longer matches")
+    func facadeInvalidatesMetadataWhenCommittedFileSizeNoLongerMatches() async throws {
+        let harness = try await FacadeHarness()
+        let staged = try harness.fileStore.writeStagingFile(Data("audio".utf8), operationID: "op-1")
+        let input = MediaArtifactTestFixtures.commitInput(stagedFile: staged)
+        let artifact = try await harness.store.commitTTSAudioArtifact(input)
+        let replacement = try harness.fileStore.writeStagingFile(Data("longer audio".utf8), operationID: "op-2")
+        try harness.fileStore.moveStagedFile(replacement, to: artifact.relativeFilePath)
+
+        let lookup = try await harness.store.ttsAudioArtifact(for: input.key)
+
+        #expect(lookup == .invalidated(.contentMismatch))
+    }
+
     @Test("Facade invalidates only the stale artifact when sibling files remain valid")
     func facadeInvalidatesOnlyStaleArtifactWhenSiblingFilesRemainValid() async throws {
         let harness = try await FacadeHarness()

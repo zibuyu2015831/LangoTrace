@@ -360,6 +360,132 @@ struct MediaArtifactRepositoryTests {
         #expect(ready.id == reserved.id)
     }
 
+    @Test("Resaving provider profile invalidates dependent TTS artifacts and allows same-key re-reservation")
+    func resavingProviderProfileInvalidatesDependentTTSArtifactsAndAllowsReReservation() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        let input = MediaArtifactTestFixtures.commitInput()
+        _ = try await repository.commitTTSAudioArtifact(input)
+
+        let aiRepository = GRDBAIProviderConfigurationRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 600) }
+        )
+        let voice = try TTSVoiceProfile.make(
+            id: "voice-en",
+            endpointID: "endpoint-tts",
+            languageCode: "en",
+            adapterKind: .openAIAudioSpeech,
+            modelName: "tts-1",
+            voiceID: "alloy",
+            outputFormat: .mp3,
+            lastSuccessfulConfigurationFingerprint: "fingerprint-1",
+            lastTestStatus: .succeeded
+        )
+        try await aiRepository.saveProfile(
+            MediaArtifactTestFixtures.profileWithTTSEndpoint(),
+            ttsSettings: TTSProviderSettings(endpointID: "endpoint-tts", adapterKind: .openAIAudioSpeech),
+            ttsVoiceProfiles: [voice]
+        )
+
+        let invalidatedCount = try await database.databaseQueue.read { db in
+            try Int.fetchOne(
+                db,
+                sql: "SELECT COUNT(*) FROM media_artifacts WHERE invalidated_at IS NOT NULL"
+            ) ?? -1
+        }
+        let lookup = try await repository.ttsAudioArtifactMetadata(for: input.key)
+        let reservation = try await repository.reserveTTSAudioArtifact(input)
+
+        #expect(invalidatedCount == 1)
+        #expect(lookup == .miss)
+        #expect(reservation.wasCreated)
+    }
+
+    @Test("Repository cleanup protects recent pending reservations from selection")
+    func repositoryCleanupProtectsRecentPendingReservations() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        _ = try await repository.reserveTTSAudioArtifact(MediaArtifactTestFixtures.commitInput())
+
+        let recentCleanup = try await repository.artifactsForCleanup(
+            MediaArtifactCleanupRequest(
+                languageSpaceID: "space-1",
+                artifactType: .ttsSentenceAudio,
+                includeInvalidated: true,
+                now: Date(timeIntervalSince1970: 500),
+                targetMaximumBytes: 0
+            )
+        )
+        let staleCleanup = try await repository.artifactsForCleanup(
+            MediaArtifactCleanupRequest(
+                languageSpaceID: "space-1",
+                artifactType: .ttsSentenceAudio,
+                includeInvalidated: true,
+                now: Date(timeIntervalSince1970: 400 + 7200),
+                targetMaximumBytes: 0
+            )
+        )
+
+        #expect(recentCleanup.isEmpty)
+        #expect(staleCleanup.count == 1)
+    }
+
+    @Test("Marking a missing artifact file ready fails instead of silently succeeding")
+    func markingMissingArtifactFileReadyFails() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+
+        await #expect(throws: MediaArtifactRepositoryError.fileReadyUpdateFailed) {
+            try await repository.markArtifactFileReady(
+                artifactID: "missing-artifact",
+                at: Date(timeIntervalSince1970: 450)
+            )
+        }
+    }
+
+    @Test("Repository cleanup does not select artifacts referenced by uncompleted session recordings")
+    func repositoryCleanupDoesNotSelectArtifactsReferencedByUncompletedSessionRecordings() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        try await MediaArtifactTestFixtures.seedPracticeSession(in: database)
+        let repository = GRDBMediaArtifactRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 500) },
+            idGenerator: MediaArtifactIDGenerator().next
+        )
+        _ = try await repository.commitPracticeRecordingArtifact(
+            MediaArtifactTestFixtures.practiceRecordingCommitInput()
+        )
+
+        let cleanup = try await repository.artifactsForCleanup(
+            MediaArtifactCleanupRequest(
+                languageSpaceID: "space-1",
+                artifactType: .shadowingRecording,
+                includeInvalidated: true,
+                now: Date(timeIntervalSince1970: 800),
+                targetMaximumBytes: 0
+            )
+        )
+
+        #expect(cleanup.isEmpty)
+    }
+
     @Test("Repository cleanup does not select completed practice recording artifacts")
     func repositoryCleanupDoesNotSelectCompletedPracticeRecordingArtifacts() async throws {
         let database = try AppDatabase.inMemory()
@@ -604,7 +730,7 @@ enum MediaArtifactTestFixtures {
         }
     }
 
-    private static func profileWithTTSEndpoint() throws -> AIProviderConfigurationProfile {
+    static func profileWithTTSEndpoint() throws -> AIProviderConfigurationProfile {
         let now = Date(timeIntervalSince1970: 100)
         let ttsEndpoint = try AIProviderEndpointConfiguration(
             input: AIProviderEndpointInput(

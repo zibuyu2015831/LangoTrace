@@ -356,6 +356,16 @@ extension AppDatabase {
         """)
     }
 
+    static func resetReadingExplanationCacheForUnixEpoch(_ db: Database) throws {
+        // Earlier builds stored reference-date (2001 epoch) timestamps in this table while
+        // every other table uses Unix epoch. The cache is rebuildable derived data, so the
+        // migration clears it instead of converting rows.
+        guard try db.tableExists("reading_explanation_cache") else {
+            return
+        }
+        try db.execute(sql: "DELETE FROM reading_explanation_cache")
+    }
+
     private static func addReadingTTSSourceColumnsIfNeeded(_ db: Database) throws {
         guard try db.tableExists("tts_audio_artifacts") else {
             return

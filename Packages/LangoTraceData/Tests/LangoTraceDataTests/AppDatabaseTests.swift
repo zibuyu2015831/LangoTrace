@@ -45,6 +45,22 @@ func appDatabasePersistentFactoryCreatesParentDirectory() throws {
     #expect(isDirectory.boolValue)
 }
 
+@Test("AppDatabase enforces foreign keys for externally provided database queues")
+func appDatabaseEnforcesForeignKeysForExternallyProvidedDatabaseQueues() throws {
+    let database = try AppDatabase(databaseQueue: DatabaseQueue())
+
+    try database.databaseQueue.write { db in
+        #expect(throws: DatabaseError.self) {
+            try db.execute(
+                sql: """
+                INSERT INTO entries (id, space_id, title, body, source, scene, created_at, updated_at, deleted_at)
+                VALUES ('entry-orphan', 'missing-space', 'Title', 'Body', 'typedText', '生活记录', 1, 1, NULL)
+                """
+            )
+        }
+    }
+}
+
 @Test("Media artifact migration creates metadata tables constraints and active key uniqueness")
 func mediaArtifactMigrationCreatesTablesConstraintsAndActiveKeyUniqueness() throws {
     let database = try AppDatabase.inMemory()

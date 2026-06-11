@@ -117,7 +117,7 @@ func updatingEntryBodyPersistsSourceWithoutMutatingMaterial() throws {
         for: entry.id
     )
 
-    let updated = try repository.updateEntryBody(entryID: entry.id, body: "我今天在图书馆写了一页日记。")
+    let updated = try repository.updateEntryBody(entryID: entry.id, spaceID: "space-1", body: "我今天在图书馆写了一页日记。")
     let currentMaterial = try repository.currentMaterial(for: entry.id)
 
     #expect(updated.body == "我今天在图书馆写了一页日记。")
@@ -137,7 +137,34 @@ func updatingEntryBodyRejectsEmptyText() throws {
     let entry = try repository.createEntry(sampleDraft(body: "原始内容"), in: "space-1")
 
     #expect(throws: LearningContentRepositoryError.emptyEntryBody) {
-        _ = try repository.updateEntryBody(entryID: entry.id, body: " \n ")
+        _ = try repository.updateEntryBody(entryID: entry.id, spaceID: "space-1", body: " \n ")
+    }
+
+    #expect(try repository.entry(id: entry.id)?.body == "原始内容")
+}
+
+@Test("Updating entry body rejects cross-space requests without writing")
+func updatingEntryBodyRejectsCrossSpaceRequestsWithoutWriting() throws {
+    let database = try AppDatabase.inMemory()
+    try database.databaseQueue.write { db in
+        try insertLanguageSpace(id: "space-1", db: db)
+        try insertLanguageSpace(id: "space-2", db: db)
+    }
+    let repository = GRDBLearningContentRepository(
+        database: database,
+        clock: { Date(timeIntervalSince1970: 100) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+    let bridge = GRDBLearningContentRepositoryBridge(repository: repository)
+    let entry = try bridge.createEntry(
+        spaceID: "space-1",
+        title: "原始记录",
+        body: "原始内容",
+        source: .typedText
+    )
+
+    #expect(throws: LearningContentRepositoryError.spaceMismatch) {
+        _ = try bridge.updateEntryBody(entryID: entry.id, spaceID: "space-2", body: "跨空间修改")
     }
 
     #expect(try repository.entry(id: entry.id)?.body == "原始内容")
@@ -179,6 +206,54 @@ func savingGeneratedMaterialPersistsSucceededOperationAtomically() throws {
     #expect(operations.count == 1)
     #expect(operations.first?.status == .succeeded)
     #expect(operations.first?.operationID == operationID)
+}
+
+@Test("Saving generated material is skipped when the operation was already cancelled")
+func savingGeneratedMaterialSkippedWhenOperationAlreadyCancelled() throws {
+    let repository = try makeRepository()
+    let entry = try repository.createEntry(sampleDraft(), in: "space-1")
+    let operationID = DiagnosticOperationID(rawValue: "operation-cancelled-before-save")
+    try repository.recordOperation(.started(operationID: operationID, entryID: entry.id, kind: .generate, bucket: .short))
+    try repository.recordOperation(.cancelled(
+        operationID: operationID,
+        entryID: entry.id,
+        materialID: nil,
+        kind: .generate,
+        bucket: .short,
+        completedAt: Date(timeIntervalSince1970: 150)
+    ))
+    let result = sampleGenerationResult(entryID: entry.id, spaceID: "space-1")
+
+    #expect(throws: LearningContentRepositoryError.operationCancelled) {
+        _ = try repository.saveGeneratedMaterial(
+            result,
+            for: entry.id,
+            operationSummary: LearningMaterialOperationSummary(
+                operationID: operationID,
+                entryID: entry.id,
+                materialID: nil,
+                kind: .generate,
+                status: .succeeded,
+                failureCategory: nil,
+                promptID: result.metadata.promptID,
+                promptVersion: result.metadata.promptVersion,
+                providerProfileID: result.metadata.providerProfileID,
+                providerEndpointID: result.metadata.providerEndpointID,
+                providerPresetID: result.metadata.providerPresetID,
+                modelName: result.metadata.modelName,
+                inputKind: result.inputKind,
+                estimatedTokenBucket: .short,
+                durationMilliseconds: nil,
+                createdAt: result.metadata.generatedAt,
+                completedAt: Date(timeIntervalSince1970: 200)
+            )
+        )
+    }
+
+    let operations = try repository.operations(for: entry.id)
+    #expect(try repository.currentMaterial(for: entry.id) == nil)
+    #expect(operations.count == 1)
+    #expect(operations.first?.status == .cancelled)
 }
 
 @Test("Editing learning text marks analysis stale without changing entry or generated snapshot")

@@ -42,10 +42,7 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
 
     @discardableResult
     public func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry {
-        let entry = try repository.updateEntryBody(entryID: entryID, body: body)
-        guard entry.spaceID == spaceID else {
-            throw LearningContentRepositoryError.spaceMismatch
-        }
+        let entry = try repository.updateEntryBody(entryID: entryID, spaceID: spaceID, body: body)
         selectedEntryIDs[spaceID] = entry.id
         return entry
     }

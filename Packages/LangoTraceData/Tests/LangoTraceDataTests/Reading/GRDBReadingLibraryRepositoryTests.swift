@@ -78,10 +78,10 @@ struct GRDBReadingLibraryRepositoryTests {
         let repository = GRDBReadingLibraryRepository(database: database, clock: { Date(timeIntervalSince1970: 100) })
         let document = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Lifecycle"))
 
-        #expect(throws: Error.self) {
+        #expect(throws: ReadingLibraryRepositoryError.documentNotFound) {
             try repository.markDocumentOpened(id: document.id, spaceID: "space-2")
         }
-        #expect(throws: Error.self) {
+        #expect(throws: ReadingLibraryRepositoryError.documentNotFound) {
             try repository.softDeleteDocument(id: document.id, spaceID: "space-2")
         }
         #expect(try repository.listDocuments(spaceID: "space-1").first?.libraryStatus == .active)
@@ -113,6 +113,75 @@ struct GRDBReadingLibraryRepositoryTests {
 
         #expect(titleMatches.map(\.title) == ["Train Notes"])
         #expect(bodyMatches.map(\.title) == ["Cafe"])
+    }
+
+    @Test("search escapes SQL LIKE wildcards in the query")
+    func searchEscapesSQLLikeWildcards() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(database: database, clock: { Date(timeIntervalSince1970: 100) })
+        _ = try repository.importInlineDocument(.sample(
+            spaceID: "space-1",
+            title: "Progress 100%",
+            body: "Done."
+        ))
+        _ = try repository.importInlineDocument(.sample(
+            spaceID: "space-1",
+            title: "Progress 1000",
+            body: "Counting."
+        ))
+
+        let matches = try repository.listDocuments(
+            spaceID: "space-1",
+            search: ReadingLibrarySearchQuery(rawValue: "100%")
+        )
+
+        #expect(matches.map(\.title) == ["Progress 100%"])
+    }
+
+    @Test("collection and tag names are trimmed before normalization")
+    func collectionAndTagNamesAreTrimmedBeforeNormalization() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(database: database, clock: { Date(timeIntervalSince1970: 100) })
+        let document = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Trimmed"))
+
+        try repository.assignCollection(documentID: document.id, spaceID: "space-1", title: " Essays ")
+        try repository.assignCollection(documentID: document.id, spaceID: "space-1", title: "Essays")
+        try repository.tagDocument(documentID: document.id, spaceID: "space-1", name: " travel ")
+        try repository.tagDocument(documentID: document.id, spaceID: "space-1", name: "travel")
+
+        let summary = try #require(try repository.listDocuments(spaceID: "space-1").first)
+        #expect(summary.collectionTitles == ["Essays"])
+        #expect(summary.tagNames == ["travel"])
+    }
+
+    @Test("reusing a soft-deleted collection or tag clears its deleted_at marker")
+    func reusingSoftDeletedCollectionOrTagClearsDeletedAt() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(database: database, clock: { Date(timeIntervalSince1970: 100) })
+        let document = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Revived"))
+        try repository.assignCollection(documentID: document.id, spaceID: "space-1", title: "Essays")
+        try repository.tagDocument(documentID: document.id, spaceID: "space-1", name: "travel")
+        try database.databaseQueue.write { db in
+            try db.execute(sql: "UPDATE reading_collections SET deleted_at = 200")
+            try db.execute(sql: "UPDATE reading_tags SET deleted_at = 200")
+        }
+
+        try repository.assignCollection(documentID: document.id, spaceID: "space-1", title: "Essays")
+        try repository.tagDocument(documentID: document.id, spaceID: "space-1", name: "travel")
+
+        let deletedMarkers = try database.databaseQueue.read { db in
+            let collection = try Double.fetchOne(
+                db,
+                sql: "SELECT deleted_at FROM reading_collections WHERE title_normalized = 'essays'"
+            )
+            let tag = try Double.fetchOne(
+                db,
+                sql: "SELECT deleted_at FROM reading_tags WHERE name_normalized = 'travel'"
+            )
+            return (collection, tag)
+        }
+        #expect(deletedMarkers.0 == nil)
+        #expect(deletedMarkers.1 == nil)
     }
 
     @Test("document content loads inline body and mark opened updates recent order")
@@ -343,7 +412,7 @@ struct GRDBReadingLibraryRepositoryUpdateTests {
         let document = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Restorable"))
 
         try repository.softDeleteDocument(id: document.id, spaceID: "space-1")
-        #expect(throws: Error.self) {
+        #expect(throws: ReadingLibraryRepositoryError.softDeletedDocumentNotEditable) {
             try repository.updateDocument(
                 ReadingDocumentUpdateInput(
                     documentID: document.id,
@@ -351,6 +420,25 @@ struct GRDBReadingLibraryRepositoryUpdateTests {
                     title: "Updated",
                     body: "Updated body.",
                     sourceFormat: .markdown
+                )
+            )
+        }
+    }
+
+    @Test("changing source format during edit throws a typed error")
+    func changingSourceFormatDuringEditThrowsTypedError() throws {
+        let database = try seededDatabase()
+        let repository = GRDBReadingLibraryRepository(database: database, clock: { Date(timeIntervalSince1970: 100) })
+        let document = try repository.importInlineDocument(.sample(spaceID: "space-1", title: "Formatted"))
+
+        #expect(throws: ReadingLibraryRepositoryError.sourceFormatChangeNotAllowed) {
+            try repository.updateDocument(
+                ReadingDocumentUpdateInput(
+                    documentID: document.id,
+                    spaceID: "space-1",
+                    title: "Formatted",
+                    body: "Updated body.",
+                    sourceFormat: .pastedText
                 )
             )
         }

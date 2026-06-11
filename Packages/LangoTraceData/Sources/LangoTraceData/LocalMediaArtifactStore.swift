@@ -10,15 +10,18 @@ public struct LocalMediaArtifactStore: LocalMediaArtifactStoring, Sendable {
     private let repository: any MediaArtifactRepository
     private let fileStore: LocalMediaArtifactFileStore
     private let audioFileValidator: any TTSAudioFileValidating
+    private let clock: @Sendable () -> Date
 
     public init(
         repository: any MediaArtifactRepository,
         fileStore: LocalMediaArtifactFileStore,
-        audioFileValidator: any TTSAudioFileValidating
+        audioFileValidator: any TTSAudioFileValidating,
+        clock: @escaping @Sendable () -> Date = Date.init
     ) {
         self.repository = repository
         self.fileStore = fileStore
         self.audioFileValidator = audioFileValidator
+        self.clock = clock
     }
 
     public func ttsAudioArtifact(for key: TTSAudioArtifactKey) async throws -> MediaArtifactLookupResult {
@@ -36,13 +39,13 @@ public struct LocalMediaArtifactStore: LocalMediaArtifactStoring, Sendable {
             return lookup
         }
 
-        guard let info = try fileStore.fileInfo(relativePath: artifact.relativeFilePath) else {
+        // Hit validation only compares the cheap byte size; the content hash is
+        // verified once at staging-write / commit time instead of on every lookup.
+        guard let byteSize = try fileStore.fileByteSize(relativePath: artifact.relativeFilePath) else {
             try await invalidate(artifact, reason: .fileMissing)
             return .invalidated(.fileMissing)
         }
-        guard info.byteSize == artifact.byteSize,
-              info.contentHash == artifact.contentHash
-        else {
+        guard byteSize == artifact.byteSize else {
             try await invalidate(artifact, reason: .contentMismatch)
             return .invalidated(.contentMismatch)
         }
@@ -83,7 +86,7 @@ public struct LocalMediaArtifactStore: LocalMediaArtifactStoring, Sendable {
         let reservation = try await repository.reserveTTSAudioArtifact(commitInput)
         let artifact = reservation.artifact
         do {
-            if try fileStore.fileInfo(relativePath: artifact.relativeFilePath) != nil {
+            if try fileStore.fileByteSize(relativePath: artifact.relativeFilePath) != nil {
                 _ = try fileStore.deleteFile(relativePath: input.stagedFile.relativeStagingPath)
             } else {
                 try fileStore.moveStagedFile(input.stagedFile, to: artifact.relativeFilePath)
@@ -110,7 +113,7 @@ public struct LocalMediaArtifactStore: LocalMediaArtifactStoring, Sendable {
         let reservation = try await repository.reservePracticeRecordingArtifact(input)
         let artifact = reservation.artifact
         do {
-            if try fileStore.fileInfo(relativePath: artifact.relativeFilePath) != nil {
+            if try fileStore.fileByteSize(relativePath: artifact.relativeFilePath) != nil {
                 _ = try fileStore.deleteFile(relativePath: input.stagedFile.relativeStagingPath)
             } else {
                 try fileStore.moveStagedFile(input.stagedFile, to: artifact.relativeFilePath)
@@ -166,6 +169,6 @@ public struct LocalMediaArtifactStore: LocalMediaArtifactStoring, Sendable {
 
 private extension LocalMediaArtifactStore {
     func invalidate(_ artifact: MediaArtifact, reason _: MediaArtifactInvalidationReason) async throws {
-        try await repository.invalidateArtifact(artifactID: artifact.id, at: Date())
+        try await repository.invalidateArtifact(artifactID: artifact.id, at: clock())
     }
 }

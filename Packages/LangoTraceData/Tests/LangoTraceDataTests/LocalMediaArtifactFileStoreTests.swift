@@ -32,6 +32,15 @@ struct LocalMediaArtifactFileStoreTests {
         #expect(try store.fileInfo(relativePath: "ttsSentenceAudio/space-1/artifact-1.mp3") == nil)
     }
 
+    @Test("File store reports byte size without requiring a content hash")
+    func fileStoreReportsByteSizeWithoutRequiringContentHash() throws {
+        let store = try LocalMediaArtifactFileStore(rootDirectory: temporaryRoot())
+        let staged = try store.writeStagingFile(Data("audio".utf8), operationID: "op-1")
+
+        #expect(try store.fileByteSize(relativePath: staged.relativeStagingPath) == 5)
+        #expect(try store.fileByteSize(relativePath: "staging/missing.tmp") == nil)
+    }
+
     @Test("File store rejects traversal and absolute paths")
     func fileStoreRejectsUnsafeRelativePaths() throws {
         let store = try LocalMediaArtifactFileStore(rootDirectory: temporaryRoot())
@@ -44,15 +53,42 @@ struct LocalMediaArtifactFileStoreTests {
         }
     }
 
-    @Test("File store removes staging leftovers")
-    func fileStoreRemovesStagingLeftovers() throws {
+    @Test("File store rejects relative paths that resolve to the root itself")
+    func fileStoreRejectsRelativePathsThatResolveToRoot() throws {
         let store = try LocalMediaArtifactFileStore(rootDirectory: temporaryRoot())
+
+        #expect(throws: LocalMediaArtifactFileStoreError.unsafeRelativePath) {
+            _ = try store.absoluteURLForInternalUse(relativePath: ".")
+        }
+        #expect(throws: LocalMediaArtifactFileStoreError.unsafeRelativePath) {
+            _ = try store.absoluteURLForInternalUse(relativePath: "./")
+        }
+    }
+
+    @Test("File store removes staging leftovers older than the protection window")
+    func fileStoreRemovesStagingLeftoversOlderThanProtectionWindow() throws {
+        let store = try LocalMediaArtifactFileStore(
+            rootDirectory: temporaryRoot(),
+            clock: { Date().addingTimeInterval(7200) }
+        )
         _ = try store.writeStagingFile(Data("audio".utf8), operationID: "op-1")
 
         let removed = try store.removeStagingFiles()
 
         #expect(removed.deletedFileCount == 1)
         #expect(removed.reclaimedBytes == 5)
+    }
+
+    @Test("File store protects recently staged files from staging cleanup")
+    func fileStoreProtectsRecentlyStagedFilesFromStagingCleanup() throws {
+        let store = try LocalMediaArtifactFileStore(rootDirectory: temporaryRoot())
+        let staged = try store.writeStagingFile(Data("audio".utf8), operationID: "op-1")
+
+        let removed = try store.removeStagingFiles()
+
+        #expect(removed.deletedFileCount == 0)
+        #expect(removed.reclaimedBytes == 0)
+        #expect(try store.fileByteSize(relativePath: staged.relativeStagingPath) == 5)
     }
 }
 

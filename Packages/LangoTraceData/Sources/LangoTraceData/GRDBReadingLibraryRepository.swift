@@ -3,6 +3,12 @@ import Foundation
 import GRDB
 import LangoTraceCore
 
+public enum ReadingLibraryRepositoryError: Error, Equatable, Sendable {
+    case documentNotFound
+    case softDeletedDocumentNotEditable
+    case sourceFormatChangeNotAllowed
+}
+
 public struct GRDBReadingLibraryRepository: @unchecked Sendable {
     private let databaseQueue: DatabaseQueue
     private let clock: @Sendable () -> Date
@@ -102,11 +108,11 @@ public extension GRDBReadingLibraryRepository {
             if let search {
                 conditions.append("""
                 (
-                    LOWER(d.title) LIKE ?
-                    OR LOWER(COALESCE(si.indexed_body_excerpt, '')) LIKE ?
+                    LOWER(d.title) LIKE ? ESCAPE '\\'
+                    OR LOWER(COALESCE(si.indexed_body_excerpt, '')) LIKE ? ESCAPE '\\'
                 )
                 """)
-                let pattern = "%\(search.normalized.lowercased())%"
+                let pattern = "%\(escapedLikePattern(search.normalized.lowercased()))%"
                 arguments += [pattern, pattern]
             }
             let rows = try Row.fetchAll(
@@ -155,12 +161,12 @@ public extension GRDBReadingLibraryRepository {
             let documentRow = try requireDocumentRow(id: input.documentID, spaceID: input.spaceID, db: db)
             let libraryStatus = ReadingLibraryStatus(rawValue: documentRow["library_status"] as String) ?? .softDeleted
             guard libraryStatus == .active else {
-                throw DatabaseError(message: "Soft-deleted reading document cannot be edited")
+                throw ReadingLibraryRepositoryError.softDeletedDocumentNotEditable
             }
 
             let currentFormat = ReadingSourceFormat(rawValue: documentRow["source_format"] as String) ?? .plainText
             guard currentFormat == input.sourceFormat else {
-                throw DatabaseError(message: "Reading document source format cannot be changed during edit")
+                throw ReadingLibraryRepositoryError.sourceFormatChangeNotAllowed
             }
 
             let nextContentRevision = (documentRow["content_revision"] as Int) + 1
@@ -257,8 +263,9 @@ public extension GRDBReadingLibraryRepository {
     func assignCollection(documentID: String, spaceID: String, title: String) throws {
         try databaseQueue.write { db in
             try requireDocument(id: documentID, spaceID: spaceID, db: db)
-            let normalized = title.lowercased()
-            let collectionID = try upsertCollection(spaceID: spaceID, title: title, normalized: normalized, db: db)
+            let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+            let normalized = trimmedTitle.lowercased()
+            let collectionID = try upsertCollection(spaceID: spaceID, title: trimmedTitle, normalized: normalized, db: db)
             try db.execute(
                 sql: """
                 INSERT OR IGNORE INTO reading_document_collections (
@@ -274,8 +281,9 @@ public extension GRDBReadingLibraryRepository {
     func tagDocument(documentID: String, spaceID: String, name: String) throws {
         try databaseQueue.write { db in
             try requireDocument(id: documentID, spaceID: spaceID, db: db)
-            let normalized = name.lowercased()
-            let tagID = try upsertTag(spaceID: spaceID, name: name, normalized: normalized, db: db)
+            let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            let normalized = trimmedName.lowercased()
+            let tagID = try upsertTag(spaceID: spaceID, name: trimmedName, normalized: normalized, db: db)
             try db.execute(
                 sql: """
                 INSERT OR IGNORE INTO reading_document_tags (
@@ -455,7 +463,7 @@ private extension GRDBReadingLibraryRepository {
             sql: "SELECT * FROM reading_documents WHERE id = ? AND space_id = ?",
             arguments: [id, spaceID]
         ) else {
-            throw DatabaseError(message: "Reading document does not belong to the requested language space")
+            throw ReadingLibraryRepositoryError.documentNotFound
         }
         return row
     }
@@ -508,6 +516,14 @@ private extension GRDBReadingLibraryRepository {
             sql: "SELECT id FROM reading_collections WHERE space_id = ? AND title_normalized = ?",
             arguments: [spaceID, normalized]
         ) {
+            try db.execute(
+                sql: """
+                UPDATE reading_collections
+                SET deleted_at = NULL, updated_at = ?
+                WHERE id = ? AND deleted_at IS NOT NULL
+                """,
+                arguments: [clock().timeIntervalSince1970, existing]
+            )
             return existing
         }
         let id = idGenerator()
@@ -528,6 +544,14 @@ private extension GRDBReadingLibraryRepository {
             sql: "SELECT id FROM reading_tags WHERE space_id = ? AND name_normalized = ?",
             arguments: [spaceID, normalized]
         ) {
+            try db.execute(
+                sql: """
+                UPDATE reading_tags
+                SET deleted_at = NULL, updated_at = ?
+                WHERE id = ? AND deleted_at IS NOT NULL
+                """,
+                arguments: [clock().timeIntervalSince1970, existing]
+            )
             return existing
         }
         let id = idGenerator()
@@ -655,7 +679,7 @@ private extension GRDBReadingLibraryRepository {
                 structureVersion: row["structure_version"]
             )
         }) else {
-            throw DatabaseError(message: "Missing reading document")
+            throw ReadingLibraryRepositoryError.documentNotFound
         }
         return content
     }
@@ -711,5 +735,12 @@ private extension GRDBReadingLibraryRepository {
     func sha256Hex(_ value: String) -> String {
         let digest = SHA256.hash(data: Data(value.utf8))
         return digest.map { String(format: "%02x", $0) }.joined()
+    }
+
+    func escapedLikePattern(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "%", with: "\\%")
+            .replacingOccurrences(of: "_", with: "\\_")
     }
 }

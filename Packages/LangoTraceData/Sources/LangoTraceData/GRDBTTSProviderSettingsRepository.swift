@@ -2,17 +2,30 @@ import Foundation
 import GRDB
 import LangoTraceCore
 
+public enum TTSProviderSettingsRepositoryError: Error, Equatable, Sendable {
+    case missingEndpointID
+}
+
 public struct GRDBTTSProviderSettingsRepository: @unchecked Sendable {
     private let databaseQueue: DatabaseQueue
+    private let clock: @Sendable () -> Date
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
-    public init(database: AppDatabase) {
+    public init(
+        database: AppDatabase,
+        clock: @escaping @Sendable () -> Date = Date.init
+    ) {
         databaseQueue = database.databaseQueue
+        self.clock = clock
     }
 
-    init(databaseQueue: DatabaseQueue) {
+    init(
+        databaseQueue: DatabaseQueue,
+        clock: @escaping @Sendable () -> Date = Date.init
+    ) {
         self.databaseQueue = databaseQueue
+        self.clock = clock
     }
 
     public func saveSettings(
@@ -20,7 +33,7 @@ public struct GRDBTTSProviderSettingsRepository: @unchecked Sendable {
         voiceProfiles: [TTSVoiceProfile]
     ) async throws {
         try await databaseQueue.write { db in
-            let now = Date().timeIntervalSince1970
+            let now = clock().timeIntervalSince1970
             try db.execute(
                 sql: """
                 INSERT INTO ai_provider_tts_settings (
@@ -79,9 +92,11 @@ public struct GRDBTTSProviderSettingsRepository: @unchecked Sendable {
         _ event: AIProviderValidationEvent,
         languageCode: String
     ) async throws {
+        guard let endpointID = event.endpointID else {
+            throw TTSProviderSettingsRepositoryError.missingEndpointID
+        }
         try await databaseQueue.write { db in
             try insert(event, db: db)
-            let endpointID = event.endpointID ?? ""
             let testedAt = event.createdAt.timeIntervalSince1970
             let currentFingerprint: String? = try String.fetchOne(
                 db,

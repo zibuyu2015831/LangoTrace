@@ -4,9 +4,14 @@ import LangoTraceCore
 
 public struct GRDBAIProviderConfigurationRepository: AIProviderConfigurationRepository, @unchecked Sendable {
     private let databaseQueue: DatabaseQueue
+    private let clock: @Sendable () -> Date
 
-    public init(database: AppDatabase) {
+    public init(
+        database: AppDatabase,
+        clock: @escaping @Sendable () -> Date = Date.init
+    ) {
         databaseQueue = database.databaseQueue
+        self.clock = clock
     }
 
     public func loadDefaultProfile() async throws -> AIProviderConfigurationProfile? {
@@ -60,6 +65,10 @@ public struct GRDBAIProviderConfigurationRepository: AIProviderConfigurationRepo
         try await databaseQueue.write { db in
             try upsert(profile, db: db)
 
+            // Deleting endpoints cascades into tts_audio_artifacts extension rows.
+            // Invalidate the media_artifacts master rows first so they cannot linger
+            // as active orphans that block same-key TTS cache rebuilds.
+            try invalidateTTSMediaArtifacts(profileID: profile.id, db: db)
             try db.execute(
                 sql: "DELETE FROM ai_provider_endpoints WHERE profile_id = ?",
                 arguments: [profile.id]
@@ -116,7 +125,7 @@ public struct GRDBAIProviderConfigurationRepository: AIProviderConfigurationRepo
                 SET secret_presence = ?, updated_at = ?
                 WHERE id = ?
                 """,
-                arguments: [state.rawValue, Date().timeIntervalSince1970, credentialID]
+                arguments: [state.rawValue, clock().timeIntervalSince1970, credentialID]
             )
         }
     }
@@ -200,6 +209,24 @@ public struct GRDBAIProviderConfigurationRepository: AIProviderConfigurationRepo
 }
 
 private extension GRDBAIProviderConfigurationRepository {
+    func invalidateTTSMediaArtifacts(profileID: AIProviderProfileID, db: Database) throws {
+        try db.execute(
+            sql: """
+            UPDATE media_artifacts
+            SET invalidated_at = ?
+            WHERE invalidated_at IS NULL
+              AND id IN (
+                SELECT tts_audio_artifacts.artifact_id
+                FROM tts_audio_artifacts
+                JOIN ai_provider_endpoints
+                  ON ai_provider_endpoints.id = tts_audio_artifacts.tts_endpoint_id
+                WHERE ai_provider_endpoints.profile_id = ?
+              )
+            """,
+            arguments: [clock().timeIntervalSince1970, profileID]
+        )
+    }
+
     func insert(_ event: AIProviderValidationEvent, db: Database) throws {
         try db.execute(
             sql: """
@@ -320,7 +347,7 @@ private extension GRDBAIProviderConfigurationRepository {
     }
 
     func insert(_ settings: TTSProviderSettings, db: Database) throws {
-        let now = Date().timeIntervalSince1970
+        let now = clock().timeIntervalSince1970
         try db.execute(
             sql: """
             INSERT INTO ai_provider_tts_settings (
@@ -334,7 +361,7 @@ private extension GRDBAIProviderConfigurationRepository {
     func insert(_ profile: TTSVoiceProfile, db: Database) throws {
         let data = try JSONEncoder().encode(profile.providerParameters)
         let json = String(data: data, encoding: .utf8) ?? "{}"
-        let now = Date().timeIntervalSince1970
+        let now = clock().timeIntervalSince1970
         try db.execute(
             sql: """
             INSERT INTO ai_provider_tts_voice_profiles (

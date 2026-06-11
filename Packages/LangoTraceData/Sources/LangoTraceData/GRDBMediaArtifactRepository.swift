@@ -253,6 +253,9 @@ public extension GRDBMediaArtifactRepository {
                 """,
                 arguments: [date.timeIntervalSince1970, artifactID]
             )
+            guard db.changesCount > 0 else {
+                throw MediaArtifactRepositoryError.fileReadyUpdateFailed
+            }
         }
     }
 
@@ -323,55 +326,14 @@ public extension GRDBMediaArtifactRepository {
 
     func artifactsForCleanup(_ request: MediaArtifactCleanupRequest) async throws -> [MediaArtifact] {
         try await databaseQueue.read { db in
-            var conditions: [String] = []
-            var arguments: StatementArguments = []
-            if let languageSpaceID = request.languageSpaceID {
-                conditions.append("language_space_id = ?")
-                arguments += [languageSpaceID]
-            }
-            if let owner = request.owner {
-                let columns = ownerColumns(owner)
-                conditions.append("owner_type = ?")
-                conditions.append("owner_id = ?")
-                arguments += [columns.type, columns.id]
-                if let subID = columns.subID {
-                    conditions.append("owner_sub_id = ?")
-                    arguments += [subID]
-                }
-            }
-            if let artifactType = request.artifactType {
-                conditions.append("artifact_type = ?")
-                arguments += [artifactType.rawValue]
-            }
-            conditions.append(
-                """
-                NOT EXISTS (
-                    SELECT 1
-                    FROM practice_recordings
-                    JOIN practice_sessions
-                      ON practice_sessions.completed_recording_id = practice_recordings.id
-                    WHERE practice_recordings.media_artifact_id = media_artifacts.id
-                      AND practice_sessions.soft_deleted_at IS NULL
-                )
-                """
-            )
-            if request.targetMaximumBytes == nil {
-                if request.includeInvalidated {
-                    conditions.append("(invalidated_at IS NOT NULL OR delete_after <= ?)")
-                    arguments += [request.now.timeIntervalSince1970]
-                } else {
-                    conditions.append("delete_after <= ?")
-                    arguments += [request.now.timeIntervalSince1970]
-                }
-            }
-
+            let filter = cleanupFilter(for: request)
             let sql = """
             SELECT *
             FROM media_artifacts
-            \(conditions.isEmpty ? "" : "WHERE \(conditions.joined(separator: " AND "))")
+            \(filter.conditions.isEmpty ? "" : "WHERE \(filter.conditions.joined(separator: " AND "))")
             ORDER BY last_accessed_at ASC
             """
-            let scopedArtifacts = try Row.fetchAll(db, sql: sql, arguments: arguments).map(mediaArtifact(from:))
+            let scopedArtifacts = try Row.fetchAll(db, sql: sql, arguments: filter.arguments).map(mediaArtifact(from:))
             guard let targetMaximumBytes = request.targetMaximumBytes else {
                 return scopedArtifacts
             }
@@ -401,10 +363,28 @@ public extension GRDBMediaArtifactRepository {
             return
         }
         try await databaseQueue.write { db in
-            try db.execute(
-                sql: "DELETE FROM media_artifacts WHERE id IN \(SQLPlaceholders.placeholders(for: artifactIDs))",
-                arguments: StatementArguments(artifactIDs)
-            )
+            for artifactID in artifactIDs {
+                // Rolled-back reservations leave a pending practice_recordings row
+                // behind whose media_artifact_id uses ON DELETE RESTRICT. Remove it
+                // first so the master row can be deleted.
+                try db.execute(
+                    sql: """
+                    DELETE FROM practice_recordings
+                    WHERE media_artifact_id = ? AND status = 'pending'
+                    """,
+                    arguments: [artifactID]
+                )
+                do {
+                    try db.execute(
+                        sql: "DELETE FROM media_artifacts WHERE id = ?",
+                        arguments: [artifactID]
+                    )
+                } catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
+                    // A non-pending practice recording still references this artifact.
+                    // Skip it instead of poisoning the rest of the batch.
+                    continue
+                }
+            }
         }
     }
 
@@ -420,9 +400,92 @@ public extension GRDBMediaArtifactRepository {
 
 public enum MediaArtifactRepositoryError: Error, Equatable, Sendable {
     case commitFailed
+    case fileReadyUpdateFailed
+}
+
+private struct MediaArtifactCleanupFilter {
+    var conditions: [String]
+    var arguments: StatementArguments
 }
 
 private extension GRDBMediaArtifactRepository {
+    static let pendingReservationProtectionSeconds: TimeInterval = 3600
+
+    // swiftlint:disable:next function_body_length
+    func cleanupFilter(for request: MediaArtifactCleanupRequest) -> MediaArtifactCleanupFilter {
+        var conditions: [String] = []
+        var arguments: StatementArguments = []
+        if let languageSpaceID = request.languageSpaceID {
+            conditions.append("language_space_id = ?")
+            arguments += [languageSpaceID]
+        }
+        if let owner = request.owner {
+            let columns = ownerColumns(owner)
+            conditions.append("owner_type = ?")
+            conditions.append("owner_id = ?")
+            arguments += [columns.type, columns.id]
+            if let subID = columns.subID {
+                conditions.append("owner_sub_id = ?")
+                arguments += [subID]
+            }
+        }
+        if let artifactType = request.artifactType {
+            conditions.append("artifact_type = ?")
+            arguments += [artifactType.rawValue]
+        }
+        // practice_recordings.media_artifact_id uses ON DELETE RESTRICT, so any
+        // referenced artifact must never become a cleanup candidate: deleting its
+        // file first and then failing the metadata delete would desynchronize
+        // metadata and files.
+        conditions.append(
+            """
+            NOT EXISTS (
+                SELECT 1
+                FROM practice_recordings
+                WHERE practice_recordings.media_artifact_id = media_artifacts.id
+            )
+            """
+        )
+        // Protect in-flight reservations: pending rows stay out of cleanup until
+        // they are old enough to be considered abandoned.
+        conditions.append("NOT (file_state = 'pending' AND created_at > ?)")
+        arguments += [
+            request.now.timeIntervalSince1970 - Self.pendingReservationProtectionSeconds,
+        ]
+        if request.targetMaximumBytes == nil {
+            if request.includeInvalidated {
+                // Active master rows that lost their typed extension row can never be
+                // looked up again and only block same-key rebuilds, so they are
+                // cleanable orphans.
+                conditions.append(
+                    """
+                    (
+                        invalidated_at IS NOT NULL
+                        OR delete_after <= ?
+                        OR (
+                            NOT EXISTS (
+                                SELECT 1
+                                FROM tts_audio_artifacts
+                                WHERE tts_audio_artifacts.artifact_id = media_artifacts.id
+                            )
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM practice_recording_artifacts
+                                WHERE practice_recording_artifacts.artifact_id = media_artifacts.id
+                            )
+                        )
+                    )
+                    """
+                )
+                arguments += [request.now.timeIntervalSince1970]
+            } else {
+                conditions.append("delete_after <= ?")
+                arguments += [request.now.timeIntervalSince1970]
+            }
+        }
+        return MediaArtifactCleanupFilter(conditions: conditions, arguments: arguments)
+    }
+
     func activeArtifact(for key: TTSAudioArtifactKey, db: Database) throws -> MediaArtifact? {
         try Row.fetchOne(
             db,
@@ -729,8 +792,3 @@ private struct TTSSentenceSourceColumns {
     var sentenceIndex: Int?
 }
 
-private enum SQLPlaceholders {
-    static func placeholders(for values: [some DatabaseValueConvertible]) -> String {
-        "(\(Array(repeating: "?", count: values.count).joined(separator: ",")))"
-    }
-}

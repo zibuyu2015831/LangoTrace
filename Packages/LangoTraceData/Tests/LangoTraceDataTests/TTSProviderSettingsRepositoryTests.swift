@@ -137,6 +137,48 @@ struct TTSProviderSettingsRepositoryTests {
         #expect(updatedVoice?.lastTestErrorCategory == .invalidVoice)
     }
 
+    @Test("TTS probe outcome without endpoint id throws instead of silently updating nothing")
+    func ttsProbeOutcomeWithoutEndpointIDThrows() async throws {
+        let database = try AppDatabase.inMemory()
+        let aiRepository = GRDBAIProviderConfigurationRepository(database: database)
+        let ttsRepository = GRDBTTSProviderSettingsRepository(database: database)
+        try await aiRepository.saveProfile(profileWithTTSEndpoint())
+        let voice = try TTSVoiceProfile.make(
+            id: "voice-en",
+            endpointID: "endpoint-tts",
+            languageCode: "en",
+            adapterKind: .openAIAudioSpeech,
+            modelName: "tts-1",
+            voiceID: "coral",
+            outputFormat: .mp3
+        )
+        try await ttsRepository.saveSettings(
+            TTSProviderSettings(endpointID: "endpoint-tts", adapterKind: .openAIAudioSpeech),
+            voiceProfiles: [voice]
+        )
+
+        let event = AIProviderValidationEvent(
+            id: "event-tts-missing-endpoint",
+            profileID: "profile-1",
+            endpointID: nil,
+            eventType: .syntheticTest,
+            status: .succeeded,
+            errorCategory: nil,
+            providerPresetID: "openai",
+            modelName: "tts-1",
+            durationMilliseconds: 210,
+            createdAt: Date(timeIntervalSince1970: 300)
+        )
+
+        await #expect(throws: TTSProviderSettingsRepositoryError.missingEndpointID) {
+            try await ttsRepository.recordTTSVoiceProfileProbeOutcome(event, languageCode: "en")
+        }
+
+        let untouchedVoice = try await ttsRepository.loadVoiceProfile(endpointID: "endpoint-tts", languageCode: "en")
+        #expect(untouchedVoice?.lastTestStatus == .notTested)
+        #expect(untouchedVoice?.lastTestedAt == nil)
+    }
+
     private func profileWithTTSEndpoint() throws -> AIProviderConfigurationProfile {
         let now = Date(timeIntervalSince1970: 100)
         let textEndpoint = try AIProviderEndpointConfiguration(
