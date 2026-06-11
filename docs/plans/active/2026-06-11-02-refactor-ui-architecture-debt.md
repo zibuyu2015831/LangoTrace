@@ -30,7 +30,7 @@
 8. UIS-15/16：`LocalizedChrome.swift` 自制 xcstrings 运行时解析（:21-133），无复数规则、`String(format:)` 未带 locale（:18）、`nonisolated(unsafe) static var overrideLanguageCodes`（:136）。
 9. UIS-19 / TEST-02：源码字符串断言型伪测试蔓延：`PhoneIOSConvergenceTests.swift` 含 16 处读源码断子串；`WelcomeTracePreviewContentTests.swift`、`InterfaceLanguageSettingsPageTests.swift`、`ThreePlatformPresentationCopyTests.swift`、`PremiumUIBehaviorTests.swift` 同类；App 侧 `LangoTraceAppTests/AppEnvironmentBootstrapTests.swift:66` 读取 `AppEnvironment.swift` 源码断言。
 10. APP-09：`AppEnvironment.bootstrap()`（`AppEnvironment.swift:27-80`）经核验在 MainActor 语境内同步完成组件装配；原审查"async restore 脱离 MainActor"表述不成立，但启动恢复路径中数据库 IO 在主线程执行的事实仍在（启动阻塞风险随数据量增长）。APP-12：`completeWelcome()`（:909-914）在 `recoveryState == .failed` 时阻止离开 welcome，welcome 是否提供跳过 / 重试路径属产品决策，尚无规范结论。
-11. UIV-08（设置页 footer 状态接线）属于另一份系列方案 `2026-06-11-feature-settings-status-projection.md`（对应 architecture note `2026-05-24-settings-status-projection-notes.md`），不在本方案内。
+11. UIV-08（设置页 footer 状态接线）属于另一份系列方案 `2026-06-11-15-feature-settings-status-projection.md`（对应 architecture note `2026-05-24-settings-status-projection-notes.md`），不在本方案内。
 12. 小尾项（审查 ID UIV-25/28/31/32/33 在留存记录中无法逐一回溯到原文，按当前代码重新取证为以下候选）：`PhonePhotoWritingPreviewView.swift:88` 硬编码 `.frame(height: 210)`；`MacMainView.swift:211,298` 固定 sidebar / inspector 宽度常量；`AppEnvironment.swift:300` 阅读 TTS 全部使用句索引 0（与 APP-13 同源）；其余零散硬编码中文与重复视图块在涉及文件改造时顺带处理。
 
 ## 3. 目标
@@ -53,11 +53,11 @@
 - `Packages/LangoTraceUI/Tests/LangoTraceUITests/` 存量伪测试替换与新增测试。
 - `docs/spec/002`、`docs/spec/009`、`docs/platform-page-inventory.md` 同步。
 
-前序依赖：E0a（`2026-06-11-refactor-architecture-foundations.md`）。理由：本方案的 TTS 失败渲染与设置页编排下沉依赖 E0a 补全的错误分类（rateLimited / authenticationFailed / 精确 AIProviderConfigurationError）；operation recorder 的状态枚举应建立在 E0a 收口后的 Core 错误类型上。本方案必须先于 E1（E1 重排 PhoneMainView 列表区，若导航结构后改会二次返工）。
+前序依赖：E0a（`2026-06-11-01-refactor-architecture-foundations.md`）。理由：本方案的 TTS 失败渲染与设置页编排下沉依赖 E0a 补全的错误分类（rateLimited / authenticationFailed / 精确 AIProviderConfigurationError）；operation recorder 的状态枚举应建立在 E0a 收口后的 Core 错误类型上。本方案必须先于 E1（E1 重排 PhoneMainView 列表区，若导航结构后改会二次返工）。
 
 ## 5. 不做什么
 
-- 不做 UIV-08 设置页 footer 状态真实接线：该项属系列后续方案 `2026-06-11-feature-settings-status-projection.md`（依据 architecture note `2026-05-24-settings-status-projection-notes.md`），此处仅交叉引用。
+- 不做 UIV-08 设置页 footer 状态真实接线：该项属系列后续方案 `2026-06-11-15-feature-settings-status-projection.md`（依据 architecture note `2026-05-24-settings-status-projection-notes.md`），此处仅交叉引用。
 - 不实现记录时间线分组与筛选（E1）、照片附件与真实 photo-writing（E2）；`createMockPhotoWritingEntry` 与 `PhonePhotoWritingPreviewView` 在本方案保留原样供预览，仅记录"E2 落地后删除"的依赖关系。
 - 不做 LocalizedChrome 的完整迁移（全部 key 切换 `Bundle.module` 与复数规则全量补齐），只做方向决策 + 范围收敛的第一步；完整迁移在方向验证后另立方案或并入界面语言扩展方案。
 - 不把全部存量源码子串断言测试一次替换完；只替换第 12 节 Phase 6 列出的最严重批次，其余按迁移清单在后续触碰对应文件时逐步替换。
@@ -160,7 +160,7 @@
 - `docs/spec/009-testing-and-verification.md`：新增"不得新增源码子串断言测试"规则与存量迁移原则。
 - `docs/platform-page-inventory.md`：iPhone 各页代码路径与导航事实更新；Mac / iPad 滚动结构说明微调。
 - `docs/spec/006` 不改规则本身，核对 Phase 4 后事实与规则一致。
-- 本方案；`2026-06-11-feature-settings-status-projection.md`（系列后续方案，交叉引用，不在本方案创建）。
+- 本方案；`2026-06-11-15-feature-settings-status-projection.md`（系列后续方案，交叉引用，不在本方案创建）。
 
 ## 11. bug 分析
 

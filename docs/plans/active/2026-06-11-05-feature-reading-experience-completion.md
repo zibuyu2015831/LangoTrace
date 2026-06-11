@@ -6,7 +6,7 @@
 创建日期：2026-06-11
 最后更新日期：2026-06-11
 
-系列编号：R1（系列母方案：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`，实施顺序位于 E2 照片写作（`docs/plans/active/2026-06-11-feature-entry-photo-attachment-and-photo-writing.md`）之后、E3 练习模式路由（`docs/plans/active/2026-06-11-feature-practice-mode-routing-foundation.md`）之前）。无硬代码依赖：本方案不依赖 E1 / E2 的交付物，可在用户确认后独立实现。
+系列编号：R1（系列母方案：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`，实施顺序位于 E2 照片写作（`docs/plans/active/2026-06-11-04-feature-entry-photo-attachment-and-photo-writing.md`）之后、E3 练习模式路由（`docs/plans/active/2026-06-11-06-feature-practice-mode-routing-foundation.md`）之前）。无硬代码依赖：本方案不依赖 E1 / E2 的交付物，可在用户确认后独立实现。
 
 ## 用户确认记录
 

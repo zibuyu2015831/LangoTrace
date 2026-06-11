@@ -55,7 +55,7 @@
 
 ## 5. 不做什么
 
-- 不实现复习队列、间隔调度、`已掌握` 状态机和复习统计（E8：[2026-06-11-feature-memory-review-queue.md](2026-06-11-feature-memory-review-queue.md)）；本任务只在 schema 中预留字段并写入初始值。
+- 不实现复习队列、间隔调度、`已掌握` 状态机和复习统计（E8：[2026-06-11-11-feature-memory-review-queue.md](2026-06-11-11-feature-memory-review-queue.md)）；本任务只在 schema 中预留字段并写入初始值。
 - 不实现任何向量表、embedding、语义检索或相似召回（核心决策 12 与 embedding 备忘录红线）。
 - 不实现记忆项的全文搜索（E9 负责）。
 - 不实现记忆项编辑、批量管理、主题聚合（iPad 原型左栏"常见主题"为后续能力）和词典交叉能力。
@@ -159,7 +159,7 @@
 - `docs/spec/007-data-storage-migration-export-and-attachments.md`（实施后补充 memory_items 落地事实）
 - `docs/platform-page-inventory.md`（三端记忆页面状态从 Local Mock 更新）
 - `docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md`（只读，采纳说明见第 6 节）
-- 前序依赖方案：`docs/plans/active/2026-06-11-feature-record-timeline-and-filters.md`（E1，筛选 seam）、`docs/plans/active/2026-06-11-feature-entry-photo-attachment-and-photo-writing.md`（E2，推荐先行）
+- 前序依赖方案：`docs/plans/active/2026-06-11-03-feature-record-timeline-and-filters.md`（E1，筛选 seam）、`docs/plans/active/2026-06-11-04-feature-entry-photo-attachment-and-photo-writing.md`（E2，推荐先行）
 
 ## 11. bug 分析
 

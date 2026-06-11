@@ -10,7 +10,7 @@
 
 前序依赖：
 
-- E0a（`docs/plans/active/2026-06-11-refactor-architecture-foundations.md`）：其错误分类整备为本方案的 failure_category 分桶提供统一口径；当前 Core 中失败分类按域分散（`LearningMaterialGenerationFailureCategory`、`ReadingSelectionExplanationFailureCategory` 等，无统一 taxonomy）。E0a 未先行时本方案可按"各域分类 + 映射到日志分桶"落地，E0a 落地后只收敛映射，不阻塞。
+- E0a（`docs/plans/active/2026-06-11-01-refactor-architecture-foundations.md`）：其错误分类整备为本方案的 failure_category 分桶提供统一口径；当前 Core 中失败分类按域分散（`LearningMaterialGenerationFailureCategory`、`ReadingSelectionExplanationFailureCategory` 等，无统一 taxonomy）。E0a 未先行时本方案可按"各域分类 + 映射到日志分桶"落地，E0a 落地后只收敛映射，不阻塞。
 - 下游：E5 Slice 2（回译 AI 点评）必须等本方案落地。
 
 ## 用户确认记录
@@ -77,7 +77,7 @@
 - workflow：`docs/workflows/add-ai-provider.md`（适用场景明确包含"请求预览、请求日志"；其测试要求与故障矩阵被采纳）、`docs/workflows/add-storage-migration.md`（migration 要求采纳）。
 - 代码证据：第 2 节逐条（RequestPreviewCard 现状、零日志设施、makeRequest 组装点、DiagnosticAttribute 封闭枚举先例、PrivacyStatus 防回归测试）。
 - 页面清单：`docs/platform-page-inventory.md` §8——iPhone 不得默认显示持久 RequestPreviewCard；设置页不得把未接入能力伪装成已接入（日志列表必须真实数据驱动）。
-- 系列依赖：E5 Slice 2（`docs/plans/active/2026-06-11-feature-practice-backtranslation.md`）以本方案为前置。
+- 系列依赖：E5 Slice 2（`docs/plans/active/2026-06-11-08-feature-practice-backtranslation.md`）以本方案为前置。
 
 ```text
 证据能证明什么：预览与日志的边界规则在 spec 005 早已定义且有 operation 摘要 / DiagnosticAttribute 的工程先例，本方案是按既定边界补基础设施。

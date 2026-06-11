@@ -79,7 +79,7 @@
   - §3"导入导出、本地数据、隐私是否需要真实可操作状态"：本地数据采纳真实占用值；导入导出与隐私保持说明型入口（行尾不显示状态值），与原型一致。
   - §3"macOS 是否需要更高密度 trailing value"：采纳，mac 行值含本地数据体积，iPhone 主列表不显示体积（原型一致）。
   - §4 全部禁止项采纳为硬边界。
-- 前序依赖：AI 行值部分在 E6（`docs/plans/active/2026-06-11-feature-ai-request-preview-and-log-foundation.md`）之后实施更佳（E6 完善请求与验证元数据），但仅依赖既有落库快照时也可先行；同步部分在 E11 之后接真实投影，之前如实显示 `未启用`。E0b（[2026-06-11-refactor-ui-architecture-debt.md](2026-06-11-refactor-ui-architecture-debt.md)）显式把 UIV-08 接线延期至本任务，本方案为其收口点。
+- 前序依赖：AI 行值部分在 E6（`docs/plans/active/2026-06-11-09-feature-ai-request-preview-and-log-foundation.md`）之后实施更佳（E6 完善请求与验证元数据），但仅依赖既有落库快照时也可先行；同步部分在 E11 之后接真实投影，之前如实显示 `未启用`。E0b（[2026-06-11-02-refactor-ui-architecture-debt.md](2026-06-11-02-refactor-ui-architecture-debt.md)）显式把 UIV-08 接线延期至本任务，本方案为其收口点。
 - workflow 引用：不涉及 migration / Provider / Prompt 新增；页面行为变化参照 [add-platform-screen.md](../../workflows/add-platform-screen.md) 的共享 seam 检查。无偏离。
 
 ```text
@@ -151,7 +151,7 @@
 - 本方案。
 - `docs/platform-page-inventory.md`（设置主列表与页脚状态事实更新）
 - `docs/architecture/notes/2026-05-24-settings-status-projection-notes.md`（只读；采纳处理记录在本方案第 6 节）
-- 前序依赖方案：`docs/plans/active/2026-06-11-feature-ai-request-preview-and-log-foundation.md`（E6，AI 部分推荐其后）、[2026-06-11-feature-sync-engine-icloud-foundation.md](2026-06-11-feature-sync-engine-icloud-foundation.md)（E11，同步部分其后）、[2026-06-11-refactor-ui-architecture-debt.md](2026-06-11-refactor-ui-architecture-debt.md)（E0b，UIV-08 延期来源）
+- 前序依赖方案：`docs/plans/active/2026-06-11-09-feature-ai-request-preview-and-log-foundation.md`（E6，AI 部分推荐其后）、[2026-06-11-14-feature-sync-engine-icloud-foundation.md](2026-06-11-14-feature-sync-engine-icloud-foundation.md)（E11，同步部分其后）、[2026-06-11-02-refactor-ui-architecture-debt.md](2026-06-11-02-refactor-ui-architecture-debt.md)（E0b，UIV-08 延期来源）
 
 ## 11. bug 分析
 

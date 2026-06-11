@@ -6,7 +6,7 @@
 创建日期：2026-06-11
 最后更新日期：2026-06-11
 
-系列编号：E4（系列母方案：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`，实施顺序位于 E3 之后、E5 之前）。规模：M。前序依赖：E3（`docs/plans/active/2026-06-11-feature-practice-mode-routing-foundation.md`，practice mode 路由与可用性注册机制）。
+系列编号：E4（系列母方案：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`，实施顺序位于 E3 之后、E5 之前）。规模：M。前序依赖：E3（`docs/plans/active/2026-06-11-06-feature-practice-mode-routing-foundation.md`，practice mode 路由与可用性注册机制）。
 
 ## 用户确认记录
 

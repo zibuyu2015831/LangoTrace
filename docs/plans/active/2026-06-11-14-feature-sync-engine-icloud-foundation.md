@@ -156,7 +156,7 @@
 - 新增：`docs/spec/`同步规范（范围表、revision / tombstone 语义、冲突策略、purge 参数）
 - `docs/spec/007`（同步事实回写）、`docs/architecture/002-system-map.md`（数据流更新）
 - `docs/architecture/notes/2026-05-20-language-space-sync-extension-notes.md`（采纳回写在本方案，备忘录保留）
-- 前序依赖方案：[2026-06-11-feature-import-export-backup.md](2026-06-11-feature-import-export-backup.md)（E10，manifest 对齐）、[2026-06-11-feature-entry-photo-attachment-and-photo-writing.md](2026-06-11-feature-entry-photo-attachment-and-photo-writing.md)（E2）、[2026-06-11-feature-practice-dictation.md](2026-06-11-feature-practice-dictation.md)（E4）、[2026-06-11-feature-memory-deposit-foundation.md](2026-06-11-feature-memory-deposit-foundation.md)（E7）—— schema 稳定前置。
+- 前序依赖方案：[2026-06-11-13-feature-import-export-backup.md](2026-06-11-13-feature-import-export-backup.md)（E10，manifest 对齐）、[2026-06-11-04-feature-entry-photo-attachment-and-photo-writing.md](2026-06-11-04-feature-entry-photo-attachment-and-photo-writing.md)（E2）、[2026-06-11-07-feature-practice-dictation.md](2026-06-11-07-feature-practice-dictation.md)（E4）、[2026-06-11-10-feature-memory-deposit-foundation.md](2026-06-11-10-feature-memory-deposit-foundation.md)（E7）—— schema 稳定前置。
 
 ## 11. bug 分析
 

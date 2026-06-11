@@ -68,7 +68,7 @@
 ## 5. 不做什么
 
 - 不实际接入 Anthropic / Gemini provider（只做 adapter 抽象与扩展位，真实接入按 `docs/workflows/add-ai-provider.md` 另立方案）。
-- 不改 `practiceSummary` 展示字符串为结构化状态：该项与 UI 渲染强耦合，整体划入 E0b（`2026-06-11-refactor-ui-architecture-debt.md`），避免两个方案改同一字段。
+- 不改 `practiceSummary` 展示字符串为结构化状态：该项与 UI 渲染强耦合，整体划入 E0b（`2026-06-11-02-refactor-ui-architecture-debt.md`），避免两个方案改同一字段。
 - 不在本方案直接切换 macOS Keychain 到 `kSecUseDataProtectionKeychain`（无正式签名与 entitlements 时会 -34018），只做代码注释与 architecture note 中的演进决策记录。
 - 不新增数据库迁移把 44 处枚举解码点全部改成持久化 unknown 列；只改解码语义（typed error 或显式 unknown case），schema 不动。
 - 不处理 UI / App 层结构债（PhoneMainView 导航、AppEnvironment 拆分等，归 E0b）。

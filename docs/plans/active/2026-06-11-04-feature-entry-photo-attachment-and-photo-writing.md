@@ -50,7 +50,7 @@
 - App：图像处理 helper（缩略图 + EXIF 剥离，基于 ImageIO，归 App target 或 UI 包 platform 层，按 spec 004 §3 实现期定稿）、权限与 Info.plist 核对（PhotosPicker 不需要 NSPhotoLibraryUsageDescription，需在 project.yml 层核对无多余权限声明）。
 - 文档：spec 007、`docs/spec/media-artifacts/` 实现地图、页面清单、architecture note 回写。
 
-前序依赖：E1（`2026-06-11-feature-record-timeline-and-filters.md`，时间线卡片与筛选扩展位）；间接依赖 E0a / E0b（按系列顺序自然满足）。规模：L。
+前序依赖：E1（`2026-06-11-03-feature-record-timeline-and-filters.md`，时间线卡片与筛选扩展位）；间接依赖 E0a / E0b（按系列顺序自然满足）。规模：L。
 
 ## 5. 不做什么
 

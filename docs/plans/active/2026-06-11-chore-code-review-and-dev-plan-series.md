@@ -191,8 +191,8 @@ git status --short
 决策类型：deferred
 原因：无编译器环境下大范围结构调整风险过高；且按 CLAUDE.md §1.1 重要重做应有独立方案与用户确认
 影响：相关债务仍在代码中，但已全部固化为系列方案 E0a/E0b 的工作项
-后续事实源或复审入口：docs/plans/active/2026-06-11-refactor-architecture-foundations.md、
-  docs/plans/active/2026-06-11-refactor-ui-architecture-debt.md
+后续事实源或复审入口：docs/plans/active/2026-06-11-01-refactor-architecture-foundations.md、
+  docs/plans/active/2026-06-11-02-refactor-ui-architecture-debt.md
 ```
 
 ```text
@@ -374,12 +374,12 @@ git status --short
 
 | 发现 | 去向 |
 | --- | --- |
-| AI-09 文本 Provider adapter 抽象；AI-15/16 preset 常量与错误分类补全；AI-11 响应上限流式化；AI-12 macOS Keychain dlopen 现代化；AI-21 Keychain 伪测试；DATA-05 bridge 读路径吞错（需 Core 诊断事件名）；CORE-06/08/09/10/15/20/22/24/25；DATA-12/13/17/18/21/22/23；SPEECH-02 WAV chunk walker；spec 012 Prompt v3→v4 同步 | `2026-06-11-refactor-architecture-foundations.md`（E0a） |
-| UIV-05 每 tab 独立 NavigationStack；UIV-07 嵌套 ScrollView；APP-08/UIV-20 编排下沉；UIS-05/APP-13 阅读 TTS 失败可表达；UIS-06 isPlayingDemo；UIS-07/UIV-17/DATA-14 Data 层中文状态串本地化；UIS-09 影子缓存；UIS-15 LocalizedChrome 机制债务；UIS-19/TEST-02 源码子串断言退坡；APP-09 启动同步 IO；APP-12 welcome 跳过（需用户决策）；UIV-25/28/31/32/33 视觉尾项 | `2026-06-11-refactor-ui-architecture-debt.md`（E0b） |
-| UIV-08 footer/学习面板硬编码状态接真实投影 | `2026-06-11-feature-settings-status-projection.md`（E12） |
-| DATA-08 阅读 import 不建结构表 / rebuildStructure 占位句 | `2026-06-11-feature-reading-experience-completion.md`（R1） |
+| AI-09 文本 Provider adapter 抽象；AI-15/16 preset 常量与错误分类补全；AI-11 响应上限流式化；AI-12 macOS Keychain dlopen 现代化；AI-21 Keychain 伪测试；DATA-05 bridge 读路径吞错（需 Core 诊断事件名）；CORE-06/08/09/10/15/20/22/24/25；DATA-12/13/17/18/21/22/23；SPEECH-02 WAV chunk walker；spec 012 Prompt v3→v4 同步 | `2026-06-11-01-refactor-architecture-foundations.md`（E0a） |
+| UIV-05 每 tab 独立 NavigationStack；UIV-07 嵌套 ScrollView；APP-08/UIV-20 编排下沉；UIS-05/APP-13 阅读 TTS 失败可表达；UIS-06 isPlayingDemo；UIS-07/UIV-17/DATA-14 Data 层中文状态串本地化；UIS-09 影子缓存；UIS-15 LocalizedChrome 机制债务；UIS-19/TEST-02 源码子串断言退坡；APP-09 启动同步 IO；APP-12 welcome 跳过（需用户决策）；UIV-25/28/31/32/33 视觉尾项 | `2026-06-11-02-refactor-ui-architecture-debt.md`（E0b） |
+| UIV-08 footer/学习面板硬编码状态接真实投影 | `2026-06-11-15-feature-settings-status-projection.md`（E12） |
+| DATA-08 阅读 import 不建结构表 / rebuildStructure 占位句 | `2026-06-11-05-feature-reading-experience-completion.md`（R1） |
 | CORE-04 UTF-16 与字素单位混用（与 CORE-15 整数偏移统一处理） | E0a |
 | CORE-16 / AI-23 / UIS-20 测试覆盖缺口 | 本轮已随各修复补齐对应用例；剩余项随 E0a/E0b 落点 |
-| SYNC-01 占位 target 套套逻辑测试 | `2026-06-11-feature-sync-engine-icloud-foundation.md`（E11）落地时替换 |
+| SYNC-01 占位 target 套套逻辑测试 | `2026-06-11-14-feature-sync-engine-icloud-foundation.md`（E11）落地时替换 |
 | HYGIENE-03 根目录 untracked `img/`、`.github/` 归属 | 留待用户决定（未触碰） |
 | SCRIPT-05/06/07 capture-runtime-log stream 分支、probe 明文回显（已有测试锁定的已知决策）、生成脚本路径假设 | 低风险，随下次 scripts 任务处理；已在此登记 |

@@ -10,8 +10,8 @@
 
 前序依赖：
 
-- Slice 1：E4（`docs/plans/active/2026-06-11-feature-practice-dictation.md`，`practice_text_attempts` 表与 mode 会话承载结构）。
-- Slice 2：E6（`docs/plans/active/2026-06-11-feature-ai-request-preview-and-log-foundation.md`，请求预览投影与 ai_request_logs 基础）。
+- Slice 1：E4（`docs/plans/active/2026-06-11-07-feature-practice-dictation.md`，`practice_text_attempts` 表与 mode 会话承载结构）。
+- Slice 2：E6（`docs/plans/active/2026-06-11-09-feature-ai-request-preview-and-log-foundation.md`，请求预览投影与 ai_request_logs 基础）。
 
 ## 用户确认记录
 

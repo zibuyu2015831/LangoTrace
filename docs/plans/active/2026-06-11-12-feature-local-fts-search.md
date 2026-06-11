@@ -66,7 +66,7 @@
   - [2026-05-27-embedding-infrastructure-notes.md](../../architecture/notes/2026-05-27-embedding-infrastructure-notes.md)：采纳"FTS 与向量索引边界分离"；本任务不为向量基础设施铺路。
   - [2026-05-20-language-space-sync-extension-notes.md](../../architecture/notes/2026-05-20-language-space-sync-extension-notes.md) §4：采纳"FTS、向量索引……可重建派生数据默认不同步"为硬约束。
 - workflow 引用：属于数据迁移 + 平台页面动作，遵循 [add-storage-migration.md](../../workflows/add-storage-migration.md)（派生数据可失效、可重建测试要求）与 [add-platform-screen.md](../../workflows/add-platform-screen.md)。无偏离。
-- 前序依赖：R1（[2026-06-11-feature-reading-experience-completion.md](2026-06-11-feature-reading-experience-completion.md)）确定阅读结构与 per-block 锚点一致性，是阅读命中定位的前提；E7 为软依赖（记忆分组可降级零态）。
+- 前序依赖：R1（[2026-06-11-05-feature-reading-experience-completion.md](2026-06-11-05-feature-reading-experience-completion.md)）确定阅读结构与 per-block 锚点一致性，是阅读命中定位的前提；E7 为软依赖（记忆分组可降级零态）。
 
 ```text
 证据能证明什么：原型固定了分组、键盘路径、高亮与空间范围披露；代码证明当前没有可复用的 FTS 基础设施，阅读域索引只是 LIKE 辅助表。
@@ -137,7 +137,7 @@
 - 本方案。
 - `docs/spec/007`（实施后补充 FTS 派生数据落地事实与重建策略）
 - `docs/platform-page-inventory.md`（mac 搜索、iPad 搜索条目状态更新）
-- 前序依赖方案：[2026-06-11-feature-reading-experience-completion.md](2026-06-11-feature-reading-experience-completion.md)（R1）、[2026-06-11-feature-memory-deposit-foundation.md](2026-06-11-feature-memory-deposit-foundation.md)（E7，软依赖）
+- 前序依赖方案：[2026-06-11-05-feature-reading-experience-completion.md](2026-06-11-05-feature-reading-experience-completion.md)（R1）、[2026-06-11-10-feature-memory-deposit-foundation.md](2026-06-11-10-feature-memory-deposit-foundation.md)（E7，软依赖）
 
 ## 11. bug 分析
 

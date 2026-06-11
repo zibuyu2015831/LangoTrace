@@ -21,7 +21,7 @@
 
 ## 2. 现状描述
 
-- E7（[2026-06-11-feature-memory-deposit-foundation.md](2026-06-11-feature-memory-deposit-foundation.md)）尚未实施；其 migration 按 dependency contract 已包含本任务全部 schema 字段：`review_state`（CHECK `'new'`/`'scheduled'`/`'mastered'`）、`review_rung`、`review_due_at`、`last_reviewed_at`、`review_count`、`mastered_at`。本任务不新增 migration。
+- E7（[2026-06-11-10-feature-memory-deposit-foundation.md](2026-06-11-10-feature-memory-deposit-foundation.md)）尚未实施；其 migration 按 dependency contract 已包含本任务全部 schema 字段：`review_state`（CHECK `'new'`/`'scheduled'`/`'mastered'`）、`review_rung`、`review_due_at`、`last_reviewed_at`、`review_count`、`mastered_at`。本任务不新增 migration。
 - 当前代码（2026-06-11 HEAD）没有任何复习调度、统计或复习会话代码；三端记忆页为 Local Mock（E7 现状描述已核实）。
 - 原型中的统计数字（12 / 5 / 86）与复习文案均为 mock；iPad 原型明确"低压力"基调：不做打卡、欠债计数或红色角标。
 - [2026-05-27-embedding-infrastructure-notes.md](../../architecture/notes/2026-05-27-embedding-infrastructure-notes.md) 与核心决策 12 为约束性边界：复习队列不得引入向量表，不得为用户内容生成 embedding。
@@ -120,7 +120,7 @@
 - 本方案。
 - `docs/spec/007-data-storage-migration-export-and-attachments.md`（实施后补充复习状态生命周期事实）
 - `docs/platform-page-inventory.md`（记忆页面能力更新）
-- 前序依赖方案：[2026-06-11-feature-memory-deposit-foundation.md](2026-06-11-feature-memory-deposit-foundation.md)（E7，hard dependency）
+- 前序依赖方案：[2026-06-11-10-feature-memory-deposit-foundation.md](2026-06-11-10-feature-memory-deposit-foundation.md)（E7，hard dependency）
 
 ## 11. bug 分析
 

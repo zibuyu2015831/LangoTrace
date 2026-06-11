@@ -36,6 +36,14 @@ docs/plans/done/YYYY-MM-DD-<type>-<topic>.md
 - `chore`
 - `docs`
 
+属于同一开发系列、需要按顺序实施的多份方案，可在日期后插入两位实施顺序编号：
+
+```text
+docs/plans/active/YYYY-MM-DD-<NN>-<type>-<topic>.md
+```
+
+例如 `2026-06-11-01-refactor-architecture-foundations.md`。编号只表示系列内的实施顺序，单独的非系列方案不需要编号。
+
 ## 3. 必填内容
 
 每份任务方案至少包含：

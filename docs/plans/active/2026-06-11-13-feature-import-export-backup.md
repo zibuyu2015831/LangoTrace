@@ -144,7 +144,7 @@
 - `docs/spec/007`（实施后补充导出包格式、manifest 与导入合并事实）
 - `docs/platform-page-inventory.md`（mac 导入导出页面状态更新）
 - `docs/architecture/notes/2026-05-26-practice-recording-sync-export-notes.md`（只读；默认值决断结果实施后回写采纳说明）
-- 前序依赖方案：[2026-06-11-feature-entry-photo-attachment-and-photo-writing.md](2026-06-11-feature-entry-photo-attachment-and-photo-writing.md)（E2，照片 policy 字段）、[2026-06-11-feature-memory-deposit-foundation.md](2026-06-11-feature-memory-deposit-foundation.md)（E7，记忆数据完整性）；推荐在 [2026-06-11-feature-local-fts-search.md](2026-06-11-feature-local-fts-search.md)（E9）之后实施（导出明确排除 FTS 派生表后边界更清晰）。
+- 前序依赖方案：[2026-06-11-04-feature-entry-photo-attachment-and-photo-writing.md](2026-06-11-04-feature-entry-photo-attachment-and-photo-writing.md)（E2，照片 policy 字段）、[2026-06-11-10-feature-memory-deposit-foundation.md](2026-06-11-10-feature-memory-deposit-foundation.md)（E7，记忆数据完整性）；推荐在 [2026-06-11-12-feature-local-fts-search.md](2026-06-11-12-feature-local-fts-search.md)（E9）之后实施（导出明确排除 FTS 派生表后边界更清晰）。
 
 ## 11. bug 分析
 

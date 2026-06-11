@@ -55,7 +55,7 @@ rg -q "evidence-backed claim" docs/reference/research/spikes/README.md \
 
 while IFS= read -r file; do
   name="$(basename "$file")"
-  [[ "$name" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-(feature|bug|refactor|research|chore|docs)-[a-z0-9][a-z0-9-]*\.md$ ]] \
+  [[ "$name" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-([0-9]{2}-)?(feature|bug|refactor|research|chore|docs)-[a-z0-9][a-z0-9-]*\.md$ ]] \
     || fail "invalid active plan filename: $file"
   rg -q "^状态：" "$file" || fail "active plan is missing 状态: $file"
   rg -q "^类型：" "$file" || fail "active plan is missing 类型: $file"
