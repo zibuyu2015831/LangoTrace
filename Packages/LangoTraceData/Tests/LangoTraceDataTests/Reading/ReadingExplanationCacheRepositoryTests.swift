@@ -18,11 +18,12 @@ struct ReadingExplanationCacheRepositoryTests {
 
         try await repo.insert(entry)
 
+        let entryID = entry.id
         let storedCreatedAt = try await database.databaseQueue.read { db in
             try Double.fetchOne(
                 db,
                 sql: "SELECT created_at FROM reading_explanation_cache WHERE id = ?",
-                arguments: [entry.id]
+                arguments: [entryID]
             )
         }
         #expect(storedCreatedAt == 1_700_000_000)

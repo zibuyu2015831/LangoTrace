@@ -113,3 +113,46 @@ xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' bui
 ## 6. 验证结果记录
 
 逐项完成后在此追加：日期、命令/项目、结果、发现的问题与处置。
+
+---
+
+### 2026-06-12 自动化验证（第 1 节命令，部分完成）
+
+**执行环境**：Mac Darwin 25.4.0 / arm64，由 Claude Code 执行。
+
+#### 1-1. xcodegen generate + xcodebuild -list ✅
+
+- `xcodegen generate` 成功生成 `LangoTrace.xcodeproj`。
+- scheme 列表：`LangoTrace-iOS`、`LangoTrace-macOS`、`LangoTraceAI`、`LangoTraceCore`、`LangoTraceData`、`LangoTraceSpeech`、`LangoTraceSync`、`LangoTraceUI`（共 8 个）。
+- Target：`LangoTrace-iOS`、`LangoTrace-macOS`、`LangoTraceAppTests`（无多余 iOS 空 test scheme，符合预期）。
+
+#### 1-2. swift test — 各 Package ⚠️（部分完成，有 bug 修复）
+
+| Package | 结果 | 备注 |
+|---|---|---|
+| LangoTraceCore | ✅ 151 tests 全通过 | 无问题 |
+| LangoTraceData | ✅ 138 tests 全通过（修复后） | 修复 `ReadingExplanationCacheRepositoryTests.swift:25` 并发捕获错误：`var entry` 在 `databaseQueue.read` 闭包中被捕获，在闭包外提前绑定 `let entryID = entry.id` 解决 |
+| LangoTraceAI | ✅ 132 tests 全通过（修复后） | 修复 `AIProviderConfigurationServiceTests.swift` 第 368、405 行两处 `TTSConfigurationProbeService` 初始化遗漏 `diagnosticLogger: DisabledDiagnosticLogger()` 参数（命中清单第 2 节预警） |
+| LangoTraceSpeech | ✅ 24 tests 全通过 | 无问题 |
+| LangoTraceSync | ✅ 1 test 全通过 | 无问题 |
+| LangoTraceUI | ⏸ 未完成 | 首次运行发现 `PremiumUIBehaviorTests.swift:197` 引用已删除文件 `PhoneMainModels.swift`（该文件在 commit `c1b7947` 中删除，内容迁入 `PhoneMainSections.swift` / `PhoneMainSupportingViews.swift`），已更新测试；重新编译耗时过长，会话超时前未获得最终结果，待下次继续 |
+
+**修复文件汇总（本次 bug fix）：**
+
+- `Packages/LangoTraceData/Tests/LangoTraceDataTests/Reading/ReadingExplanationCacheRepositoryTests.swift`：并发捕获 var 修复。
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/AIProviderConfigurationServiceTests.swift`：两处 `TTSConfigurationProbeService` init 补齐 `diagnosticLogger` 参数。
+- `Packages/LangoTraceUI/Tests/LangoTraceUITests/PremiumUIBehaviorTests.swift`：`stageThreeUnavailablePagesKeepMigratedChromeLocalized` 测试将 `PhoneMainModels.swift` 替换为 `PhoneMainSections.swift` 和 `PhoneMainSupportingViews.swift`。
+
+**已知 warning（非阻塞）：**
+
+- `LangoTraceUI/Tests` 中 `LaunchRecoveryPresentationTests.swift`：`#ActorIsolatedCall` warning，因同步上下文中调用 `@MainActor` 方法，测试仍可通过，无需立即修复。
+- `LangoTraceUITests/LearningContentStoreOperationOwnershipTests.swift`：`WeakMutability` warning，`weak var weakStore` 可改为 `weak let`，非阻塞。
+
+#### 待完成（下次继续）
+
+- [ ] `swift test --package-path Packages/LangoTraceUI`（确认修复后全通过）
+- [ ] `xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests`
+- [ ] `swiftlint --no-cache`
+- [ ] `swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore`
+- [ ] 三端构建（iOS iPhone / iPad / macOS）
+- [ ] 第 4 节人工验证项（需真机/模拟器手动操作）

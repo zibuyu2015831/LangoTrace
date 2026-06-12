@@ -367,7 +367,8 @@ func configurationServiceSurfacesTTSCredentialStoreFailuresAsFailedSpeechSynthes
         ),
         ttsConfigurationProbeService: TTSConfigurationProbeService(
             httpClient: CapturingProbeHTTPClient(responses: []),
-            audioValidationService: AcceptingTTSAudioValidationService()
+            audioValidationService: AcceptingTTSAudioValidationService(),
+            diagnosticLogger: DisabledDiagnosticLogger()
         ),
         idGenerator: IncrementingIDGenerator().next
     )
@@ -404,7 +405,8 @@ func configurationServiceMergedResultFailsWhenRequiredTTSCapabilityFails() async
         configurationProbeService: AIProviderConfigurationProbeService(httpClient: textHTTPClient),
         ttsConfigurationProbeService: TTSConfigurationProbeService(
             httpClient: ttsHTTPClient,
-            audioValidationService: AcceptingTTSAudioValidationService()
+            audioValidationService: AcceptingTTSAudioValidationService(),
+            diagnosticLogger: DisabledDiagnosticLogger()
         ),
         idGenerator: IncrementingIDGenerator().next
     )

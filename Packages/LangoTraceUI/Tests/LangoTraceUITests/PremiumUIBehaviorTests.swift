@@ -198,7 +198,8 @@ struct PremiumUIBehaviorTests {
     func stageThreeUnavailablePagesKeepMigratedChromeLocalized() throws {
         let files = [
             "UnavailableCapabilityView.swift",
-            "PhoneMainModels.swift",
+            "PhoneMainSections.swift",
+            "PhoneMainSupportingViews.swift",
             "PhoneMainView.swift",
             "PadMainView.swift",
             "PadMainSections.swift",
