@@ -18,6 +18,7 @@
 - [开发环境记录](environment.md)
 - [项目初始化规划](project-initialization.md)
 - [三端开发顺序方案](001-platform-development-sequence.md)
+- [CI 与分支协作 Runbook](002-ci-and-branch-workflow.md)
 - [MVP 开发路线规划](mvp-development-roadmap.md)
 
 不适合放入本目录：

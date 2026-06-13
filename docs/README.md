@@ -293,6 +293,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - [文档体系规范](_meta/documentation-system.md) 的第 2.7、2.8、4.3 节
 - [技术框架与开发路线参考](technical-framework-roadmap.md) 的第 2.8 节
 - [测试与验证入口规范](spec/009-testing-and-verification.md)
+- [CI 与分支协作 Runbook](development/002-ci-and-branch-workflow.md)
 - [测试文档目录](testing/README.md)
 - [发布文档目录](release/README.md)
 
@@ -304,6 +305,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - App Store 隐私标签。
 - TestFlight。
 - 手动测试和回归检查清单。
+- GitHub Actions CI 触发策略、分支协作流程、main 分支保护和 CI 失败日志获取。
 
 ### 5.7 开源参考、竞品和外部研究
 

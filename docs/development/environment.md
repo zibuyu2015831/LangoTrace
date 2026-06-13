@@ -87,6 +87,8 @@ iOS 26.5 (26.5 - 23F77) - com.apple.CoreSimulator.SimRuntime.iOS-26-5
 - GitHub CLI：2.92.0
 - SF Symbols：7.2，安装路径为 `/Applications/SF Symbols.app`
 
+GitHub CLI（`gh`）是本项目的**必备开发工具**，用于获取 CI 失败日志、触发 workflow 和管理 PR；首次使用需 `gh auth login` 完成认证。安装、认证和基于 `gh` 的 CI 失败日志获取流程见 [CI 与分支协作 Runbook](002-ci-and-branch-workflow.md)。
+
 ## 5. 代码签名
 
 当前代码签名证书状态：
