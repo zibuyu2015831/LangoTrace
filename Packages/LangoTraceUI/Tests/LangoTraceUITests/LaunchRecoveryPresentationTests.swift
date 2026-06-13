@@ -2,6 +2,7 @@ import Foundation
 @testable import LangoTraceUI
 import Testing
 
+@MainActor
 @Suite("Launch recovery presentation")
 struct LaunchRecoveryPresentationTests {
     private let requiredLanguages: Set<String> = ["en", "zh-Hans", "es", "ja", "fr", "de", "ko", "ru"]
