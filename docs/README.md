@@ -183,6 +183,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 15. 具体开发前应读取相关 `docs/spec/` 规范，避免导航、UI、SwiftUI 架构和 AI 请求路径发散。
 16. 新功能、bug 修复、架构调整、数据/AI/隐私/同步/权限/付费相关任务，实现前必须先创建 `docs/plans/active/YYYY-MM-DD-<type>-<short-topic>.md` 并经用户确认。
 17. 高风险实现或阶段性完成后必须检查文档影响。数据库、AI Provider、权限、同步、StoreKit、发布验证、ADR 冲突、首次启动闭环、语言空间闭环、本地记录闭环、验证脚本、XcodeGen、包边界或 App 启动结构变化，应按 [文档审查机制](review/README.md) 触发专项审查或在任务方案中说明跳过原因。
+18. `main` 是受保护的发布主干。**禁止本地直接 `git merge` / `git push` 到 `main`**；所有变更必须经 PR 且 `Build & Test` 跑绿后合并。需要合并时先把仓库临时设为 public，开 PR，用 `gh` 核对 `Build & Test` 通过，再 PR 合并（标准流程见 [CI 与分支协作 Runbook §3.1](development/002-ci-and-branch-workflow.md)）。仓库内置 `pre-push` 钩子会在本地拦截向 `main` 的直接推送；AI 遇到合并 `main` 的意图时应主动引导走该流程。
 
 ## 5. 按任务类型读取文档
 
