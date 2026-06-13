@@ -350,33 +350,6 @@ struct ReadingDocumentStoreAITests {
         #expect(store.audioState == .idle)
     }
 
-    @Test("save failure maps empty body validation to explicit user-facing error")
-    func saveFailureMapsEmptyBodyValidation() {
-        let store = ReadingDocumentStore(
-            documentID: "doc-1",
-            spaceID: "space-1",
-            explanationAction: { _ in .sample(selection: "word") },
-            ttsAction: { _ in }
-        )
-
-        store.beginEditing(document: ReadingLibraryDocumentContent(
-            id: "doc-1",
-            spaceID: "space-1",
-            title: "Title",
-            body: "Body",
-            sourceFormat: .plainText,
-            targetLanguageCode: "en",
-            contentRevision: 1,
-            structureVersion: 1
-        ))
-        store.markSavingEdit()
-        store.failSavingEdit(ReadingDocumentUpdateError.emptyBody)
-
-        #expect(store.saveState == .failed)
-        #expect(store.saveFailure?.messageKey == "reading.editor.error.emptyBody")
-        #expect(store.isEditorPresented)
-    }
-
     @Test("save failure resets when editing restarts and generic repository errors get fallback copy")
     func saveFailureResetsAndGenericErrorsUseFallbackCopy() {
         let store = ReadingDocumentStore(

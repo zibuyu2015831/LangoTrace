@@ -156,42 +156,15 @@ private extension TTSConfigurationProbeService {
                 decodedBody = response.body
             }
 
-            let validationContentType: String?
-            if isSuccess, let originalContentType = response.contentType, !originalContentType.lowercased().contains("audio") {
-                validationContentType = nil
-            } else {
-                validationContentType = response.contentType
-            }
-
-            let validation = await responseValidator.validate(
-                response: AIProviderProbeHTTPResponse(
-                    statusCode: response.statusCode,
-                    body: decodedBody,
-                    contentType: response.contentType
-                ),
-                declaredFormat: adapter.decodedAudioFormat(for: voiceProfile),
-                contentType: validationContentType
+            return await validatedProbeResult(
+                response: response,
+                decodedBody: decodedBody,
+                isSuccess: isSuccess,
+                adapter: adapter,
+                voiceProfile: voiceProfile,
+                startedAt: startedAt,
+                metadata: metadata
             )
-            switch validation.status {
-            case .succeeded:
-                return AIProviderProbeCapabilityResult(
-                    capability: .speechSynthesis,
-                    status: .succeeded,
-                    errorCategory: nil,
-                    durationMilliseconds: durationMilliseconds(since: startedAt),
-                    endpointMetadata: metadata,
-                    audioMetadata: validation.metadata,
-                    audioPreviewResource: validation.previewResource
-                )
-            case let .failed(category):
-                return AIProviderProbeCapabilityResult(
-                    capability: .speechSynthesis,
-                    status: .failed,
-                    errorCategory: category,
-                    durationMilliseconds: durationMilliseconds(since: startedAt),
-                    endpointMetadata: metadata
-                )
-            }
         } catch let error as AIProviderProbeHTTPClientError {
             if error == .cancelled {
                 return AIProviderProbeCapabilityResult(
@@ -214,6 +187,53 @@ private extension TTSConfigurationProbeService {
                 capability: .speechSynthesis,
                 status: .failed,
                 errorCategory: .invalidAudioResponse,
+                durationMilliseconds: durationMilliseconds(since: startedAt),
+                endpointMetadata: metadata
+            )
+        }
+    }
+
+    private func validatedProbeResult(
+        response: AIProviderProbeHTTPResponse,
+        decodedBody: Data,
+        isSuccess: Bool,
+        adapter: any TTSProviderAdapter,
+        voiceProfile: TTSVoiceProfile,
+        startedAt: Date,
+        metadata: AIProviderEndpointProbeMetadata
+    ) async -> AIProviderProbeCapabilityResult {
+        let validationContentType: String?
+        if isSuccess, let originalContentType = response.contentType, !originalContentType.lowercased().contains("audio") {
+            validationContentType = nil
+        } else {
+            validationContentType = response.contentType
+        }
+
+        let validation = await responseValidator.validate(
+            response: AIProviderProbeHTTPResponse(
+                statusCode: response.statusCode,
+                body: decodedBody,
+                contentType: response.contentType
+            ),
+            declaredFormat: adapter.decodedAudioFormat(for: voiceProfile),
+            contentType: validationContentType
+        )
+        switch validation.status {
+        case .succeeded:
+            return AIProviderProbeCapabilityResult(
+                capability: .speechSynthesis,
+                status: .succeeded,
+                errorCategory: nil,
+                durationMilliseconds: durationMilliseconds(since: startedAt),
+                endpointMetadata: metadata,
+                audioMetadata: validation.metadata,
+                audioPreviewResource: validation.previewResource
+            )
+        case let .failed(category):
+            return AIProviderProbeCapabilityResult(
+                capability: .speechSynthesis,
+                status: .failed,
+                errorCategory: category,
                 durationMilliseconds: durationMilliseconds(since: startedAt),
                 endpointMetadata: metadata
             )

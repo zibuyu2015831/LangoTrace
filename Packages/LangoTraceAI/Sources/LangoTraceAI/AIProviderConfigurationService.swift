@@ -924,6 +924,18 @@ private extension AIProviderConfigurationService {
             endpoints: endpoints,
             credentials: credentials
         )
+        let (ttsSettings, ttsVoiceProfiles) = try makeTTSConfiguration(from: input, endpoints: endpoints)
+        return MaterializedProfileSave(
+            profile: profile,
+            ttsSettings: ttsSettings,
+            ttsVoiceProfiles: ttsVoiceProfiles
+        )
+    }
+
+    private func makeTTSConfiguration(
+        from input: AIProviderProfileSaveInput,
+        endpoints: [AIProviderEndpointConfiguration]
+    ) throws -> (TTSProviderSettings?, [TTSVoiceProfile]) {
         let ttsEndpoint = endpoints.first { $0.purpose == input.ttsVoiceProfile?.endpointPurpose }
         let ttsSettings: TTSProviderSettings? = if let ttsVoiceProfile = input.ttsVoiceProfile, let ttsEndpoint {
             TTSProviderSettings(endpointID: ttsEndpoint.id, adapterKind: ttsVoiceProfile.adapterKind)
@@ -954,11 +966,7 @@ private extension AIProviderConfigurationService {
         } else {
             []
         }
-        return MaterializedProfileSave(
-            profile: profile,
-            ttsSettings: ttsSettings,
-            ttsVoiceProfiles: ttsVoiceProfiles
-        )
+        return (ttsSettings, ttsVoiceProfiles)
     }
 
     func endpointConfiguration(

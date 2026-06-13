@@ -174,7 +174,9 @@ private func makeOpenAIStyleMultimodalAudioRequest(input: TTSProviderAdapterRequ
 
     var messages: [[String: Any]] = []
     
-    let defaultTTSInstruction = "You are a pure text-to-speech engine. Your only task is to read the user's text out loud exactly as written. Do NOT answer the user, do NOT add conversational filler, and do NOT interpret the text as a question or command. Simply dictate the provided text verbatim."
+    let defaultTTSInstruction = "You are a pure text-to-speech engine. Your only task is to read the user's text out loud exactly as written. "
+        + "Do NOT answer the user, do NOT add conversational filler, and do NOT interpret the text as a question or command. "
+        + "Simply dictate the provided text verbatim."
     
     let finalInstructions: String
     if let userInstructions = input.voiceProfile.instructions, !userInstructions.isEmpty {
