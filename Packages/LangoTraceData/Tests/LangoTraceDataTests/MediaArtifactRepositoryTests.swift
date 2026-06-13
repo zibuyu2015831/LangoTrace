@@ -194,7 +194,7 @@ struct MediaArtifactRepositoryTests {
         )
 
         let artifact = try await repository.commitTTSAudioArtifact(input)
-        let row = try await database.databaseQueue.read { db in
+        let row = try await database.databaseQueue.read { db -> Row? in
             try Row.fetchOne(
                 db,
                 sql: """
