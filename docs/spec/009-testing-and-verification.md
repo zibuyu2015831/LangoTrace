@@ -41,6 +41,7 @@
 - 涉及 TTS Provider 配置、测试、试听或逐句播放前置的任务，必须同时运行 Core、Data、AI、Speech、UI 中受影响 package 的测试；Speech package 用于证明音频校验 / preview seam，不能用 AI package 的 HTTP 响应校验替代。
 - 涉及练习录音、回放、media artifact schema 或 `MediaArtifacts` 文件晋升路径的任务，必须覆盖 UI 状态机、Data repository / migration、App assembly seam 和真实模拟器或真机的 staging -> ready artifact 验证；同类故障优先按 `docs/testing/practice-recording-troubleshooting.md` 排查。
 - 涉及 iOS / iPadOS Keychain 的模拟器验证不得使用完全禁用 code signing 的构建产物。验证前应确认 iOS target 的 `CODE_SIGNING_ALLOWED` 不是 `NO`，并检查构建日志中有模拟器 entitlement 注入或本地签名步骤。
+- 在 `async` 测试函数里直接查库断言时，`databaseQueue.read`/`write` 的**单表达式闭包必须显式标注返回类型**，例如 `try await database.databaseQueue.read { db -> Row? in try Row.fetchOne(...) }`。GRDB 的 `read`/`write` 同时有同步与 `async` 重载，闭包省略返回类型且结果随后用可选链（`row?["col"]`）消费时，类型推断会把闭包返回值误判为 `()`，引发「`()` 没有下标」「表达式是 async 但未标 await」等编译错误，且本地无 Swift 工具链时只能靠 macOS CI 才能发现。同步测试函数里的同步 `read` 不受影响，不要盲目补 `await`。
 - 验证结果应写回任务方案、审查 round 或对应测试记录，不只留在聊天中。
 
 ## 5. AI 开发提示
@@ -60,4 +61,5 @@
 - 2026-05-23：补充 TTS Provider 配置测试验证门禁。原因：TTS 配置测试跨 Core 配置模型、Data voice profile、AI Provider 请求、Speech 音频校验和 UI 结果面板，不能只用 AI HTTP 响应测试代表音频可用性。影响范围：TTS Provider 配置、Speech package test target、逐句播放前置和后续媒体资产基础设施任务。是否需要 ADR：否，沿用 011 规范。
 - 2026-05-24：补充 Sync package 和 Python tooling 进入统一验证门禁。原因：项目级审查确认 Sync package 已进入工程依赖图但缺 test target，Python tooling tests 也未进入 `scripts/verify.sh`。影响范围：`scripts/verify.sh`、Sync package、工具脚本测试和后续同步开发。是否需要 ADR：否。
 - 2026-05-26：补充练习录音 media artifact 验证门禁。原因：单句练习录音回放故障确认，真实录音文件可能已经进入 staging，但旧库 schema、artifact commit 或 session reload 任一层失败都会让 `回放录音` 不可用；验证入口需要明确 schema / metadata / 文件晋升 / UI 状态同时覆盖。影响范围：Data migration、Speech recording seam、UI practice state、App assembly 和故障排查 runbook。是否需要 ADR：否。
+- 2026-06-13：补充 GRDB `async` 测试中 `read`/`write` 闭包须显式标注返回类型的规则。原因：MediaArtifact / AIProvider / Diagnostic 三个 Data 测试因 `read { db in fetchOne }` 闭包省略返回类型，被推断成 `()`，连续两轮 macOS CI 才修完；本机无 Swift 工具链，此类错误本地不可见，需沉淀为约定避免复发。影响范围：`Packages/LangoTraceData/Tests` 及后续所有直接查库断言的测试。是否需要 ADR：否。
 - 2026-06-13：登记 GitHub Actions CI 为 `scripts/verify.sh` 的远程镜像门禁。原因：`.github/workflows/ci.yml` 已进入仓库并在 push / PR 跑全套验证，但 spec 与 environment 文档此前未记录远程 CI，文档落后于工程事实；同时记录 CI 模拟器目标的自动回退策略，避免 runner 镜像设备轮换导致 destination 解析失败。影响范围：`.github/workflows/ci.yml`、`scripts/verify.sh`、`docs/development/environment.md`、合并前验证流程和后续模拟器基线调整。是否需要 ADR：否，沿用本规范的本地优先验证关系。

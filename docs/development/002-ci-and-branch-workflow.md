@@ -47,6 +47,8 @@ git commit -m "wip: 阶段性提交"          # push 后不触发
 gh workflow run ci.yml --ref dev         # 手动触发
 ```
 
+> 注意：`contains(head_commit.message, '[ci]')` 匹配**整条 commit message，含正文**（与 GitHub 原生 `[skip ci]` 行为一致），不是只看标题。讨论 CI 机制、在正文里写下 `[ci]` 字样的提交会被**意外触发**。若提交确实需要在正文提及该标记又不想触发，改写为 `[ ci ]`、`ci 标记` 等不含连续 `[ci]` 的措辞。
+
 ## 3. 分支协作流程
 
 功能性开发不直接 push 到 `dev`，而是走独立分支 + PR：
@@ -104,4 +106,5 @@ gh run view <run-id> --web            # 在浏览器打开该 run
 
 ## 8. 变更记录
 
+- 2026-06-13：补充 `[ci]` 触发匹配整条 commit message（含正文）的注意事项。原因：一次没有在标题写 `[ci]`、但正文讨论了 CI 机制并写下 `[ci]` 字样的修复提交被意外触发了远程 CI。影响范围：§2 触发策略；提醒后续提交避免在正文出现非预期的 `[ci]`。是否需要 ADR：否。
 - 2026-06-13：创建 CI 与分支协作 runbook。原因：`.github/workflows/ci.yml` 已进入仓库并调整为 `[ci]` 提交标记 + PR 强制触发，需要一份执行手册沉淀触发策略、分支协作流程、main 分支保护配置和基于 `gh` 的失败日志获取流程；同时把 `gh` 明确为开发要求。影响范围：`.github/workflows/ci.yml`、`docs/spec/009-testing-and-verification.md`、`docs/development/environment.md` 和后续合并前验证流程。是否需要 ADR：否，沿用 009 的本地优先验证关系。
