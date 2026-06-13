@@ -32,7 +32,9 @@
 - 文档任务至少运行入口文档列出的四个文档检查命令。
 - 涉及 Swift 工程状态的任务，收尾优先运行 `scripts/verify.sh`；无法运行时必须说明原因和剩余风险。
 - `scripts/verify.sh` 是 Swift 工程收尾门禁，至少覆盖 XcodeGen、Xcode project list、Core/Data/AI/Speech/Sync/UI package 测试、Python tooling tests、iPhone build、iPad build、macOS build、SwiftLint、SwiftFormat 和文档占位扫描。
-- `.github/workflows/ci.yml` 是 `scripts/verify.sh` 的远程镜像，在 push / PR 到 `main`、`dev` 时跑同一套 package 测试、三端构建、lint 和 `scripts/check-docs.sh`。本地 `scripts/verify.sh` 仍是开发收尾的权威门禁，远程 CI 是合并前的二次确认，不替代本地验证。CI 的 iOS 模拟器目标以本地基线（iPhone 17 / iPad Pro 13-inch (M5)）为优先，并在 runner 镜像缺失该设备时自动回退到最新同类模拟器或 generic SDK 构建；若调整本地基线设备，应同步检查 CI 解析逻辑。
+- `.github/workflows/ci.yml` 是 `scripts/verify.sh` 的远程镜像，跑同一套 package 测试、三端构建、lint 和 `scripts/check-docs.sh`。本地 `scripts/verify.sh` 仍是开发收尾的权威门禁，远程 CI 是合并前的二次确认，不替代本地验证。
+- CI 触发策略采用「push 显式选择 + PR 强制」：直接 push 到 `main`、`dev` 仅当 commit message 含 `[ci]` 时运行（避免每次推送都占用 macOS runner）；PR 到 `main`、`dev` 以及手动 `workflow_dispatch` 总是运行，以便分支保护可以把 `Build & Test` 设为合并前必过检查。功能开发应走独立分支，通过 PR 合并到 `dev`、再合并到 `main`。
+- CI 的 iOS 模拟器目标以本地基线（iPhone 17 / iPad Pro 13-inch (M5)）为优先，并在 runner 镜像缺失该设备时自动回退到最新同类模拟器或 generic SDK 构建；若调整本地基线设备，应同步检查 CI 解析逻辑。
 - 涉及 UI 的任务不能只靠编译通过；需要按 `docs/testing/README.md` 做三端页面、截图或手动验证。
 - 涉及隐私、权限、AI 请求、日志、导出或同步的任务必须检查敏感数据不会出现在日志、导出包或未经确认的外部请求中。
 - 涉及 AI Provider 保存、Keychain、诊断日志或请求边界的任务，必须至少运行 Core、Data、AI、UI 中受影响 package 的测试，并执行敏感字段扫描；收尾再运行 `scripts/verify.sh`。

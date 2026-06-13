@@ -5,6 +5,7 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,6 +15,12 @@ jobs:
   verify:
     name: Build & Test
     runs-on: macos-15
+    # Direct pushes run only when the commit message contains "[ci]";
+    # pull requests and manual workflow_dispatch always run (so branch
+    # protection can require this check on PRs).
+    if: >-
+      github.event_name != 'push' ||
+      contains(github.event.head_commit.message, '[ci]')
 
     steps:
       - name: Checkout
