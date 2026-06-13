@@ -16,6 +16,7 @@
 | `docs/architecture/` | 系统架构、模块边界、系统地图、数据流、故障恢复索引 | 架构说明 | 架构边界、模块关系、关键入口、异常路径或当前系统地图变化时更新 | 不记录逐步实施计划；不替代 ADR 或 spec |
 | `docs/architecture/notes/` | 架构级开发备忘录 | 设计输入和检查清单 | 当前任务为未来架构能力留下跨任务提醒、风险清单或候选模型时更新 | 不作为最终事实源；不替代 plan、spec、正式 architecture 或 ADR |
 | `docs/decisions/` | ADR 和不可轻易反转的取舍 | 决策权威 | 核心产品、架构、隐私、同步、付费等决策变化时新增或更新 | 不记录临时想法、implementation 文档或阶段执行细节 |
+| `docs/idea/` | 待议构想孵化区：处于讨论阶段、尚未拆成 active plan 的需求构想与跨任务架构设想 | 非决策构想 | 早期产品 / 架构构想经一到多轮讨论但尚未进入用户确认链路时写入；文件名用数字前缀标记建议实施顺序 | 不作为事实源、新会话入口或已确认实施方案；不替代 plan、spec、architecture、ADR；不放纯架构备忘录（归 `architecture/notes/`）或外部研究（归 `reference/research/`） |
 | `docs/development/` | 阶段级开发 runbook、初始化记录、开发环境记录、跨任务工程路线 | 开发参考 | 工程流程、阶段路线、开发环境或跨任务执行入口变化时更新 | 不替代单项需求、bug 或重构任务方案 |
 | `docs/plans/active/` | 进行中任务方案 | 执行中任务记录 | 新功能、bug、重构、文档治理等任务实现前创建 | 不存放已完成任务 |
 | `docs/plans/done/` | 已完成任务方案 | 历史任务记录 | 验证完成后从 active 移入 | 不作为当前实现事实直接引用 |
@@ -72,7 +73,7 @@ test ! -d docs/guidelines
 test ! -d docs/superpowers
 test ! -d docs/worklogs
 test ! -d research
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*' --glob '!**/idea/**'
 git diff --check
 git status --short
 ```

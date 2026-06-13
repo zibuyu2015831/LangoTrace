@@ -390,6 +390,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 - 大功能规格和长期规范：写入 `docs/spec/`；如果只是一次性任务执行方案，写入 `docs/plans/active/`。
 - 验证流程和手动测试：写入 `docs/testing/`。
 - App Store、TestFlight、StoreKit 和隐私标签：写入 `docs/release/`。
+- 处于讨论阶段、尚未拆成 active plan 的需求构想或跨任务架构设想：写入 [待议构想孵化区](idea/README.md)；构想成熟、经用户确认后按性质分流到 `docs/decisions/`、`docs/architecture/`、`docs/spec/` 或 `docs/plans/active/`，并归档原构想文件。
 - 外部参考、研究材料和未定结论：写入 `docs/reference/` 或 `docs/reference/research/`；结论被采纳后写回主参考、spec、architecture 或 ADR。
 - 文档审查机制、审查轮次索引、专项审查和里程碑全审：写入 `docs/review/`。
 
@@ -416,6 +417,8 @@ docs/
     environment.md
     project-initialization.md
     001-platform-development-sequence.md
+  idea/
+    README.md
   plans/
     README.md
     active/
@@ -448,6 +451,7 @@ docs/
 - `_meta/`：文档体系自身规则，记录目录职责、权威类型、写入规则和退出目录。
 - `archive/`：历史参考和已退出目录内容，不作为新任务入口。
 - `decisions/`：架构决策记录，采用 ADR 风格，记录重要取舍、背景、结论和复审条件；不维护 implementation 文档或阶段执行细节。
+- `idea/`：待议构想孵化区，存放处于讨论阶段、尚未拆成 active plan 的需求构想与跨任务架构设想；文件名用数字前缀标记建议实施顺序；不作为事实源、新会话入口或已确认实施方案，构想成熟后分流到 decisions / architecture / spec / plans 并归档原文件。
 - `plans/`：统一任务方案目录；一项需求、一个 bug 或一次文档治理只维护一份方案，按 active/done 管理生命周期。
 - `workflows/`：高频高风险开发动作手册，记录读文档、改文件、跑验证的顺序；不作为产品决策源、架构事实源或实现事实源。
 - `prompts/`：Prompt Registry，记录真实代码 Prompt 的英文版本、中文版本、输入变量、输出契约和隐私边界。
@@ -479,7 +483,7 @@ docs/
 ```bash
 find docs -maxdepth 3 -type f | sort
 scripts/check-docs.sh
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*' --glob '!**/idea/**'
 git diff --check
 git status --short
 ```

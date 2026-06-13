@@ -179,6 +179,18 @@ docs/plans/done/YYYY-MM-DD-<type>-<short-topic>.md
 
 低风险错别字、轻量文档修正或用户明确要求跳过记录的小任务，可以不创建任务方案，但最终答复应说明原因。
 
+### 2.6.1 待议构想孵化区
+
+位置：`docs/idea/`
+
+`docs/idea/` 存放处于讨论阶段、尚未拆成 active plan 的**需求构想与跨任务架构设想**。它是「想法」到「正式实施」之间的临时孵化区，给早期、经过一到多轮头脑风暴但尚未进入用户确认链路的产品 + 架构构想一个明确的家，避免它们散落在仓库根目录或被误当作事实源。
+
+- 文件名形如 `NN-english-kebab.md`，数字前缀标记**建议实施顺序**（不是创建顺序）；顺序随讨论调整时直接重命名并更新 `docs/idea/README.md`。
+- 本目录任何文件都**不是事实源**，不替代 `spec` / `decisions` / `architecture` / `plans` / 代码，也不是新会话入口。
+- 构想成熟、经用户确认后必须按性质分流：核心取舍 → `docs/decisions/`；模块边界 / 数据流 → `docs/architecture/`；开发一致性约束 → `docs/spec/`；实施步骤 → `docs/plans/active/`；分流后归档原构想文件。
+
+它与已有目录的边界：仅为某个未来架构能力留提醒、风险清单或候选模型，写 `docs/architecture/notes/`（更下游、更聚焦单点边界）；外部参考、竞品、许可证、spike 证据写 `docs/reference/research/`。`docs/idea/` 是更上游、偏「要不要做、做成什么」的 LangoTrace 自身整体构想，因此它是一个职责明确的孵化区，而非 3.3 节所反对的泛化 `docs/memos/` 收纳箱。
+
 ### 2.7 测试文档
 
 位置：`docs/testing/`
@@ -359,7 +371,7 @@ docs/review/
 
 若内容有参考价值，应先放入 `docs/reference/research/`，待形成结论后再同步到主参考文档、spec、architecture 或 ADR。
 
-若内容不是外部研究，而是当前开发过程产生的跨任务架构提醒，应放入对应领域的开发备忘录。当前架构级备忘录统一写入 `docs/architecture/notes/`；测试、发布、Prompt、参考研究等备忘性质内容应优先落入各自已有目录，而不是新增泛化的 `docs/memos/` 目录。
+若内容不是外部研究，而是当前开发过程产生的跨任务架构提醒，应放入对应领域的开发备忘录。当前架构级备忘录统一写入 `docs/architecture/notes/`；尚未拆成 active plan、偏「要不要做、做成什么」的产品 + 架构整体构想写入 `docs/idea/`（见 2.6.1）；测试、发布、Prompt、参考研究等备忘性质内容应优先落入各自已有目录，而不是新增泛化的 `docs/memos/` 目录。
 
 ### 3.3.1 主动创建开发备忘录的情况
 
@@ -528,5 +540,5 @@ git diff --check
 若涉及 Markdown 结构，可额外使用 ripgrep 检查未完成占位表达。
 
 ```bash
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*' --glob '!**/idea/**'
 ```

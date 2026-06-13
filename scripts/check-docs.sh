@@ -79,7 +79,7 @@ while IFS= read -r file; do
     || fail "review round README is missing required audit metadata: $file"
 done < <(find docs/review/rounds -mindepth 2 -maxdepth 2 -type f -name README.md | sort)
 
-if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'; then
+if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*' --glob '!**/idea/**'; then
   fail "documentation placeholder scan found entries"
 fi
 
