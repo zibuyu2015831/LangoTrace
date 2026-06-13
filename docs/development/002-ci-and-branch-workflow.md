@@ -10,6 +10,7 @@
 
 - `.github/workflows/ci.yml` 是 `scripts/verify.sh` 的**远程镜像门禁**，在 GitHub 托管的 `macos-15` runner 上跑同一套验证：6 个 Swift Package 测试 → `xcodegen generate` → iPhone / iPad / macOS 三端构建 + macOS app 测试 → Python tooling 测试（有 secret 才跑）→ SwiftLint / SwiftFormat → `scripts/check-docs.sh` → `git diff --check`。
 - 本地 `scripts/verify.sh` 仍是开发收尾的权威门禁；远程 CI 是合并前的二次确认，不替代本地验证。
+- job 配了 `timeout-minutes: 40`，作为测试或构建挂起的硬兜底，避免 macOS runner 跑满默认 360 分钟浪费额度。若正常全流程（含三端构建）逼近该上限，应排查是否有挂起而非直接调大。
 - runner 默认 Xcode 与本机（Xcode 26 / iOS 26.5）不一定同代。工程部署目标为 iOS 18.0 / macOS 15.0 / Swift 6.0，可在 Xcode 16.x runner 上编译；CI 的 iOS 模拟器目标以本地基线（iPhone 17 / iPad Pro 13-inch (M5)）为优先，runner 镜像缺失时自动回退到最新同类模拟器或 generic SDK 构建。调整本地基线设备时应同步检查 CI 解析逻辑。
 
 ## 2. 触发策略
@@ -96,6 +97,7 @@ gh run view <run-id> --web            # 在浏览器打开该 run
 - Python tooling 步骤在未配置 `OPENAI_COMPATIBLE_API_KEY` secret 时**自动跳过**，不会导致 CI 失败；不要把 CI 失败误判为缺 secret。
 - 模拟器 `destination` 解析失败时，优先检查 `Resolve iOS Simulator destinations` 步骤日志中的 `Resolved iPhone/iPad destination`。
 - SwiftLint / SwiftFormat 在 runner 上用 `brew` 装最新版，可能比本地新而报新规则；必要时在本地对齐版本复现。
+- 某步骤长时间无进展疑似挂起时，并行 `swift test` 的块缓冲会让日志难以定位卡点。临时把该步骤改为 `script -q /dev/null swift test … --no-parallel`（macOS 无 `stdbuf` / `timeout`，用 `script` 伪终端强制实时行输出 + 串行），重跑后日志最后一条 `started` 即挂起用例；定位修复后回滚该诊断改动。可配一个轮询脚本在预算内 `gh run cancel` 以省额度。
 
 ## 7. secret 配置（可选）
 
@@ -106,5 +108,6 @@ gh run view <run-id> --web            # 在浏览器打开该 run
 
 ## 8. 变更记录
 
+- 2026-06-13：补充 job `timeout-minutes: 40` 兜底，以及挂起步骤用 `script` 伪终端 + `--no-parallel` 串行定位的排查技巧。原因：首次跑通 UI 测试编译后，一个 continuation 竞态在并行模式下挂起 25 分钟才被人工取消，暴露出缺少超时兜底与卡点定位手段。影响范围：`.github/workflows/ci.yml`、§1、§6 排查提示。是否需要 ADR：否。
 - 2026-06-13：补充 `[ci]` 触发匹配整条 commit message（含正文）的注意事项。原因：一次没有在标题写 `[ci]`、但正文讨论了 CI 机制并写下 `[ci]` 字样的修复提交被意外触发了远程 CI。影响范围：§2 触发策略；提醒后续提交避免在正文出现非预期的 `[ci]`。是否需要 ADR：否。
 - 2026-06-13：创建 CI 与分支协作 runbook。原因：`.github/workflows/ci.yml` 已进入仓库并调整为 `[ci]` 提交标记 + PR 强制触发，需要一份执行手册沉淀触发策略、分支协作流程、main 分支保护配置和基于 `gh` 的失败日志获取流程；同时把 `gh` 明确为开发要求。影响范围：`.github/workflows/ci.yml`、`docs/spec/009-testing-and-verification.md`、`docs/development/environment.md` 和后续合并前验证流程。是否需要 ADR：否，沿用 009 的本地优先验证关系。
