@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build & Test
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        run: brew install xcodegen swiftlint swiftformat ripgrep
+
+      - name: Cache Swift package builds
+        uses: actions/cache@v4
+        with:
+          path: Packages/**/.build
+          key: ${{ runner.os }}-swift-${{ hashFiles('Packages/**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-
+
+      # ── Swift Package Tests ────────────────────────────────────────────────
+      - name: Test LangoTraceCore
+        run: swift test --package-path Packages/LangoTraceCore
+
+      - name: Test LangoTraceData
+        run: swift test --package-path Packages/LangoTraceData
+
+      - name: Test LangoTraceAI
+        run: swift test --package-path Packages/LangoTraceAI
+
+      - name: Test LangoTraceSpeech
+        run: swift test --package-path Packages/LangoTraceSpeech
+
+      - name: Test LangoTraceSync
+        run: swift test --package-path Packages/LangoTraceSync
+
+      - name: Test LangoTraceUI
+        run: swift test --package-path Packages/LangoTraceUI
+
+      # ── Xcode Project ─────────────────────────────────────────────────────
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: List schemes
+        run: xcodebuild -list -project LangoTrace.xcodeproj
+
+      # ── Xcode Builds ──────────────────────────────────────────────────────
+      - name: Build iOS — iPhone 17
+        run: |
+          xcodebuild \
+            -scheme LangoTrace-iOS \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 17' \
+            build
+
+      - name: Build iOS — iPad Pro 13-inch (M5)
+        run: |
+          xcodebuild \
+            -scheme LangoTrace-iOS \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPad Pro 13-inch (M5)' \
+            build
+
+      - name: Build macOS
+        run: |
+          xcodebuild \
+            -scheme LangoTrace-macOS \
+            -destination 'platform=macOS,arch=arm64' \
+            build
+
+      - name: Test macOS app
+        run: |
+          xcodebuild test \
+            -scheme LangoTrace-macOS \
+            -destination 'platform=macOS,arch=arm64' \
+            -only-testing:LangoTraceAppTests
+
+      # ── Python Tooling Tests ───────────────────────────────────────────────
+      # Requires OPENAI_COMPATIBLE_API_KEY secret configured in repo settings.
+      # Skipped automatically when secret is absent (e.g. fork PRs).
+      - name: Python tooling tests
+        if: ${{ env.OPENAI_COMPATIBLE_API_KEY != '' }}
+        env:
+          OPENAI_COMPATIBLE_API_KEY: ${{ secrets.OPENAI_COMPATIBLE_API_KEY }}
+        run: python3 -m unittest discover -s Tests/Tooling -p 'test_*.py'
+
+      # ── Lint ──────────────────────────────────────────────────────────────
+      - name: SwiftLint
+        run: swiftlint --no-cache
+
+      - name: SwiftFormat
+        run: |
+          swiftformat --lint . \
+            --exclude .build,build,DerivedData,LangoTrace.xcodeproj \
+            --cache ignore
+
+      # ── Docs & Sanity Checks ──────────────────────────────────────────────
+      - name: Check docs
+        run: scripts/check-docs.sh
+
+      - name: Check whitespace
+        run: git diff --check
