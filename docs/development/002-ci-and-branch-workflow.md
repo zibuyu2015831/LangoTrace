@@ -149,7 +149,7 @@ gh run view <run-id> --web            # 在浏览器打开该 run
 
 ## 8. 变更记录
 
-- 2026-06-13：新增 §3.1 合并到 `main` 的标准流程（禁止本地直接合并、临时 public、`gh` 核对 `Build & Test`、走 PR），并写入 AI 协作约定。原因：用户要求规范"不允许直接 merge 到 main、合并时提醒切 public 并用 gh 检查状态、经 PR 合并"。影响范围：§3.1、`docs/README.md` §1.4 第 9 条、`docs/spec/009`。是否需要 ADR：否。
+- 2026-06-13：新增 §3.1 合并到 `main` 的标准流程（禁止本地直接合并、临时 public、`gh` 核对 `Build & Test`、走 PR），并写入 AI 协作约定。原因：用户要求规范"不允许直接 merge 到 main、合并时提醒切 public 并用 gh 检查状态、经 PR 合并"。影响范围：§3.1、`docs/README.md` §1.4 第 9 条。是否需要 ADR：否。
 - 2026-06-13：扩写 §4，改用 Rulesets 步骤，并新增 §4.1 强制范围说明：「Require PR」禁止直接 push `main`、PR 总跑 CI；Free 私有仓库 ruleset 不强制、仅 public 时生效；约定只在 public 窗口期合并 `main`。原因：用户询问能否只走 PR、本地 merge 是否会绕过测试。影响范围：§4、§4.1。是否需要 ADR：否。
 - 2026-06-13：新增 §1.1 测试场所与仓库可见性策略。原因：本机为 MacBook Air（被动散热），明确重测试放 CI、本机只做轻量动作；并固定「仓库平时 private、跑 CI 前临时设 public（免费 macOS）、AI 触发前提醒切 public」的协作约定。影响范围：§1.1、`docs/spec/009`、`docs/development/environment.md`、`docs/README.md` §1.4。是否需要 ADR：否。
 - 2026-06-13：`actions/checkout` 升到 v5，并在 workflow 顶层加 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"`。原因：GitHub 将于 2026-06-16 强制 JS action 切到 Node 24，`checkout@v4` / `cache@v4` 在 Node 20 上持续告警；提前 opt-in 消除告警并在 Node 24 上预先验证。影响范围：`.github/workflows/ci.yml`。是否需要 ADR：否。
