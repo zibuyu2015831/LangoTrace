@@ -4,6 +4,7 @@ import LangoTraceData
 @testable import LangoTraceUI
 import Testing
 
+@MainActor
 @Suite("Practice route seed")
 struct PracticeRouteSeedTests {
     @Test("Route seed captures sentence identity and immutable sentence snapshot")
