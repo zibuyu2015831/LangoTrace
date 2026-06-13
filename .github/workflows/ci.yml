@@ -11,6 +11,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Opt every JavaScript action onto Node.js 24 ahead of GitHub forcing it on
+# 2026-06-16, so checkout/cache (and any other JS action) stop emitting the
+# Node 20 deprecation warning and are exercised on Node 24 early. Harmless
+# once Node 24 becomes the default.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   verify:
     name: Build & Test
@@ -27,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install tools
         run: brew install xcodegen swiftlint swiftformat ripgrep

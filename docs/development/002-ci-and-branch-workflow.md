@@ -108,6 +108,7 @@ gh run view <run-id> --web            # 在浏览器打开该 run
 
 ## 8. 变更记录
 
+- 2026-06-13：`actions/checkout` 升到 v5，并在 workflow 顶层加 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"`。原因：GitHub 将于 2026-06-16 强制 JS action 切到 Node 24，`checkout@v4` / `cache@v4` 在 Node 20 上持续告警；提前 opt-in 消除告警并在 Node 24 上预先验证。影响范围：`.github/workflows/ci.yml`。是否需要 ADR：否。
 - 2026-06-13：补充 job `timeout-minutes: 40` 兜底，以及挂起步骤用 `script` 伪终端 + `--no-parallel` 串行定位的排查技巧。原因：首次跑通 UI 测试编译后，一个 continuation 竞态在并行模式下挂起 25 分钟才被人工取消，暴露出缺少超时兜底与卡点定位手段。影响范围：`.github/workflows/ci.yml`、§1、§6 排查提示。是否需要 ADR：否。
 - 2026-06-13：补充 `[ci]` 触发匹配整条 commit message（含正文）的注意事项。原因：一次没有在标题写 `[ci]`、但正文讨论了 CI 机制并写下 `[ci]` 字样的修复提交被意外触发了远程 CI。影响范围：§2 触发策略；提醒后续提交避免在正文出现非预期的 `[ci]`。是否需要 ADR：否。
 - 2026-06-13：创建 CI 与分支协作 runbook。原因：`.github/workflows/ci.yml` 已进入仓库并调整为 `[ci]` 提交标记 + PR 强制触发，需要一份执行手册沉淀触发策略、分支协作流程、main 分支保护配置和基于 `gh` 的失败日志获取流程；同时把 `gh` 明确为开发要求。影响范围：`.github/workflows/ci.yml`、`docs/spec/009-testing-and-verification.md`、`docs/development/environment.md` 和后续合并前验证流程。是否需要 ADR：否，沿用 009 的本地优先验证关系。
