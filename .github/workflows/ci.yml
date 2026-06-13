@@ -54,7 +54,7 @@ jobs:
         run: swift test --package-path Packages/LangoTraceSync
 
       - name: Test LangoTraceUI
-        run: stdbuf -oL -eL timeout 420 swift test --package-path Packages/LangoTraceUI --no-parallel
+        run: swift test --package-path Packages/LangoTraceUI --no-parallel
 
       # ── Xcode Project ─────────────────────────────────────────────────────
       - name: Generate Xcode project
