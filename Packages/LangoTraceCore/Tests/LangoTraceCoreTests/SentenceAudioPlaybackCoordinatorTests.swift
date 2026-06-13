@@ -298,7 +298,7 @@ struct SentenceAudioPlaybackCoordinatorTests {
         let clamped = SentenceAudioPlaybackCoordinator.playbackDurationFallbackNanoseconds(
             forRemainingSeconds: .greatestFiniteMagnitude
         )
-        #expect(clamped == UInt64(86_400.0 * 1_000_000_000))
+        #expect(clamped == UInt64(86400.0 * 1_000_000_000))
         #expect(SentenceAudioPlaybackCoordinator.playbackDurationFallbackNanoseconds(forRemainingSeconds: -5) == 0)
     }
 

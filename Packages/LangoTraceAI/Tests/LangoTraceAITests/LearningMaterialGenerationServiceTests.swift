@@ -229,35 +229,35 @@ func learningMaterialGenerationServiceRejectsMissingAnalysisFields() async throw
 }
 
 @Test("Learning material generation service rejects invalid revision category instead of coercing")
-func learningMaterialGenerationServiceRejectsInvalidRevisionCategory() async throws {
+func learningMaterialGenerationServiceRejectsInvalidRevisionCategory() async {
     await expectGenerationRejects(
         generationJSON(inputKind: "targetWriting", revisionCategory: "vocabulary")
     )
 }
 
 @Test("Learning material generation service rejects invalid memory candidate kind instead of coercing")
-func learningMaterialGenerationServiceRejectsInvalidMemoryCandidateKind() async throws {
+func learningMaterialGenerationServiceRejectsInvalidMemoryCandidateKind() async {
     await expectGenerationRejects(
         generationJSON(inputKind: "nativeRecord", memoryKind: "vocabulary")
     )
 }
 
 @Test("Learning material generation service rejects invalid memory candidate difficulty instead of coercing")
-func learningMaterialGenerationServiceRejectsInvalidMemoryCandidateDifficulty() async throws {
+func learningMaterialGenerationServiceRejectsInvalidMemoryCandidateDifficulty() async {
     await expectGenerationRejects(
         generationJSON(inputKind: "nativeRecord", memoryDifficulty: "impossible")
     )
 }
 
 @Test("Learning material generation service rejects invalid practice candidate kind instead of coercing")
-func learningMaterialGenerationServiceRejectsInvalidPracticeCandidateKind() async throws {
+func learningMaterialGenerationServiceRejectsInvalidPracticeCandidateKind() async {
     await expectGenerationRejects(
         generationJSON(inputKind: "nativeRecord", practiceKind: "writing")
     )
 }
 
 @Test("Learning material generation service rejects prose wrapped around the JSON object")
-func learningMaterialGenerationServiceRejectsProseWrappedJSON() async throws {
+func learningMaterialGenerationServiceRejectsProseWrappedJSON() async {
     await expectGenerationRejects("""
     Sure! Here is the learning material you asked for:
     \(generationJSON(inputKind: "nativeRecord"))
@@ -266,7 +266,7 @@ func learningMaterialGenerationServiceRejectsProseWrappedJSON() async throws {
 }
 
 @Test("Learning material generation service rejects analyses above the documented array limits")
-func learningMaterialGenerationServiceRejectsOverLimitArrays() async throws {
+func learningMaterialGenerationServiceRejectsOverLimitArrays() async {
     await expectAnalysisRejects(analysisJSON(sentenceCount: 21))
     await expectAnalysisRejects(analysisJSON(memoryCandidateCount: 13))
     await expectAnalysisRejects(analysisJSON(practiceCandidateCount: 7))
@@ -290,7 +290,7 @@ func learningMaterialGenerationServiceAcceptsAnalysesAtArrayLimits() async throw
 }
 
 @Test("Learning material generation service maps provider HTTP status codes to failure categories")
-func learningMaterialGenerationServiceMapsProviderHTTPStatusCodes() async throws {
+func learningMaterialGenerationServiceMapsProviderHTTPStatusCodes() async {
     await expectGenerationHTTPStatus(401, mapsTo: .credentialMissing)
     await expectGenerationHTTPStatus(403, mapsTo: .credentialMissing)
     await expectGenerationHTTPStatus(404, mapsTo: .unsupportedModel)

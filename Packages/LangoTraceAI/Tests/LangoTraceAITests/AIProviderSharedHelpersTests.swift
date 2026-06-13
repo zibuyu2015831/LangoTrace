@@ -72,7 +72,7 @@ struct OpenAICompatibleResponseTextParserTests {
     }
 
     @Test("responses parser prefers the output_text convenience field")
-    func responsesParserPrefersOutputTextConvenienceField() throws {
+    func responsesParserPrefersOutputTextConvenienceField() {
         let object: [String: Any] = ["output_text": "convenience"]
         #expect(OpenAICompatibleResponseTextParser.responsesText(fromResponseObject: object) == "convenience")
     }

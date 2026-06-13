@@ -56,13 +56,13 @@ public struct SentenceTTSGenerationService: SentenceTTSGenerating {
             decodedBody = httpResponse.body
         }
 
-        let validationContentType: String?
-        if (200 ... 299).contains(httpResponse.statusCode),
-           let originalContentType = httpResponse.contentType,
-           !originalContentType.lowercased().contains("audio") {
-            validationContentType = nil
+        let validationContentType: String? = if (200 ... 299).contains(httpResponse.statusCode),
+                                                let originalContentType = httpResponse.contentType,
+                                                !originalContentType.lowercased().contains("audio")
+        {
+            nil
         } else {
-            validationContentType = httpResponse.contentType
+            httpResponse.contentType
         }
 
         let actualAudioFormat = adapter.decodedAudioFormat(for: request.playableConfiguration.voiceProfile)

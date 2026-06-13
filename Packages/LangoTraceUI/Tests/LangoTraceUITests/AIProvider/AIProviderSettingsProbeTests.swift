@@ -596,7 +596,7 @@ struct AIProviderSettingsProbeTests {
     }
 
     @Test("Complete TTS-only draft allows configuration probe")
-    func ttsOnlyDraftAllowsConfigurationProbe() throws {
+    func ttsOnlyDraftAllowsConfigurationProbe() {
         var draft = AIProviderDraftConfiguration(provider: .openAI)
         draft.text.textGenerationEnabled = false
         draft.speech.isEnabled = true

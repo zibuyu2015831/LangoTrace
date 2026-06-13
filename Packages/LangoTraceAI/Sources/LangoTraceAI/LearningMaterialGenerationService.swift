@@ -537,7 +537,7 @@ private extension LearningMaterialGenerationService {
         static let maximumRevisionNotes = 12
         static let maximumGrammarNotesPerSentence = 3
         static let maximumKeyPointsPerSentence = 3
-        static let maximumLearningTextLength = 12_000
+        static let maximumLearningTextLength = 12000
         static let maximumTitleLength = 80
         static let maximumPointLength = 160
         static let maximumNoteLength = 400

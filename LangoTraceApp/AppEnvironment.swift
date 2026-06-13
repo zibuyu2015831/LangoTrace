@@ -372,9 +372,9 @@ private func makeLearningContentRepository(
     }
 }
 
-// Bootstrap fallbacks must not fail silently. There is no dedicated bootstrap event name in
-// `DiagnosticEventName` yet, so storage-related fallbacks reuse the closest database failure
-// name with `.dataStorage` domain and a `bootstrap_*` failure phase attribute.
+/// Bootstrap fallbacks must not fail silently. There is no dedicated bootstrap event name in
+/// `DiagnosticEventName` yet, so storage-related fallbacks reuse the closest database failure
+/// name with `.dataStorage` domain and a `bootstrap_*` failure phase attribute.
 private func recordBootstrapComponentFailure(
     component: String,
     error: Error,
@@ -797,8 +797,8 @@ private func makeAIProviderConfigurationService(
     )
 }
 
-// Diagnostics are disabled by default (spec 008); console logging is only attached
-// when the user explicitly opts in through LANGOTRACE_DIAGNOSTICS=1.
+/// Diagnostics are disabled by default (spec 008); console logging is only attached
+/// when the user explicitly opts in through LANGOTRACE_DIAGNOSTICS=1.
 func makeDiagnosticLogger(
     databaseFactory: SharedAppDatabaseFactory,
     environment: [String: String] = ProcessInfo.processInfo.environment

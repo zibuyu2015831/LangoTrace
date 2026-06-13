@@ -384,7 +384,7 @@ private extension SentenceAudioPlaybackCoordinator {
 }
 
 extension SentenceAudioPlaybackCoordinator {
-    static let maxPlaybackDurationFallbackSeconds: TimeInterval = 86_400
+    static let maxPlaybackDurationFallbackSeconds: TimeInterval = 86400
 
     static func playbackDurationFallbackNanoseconds(forRemainingSeconds remaining: TimeInterval) -> UInt64 {
         let clamped = min(max(0, remaining), maxPlaybackDurationFallbackSeconds)

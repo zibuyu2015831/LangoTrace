@@ -147,7 +147,7 @@ func draftTTSProbeDecodesStreamedSSEAudioChunks() async throws {
                 statusCode: 200,
                 body: Data(ssePayload.utf8),
                 contentType: "text/event-stream"
-            )
+            ),
         ]
     )
     let audioValidation = AcceptingTTSAudioValidationService()
@@ -205,7 +205,7 @@ func draftTTSProbeUsesWAVFormatForMultimodalAdapterWhenVoiceProfileDeclaresMp3()
                 statusCode: 200,
                 body: Data(ssePayload.utf8),
                 contentType: "text/event-stream"
-            )
+            ),
         ]
     )
     let audioValidation = CapturingTTSAudioValidationService()
@@ -251,7 +251,6 @@ func draftTTSProbeUsesWAVFormatForMultimodalAdapterWhenVoiceProfileDeclaresMp3()
     let capturedFormat = await audioValidation.lastDeclaredFormat
     #expect(capturedFormat == .wav)
 }
-
 
 private actor CapturingTTSProbeHTTPClient: AIProviderProbeHTTPClient {
     private(set) var requests: [URLRequest] = []

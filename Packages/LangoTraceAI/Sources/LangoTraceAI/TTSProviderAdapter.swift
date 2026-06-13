@@ -37,12 +37,12 @@ public protocol TTSProviderAdapter: Sendable {
     func decodedAudioFormat(for voiceProfile: TTSVoiceProfile) -> TTSAudioFormat
 }
 
-extension TTSProviderAdapter {
-    public func decodeAudio(from responseBody: Data) throws -> Data {
+public extension TTSProviderAdapter {
+    func decodeAudio(from responseBody: Data) throws -> Data {
         responseBody
     }
 
-    public func decodedAudioFormat(for voiceProfile: TTSVoiceProfile) -> TTSAudioFormat {
+    func decodedAudioFormat(for voiceProfile: TTSVoiceProfile) -> TTSAudioFormat {
         voiceProfile.outputFormat
     }
 }
@@ -71,7 +71,8 @@ public struct OpenRouterMultimodalAudioSpeechAdapter: TTSProviderAdapter {
         var request = try makeOpenAIStyleMultimodalAudioRequest(input: input)
         // OpenRouter requires stream: true for audio output
         if let body = request.httpBody,
-           var json = try? JSONSerialization.jsonObject(with: body) as? [String: Any] {
+           var json = try? JSONSerialization.jsonObject(with: body) as? [String: Any]
+        {
             json["stream"] = true
             request.httpBody = try? JSONSerialization.data(withJSONObject: json, options: [.sortedKeys])
         }
@@ -173,16 +174,15 @@ private func makeOpenAIStyleMultimodalAudioRequest(input: TTSProviderAdapterRequ
     ]
 
     var messages: [[String: Any]] = []
-    
+
     let defaultTTSInstruction = "You are a pure text-to-speech engine. Your only task is to read the user's text out loud exactly as written. "
         + "Do NOT answer the user, do NOT add conversational filler, and do NOT interpret the text as a question or command. "
         + "Simply dictate the provided text verbatim."
-    
-    let finalInstructions: String
-    if let userInstructions = input.voiceProfile.instructions, !userInstructions.isEmpty {
-        finalInstructions = "\(defaultTTSInstruction)\n\nAdditional instructions: \(userInstructions)"
+
+    let finalInstructions: String = if let userInstructions = input.voiceProfile.instructions, !userInstructions.isEmpty {
+        "\(defaultTTSInstruction)\n\nAdditional instructions: \(userInstructions)"
     } else {
-        finalInstructions = defaultTTSInstruction
+        defaultTTSInstruction
     }
 
     messages.append([
@@ -230,7 +230,8 @@ private func decodeOpenAIStyleMultimodalAudioResponse(_ data: Data) throws -> Da
                   let delta = firstChoice["delta"] as? [String: Any],
                   let audio = delta["audio"] as? [String: Any],
                   let base64Data = audio["data"] as? String,
-                  let decoded = Data(base64Encoded: base64Data) else {
+                  let decoded = Data(base64Encoded: base64Data)
+            else {
                 continue
             }
             combinedAudioData.append(decoded)

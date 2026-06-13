@@ -122,10 +122,10 @@ private extension TTSAudioPlaybackService {
             playbackDelegate = nil
         }
 
-        // On iOS the default `.soloAmbient` session is muted by the silent switch, which makes
-        // user-triggered TTS playback appear broken. Activating a `.playback` spoken-audio session
-        // is idempotent and kept non-fatal: if activation fails, `player.play()` surfaces the
-        // failure through the existing engine error mapping.
+        /// On iOS the default `.soloAmbient` session is muted by the silent switch, which makes
+        /// user-triggered TTS playback appear broken. Activating a `.playback` spoken-audio session
+        /// is idempotent and kept non-fatal: if activation fails, `player.play()` surfaces the
+        /// failure through the existing engine error mapping.
         private func activatePlaybackAudioSessionIfAvailable() {
             #if os(iOS)
                 let session = AVAudioSession.sharedInstance()

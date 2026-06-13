@@ -90,6 +90,7 @@ private extension TTSConfigurationProbeService {
             )
         )
     }
+
     func probe(
         endpoint inputEndpoint: AIProviderEndpointInput,
         settings: TTSProviderSettings,
@@ -202,11 +203,10 @@ private extension TTSConfigurationProbeService {
         startedAt: Date,
         metadata: AIProviderEndpointProbeMetadata
     ) async -> AIProviderProbeCapabilityResult {
-        let validationContentType: String?
-        if isSuccess, let originalContentType = response.contentType, !originalContentType.lowercased().contains("audio") {
-            validationContentType = nil
+        let validationContentType: String? = if isSuccess, let originalContentType = response.contentType, !originalContentType.lowercased().contains("audio") {
+            nil
         } else {
-            validationContentType = response.contentType
+            response.contentType
         }
 
         let validation = await responseValidator.validate(

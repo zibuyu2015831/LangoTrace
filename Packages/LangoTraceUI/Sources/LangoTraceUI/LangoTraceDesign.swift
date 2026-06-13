@@ -327,6 +327,7 @@ enum LangoTraceDesign {
                     }
                 }
             }
+
         #elseif os(macOS)
             static func accentHighlight(lightAlpha: CGFloat, darkAlpha: CGFloat) -> NSColor {
                 NSColor(name: nil) { appearance in

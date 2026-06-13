@@ -156,3 +156,58 @@ xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' bui
 - [ ] `swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore`
 - [ ] 三端构建（iOS iPhone / iPad / macOS）
 - [ ] 第 4 节人工验证项（需真机/模拟器手动操作）
+
+---
+
+### 2026-06-13 分批冷却执行计划（MacBook Air 热保护方案）
+
+设备：MacBook Air 24GB（被动散热），批次间强制休息以避免持续降频。
+第 4 节人工验证不阻塞主线，可在自动化完成后增量完成。
+
+#### Batch 1 — 中等负载（预计 10–15 分钟）
+
+```bash
+swift test --package-path Packages/LangoTraceUI
+swiftlint --no-cache
+swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore
+```
+
+> 完成后休息 **15 分钟**，等机器降温后执行 Batch 2。
+
+#### Batch 2 — 重负载（预计 10–15 分钟）
+
+```bash
+xcodebuild test -scheme LangoTrace-macOS \
+  -destination 'platform=macOS,arch=arm64' \
+  -only-testing:LangoTraceAppTests
+```
+
+> 完成后休息 **20 分钟**，等机器充分降温后执行 Batch 3。
+
+#### Batch 3a — 重负载 iPhone 构建（预计 10 分钟）
+
+```bash
+xcodebuild -scheme LangoTrace-iOS \
+  -destination 'platform=iOS Simulator,name=iPhone 17' build
+```
+
+> 完成后休息 **15 分钟**。
+
+#### Batch 3b — 重负载 iPad 构建（预计 5–8 分钟，有缓存）
+
+```bash
+xcodebuild -scheme LangoTrace-iOS \
+  -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
+```
+
+> 完成后休息 **15 分钟**。
+
+#### Batch 3c — 重负载 macOS 构建（预计 5–8 分钟，有缓存）
+
+```bash
+xcodebuild -scheme LangoTrace-macOS \
+  -destination 'platform=macOS,arch=arm64' build
+```
+
+> 全部自动化通过后，更新本文件结果记录，将母方案移入 `docs/plans/done/`。
+> 第 4 节人工验证项在真机/模拟器上增量完成，不再阻塞主线推进。
