@@ -57,7 +57,7 @@ jobs:
         run: swift test --package-path Packages/LangoTraceSync
 
       - name: Test LangoTraceUI
-        run: script -q /dev/null swift test --package-path Packages/LangoTraceUI --no-parallel
+        run: swift test --package-path Packages/LangoTraceUI
 
       # ── Xcode Project ─────────────────────────────────────────────────────
       - name: Generate Xcode project

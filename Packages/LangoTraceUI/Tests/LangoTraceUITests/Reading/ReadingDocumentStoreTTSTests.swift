@@ -16,6 +16,7 @@ struct ReadingDocumentStoreTTSTests {
         )
 
         store.playSentence(sentenceID: "s1", text: "First")
+        await tts.waitForRequestCount(1)
         store.replaceDocument(documentID: "doc-2", spaceID: "space-1")
         await tts.complete()
         await Task.yield()

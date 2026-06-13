@@ -343,18 +343,29 @@ private extension ReadingSelectionExplanationResult {
 private actor ControlledCacheExplanationAction {
     private(set) var requests: [ReadingExplanationRequest] = []
     private var continuation: CheckedContinuation<ReadingSelectionExplanationResult, Error>?
+    private var pendingResult: Result<ReadingSelectionExplanationResult, Error>?
 
     func explain(_ request: ReadingExplanationRequest) async throws -> ReadingSelectionExplanationResult {
         requests.append(request)
+        // Race-safe: if complete() already arrived (store launches explain on a
+        // detached task, so the test may complete before this registers), return
+        // the buffered result instead of suspending forever.
+        if let pendingResult {
+            self.pendingResult = nil
+            return try pendingResult.get()
+        }
         return try await withCheckedThrowingContinuation { cont in
             self.continuation = cont
         }
     }
 
     func complete(_ result: Result<ReadingSelectionExplanationResult, Error>) {
-        guard let cont = continuation else { return }
-        continuation = nil
-        cont.resume(with: result)
+        if let cont = continuation {
+            continuation = nil
+            cont.resume(with: result)
+        } else {
+            pendingResult = result
+        }
     }
 
     func requestCount() -> Int {
