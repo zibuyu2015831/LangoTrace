@@ -36,7 +36,7 @@ func diagnosticEventRepositoryRecordsAndLoadsRecentAllowlistedEvents() async thr
     #expect(recent.first?.attributes.contains(.operationID(operationID)) == true)
     #expect(recent.first?.attributes.contains(.languageSupportFailureReason("sample_too_short")) == true)
 
-    let storedRow = try database.databaseQueue.read { db in
+    let storedRow = try await database.databaseQueue.read { db -> Row? in
         try Row.fetchOne(db, sql: "SELECT * FROM diagnostic_events WHERE id = ?", arguments: ["event-1"])
     }
     #expect(storedRow?["operation_id"] as String? == "operation-1")

@@ -54,7 +54,7 @@ func aiProviderRepositoryUpdatesCredentialPresenceAndRecordsValidationEvents() a
         )
     )
 
-    let storedEvent = try database.databaseQueue.read { db in
+    let storedEvent = try await database.databaseQueue.read { db -> Row? in
         try Row.fetchOne(db, sql: "SELECT * FROM ai_provider_validation_events WHERE id = ?", arguments: ["event-1"])
     }
     #expect(storedEvent?["error_category"] as String? == "missing_credential")
@@ -87,7 +87,7 @@ func aiProviderRepositoryRecordsSyntheticValidationOutcomeAndUpdatesProfileSumma
     #expect(loaded?.lastValidatedAt == Date(timeIntervalSince1970: 180))
     #expect(loaded?.lastValidationStatus == .failed)
 
-    let storedEvent = try database.databaseQueue.read { db in
+    let storedEvent = try await database.databaseQueue.read { db -> Row? in
         try Row.fetchOne(db, sql: "SELECT * FROM ai_provider_validation_events WHERE id = ?", arguments: ["event-synthetic-1"])
     }
     #expect(storedEvent?["event_type"] as String? == "synthetic_test")
@@ -128,7 +128,7 @@ func aiProviderRepositoryRecordsEndpointScopedValidationWithoutChangingProfileSu
     #expect(embeddingEndpoint?.lastValidationErrorCategory == nil)
     #expect(embeddingEndpoint?.lastSuccessfulConfigurationFingerprint == "embedding-fingerprint-1")
 
-    let storedEvent = try database.databaseQueue.read { db in
+    let storedEvent = try await database.databaseQueue.read { db -> Row? in
         try Row.fetchOne(db, sql: "SELECT * FROM ai_provider_validation_events WHERE id = ?", arguments: ["event-embedding-1"])
     }
     #expect(storedEvent?["endpoint_id"] as String? == "endpoint-embedding")
@@ -188,7 +188,7 @@ func aiProviderRepositorySavesTTSSettingsInSameProfileTransaction() async throws
         ttsVoiceProfiles: [voice]
     )
 
-    let stored = try database.databaseQueue.read { db in
+    let stored = try await database.databaseQueue.read { db -> Row? in
         try Row.fetchOne(
             db,
             sql: """
