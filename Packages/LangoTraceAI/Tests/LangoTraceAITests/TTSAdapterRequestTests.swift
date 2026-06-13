@@ -257,7 +257,8 @@ func ttsResponseValidatorForwardsAudioMetadataBoundaryToCoreValidationService() 
         contentType: "text/plain"
     )
 
-    let call = try await #require(audioValidation.lastCall)
+    let lastCall = await audioValidation.lastCall
+    let call = try #require(lastCall)
     #expect(result.status == .failed(.invalidAudioResponse))
     #expect(call.data == Data([0x49, 0x44, 0x33]))
     #expect(call.declaredFormat == .mp3)

@@ -23,7 +23,8 @@ struct SentenceTTSGenerationServiceTests {
 
         let result = try await service.generateSpeech(request)
 
-        let sentRequest = try await #require(httpClient.lastRequest)
+        let lastRequest = await httpClient.lastRequest
+        let sentRequest = try #require(lastRequest)
         #expect(sentRequest.value(forHTTPHeaderField: "Authorization") == "Bearer sk-short-lived")
         #expect(sentRequest.url?.absoluteString == "https://api.openai.com/v1/audio/speech")
         #expect(sentRequest.timeoutInterval == 30)

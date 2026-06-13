@@ -114,7 +114,8 @@ struct LearningContentStoreTests {
             languageSpace: languageSpace
         )
 
-        let request = try await #require(recorder.requests.first)
+        let recordedRequests = await recorder.requests
+        let request = try #require(recordedRequests.first)
         #expect(request.languageSpaceID == "space-1")
         #expect(request.sentenceIndex == 0)
         #expect(request.targetText == sentence.targetText)
