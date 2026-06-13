@@ -76,6 +76,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 6. 验证策略：日常开发优先采用**轻量验证**。如果开发了某个 Package（如 UI 或 Data），仅验证对应的 Package 测试（如 `swift test --package-path Packages/LangoTraceUI`）。
 7. 全量验证约束：`scripts/verify.sh` 涉及全量编译和多模拟器构建，极度消耗性能且可能导致环境超时。**除非用户明确要求跑全量验证，或者涉及跨模块重构、CI 合并前，否则不要主动运行该脚本。**
 8. 测试场所与仓库可见性：本机为 MacBook Air（被动散热），**重测试（全量验证、三端构建、跨多包测试）一律放 GitHub Actions，本机只做轻量单包测试或 `swiftformat`/`swiftlint` 自查**。仓库平时可保持 private，**需要跑 CI 前临时设为 public**（public 的 Actions 免费无上限，private 的 macOS 额度紧）；AI 在触发 CI 前应主动提醒用户切到 public，跑完可设回 private。细节见 [CI 与分支协作 Runbook §1.1](development/002-ci-and-branch-workflow.md)。
+9. 合并到 `main` 的纪律：**原则上禁止本地直接 `git merge` / `git push` 到 `main`，所有变更必须经 PR + `Build & Test` 绿勾合并**。当用户要合并到 `main`（或出现本地直接合并意图）时，AI 应主动提醒：先把仓库临时设为 public → 开 PR → 用 `gh` 核对 `Build & Test` 通过 → 走 PR 合并。标准流程见 [CI 与分支协作 Runbook §3.1](development/002-ci-and-branch-workflow.md)。
 
 ## 2. 项目当前状态
 

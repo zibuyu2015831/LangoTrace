@@ -70,6 +70,26 @@ gh workflow run ci.yml --ref dev         # 手动触发
 4. 阶段稳定后开 PR 从 `dev` 合并到 `main`：同样总是触发 CI；`main` 配了分支保护时必须 CI 通过才能合并。
 5. 直接 push 到 `dev`（如文档微调、紧急修复）时，按需在 commit message 加 `[ci]` 决定是否跑远程验证。
 
+### 3.1 合并到 `main` 的标准流程（强制走 PR，禁止本地直接合并）
+
+> 项目里 `main` 即发布主干（用户口中的 master）。**原则上不允许直接 `git merge` 分支到 `main` 再 `git push origin main`**；`main` 的任何变更必须经 PR 且 `Build & Test` 跑绿后合并。
+
+当你准备把 `dev`（或功能分支）合并到 `main` 时，按以下顺序：
+
+1. 确认改动已 push 到 `dev`/功能分支，本地轻量验证已过。
+2. **临时把仓库设为 public**：`Settings → 页面底部 Danger Zone → Change repository visibility → Make public`。理由：Free 私有仓库 ruleset 不生效（§4.1），且 public 时 macOS CI 免费。
+3. 开 PR：`gh pr create --base main --head dev --title "…" --body "…"`（或网页）。PR 事件**总是触发 CI**。
+4. **用 `gh` 跟踪 CI 状态直到 `Build & Test` 通过**，不要凭感觉合并：
+   ```bash
+   gh pr checks <PR号> --watch              # 跟踪该 PR 的检查
+   gh run list --branch dev --limit 3       # 或查最近 run
+   gh run watch <run-id> --exit-status
+   ```
+5. CI 绿后再合并 PR：`gh pr merge <PR号> --merge`（或网页 Merge）。保护生效时，检查未过无法合并。
+6. （可选）合并完成后把仓库设回 private。
+
+**AI 协作约定（必须遵守）**：当用户表达要把分支合并到 `main`，或出现"本地直接 merge / push `main`"的意图时，AI 应主动：① 提醒不要本地直接合并；② 提醒先把仓库临时设为 public；③ 用 `gh` 核对 `Build & Test` 已通过；④ 引导走 PR 合并。
+
 ## 4. main 分支保护配置（GitHub 网页端）
 
 推荐用新版 **Rulesets**：`Settings → Rules → Rulesets → New branch ruleset`。
@@ -129,6 +149,7 @@ gh run view <run-id> --web            # 在浏览器打开该 run
 
 ## 8. 变更记录
 
+- 2026-06-13：新增 §3.1 合并到 `main` 的标准流程（禁止本地直接合并、临时 public、`gh` 核对 `Build & Test`、走 PR），并写入 AI 协作约定。原因：用户要求规范"不允许直接 merge 到 main、合并时提醒切 public 并用 gh 检查状态、经 PR 合并"。影响范围：§3.1、`docs/README.md` §1.4 第 9 条、`docs/spec/009`。是否需要 ADR：否。
 - 2026-06-13：扩写 §4，改用 Rulesets 步骤，并新增 §4.1 强制范围说明：「Require PR」禁止直接 push `main`、PR 总跑 CI；Free 私有仓库 ruleset 不强制、仅 public 时生效；约定只在 public 窗口期合并 `main`。原因：用户询问能否只走 PR、本地 merge 是否会绕过测试。影响范围：§4、§4.1。是否需要 ADR：否。
 - 2026-06-13：新增 §1.1 测试场所与仓库可见性策略。原因：本机为 MacBook Air（被动散热），明确重测试放 CI、本机只做轻量动作；并固定「仓库平时 private、跑 CI 前临时设 public（免费 macOS）、AI 触发前提醒切 public」的协作约定。影响范围：§1.1、`docs/spec/009`、`docs/development/environment.md`、`docs/README.md` §1.4。是否需要 ADR：否。
 - 2026-06-13：`actions/checkout` 升到 v5，并在 workflow 顶层加 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"`。原因：GitHub 将于 2026-06-16 强制 JS action 切到 Node 24，`checkout@v4` / `cache@v4` 在 Node 20 上持续告警；提前 opt-in 消除告警并在 Node 24 上预先验证。影响范围：`.github/workflows/ci.yml`。是否需要 ADR：否。
