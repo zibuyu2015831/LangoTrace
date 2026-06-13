@@ -56,19 +56,58 @@ jobs:
       - name: List schemes
         run: xcodebuild -list -project LangoTrace.xcodeproj
 
+      # ── Resolve simulator destinations ────────────────────────────────────
+      # Runner images rotate available simulators, so a hard-coded device name
+      # can fail to resolve. Prefer the local baseline (iPhone 17 / iPad Pro
+      # 13-inch (M5)); if absent, auto-pick the newest available same-class
+      # simulator; if still none, fall back to a generic SDK build.
+      - name: Resolve iOS Simulator destinations
+        id: sims
+        run: |
+          set -uo pipefail
+          avail="$(xcrun simctl list devices available)"
+
+          pick() {
+            # $1 = preferred exact device name, $2 = fallback name pattern (ERE)
+            local preferred="$1" pattern="$2" found=""
+            if printf '%s\n' "$avail" | grep -qF "$preferred ("; then
+              found="$preferred"
+            else
+              found="$(printf '%s\n' "$avail" \
+                | sed -E 's/ \([0-9A-Fa-f-]{36}\) \([^)]*\)$//' \
+                | sed -E 's/^[[:space:]]+//' \
+                | grep -E "$pattern" \
+                | sort -V \
+                | tail -1)"
+            fi
+            if [ -n "$found" ]; then
+              printf 'platform=iOS Simulator,OS=latest,name=%s' "$found"
+            else
+              printf 'generic/platform=iOS Simulator'
+            fi
+          }
+
+          iphone="$(pick 'iPhone 17' '^iPhone [0-9]+$')"
+          ipad="$(pick 'iPad Pro 13-inch (M5)' '^iPad Pro 13-inch')"
+
+          echo "iphone=$iphone" >> "$GITHUB_OUTPUT"
+          echo "ipad=$ipad" >> "$GITHUB_OUTPUT"
+          echo "Resolved iPhone destination: $iphone"
+          echo "Resolved iPad destination:   $ipad"
+
       # ── Xcode Builds ──────────────────────────────────────────────────────
-      - name: Build iOS — iPhone 17
+      - name: Build iOS — iPhone
         run: |
           xcodebuild \
             -scheme LangoTrace-iOS \
-            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 17' \
+            -destination '${{ steps.sims.outputs.iphone }}' \
             build
 
-      - name: Build iOS — iPad Pro 13-inch (M5)
+      - name: Build iOS — iPad
         run: |
           xcodebuild \
             -scheme LangoTrace-iOS \
-            -destination 'platform=iOS Simulator,OS=latest,name=iPad Pro 13-inch (M5)' \
+            -destination '${{ steps.sims.outputs.ipad }}' \
             build
 
       - name: Build macOS

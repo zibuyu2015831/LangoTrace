@@ -110,7 +110,7 @@ iOS 26.5 (26.5 - 23F77) - com.apple.CoreSimulator.SimRuntime.iOS-26-5
 - App 入口位于 `LangoTraceApp/`，当前通过 `AppEnvironment` 装配 empty / disabled 边界实现。
 - 当前已有 Welcome / Onboarding / Main 启动状态、内存语言空间 preview、三端 SwiftUI 产品骨架、隐私状态图标和 iPad 面板手势 helper。
 - `Packages/LangoTraceCore` 和 `Packages/LangoTraceUI` 已有首批 Testing 测试。
-- `scripts/verify.sh` 是当前统一验证入口。
+- `scripts/verify.sh` 是当前统一验证入口；`.github/workflows/ci.yml` 是它的远程镜像，在 push / PR 到 `main`、`dev` 时跑同一套 package 测试、三端构建、lint 和文档检查，详见 `docs/spec/009-testing-and-verification.md`。
 - 仓库已有初始提交：`7ce34b7 Initial LangoTrace product docs and prototype`。
 - 本地 `.vscode/` 设置目录存在，但仍是未跟踪文件，不属于已提交的项目基线。
 

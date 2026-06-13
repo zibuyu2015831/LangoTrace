@@ -32,6 +32,7 @@
 - 文档任务至少运行入口文档列出的四个文档检查命令。
 - 涉及 Swift 工程状态的任务，收尾优先运行 `scripts/verify.sh`；无法运行时必须说明原因和剩余风险。
 - `scripts/verify.sh` 是 Swift 工程收尾门禁，至少覆盖 XcodeGen、Xcode project list、Core/Data/AI/Speech/Sync/UI package 测试、Python tooling tests、iPhone build、iPad build、macOS build、SwiftLint、SwiftFormat 和文档占位扫描。
+- `.github/workflows/ci.yml` 是 `scripts/verify.sh` 的远程镜像，在 push / PR 到 `main`、`dev` 时跑同一套 package 测试、三端构建、lint 和 `scripts/check-docs.sh`。本地 `scripts/verify.sh` 仍是开发收尾的权威门禁，远程 CI 是合并前的二次确认，不替代本地验证。CI 的 iOS 模拟器目标以本地基线（iPhone 17 / iPad Pro 13-inch (M5)）为优先，并在 runner 镜像缺失该设备时自动回退到最新同类模拟器或 generic SDK 构建；若调整本地基线设备，应同步检查 CI 解析逻辑。
 - 涉及 UI 的任务不能只靠编译通过；需要按 `docs/testing/README.md` 做三端页面、截图或手动验证。
 - 涉及隐私、权限、AI 请求、日志、导出或同步的任务必须检查敏感数据不会出现在日志、导出包或未经确认的外部请求中。
 - 涉及 AI Provider 保存、Keychain、诊断日志或请求边界的任务，必须至少运行 Core、Data、AI、UI 中受影响 package 的测试，并执行敏感字段扫描；收尾再运行 `scripts/verify.sh`。
@@ -57,3 +58,4 @@
 - 2026-05-23：补充 TTS Provider 配置测试验证门禁。原因：TTS 配置测试跨 Core 配置模型、Data voice profile、AI Provider 请求、Speech 音频校验和 UI 结果面板，不能只用 AI HTTP 响应测试代表音频可用性。影响范围：TTS Provider 配置、Speech package test target、逐句播放前置和后续媒体资产基础设施任务。是否需要 ADR：否，沿用 011 规范。
 - 2026-05-24：补充 Sync package 和 Python tooling 进入统一验证门禁。原因：项目级审查确认 Sync package 已进入工程依赖图但缺 test target，Python tooling tests 也未进入 `scripts/verify.sh`。影响范围：`scripts/verify.sh`、Sync package、工具脚本测试和后续同步开发。是否需要 ADR：否。
 - 2026-05-26：补充练习录音 media artifact 验证门禁。原因：单句练习录音回放故障确认，真实录音文件可能已经进入 staging，但旧库 schema、artifact commit 或 session reload 任一层失败都会让 `回放录音` 不可用；验证入口需要明确 schema / metadata / 文件晋升 / UI 状态同时覆盖。影响范围：Data migration、Speech recording seam、UI practice state、App assembly 和故障排查 runbook。是否需要 ADR：否。
+- 2026-06-13：登记 GitHub Actions CI 为 `scripts/verify.sh` 的远程镜像门禁。原因：`.github/workflows/ci.yml` 已进入仓库并在 push / PR 跑全套验证，但 spec 与 environment 文档此前未记录远程 CI，文档落后于工程事实；同时记录 CI 模拟器目标的自动回退策略，避免 runner 镜像设备轮换导致 destination 解析失败。影响范围：`.github/workflows/ci.yml`、`scripts/verify.sh`、`docs/development/environment.md`、合并前验证流程和后续模拟器基线调整。是否需要 ADR：否，沿用本规范的本地优先验证关系。
