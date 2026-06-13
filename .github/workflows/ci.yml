@@ -15,6 +15,9 @@ jobs:
   verify:
     name: Build & Test
     runs-on: macos-15
+    # Hard backstop so a hung test/build fails fast instead of burning the
+    # macOS runner's default 360-minute budget.
+    timeout-minutes: 40
     # Direct pushes run only when the commit message contains "[ci]";
     # pull requests and manual workflow_dispatch always run (so branch
     # protection can require this check on PRs).
@@ -54,7 +57,7 @@ jobs:
         run: swift test --package-path Packages/LangoTraceSync
 
       - name: Test LangoTraceUI
-        run: swift test --package-path Packages/LangoTraceUI --no-parallel
+        run: script -q /dev/null swift test --package-path Packages/LangoTraceUI --no-parallel
 
       # ── Xcode Project ─────────────────────────────────────────────────────
       - name: Generate Xcode project
