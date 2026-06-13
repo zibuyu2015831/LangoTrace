@@ -72,13 +72,24 @@ gh workflow run ci.yml --ref dev         # 手动触发
 
 ## 4. main 分支保护配置（GitHub 网页端）
 
-`Settings → Branches → Add branch ruleset`（或旧版 Branch protection rule）：
+推荐用新版 **Rulesets**：`Settings → Rules → Rulesets → New branch ruleset`。
 
-1. 目标分支填 `main`。
-2. 勾选 **Require a pull request before merging**。
-3. 勾选 **Require status checks to pass before merging**，在搜索框选中 **`Build & Test`**（即 workflow `jobs.verify.name`）。
-   - 该 check 名只有在 CI **至少成功跑过一次**后才会出现在候选列表里。先手动 *Run workflow* 触发一次，或先开一个 PR 让 `Build & Test` 跑通，再回来勾选。
-4. 保存。
+1. **Ruleset Name** 填 `main-protection`；**Enforcement status** 选 **Active**；**Bypass list 留空**（对仓库 admin / 本人也强制，避免自己绕过）。
+2. **Target branches → Add target → Include by pattern**，填 `main`。
+3. 勾选 **Require a pull request before merging**；单人开发把 **Required approvals 设为 0**（否则无人能批准你自己的 PR，会卡住无法合并）。
+4. 勾选 **Require status checks to pass** → **Add checks** → 搜索并选中 **`Build & Test`**（即 workflow `jobs.verify.name`）。
+   - 该 check 名只有在 CI **至少成功跑过一次**后才会出现在候选列表里；现已满足。
+5. 建议一并勾 **Block force pushes**、**Restrict deletions**。
+6. **Create**。
+
+（旧版入口 `Settings → Branches → Add branch protection rule` 等价，搜索框选 `Build & Test` 即可。）
+
+### 4.1 强制范围与「只能走 PR / 会不会被本地 merge 绕过」
+
+- **「Require a pull request before merging」= 禁止直接 push 到 `main`**。规则强制时，本地 `git merge` 后 `git push origin main` 会被拒绝；必须开 PR、`Build & Test` 跑绿、（Bypass list 为空时）连本人也不能绕过，才能在网页合并。PR 事件**总是触发 CI**（不受 `[ci]` 门控），所以合并前一定跑过测试。
+- **只保护了 `main`**：`dev` 不设保护，可自由 push / 合并（dev 是集成分支）；测试门禁落在 `dev → main` 的 PR 上。直接 push 到 `dev` 时仍按 §2 用 `[ci]` 决定是否跑远程验证。
+- **Free 计划 + 私有仓库：ruleset 不强制**（新建 ruleset 页面顶部黄色横幅会提示，私有仓库需 GitHub Team 才强制）。即**仅当仓库为 public 时保护才真正生效**；私有期间规则休眠，此时**可以**直接 push `main`、绕过测试。
+- **结论与约定**：本保护与「平时 private、跑 CI / 合并前才临时 public」（见 §1.1）契合——**只在 public 窗口期合并 `main`**，那时保护生效、本地 merge 无法绕过；私有期间不要直接推 `main`（靠纪律，或保持只在 public 时动 `main`）。若想私有期间也硬强制，需升级 GitHub Team（当前阶段不必）。
 
 ## 5. gh 作为开发要求
 
@@ -118,6 +129,7 @@ gh run view <run-id> --web            # 在浏览器打开该 run
 
 ## 8. 变更记录
 
+- 2026-06-13：扩写 §4，改用 Rulesets 步骤，并新增 §4.1 强制范围说明：「Require PR」禁止直接 push `main`、PR 总跑 CI；Free 私有仓库 ruleset 不强制、仅 public 时生效；约定只在 public 窗口期合并 `main`。原因：用户询问能否只走 PR、本地 merge 是否会绕过测试。影响范围：§4、§4.1。是否需要 ADR：否。
 - 2026-06-13：新增 §1.1 测试场所与仓库可见性策略。原因：本机为 MacBook Air（被动散热），明确重测试放 CI、本机只做轻量动作；并固定「仓库平时 private、跑 CI 前临时设 public（免费 macOS）、AI 触发前提醒切 public」的协作约定。影响范围：§1.1、`docs/spec/009`、`docs/development/environment.md`、`docs/README.md` §1.4。是否需要 ADR：否。
 - 2026-06-13：`actions/checkout` 升到 v5，并在 workflow 顶层加 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"`。原因：GitHub 将于 2026-06-16 强制 JS action 切到 Node 24，`checkout@v4` / `cache@v4` 在 Node 20 上持续告警；提前 opt-in 消除告警并在 Node 24 上预先验证。影响范围：`.github/workflows/ci.yml`。是否需要 ADR：否。
 - 2026-06-13：补充 job `timeout-minutes: 40` 兜底，以及挂起步骤用 `script` 伪终端 + `--no-parallel` 串行定位的排查技巧。原因：首次跑通 UI 测试编译后，一个 continuation 竞态在并行模式下挂起 25 分钟才被人工取消，暴露出缺少超时兜底与卡点定位手段。影响范围：`.github/workflows/ci.yml`、§1、§6 排查提示。是否需要 ADR：否。
