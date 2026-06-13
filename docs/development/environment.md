@@ -11,6 +11,7 @@
 - 系统构建号：25E253
 - 架构：Apple Silicon，arm64
 - 仓库路径：`/Users/zibuyu/code/zibuyu/LangoTrace`
+- 设备为 MacBook Air（被动散热），长时间编译易发烫/超时：**重测试（全量验证、三端构建、跨多包测试）放 GitHub Actions，本机只做轻量单包测试与 `swiftformat`/`swiftlint` 自查**。详见 [CI 与分支协作 Runbook §1.1](002-ci-and-branch-workflow.md) 与 [009 测试与验证入口规范](../spec/009-testing-and-verification.md)。
 
 ## 2. Apple 开发工具链
 

@@ -13,6 +13,16 @@
 - job 配了 `timeout-minutes: 40`，作为测试或构建挂起的硬兜底，避免 macOS runner 跑满默认 360 分钟浪费额度。若正常全流程（含三端构建）逼近该上限，应排查是否有挂起而非直接调大。
 - runner 默认 Xcode 与本机（Xcode 26 / iOS 26.5）不一定同代。工程部署目标为 iOS 18.0 / macOS 15.0 / Swift 6.0，可在 Xcode 16.x runner 上编译；CI 的 iOS 模拟器目标以本地基线（iPhone 17 / iPad Pro 13-inch (M5)）为优先，runner 镜像缺失时自动回退到最新同类模拟器或 generic SDK 构建。调整本地基线设备时应同步检查 CI 解析逻辑。
 
+### 1.1 测试场所与仓库可见性策略（重要）
+
+本机开发设备是 **MacBook Air M4**（被动散热，长时间编译会发烫、可能超时），因此测试分工固定为：
+
+- **重测试一律放 GitHub Actions**：全量验证（`scripts/verify.sh` 等价流程）、三端 `xcodebuild` 构建、跨多个 Swift Package 的测试、长时间运行的套件，都在 macOS runner 上跑，不在本机跑。
+- **本机只做轻量动作**：单个改动包的 `swift test --package-path Packages/<X>`、`swiftformat .` / `swiftlint --no-cache` 自查、文档检查。不要在 MacBook Air 上跑全量 `verify.sh` 或三端构建。
+- **仓库可见性与免费额度**：**public 仓库的 Actions 在标准 runner（含 macOS）上免费、分钟数无上限**；**private 仓库**免费额度 2000 分钟/月，且 **macOS 计费倍率 10×（约合 200 macOS 分钟/月）**。因此约定：仓库平时可保持 private，**需要跑 CI 前临时设为 public**，跑完可再设回 private。
+  - 切换位置：`Settings → 页面底部 Danger Zone → Change repository visibility`。public→private、private→public 均可随时反复切换。
+- **AI 协作约定**：当某次改动需要 CI 验证（重测试 / 三端构建 / 合并前）时，AI 在触发 CI 前应**主动提醒用户先把仓库临时设为 public**；验证通过后提示可设回 private。
+
 ## 2. 触发策略
 
 采用「push 显式选择 + PR 强制」：
@@ -108,6 +118,7 @@ gh run view <run-id> --web            # 在浏览器打开该 run
 
 ## 8. 变更记录
 
+- 2026-06-13：新增 §1.1 测试场所与仓库可见性策略。原因：本机为 MacBook Air（被动散热），明确重测试放 CI、本机只做轻量动作；并固定「仓库平时 private、跑 CI 前临时设 public（免费 macOS）、AI 触发前提醒切 public」的协作约定。影响范围：§1.1、`docs/spec/009`、`docs/development/environment.md`、`docs/README.md` §1.4。是否需要 ADR：否。
 - 2026-06-13：`actions/checkout` 升到 v5，并在 workflow 顶层加 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"`。原因：GitHub 将于 2026-06-16 强制 JS action 切到 Node 24，`checkout@v4` / `cache@v4` 在 Node 20 上持续告警；提前 opt-in 消除告警并在 Node 24 上预先验证。影响范围：`.github/workflows/ci.yml`。是否需要 ADR：否。
 - 2026-06-13：补充 job `timeout-minutes: 40` 兜底，以及挂起步骤用 `script` 伪终端 + `--no-parallel` 串行定位的排查技巧。原因：首次跑通 UI 测试编译后，一个 continuation 竞态在并行模式下挂起 25 分钟才被人工取消，暴露出缺少超时兜底与卡点定位手段。影响范围：`.github/workflows/ci.yml`、§1、§6 排查提示。是否需要 ADR：否。
 - 2026-06-13：补充 `[ci]` 触发匹配整条 commit message（含正文）的注意事项。原因：一次没有在标题写 `[ci]`、但正文讨论了 CI 机制并写下 `[ci]` 字样的修复提交被意外触发了远程 CI。影响范围：§2 触发策略；提醒后续提交避免在正文出现非预期的 `[ci]`。是否需要 ADR：否。
