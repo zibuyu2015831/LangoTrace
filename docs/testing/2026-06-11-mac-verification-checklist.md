@@ -1,6 +1,6 @@
 # 2026-06-11 Mac 待验证清单
 
-状态：Open
+状态：Closed
 创建日期：2026-06-11
 来源：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`（全量代码审查修复，commits `71bfc01`…`a2b1be3`）；2026-06-11 追加 `fix/ai-provider-language-support` 分支合并（multimodal TTS adapter、TTS-only probe、probe 诊断事件）相关验证项。
 
@@ -211,3 +211,39 @@ xcodebuild -scheme LangoTrace-macOS \
 
 > 全部自动化通过后，更新本文件结果记录，将母方案移入 `docs/plans/done/`。
 > 第 4 节人工验证项在真机/模拟器上增量完成，不再阻塞主线推进。
+
+---
+
+### 2026-06-15 验证收口
+
+**自动化验证结果（以 CI 为远程门禁，收口时 HEAD `7f5e7cb`）**：
+
+| 项目 | 结果 | 说明 |
+| --- | --- | --- |
+| xcodegen generate + xcodebuild -list | ✅ | 2026-06-12 本地验证 |
+| swift test LangoTraceCore | ✅ | 2026-06-12 本地验证（151 tests） |
+| swift test LangoTraceData | ✅ | 并发捕获修复后 CI 确认 |
+| swift test LangoTraceAI | ✅ | TTSConfigurationProbeService init 修复后 CI 确认 |
+| swift test LangoTraceSpeech | ✅ | 2026-06-12 本地验证（24 tests） |
+| swift test LangoTraceSync | ✅ | 2026-06-12 本地验证（1 test） |
+| swift test LangoTraceUI | ✅ | PhoneMainModels 引用修复 + @MainActor 隔离修复后 CI 确认 |
+| xcodebuild test macOS（LangoTraceAppTests） | ✅ | @MainActor 修复后 CI 确认 |
+| swiftlint --no-cache | ✅ | 6 处 error 级超限修复（`483bfe9`）后 CI 确认 |
+| swiftformat --lint | ✅ | 全仓格式化（`83f4ef1`），CI 确认绿色（`bd3f3a0`） |
+| iOS iPhone 构建 | ✅ | CI 确认；模拟器目标回退策略已就位（`d50b2bc`） |
+| iOS iPad 构建 | ✅ | CI 确认 |
+| macOS 构建 | ✅ | CI 确认 |
+
+**验证期间追加的修复（超出原始清单范围）**：
+
+- `f6e243e`：AVAudioSession `.allowBluetooth` 编译适配（新 SDK `.allowBluetoothHFP` API 变更）
+- `9d81330`：Reading 解释缓存测试 continuation 竞态修复（UI 测试挂起根因）
+- `2487712` / `a0f4819` / `8bb89cc` 等：多处测试 `@MainActor` actor 隔离缺失修复
+- `483bfe9`：6 处 SwiftLint error 级体量超限修复（函数/类型行数）
+- `83f4ef1`：swiftformat 全仓历史格式漂移清零
+
+**第 4 节人工验证（34 项）**：用户已按清单完成验证（2026-06-15）。该节在 2026-06-13 计划中已明确为非阻塞主线的增量验证项。
+
+**代码快照（收口时 HEAD）**：`7f5e7cb`
+
+**结论**：全部自动化门禁通过，人工验证已完成，本清单关闭（`状态：Closed`）。母方案已移入 `docs/plans/done/`。

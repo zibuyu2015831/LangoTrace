@@ -2,7 +2,7 @@
 
 状态：Accepted
 创建日期：2026-05-25
-最后更新日期：2026-05-25
+最后更新日期：2026-06-15
 
 本文档是 `docs/review/` 下的轻量趋势记录，吸收 VMark `house-cleaning/ledger.md` 的 append-only 思路。它不替代 review round、active plan、ADR、spec 或 architecture 文档。
 
@@ -21,4 +21,5 @@
 
 | 日期 | Commit | Trigger | Metrics | Verdict | Notes |
 | --- | --- | --- | --- | --- | --- |
+| 2026-06-15 | `7f5e7cb` | 全量代码审查修复系列（15 个 Draft plan + chore 方案）Mac 验证门关闭 | active plans（非 idea）: 15；chore 方案状态：Done → 移入 done/；Mac 验证清单：Closed；SwiftLint error 级超限：0；SwiftFormat 漂移：0；CI 状态：全绿 | 验证门已关闭，15 个 Draft plan 可按顺序实施；idea 孵化区 3 份构想（01/02/03）后续按推荐顺序转 active plan | 代码快照 `7f5e7cb`；验证期追加 5 类修复（AVAudioSession API、continuation 竞态、@MainActor 隔离、SwiftLint 体量超限、swiftformat 漂移）；详情见 `docs/testing/2026-06-11-mac-verification-checklist.md §6` |
 | 2026-05-25 | `36f45a074cb6b2f2abb33e0110853b9714060d0b` | 参考 VMark dev-docs 优化 docs 体系 baseline | active plans: 1；active plans older than 7 days: 0；Deferred / Superseded / Invalidated review rows: 0；placeholder scan hits: 0；tracked `.DS_Store`: 0 | 已建立 baseline | 本记录只作为趋势起点；本次实施由 `docs/plans/done/2026-05-25-docs-vmark-docs-system-optimization.md` 完成收口。 |
