@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 记录详情（生成中）— 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .text-card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-card);
+    padding: 12px 16px 16px;
+  }
+  .text-card .tools {
+    display: flex; align-items: center; gap: 4px; margin-bottom: 6px;
+  }
+  .text-card .tools .card-kicker { flex: 1; }
+  .text-card .tools .icon-btn { width: 40px; height: 40px; color: var(--muted); }
+  .text-card .body {
+    font-size: var(--fs-body); line-height: 1.65; color: var(--ink);
+  }
+  /* 生成中卡片：垂直居中的 loader 区块 */
+  .generating-card { padding: 12px 16px 16px; }
+  .generating-card .card-kicker { display: block; margin-bottom: 0; }
+  .gen-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    padding: 32px 16px;
+  }
+  .gen-block .gen-ring { color: var(--accent); }
+  .gen-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .gen-sub {
+    font-size: var(--fs-footnote);
+    color: var(--muted);
+  }
+  .gen-sub .num { font-variant-numeric: tabular-nums; }
+  .gen-cancel { margin-top: 4px; min-height: 44px; }
+  .gen-footnote {
+    margin: 0 2px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>记录详情（生成中）</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">记录详情页的「正在生成学习材料」加载态静态冻结：用户显式触发生成后，正文卡区域显示生成进度与「取消」动作；母语原文在生成期间保持可见，不自动发送任何额外内容。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <button class="nav-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+            记录
+          </button>
+          <div class="nav-title">公司楼下的咖啡车</div>
+          <span style="width:56px"></span>
+        </div>
+
+        <div class="app-main">
+          <div class="app-scroll" style="padding-top:6px">
+
+            <div class="text-card">
+              <div class="tools">
+                <span class="card-kicker">中文记录</span>
+                <button class="icon-btn" aria-label="编辑原文">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+                </button>
+              </div>
+              <p class="body">楼下新来了一辆咖啡车，老板说每天只来三个小时。排队的时候闻到现磨豆子的味道，突然觉得周四也没那么难熬。</p>
+            </div>
+
+            <div class="text-card generating-card">
+              <span class="card-kicker accent">English 表达</span>
+              <div class="gen-block">
+                <svg class="gen-ring" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="9" opacity="0.25"/>
+                  <path d="M12 3a9 9 0 0 1 9 9"/>
+                </svg>
+                <p class="gen-title">正在生成学习材料…</p>
+                <p class="gen-sub">分析 <span class="num">3</span> 个句子 · 已用时 <span class="num">4</span> 秒</p>
+                <button class="btn btn-outline gen-cancel">取消</button>
+              </div>
+            </div>
+
+            <p class="gen-footnote">正在发送给你配置的 AI Provider（OpenAI）· 仅本次生成</p>
+
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>静态冻结</strong>：本页是「正在生成学习材料」加载态的静态截图，loader ring 不做动画（静态原型不引入 JS / 动画）；真实运行时 ring 会旋转，并实时更新句子数与已用时。</li>
+      <li><strong>显式触发</strong>：该加载态只在用户主动点「生成学习材料」或「重新分析」后出现，对应已落地的生成 / 重新分析 action seam；页面展示、滚动或进入详情不会自动触发生成。</li>
+      <li><strong>「取消」语义</strong>：「取消」终止由 store 启动的当前生成 / 分析任务，并保持取消态（不丢弃已有材料、不静默重试），与真实 generate / 重新分析 取消行为一致；按钮 ≥ 44pt 触控。</li>
+      <li><strong>原文保持可见</strong>：生成期间「中文记录」卡片继续展示源文本，用户可对照确认正在被分析的内容，不被加载态遮挡。</li>
+      <li><strong>隐私边界</strong>：底部 footnote 披露本次会把这段文字发送给用户配置的 AI Provider（OpenAI），「仅本次生成」——除这次显式生成外不自动发送任何额外内容。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
