@@ -11,10 +11,47 @@ func languageSpaceInputNormalizesDisplayNamesWithoutOverFolding() throws {
         displayName: "  Cafe\u{301}   SPACE  "
     )
 
-    let normalized = try input.normalized()
+    let normalized = try input.validated()
 
     #expect(normalized.displayName == "Cafe\u{301}   SPACE")
     #expect(normalized.displayNameNormalized == "café space")
+}
+
+@Test("Persistence validation rejects unknown language codes instead of coercing")
+func languageSpaceValidationRejectsUnknownCodes() {
+    let unknownTarget = CreateLanguageSpaceInput(
+        nativeLanguageCode: "zh-Hans",
+        targetLanguageCode: "missing-target",
+        level: .b1,
+        displayName: "Space"
+    )
+    #expect(throws: LanguageSpaceError.invalidInput) {
+        try unknownTarget.validated()
+    }
+
+    let unknownNative = CreateLanguageSpaceInput(
+        nativeLanguageCode: "missing-native",
+        targetLanguageCode: "en",
+        level: .b1,
+        displayName: "Space"
+    )
+    #expect(throws: LanguageSpaceError.invalidInput) {
+        try unknownNative.validated()
+    }
+}
+
+@Test("Draft normalization falls back to defaults for unknown codes without throwing")
+func languageSpaceDraftNormalizationFallsBackForUnknownCodes() {
+    let draft = CreateLanguageSpaceInput(
+        nativeLanguageCode: "missing-native",
+        targetLanguageCode: "missing-target",
+        level: .c1,
+        displayName: ""
+    ).normalizedDraft()
+
+    #expect(draft.nativeLanguageCode == "zh-Hans")
+    #expect(draft.targetLanguageCode == "en")
+    #expect(draft.level == .c1)
 }
 
 @Test("Language space normalization keeps CJK and fullwidth distinctions")
@@ -24,19 +61,19 @@ func languageSpaceNormalizationKeepsCJKAndFullwidthDistinctions() throws {
         targetLanguageCode: "ja",
         level: .a2,
         displayName: " 汉语 "
-    ).normalized()
+    ).validated()
     let traditional = try CreateLanguageSpaceInput(
         nativeLanguageCode: "zh-Hans",
         targetLanguageCode: "ja",
         level: .a2,
         displayName: " 漢語 "
-    ).normalized()
+    ).validated()
     let fullwidth = try CreateLanguageSpaceInput(
         nativeLanguageCode: "zh-Hans",
         targetLanguageCode: "ja",
         level: .a2,
         displayName: " ＡＢＣ "
-    ).normalized()
+    ).validated()
 
     #expect(simplified.displayNameNormalized == "汉语")
     #expect(traditional.displayNameNormalized == "漢語")

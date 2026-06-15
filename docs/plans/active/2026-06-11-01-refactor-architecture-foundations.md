@@ -389,6 +389,14 @@ git diff --check
   - 测试：新建 Core `LearningMaterialGenerationFailureCategoryTests.swift`（首失败用例 `rateLimitedCaseExists`）；更新 AI `LearningMaterialGenerationServiceTests`（401/403→认证失败、429→限流）与 `ReadingSelectionExplanationServiceTests`（HTTP 状态码精确映射 + 新增 `serviceDistinguishesTimeoutFromTransportFailures`）。
   - 本机结构性检查：`grep -rn "keychainWriteFailed" Packages/LangoTraceAI/Sources` 仅余 save / keychain 写入路径。`swift test` 待 Mac/CI。
 
+- **Phase 3 部分实现（Core 契约收紧，分批 commit）**：
+  - **3a 死代码与不变量收紧（commit 8f422b5，已推 dev）**：删除 `kind(inferredFrom:)`、`InterfaceLanguagePreference.applying(to:)`、`SentenceAudioPlaybackTransition.generationSucceeded`（含 reduce 分支）、重复 `LanguageSpacePreview` init；`TTSVoiceProfile.configurationFingerprint` 与 `ReadingDictionaryEntry.normalizedHeadword` 改 `private(set)`（后者 init 内经统一 `normalize` 从 headword 计算、与 `exactLookup` 共用）；`ReadingLibrarySearchQuery.normalized` 改 `let`；`PhoneRootTab` 显式 `Sendable`；`AIProviderCustomHeaderConfiguration` 补公开 init。
+  - **3b StableHashing 收敛（commit 417a199，已推 dev）**：新增 Core 公开 `StableHashing`（`sha256Hex` String/Data + `fnv1a64Hex`，逐字节兼容旧实现），收敛 7 处 `sha256Hex` + 1 处 FNV-1a，删除随之失效的 `CryptoKit` import。
+  - **剩余项处置（实现前复核后调整）**：
+    - **协议默认实现移除（§12 Phase 3 第 6 条后半）：判定为本机不实施、转 Mac/CI 实施。** 复核结论：真实 conformer `GRDBAIProviderConfigurationRepository` 已显式实现全部 6 个方法，生产路径不存在「静默丢 TTS / 返回 nil」风险；移除默认实现只会强制多个**测试 mock** 补显式 stub，而该项的全部价值就是「让漏实现编译期暴露」——恰恰依赖本机不具备的编译器反馈。盲改多个结构不清的 mock 风险大于收益，故收集到待验证文档，在 Mac/CI 上借编译错误逐个补齐。
+    - **3c CreateLanguageSpaceInput.normalized() 拆分 + 时钟注入（本批，已推 dev）**：`CreateLanguageSpaceInput.normalized()` 拆为非抛错 `normalizedDraft()`（UI 草稿/onboarding 预览，未知 code 静默回退默认）与 `validated()`（持久化，未知 native/target code 抛 `LanguageSpaceError.invalidInput`；valid 含 native==target 碰撞仍由草稿归一化 swap 处理）；`UpdateLanguageSpaceInput.normalized()` 同步改 `validated()`。持久化调用点（`GRDBLanguageSpaceRepository` create/update、`AppSessionStateTests` mock）改走 `validated()`，happy-path 测试改 `validated()` 并新增「未知 code 抛错」「draft 回退」用例。`PracticeSessionReducer.reduce` 增默认参 `now: () -> Date`、`SentenceAudioPlaybackCoordinator` 增默认参 `now: @Sendable () -> Date`（含 createdAt / 播放时长 / fallback 三处 Date()），默认值保持既有调用方等价，新增 reducer 注入时钟用例。范围决策：用户确认「先做中等项，大项留 Mac/CI」，故仅 3c 在本机落地。
+    - **RedactedSecret（§12 Phase 3 第 1 条，80+ 连锁点跨 Core/AI/Speech/UI/App）、Reading 范围整数偏移（第 4 条，markdown 解析 + UI 渲染重做）：体量大且强编译敏感，盲改易积累难定位错误。** 需用户决策实施节奏（见下方会话记录）。
+
 ## 19. 完成标准
 
 1. 第 12 节 5 个 Phase 全部实施，DoD 结构性检查全部通过。

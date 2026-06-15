@@ -49,4 +49,29 @@
 
 ---
 
+### Phase 3：Core 契约收紧（分批落地）
+
+落点：`Packages/LangoTraceCore`、`Packages/LangoTraceData`、`Packages/LangoTraceUI`、`LangoTraceApp`。
+
+**已实施并推 dev 的子批：**
+
+- 3a 死代码与不变量（commit 8f422b5）、3b StableHashing（commit 417a199）、3c normalized 拆分 + 时钟注入（本批）。
+- ⬜ Core 全包回归：`swift test --package-path Packages/LangoTraceCore`（重点：`LanguageSpaceTests` 新增的 `validated()` 抛错 / `normalizedDraft()` 回退用例、`PracticeSessionReducerTests` 注入时钟用例、`ReadingDictionaryLookupTests`、`SentenceAudioPlaybackCoordinatorTests` 的 `StableHashing` 调用、`InterfaceLanguagePreferenceTests` / `LearningMaterialGenerationTests` 删测后仍绿）。
+- ⬜ Data 全包回归：`swift test --package-path Packages/LangoTraceData`（`GRDBLanguageSpaceRepository` 改走 `validated()`、`GRDBReadingLibraryRepository` / `LocalMediaArtifactFileStore` 改走 `StableHashing`、Data 测试私有哈希助手移除）。
+- ⬜ UI 全包回归：`swift test --package-path Packages/LangoTraceUI`（`ReadingDocumentStore+Selection`、`PracticeRouting` 改走 `StableHashing`，`AIProviderDraftConfiguration` 新增枚举 case 的 switch arm 已在 Phase 2 处理）。
+- ⬜ App 测试：`xcodebuild test ... -only-testing:LangoTraceAppTests`（`AppSessionStateTests` mock 改走 `validated()`）。
+- ✅ 结构性自查（本机）：`func sha256Hex`/`func fnv1a64Hex` 仅存于 `StableHashing.swift`；`CreateLanguageSpaceInput`/`UpdateLanguageSpaceInput.normalized()` 调用点归零（剩余 `.normalized()` 均为 `OnboardingDraft` / `AIProviderEndpointInput` / 凭证 input，无关本项）；删除符号 `kind(inferredFrom`/`applying(to`/`generationSucceeded` 全仓归零。
+
+**转 Mac/CI 实施（本机 Linux 无编译器、强编译敏感，盲改风险大于收益）：**
+
+- ⬜ **协议默认实现移除**（`AIProviderConfigurationRepository` 扩展的 forwarding/nil 默认）：真实 conformer `GRDBAIProviderConfigurationRepository` 已全实现，生产安全；移除默认后需借编译错误给各测试 mock 补显式 stub。落点：删 `AIProviderConfiguration.swift` 内 `public extension AIProviderConfigurationRepository { ... }`，随后在 Mac 上按报错给 `AIProviderConfigurationRepositoryTests` / `TTSProviderSettingsRepositoryTests` / `MediaArtifactRepositoryTests(+More)` 等 mock 补 stub。
+- ⬜ **RedactedSecret**（明文密钥类型化，§12 Phase 3 第 1 条）：80+ 跨 Core/AI/Speech/UI/App 连锁点，含 `SentenceTTSGenerationRequest.plaintextSecret` / `AIProviderCredentialSecretSaveInput.plaintextSecret` 及大量 String 读用法（trim、`?? ""`、插值、比较）。需在有编译器的环境逐点改类型与读路径。
+- ⬜ **Reading 范围整数偏移**（§12 Phase 3 第 4 条）：`ReadingTextChunk` / `ReadingMarkdownBlock` / `ReadingInlineRun` 的 `Range<String.Index>` → 统一 UTF-16 整数偏移（新 `TextUnitRange`），含 markdown 解析与 UI 渲染重做、`ReadingTextSegmentation` 单位混用与 fallback 一致性修复。
+
+预期：上述已实施子批不改变可观察行为（哈希逐字节一致、`validated()` 仅对未知 code 抛错、时钟注入对默认调用方等价）；三项转 Mac/CI 的工作借编译错误逐个收敛。
+
+结果回填：_（待 Mac/CI）_
+
+---
+
 _（后续 Phase 在实施时追加）_

@@ -206,7 +206,7 @@ private final class InMemoryLanguageSpaceRepository: LanguageSpaceRepository, @u
     func createLanguageSpace(input: CreateLanguageSpaceInput) throws -> LanguageSpace {
         lock.lock()
         defer { lock.unlock() }
-        let normalized = try input.normalized()
+        let normalized = try input.validated()
         let space = LanguageSpace(
             id: UUID().uuidString,
             nativeLanguageCode: normalized.nativeLanguageCode,
@@ -230,7 +230,7 @@ private final class InMemoryLanguageSpaceRepository: LanguageSpaceRepository, @u
         guard let index = spaces.firstIndex(where: { $0.id == id }) else {
             throw LanguageSpaceError.notFound
         }
-        let normalized = try input.normalized()
+        let normalized = try input.validated()
         let existing = spaces[index]
         let updated = LanguageSpace(
             id: existing.id,

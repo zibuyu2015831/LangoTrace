@@ -82,7 +82,7 @@ public struct GRDBLanguageSpaceRepository: LanguageSpaceRepository, @unchecked S
     }
 
     public func createLanguageSpace(input: CreateLanguageSpaceInput) throws -> LanguageSpace {
-        let normalized = try input.normalized()
+        let normalized = try input.validated()
         return try databaseQueue.write { db in
             let now = clock()
             let space = LanguageSpace(
@@ -104,7 +104,7 @@ public struct GRDBLanguageSpaceRepository: LanguageSpaceRepository, @unchecked S
     }
 
     public func updateLanguageSpace(id: String, input: UpdateLanguageSpaceInput) throws -> LanguageSpace {
-        let normalized = try input.normalized()
+        let normalized = try input.validated()
         return try databaseQueue.write { db in
             guard let existing = try fetchSpace(id: id, db: db) else {
                 throw LanguageSpaceError.notFound

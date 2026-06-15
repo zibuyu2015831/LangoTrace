@@ -30,7 +30,8 @@ public struct PracticeSessionReduction: Equatable, Sendable {
 public enum PracticeSessionReducer {
     public static func reduce(
         _ session: PracticeSession,
-        _ event: PracticeSessionEvent
+        _ event: PracticeSessionEvent,
+        now: () -> Date = { Date() }
     ) -> PracticeSessionReduction {
         var next = session
 
@@ -90,13 +91,13 @@ public enum PracticeSessionReducer {
             }
             next.status = .completed
             next.currentStep = .completion
-            next.completedAt = next.completedAt ?? Date()
+            next.completedAt = next.completedAt ?? now()
 
         case .toggleProblemMarked:
             next.problemMarked.toggle()
         }
 
-        next.updatedAt = Date()
+        next.updatedAt = now()
         return PracticeSessionReduction(session: next)
     }
 }

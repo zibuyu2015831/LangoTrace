@@ -20,6 +20,30 @@ struct PracticeSessionReducerTests {
         #expect(session.completedRecordingID == nil)
     }
 
+    @Test("Reducer stamps completion and update times from the injected clock")
+    func reducerStampsTimesFromInjectedClock() {
+        var session = practiceSession()
+        let fixedNow = Date(timeIntervalSince1970: 4242)
+        session = PracticeSessionReducer.reduce(
+            session,
+            .startRecordingRequested(recordingID: "recording-1"),
+            now: { fixedNow }
+        ).session
+        session = PracticeSessionReducer.reduce(
+            session,
+            .recordingReady(recordingID: "recording-1", durationSeconds: 1.0),
+            now: { fixedNow }
+        ).session
+        let completed = PracticeSessionReducer.reduce(
+            session,
+            .complete(recordingID: "recording-1"),
+            now: { fixedNow }
+        ).session
+
+        #expect(completed.completedAt == fixedNow)
+        #expect(completed.updatedAt == fixedNow)
+    }
+
     @Test("Reducer rejects recording while demo playback is active")
     func reducerRejectsRecordingWhileDemoPlaybackIsActive() {
         var session = practiceSession()

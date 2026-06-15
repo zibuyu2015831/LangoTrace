@@ -11,6 +11,7 @@ public actor SentenceAudioPlaybackCoordinator {
     private let generationService: any SentenceTTSGenerating
     private let playbackSourceResolver: any MediaArtifactPlaybackSourceResolving
     private let player: any TTSAudioPlaying
+    private let now: @Sendable () -> Date
     private var state = SentenceAudioPlaybackCoordinatorState()
     private var requestKeyBySummary: [SentenceAudioRequestSummary: SentenceAudioKey] = [:]
     private var stateObservers: [
@@ -30,7 +31,8 @@ public actor SentenceAudioPlaybackCoordinator {
         mediaStore: any LocalMediaArtifactStoring,
         generationService: any SentenceTTSGenerating,
         playbackSourceResolver: any MediaArtifactPlaybackSourceResolving,
-        player: any TTSAudioPlaying
+        player: any TTSAudioPlaying,
+        now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.availabilityService = availabilityService
         self.secretResolver = secretResolver
@@ -38,6 +40,7 @@ public actor SentenceAudioPlaybackCoordinator {
         self.generationService = generationService
         self.playbackSourceResolver = playbackSourceResolver
         self.player = player
+        self.now = now
     }
 
     public func handleTap(_ request: SentenceAudioRequest) async throws {
@@ -162,7 +165,7 @@ private extension SentenceAudioPlaybackCoordinator {
                             stagedFile: result.stagedFile,
                             mimeType: result.mimeType,
                             durationSeconds: result.durationSeconds,
-                            createdAt: Date()
+                            createdAt: now()
                         )
                     )
                 }
@@ -277,7 +280,7 @@ private extension SentenceAudioPlaybackCoordinator {
         playbackDurationFallbackTask?.cancel()
         playbackDurationFallbackTask = nil
         if let startedAt = activePlaybackStartedAt, let remaining = activePlaybackRemainingSeconds {
-            activePlaybackRemainingSeconds = max(0, remaining - Date().timeIntervalSince(startedAt))
+            activePlaybackRemainingSeconds = max(0, remaining - now().timeIntervalSince(startedAt))
         }
         activePlaybackStartedAt = nil
     }
@@ -294,7 +297,7 @@ private extension SentenceAudioPlaybackCoordinator {
             return
         }
         playbackDurationFallbackTask?.cancel()
-        activePlaybackStartedAt = Date()
+        activePlaybackStartedAt = now()
         playbackDurationFallbackTask = Task { [self] in
             let nanoseconds = Self.playbackDurationFallbackNanoseconds(forRemainingSeconds: remaining)
             try? await Task.sleep(nanoseconds: nanoseconds)

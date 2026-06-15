@@ -75,7 +75,11 @@ public struct CreateLanguageSpaceInput: Equatable, Sendable {
         self.displayName = displayName
     }
 
-    public func normalized() throws -> NormalizedLanguageSpaceInput {
+    /// Non-throwing normalization for UI drafts / onboarding preview: unknown or
+    /// conflicting language codes silently fall back to defaults so a preview
+    /// always renders. Persistence must go through `validated()` instead, which
+    /// rejects unknown codes rather than coercing them.
+    public func normalizedDraft() -> NormalizedLanguageSpaceInput {
         let draft = OnboardingDraft(
             nativeLanguageCode: nativeLanguageCode,
             targetLanguageCode: targetLanguageCode,
@@ -91,6 +95,20 @@ public struct CreateLanguageSpaceInput: Equatable, Sendable {
             displayName: resolvedDisplayName,
             displayNameNormalized: Self.normalizedDisplayName(resolvedDisplayName)
         )
+    }
+
+    /// Strict validation for persistence: an unknown native or target language
+    /// code is rejected with a typed error instead of being silently coerced to
+    /// a default (the silent fallback that `normalizedDraft()` performs for UI
+    /// previews). Valid codes—including a native==target collision, which is
+    /// resolved by the draft normalizer's swap—pass through.
+    public func validated() throws -> NormalizedLanguageSpaceInput {
+        guard LearningLanguage.find(code: nativeLanguageCode) != nil,
+              LearningLanguage.find(code: targetLanguageCode) != nil
+        else {
+            throw LanguageSpaceError.invalidInput
+        }
+        return normalizedDraft()
     }
 
     public static func normalizedDisplayName(_ displayName: String) -> String {
@@ -128,13 +146,13 @@ public struct UpdateLanguageSpaceInput: Equatable, Sendable {
         self.displayName = displayName
     }
 
-    public func normalized() throws -> NormalizedLanguageSpaceInput {
+    public func validated() throws -> NormalizedLanguageSpaceInput {
         try CreateLanguageSpaceInput(
             nativeLanguageCode: nativeLanguageCode,
             targetLanguageCode: targetLanguageCode,
             level: level,
             displayName: displayName
-        ).normalized()
+        ).validated()
     }
 }
 
