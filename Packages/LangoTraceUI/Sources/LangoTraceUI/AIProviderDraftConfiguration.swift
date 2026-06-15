@@ -798,7 +798,7 @@ private extension AIProviderEndpointDraftConfiguration {
             AIProviderCredentialSecretSaveInput(
                 kind: .apiKey,
                 label: "\(provider.displayName) API Key",
-                plaintextSecret: independentCredential.apiKeyDraft
+                plaintextSecret: RedactedSecret(independentCredential.apiKeyDraft)
             )
         )
     }

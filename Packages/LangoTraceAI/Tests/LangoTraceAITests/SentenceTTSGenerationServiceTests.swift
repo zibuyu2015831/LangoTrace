@@ -213,6 +213,6 @@ private func generationRequest(text: String) throws -> SentenceTTSGenerationRequ
             configurationFingerprint: voiceProfile.configurationFingerprint
         ),
         playableConfiguration: configuration,
-        plaintextSecret: "sk-short-lived"
+        plaintextSecret: RedactedSecret("sk-short-lived")
     )
 }

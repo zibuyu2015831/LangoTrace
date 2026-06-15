@@ -55,7 +55,7 @@ private actor FakeAvailabilityService: TTSConfigurationAvailabilityService {
 }
 
 private actor FakeSecretResolver: PlayableTTSSecretResolving {
-    func plaintextSecret(for _: PlayableTTSConfiguration) async throws -> String? {
+    func plaintextSecret(for _: PlayableTTSConfiguration) async throws -> RedactedSecret? {
         nil
     }
 }

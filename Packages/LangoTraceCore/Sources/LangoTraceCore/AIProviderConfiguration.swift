@@ -445,12 +445,12 @@ public enum AIProviderEndpointCredentialSaveMode: Equatable, Sendable {
 public struct AIProviderCredentialSecretSaveInput: Equatable, Sendable {
     public var kind: AIProviderCredentialKind
     public var label: String
-    public var plaintextSecret: String
+    public var plaintextSecret: RedactedSecret
 
     public init(
         kind: AIProviderCredentialKind,
         label: String,
-        plaintextSecret: String
+        plaintextSecret: RedactedSecret
     ) {
         self.kind = kind
         self.label = label

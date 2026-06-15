@@ -136,15 +136,15 @@ private struct AppPlayableTTSSecretResolver: PlayableTTSSecretResolving {
         self.credentialStore = credentialStore
     }
 
-    func plaintextSecret(for configuration: PlayableTTSConfiguration) async throws -> String? {
+    func plaintextSecret(for configuration: PlayableTTSConfiguration) async throws -> RedactedSecret? {
         guard let credentialID = configuration.endpoint.credentialID,
               let profile = try await repository.loadDefaultProfile(),
               let credential = profile.credentials.first(where: { $0.id == credentialID })
         else {
             return nil
         }
-        return try await credentialStore
+        let resolved = try await credentialStore
             .resolveSecret(for: AIProviderCredentialKeychainReference(metadata: credential))
-            .value
+        return RedactedSecret(resolved.value)
     }
 }

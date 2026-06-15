@@ -33,7 +33,7 @@ public struct SentenceTTSGenerationService: SentenceTTSGenerating {
             baseURL: request.playableConfiguration.endpoint.baseURL,
             modelName: request.playableConfiguration.endpoint.modelName,
             voiceProfile: request.playableConfiguration.voiceProfile,
-            plaintextSecret: request.plaintextSecret,
+            plaintextSecret: request.plaintextSecret?.unsafeUnwrappedValue,
             text: request.audioRequest.targetText,
             requestTimeoutSeconds: request.playableConfiguration.endpoint.requestTimeoutSeconds
         ))

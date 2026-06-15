@@ -70,8 +70,8 @@ private actor FakeSecretResolver: PlayableTTSSecretResolving {
         self.secret = secret
     }
 
-    func plaintextSecret(for _: PlayableTTSConfiguration) async throws -> String? {
-        secret
+    func plaintextSecret(for _: PlayableTTSConfiguration) async throws -> RedactedSecret? {
+        secret.map { RedactedSecret($0) }
     }
 }
 

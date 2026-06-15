@@ -4,13 +4,13 @@ public struct SentenceTTSGenerationRequest: Equatable, Sendable {
     public var audioRequest: SentenceAudioRequest
     public var artifactKey: TTSAudioArtifactKey
     public var playableConfiguration: PlayableTTSConfiguration
-    public var plaintextSecret: String?
+    public var plaintextSecret: RedactedSecret?
 
     public init(
         audioRequest: SentenceAudioRequest,
         artifactKey: TTSAudioArtifactKey,
         playableConfiguration: PlayableTTSConfiguration,
-        plaintextSecret: String?
+        plaintextSecret: RedactedSecret?
     ) {
         self.audioRequest = audioRequest
         self.artifactKey = artifactKey

@@ -458,7 +458,7 @@ func configurationServiceResolvesSharedCredentialsIndependentOfEndpointOrder() a
                     AIProviderCredentialSecretSaveInput(
                         kind: .apiKey,
                         label: "OpenAI API Key",
-                        plaintextSecret: "sk-test"
+                        plaintextSecret: RedactedSecret("sk-test")
                     )
                 ),
                 supportsImageInput: true,
@@ -1274,7 +1274,7 @@ private func saveInput() -> AIProviderProfileSaveInput {
                     AIProviderCredentialSecretSaveInput(
                         kind: .apiKey,
                         label: "OpenAI API Key",
-                        plaintextSecret: "sk-test"
+                        plaintextSecret: RedactedSecret("sk-test")
                     )
                 ),
                 supportsImageInput: true,
@@ -1299,7 +1299,7 @@ private func ttsSaveInput() -> AIProviderProfileSaveInput {
                     AIProviderCredentialSecretSaveInput(
                         kind: .apiKey,
                         label: "OpenAI API Key",
-                        plaintextSecret: "sk-test"
+                        plaintextSecret: RedactedSecret("sk-test")
                     )
                 ),
                 supportsImageInput: true,

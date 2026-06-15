@@ -176,13 +176,13 @@ struct AIProviderSettingsTests {
         #expect(input.endpoints[0].credentialMode == .newSecret(.init(
             kind: .apiKey,
             label: "OpenAI API Key",
-            plaintextSecret: "text-secret"
+            plaintextSecret: RedactedSecret("text-secret")
         )))
         #expect(input.endpoints[1].credentialMode == .sharedWithPurpose(.textGeneration))
         #expect(input.endpoints[2].credentialMode == .newSecret(.init(
             kind: .apiKey,
             label: "OpenAI API Key",
-            plaintextSecret: "embedding-secret"
+            plaintextSecret: RedactedSecret("embedding-secret")
         )))
 
         draft.applySavedProfile(emptySavedProfile())

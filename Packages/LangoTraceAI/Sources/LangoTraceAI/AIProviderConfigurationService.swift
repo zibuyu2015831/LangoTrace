@@ -1104,7 +1104,7 @@ private extension AIProviderConfigurationService {
             }
             return credentialID
         case let .newSecret(secretInput):
-            let secret = secretInput.plaintextSecret.trimmingCharacters(in: .whitespacesAndNewlines)
+            let secret = secretInput.plaintextSecret.unsafeUnwrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !secret.isEmpty else {
                 throw AIProviderConfigurationError.missingRequiredAPIKey
             }

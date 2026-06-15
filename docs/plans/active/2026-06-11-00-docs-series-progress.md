@@ -22,13 +22,18 @@
 
 冲突时以上述权威文档为准；本仪表盘只反映「推进到哪了」。
 
+## 实施环境约束
+
+读取本仪表盘时，须先检测开发设备环境，按以下分支约束实施方式：
+
+- **Linux 环境**：无 Swift 工具链，所有 `swift test` / `xcodebuild` / `swiftformat` / `swiftlint` 走 GitHub Actions；触发 CI 前需将仓库临时设为 public、commit message 带 `[ci]`，跑完可设回 private。
+- **MacBook 环境**：本机可执行轻量单包测试（`swift test --package-path Packages/<target>`）和格式检查（`swiftformat --lint` / `swiftlint`）；重测试（全量验证 `scripts/verify.sh`、三端构建、跨多包测试）一律放 GitHub Actions，避免被动散热设备过热降频。
+
+> **基线**：plan 01 Phase 1–3c 已 CI `Build & Test` 全绿（run `27546863012`，HEAD `56ef9d4`）。
+
 ## 当前指针
 
-> **下一步候选**：plan 01 的 Phase 4（数据层迁移），叠在已 CI 验证的绿基线（HEAD `56ef9d4`）上；或回头在 Mac/CI 啃 plan 01 Phase 3 余下 3 个强编译敏感项。两者均待用户拍板后进行。
->
-> **基线**：plan 01 Phase 1–3c 已 CI `Build & Test` 全绿（run `27546863012`，HEAD `56ef9d4`）。
->
-> **实施环境约束**：本机 Linux 无 Swift 工具链，所有 `swift test` / `xcodebuild` 走 GitHub Actions；触发 CI 前需将仓库临时设为 public、commit message 带 `[ci]`，跑完可设回 private。
+> **下一步候选**：plan 01 的 Phase 3 余项（协议默认实现移除 / RedactedSecret / Reading 范围整数偏移——原标「转 Mac/CI」的强编译敏感项，MacBook 环境下可直接迭代），或直接进 Phase 4（数据层迁移）。两者均待用户拍板后进行。
 
 ## 状态总表
 

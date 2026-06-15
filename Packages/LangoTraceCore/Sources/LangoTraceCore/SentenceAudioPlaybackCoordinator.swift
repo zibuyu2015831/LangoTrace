@@ -1,7 +1,7 @@
 import Foundation
 
 public protocol PlayableTTSSecretResolving: Sendable {
-    func plaintextSecret(for configuration: PlayableTTSConfiguration) async throws -> String?
+    func plaintextSecret(for configuration: PlayableTTSConfiguration) async throws -> RedactedSecret?
 }
 
 public actor SentenceAudioPlaybackCoordinator {
@@ -144,7 +144,7 @@ private extension SentenceAudioPlaybackCoordinator {
             let artifact: MediaArtifact
             do {
                 let secret = try await secretResolver.plaintextSecret(for: configuration)
-                guard secret?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+                guard secret?.unsafeUnwrappedValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
                     _ = reduceAndNotify(.generationFailed(key, .credentialMissing))
                     return
                 }
