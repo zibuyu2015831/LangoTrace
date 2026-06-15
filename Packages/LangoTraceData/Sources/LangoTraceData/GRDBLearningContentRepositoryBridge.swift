@@ -1,18 +1,54 @@
 import Foundation
 import LangoTraceCore
 
+/// Internal protocol abstracting the GRDB repository read operations
+/// that the bridge wraps. Enables test injection of failing implementations.
+protocol GRDBLearningContentRepositoryProtocol: Sendable {
+    func entries(for spaceID: String) throws -> [LearningEntry]
+    func practiceItems(for entryID: String) throws -> [PracticeItem]
+    func memoryItems(for spaceID: String) throws -> [MemoryItem]
+    func currentMaterial(for entryID: String) throws -> LearningMaterial?
+    func createEntry(_ draft: NewLearningEntryDraft, in spaceID: String) throws -> LearningEntry
+    func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry
+}
+
+extension GRDBLearningContentRepository: GRDBLearningContentRepositoryProtocol {}
+
 public final class GRDBLearningContentRepositoryBridge: LearningContentRepository {
-    private let repository: GRDBLearningContentRepository
+    private let repository: any GRDBLearningContentRepositoryProtocol
+    private let diagnosticLogger: any DiagnosticLogging
+    private let clock: @Sendable () -> Date
     private var selectedEntryIDs: [String: String] = [:]
 
-    public init(repository: GRDBLearningContentRepository) {
+    public init(
+        repository: GRDBLearningContentRepository,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
+        clock: @escaping @Sendable () -> Date = { Date() }
+    ) {
         self.repository = repository
+        self.diagnosticLogger = diagnosticLogger
+        self.clock = clock
+    }
+
+    init(
+        repository: any GRDBLearningContentRepositoryProtocol,
+        diagnosticLogger: any DiagnosticLogging,
+        clock: @escaping @Sendable () -> Date
+    ) {
+        self.repository = repository
+        self.diagnosticLogger = diagnosticLogger
+        self.clock = clock
     }
 
     public func ensureSeeded(spaceID _: String) {}
 
     public func entries(for spaceID: String) -> [LearningEntry] {
-        (try? repository.entries(for: spaceID)) ?? []
+        do {
+            return try repository.entries(for: spaceID)
+        } catch {
+            emitReadFailed(operation: "entries", error: error)
+            return []
+        }
     }
 
     public func selectedEntry(for spaceID: String) -> LearningEntry? {
@@ -70,11 +106,21 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
     }
 
     public func practiceItems(for entryID: String) -> [PracticeItem] {
-        (try? repository.practiceItems(for: entryID)) ?? []
+        do {
+            return try repository.practiceItems(for: entryID)
+        } catch {
+            emitReadFailed(operation: "practiceItems", error: error)
+            return []
+        }
     }
 
     public func memoryItems(for spaceID: String) -> [MemoryItem] {
-        (try? repository.memoryItems(for: spaceID)) ?? []
+        do {
+            return try repository.memoryItems(for: spaceID)
+        } catch {
+            emitReadFailed(operation: "memoryItems", error: error)
+            return []
+        }
     }
 
     public func settingsCapabilities(for _: String) -> [SettingsCapability] {
@@ -96,6 +142,24 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
 }
 
 private extension GRDBLearningContentRepositoryBridge {
+    func emitReadFailed(operation: String, error: Error) {
+        let event = DiagnosticEvent(
+            id: UUID().uuidString,
+            name: .learningContentRepositoryReadFailed,
+            domain: .dataStorage,
+            level: .warning,
+            outcome: .failed,
+            attributes: [
+                .repositoryReadOperation(operation),
+                .errorCategory(String(describing: error)),
+            ],
+            createdAt: clock()
+        )
+        Task { [diagnosticLogger] in
+            await diagnosticLogger.record(event)
+        }
+    }
+
     static func rendering(from material: LearningMaterial) -> LearningRendering {
         LearningRendering(
             id: material.id,
