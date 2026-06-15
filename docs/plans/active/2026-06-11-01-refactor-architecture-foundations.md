@@ -10,6 +10,9 @@
 
 本方案在 2026-06-11 主方案授权下创建（`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`）。该授权仅覆盖"系列方案文档的制定"，不覆盖本方案的实现。进入生产代码实现前，必须由用户单独确认本方案，并将状态推进为 `User Approved`。
 
+- 2026-06-15：实现前隔离复核完成（见 §13 第二条记录），3 个 P1 已在方案内校正。用户**预先确认 3 项实现决策默认**：①软删除列＝保留列 + 修正写路径（非删列）；②RedactedSecret 公开 API 连锁破坏一次性完成；③StableHashing 采纳 Core 公开共享工具。这 3 项不再是待决项。
+- 2026-06-15：用户选择**先自行复核本方案，暂未授权实现**。`状态` 保持 `Draft`；待用户复核后明确推进至 `User Approved` 方可进入生产代码实现。
+
 ## 1. 需求或 bug 描述
 
 2026-06-11 全量代码审查（隔离子代理审查 + 主会话核验，修复 commit 71bfc01..274b7db）已修复 P0 / P1 发现，但留下一批被明确延后的 P2 架构债：AI 文本请求路径重复、错误分类不完整、数据层读取吞错、明文密钥裸露在普通 String 字段、Core 公开 API 不变量可破坏、Data 枚举解码静默回退、Speech WAV 解析过于僵硬等。这些问题分布在 Core / Data / AI / Speech 四层，都是后续功能方案（E1 时间线、E2 照片、E3+ 听写 / 回译 / 记忆）会直接踩到的接缝。
@@ -286,8 +289,8 @@ macOS 环境跨包全测扫尾（六个包 `swift test` + `xcodebuild test -only
 - [P2-2] Reading 解释缓存 async 测试历史有 continuation 竞态（commit 9d81330/8bb89cc/62fcc78）；Phase 3 时钟注入触及该区域。→ 写入 §20 剩余风险。
 - [P3] §15 首失败用例对 enum 新增 case 的「编译失败即红」机制应注明；§5 应排除 Embedding（已处置）。
 写回修改：§2 基线漂移说明 + 行号符号锚点化；§2.5 sha256 计数 7→8 + StableHashing 倾向；§2.7 + Phase 5 step 4 双 boundary 统一口径；§5 排除 TTS/Embedding；§16 Bearer DoD 限定范围与目标；§20 增 async coordinator 风险。
-仍需用户确认的问题：沿用上方两条（软删除列处置、RedactedSecret 一次性破坏范围）；新增第 3 条 → StableHashing 是否采纳「Core 公开共享工具」（UI 已有 2 个消费方，倾向公开）。
-裁决：3 个 P1 已在本方案内完成事实校正（不涉及新建 plan / architecture note，均为 §2/§5/§12/§16/§20 的源头订正）；校正后方案 implementation-ready，仍为 `状态:Draft`，须用户确认推进至 `User Approved` 方可实现。
+仍需用户确认的问题：3 项实现决策已于 2026-06-15 由用户预先确认（软删除列＝保留列+修正写路径、RedactedSecret 一次性完成、StableHashing＝Core 公开），见「用户确认记录」。剩余唯一门：用户对方案整体的复核与实现授权。
+裁决：3 个 P1 已在本方案内完成事实校正（不涉及新建 plan / architecture note，均为 §2/§5/§12/§16/§20 的源头订正）；3 项设计决策已锁定；校正后方案 implementation-ready，仍为 `状态:Draft`，待用户复核后推进至 `User Approved` 方可实现。
 ```
 
 ## 14. 复查方法
