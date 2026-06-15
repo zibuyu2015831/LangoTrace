@@ -4,7 +4,7 @@
 自审核状态：Reviewed
 类型：refactor
 创建日期：2026-06-11
-最后更新日期：2026-06-15（用户授权实施，Phase 1-2 已落地；本机 Linux 无 Swift 工具链，验证按 Phase 收集至 `docs/testing/2026-06-15-architecture-foundations-pending-verification.md`，待 Mac/CI 运行）
+最后更新日期：2026-06-15（用户授权实施，Phase 1 / 2 / 3a / 3b / 3c 已落地推 dev；Phase 3 余 3 项强编译敏感项 + Phase 4 / 5 待续；本机 Linux 无 Swift 工具链，验证按 Phase 收集至 `docs/testing/2026-06-15-architecture-foundations-pending-verification.md`，待 Mac/CI 运行）
 
 ## 用户确认记录
 
