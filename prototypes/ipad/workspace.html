@@ -92,6 +92,8 @@
   .inspector .card { padding: 12px 14px; box-shadow: none; }
   .insp-sentence .is-en { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.5; }
   .insp-sentence .is-zh { margin-top: 4px; font-size: 12px; color: var(--muted); }
+  .insp-note { font-size: 12.5px; color: var(--ink-2); line-height: 1.62; }
+  .mem-cand .mc-state { flex: none; }
   .mem-cand { display: flex; align-items: center; gap: 10px; }
   .mem-cand + .mem-cand { margin-top: 8px; }
   .mem-cand .mc-body { flex: 1; min-width: 0; }
@@ -289,6 +291,9 @@
               <p class="is-zh">楼下新来了一辆咖啡车。</p>
             </div>
 
+            <h3>句子分析</h3>
+            <div class="card card-plain insp-note">showed up 是 show up 的过去式，表示「（不期而至地）出现、冒出来」，比 appeared 更口语；outside our office 作地点状语，强调就在公司楼下。</div>
+
             <h3>记忆提取</h3>
             <div>
               <div class="card card-plain mem-cand">
@@ -304,6 +309,24 @@
                   <div class="mc-zh">流动咖啡车</div>
                 </div>
                 <button class="btn btn-quiet btn-sm">加入记忆</button>
+              </div>
+            </div>
+
+            <h3>相关记忆</h3>
+            <div>
+              <div class="card card-plain mem-cand">
+                <div class="mc-body">
+                  <div class="mc-en">wait in line</div>
+                  <div class="mc-zh">排队等候</div>
+                </div>
+                <span class="pill pill-ready mc-state">已记忆</span>
+              </div>
+              <div class="card card-plain mem-cand">
+                <div class="mc-body">
+                  <div class="mc-en">freshly ground</div>
+                  <div class="mc-zh">（咖啡豆）现磨的</div>
+                </div>
+                <span class="pill pill-ready mc-state">已记忆</span>
               </div>
             </div>
 
@@ -327,6 +350,7 @@
       <li><strong>请求预览只出现在 entry 学习上下文</strong>：「将发送的内容」摘要 + 字符数 + Provider 名称在点击生成前可见；页面浏览与滚动不触发任何 AI 请求。</li>
       <li><strong>专注态</strong>：左右两栏都收起后，中央内容列保持约 640px 阅读宽度居中，进入无干扰的学习专注态。</li>
       <li><strong>筛选语义三端共享</strong>：侧栏 chips（全部 / 照片 / 待练习 / 已记忆）与 iPhone 时间线筛选共用同一语义，不在 iPad 上发明独立筛选概念。</li>
+      <li><strong>大屏密度走 inspector</strong>：横向余量不拉宽阅读列、不做多列，而是让右侧学习面板承载当前句分析与「相关记忆」——把已沉淀的词句在学习当下就近召回，密度提升不牺牲阅读行长。</li>
       <li>side-footer 常驻当前语言空间「英语空间 · 中文 → English」与 AI / 同步 / 设置三个图标入口，状态用图标 + 可点击详情表达，不靠颜色单独传达。</li>
     </ul>
   </div>

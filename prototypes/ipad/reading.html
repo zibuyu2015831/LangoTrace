@@ -97,6 +97,10 @@
   .explain-card .ex-ops { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
   .insp-foot { font-size: 11.5px; color: var(--faint); line-height: 1.55; padding: 0 4px; }
   .inspector .insp-spacer { flex: 1; }
+  .mem-list { display: flex; flex-direction: column; gap: 10px; }
+  .ml-item { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .ml-en { font-size: 13px; font-weight: 640; color: var(--target-lang); font-family: var(--font-serif); }
+  .ml-zh { font-size: 11.5px; color: var(--muted); flex: none; }
 </style>
 </head>
 <body>
@@ -225,6 +229,12 @@
                 </button>
                 <button class="btn btn-quiet btn-sm">加入记忆</button>
               </div>
+            </div>
+
+            <h3>本文已加入记忆</h3>
+            <div class="card card-plain mem-list">
+              <div class="ml-item"><span class="ml-en">small anchors</span><span class="ml-zh">小小的支点</span></div>
+              <div class="ml-item"><span class="ml-en">run on rails</span><span class="ml-zh">按部就班地进行</span></div>
             </div>
 
             <div class="insp-spacer"></div>

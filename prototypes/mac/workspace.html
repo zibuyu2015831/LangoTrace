@@ -69,6 +69,11 @@
   .cand .cand-body { flex: 1; min-width: 0; }
   .cand .en { font-size: 13px; font-weight: 650; }
   .cand .zh { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .cand .pill { flex: none; }
+  .insp-sent { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: 10px 12px; }
+  .insp-sent .en { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.5; }
+  .insp-sent .zh { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+  .insp-note { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: 10px 12px; font-size: 12.5px; color: var(--ink-2); line-height: 1.62; }
   .cand .btn-sm { flex: none; min-height: 26px; padding: 2px 10px; font-size: 12px; border-radius: 8px; }
   .inspector-footnote { margin-top: auto; padding-top: 10px; font-size: 11.5px; color: var(--muted); line-height: 1.55; }
 </style>
@@ -266,6 +271,15 @@
               <div class="info-row"><span class="k">句子</span><span class="v">3</span></div>
             </div>
 
+            <h3>当前句子</h3>
+            <div class="insp-sent">
+              <div class="en">A new coffee cart showed up outside our office.</div>
+              <div class="zh">楼下新来了一辆咖啡车。</div>
+            </div>
+
+            <h3>句子分析</h3>
+            <div class="insp-note">showed up 是 show up 的过去式，「（不期而至地）出现、冒出来」，比 appeared 更口语；a new coffee cart 作主语，cart 这里指流动咖啡车而非购物车。</div>
+
             <h3>请求预览</h3>
             <div class="preview-card">
               <div class="pk">将发送的内容</div>
@@ -289,6 +303,22 @@
               <button class="btn btn-quiet btn-sm">加入记忆</button>
             </div>
 
+            <h3>相关记忆</h3>
+            <div class="cand">
+              <div class="cand-body">
+                <div class="en">wait in line</div>
+                <div class="zh">排队等候</div>
+              </div>
+              <span class="pill pill-ready">已记忆</span>
+            </div>
+            <div class="cand">
+              <div class="cand-body">
+                <div class="en">grab a coffee</div>
+                <div class="zh">买杯咖啡</div>
+              </div>
+              <span class="pill pill-ready">已记忆</span>
+            </div>
+
             <p class="inspector-footnote">生活记录默认只保存在本机。</p>
           </aside>
         </div>
@@ -306,6 +336,7 @@
       <li><strong>请求预览常驻 Inspector</strong>：发送给 Provider 的内容范围（学习文本 · 218 字符）在触发前即可见，「仅在你点击生成时发送给 OpenAI」是隐私边界的固定披露位。</li>
       <li><strong>菜单命令与 toolbar 一致</strong>：新建记录、重新分析、逐句播放等动作同时存在于系统菜单栏和界面按钮，语义与 iPhone / iPad 共享同一套 action seam。</li>
       <li>逐句「听」原位切换播放中 / 暂停，不打开浮层；页面展示与滚动不自动触发 TTS。</li>
+      <li><strong>大屏密度走 Inspector</strong>：横向余量不拉宽正文列、不做多列，而是让 Inspector 承载当前句 + 句子分析 + 「相关记忆」——已沉淀词句在学习当下就近召回，密度提升不牺牲阅读行长。</li>
     </ul>
   </div>
 </div>

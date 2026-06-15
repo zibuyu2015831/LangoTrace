@@ -67,6 +67,10 @@
   .explain-card .ops { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
   .explain-card .op-btn { min-height: 30px; min-width: 0; padding: 3px 12px; font-size: 12.5px; }
   .explain-card .btn-sm { min-height: 28px; padding: 3px 10px; font-size: 12.5px; border-radius: 8px; }
+  .mem-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: 10px 12px; display: flex; flex-direction: column; gap: 9px; }
+  .ml-item { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .ml-en { font-size: 13px; font-weight: 640; color: var(--target-lang); font-family: var(--font-serif); }
+  .ml-zh { font-size: 11.5px; color: var(--muted); flex: none; }
   .inspector-footnote { margin-top: auto; padding-top: 10px; font-size: 11.5px; color: var(--muted); line-height: 1.55; }
 </style>
 </head>
@@ -237,6 +241,12 @@
                 </button>
                 <button class="btn btn-quiet btn-sm">加入记忆</button>
               </div>
+            </div>
+
+            <h3>本文已加入记忆</h3>
+            <div class="mem-card">
+              <div class="ml-item"><span class="ml-en">a fragile business</span><span class="ml-zh">不稳的生意</span></div>
+              <div class="ml-item"><span class="ml-en">show up again</span><span class="ml-zh">再次出现</span></div>
             </div>
 
             <p class="inspector-footnote">解释只在你显式选择「用语迹解释」后请求，阅读和滚动不会发送任何内容。</p>
