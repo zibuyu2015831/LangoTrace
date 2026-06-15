@@ -4,7 +4,7 @@
 自审核状态：N/A（导航/指针文档，不含生产代码变更）
 类型：docs
 创建日期：2026-06-15
-最后更新日期：2026-06-16（Phase 3 余项在 MacBook 环境实施并本机六包测试全绿，更新验证文档；CI 验证待推送后触发）
+最后更新日期：2026-06-16（Phase 4 在 MacBook 环境实施并本机六包测试全绿；CI 待验证）
 
 ## 这份文档是什么
 
@@ -33,7 +33,7 @@
 
 ## 当前指针
 
-> **下一步候选**：plan 01 的 Phase 4（数据层迁移：bridge 读路径诊断事件 / 44 处枚举解码 decodeStored / LearningEntry.updatedAt / 软删除列修正 / FK/CHECK / @MainActor），或 Phase 5（AI/Speech 尾项）。
+> **下一步候选**：plan 01 的 Phase 5（AI/Speech 尾项：bytes(for:) 流式 / AIBoundary/SpeechBoundary 统一 / WAV RIFF chunk walker / spec 012 prompt v4）。
 
 ## 状态总表
 
@@ -76,7 +76,7 @@
 | 3b | StableHashing 收敛（8 处散落哈希 → Core 共享工具） | ✅ 已实施 + CI 绿 |
 | 3c | normalized() 拆分（normalizedDraft/validated）+ 时钟注入 | ✅ 已实施 + CI 绿 |
 | 3-余 | 协议默认实现移除 / RedactedSecret / Reading 范围整数偏移 | ✅ 已实施 + 本机六包测试全绿（CI 待验证） |
-| 4 | 数据层：迁移、44 处枚举解码 decodeStored、软删除列修正、FK/CHECK、@MainActor | ⬜ 未启动 |
+| 4 | 数据层：迁移、44 处枚举解码 decodeStored、软删除列修正、FK/CHECK、@MainActor | ✅ 已实施 + 本机六包测试全绿（CI 待验证） |
 | 5 | AI/Speech 尾项：bytes(for:) 流式、AIBoundary/SpeechBoundary 统一、WAV RIFF chunk walker、spec 012 prompt v4 等 | ⬜ 未启动 |
 
 ## 维护约定

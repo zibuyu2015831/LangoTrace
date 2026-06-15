@@ -94,4 +94,27 @@
 
 ---
 
+### Phase 4：Data 层尾项
+
+落点：`Packages/LangoTraceCore`、`Packages/LangoTraceData`、`docs/`。
+
+**MacBook 本机实施（2026-06-16），HEAD `fb69eea`：**
+
+- ✅M Bridge 读路径诊断事件（commit `1177594`）：三处 `try? ?? []` → `do/catch` + 诊断事件。新测试 5 条。
+- ✅M 44 处枚举解码 decodeStored 替换（commit `fb69eea`）：新增 `StoredEnumDecoding.decode()` 辅助方法，8 个 GRDB 仓库逐一替换。所有仓库新增 `DiagnosticLogging`/`clock` 依赖。
+- ✅M `LearningEntry.updatedAt`（commit `fb69eea`）：模型新增 `updatedAt: Date`（默认 `createdAt`），DB 列已存在，`entry(from:)` 读取该列。
+- ✅M v16 迁移（commit `fb69eea`）：`reading_explanation_cache.space_id` 补 FK、`reading_import_operations.status` 补 CHECK、重建索引。
+- ✅M `@MainActor` 决策（commit `fb69eea`）：改为文档注释标注 main-thread 使用意图，完整隔离推迟到 E0b。
+- ✅M 软删除列决策（commit `fb69eea`）：upsert 已正确维护 `deleted_at`，非死列；软删除函数属于 E0b。
+- ✅M Architecture note + spec 007 补充（commit `fb69eea`）。
+- ✅M 本机六包测试：Core 177 / Data 143 / AI 145 / Speech 24 / UI 365 全绿。
+- ⬜ CI 验证：待推送 dev 后触发 GitHub Actions。
+
+结构性检查（MacBook 本机 rg 自查）：
+- `rg ') ?? \\.' Packages/LangoTraceData/Sources/ | grep rawValue` → 0 命中（44 处全部替换）
+- `rg 'plaintextSecret: String' Packages` → 0 命中
+- `rg 'try\\? .* ?? \\[\\]' Packages/LangoTraceData/Sources/LangoTraceData/GRDBLearningContentRepositoryBridge.swift` → 0 命中
+
+---
+
 _（Phase 4 / 5 在实施时追加）_

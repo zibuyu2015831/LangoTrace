@@ -4,7 +4,7 @@
 自审核状态：Reviewed
 类型：refactor
 创建日期：2026-06-11
-最后更新日期：2026-06-16（Phase 3 全部余项已在 MacBook 环境实施并本机六包测试全绿；Phase 4 / 5 待续）
+最后更新日期：2026-06-16（Phase 4 已在 MacBook 环境实施并本机六包测试全绿；Phase 5 待续）
 
 ## 用户确认记录
 
@@ -404,6 +404,18 @@ git diff --check
   - **本机验证**：Core 177 / Data 138 / AI 145 / Speech 24 / UI 365 六包 `swift test` 全绿。CI 验证待推送后触发。
 
 - **Phase 1–3c CI 验证（2026-06-15，已绿）**：CI `Build & Test` run `27546863012`（HEAD `56ef9d4`）全绿。收敛中修复 4 处：Phase 2 漏更的 `LearningMaterialGenerationFailureCategory` 穷尽断言（`8f7e493`）、`ReadingSelectionExplanationServiceTests` 超 `type_body_length` 故拆 suite（`0d065a4`）、Phase 1/3a 遗留 10 处 SwiftFormat error 手修 + 去抖 `ReadingDocumentStoreExplanationCacheTests` 既有 flaky 竞态（`56ef9d4`）。本机无 Swift/swiftformat 工具链，这些只能由 CI 暴露——核心重构逻辑零返工。
+
+- **Phase 4（数据层尾项，MacBook 环境，2026-06-16）已实现**：
+  - **Bridge 读路径诊断事件（commit 1177594）**：`GRDBLearningContentRepositoryBridge` 三处 `try? ?? []` 改为 `do/catch` + 诊断事件发射。新增 `DiagnosticEventName.learningContentRepositoryReadFailed` + `DiagnosticAttribute.repositoryReadOperation`。Bridge 新增 `DiagnosticLogging`/`clock` 依赖（安全默认值）。新增 `GRDBLearningContentRepositoryProtocol` 支持测试注入。新测试套件 5 条覆盖 entries/practiceItems/memoryItems 失败事件、成功读取静默、禁用日志降级。
+  - **44 处枚举解码 decodeStored 替换（commit fb69eea）**：新增 `StoredEnumDecoding.decode()` 辅助方法（unrecognized raw value 时发诊断事件再回退显式 fallback）。新增 `DiagnosticEventName.storedEnumDecodeFallback` + `DiagnosticAttribute.enumTypeName`/`rawValue`。8 个 GRDB 仓库逐一替换，每处标注 `context`（表名.列名）。所有仓库新增 `DiagnosticLogging`/`clock` 依赖。
+  - **LearningEntry.updatedAt（commit fb69eea）**：`LearningEntry` 模型新增 `updatedAt: Date`（默认 `createdAt`）。DB `entries.updated_at` 列 v4 已存在，`entry(from:)` 现在读取该列。`updateEntryBody` 已写入 `updated_at`。
+  - **v16 迁移：FK + CHECK（commit fb69eea）**：`reading_explanation_cache.space_id` 补 FK → `language_spaces`（需重建表，参照 v10 先例）；`reading_import_operations.status` 补 CHECK `IN ('pending', 'ready', 'failed')`（重建表）；重建后恢复 `idx_rec_source_anchor`/`idx_rec_sentence` 两个索引。
+  - **@MainActor 决策（commit fb69eea）**：方案原计划对 `LearningContentRepository` 标注 `@MainActor`，但实际执行发现级联 async 变更过大（影响所有实现类、测试和调用方），改为文档注释标注 main-thread 使用意图，完整 `@MainActor` 隔离推迟到 E0b（UI 架构债）。
+  - **软删除列决策（commit fb69eea）**：核查 AI provider 配置写入路径，发现 upsert 模式已正确维护 `deleted_at` 列，不存在"死列"问题——只是尚无删除函数设置 `deleted_at` 非 NULL。软删除函数属于 E0b UI 层。
+  - **PracticeSessionStep 注释（commit fb69eea）**：当前步骤 `prepare`/`shadow`/`compare`/`completed` 对跟读流程语义正确，添加文档注释说明 E3 将做动态路由。
+  - **Architecture note（commit fb69eea）**：新增 `docs/architecture/notes/2026-06-11-learning-material-history-retention-notes.md`，记录 material 历史/operation 表增长边界、清理候选策略与触发条件。
+  - **Spec 007 补充（commit fb69eea）**：`reading_explanation_cache.result_json` 补充明文存储 + 本机可重建派生缓存 + 不进入导出同步的表述。
+  - **本机验证**：Core 177 / Data 143 / AI 145 / Speech 24 / UI 365 六包 `swift test` 全绿。CI 验证待推送后触发。
 
 ## 19. 完成标准
 
