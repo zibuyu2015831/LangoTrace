@@ -4,7 +4,7 @@ import LangoTraceCore
 /// Errors surfaced by the shared text-provider request adapters. Each calling
 /// service maps these into its own failure category so the adapter stays
 /// independent of any one service's error enum.
-enum AIProviderTextRequestAdapterError: Error, Equatable, Sendable {
+enum AIProviderTextRequestAdapterError: Error, Equatable {
     /// The endpoint base URL could not be turned into a request URL.
     case invalidEndpointURL
     /// The adapter kind has no text-provider implementation yet
@@ -117,7 +117,9 @@ extension AIProviderTextRequestAdapter {
 
 /// OpenAI-compatible Chat Completions adapter (`chat/completions`).
 struct OpenAICompatibleChatTextAdapter: AIProviderTextRequestAdapter {
-    var pathSuffix: String { "chat/completions" }
+    var pathSuffix: String {
+        "chat/completions"
+    }
 
     func structuredCompletionBody(
         model: String,
@@ -182,7 +184,9 @@ struct OpenAICompatibleChatTextAdapter: AIProviderTextRequestAdapter {
 
 /// OpenAI Responses API adapter (`responses`).
 struct OpenAIResponsesTextAdapter: AIProviderTextRequestAdapter {
-    var pathSuffix: String { "responses" }
+    var pathSuffix: String {
+        "responses"
+    }
 
     func structuredCompletionBody(
         model: String,

@@ -7,8 +7,7 @@ import Testing
 struct AIProviderTextRequestAdapterTests {
     private func decodedBody(_ request: URLRequest) throws -> [String: Any] {
         let body = try #require(request.httpBody)
-        let object = try #require(try JSONSerialization.jsonObject(with: body) as? [String: Any])
-        return object
+        return try #require(try JSONSerialization.jsonObject(with: body) as? [String: Any])
     }
 
     @Test("factory dispatches OpenAI-compatible kinds to concrete adapters")
@@ -110,7 +109,7 @@ struct AIProviderTextRequestAdapterTests {
     }
 
     @Test("plain prompt body differs per kind: chat uses messages, responses uses input string")
-    func plainPromptBodyShape() throws {
+    func plainPromptBodyShape() {
         let chat = OpenAICompatibleChatTextAdapter().plainPromptBody(model: "m", prompt: "p")
         #expect((chat["messages"] as? [[String: Any]])?.first?["content"] as? String == "p")
 
@@ -119,7 +118,7 @@ struct AIProviderTextRequestAdapterTests {
     }
 
     @Test("image prompt body uses the correct token key and inline image per kind")
-    func imagePromptBodyShape() throws {
+    func imagePromptBodyShape() {
         let chat = OpenAICompatibleChatTextAdapter().imagePromptBody(
             model: "m",
             prompt: "p",

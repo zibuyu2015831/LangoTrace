@@ -77,4 +77,3 @@ func interfaceLanguagePreferenceExposesFirstBatchInterfaceLanguages() {
         "ru",
     ])
 }
-

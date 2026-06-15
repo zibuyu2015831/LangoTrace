@@ -96,8 +96,17 @@ struct ReadingDocumentStoreExplanationCacheTests {
         let cacheKey = "\(selection.sourceAnchorID):bilingualBridge"
         #expect(store.explanationCache[cacheKey] != nil)
 
-        // Repository insert should have been called
-        let insertCount = await mockRepo.insertCount
+        // Repository insert is dispatched as a fire-and-forget Task in
+        // ReadingDocumentStore (`Task { try? await repo?.insert(...) }`) and is
+        // not awaited before explanationState flips to .idle, so poll until it
+        // lands instead of reading once and racing the detached task.
+        var insertCount = await mockRepo.insertCount
+        var insertSpins = 0
+        while insertCount == 0, insertSpins < 1000 {
+            await Task.yield()
+            insertCount = await mockRepo.insertCount
+            insertSpins += 1
+        }
         #expect(insertCount == 1)
     }
 
@@ -175,8 +184,16 @@ struct ReadingDocumentStoreExplanationCacheTests {
         #expect(requestCountAfter == requestCountBefore + 1)
         #expect(store.explanationSource == .fresh)
 
-        // Repository delete should have been called once
-        let deleteCount = await mockRepo.deleteCount
+        // Repository delete is dispatched as a fire-and-forget Task in
+        // ReadingDocumentStore (`Task { try? await repo?.delete(...) }`), so poll
+        // until it lands instead of reading once and racing the detached task.
+        var deleteCount = await mockRepo.deleteCount
+        var deleteSpins = 0
+        while deleteCount == 0, deleteSpins < 1000 {
+            await Task.yield()
+            deleteCount = await mockRepo.deleteCount
+            deleteSpins += 1
+        }
         #expect(deleteCount == 1)
     }
 
