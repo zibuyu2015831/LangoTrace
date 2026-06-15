@@ -31,8 +31,11 @@
   --accent-tint-2: #d2e4de;
   --on-accent: #f6fbf9;
 
-  /* 学习语义色 */
-  --target-lang: #126b5d;      /* 目标语言内容 */
+  /* 学习语义色
+     accent 收敛：松绿 accent 只表示「可操作 / 主动作」；
+     目标语言内容靠衬线字形 + 暖墨色区分，不再借用 accent 绿，
+     避免一种颜色同时承担「语言内容 / 主操作 / 当前导航」三重语义。 */
+  --target-lang: #233029;      /* 目标语言内容（暖墨，serif 承担识别，不抢 accent） */
   --native-lang: #5e6c66;      /* 母语对照内容 */
   --highlight: #f4ecd2;        /* 阅读选中 / 高亮（浅黄） */
 
@@ -58,6 +61,12 @@
   /* 字体 */
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
           "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+  /* 衬线：仅用于目标语言学习内容（英文美段 / 阅读正文 / 记忆词句 / 文档标题），
+     给「被学习的语言」一套阅读嗓音，与 UI sans 在字形层面区分。
+     纯系统字体栈，不依赖远程字体：Apple 平台命中 ui-serif（New York），
+     其余平台回退 Iowan / Georgia。 */
+  --font-serif: ui-serif, "New York", "Iowan Old Style", "Source Serif 4",
+                Georgia, "Songti SC", "Times New Roman", serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
 
   /* 字号（手机屏内基准） */
@@ -88,6 +97,9 @@ body {
 }
 
 h1, h2, h3, h4, p { margin: 0; }
+/* 排印精修：标题平衡断行避免孤字，正文 pretty 收紧寡行尾字。 */
+h1, h2, h3, h4 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 /* 静态原型按钮 reset：清除 UA 默认边框 / 背景 / 内边距 / 居中文本，

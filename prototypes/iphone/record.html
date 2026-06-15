@@ -46,6 +46,14 @@
     cursor: pointer;
   }
   .entry-card:hover { background: var(--surface-2); }
+  /* 未生成学习材料的原始记录：内陷、去阴影，让已生成的卡自然浮起，
+     用层次而非彩色边框区分状态（避免「卡片+左色条」slop）。 */
+  .entry-card.raw {
+    background: var(--surface-2);
+    box-shadow: none;
+    border-color: var(--hairline);
+  }
+  .entry-card.raw .entry-title { color: var(--ink-2); font-weight: 620; }
   .entry-top { display: flex; align-items: center; gap: 8px; }
   .entry-time { font-size: var(--fs-caption); color: var(--faint); font-weight: 620; }
   .entry-top .pill { margin-left: auto; }
@@ -135,7 +143,7 @@
               <p class="entry-excerpt">楼下新来了一辆咖啡车，老板说每天只来三个小时。排队的时候闻到现磨豆子的味道，突然觉得周四也没那么难熬。</p>
             </div>
 
-            <div class="entry-card">
+            <div class="entry-card raw">
               <div class="entry-top">
                 <span class="entry-time">07:15</span>
                 <span class="pill pill-neutral">未生成</span>

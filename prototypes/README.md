@@ -31,7 +31,9 @@ prototypes/
 ## 视觉基准
 
 - 色板沿用 2026-05-23 用户审核通过的外观基准（见 `archive/appearance-theme-review/`）：暖纸面背景、墨色文字、松绿 accent `#126b5d`。
-- 系统字体栈（SF Pro / PingFang SC），内联描边 SVG 图标（1.6px stroke），不使用 emoji 图标。
+- 双字形嗓音：UI chrome 与母语用系统 sans 栈（SF Pro / PingFang SC）；**目标语言学习内容**（英文美段 / 阅读正文 / 记忆词句 / 文档标题）用衬线栈 `--font-serif`（Apple 命中 New York，回退 Georgia），给「被学习的语言」一套阅读字形。内联描边 SVG 图标（1.6px stroke），不使用 emoji 图标。
+- accent 收敛：松绿 accent 只表示「可操作 / 主动作」；目标语言内容靠衬线 + 暖墨色 `--target-lang` 区分，不再借用 accent 绿，避免一种颜色同时承担「语言内容 / 主操作 / 当前导航」三重语义。
+- 排印精修：标题 `text-wrap: balance`、正文 `text-wrap: pretty`；统计数字 / 计数 / 日期用 `tabular-nums` 等宽对齐。
 - 触控目标 ≥ 44pt；状态以文案 + tone 共同表达，不只靠颜色。
 
 ## 维护规则

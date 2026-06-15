@@ -22,7 +22,23 @@
     line-height: 1.6;
   }
   .ob-scroll { padding: 10px 20px 18px; }
-  .check { color: var(--accent); }
+  /* 母语单选与水平自评共用同一「圆形勾选」选中形态：
+     垂直单选列表统一一种语言，紧凑多选网格才用 chip。 */
+  .row.selected { background: var(--accent-tint); }
+  .sel-check {
+    margin-left: auto;
+    width: 22px; height: 22px; flex: none;
+    border-radius: 50%;
+    border: 1.5px solid var(--hairline-strong);
+    display: flex; align-items: center; justify-content: center;
+    color: transparent;
+    background: var(--surface);
+  }
+  .row.selected .sel-check {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
   .chip-grid {
     display: flex;
     flex-wrap: wrap;
@@ -111,18 +127,20 @@
           <div class="app-scroll ob-scroll">
 
             <div class="section-label">母语</div>
-            <div class="list">
-              <button class="row">
+            <div class="list" role="radiogroup" aria-label="母语">
+              <button class="row selected" role="radio" aria-checked="true">
                 <div class="row-body"><div class="row-title">中文</div></div>
-                <span class="check">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+                <span class="sel-check">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
                 </span>
               </button>
-              <button class="row">
+              <button class="row" role="radio" aria-checked="false">
                 <div class="row-body"><div class="row-title">English</div></div>
+                <span class="sel-check"></span>
               </button>
-              <button class="row">
+              <button class="row" role="radio" aria-checked="false">
                 <div class="row-body"><div class="row-title">日本語</div></div>
+                <span class="sel-check"></span>
               </button>
             </div>
 
@@ -185,7 +203,7 @@
       <li><strong>compact 底部 sticky CTA</strong>：iPhone 上 CTA 固定在底部毛玻璃条内，滚动内容不遮挡；iPad / macOS 宽屏布局改为内容流内 CTA，不做全宽吸底。</li>
       <li><strong>水平自评是输入而非测试</strong>：三张可选卡各带一行用途说明，自评只影响后续 AI 生成材料的难度倾向，可随时在设置中修改。</li>
       <li><strong>数据目录零决策</strong>：footnote 明确数据进入 App 私有容器，首次启动不出现文件夹选择器，降低进入门槛。</li>
-      <li><strong>选中状态不只靠颜色</strong>：母语行用 checkmark、目标语言用实底 chip、水平卡用边框 + 圆形勾选三种形态共同表达选中。</li>
+      <li><strong>选中形态统一为两类</strong>：垂直单选列表（母语、水平自评）共用「圆形勾选 + 浅底」一种形态；仅紧凑多选网格（目标语言）用实底 chip。选中以勾选 + 背景双重表达，不只靠颜色。</li>
     </ul>
   </div>
 </div>

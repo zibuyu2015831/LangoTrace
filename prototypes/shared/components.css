@@ -546,6 +546,51 @@
   line-height: 1.6;
 }
 
+/* ---------- 目标语言阅读嗓音（衬线） ----------
+   集中挂载：所有被学习的目标语言内容统一用 --font-serif，
+   给「语言本身」一套阅读字形，与 UI / 母语 sans 区分；
+   母语对照（.sentence-native / .mi-zh / .mt-zh 等）保持 sans 不动。
+   页面专属类在此集中覆盖，避免逐页改 HTML。 */
+.sentence-target,
+.body.target,
+.target-line,
+.sent-target,
+.ref-text,
+.mem-target,
+.mem-item .mi-en,
+.mem-cand .mc-en,
+.mt-en,
+.detail-card .en,
+.trace-target,
+.doc-body,
+.reading-body,
+.article .para,
+.dr-title,
+.doc-title,
+.study-quote,
+.quote-card {
+  font-family: var(--font-serif);
+}
+
+/* serif 在小字号下行高需略松，避免 Latin 衬线显得拥挤 */
+.sentence-target,
+.target-line,
+.mem-target,
+.doc-body,
+.reading-body,
+.article .para {
+  line-height: 1.62;
+}
+
+/* ---------- 数字对齐（tabular） ----------
+   统计数字、计数、日期用等宽数字，避免数值变化时跳动。 */
+.stat-num,
+.mt-date,
+.side-item .count,
+.sentence-index {
+  font-variant-numeric: tabular-nums;
+}
+
 /* 表单 */
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-label { font-size: var(--fs-sub); font-weight: 640; color: var(--ink-2); }
