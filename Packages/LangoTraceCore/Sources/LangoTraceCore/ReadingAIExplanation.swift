@@ -86,8 +86,12 @@ public struct ReadingSelectionExplanationResult: Codable, Equatable, Sendable {
 public enum ReadingSelectionExplanationFailureCategory: Equatable, Sendable {
     case providerNotConfigured
     case unsupportedProvider
+    case authenticationFailed
+    case rateLimited
+    case unsupportedModel
     case providerRejected
     case networkUnavailable
+    case timeout
     case cancelled
     case invalidStructuredResponse
 }

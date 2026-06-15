@@ -97,6 +97,9 @@ struct AIProviderSaveFailureDisplay: Equatable {
             case .orphanedCredentialCleanupFailed:
                 phase = .credentialCleanup
                 category = .credentialCleanupFailed
+            case .configurationStoreUnavailable, .defaultProfileMissing:
+                phase = .unknown
+                category = .unknown
             }
         } else {
             phase = .unknown

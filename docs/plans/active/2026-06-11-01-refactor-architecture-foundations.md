@@ -4,7 +4,7 @@
 自审核状态：Reviewed
 类型：refactor
 创建日期：2026-06-11
-最后更新日期：2026-06-15（用户授权实施，进入 Phase 1；本机 Linux 无 Swift 工具链，验证按 Phase 收集至 `docs/testing/2026-06-15-architecture-foundations-pending-verification.md`，待 Mac/CI 运行）
+最后更新日期：2026-06-15（用户授权实施，Phase 1-2 已落地；本机 Linux 无 Swift 工具链，验证按 Phase 收集至 `docs/testing/2026-06-15-architecture-foundations-pending-verification.md`，待 Mac/CI 运行）
 
 ## 用户确认记录
 
@@ -379,6 +379,15 @@ git diff --check
   - 副作用收益：probe `parseText` 对非对象 JSON 错用 `AIProviderConfigurationError.missingRequiredEndpointField`（§2.2 列的 `:567` 错用点之一）随 parseText 删除而消失；二者最终都映射为 `.invalidResponse`，可观察行为不变。Phase 2 的错用修正只需处理 `AIProviderConfigurationService.swift:136,139`。
   - 新增测试 `AIProviderTextRequestAdapterTests.swift`（首失败用例 `chatAdapterBuildsBearerAuthorizedRequest`）。
   - 本机结构性检查：三个文本服务 `Bearer \(` 与请求构造 switch 归零（Bearer 仅余 adapter 一处 + TTS/Embedding 排除项）。`swift test` 待 Mac/CI，见 `docs/testing/2026-06-15-architecture-foundations-pending-verification.md`。
+
+- **Phase 2（错误分类补全与错用修正）已实现**：
+  - Core 三个枚举补全：`LearningMaterialGenerationFailureCategory` 新增 `authenticationFailed` / `rateLimited`；`ReadingSelectionExplanationFailureCategory` 重排为含 `authenticationFailed` / `rateLimited` / `unsupportedModel` / `timeout` 的完整集合；`AIProviderConfigurationError` 新增 `configurationStoreUnavailable` / `defaultProfileMissing`。
+  - AI 映射接线：`LearningMaterialGenerationService` 与 `ReadingSelectionExplanationService` 的 `failureCategory(forHTTPStatusCode:)` 改为经 `AIProviderHTTPStatusErrorMapper` 翻译为精确分类（401/403→认证失败、404→模型不支持、429→限流、其余→`providerRejected`）；`ReadingSelectionExplanationService.serviceError(for:)` 拆分 `.timedOut`→`.timeout`，其余 transport 错误仍归 `.networkUnavailable`。
+  - 错用修正：`AIProviderConfigurationService` 的 validate / test 读取路径——`validateDefaultProfileCredentials`（`:136/:139`）与 `testDefaultConfiguration`（`:208/:212`）——credentialStore 缺失改抛 `configurationStoreUnavailable`、default profile 缺失改抛 `defaultProfileMissing`。`:220`（无任何启用 endpoint）语义上确为缺字段，保留 `missingRequiredEndpointField`。
+  - 范围决策：`saveDefaultProfile`（`:69-74`）credentialStore 缺失仍归 `keychainWriteFailed`——该处属真实 keychain 写入操作的入口，方案 §2.2 只把它列在 save 路径而非错用点，故保留；DoD「`keychainWriteFailed` 只剩真实 keychain 写入路径」据此判定为满足。`AIProviderConfigurationError.invalidResponseBody`（原 §12 Phase 2 拟新增）因其唯一消费点（probe `:567` 错用）已在 Phase 1 随 parseText 删除而消失，本期**不新增**该 case，避免引入无消费者的枚举值。
+  - 穷尽性连锁修复：`AIProviderConfigurationService.saveFailure(from:)` 与 UI `AIProviderDraftConfiguration.init(error:)` 两处对 `AIProviderConfigurationError` 的穷尽 switch 各补一条 `.configurationStoreUnavailable, .defaultProfileMissing`→`phase: .unknown, category: .unknown`（两 case 不从 save 路径抛出）。
+  - 测试：新建 Core `LearningMaterialGenerationFailureCategoryTests.swift`（首失败用例 `rateLimitedCaseExists`）；更新 AI `LearningMaterialGenerationServiceTests`（401/403→认证失败、429→限流）与 `ReadingSelectionExplanationServiceTests`（HTTP 状态码精确映射 + 新增 `serviceDistinguishesTimeoutFromTransportFailures`）。
+  - 本机结构性检查：`grep -rn "keychainWriteFailed" Packages/LangoTraceAI/Sources` 仅余 save / keychain 写入路径。`swift test` 待 Mac/CI。
 
 ## 19. 完成标准
 

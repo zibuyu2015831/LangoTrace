@@ -145,14 +145,12 @@ private extension LearningMaterialGenerationService {
     func failureCategory(forHTTPStatusCode statusCode: Int) -> LearningMaterialGenerationFailureCategory {
         switch AIProviderHTTPStatusErrorMapper.errorCategory(forHTTPStatusCode: statusCode) {
         case .authenticationFailed:
-            // Closest existing Core case for 401/403; the enum has no
-            // dedicated authenticationFailed case yet.
-            .credentialMissing
+            .authenticationFailed
+        case .rateLimited:
+            .rateLimited
         case .unsupportedModel:
             .unsupportedModel
         default:
-            // Includes 429: the Core enum has no rateLimited case yet, so the
-            // closest existing classification is providerRejected.
             .providerRejected
         }
     }

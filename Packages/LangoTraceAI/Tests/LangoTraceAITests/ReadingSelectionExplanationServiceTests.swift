@@ -279,18 +279,55 @@ struct ReadingSelectionExplanationServiceTests {
 
     @Test(
         "service maps provider HTTP status codes through the shared mapper",
-        arguments: [401, 403, 404, 429, 500]
+        arguments: [
+            (401, ReadingSelectionExplanationFailureCategory.authenticationFailed),
+            (403, ReadingSelectionExplanationFailureCategory.authenticationFailed),
+            (404, ReadingSelectionExplanationFailureCategory.unsupportedModel),
+            (429, ReadingSelectionExplanationFailureCategory.rateLimited),
+            (500, ReadingSelectionExplanationFailureCategory.providerRejected),
+        ]
     )
-    func serviceMapsProviderHTTPStatusCodes(statusCode: Int) async throws {
+    func serviceMapsProviderHTTPStatusCodes(
+        testCase: (statusCode: Int, expected: ReadingSelectionExplanationFailureCategory)
+    ) async throws {
         let httpClient = CapturingReadingExplanationHTTPClient(responses: [
-            .success(AIProviderHTTPResponse(statusCode: statusCode, body: Data(#"{"error":"failure"}"#.utf8))),
+            .success(AIProviderHTTPResponse(statusCode: testCase.statusCode, body: Data(#"{"error":"failure"}"#.utf8))),
         ])
         let service = ReadingSelectionExplanationService(httpClient: httpClient)
 
-        // The reading failure enum has no authentication / unsupported-model /
-        // rate-limit cases yet, so the closest existing case for every non-2xx
-        // status is providerRejected (finer Core cases are deferred).
-        await #expect(throws: ReadingSelectionExplanationServiceError(category: .providerRejected)) {
+        await #expect(throws: ReadingSelectionExplanationServiceError(category: testCase.expected)) {
+            try await service.explain(
+                ReadingSelectionExplanationServiceRequest(
+                    endpoint: endpoint(adapterKind: .openAICompatibleChat),
+                    plaintextSecret: "sk-test-secret",
+                    input: sampleInput(
+                        selection: "ticket",
+                        containingSentence: "I bought a ticket.",
+                        contextText: "I bought a ticket.",
+                        selectionScope: .sentence,
+                        contextMode: .currentParagraph
+                    )
+                )
+            )
+        }
+    }
+
+    @Test(
+        "service distinguishes timeout from other transport failures",
+        arguments: [
+            (AIProviderHTTPClientError.timedOut, ReadingSelectionExplanationFailureCategory.timeout),
+            (AIProviderHTTPClientError.networkUnavailable, ReadingSelectionExplanationFailureCategory.networkUnavailable),
+            (AIProviderHTTPClientError.invalidHTTPResponse, ReadingSelectionExplanationFailureCategory.networkUnavailable),
+            (AIProviderHTTPClientError.responseTooLarge, ReadingSelectionExplanationFailureCategory.networkUnavailable),
+        ]
+    )
+    func serviceDistinguishesTimeoutFromTransportFailures(
+        testCase: (error: AIProviderHTTPClientError, expected: ReadingSelectionExplanationFailureCategory)
+    ) async throws {
+        let httpClient = CapturingReadingExplanationHTTPClient(responses: [.failure(testCase.error)])
+        let service = ReadingSelectionExplanationService(httpClient: httpClient)
+
+        await #expect(throws: ReadingSelectionExplanationServiceError(category: testCase.expected)) {
             try await service.explain(
                 ReadingSelectionExplanationServiceRequest(
                     endpoint: endpoint(adapterKind: .openAICompatibleChat),

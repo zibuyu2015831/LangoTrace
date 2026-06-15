@@ -242,12 +242,12 @@ private extension ReadingSelectionExplanationService {
 
     func failureCategory(forHTTPStatusCode statusCode: Int) -> ReadingSelectionExplanationFailureCategory {
         switch AIProviderHTTPStatusErrorMapper.errorCategory(forHTTPStatusCode: statusCode) {
-        case .authenticationFailed, .unsupportedModel, .rateLimited:
-            // The reading failure enum has no dedicated authentication,
-            // unsupported-model, or rate-limit cases yet; providerRejected is
-            // the closest existing classification. Adding finer Core cases is
-            // tracked separately (deferred, AI-16).
-            .providerRejected
+        case .authenticationFailed:
+            .authenticationFailed
+        case .unsupportedModel:
+            .unsupportedModel
+        case .rateLimited:
+            .rateLimited
         default:
             .providerRejected
         }
@@ -337,7 +337,9 @@ private extension ReadingSelectionExplanationService {
         switch error {
         case .cancelled:
             ReadingSelectionExplanationServiceError(category: .cancelled)
-        case .timedOut, .networkUnavailable, .invalidHTTPResponse, .responseTooLarge:
+        case .timedOut:
+            ReadingSelectionExplanationServiceError(category: .timeout)
+        case .networkUnavailable, .invalidHTTPResponse, .responseTooLarge:
             ReadingSelectionExplanationServiceError(category: .networkUnavailable)
         }
     }

@@ -13,6 +13,14 @@ public enum AIProviderConfigurationError: Error, Equatable, Sendable {
     case keychainWriteFailed
     case databaseWriteFailed
     case orphanedCredentialCleanupFailed
+    /// The secure credential store is unavailable in the current session
+    /// (e.g. validation requested while no credential store is wired). Distinct
+    /// from `keychainWriteFailed`, which means a write was attempted and failed.
+    case configurationStoreUnavailable
+    /// No default AI provider profile is configured, so there is nothing to
+    /// validate. Distinct from `missingRequiredEndpointField`, which means a
+    /// configured profile is missing a required field.
+    case defaultProfileMissing
 }
 
 public struct AIProviderCredentialResolveFailure: Error, Equatable, Sendable {

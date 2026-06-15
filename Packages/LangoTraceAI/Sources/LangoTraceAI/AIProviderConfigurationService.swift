@@ -133,10 +133,10 @@ public struct AIProviderConfigurationService: Sendable {
 
     public func validateDefaultProfileCredentials() async throws -> AIProviderValidationStatus {
         guard let credentialStore else {
-            throw AIProviderConfigurationError.keychainWriteFailed
+            throw AIProviderConfigurationError.configurationStoreUnavailable
         }
         guard let profile = try await repository.loadDefaultProfile() else {
-            throw AIProviderConfigurationError.missingRequiredEndpointField
+            throw AIProviderConfigurationError.defaultProfileMissing
         }
 
         var didFail = false
@@ -205,11 +205,11 @@ public struct AIProviderConfigurationService: Sendable {
         operationID: DiagnosticOperationID = DiagnosticOperationID(rawValue: UUID().uuidString)
     ) async throws -> AIProviderConfigurationProbeResult {
         guard let credentialStore else {
-            throw AIProviderConfigurationError.keychainWriteFailed
+            throw AIProviderConfigurationError.configurationStoreUnavailable
         }
         guard let profile = try await repository.loadDefaultProfile()
         else {
-            throw AIProviderConfigurationError.missingRequiredEndpointField
+            throw AIProviderConfigurationError.defaultProfileMissing
         }
 
         let credentialsByID = Dictionary(uniqueKeysWithValues: profile.credentials.map { ($0.id, $0) })
@@ -1288,6 +1288,15 @@ private extension AIProviderConfigurationService {
                 operationID: operationID,
                 phase: .credentialCleanup,
                 category: .credentialCleanupFailed,
+                cleanupFailure: cleanupFailure
+            )
+        case .configurationStoreUnavailable, .defaultProfileMissing:
+            // 这两个 case 来自 validate / test 读取路径，不会从 save 路径抛出；
+            // 归入 unknown，避免误标成具体的 save 阶段失败。
+            AIProviderConfigurationSaveFailure(
+                operationID: operationID,
+                phase: .unknown,
+                category: .unknown,
                 cleanupFailure: cleanupFailure
             )
         }

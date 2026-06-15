@@ -32,4 +32,21 @@
 
 ---
 
+### Phase 2：错误分类补全与错用修正
+
+落点：`Packages/LangoTraceCore`、`Packages/LangoTraceAI`、`Packages/LangoTraceUI`。
+
+- ⬜ Core 聚焦测试：`swift test --package-path Packages/LangoTraceCore --filter LearningMaterialGenerationFailureCategoryTests`（新建；first-fail `rateLimitedCaseExists`）
+- ⬜ AI 聚焦测试：`swift test --package-path Packages/LangoTraceAI --filter LearningMaterialGenerationServiceTests`（更新：401/403→`authenticationFailed`、429→`rateLimited`、404→`unsupportedModel`、500→`providerRejected`）
+- ⬜ AI 聚焦测试：`swift test --package-path Packages/LangoTraceAI --filter ReadingSelectionExplanationServiceTests`（更新：HTTP 状态码精确映射 + 新增 transport 错误区分 `timedOut`→`timeout`、其余→`networkUnavailable`）
+- ⬜ AI 全包回归：`swift test --package-path Packages/LangoTraceAI`
+- ⬜ UI 全包回归：`swift test --package-path Packages/LangoTraceUI`（`AIProviderDraftConfiguration.init(error:)` 新增两个 case 的 switch arm，确认无穷尽性破坏）
+- ✅ 结构性检查（本机 rg 自查已执行）：`grep -rn "keychainWriteFailed" Packages/LangoTraceAI/Sources` 仅余真实 keychain 写入 / 保存路径（`saveDefaultProfile`、保存凭证 keychain 写入、`saveFailure` 映射）；validate / test 读取路径的 credentialStore 缺失改抛 `configurationStoreUnavailable`、default profile 缺失改抛 `defaultProfileMissing`（`:136/:139/:208/:212`）。
+
+预期：人为构造 401/403/404/429/500 fixture 时，生成与阅读两个服务返回精确的限流 / 认证失败 / 模型不支持分类而非 `providerRejected` / `credentialMissing`；阅读服务超时映射为 `timeout` 而非 `networkUnavailable`；`AIProviderConfigurationError` 两个新 case 不破坏 `saveFailure` 与 UI `init(error:)` 的穷尽 switch。
+
+结果回填：_（待 Mac/CI）_
+
+---
+
 _（后续 Phase 在实施时追加）_

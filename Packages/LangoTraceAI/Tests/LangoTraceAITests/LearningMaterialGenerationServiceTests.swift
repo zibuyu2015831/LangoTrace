@@ -291,10 +291,10 @@ func learningMaterialGenerationServiceAcceptsAnalysesAtArrayLimits() async throw
 
 @Test("Learning material generation service maps provider HTTP status codes to failure categories")
 func learningMaterialGenerationServiceMapsProviderHTTPStatusCodes() async {
-    await expectGenerationHTTPStatus(401, mapsTo: .credentialMissing)
-    await expectGenerationHTTPStatus(403, mapsTo: .credentialMissing)
+    await expectGenerationHTTPStatus(401, mapsTo: .authenticationFailed)
+    await expectGenerationHTTPStatus(403, mapsTo: .authenticationFailed)
     await expectGenerationHTTPStatus(404, mapsTo: .unsupportedModel)
-    await expectGenerationHTTPStatus(429, mapsTo: .providerRejected)
+    await expectGenerationHTTPStatus(429, mapsTo: .rateLimited)
     await expectGenerationHTTPStatus(500, mapsTo: .providerRejected)
 }
 

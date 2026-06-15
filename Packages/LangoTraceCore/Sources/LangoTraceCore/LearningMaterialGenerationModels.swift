@@ -33,8 +33,10 @@ public enum LearningMaterialAnalysisStatus: String, Codable, CaseIterable, Equat
 public enum LearningMaterialGenerationFailureCategory: String, Codable, CaseIterable, Equatable, Sendable {
     case providerNotConfigured
     case credentialMissing
+    case authenticationFailed
     case networkUnavailable
     case timeout
+    case rateLimited
     case providerRejected
     case unsupportedProvider
     case unsupportedModel
