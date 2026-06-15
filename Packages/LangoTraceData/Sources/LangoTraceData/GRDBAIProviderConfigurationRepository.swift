@@ -4,13 +4,16 @@ import LangoTraceCore
 
 public struct GRDBAIProviderConfigurationRepository: AIProviderConfigurationRepository, @unchecked Sendable {
     private let databaseQueue: DatabaseQueue
+    private let diagnosticLogger: any DiagnosticLogging
     private let clock: @Sendable () -> Date
 
     public init(
         database: AppDatabase,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init
     ) {
         databaseQueue = database.databaseQueue
+        self.diagnosticLogger = diagnosticLogger
         self.clock = clock
     }
 
@@ -409,7 +412,14 @@ private extension GRDBAIProviderConfigurationRepository {
             id: row["id"],
             displayName: row["display_name"],
             isDefault: row["is_default"],
-            status: AIProviderProfileStatus(rawValue: row["status"] as String) ?? .incomplete,
+            status: StoredEnumDecoding.decode(
+                AIProviderProfileStatus.self,
+                from: row["status"] as String,
+                fallback: .incomplete,
+                context: "ai_provider_profiles.status",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             createdAt: date(row["created_at"]),
             updatedAt: date(row["updated_at"]),
             lastValidatedAt: optionalDate(row["last_validated_at"]),
@@ -424,10 +434,24 @@ private extension GRDBAIProviderConfigurationRepository {
         let input = AIProviderEndpointInput(
             id: row["id"],
             profileID: row["profile_id"],
-            purpose: AIProviderEndpointPurpose(rawValue: row["purpose"] as String) ?? .textGeneration,
+            purpose: StoredEnumDecoding.decode(
+                AIProviderEndpointPurpose.self,
+                from: row["purpose"] as String,
+                fallback: .textGeneration,
+                context: "ai_provider_endpoints.purpose",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             isEnabled: row["is_enabled"],
             providerPresetID: row["provider_preset_id"],
-            adapterKind: AIProviderAdapterKind(rawValue: row["adapter_kind"] as String) ?? .openAICompatibleChat,
+            adapterKind: StoredEnumDecoding.decode(
+                AIProviderAdapterKind.self,
+                from: row["adapter_kind"] as String,
+                fallback: .openAICompatibleChat,
+                context: "ai_provider_endpoints.adapter_kind",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             baseURL: row["base_url"],
             modelName: row["model_name"],
             credentialID: row["credential_id"],
@@ -451,14 +475,35 @@ private extension GRDBAIProviderConfigurationRepository {
             id: row["id"],
             profileID: row["profile_id"],
             providerPresetID: row["provider_preset_id"],
-            kind: AIProviderCredentialKind(rawValue: row["kind"] as String) ?? .apiKey,
+            kind: StoredEnumDecoding.decode(
+                AIProviderCredentialKind.self,
+                from: row["kind"] as String,
+                fallback: .apiKey,
+                context: "ai_provider_credentials.kind",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             label: row["label"],
             keychainService: row["keychain_service"],
             keychainAccessGroup: row["keychain_access_group"],
             keychainSynchronizable: row["keychain_synchronizable"],
             keychainAccessibility: row["keychain_accessibility"],
-            secretPresence: AIProviderSecretPresence(rawValue: row["secret_presence"] as String) ?? .unknown,
-            cleanupState: AIProviderCredentialCleanupState(rawValue: row["cleanup_state"] as String) ?? .active,
+            secretPresence: StoredEnumDecoding.decode(
+                AIProviderSecretPresence.self,
+                from: row["secret_presence"] as String,
+                fallback: .unknown,
+                context: "ai_provider_credentials.secret_presence",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            cleanupState: StoredEnumDecoding.decode(
+                AIProviderCredentialCleanupState.self,
+                from: row["cleanup_state"] as String,
+                fallback: .active,
+                context: "ai_provider_credentials.cleanup_state",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             createdAt: date(row["created_at"]),
             updatedAt: date(row["updated_at"]),
             lastResolvedAt: optionalDate(row["last_resolved_at"]),

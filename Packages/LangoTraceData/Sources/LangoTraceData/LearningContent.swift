@@ -1,6 +1,13 @@
 import Foundation
 import LangoTraceCore
 
+/// A repository for learning content entries and their associated materials.
+///
+/// Conforming types are expected to be used from the main actor context.
+/// The primary consumer (`LearningContentStore`) is `@MainActor`, and all
+/// protocol methods are synchronous. Full `@MainActor` protocol isolation
+/// is deferred to E0b (UI architecture debt) to avoid cascading async
+/// changes across all implementations and test sites.
 public protocol LearningContentRepository: AnyObject {
     func ensureSeeded(spaceID: String)
     func entries(for spaceID: String) -> [LearningEntry]

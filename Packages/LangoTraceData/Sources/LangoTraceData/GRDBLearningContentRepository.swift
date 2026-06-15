@@ -6,17 +6,20 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
     private let databaseQueue: DatabaseQueue
     private let clock: @Sendable () -> Date
     private let idGenerator: @Sendable () -> String
+    private let diagnosticLogger: any DiagnosticLogging
     private let jsonEncoder = JSONEncoder()
     private let jsonDecoder = JSONDecoder()
 
     public init(
         database: AppDatabase,
         clock: @escaping @Sendable () -> Date = Date.init,
-        idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
+        idGenerator: @escaping @Sendable () -> String = { UUID().uuidString },
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger()
     ) {
         databaseQueue = database.databaseQueue
         self.clock = clock
         self.idGenerator = idGenerator
+        self.diagnosticLogger = diagnosticLogger
     }
 
     public func createEntry(_ draft: NewLearningEntryDraft, in spaceID: String) throws -> LearningEntry {
@@ -649,9 +652,10 @@ private extension GRDBLearningContentRepository {
             spaceID: row["space_id"],
             title: row["title"],
             body: row["body"],
-            source: EntrySource(rawValue: row["source"] as String) ?? .typedText,
+            source: StoredEnumDecoding.decode(EntrySource.self, from: row["source"] as String, fallback: .typedText, context: "entries.source", diagnosticLogger: diagnosticLogger, clock: clock),
             scene: row["scene"],
-            createdAt: Date(timeIntervalSince1970: row["created_at"])
+            createdAt: Date(timeIntervalSince1970: row["created_at"]),
+            updatedAt: Date(timeIntervalSince1970: row["updated_at"])
         )
     }
 
@@ -677,13 +681,34 @@ private extension GRDBLearningContentRepository {
             sql: "SELECT * FROM practice_candidates WHERE material_id = ? ORDER BY created_at DESC",
             arguments: [materialID]
         ).map(practiceCandidate(from:))
-        let status = LearningMaterialAnalysisStatus(rawValue: row["analysis_status"] as String) ?? .missing
+        let status = StoredEnumDecoding.decode(
+            LearningMaterialAnalysisStatus.self,
+            from: row["analysis_status"] as String,
+            fallback: .missing,
+            context: "learning_materials.analysis_status",
+            diagnosticLogger: diagnosticLogger,
+            clock: clock
+        )
         return LearningMaterial(
             id: materialID,
             entryID: row["entry_id"],
             spaceID: row["space_id"],
-            inputKind: LearningMaterialInputKind(rawValue: row["input_kind"] as String) ?? .uncertain,
-            promptMode: LearningMaterialPromptMode(rawValue: row["prompt_mode"] as String) ?? .automaticLearningMaterial,
+            inputKind: StoredEnumDecoding.decode(
+                LearningMaterialInputKind.self,
+                from: row["input_kind"] as String,
+                fallback: .uncertain,
+                context: "learning_materials.input_kind",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            promptMode: StoredEnumDecoding.decode(
+                LearningMaterialPromptMode.self,
+                from: row["prompt_mode"] as String,
+                fallback: .automaticLearningMaterial,
+                context: "learning_materials.prompt_mode",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             learningText: row["learning_text"],
             originalGeneratedText: row["original_generated_text"],
             sourceEntryBodyHash: row["source_entry_body_hash"],
@@ -729,7 +754,14 @@ private extension GRDBLearningContentRepository {
             originalText: row["original_text"],
             revisedText: row["revised_text"],
             reasonNative: row["reason_native"],
-            category: LearningRevision.Category(rawValue: row["category"] as String) ?? .clarity,
+            category: StoredEnumDecoding.decode(
+                LearningRevision.Category.self,
+                from: row["category"] as String,
+                fallback: .clarity,
+                context: "learning_revisions.category",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             position: row["position"]
         )
     }
@@ -738,12 +770,26 @@ private extension GRDBLearningContentRepository {
         LearningMemoryCandidate(
             id: row["id"],
             sentenceID: row["sentence_id"],
-            kind: LearningMemoryCandidate.Kind(rawValue: row["kind"] as String) ?? .phrase,
+            kind: StoredEnumDecoding.decode(
+                LearningMemoryCandidate.Kind.self,
+                from: row["kind"] as String,
+                fallback: .phrase,
+                context: "learning_memory_candidates.kind",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             text: row["text"],
             explanationNative: row["explanation_native"],
             exampleTarget: row["example_target"],
             exampleNative: row["example_native"],
-            difficulty: LearningMemoryCandidate.Difficulty(rawValue: row["difficulty"] as String) ?? .medium
+            difficulty: StoredEnumDecoding.decode(
+                LearningMemoryCandidate.Difficulty.self,
+                from: row["difficulty"] as String,
+                fallback: .medium,
+                context: "learning_memory_candidates.difficulty",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            )
         )
     }
 
@@ -751,7 +797,14 @@ private extension GRDBLearningContentRepository {
         LearningPracticeCandidate(
             id: row["id"],
             sentenceID: row["sentence_id"],
-            kind: LearningPracticeCandidate.Kind(rawValue: row["kind"] as String) ?? .backTranslation,
+            kind: StoredEnumDecoding.decode(
+                LearningPracticeCandidate.Kind.self,
+                from: row["kind"] as String,
+                fallback: .backTranslation,
+                context: "learning_practice_candidates.kind",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             title: row["title"],
             promptText: row["prompt_text"],
             answerText: row["answer_text"]
@@ -773,7 +826,14 @@ private extension GRDBLearningContentRepository {
             id: row["id"],
             entryID: row["entry_id"],
             title: row["title"],
-            kind: PracticeItem.Kind(rawValue: row["kind"] as String) ?? .backTranslation,
+            kind: StoredEnumDecoding.decode(
+                PracticeItem.Kind.self,
+                from: row["kind"] as String,
+                fallback: .backTranslation,
+                context: "practice_items.kind",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             summary: row["prompt_text"]
         )
     }
@@ -783,8 +843,22 @@ private extension GRDBLearningContentRepository {
             operationID: DiagnosticOperationID(rawValue: row["operation_id"]),
             entryID: row["entry_id"],
             materialID: row["material_id"],
-            kind: LearningMaterialOperationKind(rawValue: row["operation_kind"] as String) ?? .generate,
-            status: LearningMaterialOperationStatus(rawValue: row["status"] as String) ?? .failed,
+            kind: StoredEnumDecoding.decode(
+                LearningMaterialOperationKind.self,
+                from: row["operation_kind"] as String,
+                fallback: .generate,
+                context: "learning_material_operations.operation_kind",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            status: StoredEnumDecoding.decode(
+                LearningMaterialOperationStatus.self,
+                from: row["status"] as String,
+                fallback: .failed,
+                context: "learning_material_operations.status",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             failureCategory: (row["failure_category"] as String?).flatMap(LearningMaterialGenerationFailureCategory.init(rawValue:)),
             promptID: row["prompt_id"],
             promptVersion: row["prompt_version"],
@@ -793,7 +867,14 @@ private extension GRDBLearningContentRepository {
             providerPresetID: row["provider_preset_id"],
             modelName: row["model_name"],
             inputKind: (row["input_kind"] as String?).flatMap(LearningMaterialInputKind.init(rawValue:)),
-            estimatedTokenBucket: LearningMaterialEstimatedTokenBucket(rawValue: row["estimated_token_bucket"] as String) ?? .short,
+            estimatedTokenBucket: StoredEnumDecoding.decode(
+                LearningMaterialEstimatedTokenBucket.self,
+                from: row["estimated_token_bucket"] as String,
+                fallback: .short,
+                context: "learning_material_operations.estimated_token_bucket",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             durationMilliseconds: row["duration_ms"],
             createdAt: Date(timeIntervalSince1970: row["created_at"]),
             completedAt: (row["completed_at"] as Double?).map(Date.init(timeIntervalSince1970:))

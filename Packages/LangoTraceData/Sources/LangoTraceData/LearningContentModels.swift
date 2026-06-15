@@ -9,6 +9,7 @@ public struct LearningEntry: Equatable, Identifiable, Sendable {
     public var source: EntrySource
     public var scene: String
     public var createdAt: Date
+    public var updatedAt: Date
     public var practiceSummary: String
 
     public init(
@@ -19,6 +20,7 @@ public struct LearningEntry: Equatable, Identifiable, Sendable {
         source: EntrySource,
         scene: String,
         createdAt: Date,
+        updatedAt: Date? = nil,
         practiceSummary: String = "待练习"
     ) {
         self.id = id
@@ -28,6 +30,7 @@ public struct LearningEntry: Equatable, Identifiable, Sendable {
         self.source = source
         self.scene = scene
         self.createdAt = createdAt
+        self.updatedAt = updatedAt ?? createdAt
         self.practiceSummary = practiceSummary
     }
 

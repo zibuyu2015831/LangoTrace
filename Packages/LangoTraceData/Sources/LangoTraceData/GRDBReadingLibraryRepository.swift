@@ -10,15 +10,18 @@ public enum ReadingLibraryRepositoryError: Error, Equatable, Sendable {
 
 public struct GRDBReadingLibraryRepository: @unchecked Sendable {
     private let databaseQueue: DatabaseQueue
+    private let diagnosticLogger: any DiagnosticLogging
     private let clock: @Sendable () -> Date
     private let idGenerator: @Sendable () -> String
 
     public init(
         database: AppDatabase,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
     ) {
         databaseQueue = database.databaseQueue
+        self.diagnosticLogger = diagnosticLogger
         self.clock = clock
         self.idGenerator = idGenerator
     }
@@ -146,7 +149,14 @@ public extension GRDBReadingLibraryRepository {
                     spaceID: row["space_id"],
                     title: row["title"],
                     body: row["body"] ?? "",
-                    sourceFormat: ReadingSourceFormat(rawValue: row["source_format"] as String) ?? .plainText,
+                    sourceFormat: StoredEnumDecoding.decode(
+                        ReadingSourceFormat.self,
+                        from: row["source_format"] as String,
+                        fallback: .plainText,
+                        context: "reading_import_operations.source_format",
+                        diagnosticLogger: diagnosticLogger,
+                        clock: clock
+                    ),
                     targetLanguageCode: row["target_language_code"],
                     contentRevision: row["content_revision"],
                     structureVersion: row["structure_version"]
@@ -158,12 +168,26 @@ public extension GRDBReadingLibraryRepository {
     func updateDocument(_ input: ReadingDocumentUpdateInput) throws -> ReadingLibraryDocumentContent {
         try databaseQueue.write { db in
             let documentRow = try requireDocumentRow(id: input.documentID, spaceID: input.spaceID, db: db)
-            let libraryStatus = ReadingLibraryStatus(rawValue: documentRow["library_status"] as String) ?? .softDeleted
+            let libraryStatus = StoredEnumDecoding.decode(
+                ReadingLibraryStatus.self,
+                from: documentRow["library_status"] as String,
+                fallback: .softDeleted,
+                context: "reading_documents.library_status",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            )
             guard libraryStatus == .active else {
                 throw ReadingLibraryRepositoryError.softDeletedDocumentNotEditable
             }
 
-            let currentFormat = ReadingSourceFormat(rawValue: documentRow["source_format"] as String) ?? .plainText
+            let currentFormat = StoredEnumDecoding.decode(
+                ReadingSourceFormat.self,
+                from: documentRow["source_format"] as String,
+                fallback: .plainText,
+                context: "reading_documents.source_format",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            )
             guard currentFormat == input.sourceFormat else {
                 throw ReadingLibraryRepositoryError.sourceFormatChangeNotAllowed
             }
@@ -500,9 +524,30 @@ private extension GRDBReadingLibraryRepository {
             id: documentID,
             spaceID: spaceID,
             title: row["title"],
-            sourceFormat: ReadingSourceFormat(rawValue: row["source_format"] as String) ?? .plainText,
-            importStatus: ReadingImportStatus(rawValue: row["import_status"] as String) ?? .failed,
-            libraryStatus: ReadingLibraryStatus(rawValue: row["library_status"] as String) ?? .softDeleted,
+            sourceFormat: StoredEnumDecoding.decode(
+                ReadingSourceFormat.self,
+                from: row["source_format"] as String,
+                fallback: .plainText,
+                context: "reading_import_operations.source_format",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            importStatus: StoredEnumDecoding.decode(
+                ReadingImportStatus.self,
+                from: row["import_status"] as String,
+                fallback: .failed,
+                context: "reading_import_operations.import_status",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            libraryStatus: StoredEnumDecoding.decode(
+                ReadingLibraryStatus.self,
+                from: row["library_status"] as String,
+                fallback: .softDeleted,
+                context: "reading_import_operations.library_status",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             tagNames: tagNames,
             collectionTitles: collectionTitles,
             lastOpenedAt: (row["last_opened_at"] as Double?).map(Date.init(timeIntervalSince1970:))
@@ -672,7 +717,14 @@ private extension GRDBReadingLibraryRepository {
                 spaceID: row["space_id"],
                 title: row["title"],
                 body: row["body"] ?? "",
-                sourceFormat: ReadingSourceFormat(rawValue: row["source_format"] as String) ?? .plainText,
+                sourceFormat: StoredEnumDecoding.decode(
+                    ReadingSourceFormat.self,
+                    from: row["source_format"] as String,
+                    fallback: .plainText,
+                    context: "reading_documents.source_format",
+                    diagnosticLogger: diagnosticLogger,
+                    clock: clock
+                ),
                 targetLanguageCode: row["target_language_code"],
                 contentRevision: row["content_revision"],
                 structureVersion: row["structure_version"]
@@ -724,7 +776,14 @@ private extension GRDBReadingLibraryRepository {
         ReadingImportBatchSummary(
             id: row["id"],
             spaceID: row["space_id"],
-            status: ReadingImportBatchStatus(rawValue: row["status"] as String) ?? .failed,
+            status: StoredEnumDecoding.decode(
+                ReadingImportBatchStatus.self,
+                from: row["status"] as String,
+                fallback: .failed,
+                context: "reading_import_batches.status",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             itemCount: row["item_count"],
             successCount: row["success_count"],
             failureCount: row["failure_count"]

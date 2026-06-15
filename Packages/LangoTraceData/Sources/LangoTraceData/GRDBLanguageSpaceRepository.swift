@@ -4,37 +4,44 @@ import LangoTraceCore
 
 public struct GRDBLanguageSpaceRepository: LanguageSpaceRepository, @unchecked Sendable {
     private let databaseQueue: DatabaseQueue
+    private let diagnosticLogger: any DiagnosticLogging
     private let clock: @Sendable () -> Date
     private let idGenerator: @Sendable () -> String
 
     public init(
         database: AppDatabase,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
     ) {
         databaseQueue = database.databaseQueue
+        self.diagnosticLogger = diagnosticLogger
         self.clock = clock
         self.idGenerator = idGenerator
     }
 
     public init(
         databaseQueue: DatabaseQueue,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
     ) throws {
         try self.init(
             database: AppDatabase(databaseQueue: databaseQueue),
+            diagnosticLogger: diagnosticLogger,
             clock: clock,
             idGenerator: idGenerator
         )
     }
 
     public static func inMemory(
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
     ) throws -> GRDBLanguageSpaceRepository {
         try GRDBLanguageSpaceRepository(
             database: AppDatabase.inMemory(),
+            diagnosticLogger: diagnosticLogger,
             clock: clock,
             idGenerator: idGenerator
         )
@@ -42,11 +49,13 @@ public struct GRDBLanguageSpaceRepository: LanguageSpaceRepository, @unchecked S
 
     public static func persistent(
         at databaseURL: URL,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
     ) throws -> GRDBLanguageSpaceRepository {
         try GRDBLanguageSpaceRepository(
             database: AppDatabase.persistent(at: databaseURL),
+            diagnosticLogger: diagnosticLogger,
             clock: clock,
             idGenerator: idGenerator
         )
@@ -311,7 +320,14 @@ private extension GRDBLanguageSpaceRepository {
             id: row["id"],
             nativeLanguageCode: row["native_language_code"],
             targetLanguageCode: row["target_language_code"],
-            level: LanguageLevel(rawValue: row["level"] as String) ?? .b1,
+            level: StoredEnumDecoding.decode(
+                LanguageLevel.self,
+                from: row["level"] as String,
+                fallback: .b1,
+                context: "language_spaces.level",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             displayName: row["display_name"],
             displayNameNormalized: row["display_name_normalized"],
             createdAt: Date(timeIntervalSince1970: row["created_at"]),

@@ -6,15 +6,18 @@ public struct GRDBDiagnosticEventRepository: DiagnosticEventRepository, @uncheck
     private let databaseQueue: DatabaseQueue
     private let retentionPolicy: DiagnosticRetentionPolicy
     private let clock: @Sendable () -> Date
+    private let diagnosticLogger: any DiagnosticLogging
 
     public init(
         database: AppDatabase,
         retentionPolicy: DiagnosticRetentionPolicy = DiagnosticRetentionPolicy(),
-        clock: @escaping @Sendable () -> Date = Date.init
+        clock: @escaping @Sendable () -> Date = Date.init,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger()
     ) {
         databaseQueue = database.databaseQueue
         self.retentionPolicy = retentionPolicy
         self.clock = clock
+        self.diagnosticLogger = diagnosticLogger
     }
 
     public func record(_ event: DiagnosticEvent) async throws {
@@ -126,9 +129,30 @@ private extension GRDBDiagnosticEventRepository {
     func event(from row: Row) throws -> DiagnosticEvent {
         try DiagnosticEvent(
             id: row["id"],
-            name: DiagnosticEventName(rawValue: row["name"] as String) ?? .aiProviderSettingsSaveFailed,
-            domain: DiagnosticDomain(rawValue: row["domain"] as String) ?? .appLifecycle,
-            level: DiagnosticLevel(rawValue: row["level"] as String) ?? .info,
+            name: StoredEnumDecoding.decode(
+                DiagnosticEventName.self,
+                from: row["name"] as String,
+                fallback: .aiProviderSettingsSaveFailed,
+                context: "diagnostic_events.name",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            domain: StoredEnumDecoding.decode(
+                DiagnosticDomain.self,
+                from: row["domain"] as String,
+                fallback: .appLifecycle,
+                context: "diagnostic_events.domain",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            level: StoredEnumDecoding.decode(
+                DiagnosticLevel.self,
+                from: row["level"] as String,
+                fallback: .info,
+                context: "diagnostic_events.level",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             outcome: (row["outcome"] as String?).flatMap(DiagnosticOutcome.init(rawValue:)),
             attributes: attributes(from: row["attributes_json"]),
             createdAt: Date(timeIntervalSince1970: row["created_at"])

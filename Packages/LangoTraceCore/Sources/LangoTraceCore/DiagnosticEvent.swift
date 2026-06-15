@@ -69,6 +69,7 @@ public enum DiagnosticEventName: String, Codable, Sendable {
     case sentenceAudioPlaybackFailed = "sentence_audio_playback.failed"
     case practiceRecordingFailed = "practice_recording.failed"
     case learningContentRepositoryReadFailed = "learning_content.repository_read_failed"
+    case storedEnumDecodeFallback = "data_storage.stored_enum_decode_fallback"
 }
 
 public enum DiagnosticDomain: String, Codable, Sendable {
@@ -116,6 +117,8 @@ public enum DiagnosticAttribute: Equatable, Sendable {
     case durationBucket(SentenceAudioDurationBucket)
     case cacheResult(SentenceAudioCacheResult)
     case repositoryReadOperation(String)
+    case enumTypeName(String)
+    case rawValue(String)
 
     public var key: String {
         switch self {
@@ -163,6 +166,10 @@ public enum DiagnosticAttribute: Equatable, Sendable {
             "cache_result"
         case .repositoryReadOperation:
             "repository_read_operation"
+        case .enumTypeName:
+            "enum_type_name"
+        case .rawValue:
+            "raw_value"
         }
     }
 
@@ -203,6 +210,10 @@ public enum DiagnosticAttribute: Equatable, Sendable {
         case let .cacheResult(value):
             value.rawValue
         case let .repositoryReadOperation(value):
+            value
+        case let .enumTypeName(value):
+            value
+        case let .rawValue(value):
             value
         }
     }

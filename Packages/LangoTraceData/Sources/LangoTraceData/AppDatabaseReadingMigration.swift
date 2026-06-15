@@ -383,4 +383,70 @@ extension AppDatabase {
             }
         }
     }
+
+    // MARK: - v16
+
+    static func addReadingFKAndCheckConstraints(_ db: Database) throws {
+        // reading_explanation_cache: add FK on space_id → language_spaces
+        // SQLite doesn't support ALTER TABLE ADD FOREIGN KEY, so we rebuild the table.
+        try db.execute(sql: """
+        CREATE TABLE reading_explanation_cache_v16 (
+          id                        TEXT    PRIMARY KEY,
+          document_id               TEXT    NOT NULL REFERENCES reading_documents(id) ON DELETE CASCADE,
+          space_id                  TEXT    NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          content_revision          INTEGER NOT NULL,
+          structure_version         INTEGER NOT NULL,
+          selection_scope           TEXT    NOT NULL,
+          source_anchor_id          TEXT    NOT NULL,
+          explanation_language_mode TEXT    NOT NULL,
+          sentence_id               TEXT    NOT NULL,
+          block_id                  TEXT    NOT NULL,
+          char_offset               INTEGER NOT NULL,
+          char_length               INTEGER NOT NULL,
+          selected_text             TEXT    NOT NULL,
+          selected_text_hash        TEXT    NOT NULL,
+          result_json               TEXT    NOT NULL,
+          provider_id               TEXT,
+          model_id                  TEXT,
+          created_at                REAL    NOT NULL,
+          updated_at                REAL    NOT NULL
+        )
+        """)
+        try db.execute(sql: """
+        INSERT INTO reading_explanation_cache_v16
+        SELECT * FROM reading_explanation_cache
+        """)
+        try db.execute(sql: "DROP TABLE reading_explanation_cache")
+        try db.execute(sql: "ALTER TABLE reading_explanation_cache_v16 RENAME TO reading_explanation_cache")
+        // Recreate indexes that were lost in the table rebuild
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_rec_source_anchor
+          ON reading_explanation_cache(document_id, source_anchor_id, explanation_language_mode)
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_rec_sentence
+          ON reading_explanation_cache(document_id, content_revision, sentence_id)
+        """)
+
+        // reading_import_operations: add CHECK on status
+        // SQLite doesn't support ALTER TABLE ADD CHECK, so we rebuild the table.
+        try db.execute(sql: """
+        CREATE TABLE reading_import_operations_v16 (
+          id TEXT PRIMARY KEY,
+          batch_id TEXT REFERENCES reading_import_batches(id) ON DELETE SET NULL,
+          space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          operation_type TEXT NOT NULL,
+          status TEXT NOT NULL CHECK (status IN ('pending', 'ready', 'failed')),
+          failure_category TEXT,
+          created_at REAL NOT NULL,
+          completed_at REAL
+        )
+        """)
+        try db.execute(sql: """
+        INSERT INTO reading_import_operations_v16
+        SELECT * FROM reading_import_operations
+        """)
+        try db.execute(sql: "DROP TABLE reading_import_operations")
+        try db.execute(sql: "ALTER TABLE reading_import_operations_v16 RENAME TO reading_import_operations")
+    }
 }

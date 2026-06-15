@@ -4,25 +4,30 @@ import LangoTraceCore
 
 public struct GRDBMediaArtifactRepository: MediaArtifactRepository, @unchecked Sendable {
     private let databaseQueue: DatabaseQueue
+    private let diagnosticLogger: any DiagnosticLogging
     private let clock: @Sendable () -> Date
     private let idGenerator: @Sendable () -> String
 
     public init(
         database: AppDatabase,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
     ) {
         databaseQueue = database.databaseQueue
+        self.diagnosticLogger = diagnosticLogger
         self.clock = clock
         self.idGenerator = idGenerator
     }
 
     init(
         databaseQueue: DatabaseQueue,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
     ) {
         self.databaseQueue = databaseQueue
+        self.diagnosticLogger = diagnosticLogger
         self.clock = clock
         self.idGenerator = idGenerator
     }
@@ -632,10 +637,30 @@ private extension GRDBMediaArtifactRepository {
 
     func mediaArtifact(from row: Row) throws -> MediaArtifact {
         let policy = MediaArtifactPolicy(
-            backupPolicy: MediaArtifactBackupPolicy(rawValue: row["backup_policy"] as String)
-                ?? .excludedFromSystemBackup,
-            syncPolicy: MediaArtifactSyncPolicy(rawValue: row["sync_policy"] as String) ?? .localOnly,
-            exportPolicy: MediaArtifactExportPolicy(rawValue: row["export_policy"] as String) ?? .excludedByDefault
+            backupPolicy: StoredEnumDecoding.decode(
+                MediaArtifactBackupPolicy.self,
+                from: row["backup_policy"] as String,
+                fallback: .excludedFromSystemBackup,
+                context: "media_artifacts.backup_policy",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            syncPolicy: StoredEnumDecoding.decode(
+                MediaArtifactSyncPolicy.self,
+                from: row["sync_policy"] as String,
+                fallback: .localOnly,
+                context: "media_artifacts.sync_policy",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            exportPolicy: StoredEnumDecoding.decode(
+                MediaArtifactExportPolicy.self,
+                from: row["export_policy"] as String,
+                fallback: .excludedByDefault,
+                context: "media_artifacts.export_policy",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            )
         )
         return MediaArtifact(
             id: row["id"],
@@ -645,8 +670,22 @@ private extension GRDBMediaArtifactRepository {
                 id: row["owner_id"],
                 subID: row["owner_sub_id"]
             ),
-            type: MediaArtifactType(rawValue: row["artifact_type"] as String) ?? .ttsSentenceAudio,
-            derivationKind: MediaArtifactDerivationKind(rawValue: row["derivation_kind"] as String) ?? .ttsAudio,
+            type: StoredEnumDecoding.decode(
+                MediaArtifactType.self,
+                from: row["artifact_type"] as String,
+                fallback: .ttsSentenceAudio,
+                context: "media_artifacts.artifact_type",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            derivationKind: StoredEnumDecoding.decode(
+                MediaArtifactDerivationKind.self,
+                from: row["derivation_kind"] as String,
+                fallback: .ttsAudio,
+                context: "media_artifacts.derivation_kind",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             derivationKeyHash: row["derivation_key_hash"],
             relativeFilePath: row["relative_file_path"],
             mimeType: row["mime_type"],

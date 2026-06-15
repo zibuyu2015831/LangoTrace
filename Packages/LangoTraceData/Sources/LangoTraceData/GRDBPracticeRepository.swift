@@ -4,15 +4,18 @@ import LangoTraceCore
 
 public struct GRDBPracticeRepository: PracticeRepository, @unchecked Sendable {
     private let databaseQueue: DatabaseQueue
+    private let diagnosticLogger: any DiagnosticLogging
     private let clock: @Sendable () -> Date
     private let idGenerator: @Sendable () -> String
 
     public init(
         database: AppDatabase,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
     ) {
         databaseQueue = database.databaseQueue
+        self.diagnosticLogger = diagnosticLogger
         self.clock = clock
         self.idGenerator = idGenerator
     }
@@ -191,7 +194,14 @@ private extension GRDBPracticeRepository {
     }
 
     func practiceSession(from row: Row, db: Database) throws -> PracticeSession {
-        let exerciseType = PracticeExerciseType(rawValue: row["exercise_type"] as String) ?? .shadowing
+        let exerciseType = StoredEnumDecoding.decode(
+            PracticeExerciseType.self,
+            from: row["exercise_type"] as String,
+            fallback: .shadowing,
+            context: "practice_sessions.exercise_type",
+            diagnosticLogger: diagnosticLogger,
+            clock: clock
+        )
         let snapshot = PracticeSentenceSnapshot(
             entryID: row["entry_id"],
             learningMaterialID: row["learning_material_id"],
@@ -214,7 +224,14 @@ private extension GRDBPracticeRepository {
             createdAt: Date(timeIntervalSince1970: row["created_at"]),
             updatedAt: Date(timeIntervalSince1970: row["updated_at"])
         )
-        session.status = PracticeSessionStatus(rawValue: row["status"] as String) ?? .inProgress
+        session.status = StoredEnumDecoding.decode(
+            PracticeSessionStatus.self,
+            from: row["status"] as String,
+            fallback: .inProgress,
+            context: "practice_sessions.status",
+            diagnosticLogger: diagnosticLogger,
+            clock: clock
+        )
         session.problemMarked = (row["problem_marked"] as Int) == 1
         session.completedRecordingID = row["completed_recording_id"]
         session.completedAt = (row["completed_at"] as Double?).map(Date.init(timeIntervalSince1970:))
@@ -270,8 +287,22 @@ private extension GRDBPracticeRepository {
         let policy = MediaArtifactPolicy(
             backupPolicy: MediaArtifactBackupPolicy(rawValue: row["backup_policy"] as String)
                 ?? .excludedFromSystemBackup,
-            syncPolicy: MediaArtifactSyncPolicy(rawValue: row["sync_policy"] as String) ?? .localOnly,
-            exportPolicy: MediaArtifactExportPolicy(rawValue: row["export_policy"] as String) ?? .excludedByDefault
+            syncPolicy: StoredEnumDecoding.decode(
+                MediaArtifactSyncPolicy.self,
+                from: row["sync_policy"] as String,
+                fallback: .localOnly,
+                context: "media_artifacts.sync_policy",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            exportPolicy: StoredEnumDecoding.decode(
+                MediaArtifactExportPolicy.self,
+                from: row["export_policy"] as String,
+                fallback: .excludedByDefault,
+                context: "media_artifacts.export_policy",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            )
         )
         return MediaArtifact(
             id: row["id"],
@@ -281,8 +312,22 @@ private extension GRDBPracticeRepository {
                 id: row["owner_id"],
                 subID: row["owner_sub_id"]
             ),
-            type: MediaArtifactType(rawValue: row["artifact_type"] as String) ?? .shadowingRecording,
-            derivationKind: MediaArtifactDerivationKind(rawValue: row["derivation_kind"] as String) ?? .practiceRecording,
+            type: StoredEnumDecoding.decode(
+                MediaArtifactType.self,
+                from: row["artifact_type"] as String,
+                fallback: .shadowingRecording,
+                context: "media_artifacts.artifact_type",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
+            derivationKind: StoredEnumDecoding.decode(
+                MediaArtifactDerivationKind.self,
+                from: row["derivation_kind"] as String,
+                fallback: .practiceRecording,
+                context: "media_artifacts.derivation_kind",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             derivationKeyHash: row["derivation_key_hash"],
             relativeFilePath: row["relative_file_path"],
             mimeType: row["mime_type"],

@@ -87,6 +87,9 @@ private extension AppDatabase {
         migrator.registerMigration("v15_reset_reading_explanation_cache_for_unix_epoch") { db in
             try resetReadingExplanationCacheForUnixEpoch(db)
         }
+        migrator.registerMigration("v16_add_reading_fk_and_check_constraints") { db in
+            try addReadingFKAndCheckConstraints(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 

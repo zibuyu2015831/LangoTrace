@@ -1,3 +1,7 @@
+/// Steps in a shadowing (跟读) practice session.
+///
+/// Currently hard-coded for shadowing only. E3 (practice mode routing) will
+/// make steps dynamic per exercise type and add dictation / back-translation steps.
 public enum PracticeSessionStep: String, CaseIterable, Equatable, Hashable, Sendable {
     case prepare
     case shadow

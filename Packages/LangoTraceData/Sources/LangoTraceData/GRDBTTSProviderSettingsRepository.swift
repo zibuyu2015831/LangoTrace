@@ -9,23 +9,28 @@ public enum TTSProviderSettingsRepositoryError: Error, Equatable, Sendable {
 public struct GRDBTTSProviderSettingsRepository: @unchecked Sendable {
     private let databaseQueue: DatabaseQueue
     private let clock: @Sendable () -> Date
+    private let diagnosticLogger: any DiagnosticLogging
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
     public init(
         database: AppDatabase,
-        clock: @escaping @Sendable () -> Date = Date.init
+        clock: @escaping @Sendable () -> Date = Date.init,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger()
     ) {
         databaseQueue = database.databaseQueue
         self.clock = clock
+        self.diagnosticLogger = diagnosticLogger
     }
 
     init(
         databaseQueue: DatabaseQueue,
-        clock: @escaping @Sendable () -> Date = Date.init
+        clock: @escaping @Sendable () -> Date = Date.init,
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger()
     ) {
         self.databaseQueue = databaseQueue
         self.clock = clock
+        self.diagnosticLogger = diagnosticLogger
     }
 
     public func saveSettings(
@@ -63,7 +68,14 @@ public struct GRDBTTSProviderSettingsRepository: @unchecked Sendable {
             }
             return TTSProviderSettings(
                 endpointID: row["endpoint_id"],
-                adapterKind: TTSProviderAdapterKind(rawValue: row["tts_adapter_kind"] as String) ?? .openAIAudioSpeech
+                adapterKind: StoredEnumDecoding.decode(
+                    TTSProviderAdapterKind.self,
+                    from: row["tts_adapter_kind"] as String,
+                    fallback: .openAIAudioSpeech,
+                    context: "tts_provider_settings.tts_adapter_kind",
+                    diagnosticLogger: diagnosticLogger,
+                    clock: clock
+                )
             )
         }
     }
@@ -207,11 +219,25 @@ private extension GRDBTTSProviderSettingsRepository {
             id: row["id"],
             endpointID: row["endpoint_id"],
             languageCode: row["language_code"],
-            adapterKind: TTSProviderAdapterKind(rawValue: row["tts_adapter_kind"] as String) ?? .openAIAudioSpeech,
+            adapterKind: StoredEnumDecoding.decode(
+                TTSProviderAdapterKind.self,
+                from: row["tts_adapter_kind"] as String,
+                fallback: .openAIAudioSpeech,
+                context: "tts_provider_settings.tts_adapter_kind",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             modelName: row["model_name"],
             voiceID: row["voice_id"],
             voiceDisplayName: row["voice_display_name"],
-            outputFormat: TTSAudioFormat(rawValue: row["output_format"] as String) ?? .mp3,
+            outputFormat: StoredEnumDecoding.decode(
+                TTSAudioFormat.self,
+                from: row["output_format"] as String,
+                fallback: .mp3,
+                context: "tts_provider_settings.output_format",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             sampleRate: row["sample_rate"],
             speed: row["speed"],
             volume: row["volume"],
@@ -221,7 +247,14 @@ private extension GRDBTTSProviderSettingsRepository {
             streamingMode: row["streaming_mode"],
             providerParameters: providerParameters,
             lastSuccessfulConfigurationFingerprint: row["last_successful_configuration_fingerprint"],
-            lastTestStatus: TTSConfigurationStatus(rawValue: row["last_test_status"] as String) ?? .notTested,
+            lastTestStatus: StoredEnumDecoding.decode(
+                TTSConfigurationStatus.self,
+                from: row["last_test_status"] as String,
+                fallback: .notTested,
+                context: "tts_provider_settings.last_test_status",
+                diagnosticLogger: diagnosticLogger,
+                clock: clock
+            ),
             lastTestErrorCategory: (row["last_test_error_category"] as String?)
                 .flatMap(AIProviderValidationErrorCategory.init(rawValue:)),
             lastTestedAt: (row["last_tested_at"] as Double?).map(Date.init(timeIntervalSince1970:))
