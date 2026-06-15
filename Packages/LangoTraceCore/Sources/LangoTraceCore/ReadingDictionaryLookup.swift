@@ -2,15 +2,25 @@ import Foundation
 
 public struct ReadingDictionaryEntry: Equatable, Sendable {
     public var headword: String
-    public var normalizedHeadword: String
+    public private(set) var normalizedHeadword: String
     public var languageCode: String
     public var definition: String
 
-    public init(headword: String, normalizedHeadword: String, languageCode: String, definition: String) {
+    public init(headword: String, languageCode: String, definition: String) {
         self.headword = headword
-        self.normalizedHeadword = normalizedHeadword
         self.languageCode = languageCode
         self.definition = definition
+        normalizedHeadword = Self.normalize(headword, languageCode: languageCode)
+    }
+
+    /// Single source of truth for lookup-key normalization. The init derives
+    /// `normalizedHeadword` from `headword` with this, and `exactLookup`
+    /// normalizes the query the same way, so caller-supplied normalization can
+    /// no longer drift from what the index actually keys on.
+    static func normalize(_ value: String, languageCode: String) -> String {
+        value
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: languageCode))
+            .lowercased()
     }
 }
 
@@ -24,9 +34,7 @@ public struct ReadingDictionaryLookupIndex: Sendable {
     }
 
     public func exactLookup(_ query: String, languageCode: String) -> [ReadingDictionaryEntry] {
-        let normalized = query
-            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: languageCode))
-            .lowercased()
+        let normalized = ReadingDictionaryEntry.normalize(query, languageCode: languageCode)
         return entriesByKey[Self.key(normalized: normalized, languageCode: languageCode)] ?? []
     }
 

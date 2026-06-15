@@ -12,10 +12,6 @@ public enum LearningMaterialInputKind: String, Codable, CaseIterable, Equatable,
     case targetWriting
     case mixed
     case uncertain
-
-    public static func kind(inferredFrom _: EntrySource) -> LearningMaterialInputKind? {
-        nil
-    }
 }
 
 public enum LearningMaterialPromptMode: String, Codable, CaseIterable, Equatable, Sendable {

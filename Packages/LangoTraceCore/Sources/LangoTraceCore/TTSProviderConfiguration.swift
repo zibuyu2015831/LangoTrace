@@ -149,7 +149,7 @@ public struct TTSVoiceProfile: Equatable, Sendable {
     public var instructions: String?
     public var streamingMode: Bool
     public var providerParameters: [String: TTSProviderParameterValue]
-    public var configurationFingerprint: String
+    public private(set) var configurationFingerprint: String
     public var lastSuccessfulConfigurationFingerprint: String?
     public var lastTestStatus: TTSConfigurationStatus
     public var lastTestErrorCategory: AIProviderValidationErrorCategory?

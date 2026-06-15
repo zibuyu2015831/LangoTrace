@@ -88,10 +88,6 @@ public enum InterfaceLanguagePreference: String, CaseIterable, Equatable, Identi
         return systemLanguageCodes.lazy.compactMap(Self.supportedLanguageCode(matching:)).first ?? "en"
     }
 
-    public func applying(to languageSpace: LanguageSpacePreview) -> LanguageSpacePreview {
-        languageSpace
-    }
-
     private static func supportedLanguageCode(matching languageCode: String) -> String? {
         let normalized = languageCode.replacingOccurrences(of: "_", with: "-")
 

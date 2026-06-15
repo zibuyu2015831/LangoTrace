@@ -6,8 +6,8 @@ struct ReadingDictionaryLookupTests {
     @Test("exact lookup uses normalized form and language code")
     func exactLookupUsesNormalization() {
         let entries = [
-            ReadingDictionaryEntry(headword: "Résumé", normalizedHeadword: "resume", languageCode: "fr", definition: "summary"),
-            ReadingDictionaryEntry(headword: "resume", normalizedHeadword: "resume", languageCode: "en", definition: "continue"),
+            ReadingDictionaryEntry(headword: "Résumé", languageCode: "fr", definition: "summary"),
+            ReadingDictionaryEntry(headword: "resume", languageCode: "en", definition: "continue"),
         ]
         let index = ReadingDictionaryLookupIndex(entries: entries)
 
@@ -20,7 +20,6 @@ struct ReadingDictionaryLookupTests {
         let entries = (0 ..< 100_000).map { index in
             ReadingDictionaryEntry(
                 headword: "word\(index)",
-                normalizedHeadword: "word\(index)",
                 languageCode: "en",
                 definition: "definition \(index)"
             )

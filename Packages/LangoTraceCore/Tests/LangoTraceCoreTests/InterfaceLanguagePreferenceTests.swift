@@ -78,19 +78,3 @@ func interfaceLanguagePreferenceExposesFirstBatchInterfaceLanguages() {
     ])
 }
 
-@Test("Interface language preference does not mutate language space context")
-func interfaceLanguagePreferenceDoesNotMutateLanguageSpaceContext() {
-    let languageSpace = LanguageSpacePreview(
-        id: "en",
-        name: "英语空间",
-        nativeLanguage: "中文",
-        targetLanguage: "English",
-        level: .b1
-    )
-
-    let result = InterfaceLanguagePreference.english.applying(to: languageSpace)
-
-    #expect(result == languageSpace)
-    #expect(result.nativeLanguage == "中文")
-    #expect(result.targetLanguage == "English")
-}

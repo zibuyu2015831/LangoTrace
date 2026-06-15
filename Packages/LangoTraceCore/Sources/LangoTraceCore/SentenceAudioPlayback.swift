@@ -209,7 +209,6 @@ public enum SentenceAudioPresentationState: Equatable, Sendable {
 public enum SentenceAudioPlaybackTransition: Equatable, Sendable {
     case tap(SentenceAudioKey)
     case generationStarted(SentenceAudioKey)
-    case generationSucceeded(SentenceAudioKey)
     case generationFailed(SentenceAudioKey, SentenceAudioPlaybackFailure)
     case playbackStarted(SentenceAudioKey)
     case playbackCompleted(SentenceAudioKey)
@@ -248,9 +247,6 @@ public struct SentenceAudioPlaybackCoordinatorState: Equatable, Sendable {
         case let .generationStarted(key):
             states[key] = .generating(key)
             activeKey = key
-            return []
-        case let .generationSucceeded(key):
-            states[key] = .idle
             return []
         case let .generationFailed(key, failure):
             if activeKey == key {

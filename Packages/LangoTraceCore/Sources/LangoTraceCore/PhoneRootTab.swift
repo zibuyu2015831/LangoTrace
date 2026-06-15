@@ -1,4 +1,4 @@
-public enum PhoneRootTab: String, CaseIterable, Hashable, Identifiable {
+public enum PhoneRootTab: String, CaseIterable, Hashable, Identifiable, Sendable {
     case entries
     case reading
     case practice

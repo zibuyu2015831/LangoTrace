@@ -25,25 +25,6 @@ public struct LanguageSpacePreview: Equatable, Sendable, Identifiable {
         self.level = level
     }
 
-    public init(
-        id: String,
-        name: String,
-        nativeLanguage: String,
-        targetLanguage: String,
-        targetLanguageCode: String? = nil,
-        level: LanguageLevel
-    ) {
-        self.init(
-            id: id,
-            name: name,
-            nativeLanguage: nativeLanguage,
-            nativeLanguageCode: nil,
-            targetLanguage: targetLanguage,
-            targetLanguageCode: targetLanguageCode,
-            level: level
-        )
-    }
-
     public var displayContext: String {
         "\(nativeLanguage) -> \(targetLanguage) · \(level.rawValue)"
     }

@@ -154,7 +154,4 @@ func entrySourceDoesNotImplyLearningMaterialInputKind() {
     #expect(EntrySource.typedText.rawValue == "typedText")
     #expect(EntrySource.photoWriting.rawValue == "photoWriting")
     #expect(EntrySource.targetLanguageWriting.rawValue == "targetLanguageWriting")
-
-    #expect(LearningMaterialInputKind.kind(inferredFrom: .typedText) == nil)
-    #expect(LearningMaterialInputKind.kind(inferredFrom: .targetLanguageWriting) == nil)
 }

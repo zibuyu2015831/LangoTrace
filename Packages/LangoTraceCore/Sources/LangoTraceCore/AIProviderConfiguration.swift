@@ -595,6 +595,26 @@ public struct AIProviderCustomHeaderConfiguration: Equatable, Sendable {
     public var credentialID: AIProviderCredentialID?
     public var createdAt: Date
     public var updatedAt: Date
+
+    public init(
+        id: String,
+        endpointID: AIProviderEndpointID,
+        headerName: String,
+        valueKind: AIProviderCustomHeaderValueKind,
+        plainValue: String? = nil,
+        credentialID: AIProviderCredentialID? = nil,
+        createdAt: Date,
+        updatedAt: Date
+    ) {
+        self.id = id
+        self.endpointID = endpointID
+        self.headerName = headerName
+        self.valueKind = valueKind
+        self.plainValue = plainValue
+        self.credentialID = credentialID
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
 }
 
 public struct AIProviderValidationEvent: Equatable, Sendable {
