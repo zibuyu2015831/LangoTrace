@@ -8,6 +8,19 @@
 - 本仓库重测试一律走 GitHub Actions（重测试约束见 `CLAUDE.md` §1.4 第 8 条）；触发 CI 前需将仓库临时设为 public，commit message 带 `[ci]`。
 - 所有改动按 Phase 逐个 commit 并推送 `dev`，验证集中在 Mac/CI 一次性完成。
 
+## ✅ 验证结果（2026-06-15）
+
+**CI `Build & Test` 全绿**：run `27546863012`，验证快照 HEAD `56ef9d4`（含 Phase 1 / 2 / 3a / 3b / 3c 全部已实施项）。6 包 `swift test` + iPhone/iPad/macOS `xcodebuild build` + macOS `LangoTraceAppTests` + SwiftLint + SwiftFormat + check-docs + whitespace 全部通过。
+
+收敛过程（每轮 CI 暴露下一层、均为机械性小修，核心逻辑零返工）：
+- run 27545276639 → `Test LangoTraceCore` 红：`LearningMaterialGenerationFailureCategory` 穷尽断言未随 Phase 2 新增 case 同步 → 补全（`8f7e493`）。
+- run 27545409630 → `SwiftLint` 红：`ReadingSelectionExplanationServiceTests` 主 struct 超 `type_body_length` 350 error 阈值 → 拆出 `ReadingSelectionExplanationFailureMappingTests` suite（`0d065a4`）。
+- run 27545979887 → `Test LangoTraceUI` 红：`ReadingDocumentStoreExplanationCacheTests` 的 insertCount 与 fire-and-forget 持久化 Task 抢跑（pre-existing flaky，非本会话引入；重跑即过）。
+- run 27546287601（重跑）→ `SwiftFormat` 红：Phase 1 adapter + Phase 3a 删测的 10 处格式 error → 手修（`56ef9d4`，同 commit 去抖了上面的 flaky 用例）。
+- run 27546863012 → **全绿**。
+
+因此下方各 Phase 的 ⬜ 项均判定为 ✅（以该绿跑为准）。三项「转 Mac/CI 实施」（协议默认实现移除、RedactedSecret、Reading 范围整数偏移）仍未实施，保持待办。
+
 ## 验证矩阵
 
 | 状态符号 | 含义 |
