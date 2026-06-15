@@ -4,7 +4,7 @@
 自审核状态：Reviewed
 类型：refactor
 创建日期：2026-06-11
-最后更新日期：2026-06-16（Phase 4 已在 MacBook 环境实施并本机六包测试全绿；Phase 5 待续）
+最后更新日期：2026-06-16（Phase 5 已在 MacBook 环境实施并本机六包测试全绿；全部 5 个 Phase 实施完毕，待收口）
 
 ## 用户确认记录
 
@@ -416,6 +416,15 @@ git diff --check
   - **Architecture note（commit fb69eea）**：新增 `docs/architecture/notes/2026-06-11-learning-material-history-retention-notes.md`，记录 material 历史/operation 表增长边界、清理候选策略与触发条件。
   - **Spec 007 补充（commit fb69eea）**：`reading_explanation_cache.result_json` 补充明文存储 + 本机可重建派生缓存 + 不进入导出同步的表述。
   - **本机验证**：Core 177 / Data 143 / AI 145 / Speech 24 / UI 365 六包 `swift test` 全绿。CI 验证待推送后触发。
+
+- **Phase 5（AI/Speech 尾项，MacBook 环境，2026-06-16）已实现**：
+  - **bytes(for:) 流式读取（commit 636422e）**：`URLSessionAIProviderHTTPClient.send` 改用 `session.bytes(for:)` 替代 `session.data(for:)`；逐字节累积，超 `maximumResponseBytes` 即中断抛 `responseTooLarge`；现有 oversized/transport 错误测试通过。
+  - **AIBoundary/SpeechBoundary 统一处置（commit 636422e）**：删除 `AIBoundary.swift`（空协议 `AIProvider` + `DisabledAIProvider`）和 `SpeechBoundary.swift`（空协议 `SpeechService` + `DisabledSpeechService`）；从 `AppEnvironment` 移除 `aiProvider`/`speechService` 属性及注入；更新 `AppEnvironmentBootstrapTests` 移除断言。决策：两个空标记协议均无真实消费方，直接删除而非改最小协议。
+  - **WAV RIFF chunk walker（commit 636422e）**：`TTSAudioValidationService.wavMetadata` 改为按 RIFF chunk 顺序遍历（`fmt ` 和 `data` 外的 chunk 如 LIST/fact 直接跳过）；fmt chunk 允许超过 16 字节（扩展 fmt）。新增 fixture `wavFixtureWithExtendedFmtAndListChunk`（40 字节 fmt + LIST + data），新增测试 `validatorAcceptsWAVWithExtendedFmtAndListChunk`。
+  - **Keychain 伪测试替换（commit 636422e）**：移除 3 个读取源码断言子串的伪测试（`KeychainAIProviderStoreUsesNoninteractiveCredentialQueries`、`usesPlatformAppropriateAccessibilityAttributes`、`setsMacTrustedAccessForNewLoginKeychainItems`），替换为行为测试 `roundTripsSpecialCharacters` + 文档注释说明不可注入 seam 的行为项。
+  - **macOS Keychain architecture note 更新（commit 636422e）**：在 `2026-06-05-macos-ai-provider-credential-signing-notes.md` 追加 Data Protection Keychain 迁移决策：保留当前 dlopen/SecAccessCreate 实现，满足稳定签名 + keychain-access-groups entitlement + macOS 12+ 验证三条件后迁移；`KeychainAIProviderCredentialStore.macTrustedAccess()` 添加 doc comment 指向该 note。
+  - **spec 012 prompt v4 同步（commit 636422e）**：`docs/spec/012-reading-learning-domain.md:79` 更正 `builtin.reading.selection_explanation.v3` → `v4`（schema 仍为 `v3`）。
+  - **本机验证**：Core 177 / Data 143 / AI 143 / Speech 25 / UI 365 六包 `swift test` 全绿。CI 验证待推送后触发。
 
 ## 19. 完成标准
 

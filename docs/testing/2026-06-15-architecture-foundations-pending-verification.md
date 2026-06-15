@@ -117,4 +117,24 @@
 
 ---
 
+### Phase 5：AI/Speech 尾项
+
+落点：`Packages/LangoTraceAI`、`Packages/LangoTraceSpeech`、`LangoTraceApp`、`docs/`。
+
+**MacBook 本机实施（2026-06-16），HEAD `636422e`：**
+
+- ✅M bytes(for:) 流式读取（commit `636422e`）：`URLSessionAIProviderHTTPClient.send` 改用 `bytes(for:)` + 逐字节累积，超限中断。
+- ✅M AIBoundary/SpeechBoundary 统一处置（commit `636422e`）：两空标记协议 + Disabled 实现直接删除；AppEnvironment 移除对应属性。
+- ✅M WAV RIFF chunk walker（commit `636422e`）：固定偏移 → 顺序 chunk 遍历，容忍扩展 fmt / LIST chunk。新 fixture + 测试。
+- ✅M Keychain 伪测试替换（commit `636422e`）：3 个源码 grep 伪测试 → 行为测试 + 文档注释。
+- ✅M macOS Keychain architecture note（commit `636422e`）：追加 Data Protection Keychain 迁移决策与触发条件。
+- ✅M spec 012 prompt v4（commit `636422e`）：v3 → v4 更正。
+- ✅M 本机六包测试：Core 177 / Data 143 / AI 143 / Speech 25 / UI 365 全绿。
+- ⬜ CI 验证：待推送 dev 后触发 GitHub Actions。
+
+结构性检查（MacBook 本机 rg 自查）：
+- `rg 'AIBoundary\|DisabledAIProvider\|SpeechBoundary\|DisabledSpeechService' Packages/` → 0 命中
+- `rg 'session.data(for:' Packages/LangoTraceAI/Sources/` → 0 命中（已改为 `bytes(for:)`）
+- `rg 'contentsOf: langoTraceAISourceFileURL' Packages/LangoTraceAI/Tests` → 0 命中
+
 _（Phase 4 / 5 在实施时追加）_
