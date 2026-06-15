@@ -18,7 +18,7 @@ public enum ReadingMarkdownBlockRenderer {
                 documentID: identity.documentID,
                 contentRevision: identity.contentRevision,
                 text: trimmed,
-                range: trimmed.startIndex ..< trimmed.endIndex
+                range: TextUnitRange(trimmed.startIndex ..< trimmed.endIndex, in: trimmed)
             )
         }
         let context = RenderContext(
@@ -109,11 +109,11 @@ public enum ReadingMarkdownBlockRenderer {
         return ReadingInlinePresentation(role: role, text: run.text)
     }
 
-    private static func sourceRangeDescription(_ range: Range<String.Index>?) -> String? {
+    private static func sourceRangeDescription(_ range: TextUnitRange?) -> String? {
         guard let range else {
             return nil
         }
-        return "\(range.lowerBound)..<\(range.upperBound)"
+        return range.description
     }
 }
 

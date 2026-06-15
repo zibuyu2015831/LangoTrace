@@ -5,14 +5,14 @@ public struct ReadingTextChunk: Equatable, Sendable {
     public var documentID: String
     public var contentRevision: Int
     public var text: String
-    public var range: Range<String.Index>
+    public var range: TextUnitRange
 
     public init(
         id: String,
         documentID: String,
         contentRevision: Int,
         text: String,
-        range: Range<String.Index>
+        range: TextUnitRange
     ) {
         self.id = id
         self.documentID = documentID
@@ -205,7 +205,7 @@ public enum ReadingTextSegmenter {
                     documentID: documentID,
                     contentRevision: contentRevision,
                     text: String(text[rawRange]),
-                    range: rawRange
+                    range: TextUnitRange(rawRange, in: text)
                 ))
             }
             paragraphStart = end
@@ -253,10 +253,13 @@ public enum ReadingTextSegmenter {
 
             guard !trimmedSentence.isEmpty else { return }
 
-            // Find the actual offset of the trimmed part within the original block
-            let leadingWhitespaceCount = sentenceText.prefix(while: { $0.isWhitespace || $0.isNewline }).count
-            let characterOffset = range.location + leadingWhitespaceCount
-            let characterLength = trimmedSentence.count
+            // Find the actual UTF-16 offset of the trimmed part within the original block.
+            // range.location is in UTF-16 units (NSString convention); leading whitespace
+            // must also be measured in UTF-16 units to keep units consistent.
+            let leadingWhitespace = sentenceText.prefix(while: { $0.isWhitespace || $0.isNewline })
+            let leadingWhitespaceUTF16Count = leadingWhitespace.utf16.count
+            let characterOffset = range.location + leadingWhitespaceUTF16Count
+            let characterLength = trimmedSentence.utf16.count
 
             let sentenceIndex = segments.count
             segments.append(ReadingSentenceSegment(
@@ -286,10 +289,10 @@ public enum ReadingTextSegmenter {
                     blockID: blockID,
                     paragraphIndex: paragraphIndex,
                     sentenceIndex: 0,
-                    text: text,
+                    text: trimmed,
                     containingParagraph: text,
                     characterOffset: 0,
-                    characterLength: trimmed.count
+                    characterLength: trimmed.utf16.count
                 ),
             ]
         }

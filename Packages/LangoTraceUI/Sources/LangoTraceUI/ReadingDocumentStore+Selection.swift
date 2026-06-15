@@ -87,7 +87,7 @@ public extension ReadingDocumentStore {
             documentID: documentID,
             contentRevision: contentRevision,
             text: blockText,
-            range: blockText.startIndex ..< blockText.endIndex
+            range: TextUnitRange(blockText.startIndex ..< blockText.endIndex, in: blockText)
         )]
         selectTextFragment(
             selectedText: selectedText,

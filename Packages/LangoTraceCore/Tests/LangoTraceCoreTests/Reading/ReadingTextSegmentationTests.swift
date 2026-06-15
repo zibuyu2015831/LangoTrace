@@ -17,7 +17,9 @@ struct ReadingTextSegmentationTests {
         #expect(chunks[2].text == "Paragraph 3")
 
         for chunk in chunks {
-            #expect(text[chunk.range] == chunk.text)
+            let swiftRange = chunk.range.toRange(in: text)
+            #expect(swiftRange != nil)
+            #expect(text[swiftRange!] == chunk.text)
         }
     }
 
@@ -32,7 +34,9 @@ struct ReadingTextSegmentationTests {
         #expect(chunks[2].text == "Paragraph 3")
 
         for chunk in chunks {
-            #expect(text[chunk.range] == chunk.text)
+            let swiftRange = chunk.range.toRange(in: text)
+            #expect(swiftRange != nil)
+            #expect(text[swiftRange!] == chunk.text)
         }
 
         let lonelyCarriageReturns = ReadingTextSegmenter.segmentParagraphs(

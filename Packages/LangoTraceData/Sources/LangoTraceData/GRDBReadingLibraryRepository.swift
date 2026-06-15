@@ -608,8 +608,8 @@ private extension GRDBReadingLibraryRepository {
         let document = ReadingMarkdownParser.parse(body, sourceFormat: sourceFormat)
         for (blockIndex, block) in document.blocks.enumerated() {
             let blockID = idGenerator()
-            let sourceStartOffset = block.sourceRange.map { body.distance(from: body.startIndex, to: $0.lowerBound) } ?? 0
-            let sourceLength = block.sourceRange.map { body.distance(from: $0.lowerBound, to: $0.upperBound) } ?? block.text.count
+            let sourceStartOffset = block.sourceRange?.lowerBound ?? 0
+            let sourceLength = block.sourceRange?.length ?? block.text.utf16.count
             try db.execute(
                 sql: """
                 INSERT INTO reading_structure_blocks (

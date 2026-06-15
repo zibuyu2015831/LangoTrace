@@ -15,7 +15,7 @@ public struct ReadingMarkdownBlock: Equatable, Sendable {
     public var kind: ReadingMarkdownBlockKind
     public var text: String
     public var inlineRuns: [ReadingInlineRun]
-    public var sourceRange: Range<String.Index>?
+    public var sourceRange: TextUnitRange?
 }
 
 public enum ReadingMarkdownBlockKind: Equatable, Hashable, Sendable {
@@ -32,7 +32,7 @@ public enum ReadingMarkdownBlockKind: Equatable, Hashable, Sendable {
 public struct ReadingInlineRun: Equatable, Sendable {
     public var kind: ReadingInlineRunKind
     public var text: String
-    public var sourceRange: Range<String.Index>?
+    public var sourceRange: TextUnitRange?
 }
 
 public enum ReadingInlineRunKind: Equatable, Hashable, Sendable {
@@ -60,13 +60,14 @@ public enum ReadingMarkdownParser {
             inlineRuns: [ReadingInlineRun]? = nil
         ) {
             blockCounter += 1
-            let blockRuns = inlineRuns ?? parseInlineRuns(text, baseRange: sourceRange, in: markdown)
+            let convertedRange = sourceRange.map { TextUnitRange($0, in: markdown) }
+            let blockRuns = inlineRuns ?? parseInlineRuns(text, baseRange: convertedRange)
             blocks.append(ReadingMarkdownBlock(
                 id: "block-\(blockCounter)",
                 kind: kind,
                 text: text,
                 inlineRuns: blockRuns,
-                sourceRange: sourceRange
+                sourceRange: convertedRange
             ))
             if !text.isEmpty {
                 plainTextParts.append(text)
@@ -92,7 +93,7 @@ public enum ReadingMarkdownParser {
                         kind: .codeBlock(language: codeFenceLanguage),
                         text: codeText,
                         sourceRange: start ..< lineEnd,
-                        inlineRuns: [ReadingInlineRun(kind: .plain, text: codeText, sourceRange: start ..< lineEnd)]
+                        inlineRuns: [ReadingInlineRun(kind: .plain, text: codeText, sourceRange: TextUnitRange(start ..< lineEnd, in: markdown))]
                     )
                     codeFenceStart = nil
                     codeFenceLanguage = nil
@@ -188,8 +189,7 @@ public enum ReadingMarkdownParser {
 
     private static func parseInlineRuns(
         _ text: String,
-        baseRange: Range<String.Index>?,
-        in source: String
+        baseRange: TextUnitRange?
     ) -> [ReadingInlineRun] {
         var runs = [ReadingInlineRun(kind: .plain, text: text, sourceRange: baseRange)]
 
@@ -222,7 +222,6 @@ public enum ReadingMarkdownParser {
             searchStart = urlEnd.upperBound
         }
 
-        _ = source
         return runs
     }
 }
