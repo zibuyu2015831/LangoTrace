@@ -4,7 +4,7 @@
 自审核状态：Reviewed
 类型：refactor
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-15（隔离子代理实现前复核，基线漂移与三项事实校正写回，见 §13 第二条记录）
 
 ## 用户确认记录
 
@@ -18,7 +18,7 @@
 
 ## 2. 现状描述
 
-以下现状全部按 HEAD `274b7db` 的当前代码重新核验（不依赖审查时的旧描述）：
+以下现状原按 HEAD `274b7db` 核验。**2026-06-15 复核校正（基线漂移）**：当前 HEAD 已较 `274b7db` 前进 48 个 commit，其中 `83f4ef1`（swiftformat 全仓格式化）与 `483bfe9`（SwiftLint 体量重构）改动了本节点名的多个 AI 服务文件，导致 §2.1 / §2.2 的部分**行号已漂移**（例如 `LearningMaterialGenerationService` 的 Bearer 注入已从 `:154-208` 区间移到 `:176`）。因此：本节所有行号应作为**符号锚点**理解（按函数名 / 符号定位，而非绝对行号），实现开始前以当时 HEAD 重新取证；底层技术事实（重复、缺口、错用、裸 String 等）经复核**仍成立**。错用点 `AIProviderConfigurationProbeService.swift:567`、`AIProviderConfigurationService.swift:136,139` 经复核行号仍精确命中。
 
 1. AI 文本请求路径：`LearningMaterialGenerationService`、`ReadingSelectionExplanationService`、`AIProviderConfigurationProbeService` 已共享今日抽取的 `AIProviderEndpointURLBuilder`、`AIProviderHTTPStatusErrorMapper`、`OpenAICompatibleResponseTextParser`，但 makeRequest 构造、`"Bearer \(secret)"` auth header 注入、chat / responses 的 provider kind dispatch switch 仍在三个服务里各写一遍（`LearningMaterialGenerationService.swift:154-208`、`ReadingSelectionExplanationService.swift:195-263`、`AIProviderConfigurationProbeService.swift:137-147, 460-511`）。`AIProviderAdapterKind` 已含 `anthropicMessages` / `geminiGenerateContent` case（Core `AIProviderConfiguration.swift:48-52`），但三处服务都各自 throw `unsupportedProvider`。
 2. 错误分类：Core `LearningMaterialGenerationFailureCategory`（`LearningMaterialGenerationModels.swift:33-48`）缺 `rateLimited` / `authenticationFailed`；`ReadingSelectionExplanationFailureCategory`（`ReadingAIExplanation.swift:86-93`）只有 6 个 case，缺 timeout / 认证失败 / unsupportedModel；`AIProviderConfigurationError` 被错用：`AIProviderConfigurationProbeService.swift:567` 对 JSON 反序列化失败 throw `missingRequiredEndpointField`，`AIProviderConfigurationService.swift:136,139` 对 credentialStore 缺失 throw `keychainWriteFailed`、对 profile 缺失 throw `missingRequiredEndpointField`。
@@ -29,7 +29,7 @@
    - `TTSVoiceProfile.configurationFingerprint` 是公开可变存储属性（`TTSProviderConfiguration.swift:150`），指纹不变量可被外部破坏；`AIProviderEndpointConfiguration.configurationFingerprint` 已是计算属性（安全）。
    - `ReadingTextChunk.range: Range<String.Index>`（`ReadingTextSegmentation.swift:9`）、`ReadingMarkdownBlock.sourceRange` / `ReadingInlineRun.sourceRange`（`ReadingMarkdown.swift:18,35`）把 `Range<String.Index>` 放进公开 Sendable 模型；同文件 `ReadingTextSegmentation.swift:247-260` 把 NSRange（UTF-16 单位）与 `String.count`（Character 单位）混合相加。
    - `PracticeSessionReducer.swift:99` 与 `SentenceAudioPlaybackCoordinator.swift:166,281,298` 直接调用 `Date()`，无可注入时钟。
-   - sha256 hex 辅助函数当前至少 7 处重复实现：`PracticeRecordingArtifact.swift:98`、`TTSAudioArtifact.swift:152`、`SentenceAudioPlaybackCoordinator.swift:423`、`ReadingTextSegmentation.swift:491`、Data `GRDBReadingLibraryRepository.swift:735`、Data `LocalMediaArtifactFileStore.swift:184`、UI `PracticeRouting.swift:166`；FNV-1a 实现 1 处（`AIProviderConfiguration.swift:721`）。`AIProviderConfigurationRepository` 协议扩展提供返回 nil 的默认实现（`AIProviderConfiguration.swift:668-702`），会掩盖 conformance 漏实现。
+   - sha256 hex 辅助函数当前至少 **8** 处重复实现（2026-06-15 复核：7→8，UI 包为 **2** 处）：Core `PracticeRecordingArtifact.swift`、`TTSAudioArtifact.swift`、`SentenceAudioPlaybackCoordinator.swift`、`ReadingTextSegmentation.swift`；Data `GRDBReadingLibraryRepository.swift`、`LocalMediaArtifactFileStore.swift`；UI `PracticeRouting.swift` **和 `ReadingDocumentStore+Selection.swift`（原方案漏列）**；FNV-1a 实现 1 处（`AIProviderConfiguration.swift`）。**因 UI 已有 2 个消费方，StableHashing 倾向 Core 公开（§12 Phase 3 step 6 / §13 P3 的「UI 仅 1 处可局部收敛」前提已失效）。**`AIProviderConfigurationRepository` 协议扩展提供返回 nil 的默认实现（`AIProviderConfiguration.swift:668-702`），会掩盖 conformance 漏实现。
    - 死代码与不变量杂项：`AIProviderCustomHeaderConfiguration` 无公开 init、不可在包外构造（`AIProviderConfiguration.swift:581-590`）；`LearningMaterialInputKind.kind(inferredFrom:)` 恒返回 nil（`LearningMaterialGenerationModels.swift:16-18`）；`InterfaceLanguagePreference.applying(to:)` 是恒等函数；`SentenceAudioPlayback.swift:212` 的 `.generationSucceeded` 转移从未被发出；`LanguageSpacePreview.swift:10-45` 两个 init 重复；`ReadingLibrarySearchQuery.normalized` 是公开可变 var（`ReadingSearch.swift`）；`ReadingDictionaryLookup` 的 `normalizedHeadword` 由调用方自报、不由 headword 计算（`ReadingDictionaryLookup.swift:5-14`）；`segmentSentences` 主路径用 trimmed 文本而 fallback 用原始 `text`（`ReadingTextSegmentation.swift:278-296`）；`PhoneRootTab` 未显式声明 `Sendable`（`PhoneRootTab.swift:1`）。
 6. Data 层尾项：
    - 枚举解码静默回退 `Enum(rawValue:) ?? .default` 实际有约 44 处（多于审查记录的约 20 处），代表性位置 `GRDBDiagnosticEventRepository.swift:129-131`、`GRDBMediaArtifactRepository.swift:637-649`、`GRDBTTSProviderSettingsRepository.swift:66,210,214,224`、`GRDBReadingLibraryRepository.swift:150,162,167,504`。
@@ -43,7 +43,7 @@
    - `AIProviderHTTPClient.swift:34-39` 先 `session.data(for:)` 读完整响应体再检查 `maximumResponseBytes`，超大响应仍会完整进内存。
    - `KeychainAIProviderCredentialStore.swift:146-167` 在 macOS 上通过 `dlopen` + `dlsym("SecAccessCreate")` 动态构造 ACL，未使用 `kSecUseDataProtectionKeychain`（背景与限制见 `docs/architecture/notes/2026-06-05-macos-ai-provider-credential-signing-notes.md`：无正式签名与 entitlements 时该常量会返回 -34018）。
    - `KeychainAIProviderCredentialStoreTests.swift:35-60` 存在读取源码文件断言子串的伪测试。
-   - 原审查记录的 "AIBoundary 空协议残留" 在 LangoTraceAI 包内不存在（已核验为误记）；实际残留是 Speech 包 `SpeechBoundary.swift` 的 `SpeechService` 空标记协议 + `DisabledSpeechService`。
+   - 空标记协议残留**两处同构**（2026-06-15 复核校正原「AIBoundary 不存在」结论）：AI 包 `AIBoundary.swift`（`public protocol AIProvider: Sendable {}` + `DisabledAIProvider`）与 Speech 包 `SpeechBoundary.swift`（`SpeechService` 空协议 + `DisabledSpeechService`）结构完全相同。Phase 5 step 4 须对两者用同一处置口径（以 `rg 'AIProvider\b' / 'SpeechService' -l` 的真实消费方核验为准；`DisabledAIProvider` 是否被 `AppEnvironment` 装配需现场核实，避免误删）。
    - `TTSAudioValidationService.swift:201-209` 按固定偏移（12=fmt、36=data）解析 WAV，扩展 fmt chunk / LIST chunk 的合法 WAV 会被拒绝。
    - `docs/spec/012-reading-learning-domain.md:79` 仍写 prompt v3，而代码已是 `builtin.reading.selection_explanation.v4`（`ReadingSelectionExplanationService.swift:13-15`，schema 仍为 v3）。
 
@@ -74,6 +74,7 @@
 - 不处理 UI / App 层结构债（PhoneMainView 导航、AppEnvironment 拆分等，归 E0b）。
 - 不为 learning material 历史实现真实清理任务，只落 architecture note。
 - 不重写 `GRDBLearningContentRepositoryBridge` 之外的 mock / seed 内容路径（E1 / E2 会按功能逐步替换）。
+- 不收敛 TTS 与 Embedding 的请求路径：`TTSProviderAdapter.swift` 与 `EmbeddingConfigurationProbeService.swift`（2026-06-15 复核发现的第四个走 Bearer + makeRequest 的服务，原方案未提）也各自拼 Bearer，但**不在本方案 adapter 收敛范围**；adapter 收敛只针对三个文本服务。Phase 1 DoD 的 Bearer 计数须显式排除这两个文件，避免「三处重复」叙事被读成「全部文本路径」或诱导越界改 TTS / Embedding。
 
 ## 6. 证据与决策依据
 
@@ -234,7 +235,7 @@
 1. `AIProviderHTTPClient` 改用 `bytes(for:)` 流式累计读取，超过 `maximumResponseBytes` 即中断抛 `responseTooLarge`；保留旧行为测试 + 新增超限中断测试（标注需 macOS 验证 URLSession 实现差异）。
 2. macOS Keychain：在 `2026-06-05-macos-ai-provider-credential-signing-notes.md` 中追加决策记录——保留 dlopen / SecAccessCreate 现状，明确触发条件（获得稳定开发者签名 + keychain-access-groups entitlement）满足后迁移 `kSecUseDataProtectionKeychain`，并在代码处加指向该 note 的注释。
 3. 替换 `KeychainAIProviderCredentialStoreTests` 的源码 grep 伪测试：以可注入 query executor seam 断言"查询字典包含 `kSecUseAuthenticationUIFail`、不触发交互"等行为；无法注入的平台分支以编译期断言或文档化豁免说明。
-4. `SpeechBoundary.swift`：删除 `SpeechService` 空协议与 `DisabledSpeechService`（无任何消费方时），或在有装配消费时改为有契约的最小协议；以 `rg "SpeechService" -l` 的消费方核验结果为准。
+4. 两个同构空标记协议文件统一处置（2026-06-15 复核：AI 包 `AIBoundary.swift` 与 Speech 包 `SpeechBoundary.swift`）：各自以 `rg "AIProvider\b" -l` / `rg "SpeechService" -l` 的真实消费方核验——无任何消费方则删（含对应 `DisabledAIProvider` / `DisabledSpeechService`），有装配消费（如 `AppEnvironment` 注入 disabled 实现）则改为有契约的最小协议。两文件采用同一判定口径，不留不对称残留。
 5. WAV 解析改 RIFF chunk walker：顺序遍历 chunk（fmt 长度可变、容忍 LIST / fact），新增扩展 fmt 与 LIST chunk 的合成 fixture。
 6. `docs/spec/012-reading-learning-domain.md:79` 更新为 prompt v4 + schema `reading_selection_explanation.v3` 的准确组合表述。
 7. DoD：AI / Speech 包测试全绿；`rg "contentsOf: langoTraceAISourceFileURL" Packages/LangoTraceAI/Tests` 无命中。
@@ -266,6 +267,27 @@ macOS 环境跨包全测扫尾（六个包 `swift test` + `xcodebuild test -only
 1. 软删除死列的默认处置（保留列 + 修正写路径）是否符合预期，或直接删列。
 2. RedactedSecret 引入造成的公开 API 破坏范围（Core/AI/Speech/UI/App 连锁）是否接受一次性完成。
 是否允许进入实现：待用户确认后允许。
+```
+
+---
+
+```text
+审核日期：2026-06-15（第二条记录：实现前隔离子代理复核）
+审核方式：隔离审查（只读 Plan 子代理）+ 主会话对 3 个 P1 逐条核验（git / 真实文件）
+审核轮次：实现前再复核（Mac 验证门关闭、基线前进 48 commit 后）
+触发原因：本方案制定 + 自审核均在 2026-06-11；其后 Mac 验证门关闭引入 5 类修复，需对照当前代码核验现状是否仍成立。
+发现摘要（均经主会话核验属实）：
+- [P1-1] 资料基线 `274b7db` 已落后当前 HEAD 48 个 commit；`83f4ef1`(swiftformat) / `483bfe9`(SwiftLint 重构) 改动了 §8 点名的 AI 服务文件，§2.1/§2.2 行号系统性漂移（Bearer 154→176 等）。→ 已在 §2 开头加基线漂移说明，行号降级为符号锚点。是否阻塞：是（已处置）。
+- [P1-2] sha256Hex 重复 7→8，UI 包从 1 增至 2（漏列 `ReadingDocumentStore+Selection.swift`）。→ §2.5 已更新计数并改 StableHashing 倾向 Core 公开。是否阻塞：是（已处置）。
+- [P1-3] 原「AIBoundary 不存在/误记」结论不成立：`AIBoundary.swift`(`AIProvider`/`DisabledAIProvider`) 客观存在且与 `SpeechBoundary.swift` 同构。→ §2.7 改写、Phase 5 step 4 统一两文件处置口径。是否阻塞：否（已处置）。
+- [P2-1] §2.6 schema 行号错位（`:309` 实为 lifecycle_events，import_operations 表在 ~267、status 在 ~272；cache 表在 ~327）。底层 FK/CHECK 缺口成立。建议实现时按表名而非行号定位。
+- [P2-3] Phase 1 DoD「Bearer 只剩 adapter 一处」不可达：AI 包共 6 处 Bearer，TTS/Embedding 不在范围。→ §5 增列排除、§16 DoD 限定到三个文本服务、计数目标改 0。
+- [P2 新] 发现第四个走 Bearer+makeRequest 的服务 `EmbeddingConfigurationProbeService`，原方案未提。→ §5 显式排除。
+- [P2-2] Reading 解释缓存 async 测试历史有 continuation 竞态（commit 9d81330/8bb89cc/62fcc78）；Phase 3 时钟注入触及该区域。→ 写入 §20 剩余风险。
+- [P3] §15 首失败用例对 enum 新增 case 的「编译失败即红」机制应注明；§5 应排除 Embedding（已处置）。
+写回修改：§2 基线漂移说明 + 行号符号锚点化；§2.5 sha256 计数 7→8 + StableHashing 倾向；§2.7 + Phase 5 step 4 双 boundary 统一口径；§5 排除 TTS/Embedding；§16 Bearer DoD 限定范围与目标；§20 增 async coordinator 风险。
+仍需用户确认的问题：沿用上方两条（软删除列处置、RedactedSecret 一次性破坏范围）；新增第 3 条 → StableHashing 是否采纳「Core 公开共享工具」（UI 已有 2 个消费方，倾向公开）。
+裁决：3 个 P1 已在本方案内完成事实校正（不涉及新建 plan / architecture note，均为 §2/§5/§12/§16/§20 的源头订正）；校正后方案 implementation-ready，仍为 `状态:Draft`，须用户确认推进至 `User Approved` 方可实现。
 ```
 
 ## 14. 复查方法
@@ -309,7 +331,9 @@ macOS 环境跨包全测扫尾（六个包 `swift test` + `xcodebuild test -only
 # 聚焦（按 Phase，见第 15 节 --filter 命令）
 
 # Phase DoD（结构性检查）
-rg "Bearer \\\\(" Packages/LangoTraceAI/Sources --count-matches   # Phase 1 后应只剩 adapter 一处
+# Phase 1 DoD：三个文本服务源码内 Bearer 注入归零（统一移入 text adapter）。
+# 注意：TTSProviderAdapter.swift / EmbeddingConfigurationProbeService.swift 的 Bearer 不在本方案范围，须排除（见 §5）。
+rg "Bearer \\\\(" Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialGenerationService.swift Packages/LangoTraceAI/Sources/LangoTraceAI/ReadingSelectionExplanationService.swift Packages/LangoTraceAI/Sources/LangoTraceAI/AIProviderConfigurationProbeService.swift --count-matches   # Phase 1 后应为 0
 rg "plaintextSecret: String" Packages                              # Phase 3 后无命中
 rg "\(try\? .*\) \?\? \[\]" Packages/LangoTraceData/Sources/LangoTraceData/GRDBLearningContentRepositoryBridge.swift  # Phase 4 后无命中
 rg "contentsOf: langoTraceAISourceFileURL" Packages/LangoTraceAI/Tests  # Phase 5 后无命中
@@ -365,3 +389,4 @@ deferred / aborted 项是否已从完成叙事中剥离：Anthropic / Gemini 真
 - `bytes(for:)` 流式行为在不同 OS 版本的 URLSession 实现差异未验证，Phase 5 必须在 macOS 真实运行测试。
 - 44 处枚举解码点逐一替换可能遗漏个别点；以 rg 扫描作为 DoD 兜底，但 rg 模式可能漏掉变体写法，最终以人工抽查补充。
 - 软删除列改写路径若触及 AI provider 配置保存链路的既有测试预期，改动量可能超出预估；已预留回退处置（删列）决策口。
+- （2026-06-15 复核增列）Phase 3 给 `SentenceAudioPlaybackCoordinator` / `PracticeSessionReducer` 注入时钟、Phase 3 改 Reading 范围模型，触及 Mac 验证门期间暴露过 continuation 竞态的 async/coordinator 区域（commit `9d81330` / `8bb89cc` / `62fcc78`）。改动须遵守 `docs/spec/009` 沉淀的约定（`#require` 先 await、GRDB read 闭包显式返回类型、continuation 单次 resume），否则 CI（macOS）UI / playback 异步测试可能挂起，而本机 Linux 无法复现。
