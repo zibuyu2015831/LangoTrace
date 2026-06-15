@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 import GRDB
 import LangoTraceCore
@@ -466,7 +465,7 @@ struct GRDBReadingLibraryRepositoryUpdateTests {
                     character_length, created_at
                 ) VALUES (?, ?, ?, 1, 1, 'block-1', NULL, ?, 0, 3, ?)
                 """,
-                arguments: ["anchor-1", document.id, "space-1", sha256Hex("Old"), 100.0]
+                arguments: ["anchor-1", document.id, "space-1", StableHashing.sha256Hex("Old"), 100.0]
             )
         }
 
@@ -632,9 +631,4 @@ private func seededDatabase() throws -> AppDatabase {
         )
     }
     return database
-}
-
-private func sha256Hex(_ value: String) -> String {
-    let digest = SHA256.hash(data: Data(value.utf8))
-    return digest.map { String(format: "%02x", $0) }.joined()
 }

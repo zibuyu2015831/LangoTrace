@@ -296,7 +296,7 @@ private extension ReadingSelectionContext {
         documentID: String,
         contentRevision: Int
     ) -> ReadingSelectionContext {
-        let hash = ReadingTextSegmenter.sha256Hex(selectedText)
+        let hash = StableHashing.sha256Hex(selectedText)
         let anchorID = ReadingTextSegmenter.sourceAnchorID(
             documentID: documentID,
             contentRevision: contentRevision,

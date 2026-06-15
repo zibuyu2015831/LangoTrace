@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 
 public struct ReadingTextChunk: Equatable, Sendable {
@@ -361,7 +360,7 @@ public enum ReadingTextSegmenter {
             contextText = containingSentence
         }
 
-        let selectedTextHash = sha256Hex(input.selectedText)
+        let selectedTextHash = StableHashing.sha256Hex(input.selectedText)
         return ReadingSelectionContext(
             sourceAnchorID: sourceAnchorID(
                 documentID: input.documentID,
@@ -437,7 +436,7 @@ public enum ReadingTextSegmenter {
             contextText = currentParagraph
         }
 
-        let selectedTextHash = sha256Hex(sentence.text)
+        let selectedTextHash = StableHashing.sha256Hex(sentence.text)
         return ReadingSelectionContext(
             sourceAnchorID: sourceAnchorID(
                 documentID: documentID,
@@ -485,12 +484,6 @@ public enum ReadingTextSegmenter {
             "\(characterOffset)",
             "\(characterLength)",
         ]
-        return sha256Hex(components.joined(separator: "|"))
-    }
-
-    public static func sha256Hex(_ input: String) -> String {
-        let data = Data(input.utf8)
-        let hash = SHA256.hash(data: data)
-        return hash.compactMap { String(format: "%02x", $0) }.joined()
+        return StableHashing.sha256Hex(components.joined(separator: "|"))
     }
 }

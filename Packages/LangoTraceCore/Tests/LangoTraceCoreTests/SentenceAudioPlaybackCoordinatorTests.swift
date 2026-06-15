@@ -198,8 +198,8 @@ struct SentenceAudioPlaybackCoordinatorTests {
         let firstKey = SentenceAudioPlaybackCoordinator.artifactKey(for: request, configuration: first)
         let secondKey = SentenceAudioPlaybackCoordinator.artifactKey(for: request, configuration: second)
 
-        let expectedHash = SentenceAudioPlaybackCoordinator.sha256Hex(
-            for: "instructions=s:Speak slowly;response_format=s:mp3"
+        let expectedHash = StableHashing.sha256Hex(
+            "instructions=s:Speak slowly;response_format=s:mp3"
         )
         #expect(firstKey.providerParametersHash == expectedHash)
         #expect(secondKey.providerParametersHash == expectedHash)

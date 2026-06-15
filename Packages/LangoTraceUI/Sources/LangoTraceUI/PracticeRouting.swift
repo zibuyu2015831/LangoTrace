@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 import LangoTraceCore
 import LangoTraceData
@@ -22,7 +21,7 @@ struct PracticeSessionRouteSeed: Hashable {
         targetLanguageCode: String,
         capturedAt: Date
     ) {
-        let targetTextHash = Self.sha256Hex(for: sentence.targetText)
+        let targetTextHash = StableHashing.sha256Hex(sentence.targetText)
         entryID = entry.id
         learningMaterialID = rendering.id
         sentenceID = sentence.id
@@ -140,7 +139,7 @@ struct PracticeSessionRouteSeed: Hashable {
         }
 
         let item = navigationContext.items[nextIndex]
-        let nextTargetTextHash = Self.sha256Hex(for: item.targetTextSnapshot)
+        let nextTargetTextHash = StableHashing.sha256Hex(item.targetTextSnapshot)
         let nextSnapshot = PracticeSentenceSnapshot(
             entryID: navigationContext.entryID,
             learningMaterialID: navigationContext.learningMaterialID,
@@ -161,11 +160,6 @@ struct PracticeSessionRouteSeed: Hashable {
         seed.navigationContext = navigationContext
         seed.targetTextHash = nextTargetTextHash
         return seed
-    }
-
-    private static func sha256Hex(for value: String) -> String {
-        let digest = SHA256.hash(data: Data(value.utf8))
-        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }
 

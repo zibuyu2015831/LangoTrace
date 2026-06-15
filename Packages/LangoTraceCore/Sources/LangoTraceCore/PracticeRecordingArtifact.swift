@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 
 public enum PracticeRecordingFormat: String, CaseIterable, Sendable {
@@ -38,7 +37,7 @@ public struct PracticeRecordingArtifactKey: Equatable, Sendable {
     }
 
     public var derivationKeyHash: String {
-        Self.sha256Hex(for: canonicalRepresentation)
+        StableHashing.sha256Hex(canonicalRepresentation)
     }
 }
 
@@ -93,10 +92,5 @@ private extension PracticeRecordingArtifactKey {
             "targetLanguageCode=\(targetLanguageCode)",
             "targetTextHash=\(targetTextHash)",
         ].joined(separator: "\n")
-    }
-
-    static func sha256Hex(for value: String) -> String {
-        let digest = SHA256.hash(data: Data(value.utf8))
-        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }

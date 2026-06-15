@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 import GRDB
 import LangoTraceCore
@@ -50,7 +49,7 @@ public extension GRDBReadingLibraryRepository {
         try databaseQueue.write { db in
             let id = idGenerator()
             let now = clock()
-            let hash = sha256Hex(input.body)
+            let hash = StableHashing.sha256Hex(input.body)
             try db.execute(
                 sql: """
                 INSERT INTO reading_documents (
@@ -183,7 +182,7 @@ public extension GRDBReadingLibraryRepository {
                 arguments: [
                     input.title,
                     input.body,
-                    sha256Hex(input.body),
+                    StableHashing.sha256Hex(input.body),
                     nextContentRevision,
                     nextStructureVersion,
                     now,
@@ -439,8 +438,8 @@ public extension GRDBReadingLibraryRepository {
                     record.providerEndpointID,
                     record.providerPresetID,
                     record.modelName,
-                    sha256Hex(record.selectedText),
-                    record.sentenceText.map(sha256Hex),
+                    StableHashing.sha256Hex(record.selectedText),
+                    record.sentenceText.map { StableHashing.sha256Hex($0) },
                     record.contextCharacterCount,
                     record.status,
                     record.failureCategory,
@@ -649,7 +648,7 @@ private extension GRDBReadingLibraryRepository {
                     structureVersion,
                     blockIndex,
                     trimmedText.count,
-                    sha256Hex(trimmedText),
+                    StableHashing.sha256Hex(trimmedText),
                 ]
             )
         }
@@ -730,11 +729,6 @@ private extension GRDBReadingLibraryRepository {
             successCount: row["success_count"],
             failureCount: row["failure_count"]
         )
-    }
-
-    func sha256Hex(_ value: String) -> String {
-        let digest = SHA256.hash(data: Data(value.utf8))
-        return digest.map { String(format: "%02x", $0) }.joined()
     }
 
     func escapedLikePattern(_ value: String) -> String {

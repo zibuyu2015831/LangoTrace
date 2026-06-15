@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 
 public enum TTSSentenceSource: Equatable, Hashable, Sendable {
@@ -73,7 +72,7 @@ public struct TTSAudioArtifactKey: Equatable, Sendable {
     }
 
     public var derivationKeyHash: String {
-        Self.sha256Hex(for: canonicalRepresentation)
+        StableHashing.sha256Hex(canonicalRepresentation)
     }
 }
 
@@ -147,11 +146,6 @@ private extension TTSAudioArtifactKey {
         // equal keys hashing identically.
         let normalized = value == 0 ? abs(value) : value
         return String(format: "%.6f", locale: Locale(identifier: "en_US_POSIX"), normalized)
-    }
-
-    static func sha256Hex(for value: String) -> String {
-        let digest = SHA256.hash(data: Data(value.utf8))
-        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }
 

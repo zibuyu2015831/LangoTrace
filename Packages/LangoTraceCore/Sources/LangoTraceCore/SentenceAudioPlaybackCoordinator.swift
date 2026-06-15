@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 
 public protocol PlayableTTSSecretResolving: Sendable {
@@ -341,7 +340,7 @@ private extension SentenceAudioPlaybackCoordinator {
         }
         let key = SentenceAudioKey(
             sentenceSource: request.sentenceSource,
-            sentenceTextHash: Self.sha256Hex(for: request.targetText),
+            sentenceTextHash: StableHashing.sha256Hex(request.targetText),
             targetLanguageCode: request.targetLanguageCode,
             configurationFingerprint: "unavailable"
         )
@@ -398,7 +397,7 @@ extension SentenceAudioPlaybackCoordinator {
         let voice = configuration.voiceProfile
         return TTSAudioArtifactKey(
             sentenceSource: request.sentenceSource,
-            sentenceTextHash: sha256Hex(for: request.targetText),
+            sentenceTextHash: StableHashing.sha256Hex(request.targetText),
             targetLanguageCode: request.targetLanguageCode,
             providerProfileID: configuration.endpoint.profileID,
             ttsEndpointID: configuration.endpoint.id,
@@ -406,21 +405,17 @@ extension SentenceAudioPlaybackCoordinator {
             adapterKind: configuration.settings.adapterKind.rawValue,
             adapterVersion: "v1",
             modelName: configuration.endpoint.modelName,
-            voiceIDHash: sha256Hex(for: voice.voiceID),
+            voiceIDHash: StableHashing.sha256Hex(voice.voiceID),
             outputFormat: voice.outputFormat,
             sampleRate: voice.sampleRate,
             speed: voice.speed,
             pitch: voice.pitch,
             volume: voice.volume,
-            instructionsHash: voice.instructions.map(sha256Hex(for:)),
+            instructionsHash: voice.instructions.map { StableHashing.sha256Hex($0) },
             providerParametersHash: voice.providerParameters.isEmpty
                 ? nil
-                : sha256Hex(for: TTSProviderParameterValue.canonicalSerialization(of: voice.providerParameters)),
+                : StableHashing.sha256Hex(TTSProviderParameterValue.canonicalSerialization(of: voice.providerParameters)),
             configurationFingerprint: voice.configurationFingerprint
         )
-    }
-
-    static func sha256Hex(for value: String) -> String {
-        SHA256.hash(data: Data(value.utf8)).map { String(format: "%02x", $0) }.joined()
     }
 }

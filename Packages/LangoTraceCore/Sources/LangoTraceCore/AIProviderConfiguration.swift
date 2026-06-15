@@ -743,16 +743,7 @@ private enum AIProviderEndpointConfigurationFingerprint {
             fields.supportsImageInput ? "image-supported" : "image-unsupported",
             fields.imageInputEnabled ? "image-enabled" : "image-disabled",
         ].joined(separator: "\u{1F}")
-        return "endpoint-v1-\(fnv1a64Hex(parts))"
-    }
-
-    private static func fnv1a64Hex(_ value: String) -> String {
-        var hash: UInt64 = 0xCBF2_9CE4_8422_2325
-        for byte in value.utf8 {
-            hash ^= UInt64(byte)
-            hash = hash &* 0x0100_0000_01B3
-        }
-        return String(format: "%016llx", hash)
+        return "endpoint-v1-\(StableHashing.fnv1a64Hex(parts))"
     }
 }
 

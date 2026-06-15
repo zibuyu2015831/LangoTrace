@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 import LangoTraceCore
 
@@ -45,7 +44,7 @@ public struct LocalMediaArtifactFileStore: TTSAudioStagingWriting, @unchecked Se
         return MediaArtifactStagedFileReference(
             relativeStagingPath: relativePath,
             byteSize: Int64(data.count),
-            contentHash: Self.sha256Hex(data)
+            contentHash: StableHashing.sha256Hex(data)
         )
     }
 
@@ -61,7 +60,7 @@ public struct LocalMediaArtifactFileStore: TTSAudioStagingWriting, @unchecked Se
         return MediaArtifactStagedFileReference(
             relativeStagingPath: relativePath,
             byteSize: Int64(data.count),
-            contentHash: Self.sha256Hex(data)
+            contentHash: StableHashing.sha256Hex(data)
         )
     }
 
@@ -94,7 +93,7 @@ public struct LocalMediaArtifactFileStore: TTSAudioStagingWriting, @unchecked Se
             return nil
         }
         let data = try Data(contentsOf: url)
-        return LocalMediaArtifactFileInfo(byteSize: Int64(data.count), contentHash: Self.sha256Hex(data))
+        return LocalMediaArtifactFileInfo(byteSize: Int64(data.count), contentHash: StableHashing.sha256Hex(data))
     }
 
     public func fileByteSize(relativePath: String) throws -> Int64? {
@@ -179,10 +178,6 @@ private extension LocalMediaArtifactFileStore {
     func modificationDate(at url: URL) throws -> Date {
         let attributes = try fileManager.attributesOfItem(atPath: url.path)
         return attributes[.modificationDate] as? Date ?? .distantPast
-    }
-
-    static func sha256Hex(_ data: Data) -> String {
-        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
     }
 
     static func safeFileExtension(_ value: String) -> String {
