@@ -20,3 +20,4 @@ ADR 只记录不可轻易反转的重要取舍，不维护 implementation 文档
 - [ADR-003：使用 XcodeGen 管理 Xcode 工程生成](003-use-xcodegen-for-project-generation.md)
 - [ADR-004：采用语言空间作为核心信息模型](004-use-language-space-as-primary-model.md)
 - [ADR-005：坚持本地优先和用户自带 Provider](005-local-first-and-user-owned-providers.md)
+- [ADR-006：采用系统级三层学习者模型（Learner Model）](006-system-level-three-layer-learner-model.md)
