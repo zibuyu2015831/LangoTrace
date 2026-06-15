@@ -710,17 +710,6 @@ public extension AIProviderConfigurationRepository {
         try await recordValidationEvent(outcome.event)
     }
 
-    func loadTTSSettings(endpointID _: AIProviderEndpointID) async throws -> TTSProviderSettings? {
-        nil
-    }
-
-    func loadTTSVoiceProfile(
-        endpointID _: AIProviderEndpointID,
-        languageCode _: String
-    ) async throws -> TTSVoiceProfile? {
-        nil
-    }
-
     func recordTTSVoiceProfileProbeOutcome(
         _ event: AIProviderValidationEvent,
         languageCode _: String
