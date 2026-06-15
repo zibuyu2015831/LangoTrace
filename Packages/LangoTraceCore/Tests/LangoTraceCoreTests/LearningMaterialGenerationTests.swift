@@ -25,8 +25,10 @@ func learningMaterialFailureCategoriesCoverContract() {
     #expect(categories == [
         "providerNotConfigured",
         "credentialMissing",
+        "authenticationFailed",
         "networkUnavailable",
         "timeout",
+        "rateLimited",
         "providerRejected",
         "unsupportedProvider",
         "unsupportedModel",
