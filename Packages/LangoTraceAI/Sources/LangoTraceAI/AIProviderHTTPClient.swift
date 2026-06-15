@@ -33,16 +33,20 @@ public struct URLSessionAIProviderHTTPClient: AIProviderHTTPClient {
 
     public func send(_ request: URLRequest, maximumResponseBytes: Int) async throws -> AIProviderHTTPResponse {
         do {
-            let (data, response) = try await session.data(for: request)
-            guard data.count <= maximumResponseBytes else {
-                throw AIProviderHTTPClientError.responseTooLarge
-            }
+            let (asyncBytes, response) = try await session.bytes(for: request)
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw AIProviderHTTPClientError.invalidHTTPResponse
             }
+            var accumulated = Data()
+            for try await byte in asyncBytes {
+                accumulated.append(byte)
+                if accumulated.count > maximumResponseBytes {
+                    throw AIProviderHTTPClientError.responseTooLarge
+                }
+            }
             return AIProviderHTTPResponse(
                 statusCode: httpResponse.statusCode,
-                body: data,
+                body: accumulated,
                 contentType: httpResponse.value(forHTTPHeaderField: "Content-Type")
             )
         } catch let error as AIProviderHTTPClientError {

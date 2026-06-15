@@ -33,10 +33,28 @@
 
 ## 当前任务不实现
 
-- 不改变“敏感凭证默认存入 Keychain 或等价安全存储、默认不同步”的核心决策（见 ADR-005 与 `docs/README.md` 第 4 节第 9 条）。
+- 不改变”敏感凭证默认存入 Keychain 或等价安全存储、默认不同步”的核心决策（见 ADR-005 与 `docs/README.md` 第 4 节第 9 条）。
 - 不引入新的签名证书、entitlement 或 access group。
 - 不新增低安全级本地密钥库。
 - 不清理用户本机已有 Keychain item。
+
+## Data Protection Keychain 迁移决策（2026-06-16 补充）
+
+**决策**：保留当前 `dlopen` + `SecAccessCreate` 实现不变，不迁移到 `kSecUseDataProtectionKeychain`。
+
+**触发条件**（满足以下全部后执行迁移）：
+1. 获得稳定 Apple Development 或 Distribution 签名（`TeamIdentifier` 固定）。
+2. 在 App entitlements 中配置 `keychain-access-groups`。
+3. 确认 Debug / TestFlight / App Store 三种构建在 macOS 12+ 上 `kSecUseDataProtectionKeychain` 返回 `errSecSuccess`（而非 `-34018`）。
+
+**迁移步骤**（满足触发条件后）：
+1. 在 `KeychainAIProviderCredentialStore.swift` 中将 `dlopen(“Security”)` + `dlsym(“SecAccessCreate”)` 动态 ACL 构造替换为 `kSecUseDataProtectionKeychain: true` 查询参数。
+2. 移除 `SecAccessCreate` 相关分支和 `u_AuthUI` / `u_AuthUIF` 私有常量回退。
+3. 在 entitlements 中声明 `keychain-access-groups`。
+4. 在 macOS 12/13/14/15 上进行无弹窗静默读取人工复测。
+5. 清理旧格式 Keychain item（可选：版本检测后自动迁移）。
+
+**不迁移的风险**：当前 `SecAccessCreate` 在无正式签名时依赖 CDHash 授权，重建后 CDHash 变化可能导致旧 item ACL 失效（`credentialInaccessible`）。这是已知的有限影响范围问题（仅影响 macOS Debug 构建），不会影响 TestFlight/App Store 分发。
 
 ## 进入正式方案前检查
 

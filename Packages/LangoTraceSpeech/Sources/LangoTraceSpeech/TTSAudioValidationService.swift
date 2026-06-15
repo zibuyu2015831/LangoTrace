@@ -199,19 +199,42 @@ private extension DefaultTTSAudioValidationService {
     }
 
     func wavMetadata(_ bytes: Data) -> TTSAudioMetadata? {
-        guard bytes.count >= 44,
+        guard bytes.count >= 12,
               String(data: bytes[0 ..< 4], encoding: .ascii) == "RIFF",
-              String(data: bytes[8 ..< 12], encoding: .ascii) == "WAVE",
-              String(data: bytes[12 ..< 16], encoding: .ascii) == "fmt ",
-              String(data: bytes[36 ..< 40], encoding: .ascii) == "data"
+              String(data: bytes[8 ..< 12], encoding: .ascii) == "WAVE"
         else {
             return nil
         }
 
-        let sampleRate = Int(readUInt32(bytes, offset: 24))
-        let byteRate = Int(readUInt32(bytes, offset: 28))
-        let dataSize = Int(readUInt32(bytes, offset: 40))
-        guard sampleRate > 0, byteRate > 0, dataSize > 0 else {
+        let riffSize = Int(readUInt32(bytes, offset: 4)) + 8
+        var offset = 12
+        var sampleRate: Int?
+        var byteRate: Int?
+        var dataSize: Int?
+
+        while offset + 8 <= riffSize {
+            let chunkID = String(data: bytes[offset ..< (offset + 4)], encoding: .ascii) ?? ""
+            let chunkSize = Int(readUInt32(bytes, offset: offset + 4))
+
+            if chunkID == "fmt " {
+                // Minimum fmt chunk is 16 bytes (PCM), extended fmt may be larger
+                guard offset + 8 + 16 <= bytes.count else { return nil }
+                sampleRate = Int(readUInt32(bytes, offset: offset + 12))
+                byteRate = Int(readUInt32(bytes, offset: offset + 16))
+            } else if chunkID == "data" {
+                dataSize = chunkSize
+            }
+            // Skip other chunks (LIST, fact, etc.) — they are valid WAV structures
+
+            // Chunks are word-aligned: advance by chunkSize rounded up to even
+            let advance = 8 + chunkSize + (chunkSize % 2)
+            offset += advance
+        }
+
+        guard let sampleRate, sampleRate > 0,
+              let byteRate, byteRate > 0,
+              let dataSize, dataSize > 0
+        else {
             return nil
         }
 

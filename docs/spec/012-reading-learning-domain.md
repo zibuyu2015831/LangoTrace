@@ -76,7 +76,7 @@ Reading AI explanation is a user-explicit action. The request may contain:
 - native language, target language, proficiency level code, prompt id/version and provider/model metadata
 - `explanation_language_mode` — derived from `proficiency_level_code` at store construction: A1/A2 → `sourceLanguage`; B1/B2 → `bilingualBridge`; C1/C2 → `targetImmersion`; empty/unknown → `bilingualBridge`. The store holds this as `currentExplanationMode` which may be overridden (future escape hatch) without affecting `LanguageSpace.level`. The mode is not a privacy-sensitive field.
 
-The current Prompt is v3 (`builtin.reading.selection_explanation.v3`, schema `reading_selection_explanation.v3`). It carries field-level language directives and the result includes `exampleSentenceTranslation` (nullable) and `explanationLanguageMode` (the mode echoed by the model, or falling back to the requested mode). Language non-compliance (model language drift) is not a parse error and does not block the user.
+The current Prompt is v4 (`builtin.reading.selection_explanation.v4`, schema `reading_selection_explanation.v3`). It carries field-level language directives and the result includes `exampleSentenceTranslation` (nullable) and `explanationLanguageMode` (the mode echoed by the model, or falling back to the requested mode). Language non-compliance (model language drift) is not a parse error and does not block the user.
 
 It must not automatically send a full document on import, open, scroll or TTS playback. Selection alone is not enough reason to send a request.
 

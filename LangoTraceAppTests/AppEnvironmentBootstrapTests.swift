@@ -38,8 +38,6 @@ final class AppEnvironmentBootstrapTests: XCTestCase {
     func testBootstrapKeepsUnimplementedExternalServicesDisabled() {
         let environment = AppEnvironment.bootstrap(databaseURL: temporaryDatabaseURL)
 
-        XCTAssertTrue(environment.aiProvider is DisabledAIProvider)
-        XCTAssertTrue(environment.speechService is DisabledSpeechService)
         XCTAssertTrue(environment.syncService is DisabledSyncService)
     }
 

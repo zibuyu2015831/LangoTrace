@@ -18,8 +18,6 @@ struct AppEnvironment {
     let readingCacheStorage: (any ReadingExplanationCacheRepositoryProtocol)?
     let practiceActions: PracticeActions
     let aiProviderSettingsActions: AIProviderSettingsActions
-    let aiProvider: any AIProvider
-    let speechService: any SpeechService
     let syncService: any SyncService
 
     // AppEnvironment assembles the cross-package production graph in one place.
@@ -189,8 +187,6 @@ struct AppEnvironment {
                     await diagnosticLogger.record(event)
                 }
             ),
-            aiProvider: DisabledAIProvider(),
-            speechService: DisabledSpeechService(),
             syncService: DisabledSyncService()
         )
     }

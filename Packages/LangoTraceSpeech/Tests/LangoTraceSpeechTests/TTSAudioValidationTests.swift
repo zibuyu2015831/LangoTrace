@@ -62,6 +62,26 @@ struct TTSAudioValidationTests {
         #expect(result.previewResource == nil)
     }
 
+    @Test("Validator accepts WAV with extended fmt chunk and LIST chunk")
+    func validatorAcceptsWAVWithExtendedFmtAndListChunk() async throws {
+        let validator = DefaultTTSAudioValidationService()
+        let wav = wavFixtureWithExtendedFmtAndListChunk(sampleRate: 22050, samples: 2205)
+
+        let result = await validator.validateAudio(
+            wav,
+            declaredFormat: .wav,
+            contentType: "audio/wav",
+            previewPolicy: .shortLived
+        )
+
+        let metadata = try #require(result.metadata)
+        #expect(result.status == .succeeded)
+        #expect(metadata.format == .wav)
+        #expect(metadata.byteCount == wav.count)
+        #expect(metadata.sampleRate == 22050)
+        #expect(metadata.durationSeconds == 0.1)
+    }
+
     @Test("Short lived preview does not create persistent media artifact URL")
     func shortLivedPreviewDoesNotCreatePersistentMediaArtifactURL() async {
         let validator = DefaultTTSAudioValidationService()

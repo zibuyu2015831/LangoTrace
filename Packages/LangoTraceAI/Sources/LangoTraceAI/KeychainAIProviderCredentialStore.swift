@@ -144,6 +144,10 @@ private func addMacTrustedAccessIfAvailable(to query: inout [String: Any]) {
 }
 
 #if os(macOS)
+    /// Uses dlopen + SecAccessCreate because kSecUseDataProtectionKeychain
+    /// returns -34018 without stable signing + keychain-access-groups entitlement.
+    /// See docs/architecture/notes/2026-06-05-macos-ai-provider-credential-signing-notes.md
+    /// for migration trigger conditions and steps.
     private func macTrustedAccess() -> SecAccess? {
         typealias SecAccessCreateFunction = @convention(c) (
             CFString,
