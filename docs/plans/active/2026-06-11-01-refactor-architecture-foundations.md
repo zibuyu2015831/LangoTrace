@@ -1,17 +1,17 @@
 # 任务方案：Core / Data / AI / Speech 架构地基整固（系列 E0a）
 
-状态：Draft
+状态：In Progress
 自审核状态：Reviewed
 类型：refactor
 创建日期：2026-06-11
-最后更新日期：2026-06-15（隔离子代理实现前复核，基线漂移与三项事实校正写回，见 §13 第二条记录）
+最后更新日期：2026-06-15（用户授权实施，进入 Phase 1；本机 Linux 无 Swift 工具链，验证按 Phase 收集至 `docs/testing/2026-06-15-architecture-foundations-pending-verification.md`，待 Mac/CI 运行）
 
 ## 用户确认记录
 
 本方案在 2026-06-11 主方案授权下创建（`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`）。该授权仅覆盖"系列方案文档的制定"，不覆盖本方案的实现。进入生产代码实现前，必须由用户单独确认本方案，并将状态推进为 `User Approved`。
 
 - 2026-06-15：实现前隔离复核完成（见 §13 第二条记录），3 个 P1 已在方案内校正。用户**预先确认 3 项实现决策默认**：①软删除列＝保留列 + 修正写路径（非删列）；②RedactedSecret 公开 API 连锁破坏一次性完成；③StableHashing 采纳 Core 公开共享工具。这 3 项不再是待决项。
-- 2026-06-15：用户选择**先自行复核本方案，暂未授权实现**。`状态` 保持 `Draft`；待用户复核后明确推进至 `User Approved` 方可进入生产代码实现。
+- 2026-06-15：用户复核后**授权实施**，要求逐 Phase 实现、每阶段检查 + commit + 推送 `dev`。`状态` 推进至 `In Progress`。实施环境为 Linux（无 Swift 工具链），所有 `swift test` / `xcodebuild` 验证收集至 `docs/testing/2026-06-15-architecture-foundations-pending-verification.md`，待 Mac/CI 统一运行。
 
 ## 1. 需求或 bug 描述
 
@@ -370,6 +370,15 @@ git diff --check
 ## 18. 实施记录
 
 2026-06-11：方案创建并完成双轮自审核（见第 13 节）。尚未进入实现。
+
+2026-06-15：用户授权实施，进入 Phase 1。
+
+- **Phase 1（AI text provider adapter 抽象）已实现**：
+  - 新增 `Packages/LangoTraceAI/Sources/LangoTraceAI/AIProviderTextRequestAdapter.swift`：`AIProviderTextRequestAdapter` 协议 + `OpenAICompatibleChatTextAdapter` / `OpenAIResponsesTextAdapter` 两个实现 + `AIProviderTextRequestAdapterFactory` 单一 dispatch 入口（anthropic / gemini → 抛 `.unsupportedProvider`）+ 中性错误 `AIProviderTextRequestAdapterError`。请求 finalize（auth header / Content-Type / body 序列化 / timeout）与文本解析在协议扩展中共享，per-kind 只剩 path suffix、body 形状、text 提取。
+  - `LearningMaterialGenerationService` / `ReadingSelectionExplanationService` / `AIProviderConfigurationProbeService` 三个服务改为消费 adapter：删除各自的 `makeRequest` Bearer 拼接、`chat/completions` vs `responses` 路径分发、adapterKind dispatch switch、parseText switch。probe 的"能力 gate"控制流改用 factory 的 unsupported 抛出来判定（supported → runTextProbes，unsupported → unsupportedResult）。
+  - 副作用收益：probe `parseText` 对非对象 JSON 错用 `AIProviderConfigurationError.missingRequiredEndpointField`（§2.2 列的 `:567` 错用点之一）随 parseText 删除而消失；二者最终都映射为 `.invalidResponse`，可观察行为不变。Phase 2 的错用修正只需处理 `AIProviderConfigurationService.swift:136,139`。
+  - 新增测试 `AIProviderTextRequestAdapterTests.swift`（首失败用例 `chatAdapterBuildsBearerAuthorizedRequest`）。
+  - 本机结构性检查：三个文本服务 `Bearer \(` 与请求构造 switch 归零（Bearer 仅余 adapter 一处 + TTS/Embedding 排除项）。`swift test` 待 Mac/CI，见 `docs/testing/2026-06-15-architecture-foundations-pending-verification.md`。
 
 ## 19. 完成标准
 

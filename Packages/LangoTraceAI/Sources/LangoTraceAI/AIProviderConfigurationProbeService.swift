@@ -134,17 +134,24 @@ public struct AIProviderConfigurationProbeService: Sendable {
             ]
         )
 
-        let result: AIProviderConfigurationProbeResult = switch endpoint.adapterKind {
-        case .openAICompatibleChat, .openAIResponses:
-            await runTextProbes(
-                source: source,
-                endpoint: endpoint,
-                secret: plaintextSecret,
-                languageContext: languageContext
-            )
-        case .anthropicMessages, .geminiGenerateContent:
-            unsupportedResult(source: source, endpoint: endpoint)
+        // Single dispatch point: a kind without a text-provider adapter
+        // (anthropic / gemini) yields the unsupported capability result.
+        let adapter: any AIProviderTextRequestAdapter
+        do {
+            adapter = try AIProviderTextRequestAdapterFactory.adapter(for: endpoint.adapterKind)
+        } catch {
+            let unsupported = unsupportedResult(source: source, endpoint: endpoint)
+            await recordCompletion(unsupported, endpoint: endpoint, operationID: operationID)
+            return unsupported
         }
+
+        let result = await runTextProbes(
+            source: source,
+            endpoint: endpoint,
+            secret: plaintextSecret,
+            languageContext: languageContext,
+            adapter: adapter
+        )
 
         await recordCompletion(result, endpoint: endpoint, operationID: operationID)
         return result
@@ -212,7 +219,8 @@ private extension AIProviderConfigurationProbeService {
         source: AIProviderProbeSource,
         endpoint: AIProviderEndpointInput,
         secret: String?,
-        languageContext: AIProviderProbeLanguageContext?
+        languageContext: AIProviderProbeLanguageContext?,
+        adapter: any AIProviderTextRequestAdapter
     ) async -> AIProviderConfigurationProbeResult {
         if endpointRequiresCredential(endpoint), secret?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
             return result(
@@ -247,7 +255,7 @@ private extension AIProviderConfigurationProbeService {
             )
         }
 
-        let textResult = await runProbe(.textReply, endpoint: endpoint, secret: secret)
+        let textResult = await runProbe(.textReply, endpoint: endpoint, secret: secret, adapter: adapter)
         guard textResult.status == .succeeded else {
             return result(
                 source: source,
@@ -276,14 +284,15 @@ private extension AIProviderConfigurationProbeService {
             )
         }
 
-        let jsonResult = await runProbe(.structuredJSON, endpoint: endpoint, secret: secret)
+        let jsonResult = await runProbe(.structuredJSON, endpoint: endpoint, secret: secret, adapter: adapter)
         let languageResult = await languageSupportProbeResult(
             afterStructuredJSON: jsonResult,
             endpoint: endpoint,
             secret: secret,
-            languageContext: languageContext
+            languageContext: languageContext,
+            adapter: adapter
         )
-        let imageResult = await imageProbeResult(afterTextSucceededFor: endpoint, secret: secret)
+        let imageResult = await imageProbeResult(afterTextSucceededFor: endpoint, secret: secret, adapter: adapter)
         return result(
             source: source,
             endpoint: endpoint,
@@ -300,7 +309,8 @@ private extension AIProviderConfigurationProbeService {
         afterStructuredJSON jsonResult: AIProviderProbeCapabilityResult,
         endpoint: AIProviderEndpointInput,
         secret: String?,
-        languageContext: AIProviderProbeLanguageContext?
+        languageContext: AIProviderProbeLanguageContext?,
+        adapter: any AIProviderTextRequestAdapter
     ) async -> AIProviderProbeCapabilityResult {
         guard jsonResult.status == .succeeded else {
             return AIProviderProbeCapabilityResult(
@@ -323,13 +333,15 @@ private extension AIProviderConfigurationProbeService {
         return await runProbe(
             .languageSupport(context: languageContext, prompt: prompt),
             endpoint: endpoint,
-            secret: secret
+            secret: secret,
+            adapter: adapter
         )
     }
 
     func imageProbeResult(
         afterTextSucceededFor endpoint: AIProviderEndpointInput,
-        secret: String?
+        secret: String?,
+        adapter: any AIProviderTextRequestAdapter
     ) async -> AIProviderProbeCapabilityResult {
         guard endpoint.supportsImageInput else {
             return AIProviderProbeCapabilityResult(
@@ -355,17 +367,18 @@ private extension AIProviderConfigurationProbeService {
                 durationMilliseconds: nil
             )
         }
-        return await runProbe(.imageUnderstanding, endpoint: endpoint, secret: secret)
+        return await runProbe(.imageUnderstanding, endpoint: endpoint, secret: secret, adapter: adapter)
     }
 
     func runProbe(
         _ kind: ProbeKind,
         endpoint: AIProviderEndpointInput,
-        secret: String?
+        secret: String?,
+        adapter: any AIProviderTextRequestAdapter
     ) async -> AIProviderProbeCapabilityResult {
         let startedAt = clock()
         do {
-            let request = try makeRequest(kind, endpoint: endpoint, secret: secret)
+            let request = try makeRequest(kind, endpoint: endpoint, secret: secret, adapter: adapter)
             let response = try await httpClient.send(request)
             let duration = durationMilliseconds(since: startedAt)
             guard (200 ... 299).contains(response.statusCode) else {
@@ -377,7 +390,7 @@ private extension AIProviderConfigurationProbeService {
                 )
             }
 
-            let text = try parseText(from: response.body, adapterKind: endpoint.adapterKind)
+            let text = try adapter.extractText(fromResponseBody: response.body)
             if kind.isStructuredJSON, !isStrictOKJSON(text) {
                 return AIProviderProbeCapabilityResult(
                     capability: kind.capability,
@@ -460,128 +473,31 @@ private extension AIProviderConfigurationProbeService {
     func makeRequest(
         _ kind: ProbeKind,
         endpoint: AIProviderEndpointInput,
-        secret: String?
+        secret: String?,
+        adapter: any AIProviderTextRequestAdapter
     ) throws -> URLRequest {
-        let url = try probeURL(for: endpoint)
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let timeout = endpoint.requestTimeoutSeconds {
-            request.timeoutInterval = timeout
+        let body: [String: Any]
+        if kind.isImageUnderstanding {
+            let fixture = try AIProviderProbeImageFixture.blueSquare()
+            body = adapter.imagePromptBody(
+                model: endpoint.modelName,
+                prompt: ProbeKind.imageUnderstanding.prompt,
+                imageDataURL: fixture.dataURLString,
+                maximumOutputTokens: 8
+            )
+        } else {
+            body = adapter.plainPromptBody(model: endpoint.modelName, prompt: kind.prompt)
         }
-        if let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            request.setValue("Bearer \(secret)", forHTTPHeaderField: "Authorization")
-        }
-        request.httpBody = try JSONSerialization.data(withJSONObject: body(kind, endpoint: endpoint), options: [])
-        return request
-    }
-
-    func probeURL(for endpoint: AIProviderEndpointInput) throws -> URL {
-        let suffix = endpoint.adapterKind == .openAIResponses ? "responses" : "chat/completions"
-        guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: endpoint.baseURL, pathSuffix: suffix)
-        else {
+        do {
+            return try adapter.makeRequest(
+                baseURL: endpoint.baseURL,
+                secret: secret,
+                timeoutSeconds: endpoint.requestTimeoutSeconds,
+                body: body
+            )
+        } catch AIProviderTextRequestAdapterError.invalidEndpointURL {
             throw AIProviderConfigurationError.invalidBaseURL
         }
-        return url
-    }
-
-    func body(_ kind: ProbeKind, endpoint: AIProviderEndpointInput) throws -> [String: Any] {
-        if kind.isImageUnderstanding {
-            return try imageBody(endpoint: endpoint)
-        }
-        switch endpoint.adapterKind {
-        case .openAIResponses:
-            return [
-                "model": endpoint.modelName,
-                "input": kind.prompt,
-            ]
-        case .openAICompatibleChat:
-            return [
-                "model": endpoint.modelName,
-                "messages": [
-                    [
-                        "role": "user",
-                        "content": kind.prompt,
-                    ],
-                ],
-            ]
-        case .anthropicMessages, .geminiGenerateContent:
-            return [:]
-        }
-    }
-
-    func imageBody(endpoint: AIProviderEndpointInput) throws -> [String: Any] {
-        let fixture = try AIProviderProbeImageFixture.blueSquare()
-        switch endpoint.adapterKind {
-        case .openAIResponses:
-            return [
-                "model": endpoint.modelName,
-                "input": [
-                    [
-                        "role": "user",
-                        "content": [
-                            [
-                                "type": "input_text",
-                                "text": ProbeKind.imageUnderstanding.prompt,
-                            ],
-                            [
-                                "type": "input_image",
-                                "image_url": fixture.dataURLString,
-                                "detail": "low",
-                            ],
-                        ],
-                    ],
-                ],
-                "max_output_tokens": 8,
-            ]
-        case .openAICompatibleChat:
-            return [
-                "model": endpoint.modelName,
-                "messages": [
-                    [
-                        "role": "user",
-                        "content": [
-                            [
-                                "type": "text",
-                                "text": ProbeKind.imageUnderstanding.prompt,
-                            ],
-                            [
-                                "type": "image_url",
-                                "image_url": [
-                                    "url": fixture.dataURLString,
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-                "max_tokens": 8,
-            ]
-        case .anthropicMessages, .geminiGenerateContent:
-            return [:]
-        }
-    }
-
-    func parseText(from data: Data, adapterKind: AIProviderAdapterKind) throws -> String {
-        let json = try JSONSerialization.jsonObject(with: data)
-        guard let object = json as? [String: Any] else {
-            throw AIProviderConfigurationError.missingRequiredEndpointField
-        }
-        switch adapterKind {
-        case .openAICompatibleChat:
-            return parseChatText(from: object)
-        case .openAIResponses:
-            return parseResponsesText(from: object)
-        case .anthropicMessages, .geminiGenerateContent:
-            throw AIProviderConfigurationError.unsupportedCapabilityForProvider
-        }
-    }
-
-    func parseChatText(from object: [String: Any]) -> String {
-        OpenAICompatibleResponseTextParser.chatCompletionsText(fromResponseObject: object) ?? ""
-    }
-
-    func parseResponsesText(from object: [String: Any]) -> String {
-        OpenAICompatibleResponseTextParser.responsesText(fromResponseObject: object) ?? ""
     }
 
     func isStrictOKJSON(_ text: String) -> Bool {

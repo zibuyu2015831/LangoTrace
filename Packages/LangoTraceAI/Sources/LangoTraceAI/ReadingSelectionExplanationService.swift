@@ -156,8 +156,9 @@ public struct ReadingSelectionExplanationService: Sendable {
             throw ReadingSelectionExplanationServiceError(category: .cancelled)
         }
         let endpoint = try normalizedEndpoint(request.endpoint)
+        let adapter = try textAdapter(for: endpoint)
         let prompt = ReadingSelectionExplanationPromptRegistry.prompt(input: request.input)
-        let urlRequest = try makeRequest(endpoint: endpoint, secret: request.plaintextSecret, prompt: prompt)
+        let urlRequest = try makeRequest(adapter: adapter, endpoint: endpoint, secret: request.plaintextSecret, prompt: prompt)
         let response: AIProviderHTTPResponse
         do {
             response = try await httpClient.send(urlRequest, maximumResponseBytes: 128_000)
@@ -176,7 +177,12 @@ public struct ReadingSelectionExplanationService: Sendable {
                 category: failureCategory(forHTTPStatusCode: response.statusCode)
             )
         }
-        let text = try parseText(from: response.body, adapterKind: endpoint.adapterKind)
+        let text: String
+        do {
+            text = try adapter.extractText(fromResponseBody: response.body)
+        } catch {
+            throw ReadingSelectionExplanationServiceError(category: .invalidStructuredResponse)
+        }
         return try parseResult(text, requestedMode: request.input.explanationLanguageMode)
     }
 }
@@ -192,74 +198,46 @@ private extension ReadingSelectionExplanationService {
         guard endpoint.isEnabled, endpoint.purpose == .textGeneration else {
             throw ReadingSelectionExplanationServiceError(category: .providerNotConfigured)
         }
-        switch endpoint.adapterKind {
-        case .openAICompatibleChat, .openAIResponses:
-            return endpoint
-        case .anthropicMessages, .geminiGenerateContent:
+        // Adapter-kind support (incl. the reserved anthropic / gemini kinds) is
+        // resolved at the single dispatch point in `textAdapter(for:)`.
+        return endpoint
+    }
+
+    /// Resolves the shared text-request adapter for the endpoint kind, mapping
+    /// the reserved (`anthropicMessages` / `geminiGenerateContent`) kinds to the
+    /// service's `unsupportedProvider` category.
+    func textAdapter(for endpoint: AIProviderEndpointInput) throws -> any AIProviderTextRequestAdapter {
+        do {
+            return try AIProviderTextRequestAdapterFactory.adapter(for: endpoint.adapterKind)
+        } catch {
             throw ReadingSelectionExplanationServiceError(category: .unsupportedProvider)
         }
     }
 
     func makeRequest(
+        adapter: any AIProviderTextRequestAdapter,
         endpoint: AIProviderEndpointInput,
         secret: String?,
         prompt: ReadingSelectionExplanationRenderedPrompt
     ) throws -> URLRequest {
-        let suffix = endpoint.adapterKind == .openAIResponses ? "responses" : "chat/completions"
-        guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: endpoint.baseURL, pathSuffix: suffix)
-        else {
+        let body = adapter.structuredCompletionBody(
+            model: endpoint.modelName,
+            system: prompt.system,
+            user: prompt.user,
+            temperature: 0.2,
+            structuredOutputName: "reading_selection_explanation",
+            schema: responseSchema()
+        )
+        do {
+            return try adapter.makeRequest(
+                baseURL: endpoint.baseURL,
+                secret: secret,
+                timeoutSeconds: endpoint.requestTimeoutSeconds,
+                body: body
+            )
+        } catch AIProviderTextRequestAdapterError.invalidEndpointURL {
             throw ReadingSelectionExplanationServiceError(category: .providerNotConfigured)
         }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            request.setValue("Bearer \(secret)", forHTTPHeaderField: "Authorization")
-        }
-        let body: [String: Any]
-        switch endpoint.adapterKind {
-        case .openAICompatibleChat:
-            body = [
-                "model": endpoint.modelName,
-                "temperature": 0.2,
-                "response_format": [
-                    "type": "json_schema",
-                    "json_schema": [
-                        "name": "reading_selection_explanation",
-                        "strict": true,
-                        "schema": responseSchema(),
-                    ],
-                ],
-                "messages": [
-                    ["role": "system", "content": prompt.system],
-                    ["role": "user", "content": prompt.user],
-                ],
-            ]
-        case .openAIResponses:
-            body = [
-                "model": endpoint.modelName,
-                "temperature": 0.2,
-                "text": [
-                    "format": [
-                        "type": "json_schema",
-                        "name": "reading_selection_explanation",
-                        "strict": true,
-                        "schema": responseSchema(),
-                    ],
-                ],
-                "input": [
-                    ["role": "system", "content": prompt.system],
-                    ["role": "user", "content": prompt.user],
-                ],
-            ]
-        case .anthropicMessages, .geminiGenerateContent:
-            throw ReadingSelectionExplanationServiceError(category: .unsupportedProvider)
-        }
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        if let timeout = endpoint.requestTimeoutSeconds {
-            request.timeoutInterval = timeout
-        }
-        return request
     }
 
     func failureCategory(forHTTPStatusCode statusCode: Int) -> ReadingSelectionExplanationFailureCategory {
@@ -305,29 +283,6 @@ private extension ReadingSelectionExplanationService {
                 "explanation_language_mode": ["type": "string"],
             ],
         ]
-    }
-
-    func parseText(from data: Data, adapterKind: AIProviderAdapterKind) throws -> String {
-        guard
-            let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        else {
-            throw ReadingSelectionExplanationServiceError(category: .invalidStructuredResponse)
-        }
-        switch adapterKind {
-        case .openAICompatibleChat:
-            guard let text = OpenAICompatibleResponseTextParser.chatCompletionsText(fromResponseObject: object)
-            else {
-                throw ReadingSelectionExplanationServiceError(category: .invalidStructuredResponse)
-            }
-            return text
-        case .openAIResponses:
-            guard let text = OpenAICompatibleResponseTextParser.responsesText(fromResponseObject: object) else {
-                throw ReadingSelectionExplanationServiceError(category: .invalidStructuredResponse)
-            }
-            return text
-        case .anthropicMessages, .geminiGenerateContent:
-            throw ReadingSelectionExplanationServiceError(category: .unsupportedProvider)
-        }
     }
 
     func parseResult(_ text: String, requestedMode: ExplanationLanguageMode) throws -> ReadingSelectionExplanationResult {

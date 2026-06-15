@@ -109,7 +109,8 @@ private extension LearningMaterialGenerationService {
         plaintextSecret: String?,
         prompt: LearningMaterialRenderedPrompt
     ) async throws -> String {
-        let urlRequest = try makeRequest(endpoint: endpoint, secret: plaintextSecret, prompt: prompt)
+        let adapter = try textAdapter(for: endpoint)
+        let urlRequest = try makeRequest(adapter: adapter, endpoint: endpoint, secret: plaintextSecret, prompt: prompt)
         let response: AIProviderProbeHTTPResponse
         do {
             response = try await httpClient.send(urlRequest)
@@ -123,7 +124,22 @@ private extension LearningMaterialGenerationService {
                 category: failureCategory(forHTTPStatusCode: response.statusCode)
             )
         }
-        return try parseText(from: response.body, adapterKind: endpoint.adapterKind)
+        do {
+            return try adapter.extractText(fromResponseBody: response.body)
+        } catch {
+            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
+        }
+    }
+
+    /// Resolves the shared text-request adapter for the endpoint kind, mapping
+    /// the reserved (`anthropicMessages` / `geminiGenerateContent`) kinds to the
+    /// service's `unsupportedProvider` category.
+    func textAdapter(for endpoint: AIProviderEndpointInput) throws -> any AIProviderTextRequestAdapter {
+        do {
+            return try AIProviderTextRequestAdapterFactory.adapter(for: endpoint.adapterKind)
+        } catch {
+            throw LearningMaterialGenerationServiceError(category: .unsupportedProvider)
+        }
     }
 
     func failureCategory(forHTTPStatusCode statusCode: Int) -> LearningMaterialGenerationFailureCategory {
@@ -151,86 +167,35 @@ private extension LearningMaterialGenerationService {
         guard endpoint.isEnabled, endpoint.purpose == .textGeneration else {
             throw LearningMaterialGenerationServiceError(category: .providerNotConfigured)
         }
-        switch endpoint.adapterKind {
-        case .openAICompatibleChat, .openAIResponses:
-            return endpoint
-        case .anthropicMessages, .geminiGenerateContent:
-            throw LearningMaterialGenerationServiceError(category: .unsupportedProvider)
-        }
+        // Adapter-kind support (incl. the reserved anthropic / gemini kinds) is
+        // resolved at the single dispatch point in `textAdapter(for:)`.
+        return endpoint
     }
 
     func makeRequest(
+        adapter: any AIProviderTextRequestAdapter,
         endpoint: AIProviderEndpointInput,
         secret: String?,
         prompt: LearningMaterialRenderedPrompt
     ) throws -> URLRequest {
-        let suffix = endpoint.adapterKind == .openAIResponses ? "responses" : "chat/completions"
-        guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: endpoint.baseURL, pathSuffix: suffix)
-        else {
+        let body = adapter.structuredCompletionBody(
+            model: endpoint.modelName,
+            system: prompt.system,
+            user: prompt.user,
+            temperature: 0.2,
+            structuredOutputName: jsonSchemaName(for: prompt),
+            schema: jsonSchema(for: prompt)
+        )
+        do {
+            return try adapter.makeRequest(
+                baseURL: endpoint.baseURL,
+                secret: secret,
+                timeoutSeconds: endpoint.requestTimeoutSeconds,
+                body: body
+            )
+        } catch AIProviderTextRequestAdapterError.invalidEndpointURL {
             throw LearningMaterialGenerationServiceError(category: .providerNotConfigured)
         }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            request.setValue("Bearer \(secret)", forHTTPHeaderField: "Authorization")
-        }
-        let body: [String: Any]
-        switch endpoint.adapterKind {
-        case .openAICompatibleChat:
-            body = [
-                "model": endpoint.modelName,
-                "temperature": 0.2,
-                "response_format": responseFormat(for: prompt),
-                "messages": [
-                    ["role": "system", "content": prompt.system],
-                    ["role": "user", "content": prompt.user],
-                ],
-            ]
-        case .openAIResponses:
-            body = [
-                "model": endpoint.modelName,
-                "temperature": 0.2,
-                "text": responsesTextFormat(for: prompt),
-                "input": [
-                    ["role": "system", "content": prompt.system],
-                    ["role": "user", "content": prompt.user],
-                ],
-            ]
-        case .anthropicMessages, .geminiGenerateContent:
-            throw LearningMaterialGenerationServiceError(category: .unsupportedProvider)
-        }
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        if let timeout = endpoint.requestTimeoutSeconds {
-            request.timeoutInterval = timeout
-        }
-        return request
-    }
-
-    func responseFormat(for prompt: LearningMaterialRenderedPrompt) -> [String: Any] {
-        [
-            "type": "json_schema",
-            "json_schema": jsonSchemaPayload(for: prompt),
-        ]
-    }
-
-    func responsesTextFormat(for prompt: LearningMaterialRenderedPrompt) -> [String: Any] {
-        [
-            "format": [
-                "type": "json_schema",
-                "name": jsonSchemaName(for: prompt),
-                "strict": true,
-                "schema": jsonSchema(for: prompt),
-            ],
-        ]
-    }
-
-    func jsonSchemaPayload(for prompt: LearningMaterialRenderedPrompt) -> [String: Any] {
-        [
-            "name": jsonSchemaName(for: prompt),
-            "strict": true,
-            "schema": jsonSchema(for: prompt),
-        ]
     }
 
     func jsonSchemaName(for prompt: LearningMaterialRenderedPrompt) -> String {
@@ -396,28 +361,6 @@ private extension LearningMaterialGenerationService {
                 "sentence_position": ["type": ["integer", "null"]],
             ],
         ]
-    }
-
-    func parseText(from data: Data, adapterKind: AIProviderAdapterKind) throws -> String {
-        let json = try JSONSerialization.jsonObject(with: data)
-        guard let object = json as? [String: Any] else {
-            throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
-        }
-        switch adapterKind {
-        case .openAICompatibleChat:
-            guard let text = OpenAICompatibleResponseTextParser.chatCompletionsText(fromResponseObject: object)
-            else {
-                throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
-            }
-            return text
-        case .openAIResponses:
-            guard let text = OpenAICompatibleResponseTextParser.responsesText(fromResponseObject: object) else {
-                throw LearningMaterialGenerationServiceError(category: .invalidStructuredResponse)
-            }
-            return text
-        case .anthropicMessages, .geminiGenerateContent:
-            throw LearningMaterialGenerationServiceError(category: .unsupportedProvider)
-        }
     }
 
     func parseGenerationJSON(
