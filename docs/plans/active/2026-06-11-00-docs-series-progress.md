@@ -4,7 +4,7 @@
 自审核状态：N/A（导航/指针文档，不含生产代码变更）
 类型：docs
 创建日期：2026-06-15
-最后更新日期：2026-06-15（首建：盘点 active/ 17 份方案状态，登记 plan 01 Phase 级子进度与当前指针）
+最后更新日期：2026-06-16（Phase 3 余项在 MacBook 环境实施并本机六包测试全绿，更新验证文档；CI 验证待推送后触发）
 
 ## 这份文档是什么
 
@@ -29,7 +29,7 @@
 - **Linux 环境**：无 Swift 工具链，所有 `swift test` / `xcodebuild` / `swiftformat` / `swiftlint` 走 GitHub Actions；触发 CI 前需将仓库临时设为 public、commit message 带 `[ci]`，跑完可设回 private。
 - **MacBook 环境**：本机可执行轻量单包测试（`swift test --package-path Packages/<target>`）和格式检查（`swiftformat --lint` / `swiftlint`）；重测试（全量验证 `scripts/verify.sh`、三端构建、跨多包测试）一律放 GitHub Actions，避免被动散热设备过热降频。
 
-> **基线**：plan 01 Phase 1–3c 已 CI `Build & Test` 全绿（run `27546863012`，HEAD `56ef9d4`）。
+> **基线**：plan 01 Phase 1–3c 已 CI `Build & Test` 全绿（run `27546863012`，HEAD `56ef9d4`）；Phase 3 余项（协议默认实现移除 / RedactedSecret / TextUnitRange）已在 MacBook 本机六包测试全绿（HEAD `f4e1cb7`），CI 验证待推送后触发。
 
 ## 当前指针
 
@@ -75,7 +75,7 @@
 | 3a | 死代码清理 + 不变量收紧 | ✅ 已实施 + CI 绿 |
 | 3b | StableHashing 收敛（8 处散落哈希 → Core 共享工具） | ✅ 已实施 + CI 绿 |
 | 3c | normalized() 拆分（normalizedDraft/validated）+ 时钟注入 | ✅ 已实施 + CI 绿 |
-| 3-余 | 协议默认实现移除 / RedactedSecret / Reading 范围整数偏移 | ✅ 已实施 + 本机六包测试全绿 |
+| 3-余 | 协议默认实现移除 / RedactedSecret / Reading 范围整数偏移 | ✅ 已实施 + 本机六包测试全绿（CI 待验证） |
 | 4 | 数据层：迁移、44 处枚举解码 decodeStored、软删除列修正、FK/CHECK、@MainActor | ⬜ 未启动 |
 | 5 | AI/Speech 尾项：bytes(for:) 流式、AIBoundary/SpeechBoundary 统一、WAV RIFF chunk walker、spec 012 prompt v4 等 | ⬜ 未启动 |
 
