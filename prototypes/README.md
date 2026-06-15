@@ -34,6 +34,8 @@ prototypes/
 - 双字形嗓音：UI chrome 与母语用系统 sans 栈（SF Pro / PingFang SC）；**目标语言学习内容**（英文美段 / 阅读正文 / 记忆词句 / 文档标题）用衬线栈 `--font-serif`（Apple 命中 New York，回退 Georgia），给「被学习的语言」一套阅读字形。内联描边 SVG 图标（1.6px stroke），不使用 emoji 图标。
 - accent 收敛：松绿 accent 只表示「可操作 / 主动作」；目标语言内容靠衬线 + 暖墨色 `--target-lang` 区分，不再借用 accent 绿，避免一种颜色同时承担「语言内容 / 主操作 / 当前导航」三重语义。
 - 排印精修：标题 `text-wrap: balance`、正文 `text-wrap: pretty`；统计数字 / 计数 / 日期用 `tabular-nums` 等宽对齐。
+- 大屏密度：iPad / macOS 的横向余量投向 inspector（当前句分析 + 相关记忆 / 本文已加入记忆）而非拉宽阅读列或做正文多列——逐句学习是单焦点顺序模型，多列与之冲突；阅读 measure 守在 ≤ ~75ch / ~700px。
+- 状态有设计：空 / 加载 / 失败 / 未配置均有独立原型（见 `index.html`「状态与边界」分区）；失败 / 未配置不以纯色表达状态，含「为何不可用 + 如何恢复 + 本地数据是否受影响」三要素。
 - 触控目标 ≥ 44pt；状态以文案 + tone 共同表达，不只靠颜色。
 
 ## 维护规则

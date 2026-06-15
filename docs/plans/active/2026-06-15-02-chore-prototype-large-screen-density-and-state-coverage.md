@@ -1,10 +1,10 @@
 # 任务方案：原型第二轮收尾——iPad / macOS 大屏密度优化 + 空/加载/失败/未配置状态原型补全
 
-状态：User Approved
+状态：Implemented
 自审核状态：Reviewed
 类型：chore
 创建日期：2026-06-15
-最后更新日期：2026-06-15（用户确认 Q1/Q2 推荐方案，授权进入实现）
+最后更新日期：2026-06-15（阶段 A/B/C 实现完成并验证；待用户对截图的最终判断后归档 done/）
 
 ## 用户确认记录
 
@@ -237,12 +237,21 @@ git status --short
 
 - 入口/ADR/architecture：不影响。
 - spec：`docs/spec/003-ui-design-system.md` 的「状态有设计」约束被本任务正向兑现，原则上只读；如发现 spec 缺状态设计细则可在阶段 C 评估是否补充（需另确认）。
-- platform-page-inventory：可能需补登记新增状态原型对应的目标设计条目（对照后决定）。
+- platform-page-inventory：对照后决定**不补行**。page-inventory 是「已实现页面事实源」，本轮产出是原型（设计基准 / 目标设计），不构成实现，故不登记为已实现页面；待对应能力真正实现时再按页面登记。
 - testing/release/review：按 `docs/review/README.md` 判断；预期为日常文档影响检查级别，非专项审查。
 
 ## 18. 实施记录
 
-（实现阶段按时间补充：实际改动、偏离原因、验证结果、提交哈希。）
+- **阶段 A（commit `7024572`）** iPad/macOS inspector 富化：ipad/mac workspace 补「句子分析 + 相关记忆」；ipad/mac reading 填补 inspector 空档为「本文已加入记忆」；两 workspace 加密度 doctrine 设计说明。阅读列宽不变，纯页面级 `<style>`+HTML。
+  - 偏离记录：方案设想的「句子边注 gutter」在 as-built 设备宽度下不可行——实测主区仅 612–720px（ipad/workspace ~612、mac/workspace ~720、mac/reading canvas ~396），阅读列已近满，无右侧 gutter 余量。改以 **inspector 富化** 作为唯一密度杠杆（仍属 Q1「富 inspector」主手段，未引入多列）。F-1 守门由 ~620px 校准为 ≤~75ch/~700px，与 as-built 640/680 一致。
+  - 验证：Playwright 四页重渲染零控制台错误；inspector 富化目检通过。未动 shared CSS → 无 iPhone 回归面。
+- **阶段 B（commit `6cc074b`）** 5 状态页（4 必做 +1 可选）：entry-detail-generating / entry-detail-failed / settings-ai-provider-unconfigured / record-empty / memory-empty（仅后者带 `tag-target-design`）。经 5 个并行子代理按严格 spec 生成，主会话统一目检 + 截图复核一致性。复用 `.empty-state`/`.pill-*`/既有 shell，未动 shared CSS。
+  - 删去项：reading-empty（冗余空态）、settings-sync-states（同步未实现），见 §20 deferred。
+  - 验证：Playwright 五页零控制台错误；无远程/script 引用；git 确认无 tracked 文件被改（shared CSS 未动）。
+- **阶段 C** 文档同步：`index.html` 新增「状态与边界 · iPhone」分区登记 5 页；`README.md` 视觉基准补「大屏密度」「状态有设计」两条；`platform-page-inventory` 决定不补行（见 §17）。
+  - 验证：`scripts/check-docs.sh` ok；`git diff --check` clean；index.html 重渲染零错误。
+- plan-vs-shipped 对账：阶段 A 4 页 + 阶段 B 5 页 + 阶段 C 2 文档均有 commit / 文件 / 截图证据；scope-down（6→5 状态页、gutter→inspector）已记录；无 deferred 项混入完成叙事（reading-empty / sync-states 已在 §20 单列 deferred）。
+- 剩余收口：待用户对截图（尤其阶段 A 密度）的最终判断后，将本方案移入 `docs/plans/done/`（状态 → Verified）。
 
 ## 19. 完成标准
 
