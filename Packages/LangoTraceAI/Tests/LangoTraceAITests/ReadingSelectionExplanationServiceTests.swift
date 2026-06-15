@@ -277,6 +277,68 @@ struct ReadingSelectionExplanationServiceTests {
         #expect(result.exampleSentenceTranslation == nil)
     }
 
+    @Test("service parses Responses output with a leading reasoning item")
+    func serviceParsesResponsesOutputWithLeadingReasoningItem() async throws {
+        let body: [String: Any] = [
+            "output": [
+                ["type": "reasoning", "summary": [String]()],
+                [
+                    "type": "message",
+                    "content": [
+                        ["type": "output_text", "text": explanationJSON()],
+                    ],
+                ],
+            ],
+        ]
+        let httpClient = try CapturingReadingExplanationHTTPClient(responses: [
+            .success(AIProviderHTTPResponse(statusCode: 200, body: JSONSerialization.data(withJSONObject: body))),
+        ])
+        let service = ReadingSelectionExplanationService(httpClient: httpClient)
+
+        let result = try await service.explain(
+            ReadingSelectionExplanationServiceRequest(
+                endpoint: endpoint(adapterKind: .openAIResponses),
+                plaintextSecret: "sk-test-secret",
+                input: sampleInput(
+                    selection: "ticket",
+                    containingSentence: "I bought a ticket.",
+                    contextText: "I bought a ticket.",
+                    selectionScope: .sentence,
+                    contextMode: .fullDocument
+                )
+            )
+        )
+
+        #expect(result.selection == "ticket")
+        #expect(result.shortExplanation == "A travel noun in this sentence.")
+    }
+
+    @Test("service rejects unsupported adapters before HTTP")
+    func serviceRejectsUnsupportedAdaptersBeforeHTTP() async throws {
+        let httpClient = CapturingReadingExplanationHTTPClient(responses: [])
+        let service = ReadingSelectionExplanationService(httpClient: httpClient)
+
+        await #expect(throws: ReadingSelectionExplanationServiceError(category: .unsupportedProvider)) {
+            try await service.explain(
+                ReadingSelectionExplanationServiceRequest(
+                    endpoint: endpoint(adapterKind: .anthropicMessages),
+                    plaintextSecret: "sk-test-secret",
+                    input: sampleInput(
+                        selection: "ticket",
+                        containingSentence: "I bought a ticket.",
+                        contextText: "I bought a ticket.",
+                        selectionScope: .sentence,
+                        contextMode: .currentParagraph
+                    )
+                )
+            )
+        }
+        #expect(await httpClient.requests.isEmpty)
+    }
+}
+
+@Suite("Reading selection explanation failure mapping")
+struct ReadingSelectionExplanationFailureMappingTests {
     @Test(
         "service maps provider HTTP status codes through the shared mapper",
         arguments: [
@@ -342,65 +404,6 @@ struct ReadingSelectionExplanationServiceTests {
                 )
             )
         }
-    }
-
-    @Test("service parses Responses output with a leading reasoning item")
-    func serviceParsesResponsesOutputWithLeadingReasoningItem() async throws {
-        let body: [String: Any] = [
-            "output": [
-                ["type": "reasoning", "summary": [String]()],
-                [
-                    "type": "message",
-                    "content": [
-                        ["type": "output_text", "text": explanationJSON()],
-                    ],
-                ],
-            ],
-        ]
-        let httpClient = try CapturingReadingExplanationHTTPClient(responses: [
-            .success(AIProviderHTTPResponse(statusCode: 200, body: JSONSerialization.data(withJSONObject: body))),
-        ])
-        let service = ReadingSelectionExplanationService(httpClient: httpClient)
-
-        let result = try await service.explain(
-            ReadingSelectionExplanationServiceRequest(
-                endpoint: endpoint(adapterKind: .openAIResponses),
-                plaintextSecret: "sk-test-secret",
-                input: sampleInput(
-                    selection: "ticket",
-                    containingSentence: "I bought a ticket.",
-                    contextText: "I bought a ticket.",
-                    selectionScope: .sentence,
-                    contextMode: .fullDocument
-                )
-            )
-        )
-
-        #expect(result.selection == "ticket")
-        #expect(result.shortExplanation == "A travel noun in this sentence.")
-    }
-
-    @Test("service rejects unsupported adapters before HTTP")
-    func serviceRejectsUnsupportedAdaptersBeforeHTTP() async throws {
-        let httpClient = CapturingReadingExplanationHTTPClient(responses: [])
-        let service = ReadingSelectionExplanationService(httpClient: httpClient)
-
-        await #expect(throws: ReadingSelectionExplanationServiceError(category: .unsupportedProvider)) {
-            try await service.explain(
-                ReadingSelectionExplanationServiceRequest(
-                    endpoint: endpoint(adapterKind: .anthropicMessages),
-                    plaintextSecret: "sk-test-secret",
-                    input: sampleInput(
-                        selection: "ticket",
-                        containingSentence: "I bought a ticket.",
-                        contextText: "I bought a ticket.",
-                        selectionScope: .sentence,
-                        contextMode: .currentParagraph
-                    )
-                )
-            )
-        }
-        #expect(await httpClient.requests.isEmpty)
     }
 }
 
