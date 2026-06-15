@@ -33,7 +33,7 @@
 
 ## 当前指针
 
-> **下一步候选**：plan 01 的 Phase 3 余项（协议默认实现移除 / RedactedSecret / Reading 范围整数偏移——原标「转 Mac/CI」的强编译敏感项，MacBook 环境下可直接迭代），或直接进 Phase 4（数据层迁移）。两者均待用户拍板后进行。
+> **下一步候选**：plan 01 的 Phase 4（数据层迁移：bridge 读路径诊断事件 / 44 处枚举解码 decodeStored / LearningEntry.updatedAt / 软删除列修正 / FK/CHECK / @MainActor），或 Phase 5（AI/Speech 尾项）。
 
 ## 状态总表
 
@@ -75,7 +75,7 @@
 | 3a | 死代码清理 + 不变量收紧 | ✅ 已实施 + CI 绿 |
 | 3b | StableHashing 收敛（8 处散落哈希 → Core 共享工具） | ✅ 已实施 + CI 绿 |
 | 3c | normalized() 拆分（normalizedDraft/validated）+ 时钟注入 | ✅ 已实施 + CI 绿 |
-| 3-余 | 协议默认实现移除 / RedactedSecret / Reading 范围整数偏移 | ⬜ 转 Mac/CI 实施（强编译敏感，盲改风险大于收益） |
+| 3-余 | 协议默认实现移除 / RedactedSecret / Reading 范围整数偏移 | ✅ 已实施 + 本机六包测试全绿 |
 | 4 | 数据层：迁移、44 处枚举解码 decodeStored、软删除列修正、FK/CHECK、@MainActor | ⬜ 未启动 |
 | 5 | AI/Speech 尾项：bytes(for:) 流式、AIBoundary/SpeechBoundary 统一、WAV RIFF chunk walker、spec 012 prompt v4 等 | ⬜ 未启动 |
 

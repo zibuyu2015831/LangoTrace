@@ -4,7 +4,7 @@
 自审核状态：Reviewed
 类型：refactor
 创建日期：2026-06-11
-最后更新日期：2026-06-15（用户授权实施，Phase 1 / 2 / 3a / 3b / 3c 已落地推 dev 并经 **CI `Build & Test` 全绿验证**（run `27546863012`，HEAD `56ef9d4`）；Phase 3 余 3 项强编译敏感项 + Phase 4 / 5 待续；验证收敛记录见 `docs/testing/2026-06-15-architecture-foundations-pending-verification.md`）
+最后更新日期：2026-06-16（Phase 3 全部余项已在 MacBook 环境实施并本机六包测试全绿；Phase 4 / 5 待续）
 
 ## 用户确认记录
 
@@ -396,6 +396,12 @@ git diff --check
     - **协议默认实现移除（§12 Phase 3 第 6 条后半）：判定为本机不实施、转 Mac/CI 实施。** 复核结论：真实 conformer `GRDBAIProviderConfigurationRepository` 已显式实现全部 6 个方法，生产路径不存在「静默丢 TTS / 返回 nil」风险；移除默认实现只会强制多个**测试 mock** 补显式 stub，而该项的全部价值就是「让漏实现编译期暴露」——恰恰依赖本机不具备的编译器反馈。盲改多个结构不清的 mock 风险大于收益，故收集到待验证文档，在 Mac/CI 上借编译错误逐个补齐。
     - **3c CreateLanguageSpaceInput.normalized() 拆分 + 时钟注入（本批，已推 dev）**：`CreateLanguageSpaceInput.normalized()` 拆为非抛错 `normalizedDraft()`（UI 草稿/onboarding 预览，未知 code 静默回退默认）与 `validated()`（持久化，未知 native/target code 抛 `LanguageSpaceError.invalidInput`；valid 含 native==target 碰撞仍由草稿归一化 swap 处理）；`UpdateLanguageSpaceInput.normalized()` 同步改 `validated()`。持久化调用点（`GRDBLanguageSpaceRepository` create/update、`AppSessionStateTests` mock）改走 `validated()`，happy-path 测试改 `validated()` 并新增「未知 code 抛错」「draft 回退」用例。`PracticeSessionReducer.reduce` 增默认参 `now: () -> Date`、`SentenceAudioPlaybackCoordinator` 增默认参 `now: @Sendable () -> Date`（含 createdAt / 播放时长 / fallback 三处 Date()），默认值保持既有调用方等价，新增 reducer 注入时钟用例。范围决策：用户确认「先做中等项，大项留 Mac/CI」，故仅 3c 在本机落地。
     - **RedactedSecret（§12 Phase 3 第 1 条，80+ 连锁点跨 Core/AI/Speech/UI/App）、Reading 范围整数偏移（第 4 条，markdown 解析 + UI 渲染重做）：体量大且强编译敏感，盲改易积累难定位错误。** 需用户决策实施节奏（见下方会话记录）。
+
+- **Phase 3 余项（MacBook 环境，2026-06-16）**：
+  - **协议默认实现移除（commit 9820a60）**：移除 `AIProviderConfigurationRepository` 协议扩展中返回 nil 的 `loadTTSSettings` / `loadTTSVoiceProfile` 默认实现。两个 conformer（`GRDBAIProviderConfigurationRepository`、`StubAIProviderConfigurationRepository`）已显式实现全部方法，移除无行为影响。转发便利方法保留。
+  - **RedactedSecret 引入（commit d75445f）**：新增 Core 公开 `RedactedSecret`（自定义 description/debugDescription/customMirror 输出固定掩码 `"<redacted>"`，常量时间相等比较，`unsafeUnwrappedValue` 揭露明文）。替换 `SentenceTTSGenerationRequest.plaintextSecret: String?` → `RedactedSecret?`、`AIProviderCredentialSecretSaveInput.plaintextSecret: String` → `RedactedSecret`。`PlayableTTSSecretResolving` 协议返回类型改为 `RedactedSecret?`。连锁更新 Core/AI/UI/App 测试 mock。AI 包类型（`LearningMaterialServiceRequest` 等）保留 `String?`，由调用方在桥接处 unwrap。测试覆盖 description / debugDescription / Mirror / string interpolation / 常量时间比较 / 可选值描述 11 条。
+  - **Reading 范围整数偏移（commit efde82e）**：新增 Core 公开 `TextUnitRange`（UTF-16 code unit 偏移的半开范围值类型，含 `toNSRange`/`toRange(in:)` 转换、从 `Range<String.Index>` 构造）。替换 `ReadingTextChunk.range: Range<String.Index>` → `TextUnitRange`、`ReadingMarkdownBlock.sourceRange: Range<String.Index>?` → `TextUnitRange?`、`ReadingInlineRun.sourceRange: Range<String.Index>?` → `TextUnitRange?`。修复 `segmentSentences` 单位混用（`range.location` + `.count` → 全部 `.utf16.count`）和 fallback 不一致（`text` → `trimmed`、`.count` → `.utf16.count`）。连锁更新 Data `GRDBReadingLibraryRepository`（直接取 `lowerBound`/`length`）、UI `ReadingMarkdownBlockRenderer`/`ReadingDocumentStore+Selection`。测试覆盖 10 条（ASCII/emoji 转换、NSRange 互操作、边界条件）。
+  - **本机验证**：Core 177 / Data 138 / AI 145 / Speech 24 / UI 365 六包 `swift test` 全绿。CI 验证待推送后触发。
 
 - **Phase 1–3c CI 验证（2026-06-15，已绿）**：CI `Build & Test` run `27546863012`（HEAD `56ef9d4`）全绿。收敛中修复 4 处：Phase 2 漏更的 `LearningMaterialGenerationFailureCategory` 穷尽断言（`8f7e493`）、`ReadingSelectionExplanationServiceTests` 超 `type_body_length` 故拆 suite（`0d065a4`）、Phase 1/3a 遗留 10 处 SwiftFormat error 手修 + 去抖 `ReadingDocumentStoreExplanationCacheTests` 既有 flaky 竞态（`56ef9d4`）。本机无 Swift/swiftformat 工具链，这些只能由 CI 暴露——核心重构逻辑零返工。
 
