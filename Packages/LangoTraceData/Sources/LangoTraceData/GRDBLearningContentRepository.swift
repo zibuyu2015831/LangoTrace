@@ -534,7 +534,11 @@ private extension GRDBLearningContentRepository {
         now: Date,
         db: Database
     ) throws {
+        // Prefix all child IDs with materialID to ensure global uniqueness across
+        // multiple generations of the same entry. The AI service produces deterministic
+        // positional IDs (e.g. "sentence-0") that would collide if inserted as-is.
         for sentence in analysis.sentences {
+            let persistedSentenceID = "\(materialID)-\(sentence.id)"
             try db.execute(
                 sql: """
                 INSERT INTO learning_material_sentences (
@@ -544,7 +548,7 @@ private extension GRDBLearningContentRepository {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 arguments: [
-                    sentence.id,
+                    persistedSentenceID,
                     materialID,
                     sentence.position,
                     sentence.nativeSentence,
@@ -559,6 +563,7 @@ private extension GRDBLearningContentRepository {
             )
         }
         for revision in revisionSummary {
+            let persistedRevisionID = "\(materialID)-\(revision.id)"
             try db.execute(
                 sql: """
                 INSERT INTO learning_material_revision_notes (
@@ -567,7 +572,7 @@ private extension GRDBLearningContentRepository {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 arguments: [
-                    revision.id,
+                    persistedRevisionID,
                     materialID,
                     revision.position,
                     revision.originalText,
@@ -579,6 +584,8 @@ private extension GRDBLearningContentRepository {
             )
         }
         for candidate in analysis.memoryCandidates {
+            let persistedCandidateID = "\(materialID)-\(candidate.id)"
+            let persistedSentenceRef = candidate.sentenceID.map { "\(materialID)-\($0)" }
             try db.execute(
                 sql: """
                 INSERT INTO memory_candidates (
@@ -588,11 +595,11 @@ private extension GRDBLearningContentRepository {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'candidate', ?, ?)
                 """,
                 arguments: [
-                    candidate.id,
+                    persistedCandidateID,
                     spaceID,
                     entryID,
                     materialID,
-                    candidate.sentenceID,
+                    persistedSentenceRef,
                     candidate.kind.rawValue,
                     candidate.text,
                     candidate.explanationNative,
@@ -605,6 +612,8 @@ private extension GRDBLearningContentRepository {
             )
         }
         for candidate in analysis.practiceCandidates {
+            let persistedCandidateID = "\(materialID)-\(candidate.id)"
+            let persistedSentenceRef = candidate.sentenceID.map { "\(materialID)-\($0)" }
             try db.execute(
                 sql: """
                 INSERT INTO practice_candidates (
@@ -613,11 +622,11 @@ private extension GRDBLearningContentRepository {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'candidate', ?, ?)
                 """,
                 arguments: [
-                    candidate.id,
+                    persistedCandidateID,
                     spaceID,
                     entryID,
                     materialID,
-                    candidate.sentenceID,
+                    persistedSentenceRef,
                     candidate.kind.rawValue,
                     candidate.title,
                     candidate.promptText,

@@ -490,6 +490,28 @@ func grdbBridgeSurfacesCreateFailures() throws {
     }
 }
 
+@Test("Second generation for same entry succeeds without unique constraint violation")
+func secondGenerationForSameEntrySucceeds() throws {
+    let repository = try makeRepository()
+    let entry = try repository.createEntry(sampleDraft(), in: "space-1")
+
+    let first = try repository.saveGeneratedMaterial(
+        sampleGenerationResult(entryID: entry.id, spaceID: "space-1"),
+        for: entry.id
+    )
+    let second = try repository.saveGeneratedMaterial(
+        sampleGenerationResult(entryID: entry.id, spaceID: "space-1", learningText: "I visited a cafe today."),
+        for: entry.id
+    )
+
+    #expect(first.id != second.id)
+    let current = try repository.currentMaterial(for: entry.id)
+    #expect(current?.id == second.id)
+    #expect(current?.analysis.sentences.count == 1)
+    #expect(current?.analysis.memoryCandidates.count == 1)
+    #expect(current?.analysis.practiceCandidates.count == 1)
+}
+
 private func makeRepository() throws -> GRDBLearningContentRepository {
     let database = try AppDatabase.inMemory()
     try database.databaseQueue.write { db in
