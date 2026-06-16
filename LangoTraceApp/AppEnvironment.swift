@@ -207,36 +207,25 @@ private func makeReadingExplanationAction(
         let configurationRepository = GRDBAIProviderConfigurationRepository(
             database: database
         )
-        func recordOperation(
-            status: String,
-            profile: AIProviderConfigurationProfile? = nil,
-            endpoint: AIProviderEndpointInput? = nil,
-            failureCategory: String? = nil
-        ) {
-            var record = ReadingAIExplanationOperationRecord()
-            record.documentID = request.documentID
-            record.spaceID = request.spaceID
-            record.promptID = promptID
-            record.promptVersion = promptVersion
-            record.providerProfileID = profile?.id
-            record.providerEndpointID = endpoint?.id
-            record.providerPresetID = endpoint?.providerPresetID
-            record.modelName = endpoint?.modelName
-            record.selectedText = request.selectedText
-            record.sentenceText = request.containingSentence.isEmpty ? nil : request.containingSentence
-            record.contextCharacterCount = request.contextText.count
-            record.status = status
-            record.failureCategory = failureCategory
-            record.completedAt = status == "pending" ? nil : Date()
-            try? readingRepository.recordAIExplanationOperation(record)
-        }
+        var baseRecord = ReadingAIExplanationOperationRecord()
+        baseRecord.documentID = request.documentID
+        baseRecord.spaceID = request.spaceID
+        baseRecord.promptID = promptID
+        baseRecord.promptVersion = promptVersion
+        baseRecord.selectedText = request.selectedText
+        baseRecord.sentenceText = request.containingSentence.isEmpty ? nil : request.containingSentence
+        baseRecord.contextCharacterCount = request.contextText.count
+        let recorder = ReadingExplanationOperationRecorder(
+            repository: readingRepository,
+            base: baseRecord
+        )
         guard let profile = try await configurationRepository.loadDefaultProfile(),
               let endpoint = profile.textGenerationEndpointInput
         else {
-            recordOperation(status: "failed", failureCategory: "providerNotConfigured")
+            recorder.record(.failed(category: "providerNotConfigured"))
             throw ReadingSelectionExplanationServiceError(category: .providerNotConfigured)
         }
-        recordOperation(status: "pending", profile: profile, endpoint: endpoint)
+        recorder.record(.pending, profile: profile, endpoint: endpoint)
         let plaintextSecret = try await resolveLearningMaterialSecret(
             endpoint: endpoint,
             profile: profile,
@@ -266,16 +255,16 @@ private func makeReadingExplanationAction(
                     )
                 )
             )
-            recordOperation(status: "succeeded", profile: profile, endpoint: endpoint)
+            recorder.record(.succeeded, profile: profile, endpoint: endpoint)
             return result
         } catch let error as CancellationError {
-            recordOperation(status: "cancelled", profile: profile, endpoint: endpoint, failureCategory: "cancelled")
+            recorder.record(.cancelled, profile: profile, endpoint: endpoint)
             throw error
         } catch let error as ReadingSelectionExplanationServiceError {
-            recordOperation(status: "failed", profile: profile, endpoint: endpoint, failureCategory: "\(error.category)")
+            recorder.record(.failed(category: "\(error.category)"), profile: profile, endpoint: endpoint)
             throw error
         } catch {
-            recordOperation(status: "failed", profile: profile, endpoint: endpoint, failureCategory: "providerRejected")
+            recorder.record(.failed(category: "providerRejected"), profile: profile, endpoint: endpoint)
             throw error
         }
     }
@@ -285,22 +274,29 @@ private func makeReadingTTSAction(
     sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
 ) -> ReadingTTSAction {
     { request in
-        _ = await sentenceAudioPlaybackActions.handleTap(
-            SentenceAudioRequest(
-                languageSpaceID: request.spaceID,
-                owner: .readingDocumentSentence(
-                    documentID: request.documentID,
-                    sentenceID: request.sentenceID
-                ),
-                sentenceSource: .readingDocumentSentence(
-                    documentID: request.documentID,
-                    sentenceID: request.sentenceID
-                ),
-                sentenceIndex: 0,
-                targetText: request.text,
-                targetLanguageCode: request.targetLanguageCode
-            )
+        let audioRequest = SentenceAudioRequest(
+            languageSpaceID: request.spaceID,
+            owner: .readingDocumentSentence(
+                documentID: request.documentID,
+                sentenceID: request.sentenceID
+            ),
+            sentenceSource: .readingDocumentSentence(
+                documentID: request.documentID,
+                sentenceID: request.sentenceID
+            ),
+            sentenceIndex: request.sentenceIndex,
+            targetText: request.text,
+            targetLanguageCode: request.targetLanguageCode
         )
+        let state = await sentenceAudioPlaybackActions.handleTap(audioRequest)
+        switch state {
+        case .idle, .playing:
+            return .success
+        case let .failed(failure):
+            return .failed(failure.rawValue)
+        case let .requiresConfiguration(issue):
+            return .failed(issue.rawValue)
+        }
     }
 }
 

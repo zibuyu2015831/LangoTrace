@@ -126,8 +126,8 @@ public extension ReadingDocumentStore {
         )
         ttsTask?.cancel()
         ttsTask = Task {
-            await ttsAction(request)
-            completeTTS(token: token, request: request)
+            let outcome = await ttsAction(request)
+            completeTTS(token: token, request: request, outcome: outcome)
         }
     }
 

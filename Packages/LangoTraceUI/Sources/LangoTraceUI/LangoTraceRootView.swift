@@ -49,7 +49,7 @@ public struct LangoTraceRootView: View {
         readingExplanationAction: @escaping ReadingExplanationAction = { _ in
             throw ReadingLibraryActionError.unavailable
         },
-        readingTTSAction: @escaping ReadingTTSAction = { _ in },
+        readingTTSAction: @escaping ReadingTTSAction = { _ in .cancelled },
         readingCacheStorage: (any ExplanationCacheStorage)? = nil,
         practiceActions: PracticeActions = .disabled,
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,

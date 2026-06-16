@@ -11,8 +11,7 @@ struct AIProviderSettingsView: View {
     let languageContext: AIProviderProbeLanguageContext?
     @State private var draft = AIProviderDraftConfiguration(provider: .openAI)
     @State private var savedCredentialMetadataByID: [AIProviderCredentialID: AIProviderCredentialMetadata] = [:]
-    @State private var transientSaveStatusClearTask: Task<Void, Never>?
-    @State private var transientTestStatusClearTask: Task<Void, Never>?
+    @State private var store = AIProviderSettingsStore()
     @State private var isProbeResultPresented = false
     @State private var latestProbeResult: AIProviderConfigurationProbeResult?
     @State private var activeProbeCapabilities: [AIProviderProbeCapability] = []
@@ -43,8 +42,7 @@ struct AIProviderSettingsView: View {
             await loadSavedConfiguration()
         }
         .onDisappear {
-            transientSaveStatusClearTask?.cancel()
-            transientTestStatusClearTask?.cancel()
+            store.cancelAllDraftClears()
             clearPlaintextSecretsForCredentialDisclosure()
         }
         .onChange(of: scenePhase) {
@@ -589,41 +587,33 @@ private extension AIProviderSettingsView {
     }
 
     func scheduleTransientSaveStatusClear() {
-        transientSaveStatusClearTask?.cancel()
-        transientSaveStatusClearTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(2.2))
+        store.scheduleDraftSaveClear(after: .seconds(2.2)) { [self] in
             switch draft.saveState {
             case .saved, .failed:
                 draft.saveState = .idle
             case .idle, .missingRequiredFields, .unsavedChanges, .saving:
                 break
             }
-            transientSaveStatusClearTask = nil
         }
     }
 
     func scheduleTransientTestStatusClear() {
-        transientTestStatusClearTask?.cancel()
-        transientTestStatusClearTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(3))
+        store.scheduleDraftTestClear(after: .seconds(3)) { [self] in
             switch draft.testState {
             case .succeeded, .partial, .failed, .cancelled, .unsupportedProvider, .missingRequiredFields:
                 draft.testState = .idle
             case .idle, .testing:
                 break
             }
-            transientTestStatusClearTask = nil
         }
     }
 
     func cancelTransientSaveStatusClear() {
-        transientSaveStatusClearTask?.cancel()
-        transientSaveStatusClearTask = nil
+        store.cancelDraftSaveClear()
     }
 
     func cancelTransientTestStatusClear() {
-        transientTestStatusClearTask?.cancel()
-        transientTestStatusClearTask = nil
+        store.cancelDraftTestClear()
     }
 
     func testState(for result: AIProviderConfigurationProbeResult) -> AIProviderTestState {

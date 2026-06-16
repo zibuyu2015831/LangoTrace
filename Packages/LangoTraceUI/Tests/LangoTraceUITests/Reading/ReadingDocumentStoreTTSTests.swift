@@ -93,7 +93,7 @@ struct ReadingDocumentStoreTTSTests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: { _ in .sample(selection: "word") },
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         store.selectText("first", sentenceID: "s1")
@@ -194,18 +194,18 @@ private extension ReadingSelectionContext {
 
 private actor ControlledReadingTTSAction {
     private(set) var requests: [ReadingTTSRequest] = []
-    private var continuations: [CheckedContinuation<Void, Never>] = []
+    private var continuations: [CheckedContinuation<ReadingTTSOutcome, Never>] = []
 
-    func play(_ request: ReadingTTSRequest) async {
+    func play(_ request: ReadingTTSRequest) async -> ReadingTTSOutcome {
         requests.append(request)
-        await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             continuations.append(continuation)
         }
     }
 
-    func complete() {
+    func complete(outcome: ReadingTTSOutcome = .success) {
         guard !continuations.isEmpty else { return }
-        continuations.removeFirst().resume()
+        continuations.removeFirst().resume(returning: outcome)
     }
 
     func requestCount() -> Int {
@@ -222,8 +222,9 @@ private actor ControlledReadingTTSAction {
 private actor CapturingReadingTTSAction {
     private(set) var requests: [ReadingTTSRequest] = []
 
-    func play(_ request: ReadingTTSRequest) async {
+    func play(_ request: ReadingTTSRequest) async -> ReadingTTSOutcome {
         requests.append(request)
+        return .success
     }
 
     func waitForRequestCount(_ count: Int) async {

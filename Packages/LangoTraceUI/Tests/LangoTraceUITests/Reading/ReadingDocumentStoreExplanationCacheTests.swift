@@ -18,7 +18,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
                 await counter.increment()
                 return .sample(selection: "test")
             },
-            ttsAction: { _ in },
+            ttsAction: { _ in .cancelled },
             cacheStorage: mockRepo
         )
 
@@ -67,7 +67,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: controlled.explain,
-            ttsAction: { _ in },
+            ttsAction: { _ in .cancelled },
             cacheStorage: mockRepo
         )
 
@@ -119,7 +119,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: controlled.explain,
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         let selection = ReadingSelectionContext.cacheTestSample(
@@ -148,7 +148,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: controlled.explain,
-            ttsAction: { _ in },
+            ttsAction: { _ in .cancelled },
             cacheStorage: mockRepo
         )
 
@@ -207,7 +207,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: controlled.explain,
-            ttsAction: { _ in },
+            ttsAction: { _ in .cancelled },
             cacheStorage: mockRepo
         )
 
@@ -253,7 +253,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: { _ in .sample(selection: "word") },
-            ttsAction: { _ in },
+            ttsAction: { _ in .cancelled },
             cacheStorage: repo
         )
 
@@ -286,7 +286,7 @@ struct ReadingDocumentStoreExplanationCacheTests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: { _ in .sample(selection: "word") },
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         let selection = ReadingSelectionContext.cacheTestSample(

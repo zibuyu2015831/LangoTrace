@@ -218,11 +218,15 @@ public final class ReadingDocumentStore: ObservableObject {
         explanationState = .failed
     }
 
-    func completeTTS(token: Int, request: ReadingTTSRequest) {
+    func completeTTS(token: Int, request: ReadingTTSRequest, outcome: ReadingTTSOutcome) {
         guard isCurrent(token: token, documentID: request.documentID, spaceID: request.spaceID) else {
-            // Stale completion must not touch state owned by a newer request.
             return
         }
-        audioState = .idle
+        switch outcome {
+        case .success, .cancelled:
+            audioState = .idle
+        case .failed:
+            audioState = .failed
+        }
     }
 }

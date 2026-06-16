@@ -12,7 +12,7 @@ struct ReadingDocumentStoreAITests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: explanation.explain,
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         #expect(store.compactLearningPanelState == .hidden)
@@ -36,7 +36,7 @@ struct ReadingDocumentStoreAITests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: explanation.explain,
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         store.selectText("first", sentenceID: "s1")
@@ -70,7 +70,7 @@ struct ReadingDocumentStoreAITests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: explanation.explain,
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         store.selectText("first", sentenceID: "s1")
@@ -92,7 +92,7 @@ struct ReadingDocumentStoreAITests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: explanation.explain,
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         store.selectText("first", sentenceID: "s1")
@@ -109,21 +109,21 @@ struct ReadingDocumentStoreAITests {
         let a1Store = ReadingDocumentStore(
             documentID: "doc-1", spaceID: "space-1",
             proficiencyLevelCode: "A1",
-            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in }
+            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in .cancelled }
         )
         let b2Store = ReadingDocumentStore(
             documentID: "doc-1", spaceID: "space-1",
             proficiencyLevelCode: "B2",
-            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in }
+            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in .cancelled }
         )
         let c1Store = ReadingDocumentStore(
             documentID: "doc-1", spaceID: "space-1",
             proficiencyLevelCode: "C1",
-            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in }
+            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in .cancelled }
         )
         let emptyStore = ReadingDocumentStore(
             documentID: "doc-1", spaceID: "space-1",
-            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in }
+            explanationAction: { _ in .sample(selection: "word") }, ttsAction: { _ in .cancelled }
         )
         #expect(a1Store.currentExplanationMode == .sourceLanguage)
         #expect(b2Store.currentExplanationMode == .bilingualBridge)
@@ -139,7 +139,7 @@ struct ReadingDocumentStoreAITests {
             spaceID: "space-1",
             proficiencyLevelCode: "A1",
             explanationAction: explanation.explain,
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         store.selectText("ticket", sentenceID: "s1")
@@ -160,7 +160,7 @@ struct ReadingDocumentStoreAITests {
             targetLanguageCode: "ja",
             proficiencyLevelCode: "a2",
             explanationAction: explanation.explain,
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         store.selectSelection(.sample(
@@ -202,7 +202,7 @@ struct ReadingDocumentStoreAITests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: explanation.explain,
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         store.selectSelection(.sample(
@@ -234,7 +234,7 @@ struct ReadingDocumentStoreAITests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: explanation.explain,
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         store.selectText("clocktower", sentenceID: "s1")
@@ -257,7 +257,7 @@ struct ReadingDocumentStoreAITests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: explanation.explain,
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         store.selectText("clocktower", sentenceID: "s1")
@@ -281,7 +281,7 @@ struct ReadingDocumentStoreAITests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: explanation.explain,
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         store.selectSelection(.sample(
@@ -356,7 +356,7 @@ struct ReadingDocumentStoreAITests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: { _ in .sample(selection: "word") },
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
         let document = ReadingLibraryDocumentContent(
             id: "doc-1",
@@ -458,19 +458,19 @@ private func waitForPanelState(
 
 private actor ControlledReadingTTSAction {
     private(set) var requests: [ReadingTTSRequest] = []
-    private var continuation: CheckedContinuation<Void, Never>?
+    private var continuation: CheckedContinuation<ReadingTTSOutcome, Never>?
 
-    func play(_ request: ReadingTTSRequest) async {
+    func play(_ request: ReadingTTSRequest) async -> ReadingTTSOutcome {
         requests.append(request)
-        await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             self.continuation = continuation
         }
     }
 
-    func complete() {
+    func complete(outcome: ReadingTTSOutcome = .success) {
         guard let continuation else { return }
         self.continuation = nil
-        continuation.resume()
+        continuation.resume(returning: outcome)
     }
 }
 

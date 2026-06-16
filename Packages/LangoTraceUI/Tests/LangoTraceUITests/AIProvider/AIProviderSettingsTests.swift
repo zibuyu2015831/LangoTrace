@@ -720,15 +720,15 @@ struct AIProviderSettingsSaveStatusRepairTests {
         #expect(input.endpoints.first { $0.purpose == .tts }?.id == "speech-endpoint")
     }
 
-    @Test("Status panel is vertically centered and transient success or failure is scheduled")
+    @Test("Status panel is vertically centered and transient success or failure is scheduled via store")
     func statusPanelIsCenteredAndTransientResultIsScheduled() throws {
         let source = try String(contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"), encoding: .utf8)
 
         #expect(source.contains("HStack(alignment: .center"))
         #expect(!source.contains("HStack(alignment: .top"))
         #expect(source.contains("scheduleTransientSaveStatusClear()"))
-        #expect(source.contains("try? await Task.sleep"))
-        #expect(source.contains("transientSaveStatusClearTask?.cancel()"))
+        #expect(source.contains("store.scheduleDraftSaveClear"))
+        #expect(!source.contains("transientSaveStatusClearTask"))
     }
 
     private func sourceFileURL(named fileName: String) -> URL {

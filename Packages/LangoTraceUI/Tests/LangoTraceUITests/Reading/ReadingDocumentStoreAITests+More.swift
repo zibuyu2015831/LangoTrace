@@ -10,7 +10,7 @@ extension ReadingDocumentStoreAITests {
             documentID: "doc-1",
             spaceID: "space-1",
             explanationAction: { _ in .sample(selection: "word") },
-            ttsAction: { _ in }
+            ttsAction: { _ in .cancelled }
         )
 
         store.beginEditing(document: ReadingLibraryDocumentContent(

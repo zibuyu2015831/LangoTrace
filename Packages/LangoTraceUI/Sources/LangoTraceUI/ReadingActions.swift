@@ -59,6 +59,7 @@ public struct ReadingTTSRequest: Equatable, Sendable {
     public var documentID: String
     public var spaceID: String
     public var sentenceID: String
+    public var sentenceIndex: Int
     public var text: String
     public var targetLanguageCode: String
 
@@ -66,12 +67,14 @@ public struct ReadingTTSRequest: Equatable, Sendable {
         documentID: String,
         spaceID: String,
         sentenceID: String,
+        sentenceIndex: Int = 0,
         text: String,
         targetLanguageCode: String = ""
     ) {
         self.documentID = documentID
         self.spaceID = spaceID
         self.sentenceID = sentenceID
+        self.sentenceIndex = sentenceIndex
         self.text = text
         self.targetLanguageCode = targetLanguageCode
     }
@@ -79,7 +82,14 @@ public struct ReadingTTSRequest: Equatable, Sendable {
 
 public typealias ReadingExplanationAction = @Sendable (ReadingExplanationRequest) async throws
     -> ReadingSelectionExplanationResult
-public typealias ReadingTTSAction = @Sendable (ReadingTTSRequest) async -> Void
+
+public enum ReadingTTSOutcome: Equatable, Sendable {
+    case success
+    case failed(String)
+    case cancelled
+}
+
+public typealias ReadingTTSAction = @Sendable (ReadingTTSRequest) async -> ReadingTTSOutcome
 
 public struct ReadingLibraryActions: Sendable {
     public var listDocuments: @Sendable (String, Bool, ReadingLibrarySearchQuery?) async throws
