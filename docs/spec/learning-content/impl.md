@@ -2,7 +2,7 @@
 
 状态：Current Implementation Map
 
-最后更新：2026-05-23
+最后更新：2026-06-16
 
 ## 1. 对应规范
 
@@ -14,6 +14,8 @@
 
 - 内存学习内容模型和 repository：`Packages/LangoTraceData/Sources/LangoTraceData/LearningContent.swift`
 - GRDB 学习内容 repository：`Packages/LangoTraceData/Sources/LangoTraceData/GRDBLearningContentRepository.swift`
+- Bridge 诊断事件与 protocol 抽象：`Packages/LangoTraceData/Sources/LangoTraceData/GRDBLearningContentRepositoryBridge.swift`
+- 统一枚举解码辅助：`Packages/LangoTraceData/Sources/LangoTraceData/StoredEnumDecoding.swift`
 - Data 边界协议：`Packages/LangoTraceData/Sources/LangoTraceData/DataBoundary.swift`
 - 学习材料生成 Core 契约：`Packages/LangoTraceCore/Sources/LangoTraceCore/LearningMaterialGenerationModels.swift`
 - 学习材料 AI service 与 Prompt Registry：`Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialGenerationService.swift`、`Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialPromptRegistry.swift`
@@ -27,6 +29,10 @@
 
 - `InMemoryLearningContentRepository` 仍可作为测试替身和开发期 seed preview。
 - `GRDBLearningContentRepository` 已提供真实 Entry、LearningMaterial、句子分析、修改说明、memory candidate、practice candidate 和 learning material operation 摘要的本地持久化路径。
+- `GRDBLearningContentRepositoryBridge` 内部协议 `GRDBLearningContentRepositoryProtocol` 支持测试替身注入；读路径失败通过 `DiagnosticLogging` 发射结构化诊断事件（`learningContentRepositoryReadFailed`），不再静默吞错。
+- `StoredEnumDecoding.decode()` 统一处理 GRDB 存储枚举解码，未知 rawValue 时发射 `storedEnumDecodeFallback` 诊断事件并回退到默认值；8 个 GRDB 仓库共 44 处已替换。
+- `LearningEntry.updatedAt` 已加入模型（默认 `createdAt`），对应 DB 列 `entries.updated_at`（v4 migration 起已存在）。
+- v16 migration 补充 `reading_explanation_cache.space_id → language_spaces` FK 约束和 `reading_import_operations.status` CHECK 约束。
 - App Shell 已将真实 learning content repository 装配为 `GRDBLearningContentRepositoryBridge`，不再把用户创建的真实 Entry 和生成结果落入内存 repository。
 - iPhone 可通过记录创建 sheet 保存到 GRDB repository，并进入详情。
 - `LearningContentRepository` 已提供 Entry body 更新能力；iPhone / iPad / macOS 复用的 `EntryDetailView` 可以从详情页编辑母语原文。保存原文只更新本地 `entries.body` / `updated_at`，不自动触发 AI Provider 请求。
@@ -41,7 +47,9 @@
 
 - `LanguageSpaceRepository` 仍是空协议。
 - Settings capability 仍通过 learning content repository 过渡提供；长期应拆为独立 provider，避免内容 repository 承担设置能力来源职责。
-- `GRDBLearningContentRepositoryBridge` 是旧同步 UI 协议到真实 GRDB repository 的过渡层；它已经不再返回 `unsaved-*` 内存 Entry，持久化失败会向上抛出。后续 iPad / macOS 接入和更完整错误恢复时，应继续演进为 async facade。
+- `GRDBLearningContentRepositoryBridge` 是旧同步 UI 协议到真实 GRDB repository 的过渡层；它已经不再返回 `unsaved-*` 内存 Entry，持久化失败会向上抛出。Bridge 读路径现在通过诊断事件报告失败而非静默吞错。后续 iPad / macOS 接入和更完整错误恢复时，应继续演进为 async facade。
+- `LearningContentRepository` 协议已标注文档注释说明主线程使用意图，完整 `@MainActor` 隔离推迟到 E0b。
+- `StoredEnumDecoding` 集中管理所有 GRDB 存储枚举的解码与回退诊断，消除了散落在各仓库的 `rawValue ?? fallback` 模式。
 - iPhone 生成中状态已有取消入口；取消会把当前 operation 标记为 cancelled，并让 Store 丢弃 late result。第一版取消不承诺底层 HTTP task 一定被立即终止。
 - 成功生成和重新分析使用 `GRDBLearningContentRepository` 的组合写入 API，保证 material / analysis / operation succeeded summary 在同一个 `DatabaseQueue.write` 事务内完成。
 - Store 层 `contentEmpty` / `contentTooLong` / `operationInProgress` preflight 阻断会通过 App Shell action 写入本地 failed operation summary，不发送 Provider。

@@ -65,7 +65,7 @@ done < <(find docs/plans/active -maxdepth 1 -type f -name '*.md' | sort)
 
 while IFS= read -r file; do
   name="$(basename "$file")"
-  [[ "$name" == "README.md" || "$name" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z][a-z0-9-]*-[a-z0-9][a-z0-9-]*\.md$ ]] \
+  [[ "$name" == "README.md" || "$name" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-([0-9]{2}-)?(feature|bug|refactor|research|chore|docs|refine|ui|fix)-[a-z0-9][a-z0-9-]*\.md$ ]] \
     || fail "invalid done plan filename: $file"
 done < <(find docs/plans/done -maxdepth 1 -type f -name '*.md' | sort)
 

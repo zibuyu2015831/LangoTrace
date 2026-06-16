@@ -1,10 +1,10 @@
 # 任务方案：Core / Data / AI / Speech 架构地基整固（系列 E0a）
 
-状态：In Progress
+状态：Done — CI 全绿收口（run `27595028506`，HEAD `2258e10`）
 自审核状态：Reviewed
 类型：refactor
 创建日期：2026-06-11
-最后更新日期：2026-06-16（Phase 5 已在 MacBook 环境实施并本机六包测试全绿；全部 5 个 Phase 实施完毕，待收口）
+最后更新日期：2026-06-16（CI Build & Test 全绿，文档影响检查完成，移入 done/）
 
 ## 用户确认记录
 

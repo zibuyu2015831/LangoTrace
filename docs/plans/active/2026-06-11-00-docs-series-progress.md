@@ -4,7 +4,7 @@
 自审核状态：N/A（导航/指针文档，不含生产代码变更）
 类型：docs
 创建日期：2026-06-15
-最后更新日期：2026-06-16（Phase 5 在 MacBook 环境实施并本机六包测试全绿；plan 01 全部 5 个 Phase 实施）
+最后更新日期：2026-06-16（Plan 01 CI 全绿收口完成，移入 done/；下一步：E0b UI/App 层结构债清偿）
 
 ## 这份文档是什么
 
@@ -29,11 +29,11 @@
 - **Linux 环境**：无 Swift 工具链，所有 `swift test` / `xcodebuild` / `swiftformat` / `swiftlint` 走 GitHub Actions；触发 CI 前需将仓库临时设为 public、commit message 带 `[ci]`，跑完可设回 private。
 - **MacBook 环境**：本机可执行轻量单包测试（`swift test --package-path Packages/<target>`）和格式检查（`swiftformat --lint` / `swiftlint`）；重测试（全量验证 `scripts/verify.sh`、三端构建、跨多包测试）一律放 GitHub Actions，避免被动散热设备过热降频。
 
-> **基线**：plan 01 Phase 1–3c 已 CI `Build & Test` 全绿（run `27546863012`，HEAD `56ef9d4`）；Phase 3 余项（协议默认实现移除 / RedactedSecret / TextUnitRange）已在 MacBook 本机六包测试全绿（HEAD `f4e1cb7`），CI 验证待推送后触发。
+> **基线**：plan 01 全部 Phase 已 CI `Build & Test` 全绿（run `27595028506`，HEAD `2258e10`），已移入 `done/`。
 
 ## 当前指针
 
-> **下一步候选**：plan 01 收口——macOS 跨包全测 + LangoTraceAppTests + 文档影响检查，完成后移入 done/。然后按状态总表推荐顺序推进 E0b（UI/App 层结构债清偿）。
+> **下一步候选**：E0b（UI/App 层结构债清偿）——读取 `docs/plans/active/2026-06-11-02-refactor-ui-architecture-debt.md` 并启动实施。
 
 ## 状态总表
 
@@ -41,7 +41,7 @@
 
 | 序 | 系列 | 方案 | 主题 | 状态 |
 |---|---|---|---|---|
-| 01 | E0a | `2026-06-11-01-refactor-architecture-foundations` | Core/Data/AI/Speech 架构地基整固 | 🟡 **In Progress**（见下方 Phase 子进度） |
+| 01 | E0a | `2026-06-11-01-refactor-architecture-foundations` | Core/Data/AI/Speech 架构地基整固 | ✅ **Verified**（CI run `27595028506` 全绿，已移入 done/） |
 | 02 | E0b | `2026-06-11-02-refactor-ui-architecture-debt` | UI/App 层结构债清偿 | ⚪ Draft |
 | 03 | E1 | `2026-06-11-03-feature-record-timeline-and-filters` | 记录生活时间线 + 三端筛选投影 | ⚪ Draft |
 | 04 | E2 | `2026-06-11-04-feature-entry-photo-attachment-and-photo-writing` | 照片附件主数据 + 照片引导写作 | ⚪ Draft |
@@ -75,9 +75,9 @@
 | 3a | 死代码清理 + 不变量收紧 | ✅ 已实施 + CI 绿 |
 | 3b | StableHashing 收敛（8 处散落哈希 → Core 共享工具） | ✅ 已实施 + CI 绿 |
 | 3c | normalized() 拆分（normalizedDraft/validated）+ 时钟注入 | ✅ 已实施 + CI 绿 |
-| 3-余 | 协议默认实现移除 / RedactedSecret / Reading 范围整数偏移 | ✅ 已实施 + 本机六包测试全绿（CI 待验证） |
-| 4 | 数据层：迁移、44 处枚举解码 decodeStored、软删除列修正、FK/CHECK、@MainActor | ✅ 已实施 + 本机六包测试全绿（CI 待验证） |
-| 5 | AI/Speech 尾项：bytes(for:) 流式、AIBoundary/SpeechBoundary 统一、WAV RIFF chunk walker、spec 012 prompt v4 等 | ✅ 已实施 + 本机六包测试全绿（CI 待验证） |
+| 3-余 | 协议默认实现移除 / RedactedSecret / Reading 范围整数偏移 | ✅ 已实施 + CI 绿 |
+| 4 | 数据层：迁移、44 处枚举解码 decodeStored、软删除列修正、FK/CHECK、@MainActor | ✅ 已实施 + CI 绿 |
+| 5 | AI/Speech 尾项：bytes(for:) 流式、AIBoundary/SpeechBoundary 统一、WAV RIFF chunk walker、spec 012 prompt v4 等 | ✅ 已实施 + CI 绿 |
 
 ## 维护约定
 

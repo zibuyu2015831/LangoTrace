@@ -85,7 +85,7 @@
 - ✅M RedactedSecret 引入（commit `d75445f`）：新增 Core 公开 `RedactedSecret`（description/debugDescription/customMirror 固定掩码、常量时间相等、`unsafeUnwrappedValue`）；替换 `SentenceTTSGenerationRequest.plaintextSecret` / `AIProviderCredentialSecretSaveInput.plaintextSecret` / `PlayableTTSSecretResolving` 返回类型；连锁更新 Core/AI/UI/App 测试 mock。测试 11 条覆盖 description / debugDescription / Mirror / string interpolation / 常量时间比较 / 可选值描述。
 - ✅M Reading 范围整数偏移（commit `efde82e`）：新增 Core 公开 `TextUnitRange`（UTF-16 code unit 偏移，含 NSRange / Range<String.Index> 互转）；替换 `ReadingTextChunk.range` / `ReadingMarkdownBlock.sourceRange` / `ReadingInlineRun.sourceRange`；修复 `segmentSentences` 单位混用（`.count` → `.utf16.count`）与 fallback 不一致（`text` → `trimmed`）；连锁更新 Data `GRDBReadingLibraryRepository`、UI `ReadingMarkdownBlockRenderer` / `ReadingDocumentStore+Selection`。测试 10 条覆盖 ASCII/emoji 转换、NSRange 互操作、边界条件。
 - ✅M 本机六包测试：Core 177 / Data 138 / AI 145 / Speech 24 / UI 365 全绿。
-- ⬜ CI 验证：待推送 dev 后触发 GitHub Actions。
+- ✅ CI 验证：run `27595028506` 全绿（HEAD `2258e10`，含 SwiftFormat 修复）。
 
 结构性检查（MacBook 本机 rg 自查）：
 - `rg "plaintextSecret: String" Packages` → 0 命中
@@ -108,7 +108,7 @@
 - ✅M 软删除列决策（commit `fb69eea`）：upsert 已正确维护 `deleted_at`，非死列；软删除函数属于 E0b。
 - ✅M Architecture note + spec 007 补充（commit `fb69eea`）。
 - ✅M 本机六包测试：Core 177 / Data 143 / AI 145 / Speech 24 / UI 365 全绿。
-- ⬜ CI 验证：待推送 dev 后触发 GitHub Actions。
+- ✅ CI 验证：run `27595028506` 全绿（HEAD `2258e10`，含 SwiftFormat 修复）。
 
 结构性检查（MacBook 本机 rg 自查）：
 - `rg ') ?? \\.' Packages/LangoTraceData/Sources/ | grep rawValue` → 0 命中（44 处全部替换）
@@ -130,7 +130,7 @@
 - ✅M macOS Keychain architecture note（commit `636422e`）：追加 Data Protection Keychain 迁移决策与触发条件。
 - ✅M spec 012 prompt v4（commit `636422e`）：v3 → v4 更正。
 - ✅M 本机六包测试：Core 177 / Data 143 / AI 143 / Speech 25 / UI 365 全绿。
-- ⬜ CI 验证：待推送 dev 后触发 GitHub Actions。
+- ✅ CI 验证：run `27595028506` 全绿（HEAD `2258e10`，含 SwiftFormat 修复）。
 
 结构性检查（MacBook 本机 rg 自查）：
 - `rg 'AIBoundary\|DisabledAIProvider\|SpeechBoundary\|DisabledSpeechService' Packages/` → 0 命中
