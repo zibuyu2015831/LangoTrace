@@ -279,7 +279,9 @@ struct AIOptionalModelDraftConfiguration: Equatable {
         )
         voiceID = purpose == .speech ? provider.defaultTTSVoiceID : ""
         voiceDisplayName = nil
-        outputFormat = .mp3
+        outputFormat = purpose == .speech
+            ? ((provider.defaultTTSAdapterKind ?? .openAIAudioSpeech).supportedOutputFormats.first ?? .mp3)
+            : .mp3
         speed = purpose == .speech ? 1.0 : nil
         instructions = nil
     }
@@ -319,7 +321,8 @@ struct AIOptionalModelDraftConfiguration: Equatable {
         if purpose == .speech {
             voiceID = provider.defaultTTSVoiceID
             voiceDisplayName = nil
-            outputFormat = .mp3
+            let adapterKind = provider.defaultTTSAdapterKind ?? .openAIAudioSpeech
+            outputFormat = adapterKind.supportedOutputFormats.first ?? .mp3
             speed = 1.0
             instructions = nil
         }
@@ -414,12 +417,14 @@ struct AIProviderDraftConfiguration: Equatable {
         ]
 
         if speech.isEnabled {
+            let normalizedSpeechModel = speech.normalizedTTSModel
             try endpoints.append(
                 speech.endpoint.makeSaveInput(
                     purpose: .tts,
                     isEnabled: true,
                     credentialMode: speech.endpoint.makeCredentialMode(),
-                    imageInputEnabled: false
+                    imageInputEnabled: false,
+                    modelNameOverride: normalizedSpeechModel
                 )
             )
         }
@@ -635,6 +640,7 @@ struct AIProviderDraftConfiguration: Equatable {
         speech.outputFormat = voiceProfile.outputFormat
         speech.speed = voiceProfile.speed
         speech.instructions = voiceProfile.instructions
+        speech.normalizeKnownTTSCompatibilityIfNeeded()
     }
 
     mutating func applyEndpointIdentities(from profile: AIProviderConfigurationProfile) {
@@ -737,7 +743,8 @@ private extension AIProviderEndpointDraftConfiguration {
         purpose: LangoTraceCore.AIProviderEndpointPurpose,
         isEnabled: Bool,
         credentialMode: AIProviderEndpointCredentialSaveMode,
-        imageInputEnabled: Bool
+        imageInputEnabled: Bool,
+        modelNameOverride: String? = nil
     ) throws -> AIProviderEndpointSaveInput {
         let imageInputDecision = imageInputDecision(purpose: purpose)
         return AIProviderEndpointSaveInput(
@@ -747,7 +754,7 @@ private extension AIProviderEndpointDraftConfiguration {
             providerPresetID: provider.id,
             adapterKind: provider.coreAdapterKind,
             baseURL: baseURL,
-            modelName: model,
+            modelName: modelNameOverride ?? model,
             credentialMode: credentialMode,
             supportsImageInput: imageInputDecision.shouldPersistImageSupport,
             imageInputEnabled: imageInputEnabled && imageInputDecision.canProbe
@@ -805,10 +812,44 @@ private extension AIProviderEndpointDraftConfiguration {
 }
 
 private extension AIOptionalModelDraftConfiguration {
+    var normalizedTTSModel: String {
+        guard purpose == .speech else {
+            return endpoint.model
+        }
+        if endpoint.provider == .openAI,
+           endpoint.model == "tts-1",
+           voiceID.trimmingCharacters(in: .whitespacesAndNewlines) == "coral"
+        {
+            return endpoint.provider.defaultSpeechModel
+        }
+        if endpoint.provider == .openRouter,
+           endpoint.model == "openai/gpt-4o-mini-audio-preview" || endpoint.model == "openai/gpt-4o-mini-tts-2025-12-15"
+        {
+            // These are legacy model names for the openRouterMultimodalAudio path only.
+            // The canonical current multimodal model is gpt-audio-mini, not the new
+            // openRouterAudioSpeech default (hexgrad/kokoro-82m).
+            return "openai/gpt-audio-mini"
+        }
+        return endpoint.model
+    }
+
+    mutating func normalizeKnownTTSCompatibilityIfNeeded() {
+        guard purpose == .speech else {
+            return
+        }
+        endpoint.model = normalizedTTSModel
+    }
+
     func makeTTSVoiceProfileSaveInput(languageCode: String) -> TTSVoiceProfileSaveInput? {
         guard purpose == .speech, let adapterKind = endpoint.provider.defaultTTSAdapterKind else {
             return nil
         }
+        // mimoTTS hardcodes WAV in the adapter and only allows "voice_design_prompt" as a provider
+        // parameter — passing "response_format" here would cause TTSVoiceProfile.make to throw
+        // unsupportedProviderParameter and roll back the Keychain write.
+        let providerParameters: [String: TTSProviderParameterValue] = adapterKind == .mimoTTS
+            ? [:]
+            : ["response_format": .string(outputFormat.rawValue)]
         return TTSVoiceProfileSaveInput(
             endpointPurpose: .tts,
             languageCode: languageCode,
@@ -823,7 +864,7 @@ private extension AIOptionalModelDraftConfiguration {
             stylePrompt: nil,
             instructions: instructions,
             streamingMode: false,
-            providerParameters: ["response_format": .string(outputFormat.rawValue)]
+            providerParameters: providerParameters
         )
     }
 }
@@ -885,7 +926,7 @@ private extension AIProviderDraftConfiguration {
             providerPresetID: speech.endpoint.provider.id,
             adapterKind: speech.endpoint.provider.coreAdapterKind,
             baseURL: speech.endpoint.baseURL,
-            modelName: speech.endpoint.model,
+            modelName: speech.normalizedTTSModel,
             credentialID: speech.endpoint.credentialID ?? "draft-tts-credential",
             supportsImageInput: false,
             imageInputEnabled: false
@@ -980,6 +1021,8 @@ private extension AIProviderPreset {
             .anthropicMessages
         case .geminiGenerateContent:
             .geminiGenerateContent
+        case .mimoCompatibleChat:
+            .mimoCompatibleChat
         }
     }
 }

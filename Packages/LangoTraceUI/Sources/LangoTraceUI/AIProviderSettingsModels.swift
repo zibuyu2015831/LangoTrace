@@ -6,6 +6,7 @@ enum AIProviderAdapterKind: String, CaseIterable, Equatable {
     case openAIResponses
     case anthropicMessages
     case geminiGenerateContent
+    case mimoCompatibleChat
 
     var title: String {
         switch self {
@@ -17,6 +18,8 @@ enum AIProviderAdapterKind: String, CaseIterable, Equatable {
             "Anthropic Messages"
         case .geminiGenerateContent:
             "Gemini generateContent"
+        case .mimoCompatibleChat:
+            "MIMO Chat"
         }
     }
 }
@@ -231,6 +234,7 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
     case zhipuGLM
     case siliconFlow
     case ollamaLocal
+    case mimo
     case customOpenAICompatible
 
     var id: String {
@@ -261,6 +265,8 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
             "siliconflow"
         case .ollamaLocal:
             "ollama-local"
+        case .mimo:
+            "mimo"
         case .customOpenAICompatible:
             "custom-openai-compatible"
         }
@@ -294,6 +300,8 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
             "SiliconFlow"
         case .ollamaLocal:
             "Ollama / Local"
+        case .mimo:
+            "MiMo"
         case .customOpenAICompatible:
             "Custom OpenAI-compatible"
         }
@@ -327,6 +335,8 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
             "https://api.siliconflow.com/v1"
         case .ollamaLocal:
             "http://localhost:11434/v1"
+        case .mimo:
+            "https://api.xiaomimimo.com/v1"
         case .customOpenAICompatible:
             "https://"
         }
@@ -364,6 +374,8 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
             "Qwen/Qwen3-32B"
         case .ollamaLocal:
             "llama3.2"
+        case .mimo:
+            "mimo-v2.5-pro"
         case .customOpenAICompatible:
             ""
         }
@@ -389,11 +401,13 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
     var defaultSpeechModel: String {
         switch self {
         case .openAI:
-            "tts-1"
+            "gpt-4o-mini-tts"
         case .openRouter:
-            // OpenRouter has no /audio/speech endpoint; the default adapter is
-            // the multimodal chat route, which needs an audio-capable chat model.
-            "openai/gpt-audio-mini"
+            // hexgrad/kokoro-82m via /audio/speech — 8-language TTS, supports mp3 and pcm.
+            // openai/gpt-audio-mini via /chat/completions (multimodal) is kept for existing configs.
+            "hexgrad/kokoro-82m"
+        case .mimo:
+            "mimo-v2.5-tts"
         default:
             ""
         }
@@ -407,6 +421,8 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
             .anthropicMessages
         case .gemini:
             .geminiGenerateContent
+        case .mimo:
+            .mimoCompatibleChat
         default:
             .openAICompatibleChat
         }
@@ -418,6 +434,8 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
             "x-api-key"
         case .gemini:
             "x-goog-api-key"
+        case .mimo:
+            "api-key"
         default:
             "Bearer token"
         }
@@ -448,6 +466,16 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
                 speechRecognition: false,
                 openAICompatible: false,
                 customHeaders: false
+            )
+        case .mimo:
+            AIProviderCapabilitySet(
+                chat: true,
+                embedding: false,
+                tts: true,
+                imageUnderstanding: false,
+                speechRecognition: false,
+                openAICompatible: false,
+                customHeaders: true
             )
         default:
             .openAICompatibleText
@@ -488,6 +516,14 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
                 speechSynthesis: .unsupported,
                 embedding: .unsupported
             )
+        case .mimo:
+            AIProviderCapabilityPolicy(
+                textGeneration: .supported,
+                structuredJSON: .supported,
+                imageInput: .unsupported,
+                speechSynthesis: .supported,
+                embedding: .unsupported
+            )
         default:
             AIProviderCapabilityPolicy(
                 textGeneration: .supported,
@@ -501,7 +537,7 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
 
     var firstStageTTSProbeAvailability: TTSFirstStageProbeAvailability {
         switch self {
-        case .openAI, .openRouter:
+        case .openAI, .openRouter, .mimo:
             .realProbe
         case .customOpenAICompatible:
             .futureCompatible
@@ -517,7 +553,9 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
         case .openAI:
             .openAIAudioSpeech
         case .openRouter:
-            .openRouterMultimodalAudio
+            .openRouterAudioSpeech
+        case .mimo:
+            .mimoTTS
         case .customOpenAICompatible:
             .customOpenAICompatibleAudioSpeech
         default:
@@ -530,7 +568,9 @@ enum AIProviderPreset: String, CaseIterable, Identifiable, Equatable {
         case .openAI:
             "coral"
         case .openRouter:
-            "nova"
+            "af_heart"
+        case .mimo:
+            "Chloe"
         case .customOpenAICompatible:
             "alloy"
         default:
@@ -578,6 +618,14 @@ extension AIProviderAdapterKind {
                 canProbeImageInput: true,
                 canProbeSpeechSynthesis: true,
                 canProbeEmbedding: true
+            )
+        case .mimoCompatibleChat:
+            AIProviderAdapterCapabilityPolicy(
+                canProbeText: true,
+                canProbeStructuredJSON: true,
+                canProbeImageInput: false,
+                canProbeSpeechSynthesis: true,
+                canProbeEmbedding: false
             )
         case .anthropicMessages, .geminiGenerateContent:
             AIProviderAdapterCapabilityPolicy(

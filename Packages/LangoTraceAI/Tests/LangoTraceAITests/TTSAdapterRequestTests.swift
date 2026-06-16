@@ -160,6 +160,105 @@ func openRouterTTSAdapterBuildsAudioSpeechRequest() throws {
     #expect(body.contains(#""voice":"coral""#))
 }
 
+@Test("OpenRouter multimodal TTS adapter requests audio-only output and forbids conversational answers")
+func openRouterMultimodalTTSAdapterRequestsAudioOnlyOutput() throws {
+    let adapter = OpenRouterMultimodalAudioSpeechAdapter()
+    let voice = try TTSVoiceProfile.make(
+        id: "voice-en",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .openRouterMultimodalAudio,
+        modelName: "openai/gpt-audio-mini",
+        voiceID: "nova",
+        outputFormat: .mp3,
+        instructions: "Speak clearly and naturally for a language-learning app."
+    )
+
+    let request = try adapter.makeRequest(
+        input: TTSProviderAdapterRequestInput(
+            endpointID: "endpoint-tts",
+            baseURL: "https://openrouter.ai/api/v1",
+            modelName: "openai/gpt-audio-mini",
+            voiceProfile: voice,
+            plaintextSecret: "or-test",
+            text: "How are you?"
+        )
+    )
+
+    #expect(request.url?.absoluteString == "https://openrouter.ai/api/v1/chat/completions")
+    let body = try #require(String(data: request.httpBody ?? Data(), encoding: .utf8))
+    #expect(body.contains(#""modalities":["audio"]"#))
+    #expect(!body.contains(#""modalities":["text","audio"]"#))
+    #expect(body.contains("The user message is the exact script to vocalize."))
+    #expect(body.contains("Do NOT answer the user"))
+    #expect(body.contains(#""stream":true"#))
+}
+
+@Test("MIMO TTS adapter posts to chat completions with api-key header and text in assistant role")
+func mimoTTSAdapterPostsToChatCompletionsWithApiKeyHeaderAndAssistantRoleText() throws {
+    let adapter = MimoTTSAdapter()
+    let voice = try TTSVoiceProfile.make(
+        id: "voice-en",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .mimoTTS,
+        modelName: "mimo-v2.5-tts",
+        voiceID: "Chloe",
+        outputFormat: .wav
+    )
+
+    let request = try adapter.makeRequest(
+        input: TTSProviderAdapterRequestInput(
+            endpointID: "endpoint-tts",
+            baseURL: "https://api.xiaomimimo.com/v1",
+            modelName: "mimo-v2.5-tts",
+            voiceProfile: voice,
+            plaintextSecret: "sk-mimo-test",
+            text: "Today I wrote one short sentence for practice."
+        )
+    )
+
+    #expect(request.url?.absoluteString == "https://api.xiaomimimo.com/v1/chat/completions")
+    #expect(request.httpMethod == "POST")
+    #expect(request.value(forHTTPHeaderField: "api-key") == "sk-mimo-test")
+    #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
+    let body = try #require(String(data: request.httpBody ?? Data(), encoding: .utf8))
+    #expect(body.contains(#""model":"mimo-v2.5-tts""#))
+    #expect(body.contains(#""role":"assistant""#))
+    #expect(body.contains("Today I wrote one short sentence for practice."))
+    #expect(!body.contains(#""modalities""#))
+    #expect(body.contains(#""stream":false"#))
+    #expect(body.contains(#""voice":"Chloe""#))
+}
+
+@Test("MIMO TTS adapter decodes base64 WAV from choices[0].message.audio.data")
+func mimoTTSAdapterDecodesBase64WAVFromChoicesMessageAudioData() throws {
+    let adapter = MimoTTSAdapter()
+    let dummyAudio = Data([0x52, 0x49, 0x46, 0x46]) // "RIFF"
+    let base64 = dummyAudio.base64EncodedString()
+    let responseJSON = """
+    {"choices":[{"message":{"audio":{"data":"\(base64)"}}}]}
+    """
+
+    let decoded = try adapter.decodeAudio(from: Data(responseJSON.utf8))
+    #expect(decoded == dummyAudio)
+}
+
+@Test("MIMO TTS adapter reports WAV as decoded format regardless of voice profile output format")
+func mimoTTSAdapterReportsWAVAsDecodedFormat() throws {
+    let adapter = MimoTTSAdapter()
+    let voice = try TTSVoiceProfile.make(
+        id: "voice-en",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .mimoTTS,
+        modelName: "mimo-v2.5-tts",
+        voiceID: "Chloe",
+        outputFormat: .mp3
+    )
+    #expect(adapter.decodedAudioFormat(for: voice) == .wav)
+}
+
 @Test("TTS response validator maps HTTP failures and delegates audio decode to Core service")
 func ttsResponseValidatorMapsFailuresAndDelegatesAudioDecode() async {
     let validator = TTSAudioResponseValidator(audioValidationService: RecordingAudioValidationService(

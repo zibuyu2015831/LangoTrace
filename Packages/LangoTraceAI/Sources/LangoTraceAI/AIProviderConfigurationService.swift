@@ -293,6 +293,11 @@ public struct AIProviderConfigurationService: Sendable {
         else {
             return .notConfigured
         }
+        let normalized = normalizeLegacySavedTTSConfiguration(
+            endpoint: endpoint,
+            voiceProfile: voiceProfile,
+            settings: settings
+        )
         // Must stay in sync with the adapter kinds constructible by
         // SentenceTTSGenerationService.adapter(for:) and
         // TTSConfigurationProbeService.adapter(for:).
@@ -303,7 +308,7 @@ public struct AIProviderConfigurationService: Sendable {
             .openRouterMultimodalAudio,
             .customOpenAICompatibleAudioSpeech,
         ]
-        guard playbackSupportedAdapterKinds.contains(settings.adapterKind) else {
+        guard playbackSupportedAdapterKinds.contains(normalized.settings.adapterKind) else {
             return .unsupportedProvider
         }
         guard let credentialID = endpoint.credentialID,
@@ -318,13 +323,13 @@ public struct AIProviderConfigurationService: Sendable {
         } catch {
             return .credentialMissing
         }
-        switch voiceProfile.playbackReadiness {
+        switch normalized.voiceProfile.playbackReadiness {
         case .succeeded:
             return .available(
                 PlayableTTSConfiguration(
-                    endpoint: endpoint,
-                    settings: settings,
-                    voiceProfile: voiceProfile
+                    endpoint: normalized.endpoint,
+                    settings: normalized.settings,
+                    voiceProfile: normalized.voiceProfile
                 )
             )
         case .notTested:
@@ -332,7 +337,7 @@ public struct AIProviderConfigurationService: Sendable {
         case .requiresRetest:
             return .requiresRetest
         case .failed:
-            return .failedLastTest(voiceProfile.lastTestErrorCategory)
+            return .failedLastTest(normalized.voiceProfile.lastTestErrorCategory)
         case .notConfigured:
             return .notConfigured
         case .testing:
@@ -624,11 +629,16 @@ private extension AIProviderConfigurationService {
                     )
                 )
             }
+            let normalized = normalizeLegacySavedTTSConfiguration(
+                endpoint: ttsEndpoint,
+                voiceProfile: voiceProfile,
+                settings: settings
+            )
             let speechResult = await ttsConfigurationProbeService.probeDraftTTSConfiguration(
                 TTSDraftProbeInput(
-                    endpoint: ttsEndpoint.makeProbeInput(),
-                    settings: settings,
-                    voiceProfile: voiceProfile,
+                    endpoint: normalized.endpoint.makeProbeInput(),
+                    settings: normalized.settings,
+                    voiceProfile: normalized.voiceProfile,
                     plaintextSecret: secret,
                     operationID: operationID
                 )
@@ -667,6 +677,68 @@ private extension AIProviderConfigurationService {
                 modelName: endpoint.modelName
             )
         )
+    }
+
+    func normalizeLegacySavedTTSConfiguration(
+        endpoint: AIProviderEndpointConfiguration,
+        voiceProfile: TTSVoiceProfile,
+        settings: TTSProviderSettings
+    ) -> (endpoint: AIProviderEndpointConfiguration, voiceProfile: TTSVoiceProfile, settings: TTSProviderSettings) {
+        var normalizedEndpoint = endpoint
+        var normalizedVoiceProfile = voiceProfile
+        let normalizedSettings = settings
+
+        if endpoint.providerPresetID == "openai",
+           endpoint.modelName == "tts-1",
+           voiceProfile.voiceID == "coral"
+        {
+            normalizedEndpoint.modelName = "gpt-4o-mini-tts"
+            normalizedVoiceProfile = rebuildVoiceProfile(voiceProfile, modelName: "gpt-4o-mini-tts")
+        }
+
+        // Canonicalize legacy model names in the OpenRouter multimodal path.
+        // openRouterAudioSpeech is now the default for new OpenRouter configs (hexgrad/kokoro-82m
+        // via /audio/speech); existing openRouterMultimodalAudio configs are kept as-is and their
+        // legacy model names are rewritten to the canonical multimodal model.
+        if endpoint.providerPresetID == "openrouter" && settings.adapterKind == .openRouterMultimodalAudio {
+            let targetModel = "openai/gpt-audio-mini"
+            let needsModelFix = endpoint.modelName == "openai/gpt-4o-mini-audio-preview"
+                || endpoint.modelName == "openai/gpt-4o-mini-tts-2025-12-15"
+            if needsModelFix {
+                normalizedEndpoint.modelName = targetModel
+                normalizedVoiceProfile = rebuildVoiceProfile(voiceProfile, modelName: targetModel)
+            }
+        }
+
+        return (normalizedEndpoint, normalizedVoiceProfile, normalizedSettings)
+    }
+
+    func rebuildVoiceProfile(
+        _ voiceProfile: TTSVoiceProfile,
+        modelName: String
+    ) -> TTSVoiceProfile {
+        (try? TTSVoiceProfile.make(
+            id: voiceProfile.id,
+            endpointID: voiceProfile.endpointID,
+            languageCode: voiceProfile.languageCode,
+            adapterKind: voiceProfile.adapterKind,
+            modelName: modelName,
+            voiceID: voiceProfile.voiceID,
+            voiceDisplayName: voiceProfile.voiceDisplayName,
+            outputFormat: voiceProfile.outputFormat,
+            sampleRate: voiceProfile.sampleRate,
+            speed: voiceProfile.speed,
+            volume: voiceProfile.volume,
+            pitch: voiceProfile.pitch,
+            stylePrompt: voiceProfile.stylePrompt,
+            instructions: voiceProfile.instructions,
+            streamingMode: voiceProfile.streamingMode,
+            providerParameters: voiceProfile.providerParameters,
+            lastSuccessfulConfigurationFingerprint: voiceProfile.lastSuccessfulConfigurationFingerprint,
+            lastTestStatus: voiceProfile.lastTestStatus,
+            lastTestErrorCategory: voiceProfile.lastTestErrorCategory,
+            lastTestedAt: voiceProfile.lastTestedAt
+        )) ?? voiceProfile
     }
 
     func mergedSavedEmbeddingProbeResult(

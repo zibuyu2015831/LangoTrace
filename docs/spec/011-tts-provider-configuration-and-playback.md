@@ -390,7 +390,33 @@ Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu 和
 - iPad / macOS：共享设置页字段语义一致，结果面板可关闭和重试。
 - 断网、错误 API Key、错误 voice、Provider 限流。
 
-## 13. 可演进部分
+## 13. iOS AudioSession 管理约束
+
+本节约束仅适用于 `#if os(iOS)` 分支；macOS 不使用 `AVAudioSession`，不受影响。
+
+### 13.1 TTS 播放会话（`.playback` category）
+
+- TTS 播放会话必须显式指定 `options: [.allowBluetoothA2DP]`，不得省略该选项。
+- 原因：录音会话可能激活 BT HFP 双向通道（通话质量 8–16kHz）；HFP 退出是 OS 异步操作，TTS 播放若不显式请求 A2DP，可能沿用 HFP 路由，导致播放音质降级。`.playback` + `.spokenAudio` 模式下 A2DP 为默认路由，但显式指定可防止 HFP 路由残留导致的回退。
+- `setCategory` 失败不得静默吞掉（`try?`），必须通过 OSLog warning 记录失败原因和当前 category，以便开发者通过 Console.app 排查会话冲突。`player.play()` 失败仍通过现有 engine error mapping 上报。
+- `category=\(session.category.rawValue, privacy: .public)` 和 `error.localizedDescription` 可以标记 `.public` 记录；不得记录用户句子、API Key 或音频内容。
+
+### 13.2 录音会话（`.playAndRecord` category）
+
+- 录音会话不得使用 `.allowBluetoothHFP` 选项（蓝牙协议全双工双向通道），否则 BT 耳机切入通话模式后，会污染后续 TTS 播放路由。
+- 当前使用 `.allowBluetooth`（iOS 17 deprecated）作为 BT 麦克风输入选项，兼容蓝牙耳机录音；deprecated 迁移路径见架构备忘录 `architecture/notes/2026-05-24-sentence-tts-playback-infrastructure-extension-notes.md §1.1`。
+- 蓝牙协议限制：`.playAndRecord` + A2DP 互斥（全双工场景 A2DP 与麦克风不能共存），录音侧不使用 `.allowBluetoothA2DP`；该选项仅在 `.playback` 会话中有效。
+- 录音结束必须调用 `setActive(false, options: .notifyOthersOnDeactivation)`，通知系统（和其他 App / session）录音会话已退出，降低 HFP 路由残留风险。
+
+### 13.3 新增录音或 TTS 播放基础设施时的检查清单
+
+- [ ] 是否在 TTS 播放会话（`.playback`）中显式设置 `options: [.allowBluetoothA2DP]`？
+- [ ] 是否把 TTS 播放会话的 `setCategory` 失败从 `try?` 改为 OSLog warning soft-fail？
+- [ ] 录音会话（`.playAndRecord`）是否避免使用 `.allowBluetoothHFP`？
+- [ ] 录音结束是否调用 `setActive(false, options: .notifyOthersOnDeactivation)`？
+- [ ] 是否在 macOS 路径的 `#if os(iOS)` 条件分支内处理，不影响 macOS 构建？
+
+## 14. 可演进部分
 
 - OpenRouter Models API 自动发现 speech-capable 模型。
 - Provider voice 列表拉取和试听预览。
@@ -413,3 +439,4 @@ Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu 和
 - 2026-05-23：补充设置页加载已保存 voice profile 的状态同步规则。原因：voice profile 是 language code 级状态源，重开设置页必须回填当前语言空间的 voice、format、speed、instructions，避免 UI 默认值覆盖用户配置。
 - 2026-05-24：同步逐句 TTS generation / playback / coordinator 和 direct playback UI 接入实施事实。原因：真实单句 TTS 生成、持久音频播放、缓存优先、跨句协调、AppEnvironment 装配和共享 UI action contract 已落地；规范需从“播放前置缺失”更新为“第一阶段真实逐句播放已具备”。影响范围：Core、AI、Data、Speech、UI、AppEnvironment、project.yml、scripts/verify.sh 和页面清单。是否需要 ADR：否，沿用 ADR-005；后台播放、锁屏控制、批量预生成、同步导出和费用预算仍需独立方案。
 - 2026-06-01：补充 reading sentence TTS source。原因：Reading vertical slice 已新增 `TTSSentenceSource.readingDocumentSentence(documentID:sentenceID:)`、media artifact owner/source columns 和阅读页显式 `听` action，不能与 Entry 或 LearningMaterial sentence cache key 混用。影响范围：Core TTS artifact key、Data media artifact metadata、Reading UI、AppEnvironment 和 Reading spec。是否需要 ADR：否，沿用本地优先派生媒体资产规则。
+- 2026-06-16：新增 §13 iOS AudioSession 管理约束。原因：bug 修复 `docs/plans/done/2026-06-16-bug-tts-audio-session-hfp-routing.md` 揭示录音会话 `.allowBluetoothHFP` 激活 BT HFP 双向通道后，TTS 播放侧未显式请求 `.allowBluetoothA2DP` 会导致播放音质降级；该类问题属于 AudioSession 选项使用规范缺失，需要沉淀为长期约束。影响范围：Speech package TTS 播放会话、录音引擎会话选项、新增录音或 TTS 基础设施时的检查清单。是否需要 ADR：否，沿用本地优先和 Speech package 管理 AudioSession 语义的已有决策。

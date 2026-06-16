@@ -116,6 +116,7 @@ public enum DiagnosticAttribute: Equatable, Sendable {
     case byteSizeBucket(SentenceAudioByteSizeBucket)
     case durationBucket(SentenceAudioDurationBucket)
     case cacheResult(SentenceAudioCacheResult)
+    case httpStatusCode(Int)
     case repositoryReadOperation(String)
     case enumTypeName(String)
     case rawValue(String)
@@ -164,6 +165,8 @@ public enum DiagnosticAttribute: Equatable, Sendable {
             "duration_bucket"
         case .cacheResult:
             "cache_result"
+        case .httpStatusCode:
+            "http_status_code"
         case .repositoryReadOperation:
             "repository_read_operation"
         case .enumTypeName:
@@ -183,7 +186,8 @@ public enum DiagnosticAttribute: Equatable, Sendable {
             value.rawValue
         case let .endpointCount(value),
              let .enabledEndpointCount(value),
-             let .durationMilliseconds(value):
+             let .durationMilliseconds(value),
+             let .httpStatusCode(value):
             String(value)
         case let .modelName(value),
              let .errorCategory(value),

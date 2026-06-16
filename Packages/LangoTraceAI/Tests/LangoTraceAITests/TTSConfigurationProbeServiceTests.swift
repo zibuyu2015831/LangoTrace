@@ -252,6 +252,42 @@ func draftTTSProbeUsesWAVFormatForMultimodalAdapterWhenVoiceProfileDeclaresMp3()
     #expect(capturedFormat == .wav)
 }
 
+@Test("Draft TTS probe records HTTP status code in diagnostic event on error response")
+func draftTTSProbeRecordsHTTPStatusCodeInDiagnosticEvent() async throws {
+    let httpClient = CapturingTTSProbeHTTPClient(
+        responses: [
+            AIProviderProbeHTTPResponse(
+                statusCode: 400,
+                body: Data("{\"error\":\"invalid request\"}".utf8),
+                contentType: "application/json"
+            ),
+        ]
+    )
+    let diagnosticLogger = InMemoryDiagnosticLogger()
+    let service = TTSConfigurationProbeService(
+        httpClient: httpClient,
+        audioValidationService: AcceptingTTSAudioValidationService(),
+        diagnosticLogger: diagnosticLogger,
+        clock: { Date(timeIntervalSince1970: 1000) }
+    )
+
+    let voiceProfile = try makeVoiceProfile(languageCode: "en")
+    let result = await service.probeDraftTTSConfiguration(
+        TTSDraftProbeInput(
+            endpoint: ttsEndpoint(),
+            settings: TTSProviderSettings(endpointID: "tts-endpoint", adapterKind: .openAIAudioSpeech),
+            voiceProfile: voiceProfile,
+            plaintextSecret: "sk-test",
+            operationID: DiagnosticOperationID(rawValue: "op-http-status")
+        )
+    )
+
+    #expect(result.status == .failed)
+    let events = await diagnosticLogger.events()
+    let probeEvent = try #require(events.first)
+    #expect(probeEvent.attributes.contains(.httpStatusCode(400)))
+}
+
 private actor CapturingTTSProbeHTTPClient: AIProviderProbeHTTPClient {
     private(set) var requests: [URLRequest] = []
     private var responses: [AIProviderProbeHTTPResponse]

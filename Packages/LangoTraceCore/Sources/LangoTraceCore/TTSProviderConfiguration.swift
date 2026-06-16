@@ -13,6 +13,7 @@ public enum TTSProviderAdapterKind: String, Codable, CaseIterable, Sendable {
     case siliconFlowAudioSpeech = "siliconflow_audio_speech"
     case openAIMultimodalAudio = "openai_multimodal_audio"
     case openRouterMultimodalAudio = "openrouter_multimodal_audio"
+    case mimoTTS = "mimo_tts"
 }
 
 public enum TTSAudioFormat: String, Codable, CaseIterable, Sendable {
@@ -363,6 +364,49 @@ private extension TTSVoiceProfile {
     }
 }
 
+public extension TTSProviderAdapterKind {
+    /// Audio output formats the adapter accepts via the `response_format` / `audio.format` field.
+    ///
+    /// The UI format picker shows only these formats. The first element is used as the default when
+    /// switching to this adapter. Sources: confirmed by live API probing where noted; otherwise
+    /// conservative estimates based on provider documentation.
+    var supportedOutputFormats: [TTSAudioFormat] {
+        switch self {
+        case .openAIAudioSpeech:
+            // Confirmed: OpenAI /audio/speech supports all six standard formats.
+            [.mp3, .opus, .aac, .flac, .wav, .pcm]
+        case .openRouterAudioSpeech:
+            // Confirmed (2026-06-16): OpenRouter /audio/speech only accepts mp3 and pcm
+            // across all tested models (kokoro-82m, orpheus-3b, grok-voice-tts-1.0, mai-voice-2).
+            [.mp3, .pcm]
+        case .groqAudioSpeech:
+            [.mp3, .wav, .opus, .flac, .pcm]
+        case .customOpenAICompatibleAudioSpeech:
+            TTSAudioFormat.allCases  // user-controlled endpoint; allow all
+        case .geminiGenerateContentTTS:
+            // Confirmed: Gemini TTS only supports PCM output.
+            [.pcm]
+        case .mistralAudioSpeech:
+            [.mp3, .wav]
+        case .xAITTS:
+            // Confirmed (2026-06-16): xAI TTS via OpenRouter accepts mp3 and pcm.
+            [.mp3, .pcm]
+        case .dashScopeCosyVoice:
+            [.mp3, .wav, .pcm]
+        case .zhipuGLMTTS:
+            [.mp3, .wav]
+        case .siliconFlowAudioSpeech:
+            [.mp3, .wav, .pcm]
+        case .openAIMultimodalAudio, .openRouterMultimodalAudio:
+            // The request hardcodes pcm16; the user cannot change the wire format.
+            [.pcm]
+        case .mimoTTS:
+            // Confirmed: MIMO TTS only produces WAV (hardcoded in the adapter and API).
+            [.wav]
+        }
+    }
+}
+
 private extension TTSProviderAdapterKind {
     var allowedProviderParameterKeys: Set<String> {
         switch self {
@@ -388,6 +432,8 @@ private extension TTSProviderAdapterKind {
             ["response_format", "sample_rate", "speed", "gain", "stream"]
         case .openAIMultimodalAudio, .openRouterMultimodalAudio:
             ["response_format", "provider_options"]
+        case .mimoTTS:
+            ["voice_design_prompt"]
         }
     }
 }

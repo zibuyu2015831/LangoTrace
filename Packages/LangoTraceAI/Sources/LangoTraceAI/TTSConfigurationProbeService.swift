@@ -46,13 +46,13 @@ public struct TTSConfigurationProbeService: Sendable {
     public func probeDraftTTSConfiguration(
         _ input: TTSDraftProbeInput
     ) async -> AIProviderProbeCapabilityResult {
-        let result = await probe(
+        let (result, httpStatusCode) = await probe(
             endpoint: input.endpoint,
             settings: input.settings,
             voiceProfile: input.voiceProfile,
             plaintextSecret: input.plaintextSecret
         )
-        await recordCompletion(result, endpoint: input.endpoint, operationID: input.operationID)
+        await recordCompletion(result, httpStatusCode: httpStatusCode, endpoint: input.endpoint, operationID: input.operationID)
         return result
     }
 }
@@ -60,6 +60,7 @@ public struct TTSConfigurationProbeService: Sendable {
 private extension TTSConfigurationProbeService {
     func recordCompletion(
         _ result: AIProviderProbeCapabilityResult,
+        httpStatusCode: Int?,
         endpoint: AIProviderEndpointInput,
         operationID: DiagnosticOperationID
     ) async {
@@ -84,7 +85,8 @@ private extension TTSConfigurationProbeService {
                     .adapterKind(endpoint.adapterKind),
                     .probeCapability(.speechSynthesis),
                     .probeCapabilityStatus(result.status),
-                ] + (result.errorCategory.map { [.errorCategory($0.rawValue)] } ?? [])
+                ] + (httpStatusCode.map { [.httpStatusCode($0)] } ?? [])
+                    + (result.errorCategory.map { [.errorCategory($0.rawValue)] } ?? [])
                     + (result.durationMilliseconds.map { [.durationMilliseconds($0)] } ?? []),
                 createdAt: clock()
             )
@@ -96,7 +98,7 @@ private extension TTSConfigurationProbeService {
         settings: TTSProviderSettings,
         voiceProfile: TTSVoiceProfile,
         plaintextSecret: String?
-    ) async -> AIProviderProbeCapabilityResult {
+    ) async -> (AIProviderProbeCapabilityResult, Int?) {
         let startedAt = clock()
         let metadata = AIProviderEndpointProbeMetadata(
             endpointID: inputEndpoint.id,
@@ -106,18 +108,21 @@ private extension TTSConfigurationProbeService {
             configurationFingerprint: voiceProfile.configurationFingerprint
         )
         guard plaintextSecret?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
-            return AIProviderProbeCapabilityResult(
+            return (AIProviderProbeCapabilityResult(
                 capability: .speechSynthesis,
                 status: .failed,
                 errorCategory: .missingCredential,
                 durationMilliseconds: durationMilliseconds(since: startedAt),
                 endpointMetadata: metadata
-            )
+            ), nil)
         }
 
         do {
             let endpoint = try inputEndpoint.normalized()
             let adapter = try adapter(for: settings.adapterKind)
+            NSLog("[LT-TTS-Probe] adapterKind=%@ model=%@ voice=%@",
+                  String(describing: settings.adapterKind), endpoint.modelName,
+                  voiceProfile.voiceID)
             let request = try adapter.makeRequest(
                 input: TTSProviderAdapterRequestInput(
                     endpointID: endpoint.id,
@@ -130,14 +135,16 @@ private extension TTSConfigurationProbeService {
                 )
             )
             let response = try await httpClient.send(request)
+            let httpStatusCode = response.statusCode
+            NSLog("[LT-TTS-Probe] statusCode=%d bodyBytes=%d", httpStatusCode, response.body.count)
             guard response.body.count <= maxTTSProbeAudioResponseBytes else {
-                return AIProviderProbeCapabilityResult(
+                return (AIProviderProbeCapabilityResult(
                     capability: .speechSynthesis,
                     status: .failed,
                     errorCategory: .invalidAudioResponse,
                     durationMilliseconds: durationMilliseconds(since: startedAt),
                     endpointMetadata: metadata
-                )
+                ), httpStatusCode)
             }
             let decodedBody: Data
             let isSuccess = (200 ... 299).contains(response.statusCode)
@@ -145,19 +152,21 @@ private extension TTSConfigurationProbeService {
                 do {
                     decodedBody = try adapter.decodeAudio(from: response.body)
                 } catch {
-                    return AIProviderProbeCapabilityResult(
+                    return (AIProviderProbeCapabilityResult(
                         capability: .speechSynthesis,
                         status: .failed,
                         errorCategory: .invalidAudioResponse,
                         durationMilliseconds: durationMilliseconds(since: startedAt),
                         endpointMetadata: metadata
-                    )
+                    ), httpStatusCode)
                 }
             } else {
+                let errorBody = String(data: response.body, encoding: .utf8) ?? "<binary \(response.body.count) bytes>"
+                NSLog("[LT-TTS-Probe] errorBody=%@", errorBody)
                 decodedBody = response.body
             }
 
-            return await validatedProbeResult(
+            let validated = await validatedProbeResult(
                 response: response,
                 decodedBody: decodedBody,
                 isSuccess: isSuccess,
@@ -166,31 +175,32 @@ private extension TTSConfigurationProbeService {
                 startedAt: startedAt,
                 metadata: metadata
             )
+            return (validated, httpStatusCode)
         } catch let error as AIProviderProbeHTTPClientError {
             if error == .cancelled {
-                return AIProviderProbeCapabilityResult(
+                return (AIProviderProbeCapabilityResult(
                     capability: .speechSynthesis,
                     status: .cancelled,
                     errorCategory: nil,
                     durationMilliseconds: durationMilliseconds(since: startedAt),
                     endpointMetadata: metadata
-                )
+                ), nil)
             }
-            return AIProviderProbeCapabilityResult(
+            return (AIProviderProbeCapabilityResult(
                 capability: .speechSynthesis,
                 status: .failed,
                 errorCategory: error == .timedOut ? .timeout : .networkUnavailable,
                 durationMilliseconds: durationMilliseconds(since: startedAt),
                 endpointMetadata: metadata
-            )
+            ), nil)
         } catch {
-            return AIProviderProbeCapabilityResult(
+            return (AIProviderProbeCapabilityResult(
                 capability: .speechSynthesis,
                 status: .failed,
                 errorCategory: .invalidAudioResponse,
                 durationMilliseconds: durationMilliseconds(since: startedAt),
                 endpointMetadata: metadata
-            )
+            ), nil)
         }
     }
 
@@ -252,6 +262,8 @@ private extension TTSConfigurationProbeService {
             OpenRouterMultimodalAudioSpeechAdapter()
         case .customOpenAICompatibleAudioSpeech:
             CustomOpenAICompatibleAudioSpeechAdapter()
+        case .mimoTTS:
+            MimoTTSAdapter()
         case .groqAudioSpeech,
              .geminiGenerateContentTTS,
              .mistralAudioSpeech,

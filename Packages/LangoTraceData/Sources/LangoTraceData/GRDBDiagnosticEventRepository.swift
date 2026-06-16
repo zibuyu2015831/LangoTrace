@@ -99,6 +99,7 @@ private extension GRDBDiagnosticEventRepository {
         "byte_size_bucket": { SentenceAudioByteSizeBucket(rawValue: $0).map(DiagnosticAttribute.byteSizeBucket) },
         "duration_bucket": { SentenceAudioDurationBucket(rawValue: $0).map(DiagnosticAttribute.durationBucket) },
         "cache_result": { SentenceAudioCacheResult(rawValue: $0).map(DiagnosticAttribute.cacheResult) },
+        "http_status_code": { Int($0).map(DiagnosticAttribute.httpStatusCode) },
     ]
 
     func prune(_ db: Database, keepingMostRecent count: Int, newerThan cutoff: Date) throws {

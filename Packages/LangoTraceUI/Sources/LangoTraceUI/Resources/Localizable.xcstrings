@@ -16308,23 +16308,6 @@
         }
       }
     },
-    "aiProviderSettings.speechModel.formatHelp": {
-      "comment": "Short helper text for choosing speech audio output format.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MP3 is recommended for previews."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "试听优先使用 MP3。"
-          }
-        }
-      }
-    },
     "aiProviderSettings.speechModel.instructionsHelp": {
       "comment": "Short helper text explaining optional TTS speaking style instructions.",
       "localizations": {
@@ -16372,23 +16355,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "语音细节"
-          }
-        }
-      }
-    },
-    "aiProviderSettings.speechModel.speedHelp": {
-      "comment": "Short helper text for the speech speed control.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Adjust how fast the preview is read."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "调整试听朗读快慢。"
           }
         }
       }

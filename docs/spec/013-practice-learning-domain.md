@@ -43,6 +43,7 @@
 
 - 录音必须由用户显式点击触发；触发时才请求麦克风权限，页面出现不得自动请求权限。
 - 练习录音默认本机保存：不同步、不默认导出、不自动发送 AI Provider、excluded from system backup。改变任一默认值都必须新开方案并按 [008：权限、本地隐私与诊断日志规范](008-permissions-local-privacy-and-diagnostics.md) 审查。
+- iOS 录音会话（`.playAndRecord` category）**不得使用 `.allowBluetoothHFP` 选项**：该选项令 BT 耳机切入 HFP 双向通话模式（8–16kHz），会污染录音结束后的 TTS 播放路由。BT 麦克风输入使用 `.allowBluetooth`（iOS 17 deprecated，migration 见 `spec/011 §13.2`），输出使用 `.defaultToSpeaker`。TTS 播放会话须显式指定 `.allowBluetoothA2DP`（见 `spec/011 §13.1`）。
 - 单句页只读取已有 LearningMaterial 翻译 / note 作为理解辅助，不新增 AI 语法分析请求。
 - 当前阶段不做发音评分、ASR、后台录音或录音上传。
 
@@ -68,3 +69,4 @@
 ## 9. 变更记录
 
 - 2026-06-11：创建练习学习域规范。原因：练习域的模型契约、route seed、隐私边界和扩展边界分散在页面清单、spec 003 和架构备忘录中，听写 / 回译等扩展落地前需要一份汇集的领域规范；本文档为既有已确认事实与边界的汇编，不引入新的产品决策。影响范围：后续练习相关任务的设计输入和检查清单。是否需要 ADR：否，沿用本地优先、用户显式触发和三端共享业务逻辑决策。
+- 2026-06-16：§5 新增 iOS 录音会话选项约束。原因：bug 修复揭示 `.allowBluetoothHFP` 会激活 BT HFP 双向通道污染后续 TTS 播放；该约束应沉淀到练习域规范，防止后续扩展（听写 / 回译录音等）重犯同类问题。影响范围：练习录音基础设施、后续听写 / 回译录音扩展。是否需要 ADR：否，沿用现有约束并交叉引用 spec/011 §13。

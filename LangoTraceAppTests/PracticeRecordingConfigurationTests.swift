@@ -48,6 +48,16 @@ final class PracticeRecordingConfigurationTests: XCTestCase {
         // AI provider and TTS requests; without this key, signed builds block all requests.
         XCTAssertEqual(plist["com.apple.security.network.client"] as? Bool, true)
     }
+
+    func testRecordingEngineDoesNotUseBluetoothHFP() throws {
+        let root = try repositoryRoot()
+        let sourceURL = root.appendingPathComponent("LangoTraceApp/AppPracticeRecordingEngine.swift")
+        let source = try String(contentsOf: sourceURL, encoding: .utf8)
+        XCTAssertFalse(
+            source.contains("allowBluetoothHFP"),
+            "AppPracticeRecordingEngine.swift 不应包含 .allowBluetoothHFP，会激活 HFP 双向通道影响 TTS 播放"
+        )
+    }
 }
 
 private func repositoryRoot() throws -> URL {

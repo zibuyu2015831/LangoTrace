@@ -350,6 +350,55 @@ func configurationServiceTestsSavedTTSVoiceProfileWithoutUpdatingTextValidationO
     #expect(await repository.recordedTTSOutcomeLanguageCodes == ["en"])
 }
 
+@Test("Configuration service normalizes legacy saved OpenRouter TTS model before probe")
+func configurationServiceNormalizesLegacySavedOpenRouterTTSModelBeforeProbe() async throws {
+    let savedTTS = try savedOpenRouterLegacyProfileWithTTS()
+    let repository = StubAIProviderConfigurationRepository(
+        profile: savedTTS.profile,
+        ttsSettings: savedTTS.settings,
+        ttsVoiceProfile: savedTTS.voiceProfile
+    )
+    let store = TrackingAIProviderCredentialStore()
+    let textHTTPClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"OK"}]}]}"#),
+        .json(#"{"output":[{"type":"message","content":[{"type":"output_text","text":"{\"ok\":true}"}]}]}"#),
+        .json(openAIOutputTextJSON(languageSupportSampleJSON())),
+    ])
+    // After normalization the adapter stays on openRouterMultimodalAudio which sends SSE to /chat/completions.
+    // The mock response is a minimal SSE stream with one base64-encoded PCM chunk.
+    let sseBody = "data: {\"choices\":[{\"delta\":{\"audio\":{\"data\":\"AAEC\"}}}]}\ndata: [DONE]\n"
+    let ttsHTTPClient = CapturingProbeHTTPClient(
+        responses: [.http(statusCode: 200, body: Data(sseBody.utf8), contentType: "text/event-stream")]
+    )
+    let service = AIProviderConfigurationService(
+        repository: repository,
+        credentialStore: store,
+        configurationProbeService: AIProviderConfigurationProbeService(httpClient: textHTTPClient),
+        ttsConfigurationProbeService: TTSConfigurationProbeService(
+            httpClient: ttsHTTPClient,
+            audioValidationService: AcceptingTTSAudioValidationService(),
+            diagnosticLogger: DisabledDiagnosticLogger()
+        ),
+        clock: { Date(timeIntervalSince1970: 250) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+
+    let result = try await service.testDefaultConfiguration(
+        languageContext: AIProviderProbeLanguageContext(languageCode: "en"),
+        operationID: DiagnosticOperationID(rawValue: "operation-saved-openrouter-legacy-tts-probe")
+    )
+
+    let speechResult = try #require(result.capabilities.first { $0.capability == .speechSynthesis })
+    #expect(speechResult.status == .succeeded)
+    // Model must be normalized to gpt-audio-mini (legacy gpt-4o-mini-audio-preview in DB).
+    #expect(speechResult.endpointMetadata?.modelName == "openai/gpt-audio-mini")
+    let requests = await ttsHTTPClient.requests
+    let requestBody = try #require(String(data: requests.first?.httpBody ?? Data(), encoding: .utf8))
+    // Multimodal audio adapter sends to /chat/completions with modalities: ["audio"].
+    #expect(requestBody.contains(#""model":"openai\/gpt-audio-mini""#))
+    #expect(requestBody.contains(#""modalities":["audio"]"#))
+}
+
 @Test("Configuration service surfaces TTS credential store failures as failed speech synthesis result")
 func configurationServiceSurfacesTTSCredentialStoreFailuresAsFailedSpeechSynthesis() async throws {
     let savedTTS = try savedProfileWithTTS()
@@ -1486,7 +1535,9 @@ private func savedProfileWithTTS(
             providerPresetID: "openai",
             adapterKind: .openAIResponses,
             baseURL: "https://api.openai.com/v1",
-            modelName: "tts-1",
+            // Use the canonical TTS model so normalization does not change the fingerprint
+            // and playbackReadiness stays consistent with lastSuccessfulConfigurationFingerprint.
+            modelName: "gpt-4o-mini-tts",
             credentialID: "credential-1",
             supportsImageInput: false,
             imageInputEnabled: false
@@ -1520,7 +1571,7 @@ private func savedProfileWithTTS(
         endpointID: "endpoint-tts",
         languageCode: "en",
         adapterKind: .openAIAudioSpeech,
-        modelName: "tts-1",
+        modelName: "gpt-4o-mini-tts",
         voiceID: "coral",
         outputFormat: .mp3,
         providerParameters: ["response_format": .string("mp3")],
@@ -1530,6 +1581,83 @@ private func savedProfileWithTTS(
     if markSuccessfulFingerprint {
         voiceProfile = voiceProfile.withProbeOutcome(TTSConfigurationStatus.succeeded, testedAt: now)
     }
+    return (profile, settings, voiceProfile)
+}
+
+private func savedOpenRouterLegacyProfileWithTTS() throws -> (
+    profile: AIProviderConfigurationProfile,
+    settings: TTSProviderSettings,
+    voiceProfile: TTSVoiceProfile
+) {
+    let now = Date(timeIntervalSince1970: 120)
+    let textEndpoint = try AIProviderEndpointConfiguration(
+        input: AIProviderEndpointInput(
+            id: "endpoint-1",
+            profileID: "profile-1",
+            purpose: .textGeneration,
+            isEnabled: true,
+            providerPresetID: "openrouter",
+            adapterKind: .openAICompatibleChat,
+            baseURL: "https://openrouter.ai/api/v1",
+            modelName: "openai/gpt-4o",
+            credentialID: "credential-1",
+            supportsImageInput: true,
+            imageInputEnabled: false
+        ),
+        createdAt: now,
+        updatedAt: now
+    )
+    let ttsEndpoint = try AIProviderEndpointConfiguration(
+        input: AIProviderEndpointInput(
+            id: "endpoint-tts",
+            profileID: "profile-1",
+            purpose: .tts,
+            isEnabled: true,
+            providerPresetID: "openrouter",
+            adapterKind: .openAICompatibleChat,
+            baseURL: "https://openrouter.ai/api/v1",
+            modelName: "openai/gpt-4o-mini-audio-preview",
+            credentialID: "credential-1",
+            supportsImageInput: false,
+            imageInputEnabled: false
+        ),
+        createdAt: now,
+        updatedAt: now
+    )
+    let credential = AIProviderCredentialMetadata(
+        id: "credential-1",
+        profileID: "profile-1",
+        providerPresetID: "openrouter",
+        kind: .apiKey,
+        label: "OpenRouter API Key",
+        secretPresence: .present,
+        createdAt: now,
+        updatedAt: now
+    )
+    let profile = AIProviderConfigurationProfile(
+        id: "profile-1",
+        displayName: "Default AI Provider",
+        isDefault: true,
+        status: .configured,
+        createdAt: now,
+        updatedAt: now,
+        endpoints: [textEndpoint, ttsEndpoint],
+        credentials: [credential]
+    )
+    let settings = TTSProviderSettings(endpointID: "endpoint-tts", adapterKind: .openRouterMultimodalAudio)
+    let voiceProfile = try TTSVoiceProfile.make(
+        id: "voice-en",
+        endpointID: "endpoint-tts",
+        languageCode: "en",
+        adapterKind: .openRouterMultimodalAudio,
+        modelName: "openai/gpt-4o-mini-audio-preview",
+        voiceID: "nova",
+        outputFormat: .mp3,
+        speed: 1.0,
+        instructions: "Speak clearly and naturally for a language-learning app.",
+        providerParameters: ["response_format": .string("mp3")],
+        lastTestStatus: .notTested
+    )
     return (profile, settings, voiceProfile)
 }
 

@@ -58,6 +58,7 @@ public enum AIProviderAdapterKind: String, Codable, CaseIterable, Sendable {
     case openAICompatibleChat = "openai_compatible_chat"
     case anthropicMessages = "anthropic_messages"
     case geminiGenerateContent = "gemini_generate_content"
+    case mimoCompatibleChat = "mimo_compatible_chat"
 }
 
 public enum AIProviderCredentialKind: String, Codable, CaseIterable, Sendable {

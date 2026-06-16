@@ -68,6 +68,20 @@ App Shell 的 production assembly 也不能长期只靠 build 间接覆盖。逐
 - iOS、iPadOS、macOS 是否采用同一语义。
 - 这些能力是否改变 App Store 隐私说明或后台模式声明。
 
+#### 1.1 蓝牙 HFP / A2DP 路由冲突案例（2026-06-16 修复）
+
+已发生的 bug（见 `docs/plans/done/2026-06-16-bug-tts-audio-session-hfp-routing.md`）：
+
+- **根因**：`AppPracticeRecordingEngine` 录音会话使用 `.allowBluetoothHFP`，令已连接的 BT 耳机进入 HFP 双向通道（8–16kHz 通话模式）。录音停止 `setActive(false)` 后，BT 耳机在 OS 层异步退出 HFP，TTS 播放侧原 `try? setCategory(.playback, mode: .spokenAudio)` 切换失败（silent fail），音频继续走 HFP 路由，TTS 听感变为通话质量。
+- **已修复**：
+  - 录音侧恢复 `.allowBluetooth`（input-focused，不触发双向 HFP）。
+  - TTS 播放侧显式加入 `.allowBluetoothA2DP`，强制 A2DP 高质量立体声路由；`try?` 改为带 OSLog warning 的 soft fail。
+- **`.allowBluetooth` deprecation 迁移路径**（iOS 17 已 deprecated）：
+  - 待 `.allowBluetooth` 被移除时，录音侧迁移到 `.allowBluetoothHFP`（iOS 17+ 的推荐替代，两者行为等价）。
+  - 迁移时必须同步确认 TTS 播放侧已显式 `.allowBluetoothA2DP`（本次修复已固定），避免 HFP 通话通道残留影响 TTS 音质。
+  - TTS 侧无需额外返工：`.allowBluetoothA2DP` 在 `.playback` 模式下始终强制走 A2DP，对录音侧使用何种 BT 选项不敏感。
+- **未来并发场景**（录音中同时 TTS 提示）：`.playAndRecord` 模式下蓝牙协议限制 A2DP 与麦克风互斥，全双工场景必须重新设计 Session Coordinator / priority queue，作为独立架构任务，不复用当前顺序场景的修复方案。
+
 ### 2. Streaming TTS
 
 第一版逐句播放使用 non-streamed request。后续若接入 streaming TTS、WebSocket 或 provider-specific partial audio，需要重新设计：

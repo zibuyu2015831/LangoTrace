@@ -296,13 +296,34 @@ private extension AIProviderSettingsView {
                 : AIProviderProbeSource.draft
             let snapshot: AIProviderDraftProbeSnapshot?
             do {
-                snapshot = source == .draft
-                    ? try draft.makeConfigurationProbeDraftSnapshot(
+                if source == .draft {
+                    // When apiKeyDraft was cleared after a profile load but the saved credential
+                    // still exists in the Keychain, temporarily restore it so the probe snapshot
+                    // carries a usable secret. The resolved value is cleared immediately after.
+                    var resolvedForSnapshot = false
+                    if draft.text.endpoint.independentCredential.requiresAPIKey,
+                       draft.text.endpoint.independentCredential.apiKeyDraft
+                           .trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                       let credentialID = draft.text.endpoint.credentialID,
+                       let metadata = savedCredentialMetadataByID[credentialID],
+                       let secret = try? await actions.resolveCredentialSecret(metadata),
+                       !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    {
+                        draft.text.endpoint.independentCredential.apiKeyDraft = secret
+                        resolvedForSnapshot = true
+                    }
+                    snapshot = try draft.makeConfigurationProbeDraftSnapshot(
                         operationID: operationID,
                         languageContext: languageContext
                     )
-                    : nil
+                    if resolvedForSnapshot {
+                        draft.clearPlaintextSecrets()
+                    }
+                } else {
+                    snapshot = nil
+                }
             } catch {
+                draft.clearPlaintextSecrets()
                 draft.testState = .missingRequiredFields
                 return
             }
@@ -455,7 +476,9 @@ private extension AIProviderSettingsView {
         case .unsavedChanges, .saved, .failed:
             draft.saveState.titleKey
         case .idle, .missingRequiredFields, .saving:
-            nil
+            draft.saveReadiness == .missingRequiredFields
+                ? "aiProviderSettings.saveState.missingRequiredFields"
+                : nil
         }
     }
 

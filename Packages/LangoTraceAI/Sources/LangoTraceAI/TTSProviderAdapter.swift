@@ -175,9 +175,9 @@ private func makeOpenAIStyleMultimodalAudioRequest(input: TTSProviderAdapterRequ
 
     var messages: [[String: Any]] = []
 
-    let defaultTTSInstruction = "You are a pure text-to-speech engine. Your only task is to read the user's text out loud exactly as written. "
-        + "Do NOT answer the user, do NOT add conversational filler, and do NOT interpret the text as a question or command. "
-        + "Simply dictate the provided text verbatim."
+    let defaultTTSInstruction = "You are a pure text-to-speech engine. The user message is the exact script to vocalize. "
+        + "Read it aloud exactly as written. Do NOT answer the user, do NOT add conversational filler, do NOT summarize, "
+        + "and do NOT interpret the text as a question or command. Output speech only."
 
     let finalInstructions: String = if let userInstructions = input.voiceProfile.instructions, !userInstructions.isEmpty {
         "\(defaultTTSInstruction)\n\nAdditional instructions: \(userInstructions)"
@@ -197,7 +197,7 @@ private func makeOpenAIStyleMultimodalAudioRequest(input: TTSProviderAdapterRequ
 
     let body: [String: Any] = [
         "model": input.modelName,
-        "modalities": ["text", "audio"],
+        "modalities": ["audio"],
         "audio": audioOptions,
         "messages": messages,
     ]
@@ -254,6 +254,64 @@ private func decodeOpenAIStyleMultimodalAudioResponse(_ data: Data) throws -> Da
         throw AIProviderHTTPClientError.invalidHTTPResponse
     }
     return decoded
+}
+
+// MARK: - MIMO TTS Adapter
+
+/// MIMO TTS uses POST /chat/completions but with a non-standard format:
+/// the text to synthesize goes in the `assistant` role (not `user`).
+/// Auth uses `api-key` header, not `Authorization: Bearer`.
+/// Response is non-streaming WAV base64 in choices[0].message.audio.data.
+public struct MimoTTSAdapter: TTSProviderAdapter {
+    public init() {}
+
+    public func makeRequest(input: TTSProviderAdapterRequestInput) throws -> URLRequest {
+        guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: input.baseURL, pathSuffix: "chat/completions")
+        else {
+            throw AIProviderConfigurationError.invalidBaseURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let timeout = input.requestTimeoutSeconds {
+            request.timeoutInterval = timeout
+        }
+        if let plaintextSecret = input.plaintextSecret, !plaintextSecret.isEmpty {
+            request.setValue(plaintextSecret, forHTTPHeaderField: "api-key")
+        }
+        let body: [String: Any] = [
+            "model": input.modelName,
+            "messages": [
+                ["role": "user", "content": ""],
+                ["role": "assistant", "content": input.text],
+            ],
+            "audio": [
+                "format": "wav",
+                "voice": input.voiceProfile.voiceID,
+            ],
+            "stream": false,
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+        return request
+    }
+
+    public func decodeAudio(from responseBody: Data) throws -> Data {
+        guard let json = try? JSONSerialization.jsonObject(with: responseBody) as? [String: Any],
+              let choices = json["choices"] as? [[String: Any]],
+              let firstChoice = choices.first,
+              let message = firstChoice["message"] as? [String: Any],
+              let audio = message["audio"] as? [String: Any],
+              let base64Data = audio["data"] as? String,
+              let decoded = Data(base64Encoded: base64Data)
+        else {
+            throw AIProviderHTTPClientError.invalidHTTPResponse
+        }
+        return decoded
+    }
+
+    public func decodedAudioFormat(for _: TTSVoiceProfile) -> TTSAudioFormat {
+        .wav
+    }
 }
 
 private func wrapPCM16InWAV(pcmData: Data, sampleRate: Int) -> Data {

@@ -120,6 +120,83 @@ struct AIProviderLoadedSecretRepairTests {
         #expect(source.contains("credential_reveal"))
     }
 
+    @Test("Draft probe source switches to draft after non-credential edit on loaded profile")
+    func draftProbeSourceSwitchesToDraftAfterNonCredentialEditOnLoadedProfile() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        try draft.applyLoadedProfile(loadedProfile())
+
+        #expect(draft.textProbeSource == .savedProfile)
+        #expect(draft.text.endpoint.independentCredential.apiKeyDraft == "")
+        #expect(draft.text.endpoint.credentialID == "credential-1")
+
+        draft.text.endpoint.model = "gpt-5.3"
+        draft.markInputChanged(from: "gpt-5.2", to: "gpt-5.3")
+
+        #expect(draft.textProbeSource == .draft)
+        #expect(draft.configurationProbeReadiness == .readyForRequest)
+    }
+
+    @Test("Draft probe snapshot has empty secret when apiKeyDraft cleared after profile load")
+    func draftProbeSnapshotHasEmptySecretWhenAPIKeyDraftClearedAfterProfileLoad() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        try draft.applyLoadedProfile(loadedProfile())
+        draft.text.endpoint.model = "gpt-5.3"
+        draft.markInputChanged(from: "gpt-5.2", to: "gpt-5.3")
+
+        let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
+            operationID: DiagnosticOperationID(rawValue: "op-scenario-c-empty")
+        )
+
+        // Without credential resolution, plaintextSecret is empty — probe would fail with missingCredential
+        #expect(snapshot.plaintextSecret == "")
+        #expect(snapshot.source == .draft)
+        #expect(snapshot.endpoint?.modelName == "gpt-5.3")
+    }
+
+    @Test("Applying resolved secrets before draft snapshot passes credential to probe")
+    func applyingResolvedSecretsBeforeDraftSnapshotPassesCredentialToProbe() throws {
+        var draft = AIProviderDraftConfiguration(provider: .openAI)
+        try draft.applyLoadedProfile(loadedProfile())
+        draft.text.endpoint.model = "gpt-5.3"
+        draft.markInputChanged(from: "gpt-5.2", to: "gpt-5.3")
+
+        // Simulate what validateConfiguration() does: temporarily restore the saved secret
+        draft.applyResolvedSecrets(["credential-1": "sk-resolved-from-keychain"])
+        let snapshot = try draft.makeConfigurationProbeDraftSnapshot(
+            operationID: DiagnosticOperationID(rawValue: "op-scenario-c-resolved")
+        )
+        draft.clearPlaintextSecrets()
+
+        #expect(snapshot.plaintextSecret == "sk-resolved-from-keychain")
+        #expect(snapshot.endpoint?.modelName == "gpt-5.3")
+        #expect(draft.text.endpoint.independentCredential.apiKeyDraft == "")
+    }
+
+    @Test("Settings view resolves saved credential before building draft test snapshot")
+    func settingsViewResolvesSavedCredentialBeforeBuildingDraftTestSnapshot() throws {
+        let source = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"),
+            encoding: .utf8
+        )
+
+        // View must resolve the saved credential when apiKeyDraft is empty during draft probe
+        #expect(source.contains("resolveCredentialSecret(metadata)"))
+        #expect(source.contains("resolvedForSnapshot"))
+        #expect(source.contains("clearPlaintextSecrets()"))
+    }
+
+    @Test("Status hint is shown when all enabled model configurations are incomplete")
+    func statusHintIsShownWhenAllEnabledModelConfigurationsAreIncomplete() throws {
+        let source = try String(
+            contentsOf: sourceFileURL(named: "AIProviderSettingsView.swift"),
+            encoding: .utf8
+        )
+
+        // statusTitleKey must show the missingRequiredFields hint during idle state
+        #expect(source.contains("saveReadiness == .missingRequiredFields"))
+        #expect(source.contains("aiProviderSettings.saveState.missingRequiredFields"))
+    }
+
     @Test("Settings source wires reveal only to independent API key fields")
     func settingsSourceWiresRevealOnlyToIndependentAPIKeyFields() throws {
         let viewSource = try String(

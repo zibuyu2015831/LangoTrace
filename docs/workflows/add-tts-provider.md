@@ -30,7 +30,7 @@
 ## 3. 关键落点
 
 - AI / Provider 层：TTS adapter、probe、endpoint metadata、错误分类。
-- Speech package：音频校验、preview playback、播放 coordinator、AudioSession 语义。
+- Speech package：音频校验、preview playback、播放 coordinator、AudioSession 语义（TTS 播放会话须显式 `options: [.allowBluetoothA2DP]`，`setCategory` 失败须 OSLog warning soft-fail，不得 `try?` 静默吞掉；录音会话不得 `.allowBluetoothHFP`；详见 `spec/011 §13`）。
 - Data package：voice profile、validation event、media artifact metadata。
 - UI package：设置页 TTS 配置、结果面板、逐句播放按钮和状态。
 - `docs/spec/011-tts-provider-configuration-and-playback.md`：长期规则和当前实现边界。

@@ -29,6 +29,8 @@ enum AIProviderTextRequestAdapterFactory {
             OpenAICompatibleChatTextAdapter()
         case .openAIResponses:
             OpenAIResponsesTextAdapter()
+        case .mimoCompatibleChat:
+            MimoCompatibleChatTextAdapter()
         case .anthropicMessages, .geminiGenerateContent:
             throw AIProviderTextRequestAdapterError.unsupportedProvider
         }
@@ -244,5 +246,97 @@ struct OpenAIResponsesTextAdapter: AIProviderTextRequestAdapter {
 
     func outputText(fromResponseObject object: [String: Any]) -> String? {
         OpenAICompatibleResponseTextParser.responsesText(fromResponseObject: object)
+    }
+}
+
+/// MIMO chat completions adapter.
+/// Same request/response shape as OpenAI-compatible chat completions, but
+/// uses `api-key: KEY` instead of `Authorization: Bearer KEY`.
+struct MimoCompatibleChatTextAdapter: AIProviderTextRequestAdapter {
+    var pathSuffix: String {
+        "chat/completions"
+    }
+
+    func structuredCompletionBody(
+        model: String,
+        system: String,
+        user: String,
+        temperature: Double,
+        structuredOutputName: String,
+        schema: [String: Any]
+    ) -> [String: Any] {
+        [
+            "model": model,
+            "temperature": temperature,
+            "response_format": [
+                "type": "json_schema",
+                "json_schema": [
+                    "name": structuredOutputName,
+                    "strict": true,
+                    "schema": schema,
+                ],
+            ],
+            "messages": [
+                ["role": "system", "content": system],
+                ["role": "user", "content": user],
+            ],
+        ]
+    }
+
+    func plainPromptBody(model: String, prompt: String) -> [String: Any] {
+        [
+            "model": model,
+            "messages": [
+                ["role": "user", "content": prompt],
+            ],
+        ]
+    }
+
+    func imagePromptBody(
+        model: String,
+        prompt: String,
+        imageDataURL: String,
+        maximumOutputTokens: Int
+    ) -> [String: Any] {
+        [
+            "model": model,
+            "messages": [
+                [
+                    "role": "user",
+                    "content": [
+                        ["type": "text", "text": prompt],
+                        ["type": "image_url", "image_url": ["url": imageDataURL]],
+                    ],
+                ],
+            ],
+            "max_tokens": maximumOutputTokens,
+        ]
+    }
+
+    func outputText(fromResponseObject object: [String: Any]) -> String? {
+        OpenAICompatibleResponseTextParser.chatCompletionsText(fromResponseObject: object)
+    }
+
+    func makeRequest(
+        baseURL: String,
+        secret: String?,
+        body: [String: Any],
+        timeoutSeconds: TimeInterval?
+    ) throws -> URLRequest {
+        guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: baseURL, pathSuffix: pathSuffix)
+        else {
+            throw AIProviderTextRequestAdapterError.invalidEndpointURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            request.setValue(secret, forHTTPHeaderField: "api-key")
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        if let timeoutSeconds {
+            request.timeoutInterval = timeoutSeconds
+        }
+        return request
     }
 }

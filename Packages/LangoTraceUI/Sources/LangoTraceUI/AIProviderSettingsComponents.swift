@@ -505,14 +505,16 @@ struct AIProviderOptionalModelSection: View {
                 speechFormatControl
                 speechSpeedControl
             }
-            AIProviderSettingsTextField(
-                titleKey: "aiProviderSettings.speechModel.instructionsTitle",
-                text: instructionsBinding,
-                keyboardHint: .plain
-            )
-            localizedText("aiProviderSettings.speechModel.instructionsHelp")
-                .font(.footnote)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            if configuration.endpoint.provider != .mimo {
+                AIProviderSettingsTextField(
+                    titleKey: "aiProviderSettings.speechModel.instructionsTitle",
+                    text: instructionsBinding,
+                    keyboardHint: .plain
+                )
+                localizedText("aiProviderSettings.speechModel.instructionsHelp")
+                    .font(.footnote)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
         }
     }
 
@@ -549,12 +551,13 @@ struct AIProviderOptionalModelSection: View {
     }
 
     private var speechFormatControl: some View {
-        TTSMenuSettingRow(
+        let supportedFormats = (configuration.endpoint.provider.defaultTTSAdapterKind ?? .openAIAudioSpeech)
+            .supportedOutputFormats
+        return TTSMenuSettingRow(
             titleKey: "aiProviderSettings.speechModel.formatTitle",
-            detailKey: "aiProviderSettings.speechModel.formatHelp",
             value: configuration.outputFormat.rawValue.uppercased()
         ) {
-            ForEach(TTSAudioFormat.allCases, id: \.rawValue) { format in
+            ForEach(supportedFormats, id: \.rawValue) { format in
                 Button {
                     configuration.outputFormat = format
                 } label: {
@@ -567,7 +570,6 @@ struct AIProviderOptionalModelSection: View {
     private var speechSpeedControl: some View {
         TTSSpeedSettingRow(
             titleKey: "aiProviderSettings.speechModel.speedTitle",
-            detailKey: "aiProviderSettings.speechModel.speedHelp",
             speed: speedBinding
         )
     }
@@ -674,7 +676,7 @@ struct AIProviderOptionalModelSection: View {
 
 private struct TTSMenuSettingRow<MenuContent: View>: View {
     let titleKey: String
-    let detailKey: String
+    var detailKey: String?
     let value: String
     @ViewBuilder var menuContent: () -> MenuContent
 
@@ -684,9 +686,11 @@ private struct TTSMenuSettingRow<MenuContent: View>: View {
                 localizedText(titleKey)
                     .font(.callout.weight(.semibold))
                     .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-                localizedText(detailKey)
-                    .font(.footnote)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                if let detailKey {
+                    localizedText(detailKey)
+                        .font(.footnote)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                }
             }
             Spacer(minLength: 12)
             Menu {
@@ -718,7 +722,7 @@ private struct TTSMenuSettingRow<MenuContent: View>: View {
 
 private struct TTSSpeedSettingRow: View {
     let titleKey: String
-    let detailKey: String
+    var detailKey: String?
     @Binding var speed: Double
 
     var body: some View {
@@ -727,9 +731,11 @@ private struct TTSSpeedSettingRow: View {
                 localizedText(titleKey)
                     .font(.callout.weight(.semibold))
                     .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-                localizedText(detailKey)
-                    .font(.footnote)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                if let detailKey {
+                    localizedText(detailKey)
+                        .font(.footnote)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                }
             }
             Spacer(minLength: 12)
             HStack(spacing: 0) {

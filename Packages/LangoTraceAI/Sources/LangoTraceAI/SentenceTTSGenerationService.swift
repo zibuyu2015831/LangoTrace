@@ -126,6 +126,8 @@ private extension SentenceTTSGenerationService {
             OpenRouterMultimodalAudioSpeechAdapter()
         case .customOpenAICompatibleAudioSpeech:
             CustomOpenAICompatibleAudioSpeechAdapter()
+        case .mimoTTS:
+            MimoTTSAdapter()
         case .groqAudioSpeech,
              .geminiGenerateContentTTS,
              .mistralAudioSpeech,

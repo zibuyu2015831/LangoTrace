@@ -2,6 +2,7 @@ import Foundation
 import LangoTraceCore
 #if canImport(AVFoundation)
     import AVFoundation
+    import OSLog
 #endif
 
 public enum TTSAudioPlaybackEngineError: Error, Equatable, Sendable {
@@ -66,6 +67,10 @@ private extension TTSAudioPlaybackService {
     public actor DefaultTTSAudioPlaybackEngine: TTSAudioPlaybackEngine {
         private var player: AVAudioPlayer?
         private var playbackDelegate: AVAudioPlayerCompletionDelegate?
+        private static let sessionLogger = Logger(
+            subsystem: Bundle.main.bundleIdentifier ?? "com.langotrace",
+            category: "TTSPlayback"
+        )
 
         public init() {}
 
@@ -124,13 +129,21 @@ private extension TTSAudioPlaybackService {
 
         /// On iOS the default `.soloAmbient` session is muted by the silent switch, which makes
         /// user-triggered TTS playback appear broken. Activating a `.playback` spoken-audio session
-        /// is idempotent and kept non-fatal: if activation fails, `player.play()` surfaces the
-        /// failure through the existing engine error mapping.
+        /// is idempotent and kept soft-fatal: if activation fails, `player.play()` surfaces the
+        /// failure through the existing engine error mapping, and the failure is logged via OSLog.
+        /// `.allowBluetoothA2DP` is explicit to force A2DP high-quality routing after a recording
+        /// session that may have activated HFP; prevents HFP routing residue from degrading TTS audio.
         private func activatePlaybackAudioSessionIfAvailable() {
             #if os(iOS)
                 let session = AVAudioSession.sharedInstance()
-                try? session.setCategory(.playback, mode: .spokenAudio)
-                try? session.setActive(true)
+                do {
+                    try session.setCategory(.playback, mode: .spokenAudio, options: [.allowBluetoothA2DP])
+                    try session.setActive(true)
+                } catch {
+                    Self.sessionLogger.warning(
+                        "TTS session activation failed: \(error.localizedDescription, privacy: .public) category=\(session.category.rawValue, privacy: .public)"
+                    )
+                }
             #endif
         }
     }

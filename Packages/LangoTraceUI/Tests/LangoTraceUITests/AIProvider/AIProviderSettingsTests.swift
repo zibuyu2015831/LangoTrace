@@ -22,6 +22,7 @@ struct AIProviderSettingsTests {
             "zhipu-glm",
             "siliconflow",
             "ollama-local",
+            "mimo",
             "custom-openai-compatible",
         ])
 
