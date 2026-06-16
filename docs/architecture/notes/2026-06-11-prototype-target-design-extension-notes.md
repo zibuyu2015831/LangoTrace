@@ -18,6 +18,15 @@
 - 扩展点：`PhoneRecordWorkspaceView` 列表区引入日期分组 section 和筛选状态；筛选语义应与 iPad `PadFilter` 共享，不做平台各自的枚举。
 - 后续必须重新决策：分组粒度（日 / 周）和跨语言空间行为；「待练习 / 已沉淀」的判定来源（practice session 状态、memory candidate 状态）需要真实数据投影，不得复用 mock 推导。
 
+**E1 采纳结论（2026-06-17）**：
+
+- 分组粒度决策为**日**（`Calendar.startOfDay`），`groupEntriesByDay()` 封装在 `EntryTimeline.swift`（LangoTraceUI）。
+- 筛选枚举已统一为 `EntryTimelineFilter`（all / photo / needsPractice / settled），旧 `PadFilter` 已删除。
+- 已沉淀（`settled`）chip 在 E7 前由 UI guard `.filter { $0 != .settled }` 屏蔽；类型系统已定义完整，避免后续引入重大重构。
+- `needsPractice` 判定来源：`GRDBLearningContentRepository.learningPracticeReadiness(for:)` 通过 LEFT JOIN `practice_sessions / practice_recordings / media_artifacts` 链推导，不使用 mock；结果通过 `LearningContentStore.practiceReadiness: [String: Bool]` 注入三端 UI。
+- `EntryMaterialStatus`（noMaterial / stale / fresh）和 `EntryMaterialStatusPill` 替换了旧的 `InlineStatusLabel` 材料状态展示，卡片和时间线行共享同一 pill 组件。
+- 跨语言空间行为：当前始终查询当前语言空间 ID，切换语言空间由 `LearningContentStore` 重新加载，不做跨空间混合时间线。
+
 ### 2.2 记忆 Tab 目标体验（`prototypes/iphone/memory.html`、`ipad/memory.html`、`mac/memory.html`）
 
 - 目标设计：「从生活沉淀的词句 / 整句」卡片流 + 低压力复习队列入口；不暴露向量索引、embedding 等工程概念（页面清单第 8 节红线）。

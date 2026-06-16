@@ -2,7 +2,7 @@
 
 状态：Current Implementation Map
 
-最后更新：2026-06-16
+最后更新：2026-06-17
 
 ## 1. 对应规范
 
@@ -55,6 +55,8 @@
 - Store 层 `contentEmpty` / `contentTooLong` / `operationInProgress` preflight 阻断会通过 App Shell action 写入本地 failed operation summary，不发送 Provider。
 - App Shell 创建 GRDB bridge 失败时使用显式 unavailable repository，不再 fallback 到 `InMemoryLearningContentRepository(seedEntries: [])`。
 - 当前真实学习材料请求支持 OpenAI Responses / OpenAI-compatible Chat；Anthropic / Gemini 学习材料请求体尚未接入，会按 unsupported provider / model 边界处理。
+- `GRDBLearningContentRepository` 已实现 `learningPracticeReadiness(for:) -> [String: Bool]` 聚合查询：通过 LEFT JOIN `practice_sessions` / `practice_recordings` / `media_artifacts` 链，推导每个 Entry 是否有对应学习材料（absent = noMaterial），有材料但无 completed recording（false = needsPractice），有材料且有 completed recording（true = practiceReady）；结果投影到 `LearningContentStore.practiceReadiness`，供 iPhone / iPad / macOS 筛选和状态 pill 使用。
+- `EntryTimeline.swift`（LangoTraceUI package）定义共享时间线类型：`EntryTimelineFilter`（all / photo / needsPractice / settled，settled 至 E7 前被 UI guard 屏蔽）、`EntryDayGroup`、`groupEntriesByDay()`、`EntryTimelineCounts`、`timelineCounts(entries:practiceReadiness:today:)`、`EntryMaterialStatus`（noMaterial / stale / fresh）、`materialStatus(entry:rendering:)` 和 `EntryMaterialStatusPill`；iPhone / iPad / macOS 三端共享这些类型，不重复维护平台专属筛选 enum。
 - 练习候选仍是候选入口；TTS、录音、真实练习评分、OCR、照片附件和同步尚未接入。
 - 导出、可恢复备份、FTS、向量索引和对象级同步尚未实现。
 - TTS、录音、Speech、OCR、照片和同步尚未接入。

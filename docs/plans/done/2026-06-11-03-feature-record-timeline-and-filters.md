@@ -1,6 +1,6 @@
 # 任务方案：记录 Tab 生活时间线与三端共享筛选投影（系列 E1）
 
-状态：User Approved
+状态：Implemented
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-11
@@ -309,6 +309,18 @@ scripts/check-docs.sh
 2026-06-11：方案创建并完成双轮自审核（见第 13 节）。尚未进入实现。
 
 2026-06-17：基于 E0b 完成后代码（HEAD `0f0da44`）补充代码核验轮审核，发现并修订三条 P1/P2 问题（见 §13 补充轮）。用户确认三条架构决策（Q1 已沉淀、Q2 Option B 隐藏 chip、Q3 PhoneMainSupportingViews 纳入 / MacInspectorContent 排除 / Phase 2 简化），方案状态推进为 User Approved，可进入实现。
+
+2026-06-17：完成全部 5 个 Phase 实施，提交 `bb5bebe`。
+
+Phase 1 落地：`EntryTimeline.swift` 新增 `EntryTimelineFilter`（四 case，`settled` 完整实现、UI guard 过滤）、`groupEntriesByDay`、`timelineCounts`、`materialStatus`、`EntryMaterialStatusPill`；String Catalog 新增 8 个 key；18 个 Timeline 测试全绿。
+
+Phase 2 落地：`LearningContentRepository.learningPracticeReadiness(for:)` 新增至协议与三个实现（GRDB SQL EXISTS 查询、InMemory、Unavailable）；`GRDBLearningContentRepositoryBridge` 接线；`LearningContentStore.practiceReadiness` 发布；`GRDBPracticeReadinessTests` 4 fixture 测试全绿；151 Data 测试全绿；无新 migration。
+
+Phase 3 落地：`PhoneRecordWorkspaceView` 增 `practiceReadiness` 参数、`@State selectedFilter`、`FilterChipRow`、按日分组 `LazyVStack` + Section、两态空界面；`EntryCard` pill 替换为 `EntryMaterialStatusPill`；`PhoneMainView` 接线。6 个 materialStatus 纯函数测试全绿。
+
+Phase 4 落地：删除 `PadFilter` enum；`PadSidebarView` 改用 `EntryTimelineFilter` + `practiceReadiness`；`EntryTimelineRow` 新增 `rendering` 参数并替换 pill；iPad/Mac 全部接线；`MacWorkspaceSection.subtitle` 改用 `EntryTimelineCounts`；mac sidebar 今日/总数由 `timelineCounts` 驱动；430 UI 测试全绿。
+
+DoD 确认：`rg "PadFilter" Packages` 零命中；`rg "registerMigration" Packages/LangoTraceData/Sources | wc -l` = 16（无新 migration）；两包测试全绿。
 
 ## 19. 完成标准
 
