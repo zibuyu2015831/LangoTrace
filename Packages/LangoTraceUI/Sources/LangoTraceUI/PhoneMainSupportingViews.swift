@@ -212,8 +212,19 @@ struct EntryDetailView: View {
             "entry.rendering.generateLearningMaterial.generatingSummary"
         case .blocked(.contentTooLong):
             "entry.rendering.generateLearningMaterial.tooLongSummary"
-        case .failed:
-            "entry.rendering.generateLearningMaterial.failedSummary"
+        case .failed(let display):
+            switch display.category {
+            case .authenticationFailed:
+                "entry.rendering.generateLearningMaterial.failedSummary.authFailed"
+            case .networkUnavailable, .timeout:
+                "entry.rendering.generateLearningMaterial.failedSummary.networkError"
+            case .rateLimited:
+                "entry.rendering.generateLearningMaterial.failedSummary.rateLimited"
+            case .unsupportedModel, .invalidStructuredResponse:
+                "entry.rendering.generateLearningMaterial.failedSummary.responseError"
+            default:
+                "entry.rendering.generateLearningMaterial.failedSummary"
+            }
         default:
             "entry.rendering.generateLearningMaterial.summary"
         }
@@ -221,8 +232,15 @@ struct EntryDetailView: View {
 
     private var generationStatus: CapabilityStatus {
         switch generationState {
-        case .blocked(.contentTooLong), .blocked(.contentEmpty), .failed:
+        case .blocked(.contentTooLong), .blocked(.contentEmpty):
             .unavailable
+        case .failed(let display):
+            switch display.category {
+            case .providerNotConfigured, .credentialMissing, .unsupportedProvider:
+                .unavailable
+            default:
+                .ready
+            }
         case .idle, .generated, .editing, .cancelled, .generating, .analyzing, .blocked:
             .ready
         }

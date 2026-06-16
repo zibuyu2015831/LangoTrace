@@ -10609,6 +10609,74 @@
         }
       }
     },
+    "entry.rendering.generateLearningMaterial.failedSummary.authFailed": {
+      "comment": "Entry detail generation failure: authentication failed (wrong or expired credentials).",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication failed. Check your credentials in AI Provider settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "认证失败。请检查 AI Provider 设置中的密钥配置。"
+          }
+        }
+      }
+    },
+    "entry.rendering.generateLearningMaterial.failedSummary.networkError": {
+      "comment": "Entry detail generation failure: network unavailable or request timed out.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network error. Check your connection and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络错误。请检查网络连接后重试。"
+          }
+        }
+      }
+    },
+    "entry.rendering.generateLearningMaterial.failedSummary.rateLimited": {
+      "comment": "Entry detail generation failure: provider rate limit reached.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rate limited by the provider. Wait a moment and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求频率受限。稍等片刻后重试。"
+          }
+        }
+      }
+    },
+    "entry.rendering.generateLearningMaterial.failedSummary.responseError": {
+      "comment": "Entry detail generation failure: model response format not supported (unsupported model or invalid structured output).",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model returned an unsupported response. Make sure your model supports structured JSON output."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型返回的格式不受支持。请确认所选模型支持结构化 JSON 输出。"
+          }
+        }
+      }
+    },
     "entry.rendering.learningText.accessibilityLabel": {
       "comment": "Accessibility label for the editable learning text field.",
       "localizations": {
@@ -16100,6 +16168,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "保存配置"
+          }
+        }
+      }
+    },
+    "aiProviderSettings.save.saveChanges.button": {
+      "comment": "Button title when there are unsaved changes to the AI provider configuration.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save changes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存更改"
           }
         }
       }

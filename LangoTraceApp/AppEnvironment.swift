@@ -6,6 +6,9 @@ import LangoTraceSpeech
 import LangoTraceSync
 import LangoTraceUI
 import SwiftUI
+import os
+
+private let generationLogger = Logger(subsystem: "com.zibuyu.LangoTrace", category: "generation")
 
 struct AppEnvironment {
     let makeLanguageSpaceRepository: @Sendable () throws -> any LanguageSpaceRepository
@@ -419,6 +422,7 @@ private func makeLearningMaterialGenerationActions(
                 guard let profile = try await configurationRepository.loadDefaultProfile(),
                       let endpoint = profile.textGenerationEndpointInput
                 else {
+                    generationLogger.error("generate failed: providerNotConfigured — no default profile or no enabled textGeneration endpoint")
                     try recordLearningMaterialFailure(
                         .providerNotConfigured,
                         operationID: operationID,
@@ -472,6 +476,7 @@ private func makeLearningMaterialGenerationActions(
                 )
                 return .generated(material)
             } catch let error as LearningMaterialGenerationServiceError {
+                generationLogger.error("generate failed: \(error.category.rawValue, privacy: .public)")
                 try? recordLearningMaterialFailure(
                     error.category,
                     operationID: operationID,
@@ -482,6 +487,7 @@ private func makeLearningMaterialGenerationActions(
                 )
                 return .failed(error.category)
             } catch let error as AIProviderCredentialStoreError {
+                generationLogger.error("generate failed: credentialMissing — \(String(describing: error), privacy: .public)")
                 let category: LearningMaterialGenerationFailureCategory = switch error {
                 case .missingCredential, .credentialInaccessible, .credentialCorrupted, .userInteractionRequired:
                     .credentialMissing
@@ -496,6 +502,7 @@ private func makeLearningMaterialGenerationActions(
                 )
                 return .failed(category)
             } catch {
+                generationLogger.error("generate failed: unknown — \(String(describing: error), privacy: .public)")
                 try? recordLearningMaterialFailure(
                     .unknown,
                     operationID: operationID,
@@ -540,6 +547,7 @@ private func makeLearningMaterialGenerationActions(
                 guard let profile = try await configurationRepository.loadDefaultProfile(),
                       let endpoint = profile.textGenerationEndpointInput
                 else {
+                    generationLogger.error("analyze failed: providerNotConfigured — no default profile or no enabled textGeneration endpoint")
                     try recordLearningMaterialFailure(
                         .providerNotConfigured,
                         operationID: operationID,
@@ -593,6 +601,7 @@ private func makeLearningMaterialGenerationActions(
                 )
                 return .generated(material)
             } catch let error as LearningMaterialGenerationServiceError {
+                generationLogger.error("analyze failed: \(error.category.rawValue, privacy: .public)")
                 try? recordLearningMaterialFailure(
                     error.category,
                     operationID: operationID,
@@ -604,6 +613,7 @@ private func makeLearningMaterialGenerationActions(
                 )
                 return .failed(error.category)
             } catch let error as AIProviderCredentialStoreError {
+                generationLogger.error("analyze failed: credentialMissing — \(String(describing: error), privacy: .public)")
                 let category: LearningMaterialGenerationFailureCategory = switch error {
                 case .missingCredential, .credentialInaccessible, .credentialCorrupted, .userInteractionRequired:
                     .credentialMissing
@@ -619,6 +629,7 @@ private func makeLearningMaterialGenerationActions(
                 )
                 return .failed(category)
             } catch {
+                generationLogger.error("analyze failed: unknown — \(String(describing: error), privacy: .public)")
                 try? recordLearningMaterialFailure(
                     .unknown,
                     operationID: operationID,
