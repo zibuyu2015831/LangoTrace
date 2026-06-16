@@ -26,7 +26,7 @@ struct ReadingImportSheetView: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 16) {
                 TextField(localizedString("reading.import.title.placeholder"), text: $importTitle)
-                    .textFieldStyle(.roundedBorder)
+                    .langoTextFieldStyle()
                 TextEditor(text: $importBody)
                     .frame(minHeight: 220)
                     .overlay {
@@ -185,7 +185,7 @@ struct ReadingLibraryPane: View {
                 }
             )
         )
-        .textFieldStyle(.roundedBorder)
+        .langoTextFieldStyle()
     }
 
     private var importButtons: some View {

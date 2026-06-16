@@ -372,6 +372,19 @@ extension View {
     func langoSoftShadow() -> some View {
         shadow(color: LangoTraceDesign.ColorToken.shadow, radius: 16, x: 0, y: 8)
     }
+
+    func langoTextFieldStyle() -> some View {
+        self
+            .textFieldStyle(.plain)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(LangoTraceDesign.ColorToken.surfaceMuted)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(LangoTraceDesign.ColorToken.borderSubtle, lineWidth: 1)
+            }
+    }
 }
 
 private extension Color {

@@ -656,7 +656,7 @@ private struct ReadingPhoneLibraryHomeView: View {
                 }
             )
         )
-        .textFieldStyle(.roundedBorder)
+        .langoTextFieldStyle()
     }
 
     private var filterControls: some View {
@@ -776,7 +776,7 @@ private struct ReadingDocumentEditorSheet: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 16) {
                 TextField(localizedString("entryEditor.titleField"), text: $title)
-                    .textFieldStyle(.roundedBorder)
+                    .langoTextFieldStyle()
                 TextEditor(text: $draftBody)
                     .scrollContentBackground(.hidden)
                     .padding(12)
