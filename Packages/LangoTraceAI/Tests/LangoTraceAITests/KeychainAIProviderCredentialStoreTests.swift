@@ -46,6 +46,7 @@ func keychainCredentialStoreRoundTripsSpecialCharacters() async throws {
 }
 
 // MARK: - Non-interactive query behavior notes
+
 //
 // The following Keychain security behaviors are enforced by the production code
 // but cannot be directly verified through behavioral unit tests without an

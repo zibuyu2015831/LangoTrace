@@ -24,23 +24,21 @@ func textUnitRangeConvertsToNSRange() {
 }
 
 @Test("TextUnitRange converts to Range<String.Index> for ASCII text")
-func textUnitRangeConvertsToRangeForASCII() {
+func textUnitRangeConvertsToRangeForASCII() throws {
     let text = "Hello, World!"
     let range = TextUnitRange(lowerBound: 7, upperBound: 12)
-    let swiftRange = range.toRange(in: text)
-    #expect(swiftRange != nil)
-    #expect(String(text[swiftRange!]) == "World")
+    let swiftRange = try #require(range.toRange(in: text))
+    #expect(String(text[swiftRange]) == "World")
 }
 
 @Test("TextUnitRange converts to Range<String.Index> for emoji text")
-func textUnitRangeConvertsToRangeForEmoji() {
+func textUnitRangeConvertsToRangeForEmoji() throws {
     let text = "Hi 🌍!"
     // "Hi " = 3 UTF-16 units (H, i, space), "🌍" = 2 UTF-16 units (surrogate pair)
     // So "🌍" occupies UTF-16 offsets 3..<5
     let range = TextUnitRange(lowerBound: 3, upperBound: 5)
-    let swiftRange = range.toRange(in: text)
-    #expect(swiftRange != nil)
-    #expect(String(text[swiftRange!]) == "🌍")
+    let swiftRange = try #require(range.toRange(in: text))
+    #expect(String(text[swiftRange]) == "🌍")
 }
 
 @Test("TextUnitRange from String.Index range for ASCII")

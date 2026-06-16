@@ -5,7 +5,7 @@ import Testing
 @Suite("Reading text segmentation")
 struct ReadingTextSegmentationTests {
     @Test("paragraph chunks preserve character ranges")
-    func paragraphChunksPreserveRanges() {
+    func paragraphChunksPreserveRanges() throws {
         let text = "Paragraph 1\n\nParagraph 2\n\nParagraph 3"
         let documentID = "doc-1"
         let revision = 1
@@ -17,14 +17,13 @@ struct ReadingTextSegmentationTests {
         #expect(chunks[2].text == "Paragraph 3")
 
         for chunk in chunks {
-            let swiftRange = chunk.range.toRange(in: text)
-            #expect(swiftRange != nil)
-            #expect(text[swiftRange!] == chunk.text)
+            let swiftRange = try #require(chunk.range.toRange(in: text))
+            #expect(text[swiftRange] == chunk.text)
         }
     }
 
     @Test("CRLF text segments into multiple paragraphs with ranges into the original text")
-    func crlfTextSegmentsIntoParagraphs() {
+    func crlfTextSegmentsIntoParagraphs() throws {
         let text = "Paragraph 1\r\n\r\nParagraph 2\r\n\r\nParagraph 3"
         let chunks = ReadingTextSegmenter.segmentParagraphs(text, documentID: "doc-1", contentRevision: 1)
 
@@ -34,9 +33,8 @@ struct ReadingTextSegmentationTests {
         #expect(chunks[2].text == "Paragraph 3")
 
         for chunk in chunks {
-            let swiftRange = chunk.range.toRange(in: text)
-            #expect(swiftRange != nil)
-            #expect(text[swiftRange!] == chunk.text)
+            let swiftRange = try #require(chunk.range.toRange(in: text))
+            #expect(text[swiftRange] == chunk.text)
         }
 
         let lonelyCarriageReturns = ReadingTextSegmenter.segmentParagraphs(
