@@ -9,7 +9,6 @@ final class LearningContentStore: ObservableObject {
     private let spaceID: String
     private let generationActions: LearningMaterialGenerationActions
     private let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
-    private var generatedRenderingsByEntryID: [String: LearningRendering] = [:]
     private var runningOperationsByEntryID: [String: RunningLearningMaterialOperation] = [:]
     private var sentenceAudioPlaybackObservationTasks: [String: Task<Void, Never>] = [:]
 
@@ -80,7 +79,7 @@ final class LearningContentStore: ObservableObject {
     }
 
     func rendering(for entryID: String) -> LearningRendering? {
-        generatedRenderingsByEntryID[entryID] ?? repository.rendering(for: entryID)
+        repository.rendering(for: entryID)
     }
 
     @discardableResult
@@ -197,7 +196,7 @@ final class LearningContentStore: ObservableObject {
         runningOperationsByEntryID[entry.id] = nil
         switch result {
         case let .generated(material):
-            generatedRenderingsByEntryID[entry.id] = Self.rendering(from: material)
+            repository.saveRendering(Self.rendering(from: material))
             generationStates[entry.id] = state(for: material)
             reload()
         case let .failed(category):
@@ -221,7 +220,7 @@ final class LearningContentStore: ObservableObject {
         }
         switch result {
         case let .generated(material):
-            generatedRenderingsByEntryID[entryID] = Self.rendering(from: material)
+            repository.saveRendering(Self.rendering(from: material))
             generationStates[entryID] = state(for: material)
             reload()
         case let .failed(category):
@@ -287,7 +286,7 @@ final class LearningContentStore: ObservableObject {
         runningOperationsByEntryID[entry.id] = nil
         switch result {
         case let .generated(material):
-            generatedRenderingsByEntryID[entry.id] = Self.rendering(from: material)
+            repository.saveRendering(Self.rendering(from: material))
             generationStates[entry.id] = state(for: material)
             reload()
         case let .failed(category):

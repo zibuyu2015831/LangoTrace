@@ -26,6 +26,7 @@ public protocol LearningContentRepository: AnyObject {
     func memoryItems(for spaceID: String) -> [MemoryItem]
     func settingsCapabilities(for spaceID: String) -> [SettingsCapability]
     func practiceSession(for entryID: String) -> PracticeSessionState?
+    func saveRendering(_ rendering: LearningRendering)
 }
 
 public final class InMemoryLearningContentRepository: LearningContentRepository {
@@ -196,6 +197,10 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
         renderingsByEntryID[entryID]
     }
 
+    public func saveRendering(_ rendering: LearningRendering) {
+        renderingsByEntryID[rendering.entryID] = rendering
+    }
+
     public func practiceItems(for entryID: String) -> [PracticeItem] {
         practiceItemsByEntryID[entryID, default: []]
     }
@@ -340,6 +345,8 @@ public final class UnavailableLearningContentRepository: LearningContentReposito
     public func rendering(for _: String) -> LearningRendering? {
         nil
     }
+
+    public func saveRendering(_ rendering: LearningRendering) {}
 
     public func practiceItems(for _: String) -> [PracticeItem] {
         []

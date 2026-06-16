@@ -105,6 +105,13 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
         return Self.rendering(from: material)
     }
 
+    public func saveRendering(_ rendering: LearningRendering) {
+        // No-op: the generation action already persists the material to the GRDB database
+        // via saveGeneratedMaterial() before returning .generated(material). The bridge's
+        // rendering(for:) reads directly from GRDB, so no additional save is needed here.
+        _ = rendering
+    }
+
     public func practiceItems(for entryID: String) -> [PracticeItem] {
         do {
             return try repository.practiceItems(for: entryID)

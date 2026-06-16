@@ -142,6 +142,25 @@ struct LearningContentStoreTests {
         #expect(store.rendering(for: entry)?.isMock == false)
     }
 
+    @Test("Store commits generated rendering to repository so a reconstructed store can read it without shadow cache")
+    func storeCommitsGeneratedRenderingToRepository() async throws {
+        let repository = InMemoryLearningContentRepository(seedEntries: [])
+        let actions = LearningMaterialGenerationActions(
+            generateMaterial: { input, operationID, _ in
+                .generated(sampleLearningMaterial(entryID: input.entryID, operationID: operationID))
+            },
+            operationIDGenerator: { DiagnosticOperationID(rawValue: "operation-1") }
+        )
+        let store = LearningContentStore(repository: repository, spaceID: "en", generationActions: actions)
+        let entry = try store.createEntry(title: "Cafe", body: "今天我去咖啡馆。", source: .typedText)
+
+        await store.generateLearningMaterial(for: entry, languageSpace: sampleLanguageSpace())
+
+        // The repository itself must have the rendering — not just the store's shadow cache.
+        // This verifies that a reconstructed store (e.g., after space switch) can read it.
+        #expect(repository.rendering(for: entry.id)?.targetText == "I went to a cafe today.")
+    }
+
     @Test("Store blocks overlong learning material generation before action")
     func storeBlocksOverlongLearningMaterialGeneration() async throws {
         let actionCounter = LearningMaterialActionCallCounter()

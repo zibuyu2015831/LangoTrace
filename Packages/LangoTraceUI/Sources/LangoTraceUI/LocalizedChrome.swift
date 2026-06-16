@@ -15,7 +15,9 @@ func localizedString(_ key: String) -> String {
 }
 
 func localizedString(_ key: String, _ arguments: CVarArg...) -> String {
-    String(format: localizedString(key), arguments: arguments)
+    let locale = LocalizedChromeLanguageResolver.preferredLanguageCodes.first
+        .map { Locale(identifier: $0) }
+    return String(format: localizedString(key), locale: locale, arguments: arguments)
 }
 
 private struct LocalizedChromeCatalog {
@@ -132,55 +134,53 @@ private struct LocalizedChromeCatalog {
     }
 }
 
+private final class LanguageOverrideBox: @unchecked Sendable {
+    private let lock = NSRecursiveLock()
+    private var codes: [String]?
+
+    func get() -> [String]? {
+        lock.lock(); defer { lock.unlock() }
+        return codes
+    }
+
+    func set(_ newCodes: [String]?) {
+        lock.lock(); defer { lock.unlock() }
+        codes = newCodes
+    }
+
+    func withCode<T>(_ code: String, operation: () throws -> T) rethrows -> T {
+        lock.lock()
+        let previous = codes
+        codes = [code]
+        defer {
+            codes = previous
+            lock.unlock()
+        }
+        return try operation()
+    }
+}
+
 enum LocalizedChromeLanguageResolver {
-    private nonisolated(unsafe) static var overrideLanguageCodes: [String]?
-    private static let overrideLock = NSRecursiveLock()
+    private static let overrideBox = LanguageOverrideBox()
 
     static var preferredLanguageCodes: [String] {
-        overrideLock.lock()
-        defer {
-            overrideLock.unlock()
-        }
-        return overrideLanguageCodes ?? ["en"]
+        overrideBox.get() ?? ["en"]
     }
 
     static func use(languageCode: String?) {
-        overrideLock.lock()
-        defer {
-            overrideLock.unlock()
-        }
-        if let languageCode {
-            overrideLanguageCodes = [languageCode]
-        } else {
-            overrideLanguageCodes = nil
-        }
+        overrideBox.set(languageCode.map { [$0] })
     }
 
     static func snapshotOverride() -> [String]? {
-        overrideLock.lock()
-        defer {
-            overrideLock.unlock()
-        }
-        return overrideLanguageCodes
+        overrideBox.get()
     }
 
     static func restoreOverride(_ languageCodes: [String]?) {
-        overrideLock.lock()
-        defer {
-            overrideLock.unlock()
-        }
-        overrideLanguageCodes = languageCodes
+        overrideBox.set(languageCodes)
     }
 
     static func withLanguageCode<T>(_ languageCode: String, operation: () throws -> T) rethrows -> T {
-        overrideLock.lock()
-        let previous = overrideLanguageCodes
-        overrideLanguageCodes = [languageCode]
-        defer {
-            overrideLanguageCodes = previous
-            overrideLock.unlock()
-        }
-        return try operation()
+        try overrideBox.withCode(languageCode, operation: operation)
     }
 }
 
