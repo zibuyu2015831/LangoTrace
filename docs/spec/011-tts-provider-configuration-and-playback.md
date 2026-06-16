@@ -11,7 +11,7 @@
 本规范覆盖：
 
 - AI Provider 设置页中的语音生成模型配置。
-- OpenAI 和 OpenRouter 的第一阶段 TTS 配置与测试。
+- OpenAI、OpenRouter 和 MIMO 的第一阶段 TTS 配置与测试。
 - 后续 Groq、Custom OpenAI-compatible、Gemini、Mistral、xAI、DashScope、Zhipu、SiliconFlow 等 Provider 扩展时必须遵守的边界。
 - 记录详情逐句播放功能依赖的 TTS 可用性状态。
 
@@ -31,6 +31,7 @@ TTS 是“用生活记录学习语言”闭环中的辅助能力，目的是让�
 
 - OpenAI：官方 Audio Speech 形态，作为最小可用路径。
 - OpenRouter：兼容 OpenAI Audio Speech 形态，但必须保持 model-dependent，不声明 OpenRouter 全局 TTS 可用。
+- MIMO：小米 MiMo 的 chat completions TTS 形态，使用 `api-key` header，文本放入 `assistant` role，响应从 `choices[0].message.audio.data` 解码 base64 WAV。
 
 学习页面后续单句播放只能依赖“已测试通过”的 TTS 配置。保存 Provider 配置不等于可播放。
 
@@ -91,6 +92,34 @@ OpenRouter 是第一阶段第二个 TTS Provider，但必须保持 model-depende
 
 OpenRouter adapter 可以复用 OpenAI Audio Speech 的请求形态，但必须在 capability policy 和结果面板中保留 model-dependent 语义。
 
+### 4.3 MIMO
+
+MIMO 是第一阶段 Provider 扩展，支持文本生成和 TTS，但请求形态不完全等同 OpenAI-compatible Provider。
+
+推荐配置：
+
+- Provider：MIMO。
+- Base URL：`https://api.xiaomimimo.com/v1`。
+- Text model：`mimo-v2.5-pro`。
+- TTS model：`mimo-v2.5-tts`。
+- Voice：默认 `Chloe`，中文等语言可由用户改为 Provider 支持的 voice name。
+- Output format：固定 `wav`；UI 不应为 `mimo_tts` 暴露其他输出格式。
+
+MIMO 文本 adapter 必须验证：
+
+- 请求路径为 `/chat/completions`。
+- 请求认证使用 `api-key: KEY` header，不使用 `Authorization: Bearer`。
+- 请求和响应按 OpenAI-compatible chat completions 文本形态解析。
+
+MIMO TTS adapter 必须验证：
+
+- 请求路径为 `/chat/completions`。
+- 请求认证使用 `api-key: KEY` header。
+- 待合成文本放在 `assistant` role；请求体设置 `"stream": false`。
+- `audio.format` 固定为 `wav`，`audio.voice` 来自当前 language code 的 voice profile。
+- 响应体只从非流式 JSON 的 `choices[0].message.audio.data` 解码 base64 WAV。
+- 错误被映射为稳定分类，诊断日志不得记录完整请求体、响应体、audio bytes 或 API Key。
+
 ## 5. 配置模型
 
 ### 5.1 Endpoint
@@ -148,6 +177,7 @@ Provider 专属参数必须使用 adapter allowlist。
 
 - OpenAI：`instructions`、`response_format`。
 - OpenRouter：`response_format`、`provider_options`。
+- MIMO：`voice_design_prompt`。
 
 `provider_options` 必须是强类型或 allowlisted JSON value，不允许用户直接输入任意请求体片段。
 

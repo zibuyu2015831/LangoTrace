@@ -98,17 +98,19 @@ struct AIProviderSettingsTests {
         let source = viewSource + draftSource
 
         #expect(source.contains("aiProviderSettings.save.button"))
+        #expect(viewSource.contains("aiProviderSettings.save.saveChanges.button"))
         #expect(!viewSource.contains("aiProviderSettings.save.boundary"))
-        #expect(!viewSource.contains("aiProviderSettings.saveState.saving"))
-        #expect(!source.contains("ProgressView"))
         #expect(!source.contains("saveButtonTitleKey"))
         #expect(source.contains("guard !isSaving else"))
         #expect(source.contains("operationID"))
         #expect(source.contains("aiProviderSettings.saveState.unsavedChanges"))
+        #expect(source.contains("aiProviderSettings.saveState.saving"))
         #expect(source.contains("statusTitleKey: String?"))
         #expect(source.contains("aiProviderSettings.saveState.failed"))
         #expect(source.contains("saveConfiguration()"))
         #expect(source.contains("actions.saveDefaultProfile"))
+        #expect(viewSource.contains("saveButtonLabel"))
+        #expect(viewSource.contains("ProgressView"))
     }
 
     @Test("Save boundary copy is short enough for compact iPhone status panel")

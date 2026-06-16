@@ -55,6 +55,14 @@ python3 -m py_compile scripts/probe/probe_openrouter.py # OK ✓
 python3 -m py_compile scripts/probe/probe_mimo.py       # OK ✓
 ```
 
+2026-06-17 归档前复验：
+
+```
+swift test --package-path Packages/LangoTraceAI   # 149/149 通过 ✓
+swift test --package-path Packages/LangoTraceUI   # 387/387 通过 ✓
+python3 -m py_compile scripts/probe/probe_openai.py scripts/probe/probe_openrouter.py scripts/probe/probe_mimo.py # OK ✓
+```
+
 ## 待后续跟进
 
 - OpenRouter TTS probe "请求被拒"问题：重新构建后采集 `[LT-TTS-Probe]` NSLog 确认根因
@@ -67,6 +75,12 @@ python3 -m py_compile scripts/probe/probe_mimo.py       # OK ✓
 
 ## 文档影响
 
-- `docs/spec/011-tts-provider-configuration-and-playback.md` 未更新 MIMO 相关内容（TTSProviderAdapterKind 新增 case）
+- `docs/spec/011-tts-provider-configuration-and-playback.md` 已补充 MIMO 当前实现边界：`api-key` header、`/chat/completions` 文本与 TTS 请求形态、assistant role TTS 文本、base64 WAV 响应路径、WAV-only 格式和 `voice_design_prompt` provider parameter allowlist。
 - `docs/workflows/add-tts-provider.md` 可参考本次实现更新示例
 - 本 plan 完成后移入 `docs/plans/done/`
+
+## 归档状态
+
+状态：Verified
+归档日期：2026-06-17
+归档依据：代码落点、Python probe 脚本、聚焦 package 测试和长期 TTS 规范补写均已完成；OpenRouter TTS 拒绝和真实 MIMO API Key 现场验证保留为后续跟进项，不阻塞本 Provider 接入任务归档。
