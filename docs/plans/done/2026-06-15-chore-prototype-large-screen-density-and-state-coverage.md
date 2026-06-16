@@ -1,10 +1,10 @@
 # 任务方案：原型第二轮收尾——iPad / macOS 大屏密度优化 + 空/加载/失败/未配置状态原型补全
 
-状态：Implemented
+状态：Verified
 自审核状态：Reviewed
 类型：chore
 创建日期：2026-06-15
-最后更新日期：2026-06-15（阶段 A/B/C 实现完成并验证；待用户对截图的最终判断后归档 done/）
+最后更新日期：2026-06-16（阶段 A/B/C 实现完成；最终截图验收通过并归档 done/）
 
 ## 用户确认记录
 
@@ -251,7 +251,11 @@ git status --short
 - **阶段 C** 文档同步：`index.html` 新增「状态与边界 · iPhone」分区登记 5 页；`README.md` 视觉基准补「大屏密度」「状态有设计」两条；`platform-page-inventory` 决定不补行（见 §17）。
   - 验证：`scripts/check-docs.sh` ok；`git diff --check` clean；index.html 重渲染零错误。
 - plan-vs-shipped 对账：阶段 A 4 页 + 阶段 B 5 页 + 阶段 C 2 文档均有 commit / 文件 / 截图证据；scope-down（6→5 状态页、gutter→inspector）已记录；无 deferred 项混入完成叙事（reading-empty / sync-states 已在 §20 单列 deferred）。
-- 剩余收口：待用户对截图（尤其阶段 A 密度）的最终判断后，将本方案移入 `docs/plans/done/`（状态 → Verified）。
+- **最终截图验收（2026-06-16，主会话判断）**：用户授权由 AI 对截图作最终确认。重新以 Chrome headless 渲染 iPad/macOS 大屏页、5 个 iPhone 状态页与 index 总览到 `/private/tmp/langotrace-prototype-review/` 并逐张目检；结论为通过。
+  - 阶段 A：iPad/macOS 页面保持阅读列宽，改用 inspector 富化承接大屏密度，符合「不做多列、不拉宽阅读列」决策；macOS reading 的浮动菜单会覆盖局部正文，但它表达的是右键菜单示例态，非阻塞。
+  - 阶段 B：生成中、生成失败、AI Provider 未配置、记录空态、记忆空态均具备图标/文案/恢复动作或边界说明，不是裸文本；`memory-empty` 的「目标设计」标注清晰。
+  - 截图方式说明：390px iPhone viewport 会裁切外层手机框，已用 760px 宽版截图复核，手机内部布局无横向裁切或按钮越界。
+  - 结论：满足 §19 完成标准，本方案移入 `docs/plans/done/`（状态 → Verified）。
 
 ## 19. 完成标准
 
@@ -264,8 +268,8 @@ git status --short
 
 - 静态原型无法表达加载/失败的动态过渡，只能定格；真实交互手感仍需实现阶段验证。
 - 「目标设计」标注依赖对 `platform-page-inventory.md` 的人工对照，存在误判已实现/未实现的风险。
-- 大屏密度的「合适值」主观，最终以用户对阶段 A 截图的判断为准；可能需二次微调。
-- 阶段 B 页数（4 必做 + 1 可选）以 §12 决策为准，仍可在用户确认后增减。
+- 大屏密度的「合适值」主观，本轮已按 2026-06-16 截图验收通过归档；真实 SwiftUI 实现阶段仍可能因平台控件、窗口尺寸和动态数据再做微调。
+- 阶段 B 页数（4 必做 + 1 可选）以 §12 决策为准；后续若同步、阅读库或记忆库进入实现，应在对应任务方案中补各自状态页，而不是回改本历史方案。
 
 deferred 项记录：
 

@@ -57,7 +57,7 @@
 | 14 | E11 | `2026-06-11-14-feature-sync-engine-icloud-foundation` | 同步引擎 + iCloud 首通道 | ⚪ Draft |
 | 15 | E12 | `2026-06-11-15-feature-settings-status-projection` | 设置真实状态投影 | ⚪ Draft |
 | — | LM01 | `2026-06-15-01-feature-learner-model-boundary-and-ability-coverage` | 学习者模型边界 + Ability 覆盖 | ⚪ Draft |
-| — | — | `2026-06-15-02-chore-prototype-large-screen-density-and-state-coverage` | 原型大屏密度 + 状态原型补全 | 🟢 **Implemented**（待用户对截图最终判断后移入 done/） |
+| — | — | `2026-06-15-chore-prototype-large-screen-density-and-state-coverage` | 原型大屏密度 + 状态原型补全 | ✅ **Verified**（2026-06-16 截图验收通过，已移入 done/） |
 
 说明：
 
