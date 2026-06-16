@@ -59,27 +59,23 @@ final class AppEnvironmentBootstrapTests: XCTestCase {
         XCTAssertTrue(logger is ConsoleDiagnosticLogger)
     }
 
-    func testAIProviderSettingsResolverMapsKeychainFailuresToCoreFailure() throws {
-        let source = try String(
-            contentsOf: langoTraceAppSourceFileURL(named: "AppEnvironment.swift"),
-            encoding: .utf8
+    func testAIProviderCredentialResolverMapsMissingKeychainEntryToResolveFailure() async throws {
+        let environment = AppEnvironment.bootstrap(databaseURL: temporaryDatabaseURL)
+        let credential = AIProviderCredentialMetadata(
+            id: "test-credential-\(UUID().uuidString)",
+            profileID: "test-profile-id",
+            providerPresetID: "openai",
+            kind: .apiKey,
+            label: "Test API Key",
+            createdAt: Date(timeIntervalSince1970: 0),
+            updatedAt: Date(timeIntervalSince1970: 0)
         )
 
-        XCTAssertTrue(source.contains("catch let error as AIProviderCredentialStoreError"))
-        XCTAssertTrue(source.contains("throw AIProviderCredentialResolveFailure("))
-        XCTAssertTrue(source.contains("credentialResolveFailureCategory(for: error)"))
+        do {
+            _ = try await environment.aiProviderSettingsActions.resolveCredentialSecret(credential)
+            XCTFail("Expected AIProviderCredentialResolveFailure to be thrown for missing Keychain entry")
+        } catch let failure as AIProviderCredentialResolveFailure {
+            XCTAssertEqual(failure.category, .missingCredential)
+        }
     }
-}
-
-private func langoTraceAppSourceFileURL(named fileName: String, currentFilePath: String = #filePath) -> URL {
-    var url = URL(fileURLWithPath: currentFilePath)
-    while url.lastPathComponent != "LangoTraceAppTests" {
-        let parent = url.deletingLastPathComponent()
-        precondition(parent.path != url.path, "Could not locate LangoTraceAppTests root")
-        url = parent
-    }
-    return url
-        .deletingLastPathComponent()
-        .appendingPathComponent("LangoTraceApp")
-        .appendingPathComponent(fileName)
 }

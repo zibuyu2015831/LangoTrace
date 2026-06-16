@@ -307,6 +307,27 @@ scripts/check-docs.sh
 
 2026-06-11：方案创建并完成双轮自审核（见第 13 节）。尚未进入实现。
 
+2026-06-17：Phase 1–6 全部实施完成。各阶段要点如下。
+
+**Phase 1（per-tab NavigationStack）**：新增 `PhoneTabNavigationModel`（`@Observable`，持有 `paths: [PhoneRootTab: [PhoneRoute]]` 和 `selectedTab`），每个 Tab 改为独立 `NavigationStack(path:)`；sheet 类 route（entryEditor、photoWritingPreview）保持 sheet；`PhoneMainChromeTests` 锁定导航模型行为（选 Tab、push/pop route、深层 pop-to-root、跨 Tab 跳转）。
+
+**Phase 2（消除嵌套滚动）**：iPhone 主列表从 `List + ForEach` 改为 `ScrollView + LazyVStack`；`PadLearningPanelView`、`MacWorkspaceContentView` 同步修复滚动父子冲突；`MacMainModels` 补 `.practiceSentenceList` case 单测。
+
+**Phase 3（编排下沉）**：`AppEnvironment` 下沉 `AIProviderSettingsActions` 闭包装配；`AIProviderSettingsView` 改为纯数据驱动（`aiProviderSettingsActions` 注入取代内部 `make` 逻辑）；`ReadingTTSAction` 从 `Void` 改为返回 `Bool`（seam 对齐）；`AIProviderSettingsMoreTests` 验证纯函数编排。
+
+**Phase 4（展示字符串结构化）**：`PracticeSummary` 从字符串字段改为结构化 `struct`（`sessionCount: Int`, `sentenceCount: Int`, `mode: String`）；所有 `.swift` 文件与测试同步更新；`practiceSummary` 确认为内存模型字段，无 GRDB migration 需求。
+
+**Phase 5（缓存与本地化收敛）**：删除 `LearningContentStore.generatedRenderingsByEntryID` 影子缓存，`rendering(for:)` 直读 repository；新增 `LearningContentRepository.saveRendering(_:)` 协议方法，`InMemory` 写 dict、`GRDBBridge` 为 no-op（GRDB 路径已由 `saveGeneratedMaterial()` 持久化）；`LocalizedChrome` 的 `nonisolated(unsafe) static var` 改为 `LanguageOverrideBox`（`@unchecked Sendable` + `NSRecursiveLock`）；`localizedString(_:_:)` 改为 `String(format:locale:arguments:)` 带 Locale。`LearningContentStoreTests` 新增"生成后 rendering 持久到 repository"测试（先红后绿）。APP-09 评估结论：`bootstrap()` 的 SQLite WAL 打开属快路径同步 IO，当前数据量无阻塞风险，保持同步装配，后续数据量增长时再异步化。APP-12 已实现：`recoveryState == .failed` 时展示 `LaunchRecoveryFailurePanel` + 重试入口，不提供静默跳过。
+
+**Phase 6（测试债清偿）**：
+- 在 `docs/spec/009-testing-and-verification.md` 写入禁止新增"读取源码文件断言子串"测试的强制规则。
+- 替换 `LangoTraceAppTests/AppEnvironmentBootstrapTests.swift` 中的源码 grep 测试 (`testAIProviderSettingsResolverMapsKeychainFailuresToCoreFailure`) 为行为接缝测试 (`testAIProviderCredentialResolverMapsMissingKeychainEntryToResolveFailure`)：bootstrap 产出 `AppEnvironment` → 构造 Keychain 中不存在的 `AIProviderCredentialMetadata` → 调用 `resolveCredentialSecret` → 断言抛出 `AIProviderCredentialResolveFailure(category: .missingCredential)`。
+- `PhoneIOSConvergenceTests.swift` 中的 16 个源码字符串断言经逐一核查，测试的字符串模式在 Phase 1 重构后仍存在于各源文件中（Phase 1 修改了导航结构，但被测字符串如 `EntryDetailStoreView`、`titlePresentation` 等未被删除），无失败冲突；此批测试列入迁移 backlog，在触碰对应生产文件时逐步替换为行为测试。
+- **存量源码字串断言迁移 backlog（按触碰时机优先）**：
+  - `Packages/LangoTraceUI/Tests/LangoTraceUITests/PhoneIOSConvergenceTests.swift`（16 个断言，分布于 PhoneMainView、PhoneMainSections、PhoneMainSupportingViews、EntryDetailHeader、LearningContentComponents、SentencePairActionControls、PracticeSessionViews、PracticePromptCard、PadMainSections、MacWorkspaceContentView、MacMainModels、PadLearningPanelView 等文件）
+  - 其余 `Packages/LangoTraceUI/Tests/LangoTraceUITests/` 下同类文件（WelcomeTracePreviewContentTests、InterfaceLanguageSettingsPageTests、ThreePlatformPresentationCopyTests、PremiumUIBehaviorTests）
+  - 触碰对应生产文件的后续任务方案需检查此 backlog 并同步替换。
+
 ## 19. 完成标准
 
 1. 第 12 节 6 个 Phase 全部实施，DoD 结构性检查通过。
