@@ -4,7 +4,7 @@
 自审核状态：N/A（导航/指针文档，不含生产代码变更）
 类型：docs
 创建日期：2026-06-15
-最后更新日期：2026-06-16（Plan 01 CI 全绿收口完成，移入 done/；下一步：E0b UI/App 层结构债清偿）
+最后更新日期：2026-06-17（E0b 全部 6 个 Phase 实施完成，本机三包测试全绿，已移入 done/；下一步：E1 记录生活时间线 + 三端筛选投影）
 
 ## 这份文档是什么
 
@@ -33,7 +33,7 @@
 
 ## 当前指针
 
-> **下一步候选**：E0b（UI/App 层结构债清偿）——读取 `docs/plans/active/2026-06-11-02-refactor-ui-architecture-debt.md` 并启动实施。
+> **下一步候选**：E1（记录生活时间线 + 三端筛选投影）——读取 `docs/plans/active/2026-06-11-03-feature-record-timeline-and-filters.md` 并启动实施。
 
 ## 状态总表
 
@@ -42,7 +42,7 @@
 | 序 | 系列 | 方案 | 主题 | 状态 |
 |---|---|---|---|---|
 | 01 | E0a | `2026-06-11-01-refactor-architecture-foundations` | Core/Data/AI/Speech 架构地基整固 | ✅ **Verified**（CI run `27595028506` 全绿，已移入 done/） |
-| 02 | E0b | `2026-06-11-02-refactor-ui-architecture-debt` | UI/App 层结构债清偿 | ⚪ Draft |
+| 02 | E0b | `2026-06-11-02-refactor-ui-architecture-debt` | UI/App 层结构债清偿 | ✅ **Verified**（2026-06-17 本机 UI/Data/Core 三包测试全绿，已移入 done/） |
 | 03 | E1 | `2026-06-11-03-feature-record-timeline-and-filters` | 记录生活时间线 + 三端筛选投影 | ⚪ Draft |
 | 04 | E2 | `2026-06-11-04-feature-entry-photo-attachment-and-photo-writing` | 照片附件主数据 + 照片引导写作 | ⚪ Draft |
 | 05 | R1 | `2026-06-11-05-feature-reading-experience-completion` | 阅读体验收口 | ⚪ Draft |
@@ -78,6 +78,19 @@
 | 3-余 | 协议默认实现移除 / RedactedSecret / Reading 范围整数偏移 | ✅ 已实施 + CI 绿 |
 | 4 | 数据层：迁移、44 处枚举解码 decodeStored、软删除列修正、FK/CHECK、@MainActor | ✅ 已实施 + CI 绿 |
 | 5 | AI/Speech 尾项：bytes(for:) 流式、AIBoundary/SpeechBoundary 统一、WAV RIFF chunk walker、spec 012 prompt v4 等 | ✅ 已实施 + CI 绿 |
+
+## plan 02（E0b）Phase 级子进度
+
+权威范围见方案 `docs/plans/done/2026-06-11-02-refactor-ui-architecture-debt.md`；此处仅记完成度。
+
+| Phase | 内容 | 状态 |
+|---|---|---|
+| 1 | iPhone 每个 Tab 独立 `NavigationStack`，消除共享路径 | ✅ 已实施 + 本机测试绿 |
+| 2 | iPad / macOS 消除嵌套 `ScrollView` | ✅ 已实施 + 本机测试绿 |
+| 3 | TTS 播放 sink 集中到 `LearningContentStore`；`ReadingTTSOutcome` 类型化枚举替代 `String` 信号 | ✅ 已实施 + 本机测试绿 |
+| 4 | `EntryPracticeStatus` 结构化枚举替代 `practiceSummary: String`；中文 fallback 移出数据层 | ✅ 已实施 + 本机测试绿 |
+| 5 | `LanguageOverrideBox`（`NSRecursiveLock`）替代 `nonisolated(unsafe) static var`；`saveRendering` 写入 `LearningContentRepository` 协议 | ✅ 已实施 + 本机测试绿 |
+| 6 | 测试债清偿：源码断言测试替换为行为 seam 测试；spec 009 新增禁止「读取源码断言子串」规则；PhoneIOSConvergenceTests 等存量登记为迁移 backlog | ✅ 已实施 + 本机测试绿 |
 
 ## 维护约定
 
