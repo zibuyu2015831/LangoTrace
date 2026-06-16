@@ -127,18 +127,14 @@ struct AIProviderSettingsView: View {
             Button {
                 saveConfiguration()
             } label: {
-                Label {
-                    localizedText("aiProviderSettings.save.button")
-                } icon: {
-                    Image(systemName: "lock.shield")
-                }
-                .font(.callout.weight(.semibold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
-                .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+                saveButtonLabel
             }
             .buttonStyle(.borderedProminent)
-            .tint(LangoTraceDesign.ColorToken.primaryActionFill)
-            .disabled(draft.saveReadiness == .missingRequiredFields)
+            .tint(draft.saveState == .saved
+                ? LangoTraceDesign.ColorToken.stateReady
+                : LangoTraceDesign.ColorToken.primaryActionFill)
+            .disabled(draft.saveReadiness == .missingRequiredFields || isSaving)
+            .animation(.snappy, value: draft.saveState)
 
             Button {
                 validateConfiguration()
@@ -159,6 +155,63 @@ struct AIProviderSettingsView: View {
             }
         }
         .langoPanel()
+    }
+
+    @ViewBuilder
+    private var saveButtonLabel: some View {
+        switch draft.saveState {
+        case .saving:
+            Label {
+                localizedText("aiProviderSettings.saveState.saving")
+            } icon: {
+                ProgressView()
+                    .controlSize(.small)
+                    .tint(LangoTraceDesign.ColorToken.primaryActionForeground)
+            }
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
+            .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+        case .saved:
+            Label {
+                localizedText("aiProviderSettings.saveState.saved")
+            } icon: {
+                Image(systemName: "lock.badge.checkmark.fill")
+                    .contentTransition(.symbolEffect(.replace))
+            }
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
+            .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+        case .failed:
+            Label {
+                localizedText("aiProviderSettings.saveState.failed")
+            } icon: {
+                Image(systemName: "lock.badge.xmark.fill")
+                    .contentTransition(.symbolEffect(.replace))
+            }
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
+            .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+        case .unsavedChanges:
+            Label {
+                localizedText("aiProviderSettings.save.saveChanges.button")
+            } icon: {
+                Image(systemName: "exclamationmark.lock.fill")
+                    .contentTransition(.symbolEffect(.replace))
+            }
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
+            .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+        default:
+            Label {
+                localizedText("aiProviderSettings.save.button")
+            } icon: {
+                Image(systemName: "lock.shield")
+                    .contentTransition(.symbolEffect(.replace))
+            }
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
+            .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+        }
     }
 
     private func statusPanel(titleKey: String) -> some View {
@@ -472,14 +525,9 @@ private extension AIProviderSettingsView {
         case .missingRequiredFields, .testing, .succeeded, .partial, .failed, .cancelled, .unsupportedProvider:
             return draft.testState.titleKey
         }
-        return switch draft.saveState {
-        case .unsavedChanges, .saved, .failed:
-            draft.saveState.titleKey
-        case .idle, .missingRequiredFields, .saving:
-            draft.saveReadiness == .missingRequiredFields
-                ? "aiProviderSettings.saveState.missingRequiredFields"
-                : nil
-        }
+        return draft.saveReadiness == .missingRequiredFields
+            ? "aiProviderSettings.saveState.missingRequiredFields"
+            : nil
     }
 
     var displayedProbeCapabilities: [AIProviderProbeCapability] {
@@ -502,17 +550,7 @@ private extension AIProviderSettingsView {
         case .missingRequiredFields, .failed, .unsupportedProvider:
             return "exclamationmark.triangle"
         case .idle:
-            break
-        }
-        return switch draft.saveState {
-        case .unsavedChanges:
-            "exclamationmark.circle"
-        case .saved:
-            "checkmark.circle"
-        case .failed:
-            "exclamationmark.triangle"
-        case .idle, .missingRequiredFields, .saving:
-            "lock.circle"
+            return "lock.circle"
         }
     }
 
@@ -529,17 +567,7 @@ private extension AIProviderSettingsView {
         case .missingRequiredFields, .failed:
             return LangoTraceDesign.ColorToken.danger
         case .idle:
-            break
-        }
-        return switch draft.saveState {
-        case .unsavedChanges:
-            LangoTraceDesign.ColorToken.warning
-        case .saved:
-            LangoTraceDesign.ColorToken.stateReady
-        case .failed:
-            LangoTraceDesign.ColorToken.danger
-        case .idle, .missingRequiredFields, .saving:
-            LangoTraceDesign.ColorToken.accent
+            return LangoTraceDesign.ColorToken.accent
         }
     }
 
