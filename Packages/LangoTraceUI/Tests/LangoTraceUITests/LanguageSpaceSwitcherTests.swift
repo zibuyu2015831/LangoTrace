@@ -44,7 +44,7 @@ struct LanguageSpaceSwitcherTests {
         #expect(!source.contains("presentedSheet = .languageSpaceSummary"))
         #expect(source.contains("LanguageSpaceSwitcherSheet("))
         #expect(source.contains("onManage:"))
-        #expect(source.contains("navigationPath.append(.settings(.languageSpace))"))
+        #expect(source.contains(".settings(.languageSpace)"))
     }
 
     @Test("Switcher sheet uses actions and reuses the language space editor")

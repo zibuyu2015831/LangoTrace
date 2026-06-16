@@ -20,13 +20,13 @@ struct PhoneMainView: View {
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
     let onAppearancePreferenceChange: (AppearancePreference) -> Void
 
-    @State private var selectedTab: PhoneRootTab = .entries
-    @State private var navigationPath: [PhoneRoute] = []
+    @State private var navModel = PhoneTabNavigationModel()
     @State private var presentedSheet: PhoneSheet?
 
     var body: some View {
-        NavigationStack(path: $navigationPath) {
-            TabView(selection: $selectedTab) {
+        @Bindable var nav = navModel
+        TabView(selection: $nav.selectedTab) {
+            NavigationStack(path: $nav.entriesPath) {
                 PhoneRecordWorkspaceView(
                     languageSpace: languageSpace,
                     entries: entries,
@@ -34,18 +34,22 @@ struct PhoneMainView: View {
                     onNewEntry: { presentedSheet = .entryEditor },
                     onPhotoWriting: { presentedSheet = .photoWritingPreview },
                     onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
-                    onSettingsAction: { navigationPath.append(.settingsList) },
+                    onSettingsAction: { navModel.push(.settingsList, on: .entries) },
                     onSelectEntry: showEntryDetail
                 )
-                .tabItem {
-                    Label {
-                        localizedText(PhoneRootTab.entries.localizedTitleKey)
-                    } icon: {
-                        Image(systemName: "square.and.pencil")
-                    }
+                .phoneNavigationDestinations(for: .entries, context: self)
+                .onAppear { contentStore.ensureSeeded() }
+            }
+            .tabItem {
+                Label {
+                    localizedText(PhoneRootTab.entries.localizedTitleKey)
+                } icon: {
+                    Image(systemName: "square.and.pencil")
                 }
-                .tag(PhoneRootTab.entries)
+            }
+            .tag(PhoneRootTab.entries)
 
+            NavigationStack(path: $nav.readingPath) {
                 ReadingLibraryView(
                     platform: .phone,
                     store: readingLibraryStore,
@@ -53,189 +57,108 @@ struct PhoneMainView: View {
                     ttsAction: readingTTSAction,
                     cacheStorage: readingCacheStorage,
                     onOpenPhoneDocument: { documentID in
-                        navigationPath.append(.readingDocument(documentID))
+                        navModel.push(.readingDocument(documentID), on: .reading)
                     }
                 )
-                .tabItem {
-                    Label {
-                        localizedText(PhoneRootTab.reading.localizedTitleKey)
-                    } icon: {
-                        Image(systemName: "book.pages")
-                    }
+                .phoneNavigationDestinations(for: .reading, context: self)
+            }
+            .tabItem {
+                Label {
+                    localizedText(PhoneRootTab.reading.localizedTitleKey)
+                } icon: {
+                    Image(systemName: "book.pages")
                 }
-                .tag(PhoneRootTab.reading)
+            }
+            .tag(PhoneRootTab.reading)
 
+            NavigationStack(path: $nav.practicePath) {
                 PracticeView(
                     languageSpace: languageSpace,
                     entries: entries,
                     contentStore: contentStore,
                     renderingForEntry: rendering(for:),
                     onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
-                    onSettingsAction: { navigationPath.append(.settingsList) },
-                    onPractice: { entry in navigationPath.append(.practiceSentenceList(entry.id)) }
+                    onSettingsAction: { navModel.push(.settingsList, on: .practice) },
+                    onPractice: { entry in navModel.push(.practiceSentenceList(entry.id), on: .practice) }
                 )
-                .tabItem {
-                    Label {
-                        localizedText(PhoneRootTab.practice.localizedTitleKey)
-                    } icon: {
-                        Image(systemName: "waveform")
-                    }
+                .phoneNavigationDestinations(for: .practice, context: self)
+            }
+            .tabItem {
+                Label {
+                    localizedText(PhoneRootTab.practice.localizedTitleKey)
+                } icon: {
+                    Image(systemName: "waveform")
                 }
-                .tag(PhoneRootTab.practice)
+            }
+            .tag(PhoneRootTab.practice)
 
+            NavigationStack(path: $nav.memoryPath) {
                 MemoryView(
                     languageSpace: languageSpace,
                     memoryItems: contentStore.memoryItems,
                     onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
-                    onSettingsAction: { navigationPath.append(.settingsList) }
+                    onSettingsAction: { navModel.push(.settingsList, on: .memory) }
                 )
-                .tabItem {
-                    Label {
-                        localizedText(PhoneRootTab.memory.localizedTitleKey)
-                    } icon: {
-                        Image(systemName: "archivebox")
-                    }
-                }
-                .tag(PhoneRootTab.memory)
+                .phoneNavigationDestinations(for: .memory, context: self)
             }
-            .phoneTabBarBackground()
-            .navigationDestination(for: PhoneRoute.self) { route in
-                switch route {
-                case let .entryDetail(entryID):
-                    if let entry = entry(id: entryID) {
-                        EntryDetailStoreView(
-                            languageSpace: languageSpace,
-                            entryID: entry.id,
-                            contentStore: contentStore,
-                            titlePresentation: .objectNavigationTitle,
-                            onPracticeSentence: { seed in navigationPath.append(.practiceSentence(seed)) }
-                        )
-                    }
-                case let .practiceSentenceList(entryID):
-                    if let entry = entry(id: entryID) {
-                        PracticeSentenceListView(
-                            entry: entry,
-                            rendering: rendering(for: entry),
-                            languageSpace: languageSpace,
-                            sentenceAudioPlaybackStates: sentenceAudioStates,
-                            onListenSentence: { rendering, sentence, index in
-                                Task {
-                                    await contentStore.handleSentenceAudioTap(
-                                        rendering: rendering,
-                                        sentence: sentence,
-                                        sentenceIndex: index,
-                                        languageSpace: languageSpace
-                                    )
-                                }
-                            },
-                            onPracticeSentence: { seed in navigationPath.append(.practiceSentence(seed)) }
-                        )
-                    }
-                case let .practiceSentence(seed):
-                    PracticeSessionView(
-                        languageSpaceID: languageSpace.id,
-                        routeSeed: seed,
-                        actions: practiceActions,
-                        onPlayDemo: {
-                            await contentStore.handlePracticeDemoTap(routeSeed: seed, languageSpace: languageSpace)
-                        },
-                        onStopDemo: {
-                            await contentStore.stopSentenceAudioPlayback()
-                        },
-                        onNavigateSentence: { nextSeed in
-                            replaceCurrentRoute(with: .practiceSentence(nextSeed))
-                        }
+            .tabItem {
+                Label {
+                    localizedText(PhoneRootTab.memory.localizedTitleKey)
+                } icon: {
+                    Image(systemName: "archivebox")
+                }
+            }
+            .tag(PhoneRootTab.memory)
+        }
+        .phoneTabBarBackground()
+        .sheet(item: $presentedSheet) { sheet in
+            switch sheet {
+            case .entryEditor:
+                EntryEditorView(languageSpace: languageSpace) { title, body in
+                    let entry = try contentStore.createEntry(
+                        title: title,
+                        body: body,
+                        source: .typedText
                     )
-                    .id(seed.practiceRouteIdentity)
-                case let .readingDocument(documentID):
-                    ReadingDocumentDetailView(
-                        platform: .phone,
-                        documentID: documentID,
-                        store: readingLibraryStore,
-                        explanationAction: readingExplanationAction,
-                        ttsAction: readingTTSAction
-                    )
-                case .settings(.languageSpace):
-                    LanguageSpaceManagementView(
+                    presentedSheet = nil
+                    navModel.push(.entryDetail(entry.id), on: .entries)
+                }
+            case .photoWritingPreview:
+                PhotoWritingPreviewView(languageSpace: languageSpace) {
+                    guard let entry = try? contentStore.createMockPhotoWritingEntry() else { return }
+                    presentedSheet = nil
+                    navModel.push(.entryDetail(entry.id), on: .entries)
+                } onDismiss: {
+                    presentedSheet = nil
+                }
+            case .languageSpaceSwitcher:
+                NavigationStack {
+                    LanguageSpaceSwitcherSheet(
                         spaces: languageSpaces,
                         currentSpaceID: languageSpace.id,
-                        onAdd: onAddLanguageSpace,
-                        onSelect: onSelectLanguageSpace,
-                        onUpdate: onUpdateLanguageSpace,
-                        onDelete: onDeleteLanguageSpace
+                        onSelect: { id in
+                            onSelectLanguageSpace(id)
+                        },
+                        onAdd: { input in
+                            onAddLanguageSpace(input)
+                        },
+                        onManage: {
+                            let currentTab = navModel.selectedTab
+                            presentedSheet = nil
+                            navModel.push(.settings(.languageSpace), on: currentTab)
+                        }
                     )
-                case let .settings(kind):
-                    if let capability = capability(kind: kind) {
-                        SettingsCapabilityDetailView(
-                            languageSpace: languageSpace,
-                            capability: capability,
-                            interfaceLanguagePreference: interfaceLanguagePreference,
-                            appearancePreference: appearancePreference,
-                            onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
-                            onAppearancePreferenceChange: onAppearancePreferenceChange
-                        )
-                    }
-                case .settingsList:
-                    SettingsView(
-                        languageSpace: languageSpace,
-                        capabilities: contentStore.settingsCapabilities,
-                        onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
-                        onSettingsAction: nil,
-                        onSelectCapability: { kind in navigationPath.append(.settings(kind)) }
-                    )
-                }
-            }
-            .sheet(item: $presentedSheet) { sheet in
-                switch sheet {
-                case .entryEditor:
-                    EntryEditorView(languageSpace: languageSpace) { title, body in
-                        let entry = try contentStore.createEntry(
-                            title: title,
-                            body: body,
-                            source: .typedText
-                        )
-                        presentedSheet = nil
-                        navigationPath.append(.entryDetail(entry.id))
-                    }
-                case .photoWritingPreview:
-                    PhotoWritingPreviewView(languageSpace: languageSpace) {
-                        guard let entry = try? contentStore.createMockPhotoWritingEntry() else { return }
-                        presentedSheet = nil
-                        navigationPath.append(.entryDetail(entry.id))
-                    } onDismiss: {
-                        presentedSheet = nil
-                    }
-                case .languageSpaceSwitcher:
-                    NavigationStack {
-                        LanguageSpaceSwitcherSheet(
-                            spaces: languageSpaces,
-                            currentSpaceID: languageSpace.id,
-                            onSelect: { id in
-                                onSelectLanguageSpace(id)
-                            },
-                            onAdd: { input in
-                                onAddLanguageSpace(input)
-                            },
-                            onManage: {
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button {
                                 presentedSheet = nil
-                                navigationPath.append(.settings(.languageSpace))
-                            }
-                        )
-                        .toolbar {
-                            ToolbarItem(placement: .confirmationAction) {
-                                Button {
-                                    presentedSheet = nil
-                                } label: {
-                                    localizedText("common.close")
-                                }
+                            } label: {
+                                localizedText("common.close")
                             }
                         }
                     }
-                    .presentationDetents([.medium, .large])
                 }
-            }
-            .onAppear {
-                contentStore.ensureSeeded()
+                .presentationDetents([.medium, .large])
             }
         }
     }
@@ -262,40 +185,96 @@ struct PhoneMainView: View {
 
     private func showEntryDetail(_ entry: LearningEntry) {
         contentStore.selectEntry(entry)
-        navigationPath.append(.entryDetail(entry.id))
+        navModel.push(.entryDetail(entry.id), on: .entries)
     }
 
-    private func replaceCurrentRoute(with route: PhoneRoute) {
-        guard !navigationPath.isEmpty else {
-            navigationPath.append(route)
-            return
-        }
-        navigationPath[navigationPath.count - 1] = route
-    }
-}
-
-private enum PhoneRoute: Hashable {
-    case entryDetail(String)
-    case readingDocument(String)
-    case practiceSentenceList(String)
-    case practiceSentence(PracticeSessionRouteSeed)
-    case settings(SettingsCapability.Kind)
-    case settingsList
-}
-
-private enum PhoneSheet: Identifiable {
-    case entryEditor
-    case photoWritingPreview
-    case languageSpaceSwitcher
-
-    var id: String {
-        switch self {
-        case .entryEditor:
-            "entry-editor"
-        case .photoWritingPreview:
-            "photo-writing-preview"
-        case .languageSpaceSwitcher:
-            "language-space-switcher"
+    // Returns the destination view for a given route, capturing the active tab
+    // so nested navigation closures push/replace on the correct per-tab stack.
+    @ViewBuilder
+    fileprivate func destination(for route: PhoneRoute, activeTab tab: PhoneRootTab) -> some View {
+        switch route {
+        case let .entryDetail(entryID):
+            if let entry = entry(id: entryID) {
+                EntryDetailStoreView(
+                    languageSpace: languageSpace,
+                    entryID: entry.id,
+                    contentStore: contentStore,
+                    titlePresentation: .objectNavigationTitle,
+                    onPracticeSentence: { seed in navModel.push(.practiceSentence(seed), on: tab) }
+                )
+            }
+        case let .practiceSentenceList(entryID):
+            if let entry = entry(id: entryID) {
+                PracticeSentenceListView(
+                    entry: entry,
+                    rendering: rendering(for: entry),
+                    languageSpace: languageSpace,
+                    sentenceAudioPlaybackStates: sentenceAudioStates,
+                    onListenSentence: { rendering, sentence, index in
+                        Task {
+                            await contentStore.handleSentenceAudioTap(
+                                rendering: rendering,
+                                sentence: sentence,
+                                sentenceIndex: index,
+                                languageSpace: languageSpace
+                            )
+                        }
+                    },
+                    onPracticeSentence: { seed in navModel.push(.practiceSentence(seed), on: tab) }
+                )
+            }
+        case let .practiceSentence(seed):
+            PracticeSessionView(
+                languageSpaceID: languageSpace.id,
+                routeSeed: seed,
+                actions: practiceActions,
+                onPlayDemo: {
+                    await contentStore.handlePracticeDemoTap(routeSeed: seed, languageSpace: languageSpace)
+                },
+                onStopDemo: {
+                    await contentStore.stopSentenceAudioPlayback()
+                },
+                onNavigateSentence: { nextSeed in
+                    navModel.replaceCurrentRoute(with: .practiceSentence(nextSeed), on: tab)
+                }
+            )
+            .id(seed.practiceRouteIdentity)
+        case let .readingDocument(documentID):
+            ReadingDocumentDetailView(
+                platform: .phone,
+                documentID: documentID,
+                store: readingLibraryStore,
+                explanationAction: readingExplanationAction,
+                ttsAction: readingTTSAction
+            )
+        case .settings(.languageSpace):
+            LanguageSpaceManagementView(
+                spaces: languageSpaces,
+                currentSpaceID: languageSpace.id,
+                onAdd: onAddLanguageSpace,
+                onSelect: onSelectLanguageSpace,
+                onUpdate: onUpdateLanguageSpace,
+                onDelete: onDeleteLanguageSpace
+            )
+        case let .settings(kind):
+            if let capability = capability(kind: kind) {
+                SettingsCapabilityDetailView(
+                    languageSpace: languageSpace,
+                    capability: capability,
+                    interfaceLanguagePreference: interfaceLanguagePreference,
+                    appearancePreference: appearancePreference,
+                    onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
+                    onAppearancePreferenceChange: onAppearancePreferenceChange
+                )
+            }
+        case .settingsList:
+            SettingsView(
+                languageSpace: languageSpace,
+                capabilities: contentStore.settingsCapabilities,
+                onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
+                onSettingsAction: nil,
+                onSelectCapability: { kind in navModel.push(.settings(kind), on: tab) }
+            )
         }
     }
 }
@@ -309,5 +288,14 @@ private extension View {
         #else
             self
         #endif
+    }
+
+    func phoneNavigationDestinations(
+        for tab: PhoneRootTab,
+        context: PhoneMainView
+    ) -> some View {
+        navigationDestination(for: PhoneRoute.self) { route in
+            context.destination(for: route, activeTab: tab)
+        }
     }
 }
