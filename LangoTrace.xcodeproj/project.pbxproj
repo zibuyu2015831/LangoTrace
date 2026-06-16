@@ -20,6 +20,7 @@
 		22F9EC06C5D1B79894717CD9 /* LangoTraceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865760D55CBEA4D850C601D4 /* LangoTraceApp.swift */; };
 		2FFB7B176984789ED51A1BE7 /* LangoTraceSync in Frameworks */ = {isa = PBXBuildFile; productRef = A3F88B2413CB76E9B66F5766 /* LangoTraceSync */; };
 		418045BF438605B96C0F20DF /* LangoTraceUI in Frameworks */ = {isa = PBXBuildFile; productRef = 67B74CA14B0E2B331EF7DCDC /* LangoTraceUI */; };
+		45169793983FE29CA6D7725E /* ReadingExplanationOperationRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E289BBE941AEC4CA5DF56F1B /* ReadingExplanationOperationRecorder.swift */; };
 		486847A6A7815277C4644E6C /* SentenceAudioPlaybackAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF7128ACAC79E547C09DA083 /* SentenceAudioPlaybackAssembly.swift */; };
 		4F4FE86E837611AFAA10A6CC /* LangoTraceCore in Frameworks */ = {isa = PBXBuildFile; productRef = 04393DCF63F44DA582FBA228 /* LangoTraceCore */; };
 		4F5E6250AA0827151E7828B4 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55AB1C12E4A7F5AD1D8D6EF5 /* AppEnvironment.swift */; };
@@ -33,6 +34,7 @@
 		8344B208A01F2D16111E6340 /* LangoTraceUI in Frameworks */ = {isa = PBXBuildFile; productRef = 21B649020088C2342C0F48EC /* LangoTraceUI */; };
 		98B78634BCD319D36E6DFE20 /* AppEnvironmentBootstrapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A2E07C01D4B9943496D86F /* AppEnvironmentBootstrapTests.swift */; };
 		9D2EF9D0EDA8A1F0A943EE3D /* LangoTraceAI in Frameworks */ = {isa = PBXBuildFile; productRef = 210415632B487DCC91FBBFFF /* LangoTraceAI */; };
+		A7D8E9EC89F53F421D0B7B18 /* ReadingExplanationOperationRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E289BBE941AEC4CA5DF56F1B /* ReadingExplanationOperationRecorder.swift */; };
 		A918819173BE70E0F57159C2 /* AppSessionStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01AD3F5994EB52C700AB07C2 /* AppSessionStateTests.swift */; };
 		AA1CB673BA6891C34FA32E27 /* LangoTraceSync in Frameworks */ = {isa = PBXBuildFile; productRef = 378EDEB396E0A2055B2870EA /* LangoTraceSync */; };
 		ACA9C14A553464399AA9577D /* SentenceAudioPlaybackAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF7128ACAC79E547C09DA083 /* SentenceAudioPlaybackAssembly.swift */; };
@@ -79,6 +81,7 @@
 		D45EAEA2F143BB809B64623D /* SharedAppDatabaseFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedAppDatabaseFactory.swift; sourceTree = "<group>"; };
 		D8441E632488B62B53C28B85 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D8AFCBB8E848E5F670A1593D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E289BBE941AEC4CA5DF56F1B /* ReadingExplanationOperationRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingExplanationOperationRecorder.swift; sourceTree = "<group>"; };
 		E42F4F01BD70695C084801DD /* PracticeRecordingConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeRecordingConfigurationTests.swift; sourceTree = "<group>"; };
 		E49E708AF58B9623000A4245 /* LangoTraceSpeech */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceSpeech; path = Packages/LangoTraceSpeech; sourceTree = SOURCE_ROOT; };
 		EF8038E79EE475FE855F47BB /* PracticeActionsAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeActionsAssembly.swift; sourceTree = "<group>"; };
@@ -137,6 +140,7 @@
 				5F19A29B7D222BA6646A30A0 /* AppPracticeRecordingEngine.swift */,
 				865760D55CBEA4D850C601D4 /* LangoTraceApp.swift */,
 				EF8038E79EE475FE855F47BB /* PracticeActionsAssembly.swift */,
+				E289BBE941AEC4CA5DF56F1B /* ReadingExplanationOperationRecorder.swift */,
 				CF7128ACAC79E547C09DA083 /* SentenceAudioPlaybackAssembly.swift */,
 				D45EAEA2F143BB809B64623D /* SharedAppDatabaseFactory.swift */,
 			);
@@ -363,6 +367,7 @@
 				CD6082C6909B413ABEE7D571 /* AppPracticeRecordingEngine.swift in Sources */,
 				22F9EC06C5D1B79894717CD9 /* LangoTraceApp.swift in Sources */,
 				080D97F735D35EF48B738AD2 /* PracticeActionsAssembly.swift in Sources */,
+				45169793983FE29CA6D7725E /* ReadingExplanationOperationRecorder.swift in Sources */,
 				ACA9C14A553464399AA9577D /* SentenceAudioPlaybackAssembly.swift in Sources */,
 				8226EDF34EF1E204399E6705 /* SharedAppDatabaseFactory.swift in Sources */,
 			);
@@ -388,6 +393,7 @@
 				1F5988C0050D2559755DAE63 /* AppPracticeRecordingEngine.swift in Sources */,
 				71888A1CF8C87DABA8BCA1C1 /* LangoTraceApp.swift in Sources */,
 				7C4102E29E31529135563ED0 /* PracticeActionsAssembly.swift in Sources */,
+				A7D8E9EC89F53F421D0B7B18 /* ReadingExplanationOperationRecorder.swift in Sources */,
 				486847A6A7815277C4644E6C /* SentenceAudioPlaybackAssembly.swift in Sources */,
 				D4D1F7427C377C2FF249D2D1 /* SharedAppDatabaseFactory.swift in Sources */,
 			);

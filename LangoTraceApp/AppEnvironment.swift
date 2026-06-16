@@ -290,7 +290,7 @@ private func makeReadingTTSAction(
         )
         let state = await sentenceAudioPlaybackActions.handleTap(audioRequest)
         switch state {
-        case .idle, .playing:
+        case .idle, .playing, .generating, .paused:
             return .success
         case let .failed(failure):
             return .failed(failure.rawValue)

@@ -1,5 +1,6 @@
 import Foundation
 import LangoTraceAI
+import LangoTraceCore
 import LangoTraceData
 
 enum ReadingExplanationOperationStatus {
