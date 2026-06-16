@@ -298,7 +298,7 @@ struct PhoneIOSConvergenceTests {
         #expect(macWorkspace.contains("PracticeSentenceListView("))
         #expect(macWorkspace.contains("PracticeSessionView("))
         #expect(macWorkspace.contains("onRoute(.practiceSentence(nextSeed))"))
-        #expect(macModels.contains("case .practiceSentenceList, .practiceSentence, .languageSpaceManagement:"))
+        #expect(macModels.contains(".practiceSentenceList, .practiceSentence, .languageSpaceManagement"))
     }
 
     @Test("Sentence audio playback state is observed by the visible detail route")

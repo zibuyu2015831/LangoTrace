@@ -172,14 +172,15 @@ struct PadWorkspaceContentView: View {
         .layoutPriority(1)
     }
 
+    // EntryDetailView owns its own ScrollView; this wrapper only handles layout.
+    @ViewBuilder
     private var workspaceOverview: some View {
-        ScrollView {
-            if let selectedEntry {
-                entryDetailView(for: selectedEntry)
-            } else {
-                EmptyWorkspacePanel()
-                    .padding(26)
-            }
+        if let selectedEntry {
+            entryDetailView(for: selectedEntry)
+        } else {
+            EmptyWorkspacePanel()
+                .padding(26)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 

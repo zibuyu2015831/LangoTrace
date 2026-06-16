@@ -80,9 +80,10 @@ enum MacWorkspaceRoute: Equatable {
 
     var usesDedicatedMainScrolling: Bool {
         switch self {
-        case .practiceSentenceList, .practiceSentence, .languageSpaceManagement:
+        case .practiceSentenceList, .practiceSentence, .languageSpaceManagement,
+             .entryDetail, .reading:
             true
-        case .overview, .entryDetail, .reading, .settings, .unavailable:
+        case .overview, .settings, .unavailable:
             false
         }
     }
