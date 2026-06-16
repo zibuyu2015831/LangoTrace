@@ -1,6 +1,12 @@
 import Foundation
 import LangoTraceCore
 
+public enum EntryPracticeStatus: Equatable, Sendable {
+    case notStarted
+    case practiced(sessionCount: Int)
+    case memorized
+}
+
 public struct LearningEntry: Equatable, Identifiable, Sendable {
     public let id: String
     public let spaceID: String
@@ -10,7 +16,7 @@ public struct LearningEntry: Equatable, Identifiable, Sendable {
     public var scene: String
     public var createdAt: Date
     public var updatedAt: Date
-    public var practiceSummary: String
+    public var practiceStatus: EntryPracticeStatus
 
     public init(
         id: String,
@@ -21,7 +27,7 @@ public struct LearningEntry: Equatable, Identifiable, Sendable {
         scene: String,
         createdAt: Date,
         updatedAt: Date? = nil,
-        practiceSummary: String = "待练习"
+        practiceStatus: EntryPracticeStatus = .notStarted
     ) {
         self.id = id
         self.spaceID = spaceID
@@ -31,7 +37,7 @@ public struct LearningEntry: Equatable, Identifiable, Sendable {
         self.scene = scene
         self.createdAt = createdAt
         self.updatedAt = updatedAt ?? createdAt
-        self.practiceSummary = practiceSummary
+        self.practiceStatus = practiceStatus
     }
 
     public var sourceTitle: String {

@@ -36,10 +36,10 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
             let entry = LearningEntry(
                 id: idGenerator(),
                 spaceID: spaceID,
-                title: title.isEmpty ? "生活记录" : title,
+                title: title,
                 body: body,
                 source: draft.source,
-                scene: scene.isEmpty ? "生活记录" : scene,
+                scene: scene,
                 createdAt: now
             )
             try db.execute(

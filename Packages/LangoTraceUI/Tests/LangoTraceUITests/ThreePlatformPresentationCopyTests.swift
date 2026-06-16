@@ -1,5 +1,6 @@
 import Foundation
 import LangoTraceData
+@testable import LangoTraceUI
 import Testing
 
 @Suite("Three-platform presentation copy")
@@ -77,7 +78,7 @@ struct ThreePlatformPresentationCopyTests {
             [
                 entry.title,
                 entry.body,
-                entry.practiceSummary,
+                entry.practiceStatus.displayLabel,
             ]
         }
         let memoryStrings = repository.memoryItems(for: "en").flatMap { item in

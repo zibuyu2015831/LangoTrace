@@ -63,8 +63,8 @@ struct PracticeSessionViewModelTests {
         #expect(viewModel.session?.status == .inProgress)
     }
 
-    @Test("View model does not mark demo playback active while listen tap is still preparing")
-    func viewModelDoesNotMarkDemoPlaybackActiveWhileListenTapIsPreparing() async {
+    @Test("View model marks demo playback active while demo action is in progress")
+    func viewModelMarksDemoPlaybackActiveWhileActionInProgress() async {
         let actions = RecordingPracticeActions()
         actions.shouldSuspendDemoPlayback = true
         let viewModel = PracticeSessionViewModel(
@@ -81,10 +81,11 @@ struct PracticeSessionViewModelTests {
         }
         await actions.waitForSuspendedDemoPlayback()
 
-        #expect(!viewModel.isPlayingDemo)
+        #expect(viewModel.isPlayingDemo)
 
         actions.resumeSuspendedDemoPlayback()
         await task.value
+        #expect(!viewModel.isPlayingDemo)
     }
 
     @Test("View model plays the latest ready recording after repeated attempts")

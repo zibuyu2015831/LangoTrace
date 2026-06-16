@@ -81,14 +81,15 @@ struct PracticeView: View {
     private func projection(for entry: LearningEntry) -> PracticeEntryCardProjection {
         let rendering = renderingForEntry(entry)
         let sentenceCount = rendering?.sentences.count ?? 0
-        let targetPreview = rendering?.sentences.first?.targetText ?? entry.practiceSummary
+        let practiceLabel = entry.practiceStatus.displayLabel
+        let targetPreview = rendering?.sentences.first?.targetText ?? practiceLabel
         return PracticeEntryCardProjection(
             title: entry.title,
             targetPreview: targetPreview,
             sentenceCount: sentenceCount,
             completedCount: 0,
             problemCount: 0,
-            statusText: entry.practiceSummary
+            statusText: practiceLabel
         )
     }
 }

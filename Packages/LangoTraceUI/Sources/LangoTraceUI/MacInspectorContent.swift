@@ -19,7 +19,7 @@ struct MacInspectorContent: View {
             if let entry = entries.first(where: { $0.id == entryID }) {
                 TextPanel(
                     title: localizedString("mac.inspector.entryMetadata.title"),
-                    text: "\(entry.displaySourceTitle) · \(entry.scene) · \(entry.practiceSummary)"
+                    text: "\(entry.displaySourceTitle) · \(entry.displayScene) · \(entry.practiceStatus.displayLabel)"
                 )
                 RequestPreviewCard(entry: entry, rendering: contentStore.rendering(for: entry))
                 memoryCandidates(for: entry)

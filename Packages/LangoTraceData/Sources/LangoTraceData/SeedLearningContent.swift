@@ -12,7 +12,7 @@ enum SeedLearningContent {
                 source: .photoWriting,
                 scene: "今天",
                 createdAt: Date(timeIntervalSince1970: 1_799_900_000),
-                practiceSummary: "跟读 2 句"
+                practiceStatus: .practiced(sessionCount: 2)
             ),
             LearningEntry(
                 id: "thank-friend-en",
@@ -22,7 +22,7 @@ enum SeedLearningContent {
                 source: .typedText,
                 scene: "昨天",
                 createdAt: Date(timeIntervalSince1970: 1_799_800_000),
-                practiceSummary: "待练习"
+                practiceStatus: .notStarted
             ),
             LearningEntry(
                 id: "meeting-review-en",
@@ -32,7 +32,7 @@ enum SeedLearningContent {
                 source: .typedText,
                 scene: "本周",
                 createdAt: Date(timeIntervalSince1970: 1_799_700_000),
-                practiceSummary: "已入记忆"
+                practiceStatus: .memorized
             ),
         ]
     }

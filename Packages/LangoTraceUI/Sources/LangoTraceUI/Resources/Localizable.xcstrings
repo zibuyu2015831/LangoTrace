@@ -19726,6 +19726,91 @@
           }
         }
       }
+    },
+    "entry.defaultScene": {
+      "comment": "Fallback display text for entries without a scene label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Journal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录"
+          }
+        }
+      }
+    },
+    "entry.defaultTitle": {
+      "comment": "Fallback display title for entries with an empty title field.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新的记录"
+          }
+        }
+      }
+    },
+    "entry.practiceStatus.memorized": {
+      "comment": "Practice status label for entries the user has memorized.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memorized"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已入记忆"
+          }
+        }
+      }
+    },
+    "entry.practiceStatus.notStarted": {
+      "comment": "Practice status label for entries not yet practiced.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not practiced"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待练习"
+          }
+        }
+      }
+    },
+    "entry.practiceStatus.practiced": {
+      "comment": "Practice status label showing session count. First argument is the count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d sessions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习 %d 组"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -23,7 +23,7 @@ struct EntryTimelineRow: View {
                     Text("\(entry.displaySourceTitle) · \(targetLanguage) · \(entry.scene)")
                         .font(.footnote)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                    Text(entry.practiceSummary)
+                    Text(entry.practiceStatus.displayLabel)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.accent)
                 }
@@ -51,7 +51,7 @@ struct EntryTimelineRow: View {
                 "entry.timeline.accessibilityLabel",
                 entry.title,
                 entry.displaySourceTitle,
-                entry.practiceSummary
+                entry.practiceStatus.displayLabel
             )
         )
         .accessibilityValue(localizedText(isSelected ? "accessibility.selected" : "accessibility.unselected"))

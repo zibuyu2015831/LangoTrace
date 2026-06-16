@@ -70,7 +70,7 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
 
     @discardableResult
     public func createEntry(spaceID: String, title: String, body: String, source: EntrySource) throws -> LearningEntry {
-        let draft = NewLearningEntryDraft(title: title, body: body, source: source, scene: "生活记录")
+        let draft = NewLearningEntryDraft(title: title, body: body, source: source, scene: "")
         let entry = try repository.createEntry(draft, in: spaceID)
         selectedEntryIDs[spaceID] = entry.id
         return entry

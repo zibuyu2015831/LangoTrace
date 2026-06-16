@@ -106,7 +106,11 @@ final class PracticeSessionViewModel: ObservableObject {
             return
         }
         isDemoTapInFlight = true
-        defer { isDemoTapInFlight = false }
+        isPlayingDemo = true
+        defer {
+            isDemoTapInFlight = false
+            isPlayingDemo = false
+        }
         let state = await playDemoAction()
         switch state {
         case .failed:

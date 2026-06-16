@@ -108,12 +108,12 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
         let entry = LearningEntry(
             id: entryID,
             spaceID: spaceID,
-            title: trimmedTitle.isEmpty ? "新的生活记录" : trimmedTitle,
+            title: trimmedTitle,
             body: trimmedBody,
             source: source,
             scene: "今天",
             createdAt: Date(timeIntervalSince1970: TimeInterval(1_800_000_000 + nextEntryNumber)),
-            practiceSummary: "练习 1 组"
+            practiceStatus: .practiced(sessionCount: 1)
         )
 
         entriesBySpace[spaceID, default: []].insert(entry, at: 0)
@@ -184,7 +184,7 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
                 spaceID: spaceID,
                 entryID: entry.id,
                 text: "everyday expression",
-                note: "从生活记录中提取的常用表达"
+                note: "Extracted from a life record entry."
             ),
             at: 0
         )
@@ -297,7 +297,7 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
             sentences: [
                 RenderingSentence(
                     id: "\(entry.id)-sentence-1",
-                    translation: entry.body.isEmpty ? "这是一条新的生活记录。" : entry.body,
+                    translation: entry.body.isEmpty ? "" : entry.body,
                     targetText: targetText,
                     note: "适合改写成自然目标语言表达。"
                 ),
@@ -368,7 +368,7 @@ private enum MockPhotoWritingContent {
             source: .photoWriting,
             scene: "今天",
             createdAt: Date(timeIntervalSince1970: TimeInterval(1_800_100_000 + sequenceNumber)),
-            practiceSummary: "跟读 2 句"
+            practiceStatus: .practiced(sessionCount: 2)
         )
     }
 

@@ -299,7 +299,7 @@ private func makeEntry() -> LearningEntry {
         title: "Morning commute",
         body: "我今天早上订了火车票。",
         source: .typedText,
-        scene: "生活记录",
+        scene: "今天",
         createdAt: Date(timeIntervalSince1970: 1)
     )
 }
