@@ -822,7 +822,7 @@ struct EntryCard: View {
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 6) {
-                        InlineStatusLabel(text: entry.practiceStatus.displayLabel, systemImage: "waveform")
+                        EntryMaterialStatusPill(entry: entry, rendering: rendering)
                         Image(systemName: "chevron.right")
                             .font(.footnote.weight(.bold))
                             .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)

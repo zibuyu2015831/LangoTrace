@@ -139,6 +139,7 @@ struct MacWorkspaceContentView: View {
                 ForEach(entries) { entry in
                     EntryTimelineRow(
                         entry: entry,
+                        rendering: contentStore.rendering(for: entry),
                         targetLanguage: languageSpace.targetLanguage,
                         isSelected: entry.id == selectedEntryID,
                         action: { onShowEntry(entry) }

@@ -1,39 +1,6 @@
 import LangoTraceCore
 import LangoTraceData
 
-enum PadFilter: String, CaseIterable, Equatable {
-    case all
-    case photoWriting
-    case needsPractice
-    case memorized
-
-    var titleKey: String {
-        switch self {
-        case .all:
-            "pad.filter.all"
-        case .photoWriting:
-            "entrySource.photoWriting"
-        case .needsPractice:
-            "pad.filter.needsPractice"
-        case .memorized:
-            "pad.filter.memorized"
-        }
-    }
-
-    func includes(entry: LearningEntry, memoryItems: [MemoryItem]) -> Bool {
-        switch self {
-        case .all:
-            true
-        case .photoWriting:
-            entry.source == .photoWriting
-        case .needsPractice:
-            !memoryItems.contains { $0.entryID == entry.id }
-        case .memorized:
-            memoryItems.contains { $0.entryID == entry.id }
-        }
-    }
-}
-
 enum PadWorkspaceRoute: Equatable {
     case workspace
     case entryDetail(String)

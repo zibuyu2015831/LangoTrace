@@ -27,7 +27,7 @@ struct PadMainView: View {
     @State private var selectedEntryID: String?
     @State private var route: PadWorkspaceRoute = .workspace
     @State private var presentedSheet: PadSheet?
-    @State private var activeFilter: PadFilter = .all
+    @State private var activeFilter: EntryTimelineFilter = .all
 
     private let learningPanelTrailingInset: CGFloat = 24
 
@@ -126,7 +126,12 @@ struct PadMainView: View {
     }
 
     private var filteredEntries: [LearningEntry] {
-        entries.filter { activeFilter.includes(entry: $0, memoryItems: memoryItems) }
+        entries.filter { entry in
+            activeFilter.includes(
+                entry: entry,
+                hasMaterialWithoutRecording: contentStore.practiceReadiness[entry.id] == false
+            )
+        }
     }
 
     private var selectedEntry: LearningEntry? {
@@ -220,7 +225,8 @@ struct PadMainView: View {
             languageSpace: languageSpace,
             entries: entries,
             filteredEntries: filteredEntries,
-            memoryItems: memoryItems,
+            practiceReadiness: contentStore.practiceReadiness,
+            renderingForEntry: { contentStore.rendering(for: $0) },
             selectedEntry: selectedEntry,
             activeFilter: activeFilter,
             route: route,
@@ -275,7 +281,7 @@ struct PadMainView: View {
         setRoute(.entryDetail(entry.id))
     }
 
-    private func selectFilter(_ filter: PadFilter) {
+    private func selectFilter(_ filter: EntryTimelineFilter) {
         activeFilter = filter
         setRoute(.workspace)
     }

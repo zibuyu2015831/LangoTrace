@@ -12463,18 +12463,18 @@
       }
     },
     "mac.section.today.subtitle": {
-      "comment": "Mac section subtitle.",
+      "comment": "Mac sidebar today count subtitle. %d = number of entries recorded today.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current space"
+            "value": "%d today"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前空间"
+            "value": "今天 %d 条"
           }
         }
       }
@@ -19808,6 +19808,176 @@
           "stringUnit": {
             "state": "translated",
             "value": "练习 %d 组"
+          }
+        }
+      }
+    },
+    "filter.settled": {
+      "comment": "Timeline filter chip label for entries that have been memory-settled (E7). Shared across all three platforms.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已沉淀"
+          }
+        }
+      }
+    },
+    "entry.material.status.none": {
+      "comment": "Material status pill shown when no learning material has been generated for an entry.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Generated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未生成"
+          }
+        }
+      }
+    },
+    "entry.material.status.stale": {
+      "comment": "Material status pill shown when the learning material was generated from an older version of the entry body.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Based on Old Entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基于旧记录"
+          }
+        }
+      }
+    },
+    "entry.material.status.fresh": {
+      "comment": "Material status pill showing sentence count. First argument is the number of sentences.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learning Material · %d sentences"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "学习材料 · %d 句"
+          }
+        }
+      }
+    },
+    "timeline.empty.title": {
+      "comment": "Title shown when there are no entries in the timeline.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No entries yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无记录"
+          }
+        }
+      }
+    },
+    "timeline.empty.body": {
+      "comment": "Body text shown when there are no entries in the timeline.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start recording a life moment to create your first entry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录一个生活瞬间，开始你的第一条记录。"
+          }
+        }
+      }
+    },
+    "timeline.filter.empty.title": {
+      "comment": "Title shown when the active filter has no matching entries.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching entries"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "筛选暂无结果"
+          }
+        }
+      }
+    },
+    "timeline.filter.empty.body": {
+      "comment": "Body text shown when the active filter has no matching entries.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a different filter."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试试其他筛选条件。"
+          }
+        }
+      }
+    },
+    "timeline.section.today": {
+      "comment": "Section header label for entries created today.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天"
+          }
+        }
+      }
+    },
+    "timeline.section.yesterday": {
+      "comment": "Section header label for entries created yesterday.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昨天"
           }
         }
       }

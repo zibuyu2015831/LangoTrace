@@ -161,4 +161,8 @@ private struct FailingReadLearningContentRepository: GRDBLearningContentReposito
     func updateEntryBody(entryID _: String, spaceID _: String, body _: String) throws -> LearningEntry {
         throw LearningContentRepositoryError.databaseUnavailable
     }
+
+    func learningPracticeReadiness(for _: String) throws -> [String: Bool] {
+        throw LearningContentRepositoryError.databaseUnavailable
+    }
 }

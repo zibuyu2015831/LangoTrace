@@ -10,6 +10,7 @@ protocol GRDBLearningContentRepositoryProtocol: Sendable {
     func currentMaterial(for entryID: String) throws -> LearningMaterial?
     func createEntry(_ draft: NewLearningEntryDraft, in spaceID: String) throws -> LearningEntry
     func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry
+    func learningPracticeReadiness(for spaceID: String) throws -> [String: Bool]
 }
 
 extension GRDBLearningContentRepository: GRDBLearningContentRepositoryProtocol {}
@@ -145,6 +146,15 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
             steps: PracticeSessionStep.allCases,
             targetText: rendering.targetText
         )
+    }
+
+    public func learningPracticeReadiness(for spaceID: String) -> [String: Bool] {
+        do {
+            return try repository.learningPracticeReadiness(for: spaceID)
+        } catch {
+            emitReadFailed(operation: "learningPracticeReadiness", error: error)
+            return [:]
+        }
     }
 }
 

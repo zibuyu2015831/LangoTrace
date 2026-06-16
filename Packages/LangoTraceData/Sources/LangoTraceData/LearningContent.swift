@@ -27,6 +27,10 @@ public protocol LearningContentRepository: AnyObject {
     func settingsCapabilities(for spaceID: String) -> [SettingsCapability]
     func practiceSession(for entryID: String) -> PracticeSessionState?
     func saveRendering(_ rendering: LearningRendering)
+    /// Returns a dictionary from entryID to hasCompletedRecording for all entries
+    /// that have a current learning material in the given space.
+    /// Entries without any learning material are absent from the result.
+    func learningPracticeReadiness(for spaceID: String) -> [String: Bool]
 }
 
 public final class InMemoryLearningContentRepository: LearningContentRepository {
@@ -289,6 +293,16 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
         )
     }
 
+    public func learningPracticeReadiness(for spaceID: String) -> [String: Bool] {
+        let entries = entriesBySpace[spaceID, default: []]
+        var result: [String: Bool] = [:]
+        for entry in entries {
+            guard renderingsByEntryID[entry.id] != nil else { continue }
+            result[entry.id] = false
+        }
+        return result
+    }
+
     private static func makeMockRendering(for entry: LearningEntry) -> LearningRendering {
         let targetText = "I wrote down a small moment from my day, and I can turn it into language practice."
         return LearningRendering(
@@ -362,6 +376,10 @@ public final class UnavailableLearningContentRepository: LearningContentReposito
 
     public func practiceSession(for _: String) -> PracticeSessionState? {
         nil
+    }
+
+    public func learningPracticeReadiness(for _: String) -> [String: Bool] {
+        [:]
     }
 }
 

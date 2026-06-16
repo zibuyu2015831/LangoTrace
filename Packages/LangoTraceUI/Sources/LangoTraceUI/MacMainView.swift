@@ -131,6 +131,14 @@ struct MacMainView: View {
         contentStore.memoryItems
     }
 
+    private var counts: EntryTimelineCounts {
+        timelineCounts(
+            entries: entries,
+            practiceReadiness: contentStore.practiceReadiness,
+            today: Date()
+        )
+    }
+
     private var selectedEntry: LearningEntry? {
         if let selectedEntryID, let entry = entries.first(where: { $0.id == selectedEntryID }) {
             return entry
@@ -184,7 +192,7 @@ struct MacMainView: View {
                     MacSidebarItem(
                         title: localizedString(section.titleKey),
                         subtitle: section.subtitle(
-                            entriesCount: entries.count,
+                            counts: counts,
                             memoryCount: memoryItems.count
                         ),
                         active: selectedSection == section,

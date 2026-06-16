@@ -18,6 +18,8 @@ final class LearningContentStore: ObservableObject {
     @Published private(set) var settingsCapabilities: [SettingsCapability] = []
     @Published private(set) var generationStates: [String: LearningMaterialGenerationState] = [:]
     @Published private(set) var sentenceAudioPlaybackStates: [String: SentenceAudioPresentationState] = [:]
+    /// entryID → hasCompletedRecording; only entries with a current learning material appear here.
+    @Published private(set) var practiceReadiness: [String: Bool] = [:]
 
     init(
         repository: any LearningContentRepository,
@@ -332,6 +334,7 @@ final class LearningContentStore: ObservableObject {
         selectedEntry = repository.selectedEntry(for: spaceID)
         memoryItems = repository.memoryItems(for: spaceID)
         settingsCapabilities = repository.settingsCapabilities(for: spaceID)
+        practiceReadiness = repository.learningPracticeReadiness(for: spaceID)
     }
 
     private func recordBlockedOperation(

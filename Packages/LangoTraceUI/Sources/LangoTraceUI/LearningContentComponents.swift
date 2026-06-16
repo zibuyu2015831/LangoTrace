@@ -4,6 +4,7 @@ import SwiftUI
 
 struct EntryTimelineRow: View {
     let entry: LearningEntry
+    let rendering: LearningRendering?
     let targetLanguage: String
     let isSelected: Bool
     let action: () -> Void
@@ -23,9 +24,7 @@ struct EntryTimelineRow: View {
                     Text("\(entry.displaySourceTitle) · \(targetLanguage) · \(entry.scene)")
                         .font(.footnote)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                    Text(entry.practiceStatus.displayLabel)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                    EntryMaterialStatusPill(entry: entry, rendering: rendering)
                 }
                 Spacer(minLength: 0)
             }
@@ -51,10 +50,18 @@ struct EntryTimelineRow: View {
                 "entry.timeline.accessibilityLabel",
                 entry.title,
                 entry.displaySourceTitle,
-                entry.practiceStatus.displayLabel
+                localizedString(materialStatusAccessibilityKey)
             )
         )
         .accessibilityValue(localizedText(isSelected ? "accessibility.selected" : "accessibility.unselected"))
+    }
+
+    private var materialStatusAccessibilityKey: String {
+        switch materialStatus(entry: entry, rendering: rendering) {
+        case .noMaterial: "entry.material.status.none"
+        case .stale: "entry.material.status.stale"
+        case .fresh: "entry.material.status.fresh"
+        }
     }
 
     private var rowBackground: Color {

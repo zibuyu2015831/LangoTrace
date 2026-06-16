@@ -48,12 +48,12 @@ enum MacWorkspaceSection: CaseIterable, Hashable {
         }
     }
 
-    func subtitle(entriesCount: Int, memoryCount: Int) -> String {
+    func subtitle(counts: EntryTimelineCounts, memoryCount: Int) -> String {
         switch self {
         case .today:
-            localizedString("mac.section.today.subtitle")
+            localizedString("mac.section.today.subtitle", counts.today)
         case .entries:
-            localizedString("mac.section.entries.subtitle", entriesCount)
+            localizedString("mac.section.entries.subtitle", counts.total)
         case .reading:
             localizedString("reading.library.subtitle")
         case .practice:

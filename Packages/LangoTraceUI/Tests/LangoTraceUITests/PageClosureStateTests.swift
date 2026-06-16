@@ -6,19 +6,16 @@ import Testing
 
 @Suite("Page closure state")
 struct PageClosureStateTests {
-    @Test("Pad filters include the expected mock records")
-    func padFiltersIncludeExpectedRecords() {
+    @Test("Timeline filters include the expected mock records")
+    func timelineFiltersIncludeExpectedRecords() {
         let repository = InMemoryLearningContentRepository.seeded(spaceID: "en")
         let entries = repository.entries(for: "en")
-        let memory = repository.memoryItems(for: "en")
 
-        #expect(entries.count(where: { PadFilter.all.includes(entry: $0, memoryItems: memory) }) == entries.count)
-        #expect(entries.filter { PadFilter.photoWriting.includes(entry: $0, memoryItems: memory) }
+        #expect(entries.count(where: { EntryTimelineFilter.all.includes(entry: $0, hasMaterialWithoutRecording: false) }) == entries.count)
+        #expect(entries.filter { EntryTimelineFilter.photo.includes(entry: $0, hasMaterialWithoutRecording: false) }
             .allSatisfy { $0.source == .photoWriting })
-        #expect(entries.filter { PadFilter.memorized.includes(entry: $0, memoryItems: memory) }
-            .allSatisfy { entry in
-                memory.contains { $0.entryID == entry.id }
-            })
+        #expect(entries.filter { EntryTimelineFilter.settled.includes(entry: $0, hasMaterialWithoutRecording: false) }
+            .isEmpty)
     }
 
     @Test("Pad footer actions route to visible pages")

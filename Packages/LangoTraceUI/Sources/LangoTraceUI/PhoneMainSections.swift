@@ -5,12 +5,15 @@ import SwiftUI
 struct PhoneRecordWorkspaceView: View {
     let languageSpace: LanguageSpacePreview
     let entries: [LearningEntry]
+    let practiceReadiness: [String: Bool]
     let renderingForEntry: (LearningEntry) -> LearningRendering?
     let onNewEntry: () -> Void
     let onPhotoWriting: () -> Void
     let onLanguageSpaceAction: () -> Void
     var onSettingsAction: (() -> Void)?
     let onSelectEntry: (LearningEntry) -> Void
+
+    @State private var selectedFilter: EntryTimelineFilter = .all
 
     var body: some View {
         PhonePage(
@@ -24,22 +27,119 @@ struct PhoneRecordWorkspaceView: View {
                 onNewEntry: onNewEntry,
                 onPhotoWriting: onPhotoWriting
             )
-            SectionHeader(titleKey: "phone.today.recent.title")
+            FilterChipRow(selectedFilter: $selectedFilter)
             if entries.isEmpty {
-                EmptyEntryPanel(onNewEntry: onNewEntry)
+                LocalizedCompactPanel(
+                    titleKey: "timeline.empty.title",
+                    textKey: "timeline.empty.body",
+                    systemImage: "square.and.pencil"
+                )
+            } else if filteredEntries.isEmpty {
+                LocalizedCompactPanel(
+                    titleKey: "timeline.filter.empty.title",
+                    textKey: "timeline.filter.empty.body",
+                    systemImage: "line.3.horizontal.decrease"
+                )
             } else {
-                LazyVStack(alignment: .leading, spacing: 20) {
-                    ForEach(entries) { entry in
-                        EntryCard(
-                            entry: entry,
-                            targetLanguage: languageSpace.targetLanguage,
-                            rendering: renderingForEntry(entry),
-                            action: { onSelectEntry(entry) }
-                        )
+                LazyVStack(alignment: .leading, spacing: 20, pinnedViews: .sectionHeaders) {
+                    ForEach(dayGroups) { group in
+                        Section {
+                            ForEach(group.entries) { entry in
+                                EntryCard(
+                                    entry: entry,
+                                    targetLanguage: languageSpace.targetLanguage,
+                                    rendering: renderingForEntry(entry),
+                                    action: { onSelectEntry(entry) }
+                                )
+                            }
+                        } header: {
+                            Text(sectionHeaderTitle(for: group.date))
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                                .padding(.top, 4)
+                        }
                     }
                 }
             }
         }
+    }
+
+    private var filteredEntries: [LearningEntry] {
+        entries.filter { entry in
+            selectedFilter.includes(
+                entry: entry,
+                hasMaterialWithoutRecording: practiceReadiness[entry.id] == false
+            )
+        }
+    }
+
+    private var dayGroups: [EntryDayGroup] {
+        groupEntriesByDay(filteredEntries)
+    }
+
+    private func sectionHeaderTitle(for date: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            return localizedString("timeline.section.today")
+        } else if calendar.isDateInYesterday(date) {
+            return localizedString("timeline.section.yesterday")
+        } else {
+            return date.formatted(date: .abbreviated, time: .omitted)
+        }
+    }
+}
+
+private struct FilterChipRow: View {
+    @Binding var selectedFilter: EntryTimelineFilter
+
+    private var visibleFilters: [EntryTimelineFilter] {
+        EntryTimelineFilter.allCases.filter { $0 != .settled }
+    }
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(visibleFilters, id: \.self) { filter in
+                    FilterChipButton(
+                        titleKey: filter.titleKey,
+                        isSelected: selectedFilter == filter,
+                        action: { selectedFilter = filter }
+                    )
+                }
+            }
+            .padding(.horizontal, 1)
+        }
+    }
+}
+
+private struct FilterChipButton: View {
+    let titleKey: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            localizedText(titleKey)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(
+                    isSelected
+                        ? LangoTraceDesign.ColorToken.whiteInk
+                        : LangoTraceDesign.ColorToken.ink
+                )
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(
+                    isSelected
+                        ? LangoTraceDesign.ColorToken.accent
+                        : LangoTraceDesign.ColorToken.surfaceBase
+                )
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+        .contentShape(Rectangle())
+        .accessibilityLabel(localizedText(titleKey))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

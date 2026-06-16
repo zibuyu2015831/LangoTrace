@@ -30,6 +30,7 @@ struct PhoneMainView: View {
                 PhoneRecordWorkspaceView(
                     languageSpace: languageSpace,
                     entries: entries,
+                    practiceReadiness: contentStore.practiceReadiness,
                     renderingForEntry: rendering(for:),
                     onNewEntry: { presentedSheet = .entryEditor },
                     onPhotoWriting: { presentedSheet = .photoWritingPreview },

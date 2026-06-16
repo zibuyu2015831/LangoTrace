@@ -345,6 +345,35 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
         }
     }
 
+    public func learningPracticeReadiness(for spaceID: String) throws -> [String: Bool] {
+        try databaseQueue.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT e.id AS entry_id,
+                       EXISTS(
+                           SELECT 1 FROM practice_sessions ps
+                           WHERE ps.entry_id = e.id
+                             AND ps.completed_recording_id IS NOT NULL
+                       ) AS has_completed_recording
+                FROM entries e
+                JOIN learning_materials lm ON lm.entry_id = e.id
+                    AND lm.deleted_at IS NULL
+                    AND lm.is_current = 1
+                WHERE e.space_id = ? AND e.deleted_at IS NULL
+                """,
+                arguments: [spaceID]
+            )
+            var result: [String: Bool] = [:]
+            for row in rows {
+                let entryID: String = row["entry_id"]
+                let hasCompleted: Bool = (row["has_completed_recording"] as Int) != 0
+                result[entryID] = hasCompleted
+            }
+            return result
+        }
+    }
+
     public func deleteEntry(id: String) throws {
         try databaseQueue.write { db in
             let now = clock().timeIntervalSince1970

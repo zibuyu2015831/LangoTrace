@@ -6,13 +6,18 @@ struct PadSidebarView: View {
     let languageSpace: LanguageSpacePreview
     let entries: [LearningEntry]
     let filteredEntries: [LearningEntry]
-    let memoryItems: [MemoryItem]
+    let practiceReadiness: [String: Bool]
+    let renderingForEntry: (LearningEntry) -> LearningRendering?
     let selectedEntry: LearningEntry?
-    let activeFilter: PadFilter
+    let activeFilter: EntryTimelineFilter
     let route: PadWorkspaceRoute
     let onSelectEntry: (LearningEntry) -> Void
-    let onSelectFilter: (PadFilter) -> Void
+    let onSelectFilter: (EntryTimelineFilter) -> Void
     let onRoute: (PadWorkspaceRoute) -> Void
+
+    private var visibleFilters: [EntryTimelineFilter] {
+        EntryTimelineFilter.allCases.filter { $0 != .settled }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -22,13 +27,16 @@ struct PadSidebarView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     SidebarSectionTitle("pad.sidebar.timeline")
                     LazyVStack(spacing: 10) {
-                        ForEach(filteredEntries) { entry in
-                            EntryTimelineRow(
-                                entry: entry,
-                                targetLanguage: languageSpace.targetLanguage,
-                                isSelected: entry.id == selectedEntry?.id
-                            ) {
-                                onSelectEntry(entry)
+                        ForEach(dayGroups) { group in
+                            ForEach(group.entries) { entry in
+                                EntryTimelineRow(
+                                    entry: entry,
+                                    rendering: renderingForEntry(entry),
+                                    targetLanguage: languageSpace.targetLanguage,
+                                    isSelected: entry.id == selectedEntry?.id
+                                ) {
+                                    onSelectEntry(entry)
+                                }
                             }
                         }
                     }
@@ -36,10 +44,10 @@ struct PadSidebarView: View {
                     SidebarSectionTitle("pad.sidebar.filters")
                         .padding(.top, 4)
                     VStack(alignment: .leading, spacing: 8) {
-                        ForEach(PadFilter.allCases, id: \.self) { filter in
+                        ForEach(visibleFilters, id: \.self) { filter in
                             FilterPill(
                                 titleKey: filter.titleKey,
-                                count: "\(entries.count { filter.includes(entry: $0, memoryItems: memoryItems) })",
+                                count: "\(entries.count { filter.includes(entry: $0, hasMaterialWithoutRecording: practiceReadiness[$0.id] == false) })",
                                 active: activeFilter == filter
                             ) {
                                 onSelectFilter(filter)
@@ -95,6 +103,10 @@ struct PadSidebarView: View {
             alignment: .topLeading
         )
         .background(LangoTraceDesign.ColorToken.surfaceSidebar.opacity(0.72))
+    }
+
+    private var dayGroups: [EntryDayGroup] {
+        groupEntriesByDay(filteredEntries)
     }
 }
 
