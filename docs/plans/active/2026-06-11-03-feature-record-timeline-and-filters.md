@@ -1,14 +1,20 @@
 # 任务方案：记录 Tab 生活时间线与三端共享筛选投影（系列 E1）
 
-状态：Draft
+状态：User Approved
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-17
 
 ## 用户确认记录
 
-本方案在 2026-06-11 主方案授权下创建（`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`）。该授权仅覆盖"系列方案文档的制定"，不覆盖本方案的实现。进入生产代码实现前，必须由用户单独确认本方案，并将状态推进为 `User Approved`。其中"已沉淀 / 已记忆"的三端统一文案选择（第 12 节 Phase 1 步骤 2）需要用户拍板。
+本方案在 2026-06-11 主方案授权下创建（`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`）。该授权仅覆盖"系列方案文档的制定"，不覆盖本方案的实现。
+
+**2026-06-17 用户确认（进入 User Approved 状态）：**
+
+- Q1 文案统一：三端统一采用「**已沉淀**」，iPad 原型的「已记忆」不再使用。String Catalog key 从 `pad.filter.memorized` 重命名为 `filter.settled`，避免 `memorized` 语义污染后续 E7 能力。
+- Q2 零态过渡：采用 **Option B**——`EntryTimelineFilter.settled` 完整实现（判定函数、计数、单元测试），但 chip UI 渲染处 guard 过滤，E7 落地时移除该 guard 即可暴露。不展示长期空态 chip。
+- Q3 pill 更新范围：`PhoneMainSupportingViews.swift`（phone EntryCard）**纳入** E1 Phase 3；`MacInspectorContent.swift` **排除**（检视器的 practiceStatus 字段语义是练习历史，与材料状态不同，待 entry(from:) JOIN practice_sessions 后自然修正）；Phase 2 按架构简化——pill 三态改为 UI 层纯函数，Data 层只查 `hasCompletedRecording`。
 
 ## 1. 需求或 bug 描述
 
@@ -22,12 +28,12 @@
 
 ## 2. 现状描述
 
-按 HEAD `274b7db` 核验：
+按 HEAD `0f0da44`（E0b 全部完成后）核验：
 
 1. iPhone 记录列表：`PhoneRecordWorkspaceView`（`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSections.swift:5-44`）以 `LazyVStack` 平铺 `contentStore.entries`，无日期分组、无筛选。
 2. iPad 筛选：`PadFilter`（`PadMainModels.swift:4-35`）已有 `all / photoWriting / needsPractice / memorized` 四 case 与 String Catalog key；但 `needsPractice` / `memorized` 的判定是 `memoryItems.contains { $0.entryID == entry.id }` 的反 / 正命中——memory item 当前来自 seed / mock 主路径，`docs/platform-page-inventory.md` 将该筛选标记为 Local Mock，`docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md` §2.1 明确要求"待练习 / 已沉淀"的判定需要真实数据投影、不得复用 mock 推导。
 3. 数据层：`LearningContentRepository`（`Packages/LangoTraceData/Sources/LangoTraceData/LearningContent.swift:4-22`）提供 `entries(for:)`（按 `created_at DESC`，`GRDBLearningContentRepository.swift:70`）、`practiceItems(for:)`、`memoryItems(for:)` 等；无日期分组查询、无筛选投影、无计数查询。`LearningEntry`（`LearningContentModels.swift:4-37`）有 `createdAt`、`source`（含 `photoWriting` case）。learning material、practice session（`completed_recording_id` 列，`AppDatabase.swift:680`）与 practice recording 元数据均已在 GRDB 中，足以推导"有学习材料但无完成录音"的待练习语义，无需新表。
-4. 卡片状态 pill：当前渲染 `entry.practiceSummary` 字符串（E0b Phase 4 将替换为结构化 `practiceStatus`）；"基于旧记录"（材料相对正文已过期）语义在 learning material 主路径中可由源文本哈希比对获得（`GRDBLearningContentRepository.swift` 内有 `LearningMaterialTextHash.sha256` 哈希路径）。
+4. 卡片状态 pill：当前渲染 `entry.practiceStatus.displayLabel`（E0b Phase 4 已将 `practiceSummary: String` 替换为结构化 `EntryPracticeStatus` enum，`LearningContentModels.swift:4-7`）。但 `GRDBLearningContentRepository.entry(from:)` 未 JOIN `practice_sessions`，因此所有 GRDB 加载的真实 entry 的 `practiceStatus` 永远是默认值 `.notStarted`——三端卡片实际上全部显示「待练习」占位文案，与真实状态无关。材料状态（生成 / 未生成 / 过期）存储在 `LearningRendering` 的 `sourceEntryBodyHash` 字段（E0b 完成，现已可靠可用）。
 5. Mac sidebar：`MacMainView` 已展示 `今日 / 全部记录 / 记忆` 计数（`docs/platform-page-inventory.md` Mac sidebar 条目），但计数推导未与 iPhone / iPad 共享投影函数。
 6. 照片：照片附件主数据尚不存在（E2 范围）；当前唯一"照片"信号是 `entry.source == .photoWriting`。
 
@@ -55,12 +61,13 @@
 ## 5. 不做什么
 
 - 不实现照片附件主数据、缩略图与真实照片筛选判定（E2；本方案照片筛选仅按 `source == .photoWriting`，并在判定函数中留好输入扩展位）。
-- 不实现记忆沉淀的真实判定与"已沉淀"非零结果（系列 E7 记忆方案；本方案只做零态）。
+- 不实现记忆沉淀的真实判定与"已沉淀"非零结果（系列 E7 记忆方案；本方案实现 `settled` 完整类型系统和计数逻辑，但 UI chip 渲染处 guard 过滤，E7 落地时移除 guard）。
 - 不做周分组、自定义分组粒度切换（architecture note §2.1 留作后续决策，本方案固定按日分组）。
 - 不做跨语言空间时间线（时间线限定当前语言空间）。
 - 不建 FTS、不做搜索（系列后续方案；architecture note §3 明确禁止提前建 FTS 表）。
 - 不为筛选预埋未经评审的 Entry 字段或派生表（architecture note §3）；全部投影为现有表上的只读查询。
 - 不改 Hero 双入口与 entry editor 行为。
+- 不更新 `MacInspectorContent.swift` 的 `practiceStatus.displayLabel`——检视器字段语义是练习历史，与材料状态不同；修复依赖未来 `entry(from:)` JOIN `practice_sessions` 的任务，不在本方案范围。
 
 ## 6. 证据与决策依据
 
@@ -72,9 +79,12 @@
 
 ```text
 证据能证明什么：原型与备忘录确定了筛选语义、分组形态和共享要求；现有 GRDB 表足以推导待练习语义。
-证据不能证明什么：不能证明"基于旧记录"的过期判定在当前 schema 下完全可推导——若实现期发现材料源文本哈希不可比对，该 pill 退化为"学习材料 · n 句 / 未生成"两态，并回方案修订（不加列、不加 migration 是硬边界）。
+"基于旧记录"过期判定已确认可推导：AppDatabase.swift:57 的 v5_add_learning_material_source_entry_body_hash 
+migration 确认 source_entry_body_hash 列已存在；LearningRendering 已携带 sourceEntryBodyHash 字段（E0b 完成）；
+pill 三态在 UI 层从 (entry.body, rendering?) 推导，无需 Data 层额外查询，降级路径保留作 schema 未来变化备用。
 迁移前提：无外部参考迁移。
-照搬风险：原型中 iPad 的"已记忆"与 iPhone 的"已沉淀"文案不一致，不得照搬两套文案，必须统一 key。
+照搬风险：原型中 iPad 的"已记忆"与 iPhone 的"已沉淀"文案不一致——已用户确认统一用"已沉淀"，
+String Catalog key 重命名为 filter.settled，不再保留 pad.filter.memorized。
 ```
 
 ## 7. 约束映射与验证路径
@@ -128,16 +138,18 @@
 
 ## 8. 涉及的代码文件路径
 
-- `Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSections.swift`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSections.swift`（PhoneRecordWorkspaceView 时间线化 + 筛选 chips）
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSupportingViews.swift`（EntryCard pill 从 practiceStatus.displayLabel → EntryMaterialStatusPill，**Phase 3 新增**）
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/PadMainSections.swift`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/PadMainModels.swift`（PadFilter 迁移 / 删除）
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/MacMainView.swift`、`MacMainModels.swift`
-- `Packages/LangoTraceUI/Sources/LangoTraceUI/LearningContentComponents.swift`
-- 新增 `Packages/LangoTraceUI/Sources/LangoTraceUI/EntryTimeline.swift`（共享筛选枚举 `EntryTimelineFilter`、日分组函数、计数函数、pill 投影）
-- `Packages/LangoTraceData/Sources/LangoTraceData/LearningContent.swift`、`GRDBLearningContentRepository.swift`（新增练习就绪 / 材料概要投影查询）
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/LearningContentComponents.swift`（EntryTimelineRow pill 更新，**Phase 4 iPad 接线**）
+- 新增 `Packages/LangoTraceUI/Sources/LangoTraceUI/EntryTimeline.swift`（`EntryTimelineFilter` 枚举、`EntryMaterialStatusPill` 纯函数、日分组函数、计数函数）
+- `Packages/LangoTraceData/Sources/LangoTraceData/LearningContent.swift`、`GRDBLearningContentRepository.swift`（新增 `learningPracticeReadiness(for:)` 查询，仅返回 `[String: Bool]` hasCompletedRecording）
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/LearningContentStore.swift`（投影装配）
-- String Catalog 资源文件（LangoTraceUI 包内 xcstrings）
+- String Catalog 资源文件（LangoTraceUI 包内 xcstrings）：新增筛选、section header、零态、pill key；`pad.filter.memorized` → `filter.settled`
 - 测试：`Packages/LangoTraceUI/Tests/LangoTraceUITests/Timeline/`（新建子目录）、`Packages/LangoTraceData/Tests/LangoTraceDataTests/`
+- **不涉及**：`MacInspectorContent.swift`（检视器 practiceStatus 字段排除，见 §5）
 
 ## 9. 参考的代码文件路径
 
@@ -161,31 +173,34 @@
 
 ### Phase 1：共享筛选与投影类型（UI 包纯函数层）
 
-1. 新增 `EntryTimelineFilter`（cases：`all / photo / needsPractice / settled`），替代 `PadFilter`；保留 String Catalog key 机制，`photo` 沿用 `entrySource.photoWriting` key 或新增独立 key。
-2. 文案统一决策（需用户确认）：建议三端统一用「已沉淀」（与产品"从生活沉淀词句"的记忆叙事一致，原型 iPhone 版与 Mac 记忆定位一致），iPad 原型中的「已记忆」不再使用；确认后更新 String Catalog。
-3. 新增判定函数 `EntryTimelineFilter.includes(entry:projection:)`，输入为 entry + 真实投影（`EntryLearningProjection`：是否有材料、句数、材料是否过期、是否有完成录音、未来的照片附件标记），不再接收 memoryItems。
-4. 新增日分组纯函数 `groupEntriesByDay(_:calendar:)` 与计数函数 `timelineCounts(entries:projections:)`（today / total / 各筛选计数）。
-5. DoD：投影纯函数测试全绿；`PadFilter` 类型从源码移除。
+1. 新增 `EntryTimelineFilter`（cases：`all / photo / needsPractice / settled`），替代 `PadFilter`；`photo` 沿用 `entrySource.photoWriting` key 或新增独立 key。
+2. 文案：三端统一「已沉淀」（用户已确认）。String Catalog 新增 `filter.settled`（中文：已沉淀，英文：Settled），**不保留** `pad.filter.memorized`。
+3. 新增判定函数 `EntryTimelineFilter.includes(entry:hasCompletedRecording:)`，输入为 entry + `hasCompletedRecording: Bool`（来自 Phase 2 查询），不再接收 memoryItems。`settled` case 判定逻辑留空（始终返回 false），等待 E7 填充。
+4. 新增日分组纯函数 `groupEntriesByDay(_:calendar:)` 与计数函数 `timelineCounts(entries:practiceReadiness:)`（today / total / 各筛选计数）。
+5. **`settled` chip guard**：chips 渲染处排除 `settled` case（`filter.allCases.filter { $0 != .settled }`），保留类型系统完整，但不向用户暴露空态 chip。E7 落地时删除此过滤。
+6. DoD：筛选纯函数测试全绿；`PadFilter` 类型从源码移除。
 
-### Phase 2：Data 只读投影查询
+### Phase 2：Data 只读投影查询（简化版）
 
-1. `LearningContentRepository` 新增 `learningProjections(for spaceID: String) -> [String: EntryLearningProjection]`（或逐 entry 查询，倾向批量一次查询避免 N+1）：JOIN learning material（存在性、句数、源文本哈希 vs 当前正文哈希）与 practice_sessions / practice_recordings（是否存在 completed recording）。
-2. 过期判定（"基于旧记录"）：以材料保存的源文本哈希与当前 `entry.body` 哈希比对；若实现核实 schema 无可比对哈希，本 pill 降级两态并回方案修订（见第 6 节证据边界）。
-3. mock / seed repository 同步实现该投影，保持 UI 预览可用。
-4. DoD：Data 包投影查询测试（含空材料、有材料无录音、有完成录音、材料过期四个 fixture 场景）全绿；无 migration 变化。
+**架构调整（2026-06-17 确认）：** pill 三态（学习材料 · n 句 / 未生成 / 基于旧记录）从 `(entry.body, rendering?)` 在 UI 层纯函数推导，`LearningRendering.sourceEntryBodyHash` 已可靠可用（E0b 完成）。Data 层只需提供"待练习"筛选所需的真实 practice 状态。
+
+1. `LearningContentRepository` 新增 `learningPracticeReadiness(for spaceID: String) -> [String: Bool]`（entryID → hasCompletedRecording），SQL：JOIN `learning_materials` 存在性 + `practice_sessions.completed_recording_id IS NOT NULL`，批量一次查询避免 N+1。
+2. mock / seed repository 同步实现该查询，返回空字典或对应 seed entry 的 mock 值，保持 UI 预览可用。
+3. `LearningContentStore` 装配：加载 `practiceReadiness: [String: Bool]` 并暴露给 View。
+4. DoD：Data 包 `learningPracticeReadiness` 测试（含无 session、有 session 无录音、有完成录音三个 GRDB fixture 场景）全绿；无 migration 变化（`rg "registerMigration"` 数量与实现前一致）。
 
 ### Phase 3：iPhone 时间线
 
 1. `PhoneRecordWorkspaceView` 列表区改为分组 section：header 用系统相对日期（今天 / 昨天）+ 本地化日期格式；保持 `LazyVStack` + section 结构，Hero 双入口不动。
-2. 加入筛选 chips（水平排列，选中态为 transient `@State`），消费 Phase 1 共享类型。
-3. 卡片状态 pill 接 `EntryLearningProjection` 三态映射（`学习材料 · n 句` 走 String Catalog 复数；`未生成`；`基于旧记录`）；`settled` 筛选选中时展示零态说明（指向记忆能力后续开放，文案不暴露工程概念）。
-4. DoD：分组与 pill 的 presentation 测试全绿；模拟器人工验证滚动与空态。
+2. 加入筛选 chips（水平排列，选中态为 transient `@State`），消费 Phase 1 共享类型；`settled` chip 被 Phase 1 guard 过滤，不渲染。
+3. **`PhoneMainSupportingViews.swift`（EntryCard pill）**：新增 `EntryMaterialStatusPill`（在 `EntryTimeline.swift` 中定义的纯函数），从 `(entry: LearningEntry, rendering: LearningRendering?)` 推导三态：`rendering == nil` → 「未生成」；`rendering.sourceEntryBodyHash != LearningMaterialTextHash.sha256(for: entry.body)` → 「基于旧记录」；否则 → 「学习材料 · n 句」（`rendering.sentences.count`，走 String Catalog 复数）。替换原 `entry.practiceStatus.displayLabel` 用法。
+4. DoD：`EntryMaterialStatusPill` 纯函数单元测试全绿（三态全覆盖，无需模拟器）；`PhoneMainSupportingViews.swift` 中无 `practiceStatus.displayLabel` 残留（rg 验证）；模拟器人工验证分组滚动与两种空态（无 entry / 筛选无命中）。
 
 ### Phase 4：iPad 与 Mac 接线
 
-1. iPad：`PadSidebarView` 的筛选改为共享类型与真实投影；时间线侧栏按日分组（与 iPhone 共享分组函数）。
+1. iPad：`PadSidebarView` 的筛选改为共享 `EntryTimelineFilter` 类型与 `practiceReadiness` 真实投影；时间线侧栏按日分组（与 iPhone 共享 `groupEntriesByDay` 函数）。**`LearningContentComponents.swift`（EntryTimelineRow pill）** 同步替换为 `EntryMaterialStatusPill`，与 Phone 共用同一纯函数，替换原 `entry.practiceStatus.displayLabel`。
 2. Mac：sidebar `今日` / `全部记录` 计数改由 `timelineCounts` 提供；展示结构不变。
-3. DoD：三端消费同一投影函数（结构性检查：`rg "EntryTimelineFilter" Packages/LangoTraceUI/Sources` 命中 Phone / Pad / Mac 三处消费）；`rg "PadFilter" Packages` 无命中。
+3. DoD：三端消费同一投影函数（`rg "EntryTimelineFilter" Packages/LangoTraceUI/Sources` 命中 Phone / Pad / Mac 三处）；`rg "PadFilter" Packages` 无命中；`LearningContentComponents.swift` 中无 `practiceStatus.displayLabel` 残留。
 
 ### Phase 5：文档与收口
 
@@ -212,6 +227,19 @@
 1. 三端统一文案采用「已沉淀」的建议是否认可。
 2. "已沉淀"零态过渡（筛选可见但结果为空态说明）是否符合预期，或在 E7 前隐藏该筛选项。
 是否允许进入实现：待用户确认后允许。
+
+---
+
+**补充轮审核（2026-06-17）**
+审核方式：主会话代码核验（E0b 完成后，HEAD 0f0da44）
+发现摘要：
+- [P1] entry.practiceStatus 在 GRDB 中永远是 .notStarted（GRDBLearningContentRepository.entry(from:) L658-669 未 JOIN practice_sessions），三端卡片 practiceStatus.displayLabel 实际全部显示「待练习」占位；原方案未识别此问题，Phase 2 的 EntryLearningProjection 设计对 pill 部分是多余的——pill 三态可从已有 (entry, rendering?) 参数在 UI 层推导，无需 Data 层返回 sentenceCount / sourceTextHash。已简化 Phase 2 为 learningPracticeReadiness 单一查询，pill 逻辑移入 UI 层纯函数 EntryMaterialStatusPill。
+- [P1] source_entry_body_hash 列已确认存在（AppDatabase.swift:57 v5 migration，LearningRendering.sourceEntryBodyHash 字段 E0b 完成后可靠可用）；原方案 §6/§20 的降级风险描述过度保守。已更新为"已确认可推导，降级路径保留作 schema 未来变化备用"。
+- [P2] LearningContentComponents.swift 是 iPad EntryTimelineRow（非 Phone EntryCard），Phone EntryCard 在 PhoneMainSupportingViews.swift（原方案 §8 缺失）。已将 PhoneMainSupportingViews.swift 纳入 Phase 3 范围；LearningContentComponents.swift 归属 Phase 4 iPad 接线。
+- [P3] 代码引用 HEAD 已从 274b7db 更新为 0f0da44；§2 E0b 相关描述从未来时改为已完成事实。
+- [用户确认已获得] Q1（已沉淀）、Q2（Option B 隐藏 chip）、Q3（Phone 纳入，Mac 检视器排除，Phase 2 简化）均已用户确认。
+写回修改：§2、§5、§6、§8、§12 Phase 1-4、§15、§18、§20 按上述修订；用户确认记录补充三条决策。
+是否允许进入实现：是（User Approved）。
 ```
 
 ## 14. 复查方法
@@ -225,23 +253,25 @@
 ## 15. TDD / 测试落点
 
 ```text
-测试落点（Phase 1）：Packages/LangoTraceUI/Tests/LangoTraceUITests/Timeline/EntryTimelineProjectionTests.swift（新建子目录与文件）
+测试落点（Phase 1，分组）：Packages/LangoTraceUI/Tests/LangoTraceUITests/Timeline/EntryTimelineProjectionTests.swift（新建子目录与文件）
 先失败用例：groupsEntriesByDayWithTodayFirst —— 失败原因：分组函数与 EntryTimelineFilter 尚不存在（编译失败即红）
 聚焦验证命令：swift test --package-path Packages/LangoTraceUI --filter EntryTimelineProjectionTests
 
 测试落点（Phase 1，筛选）：同目录 EntryTimelineFilterTests.swift
-先失败用例：needsPracticeRequiresMaterialWithoutCompletedRecording —— 失败原因：判定函数尚不存在
+先失败用例：needsPracticeRequiresTrueHasCompletedRecordingFalse —— 失败原因：EntryTimelineFilter.includes(entry:hasCompletedRecording:) 尚不存在
 聚焦验证命令：swift test --package-path Packages/LangoTraceUI --filter EntryTimelineFilterTests
 
-测试落点（Phase 2）：Packages/LangoTraceData/Tests/LangoTraceDataTests/GRDBLearningProjectionTests.swift（新建）
-先失败用例：projectionMarksEntryWithMaterialAndNoRecordingAsNeedsPractice —— 失败原因：repository 投影方法尚不存在
-聚焦验证命令：swift test --package-path Packages/LangoTraceData --filter GRDBLearningProjectionTests
+测试落点（Phase 2）：Packages/LangoTraceData/Tests/LangoTraceDataTests/GRDBPracticeReadinessTests.swift（新建，名称更新）
+先失败用例：readinessReturnsTrueWhenEntryHasCompletedRecording —— 失败原因：learningPracticeReadiness(for:) 尚不存在
+聚焦验证命令：swift test --package-path Packages/LangoTraceData --filter GRDBPracticeReadinessTests
+fixture 场景：无 session、有 session 无录音、有完成录音（completed_recording_id IS NOT NULL）
 
-测试落点（Phase 3）：Packages/LangoTraceUI/Tests/LangoTraceUITests/Timeline/EntryStatusPillPresentationTests.swift（新建）
-先失败用例：staleMaterialMapsToBasedOnOldRecordPill —— 失败原因：pill 投影尚不存在
-聚焦验证命令：swift test --package-path Packages/LangoTraceUI --filter EntryStatusPillPresentationTests
+测试落点（Phase 3）：Packages/LangoTraceUI/Tests/LangoTraceUITests/Timeline/EntryMaterialStatusPillTests.swift（新建，名称更新）
+先失败用例：staleMaterialMapsToBasedOnOldRecordPill —— 失败原因：EntryMaterialStatusPill 纯函数尚不存在
+聚焦验证命令：swift test --package-path Packages/LangoTraceUI --filter EntryMaterialStatusPillTests
+覆盖三态：nil rendering → 未生成；hash 不匹配 → 基于旧记录；hash 匹配 → 学习材料 · n 句
 
-不新增单元测试的原因（如适用）：滚动手感、chips 视觉与零态排版属人工验证项；文档更新依赖第 16 节文档命令。
+不新增单元测试的原因（如适用）：滚动手感、chips 视觉与空态排版属人工验证项；文档更新依赖第 16 节文档命令。
 ```
 
 ## 16. 验证命令
@@ -278,6 +308,8 @@ scripts/check-docs.sh
 
 2026-06-11：方案创建并完成双轮自审核（见第 13 节）。尚未进入实现。
 
+2026-06-17：基于 E0b 完成后代码（HEAD `0f0da44`）补充代码核验轮审核，发现并修订三条 P1/P2 问题（见 §13 补充轮）。用户确认三条架构决策（Q1 已沉淀、Q2 Option B 隐藏 chip、Q3 PhoneMainSupportingViews 纳入 / MacInspectorContent 排除 / Phase 2 简化），方案状态推进为 User Approved，可进入实现。
+
 ## 19. 完成标准
 
 1. 第 12 节 5 个 Phase 实施完毕，三端筛选与计数消费同一投影。
@@ -294,8 +326,9 @@ deferred / aborted 项是否已从完成叙事中剥离：真实照片判定（E
 
 ## 20. 剩余风险
 
-- "基于旧记录"判定依赖材料源文本哈希的持久化形态，实现期可能降级两态；已留降级口，不引入 migration。
-- 时间线分组与批量投影在千级 entry 规模未做性能评估；当前阶段数据量小可接受，规模化时需增量化（记录于此，不提前优化）。
-- "已沉淀"零态可能被用户理解为功能故障；零态文案需明确"将随记忆能力开放"，并依赖用户对零态过渡方案的确认。
-- E0b 未完成前实施本方案会在 PhoneMainView 旧结构上返工；系列顺序（E0b → E1）是硬前提。
-- 制定环境无 swift 工具链，红绿路径未演练，全部验证须 macOS 执行。
+- "基于旧记录"判定：`source_entry_body_hash` 列已确认存在（v5 migration），降级路径保留作 schema 未来变化备用，当前可正常实现三态。
+- 时间线分组与 `learningPracticeReadiness` 批量查询在千级 entry 规模未做性能评估；当前数据量小可接受，规模化时需增量化（记录于此，不提前优化）。
+- `settled` chip：类型系统完整，chip UI 被 guard 过滤。E7 接入时需移除 Phase 1 步骤 5 的 filter guard，并为 `EntryTimelineFilter.includes settled` 填充真实记忆判定逻辑。
+- `MacInspectorContent.swift` 的 `entry.practiceStatus.displayLabel` 因 `entry(from:)` 未 JOIN `practice_sessions` 而永远显示「待练习」占位；本方案显式排除，需在未来填充 GRDB practiceStatus 计算的任务中修复。
+- `PhoneMainSections.swift`（PracticeView）的 `projection(for:)` 函数同样使用 `entry.practiceStatus.displayLabel` 作为 statusText；属于 Practice Tab 范围，不在本方案 E1 范围，留后续方案处理。
+- 制定与审核环境无 swift 工具链，红绿路径未演练，全部验证须 macOS 执行。
