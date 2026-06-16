@@ -24,6 +24,9 @@
 - 示例数据、内存 Repository、Mock Provider 必须能被真实实现替换。
 - 异步任务不能散落在 View 中长期运行，必须有取消、错误和加载状态边界。
 - 业务错误不能只用 `print` 或临时文本处理，必须通过可测试的状态或结果返回到 UI。
+- **App target 文件注册**：向 `LangoTraceApp/` 直接添加 `.swift` 文件后，必须立即运行 `xcodegen generate`。`project.yml` 使用目录级通配符，新文件不会自动注册进 `LangoTrace.xcodeproj`，不重新生成会导致类型 / 函数在其他文件中找不到。
+- **跨 Package import 完整性**：`LangoTraceApp/` 中的文件使用来自某个 Package 的类型时，必须显式 `import` 每一个提供该类型的 Package（如 `LangoTraceCore`、`LangoTraceData`、`LangoTraceAI`、`LangoTraceSpeech` 等）。App target 即使依赖所有 Package，单个 `.swift` 文件仍需独立声明 import；缺少 import 会导致「Cannot find type in scope」报错，且只有在整体 build 时才暴露，局部只读代码阶段不会报错。
+- **公共 enum 新增 case 后的穷举性检查**：在 Core 或任何跨模块共享 Package 中的公共 `enum` 新增 `case` 后，必须用 `grep -rn "switch.*<EnumTypeName>\|case\." --include="*.swift"` 或等价方式扫描全仓库，确认所有已有 switch 语句已穷举新 case 或使用了 `@unknown default`。穷举性错误只在 build 时暴露，不会在测试中提前发现。
 
 ## 4. 默认推荐
 
@@ -241,3 +244,4 @@ AI 在写 SwiftUI 代码前应先回答：
 - 2026-05-20：补充保存类异步操作和诊断关联规则。原因：AI Provider 配置保存现在跨 UI、AI service、Keychain、Data repository 和诊断日志，需要明确 input invalid、真实失败、operation id 和 best-effort logging 的职责边界。影响范围：SwiftUI 保存入口、AI Provider 设置、后续同步 / 导出 / AI 请求状态机。是否需要 ADR：否。
 - 2026-05-23：更新 Entry / LearningMaterial 生成边界。原因：一键学习材料生成已从本地预览推进到三端共享 `EntryDetailView` 的真实 AI Provider action seam，且用户保存 Entry 后仍需显式触发生成；规范不应继续把本地预览描述为真实主路径。影响范围：PhoneMainView、PadMainSections、MacWorkspaceContentView、EntryDetailView、LearningContentStore、AppEnvironment。是否需要 ADR：否，沿用本地优先和三端共享业务逻辑决策。
 - 2026-06-07：新增 §4.10 跨平台颜色适配规则、§4.11 UIViewRepresentable 并发规则，并在 §6 补充三条反例。原因：verify.sh 检测到 `Color(.systemGray4)` 跨平台编译失败、`NSColor` 动态颜色闭包类型推导超时、`@objc` 选择器调用 `@MainActor` API 并发 warning 三类问题，均已在代码中修复；将根本原因写入规范，防止后续同类问题复发。影响范围：所有含 UIViewRepresentable / NSViewRepresentable 的跨平台文件、所有在 SwiftUI 文件中使用平台特定颜色 API 的场景。是否需要 ADR：否。
+- 2026-06-17：在 §3 补充 App target 文件注册、跨 Package import 完整性和公共 enum 穷举性检查三条强制规则。原因：build 阶段暴露三个工程基础设施漏洞——`ReadingExplanationOperationRecorder.swift` 加入 `LangoTraceApp/` 后未重新 xcodegen 导致类型找不到；该文件缺少 `import LangoTraceCore` 导致 `AIProviderConfigurationProfile` / `AIProviderEndpointInput` 找不到；`SentenceAudioPlaybackState` 新增 `.generating` / `.paused` case 后 `makeReadingTTSAction` switch 未穷举。三类问题均只在 build 时暴露，写入规范可在开发阶段提前拦截。影响范围：所有向 `LangoTraceApp/` 添加文件的操作、所有跨 Package 使用类型的文件、所有对 Core 公共 enum 的变更。是否需要 ADR：否。
