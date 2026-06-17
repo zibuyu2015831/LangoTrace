@@ -185,7 +185,58 @@ private extension PracticeExerciseType {
     }
 }
 
+/// Routes a practice sentence to the view for its exercise type. The three
+/// platform shells share this single entry; the exercise type carried by the
+/// route seed selects shadowing vs. dictation.
 struct PracticeSessionView: View {
+    let languageSpaceID: String
+    let routeSeed: PracticeSessionRouteSeed
+    let actions: PracticeActions
+    let onPlayDemo: @MainActor @Sendable () async -> SentenceAudioPresentationState
+    let onStopDemo: @MainActor @Sendable () async -> Void
+    let onNavigateSentence: (PracticeSessionRouteSeed) -> Void
+
+    init(
+        languageSpaceID: String,
+        routeSeed: PracticeSessionRouteSeed,
+        actions: PracticeActions,
+        onPlayDemo: @escaping @MainActor @Sendable () async -> SentenceAudioPresentationState = { .idle },
+        onStopDemo: @escaping @MainActor @Sendable () async -> Void = {},
+        onNavigateSentence: @escaping (PracticeSessionRouteSeed) -> Void = { _ in }
+    ) {
+        self.languageSpaceID = languageSpaceID
+        self.routeSeed = routeSeed
+        self.actions = actions
+        self.onPlayDemo = onPlayDemo
+        self.onStopDemo = onStopDemo
+        self.onNavigateSentence = onNavigateSentence
+    }
+
+    var body: some View {
+        switch routeSeed.snapshot.exerciseType {
+        case .dictation:
+            PracticeDictationSessionView(
+                languageSpaceID: languageSpaceID,
+                routeSeed: routeSeed,
+                actions: actions,
+                onPlayDemo: onPlayDemo,
+                onStopDemo: onStopDemo,
+                onNavigateSentence: onNavigateSentence
+            )
+        case .shadowing, .backtranslation:
+            PracticeShadowingSessionView(
+                languageSpaceID: languageSpaceID,
+                routeSeed: routeSeed,
+                actions: actions,
+                onPlayDemo: onPlayDemo,
+                onStopDemo: onStopDemo,
+                onNavigateSentence: onNavigateSentence
+            )
+        }
+    }
+}
+
+struct PracticeShadowingSessionView: View {
     let languageSpaceID: String
     let routeSeed: PracticeSessionRouteSeed
     let actions: PracticeActions
@@ -315,7 +366,7 @@ struct PracticeSessionView: View {
     }
 }
 
-private struct PracticeSentenceNavigationBar: View {
+struct PracticeSentenceNavigationBar: View {
     let routeSeed: PracticeSessionRouteSeed
     let isNavigationDisabled: Bool
     let onNavigate: (PracticeSentenceNavigationDirection) -> Void
@@ -411,7 +462,7 @@ struct PracticeSentenceNavigationBarPresentation: Equatable {
     }
 }
 
-private extension View {
+extension View {
     @ViewBuilder
     func langoPracticeInlineNavigationTitle() -> some View {
         #if os(iOS)

@@ -26,11 +26,9 @@ enum PracticeActionsAssembly {
         )
 
         return PracticeActions(
+            availableExerciseTypes: [.shadowing, .dictation],
             createOrRestoreSession: { languageSpaceID, snapshot in
-                guard snapshot.exerciseType == .shadowing else {
-                    throw PracticeActionFailure.disabled
-                }
-                return try await repository.createOrRestoreSession(
+                try await repository.createOrRestoreSession(
                     languageSpaceID: languageSpaceID,
                     snapshot: snapshot
                 )
@@ -78,8 +76,29 @@ enum PracticeActionsAssembly {
                 if case .failure = result {
                     throw PracticeActionFailure.playbackUnavailable
                 }
+            },
+            submitDictationAttempt: { session, submission in
+                _ = try await repository.recordTextAttempt(
+                    draft: PracticeTextAttemptDraft(
+                        sessionID: session.id,
+                        languageSpaceID: session.languageSpaceID,
+                        exerciseType: .dictation,
+                        attemptText: submission.attemptText,
+                        referenceTextSnapshot: submission.referenceText,
+                        diffDifferenceCount: submission.differenceCount,
+                        diffSummaryJSON: encodeDiffSummary(submission.summary),
+                        listenCount: submission.listenCount
+                    )
+                )
             }
         )
+    }
+
+    private static func encodeDiffSummary(_ summary: PracticeDictationDiffSummary) -> String? {
+        guard let data = try? JSONEncoder().encode(summary) else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
     }
 
     private static func makeStopRecordingAction(
@@ -276,6 +295,10 @@ enum PracticeActionsAssembly {
                 return "playback_unavailable"
             case .disabled:
                 return "disabled"
+            case .inputTooLong:
+                return "input_too_long"
+            case .attemptSaveFailed:
+                return "attempt_save_failed"
             }
         }
         return "unexpected_error"
