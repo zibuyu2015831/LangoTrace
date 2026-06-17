@@ -90,6 +90,9 @@ private extension AppDatabase {
         migrator.registerMigration("v16_add_reading_fk_and_check_constraints") { db in
             try addReadingFKAndCheckConstraints(db)
         }
+        migrator.registerMigration("v17_add_photo_artifact_types") { db in
+            try addPhotoArtifactTypes(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
@@ -830,6 +833,101 @@ private extension AppDatabase {
         """)
         try db.execute(sql: """
         DROP TABLE media_artifacts_v9
+        """)
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_media_artifacts_active_derivation_key
+        ON media_artifacts(artifact_type, derivation_kind, derivation_key_hash)
+        WHERE invalidated_at IS NULL
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_media_artifacts_language_type_accessed
+        ON media_artifacts(language_space_id, artifact_type, invalidated_at, last_accessed_at)
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_media_artifacts_owner
+        ON media_artifacts(owner_type, owner_id, owner_sub_id, invalidated_at)
+        """)
+    }
+
+    // swiftlint:disable:next function_body_length
+    static func addPhotoArtifactTypes(_ db: Database) throws {
+        // SQLite does not support ALTER TABLE … MODIFY COLUMN or CHECK constraint updates,
+        // so extending the artifact_type and derivation_kind CHECK constraints requires a
+        // full table rebuild — the same pattern used in v10 for practiceRecording.
+        try db.execute(sql: "PRAGMA legacy_alter_table = ON")
+        defer {
+            try? db.execute(sql: "PRAGMA legacy_alter_table = OFF")
+        }
+
+        try db.execute(sql: """
+        DROP INDEX IF EXISTS idx_media_artifacts_active_derivation_key
+        """)
+        try db.execute(sql: """
+        DROP INDEX IF EXISTS idx_media_artifacts_language_type_accessed
+        """)
+        try db.execute(sql: """
+        DROP INDEX IF EXISTS idx_media_artifacts_owner
+        """)
+        try db.execute(sql: """
+        ALTER TABLE media_artifacts RENAME TO media_artifacts_v16
+        """)
+        try db.execute(sql: """
+        CREATE TABLE media_artifacts (
+          id TEXT PRIMARY KEY,
+          language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          owner_type TEXT NOT NULL,
+          owner_id TEXT NOT NULL,
+          owner_sub_id TEXT,
+          artifact_type TEXT NOT NULL,
+          derivation_kind TEXT NOT NULL,
+          derivation_key_hash TEXT NOT NULL,
+          relative_file_path TEXT NOT NULL,
+          mime_type TEXT NOT NULL,
+          byte_size INTEGER NOT NULL,
+          duration_seconds REAL,
+          content_hash TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          last_accessed_at REAL NOT NULL,
+          invalidated_at REAL,
+          delete_after REAL,
+          backup_policy TEXT NOT NULL,
+          sync_policy TEXT NOT NULL,
+          export_policy TEXT NOT NULL,
+          file_state TEXT NOT NULL DEFAULT 'ready'
+            CHECK (file_state IN ('pending', 'ready')),
+          CHECK (byte_size >= 0),
+          CHECK (duration_seconds IS NULL OR duration_seconds >= 0),
+          CHECK (artifact_type IN (
+            'ttsSentenceAudio', 'ttsDocumentAudio', 'shadowingRecording',
+            'dictationRecording', 'ocrIntermediate', 'exportTemporary',
+            'entryPhotoOriginal', 'entryPhotoThumbnail'
+          )),
+          CHECK (derivation_kind IN ('ttsAudio', 'practiceRecording', 'photoImage')),
+          CHECK (backup_policy IN ('excludedFromSystemBackup', 'includedInSystemBackup')),
+          CHECK (sync_policy IN ('localOnly', 'syncCandidate', 'syncManaged')),
+          CHECK (export_policy IN (
+            'excludedByDefault', 'includedInUserExport', 'includedInRecoverableBackup'
+          ))
+        )
+        """)
+        try db.execute(sql: """
+        INSERT INTO media_artifacts (
+          id, language_space_id, owner_type, owner_id, owner_sub_id,
+          artifact_type, derivation_kind, derivation_key_hash, relative_file_path,
+          mime_type, byte_size, duration_seconds, content_hash, created_at,
+          last_accessed_at, invalidated_at, delete_after, backup_policy,
+          sync_policy, export_policy, file_state
+        )
+        SELECT
+          id, language_space_id, owner_type, owner_id, owner_sub_id,
+          artifact_type, derivation_kind, derivation_key_hash, relative_file_path,
+          mime_type, byte_size, duration_seconds, content_hash, created_at,
+          last_accessed_at, invalidated_at, delete_after, backup_policy,
+          sync_policy, export_policy, file_state
+        FROM media_artifacts_v16
+        """)
+        try db.execute(sql: """
+        DROP TABLE media_artifacts_v16
         """)
         try db.execute(sql: """
         CREATE UNIQUE INDEX idx_media_artifacts_active_derivation_key

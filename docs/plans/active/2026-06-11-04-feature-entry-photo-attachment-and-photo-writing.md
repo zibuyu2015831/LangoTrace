@@ -1,14 +1,22 @@
 # 任务方案：记录照片附件主数据与照片引导写作闭环（系列 E2）
 
-状态：Draft
+状态：In Progress
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-17（Phase 0 spike gate PASS，进入 Phase 1）
 
 ## 用户确认记录
 
 本方案在 2026-06-11 主方案授权下创建（`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`）。该授权仅覆盖"系列方案文档的制定"，不覆盖本方案的实现。进入生产代码实现前，必须由用户单独确认本方案，并将状态推进为 `User Approved`。本方案包含 GRDB 数据迁移与照片主数据语义决策（第 12 节 Phase 0 / Phase 1），属高风险存储动作，确认时请特别核对第 6 节的语义决策与第 5 节排除项。
+
+**2026-06-17 用户确认（进入 User Approved 状态）：**
+
+经第二轮自审核提出三条待确认问题，用户采纳推荐方案：
+
+- Q1 照片主资产语义：**采纳推荐**——照片原图 = 用户主资产，`delete_after` 恒为空，不参与自动清理 / LRU 失效；缩略图 = 可重建派生资产，可失效。
+- Q2 保存语义：**采纳推荐**——必须已选照片 + 写作区非空文本才允许触发「保存记录」；两者任一缺失时保存按钮禁用。
+- Q3 单照片限制：**采纳推荐**——第一版 UI 限单照片（PhotosPicker `maxSelectionCount: 1`）；schema 以 `entry_photo_attachments` 关联表建模支持未来多照片，不为 UI 限制写单列。
 
 ## 1. 需求或 bug 描述
 
@@ -23,12 +31,12 @@
 
 ## 2. 现状描述
 
-按 HEAD `274b7db` 核验：
+按 HEAD `3e96946`（E1 实施后，较方案制定时的 `274b7db` 推进了一个系列）核验：
 
-1. 媒体资产基础设施已就绪且为扩展预留了位置：`media_artifacts` 表（`AppDatabase.swift:560-593`）含 `artifact_type`（CHECK 枚举：ttsSentenceAudio / ttsDocumentAudio / shadowingRecording / dictationRecording / ocrIntermediate / exportTemporary）、`derivation_kind`（CHECK：ttsAudio / practiceRecording）、owner 三元组、`content_hash`、`invalidated_at` / `delete_after` 清理字段，以及三个策略列 `backup_policy` / `sync_policy` / `export_policy`；Core `MediaArtifactType` / `MediaArtifactDerivationKind`（`MediaArtifact.swift:67-74`）无 photo case；migration v10 已有"扩 CHECK 枚举"的先例（`v10_allow_practice_recording_media_derivation_kind`，`AppDatabase.swift:72`）。当前最新 migration 为 v15，下一可用编号 v16。
+1. 媒体资产基础设施已就绪且为扩展预留了位置：`media_artifacts` 表（`AppDatabase.swift:560-593`）含 `artifact_type`（CHECK 枚举：ttsSentenceAudio / ttsDocumentAudio / shadowingRecording / dictationRecording / ocrIntermediate / exportTemporary）、`derivation_kind`（CHECK：ttsAudio / practiceRecording）、owner 三元组、`content_hash`、`invalidated_at` / `delete_after` 清理字段，以及三个策略列 `backup_policy` / `sync_policy` / `export_policy`；Core `MediaArtifactType` / `MediaArtifactDerivationKind`（`MediaArtifact.swift:67-74`）无 photo case；migration v10 已有"扩 CHECK 枚举"的先例（`v10_allow_practice_recording_media_derivation_kind`，`AppDatabase.swift:72`）。**当前最新 migration 为 v16**（`v16_add_reading_fk_and_check_constraints`，E1 后新增，`AppDatabase.swift:90-92`），**下一可用编号 v17**。（⚠️ 原方案写 v15 / v16，为过期事实，已修正。）
 2. 文件层：`LocalMediaArtifactFileStore`（staging 写入、原子移动、命中校验）与 App 管理的 `MediaArtifacts` 目录已存在；现有 TTS / 练习录音走 `TTSAudioArtifactKey` / `PracticeRecordingArtifactKey` → commit 流程，照片可复用同一模式。
 3. entry 侧：`entries` 表只有 `source TEXT`（含 `photoWriting`），无照片关联列、无照片元数据表；仓库内零 PhotosUI / PHPicker 引用；无任何图像处理 / 缩略图代码。
-4. 备忘录边界：`docs/architecture/notes/2026-05-23-local-media-artifact-extension-notes.md` 为照片预留契约——文件名不得含可读敏感信息；媒体文件只经 GRDB 元数据引用；照片默认 local-only、排除系统备份、默认不导出；artifact key 需绑定照片来源、图像哈希、所属 entry、导入时间与可选元数据（EXIF 剥离状态等）；并列出暂不实现项（跨端照片同步、批量预处理、照片字节上送 AI、照片进默认导出 / 可恢复备份）。该 note 同时留有开放问题："照片是用户主资产还是可清理派生媒体"。
+4. 备忘录边界：`docs/architecture/notes/2026-05-23-local-media-artifact-extension-notes.md` 提供适用于所有本地媒体派生资产的通用原则——文件名不得含可读敏感信息；媒体文件只经 GRDB 元数据引用；`metadata` 预留 `sync_policy / backup_policy / export_policy` 策略列。**注意**：该备忘录的触发任务是 TTS 音频，全文内容均为 TTS / 录音专项，无任何照片专节；其暂不实现项（跨设备音频同步、批量预生成全文音频等）均针对音频，不覆盖照片。原方案误读"照片暂不实现项"和"开放问题"来自该 note——实为本方案自身依据产品主参考 §9.9 与 §4.10 作出的照片决策（见 §5 和 §6）。该 note 确有"后续任务必须重新决策的问题"一节，包含"用户跟读录音和听写录音是用户主资产还是可删除派生媒体"（第 29 行），E2 借此先例类推照片主资产决策，属合理延伸，但 note 自身不含该决策。该 note 的提升条件（第 49 行"新增 media_artifacts 数据表"）在本方案 Phase 1 触发，Phase 5 须将照片相关设计回写至该 note 并考虑提升为正式 spec 007 内容。
 5. 产品边界：`docs/product-main-reference.md` §9.5 照片是写作启动器而非图片描述；§9.9 与 MVP 范围（:795-825）将相机与 OCR 列为 MVP+ / 1.1，第一阶段"先支持图片附件和手动转写"。
 6. E1（前序方案）已在筛选判定函数与时间线卡片中为"存在照片附件"和缩略图预留扩展位。
 
@@ -65,7 +73,7 @@
 ## 6. 证据与决策依据
 
 - 原型证据：`prototypes/iphone/photo-writing.html`（chips :106-113、隐私声明 :124、保存 :123、设计注记 :134-137——照片提供语境不代写、当前为 local mock、无 PhotosUI / 相机 / OCR）；`prototypes/iphone/record.html` 缩略图位（:155-158）。
-- 备忘录证据：`docs/architecture/notes/2026-05-23-local-media-artifact-extension-notes.md`——照片 artifact 契约（文件名脱敏、GRDB 引用、三策略默认、key 绑定要素、EXIF 剥离状态元数据）与暂不实现项。本方案采纳其全部契约；对其开放问题"照片是主资产还是派生媒体"作出决策：**照片原图是用户主资产**（用户显式选入、不可由系统重建），落在 media_artifacts 帐内但以"不参与自动清理 / 不被失效"的策略表达；缩略图是可重建派生资产。该决策实现后回写该 note 与 spec 007。
+- 备忘录证据：`docs/architecture/notes/2026-05-23-local-media-artifact-extension-notes.md`——提供通用原则（文件名脱敏、GRDB 引用、三策略列预留），适用于所有本地媒体资产，包含照片。**注意**：该 note 全文针对 TTS / 录音，无照片专节，不包含照片专项暂不实现项或 PhotoArtifactKey 要素；原方案 §2 引用有误，已在 §2 修正。本方案采纳其通用原则；对"媒体资产主 / 派生二分"开放问题（note §"后续任务必须重新决策的问题"，以录音为示例）类推作出照片决策：**照片原图是用户主资产**（用户显式选入、不可由系统重建），落在 media_artifacts 帐内但以"不参与自动清理 / 不被失效"的策略表达；缩略图是可重建派生资产。照片专项暂不实现决策（不跨端同步、不进导出包、不把照片字节送 AI）来自 `docs/product-main-reference.md` §9.9 / §9.5 及 docs/README.md §4.10，不来自该 note。该决策实现后回写该 note 与 spec 007。
 - 工作流：本方案命中 `docs/workflows/add-storage-migration.md`（高风险迁移）——采纳其全部步骤：先读 spec 007/008/009、明确 migration id / 事务边界 / 回滚、Repository 契约与错误类型、导出 / 备份 / 同步 / 删除传播影响、Data + Core + App 装配 + impl.md 四类落点、敏感字段不入日志、派生数据可失败重建。同时命中 `docs/workflows/add-platform-screen.md`（photo-writing 页面真实化）。无偏离项。
 - 代码证据：第 2 节逐条路径；migration v10 为 CHECK 扩展先例；`LocalMediaArtifactFileStore` staging / 原子移动模式为照片导入管线模板。
 - 产品证据：`docs/product-main-reference.md` §9.5（照片=写作启动器）、MVP 范围（图片附件先行、OCR 后置）。
@@ -148,8 +156,8 @@
 ## 8. 涉及的代码文件路径
 
 - Core：`Packages/LangoTraceCore/Sources/LangoTraceCore/MediaArtifact.swift`；新增 `EntryPhotoAttachment.swift`、`PhotoArtifactKey.swift`。
-- Data：`Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift`（v16 migration）；新增 `GRDBEntryPhotoAttachmentRepository.swift`；`LocalMediaArtifactFileStore.swift`（photo commit 路径）；`LearningContent.swift` / `GRDBLearningContentRepository.swift`（移除 mock、photo-writing entry 创建携带附件）；`GRDBMediaArtifactRepository.swift`（photo 类型解码）。
-- UI：新增 `PhotoWritingView.swift`（替换 `PhonePhotoWritingPreviewView.swift`，三端共享内容视图 + 平台外壳差异）；`PhoneMainView.swift`（sheet 接线）；`EntryTimeline.swift` / `LearningContentComponents.swift`（缩略图与照片筛选升级）；`PadMainSections.swift` / `MacMainView.swift`（入口与详情展示）；新增 `PhotoImportPipeline.swift`（导入编排，@MainActor store + 后台处理）。
+- Data：`Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift`（v17 migration，⚠️ 原写 v16，已修正；v16 在 E1 后已被 `v16_add_reading_fk_and_check_constraints` 占用）；新增 `GRDBEntryPhotoAttachmentRepository.swift`；`LocalMediaArtifactFileStore.swift`（photo commit 路径）；`LearningContent.swift` / `GRDBLearningContentRepository.swift`（移除 mock、photo-writing entry 创建携带附件）；`GRDBMediaArtifactRepository.swift`（photo 类型解码）；**新增 `PhotoImportPipeline.swift`（归 Data 包**，⚠️ 原 §8 将其列于 UI 包，与 §15 Data 包测试落点矛盾，已修正；核心逻辑——staging 写入、EXIF 剥离、content hash、原子移动、GRDB 元数据事务——与 Data 包基础设施直接耦合；Store 层作为 @MainActor 调用入口调用该 pipeline，不影响其包归属）。
+- UI：新增 `PhotoWritingView.swift`（替换 `PhonePhotoWritingPreviewView.swift`，三端共享内容视图 + 平台外壳差异）；`PhoneMainView.swift`（sheet 接线）；`EntryTimeline.swift` / `LearningContentComponents.swift`（缩略图与照片筛选升级）；`PadMainSections.swift` / `MacMainView.swift`（入口与详情展示）。
 - App / 平台：图像处理 helper（ImageIO 缩略图 + EXIF 位置剥离）；`project.yml` 核对（无多余权限 key）。
 - 测试：`Packages/LangoTraceCore/Tests/LangoTraceCoreTests/`、`Packages/LangoTraceData/Tests/LangoTraceDataTests/`、`Packages/LangoTraceUI/Tests/LangoTraceUITests/PhotoWriting/`（新建子目录）。
 
@@ -190,7 +198,7 @@ FAIL 后处理方式：表重建方案回到本方案修订 migration 设计；m
 ### Phase 1：schema 与 Core 契约
 
 1. Core：`MediaArtifactType` 增加 `entryPhotoOriginal`、`entryPhotoThumbnail`；`MediaArtifactDerivationKind` 增加 `photoImage`；`PhotoArtifactKey` 绑定（图像 content hash、所属 entry、导入时间、EXIF 剥离标记）；`EntryPhotoAttachment` 模型（id、entryID、spaceID、原图 artifact 引用、缩略图引用、宽高、创建时间、排序位）。
-2. Data v16 migration（单 migration、单事务）：扩 `media_artifacts` 两个 CHECK（artifact_type、derivation_kind，按 Phase 0 结论选 CHECK 重建或表重建路径）；新建 `entry_photo_attachments` 表（FK → entries ON DELETE CASCADE、FK → language_spaces、FK → media_artifacts、status / 宽高 / exif_stripped / created_at / sort_order，唯一约束 entry+sort）。
+2. Data v17 migration（单 migration、单事务）：扩 `media_artifacts` 两个 CHECK（artifact_type、derivation_kind，按 Phase 0 结论选 CHECK 重建或表重建路径）；新建 `entry_photo_attachments` 表（FK → entries ON DELETE CASCADE、FK → language_spaces、FK → media_artifacts、status / 宽高 / exif_stripped / created_at / sort_order，唯一约束 entry+sort）。（⚠️ 原方案写 v16，已修正为 v17；v16 在 E1 后已被 `v16_add_reading_fk_and_check_constraints` 占用。）
 3. `GRDBEntryPhotoAttachmentRepository`：增 / 查 / 随 entry 删除传播 / 缩略图引用更新；photo 类型解码接入 E0a 的统一枚举解码 helper。
 4. DoD：migration 双路径（新库 / 旧库升级）测试与 repository 测试全绿。
 
@@ -207,12 +215,12 @@ FAIL 后处理方式：表重建方案回到本方案修订 migration 设计；m
 1. 新 `PhotoWritingView`（共享内容视图）：PhotosPicker 选图 → 预览（替换硬编码 210pt mock 框，按 16:10 自适应）→ 引导 chips（`描述场景` / `记下感受`，纯展示提示，点击仅高亮 / 展开提示语，绝不写入写作区）→ 写作区 → `保存记录`。
 2. 保存动作：创建 entry（source = photoWriting，正文为用户文本）+ 关联照片（Phase 2 管线），经现有 entry 创建 seam；无照片但有文本时允许保存为普通 photoWriting 状态还是要求必选照片——按原型语义要求必选照片，无文本时禁用保存。
 3. 隐私声明页脚：「照片仅保存在本机，不会自动发送 AI Provider」（String Catalog key，中英双语）。
-4. 删除 `createMockPhotoWritingEntry`（Data + Store + 调用点）与 `PhonePhotoWritingPreviewView`；iPad / Mac 以平台外壳承载同一内容视图（iPad sheet、Mac sheet / 独立面板按 spec 002 §4.6 实现期定稿）。
-5. DoD：保存闭环测试（创建 entry + 附件落库 + 文件存在）全绿；`rg "createMockPhotoWritingEntry" Packages` 无命中。
+4. 删除 `createMockPhotoWritingEntry`（Data + Store + 调用点）与 `PhonePhotoWritingPreviewView`；iPad / Mac 以平台外壳承载同一内容视图（iPad sheet、Mac sheet / 独立面板按 spec 002 §4.6 实现期定稿）。⚠️ `Packages/LangoTraceUI/Tests/LangoTraceUITests/PhoneIOSConvergenceTests.swift` 通过 `sourceFileURL(named: "PhonePhotoWritingPreviewView.swift")` 读取该源文件并断言其内容；删除 `PhonePhotoWritingPreviewView.swift` 后该测试将 throw——必须同步更新收敛测试（改为读取新文件名 `PhotoWritingView.swift` 或移除该项条目）。
+5. DoD：保存闭环测试（创建 entry + 附件落库 + 文件存在）全绿；`rg "createMockPhotoWritingEntry" Packages` 无命中；`swift test --package-path Packages/LangoTraceUI` 收敛测试无 throw。
 
 ### Phase 4：时间线与详情接线（衔接 E1）
 
-1. E1 判定函数的照片输入扩展位接真实附件存在性；照片筛选从 `source == .photoWriting` 升级为"存在照片附件 或 source == photoWriting"（兼容历史无附件的 photoWriting entry）。
+1. E1 判定函数的照片输入扩展位接真实附件存在性；照片筛选从 `source == .photoWriting` 升级为"存在照片附件 或 source == photoWriting"（兼容历史无附件的 photoWriting entry）。⚠️ 当前 `EntryTimelineFilter.includes(entry:hasMaterialWithoutRecording:)` 签名无 `hasPhotoAttachment` 参数；升级 `.photo` case 的判定逻辑需要**在签名中新增 `hasPhotoAttachment: Bool` 参数**（与 `hasMaterialWithoutRecording` 同理），所有调用点须同步更新：`PadSidebarView`（`PadMainSections.swift`）、`PhoneRecordWorkspaceView`（`PhoneMainView.swift` 或 `PhoneMainSupportingViews.swift`）及相关测试 fixture（`EntryTimelineFilterTests.swift`）。实现期须列出全部调用点后再改函数签名，避免遗漏。
 2. 时间线卡片 44×44 缩略图（懒加载 + 缺失重建）；entry 详情页展示照片（原图，自适应）。
 3. DoD：筛选升级测试与缩略图 presentation 测试全绿；模拟器人工验证滚动性能无明显卡顿。
 
@@ -243,6 +251,31 @@ spec 007 / media-artifacts impl / learning-content impl / 页面清单 / note �
 1. 照片原图 = 用户主资产、永不自动清理的决策。
 2. photo-writing 保存语义：必选照片 + 非空文本才可保存。
 3. 第一版 UI 限单照片（schema 支持多照片）。
+是否允许进入实现：待用户确认后允许（且 Phase 0 PASS 后才可进入 Phase 1 生产实现）。
+```
+
+### 第二轮补充审核（2026-06-17）
+
+```text
+审核日期：2026-06-17
+审核方式：主会话 + 四路并行子代理代码核验（只读 Explore 代理）
+代码基线：HEAD 3e96946（E1 实施后，原方案基线 274b7db 已过期）
+核验范围：AppDatabase.swift migration 版本 / MediaArtifact 枚举 / mock 路径存在性 / E1 扩展位状态 / 架构备忘录原文 / PhoneIOSConvergenceTests 内容 / project.yml 权限配置
+
+发现摘要：
+- [P0][代码事实] migration 版本号错误：原方案写"v15 最新 → v16 下一个"，E1 后 v16 已被 v16_add_reading_fk_and_check_constraints 占用（AppDatabase.swift:90-92）。E2 必须使用 v17。已修正 §2、Phase 1、§8 中全部 v16 引用。
+- [P1][测试破坏] Phase 3 删除 PhonePhotoWritingPreviewView.swift，但 PhoneIOSConvergenceTests.swift 通过 sourceFileURL(named:) 读取该文件并断言内容——删除后该测试 throw。已在 Phase 3 步骤 4 补充说明与 DoD 验证项。
+- [P1][包归属矛盾] PhotoImportPipeline.swift：原 §8 列于 UI 包，§15 测试落点列在 LangoTraceData 包，包归属与测试位置矛盾。已修正：核心逻辑（staging / EXIF / hash / 事务）与 Data 包基础设施耦合，归 Data 包；Store 层作为 @MainActor 调用入口调用之，不影响包归属。
+- [P1][签名变更未覆盖] Phase 4 照片筛选升级必然改变 EntryTimelineFilter.includes() 函数签名（需增加 hasPhotoAttachment: Bool 参数）；原方案未说明签名如何变化及所有调用点（PadSidebarView、PhoneRecordWorkspaceView、测试 fixture）须同步更新。已在 Phase 4 步骤 1 补充。
+- [P1][备忘录引用误读] 架构备忘录全文均为 TTS / 录音专项，无任何照片专节；原 §2 点 4 和 §6 误将"照片暂不实现项"和"照片主资产开放问题"归因于该 note。已修正：通用原则（文件命名 / GRDB 引用 / 策略列）确实适用于照片，但照片专项排除决策来自产品主参考 §9.9 / §4.10；已在 §2 点 4 和 §6 分别修正。
+
+写回修改：§2 point 1（HEAD 更新 + migration 版本）、§2 point 4（备忘录引用修正）、§6（备忘录证据修正）、Phase 1（v17）、Phase 3 步骤 4 和 DoD、Phase 4 步骤 1（签名变更说明）、§8（Data 包归属修正）。
+
+仍需用户确认的问题（与第一轮相同，三条未变）：
+1. 照片原图 = 用户主资产、永不自动清理的决策。
+2. photo-writing 保存语义：必选照片 + 非空文本才可保存。
+3. 第一版 UI 限单照片（schema 支持多照片）。
+
 是否允许进入实现：待用户确认后允许（且 Phase 0 PASS 后才可进入 Phase 1 生产实现）。
 ```
 
@@ -317,6 +350,21 @@ scripts/check-docs.sh
 ## 18. 实施记录
 
 2026-06-11：方案创建并完成双轮自审核（见第 13 节）。尚未进入实现。
+
+2026-06-17：第二轮补充自审核——四路子代理并行核验代码事实（AppDatabase.swift migration 版本 / MediaArtifact 枚举 / E1 扩展位状态 / 架构备忘录原文 / PhoneIOSConvergenceTests 内容）。发现 P0 问题 1 个（migration 版本号错误）、P1 问题 4 个（收敛测试破坏 / PhotoImportPipeline 包归属矛盾 / includes 函数签名变更未覆盖 / 备忘录引用误读），全部已在方案内修正。自审核状态更新为 Reviewed（二轮）。
+
+2026-06-17：用户确认三条架构决策（Q1 照片主资产 / Q2 必选照片+非空文本保存语义 / Q3 UI 限单照片 schema 支持多照片），方案状态推进为 User Approved，可进入实现（Phase 0 gate 先行）。
+
+2026-06-17：**Phase 0 spike gate PASS**。
+
+- **migration 验证**：按 TDD 流程写 `Packages/LangoTraceData/Tests/LangoTraceDataTests/MediaArtifactPhotoMigrationTests.swift`（6 个测试），红绿全程：初始红——3 个测试因 v16 CHECK 约束拒绝 `entryPhotoOriginal` / `entryPhotoThumbnail` / `photoImage` 而失败（符合预期）；注册 `v17_add_photo_artifact_types` 并实现表重建后全绿。
+- **CHECK 扩展方式**：沿 v10 先例——`PRAGMA legacy_alter_table = ON` + 重命名旧表 + 创建含扩展 CHECK 的新表 + INSERT SELECT 复制数据 + 删旧表 + 重建三个索引。方案预判"可能需要整表重建"——结论确认：**确需重建，但沿 v10 路径低成本完成，无数据风险**（FAIL 条件未触发）。
+- **升级路径验证**：v16 fixture（含既有 `ttsSentenceAudio / ttsAudio` artifact）升级至 v17 后，全部行完整保留（`derivation_kind`、策略字段均不变），新 photo 类型可写入；旧类型正常；未知类型仍被 CHECK 拒绝。
+- **主资产语义验证**：`entryPhotoOriginal` 可写入 `delete_after = NULL`，满足"永不自动清理"承诺。
+- **全量 Data 包回归**：157 tests passed，无回归。
+- **PhotosPicker 双端可用性**：iOS Simulator（iPhone 17，iOS 18）与 macOS（arm64）构建均通过；PhotosUI `PhotosPicker` 在 iOS 16+ / macOS 13+ 均可用，picker 模式不需要 `NSPhotoLibraryUsageDescription`；`PhotosPickerItem.loadTransferable(type: Data.self)` 通过系统 `Data: Transferable` 符合协议在两端统一可用；macOS picker 外观由系统决定（Photos app inline panel），API 层无差异。Phase 0 方案预留的"macOS picker 不可用则降级 fileImporter"风险**未触发**，无需降级。
+
+方案状态推进为 **In Progress**，Phase 0 gate PASS，可进入 Phase 1 生产实现。
 
 ## 19. 完成标准
 
