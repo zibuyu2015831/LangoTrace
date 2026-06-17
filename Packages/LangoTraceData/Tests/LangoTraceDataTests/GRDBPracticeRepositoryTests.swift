@@ -17,7 +17,7 @@ struct GRDBPracticeRepositoryTests {
             idGenerator: { "session-1" }
         )
 
-        let created = try await repository.createOrRestoreShadowingSession(
+        let created = try await repository.createOrRestoreSession(
             languageSpaceID: "space-1",
             snapshot: practiceSnapshot()
         )
@@ -47,7 +47,7 @@ struct GRDBPracticeRepositoryTests {
             clock: { Date(timeIntervalSince1970: 500) },
             idGenerator: MediaArtifactIDGenerator().next
         )
-        let session = try await repository.createOrRestoreShadowingSession(
+        let session = try await repository.createOrRestoreSession(
             languageSpaceID: "space-1",
             snapshot: practiceSnapshot()
         )

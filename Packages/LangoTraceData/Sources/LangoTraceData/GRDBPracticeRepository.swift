@@ -20,7 +20,7 @@ public struct GRDBPracticeRepository: PracticeRepository, @unchecked Sendable {
         self.idGenerator = idGenerator
     }
 
-    public func createOrRestoreShadowingSession(
+    public func createOrRestoreSession(
         languageSpaceID: String,
         snapshot: PracticeSentenceSnapshot
     ) async throws -> PracticeSession {
@@ -165,11 +165,81 @@ public struct GRDBPracticeRepository: PracticeRepository, @unchecked Sendable {
                           AND practice_recordings.status = 'ready'
                           AND practice_recordings.invalidated_at IS NULL
                     )
+                    OR EXISTS (
+                        SELECT 1
+                        FROM practice_text_attempts
+                        WHERE practice_text_attempts.session_id = practice_sessions.id
+                          AND practice_text_attempts.soft_deleted_at IS NULL
+                    )
                   )
                 """,
                 arguments: [materialID, exerciseType.rawValue]
             )
             return Set(rows.compactMap { row in row["sentence_id"] as String? })
+        }
+    }
+
+    public func recordTextAttempt(draft: PracticeTextAttemptDraft) async throws -> PracticeTextAttempt {
+        try await databaseQueue.write { db in
+            guard try Int.fetchOne(
+                db,
+                sql: "SELECT COUNT(*) FROM practice_sessions WHERE id = ? AND soft_deleted_at IS NULL",
+                arguments: [draft.sessionID]
+            ) == 1 else {
+                throw PracticeRepositoryError.sessionNotFound
+            }
+
+            let nextAttemptNumber = try (Int.fetchOne(
+                db,
+                sql: "SELECT MAX(attempt_number) FROM practice_text_attempts WHERE session_id = ?",
+                arguments: [draft.sessionID]
+            ) ?? 0) + 1
+            let id = idGenerator()
+            let now = clock()
+            try db.execute(
+                sql: """
+                INSERT INTO practice_text_attempts (
+                    id, session_id, language_space_id, exercise_type, attempt_number,
+                    attempt_text, reference_text_snapshot, diff_difference_count,
+                    diff_summary_json, listen_count, created_at, soft_deleted_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+                """,
+                arguments: [
+                    id,
+                    draft.sessionID,
+                    draft.languageSpaceID,
+                    draft.exerciseType.rawValue,
+                    nextAttemptNumber,
+                    draft.attemptText,
+                    draft.referenceTextSnapshot,
+                    draft.diffDifferenceCount,
+                    draft.diffSummaryJSON,
+                    draft.listenCount,
+                    now.timeIntervalSince1970,
+                ]
+            )
+            guard let row = try textAttempt(id: id, db: db) else {
+                throw PracticeRepositoryError.sessionNotFound
+            }
+            return textAttempt(from: row)
+        }
+    }
+
+    public func latestTextAttempt(sessionID: String) async throws -> PracticeTextAttempt? {
+        try await databaseQueue.read { db in
+            guard let row = try Row.fetchOne(
+                db,
+                sql: """
+                SELECT * FROM practice_text_attempts
+                WHERE session_id = ? AND soft_deleted_at IS NULL
+                ORDER BY attempt_number DESC
+                LIMIT 1
+                """,
+                arguments: [sessionID]
+            ) else {
+                return nil
+            }
+            return textAttempt(from: row)
         }
     }
 }
@@ -221,6 +291,39 @@ private extension GRDBPracticeRepository {
             LIMIT 1
             """,
             arguments: [materialID, sentenceIndex, exerciseType.rawValue]
+        )
+    }
+
+    func textAttempt(id: String, db: Database) throws -> Row? {
+        try Row.fetchOne(
+            db,
+            sql: "SELECT * FROM practice_text_attempts WHERE id = ?",
+            arguments: [id]
+        )
+    }
+
+    func textAttempt(from row: Row) -> PracticeTextAttempt {
+        let exerciseType = StoredEnumDecoding.decode(
+            PracticeExerciseType.self,
+            from: row["exercise_type"] as String,
+            fallback: .dictation,
+            context: "practice_text_attempts.exercise_type",
+            diagnosticLogger: diagnosticLogger,
+            clock: clock
+        )
+        return PracticeTextAttempt(
+            id: row["id"],
+            sessionID: row["session_id"],
+            languageSpaceID: row["language_space_id"],
+            exerciseType: exerciseType,
+            attemptNumber: row["attempt_number"],
+            attemptText: row["attempt_text"],
+            referenceTextSnapshot: row["reference_text_snapshot"],
+            diffDifferenceCount: row["diff_difference_count"],
+            diffSummaryJSON: row["diff_summary_json"],
+            listenCount: row["listen_count"],
+            createdAt: Date(timeIntervalSince1970: row["created_at"]),
+            softDeletedAt: (row["soft_deleted_at"] as Double?).map(Date.init(timeIntervalSince1970:))
         )
     }
 

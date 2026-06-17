@@ -108,6 +108,9 @@ private extension AppDatabase {
         migrator.registerMigration("v22_add_reading_progress_and_favorite_columns") { db in
             try addReadingProgressAndFavoriteColumns(db)
         }
+        migrator.registerMigration("v23_create_practice_text_attempts") { db in
+            try createPracticeTextAttemptsInfrastructure(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
@@ -769,6 +772,37 @@ private extension AppDatabase {
         try db.execute(sql: """
         CREATE INDEX idx_practice_recording_artifacts_recording
         ON practice_recording_artifacts(recording_id)
+        """)
+    }
+
+    static func createPracticeTextAttemptsInfrastructure(_ db: Database) throws {
+        try db.execute(sql: """
+        CREATE TABLE practice_text_attempts (
+          id TEXT PRIMARY KEY,
+          session_id TEXT NOT NULL REFERENCES practice_sessions(id) ON DELETE CASCADE,
+          language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          exercise_type TEXT NOT NULL,
+          attempt_number INTEGER NOT NULL,
+          attempt_text TEXT NOT NULL,
+          reference_text_snapshot TEXT NOT NULL,
+          diff_difference_count INTEGER,
+          diff_summary_json TEXT,
+          listen_count INTEGER NOT NULL DEFAULT 0,
+          created_at REAL NOT NULL,
+          soft_deleted_at REAL,
+          CHECK (exercise_type IN ('dictation', 'backtranslation')),
+          CHECK (attempt_number >= 1),
+          CHECK (diff_difference_count IS NULL OR diff_difference_count >= 0),
+          CHECK (listen_count >= 0)
+        )
+        """)
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_practice_text_attempts_session_attempt
+        ON practice_text_attempts(session_id, attempt_number)
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_practice_text_attempts_space_exercise
+        ON practice_text_attempts(language_space_id, exercise_type)
         """)
     }
 

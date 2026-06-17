@@ -30,7 +30,7 @@ enum PracticeActionsAssembly {
                 guard snapshot.exerciseType == .shadowing else {
                     throw PracticeActionFailure.disabled
                 }
-                return try await repository.createOrRestoreShadowingSession(
+                return try await repository.createOrRestoreSession(
                     languageSpaceID: languageSpaceID,
                     snapshot: snapshot
                 )
