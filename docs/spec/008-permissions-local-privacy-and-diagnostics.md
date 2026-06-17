@@ -47,6 +47,16 @@ LangoTrace 的信任基础是本地优先。权限和隐私说明不能只在 AI
 | AI 生成 | 网络 / Provider 配置 | 请求预览中列明的内容 | 用户确认 AI 动作 | 不记录完整请求体 |
 | 导出 | Files / Share Sheet | 用户选择的导出包 | 用户点选导出并确认 | 记录导出类型和结果 |
 
+## 3.1 Probe 脚本与开发工具凭证边界
+
+本条适用于仓库内所有 probe 脚本、诊断工具和 CI 辅助脚本，不只限于 App 生产代码：
+
+- Probe 脚本或任何开发工具脚本中使用真实 API Key，必须通过 gitignored 的本地 `.env` 文件注入；API Key 不得硬编码在脚本、配置或任何 git 跟踪文件中。
+- `.env.example`、`.env.template`、`.env.sample` 或同等名称的模板文件只能包含格式占位符（例如 `sk-or-v1-...`、`sk-ant-...`），不得包含任何可用密钥。
+- `.gitignore` 对 `.env` 的保护条目必须在本地 `.env` 文件创建之前就存在于已提交的历史中，不能在同一次 commit 中同时引入。
+- 提交含 `.env.example` 或同等模板文件的 commit 前，必须逐行确认所有真实密钥值已替换为占位符；AI 辅助生成模板文件时，必须明确要求输出占位符版本。
+- 仓库内置 `scripts/git-hooks/pre-commit` 作为 API Key 模式扫描防线；首次开发环境配置时须按 `docs/development/environment.md` 运行 `git config core.hooksPath scripts/git-hooks` 激活。
+
 ## 4.1 Keychain 与敏感配置边界
 
 AI Provider API Key、外部服务 token、自定义敏感请求头、对象存储密钥和加密密钥默认属于本机安全存储数据，不进入普通数据库、日志、同步目录或导出包。
@@ -126,6 +136,7 @@ AI Provider API Key、外部服务 token、自定义敏感请求头、对象存�
 - 2026-05-26：补充练习跟读录音权限和本地隐私边界。原因：单句练习已接入真实麦克风权限、App 管理媒体资产和 practice recording metadata，需要把显式触发、purpose string、macOS audio input entitlement、日志字段和导出 / 同步排除规则写入长期规范。影响范围：LangoTraceApp、Speech、Data、UI、Testing 和 Release。是否需要 ADR：否，沿用 ADR-005；录音同步、默认导出或可恢复备份需要独立方案。
 - 2026-05-26：补充练习录音失败诊断事件边界。原因：单句练习录音完成后回放按钮不刷新需要定位 stop、artifact commit 和 session reload 的实际断点，诊断必须可用但不能泄露句子、音频或路径。影响范围：LangoTraceCore、LangoTraceApp、UI 状态和测试。是否需要 ADR：否，沿用 ADR-005。
 - 2026-06-15：补充隐私本质说明，明确本地分析（Ability/Memory/Style）不在本文档约束范围内。原因：Learner Model（个人语言画像）确立三层本地分析能力，需要消除「本地分析 = 收集」的误判；两条真正边界（egress to AI Provider 受决策 #10 约束、本地静态安全受 FileProtection / Keychain 约束）保留不变。影响范围：Learner Model 实现、语伴功能、product-main-reference §11 / §27、ADR-005。是否需要新 ADR：否，沿用 ADR-005 本地优先原则；本地处理本就不在 ADR 约束范围，补充说明只是显式化。
+- 2026-06-17：补充 Probe 脚本与开发工具凭证边界（§3.1）。原因：OpenRouter 和 MIMO API Key 因写入 `.env.example` 后直接提交至 GitHub 造成真实泄漏（GitGuardian 告警，已吊销密钥、清理 git 历史）。根本原因为 workflow 和 spec 未覆盖 `.env.example` 占位符强制要求，也未要求 `.gitignore` 条目先于本地 `.env` 提交。影响范围：所有含 probe 脚本的任务（`add-ai-provider.md` workflow 同步更新），以及首次开发环境配置（新增 pre-commit hook 安装要求）。是否需要 ADR：否，沿用 ADR-005 本地优先原则。
 - 2026-05-18：创建权限、本地隐私与诊断日志规范。原因：spec 深审确认 AI 隐私规范已有，但跨 Photos、Speech、OCR、录音、TTS、Keychain、日志和系统权限弹窗缺少统一执行源。影响范围：AI、Speech、Data、UI、Testing、Release 和发布隐私材料。是否需要 ADR：否，沿用本地优先和用户自带 Provider 决策。
 - 2026-05-20：补充 Keychain 与敏感配置边界。原因：AI Provider 配置存储已落地，需要把 ThisDeviceOnly、默认不同步、数据库恢复缺密钥、非敏感 validation event 和 SQLite / Keychain 非原子补偿规则沉淀为长期隐私规范。影响范围：AI Provider、Data、AI、UI、Testing 和后续导出 / 同步。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-27：收紧 Provider 配置页已保存密钥读取边界。原因：macOS 登录钥匙串在设置页加载阶段可能弹出认证，且已确认通过当前 API Key 字段的小眼睛按钮进行显式查看；配置页加载不再读取 Keychain，用户点击显示按钮、配置测试或真实请求才解析密钥。影响范围：AI Provider 设置、Keychain、UI draft、隐私验证。是否需要 ADR：否，沿用 ADR-005。

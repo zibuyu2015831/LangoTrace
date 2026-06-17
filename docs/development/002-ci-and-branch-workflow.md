@@ -88,14 +88,18 @@ gh workflow run ci.yml --ref dev         # 手动触发
 5. CI 绿后再合并 PR：`gh pr merge <PR号> --merge`（或网页 Merge）。保护生效时，检查未过无法合并。
 6. （可选）合并完成后把仓库设回 private。
 
-**本地硬兜底（pre-push 钩子）**：仓库内置 `scripts/git-hooks/pre-push`，拦截向 `main` 的直接推送（即使仓库 private、GitHub ruleset 不生效时也拦）。每个克隆安装一次（**repo 级，不影响全局或其他仓库**）：
+**本地钩子（每个克隆安装一次，repo 级，不影响全局）**：
 
 ```bash
 git config core.hooksPath scripts/git-hooks   # 写入本仓库 .git/config，不带 --global
 chmod +x scripts/git-hooks/*
 ```
 
-详见 [scripts/git-hooks/README.md](../../scripts/git-hooks/README.md)。紧急绕过（不推荐）：`git push --no-verify`。
+当前内置两个钩子（详见 [scripts/git-hooks/README.md](../../scripts/git-hooks/README.md)）：
+- `pre-commit`：扫描暂存文件中的 API Key 模式，阻止真实密钥进入 git 历史。
+- `pre-push`：拦截向 `main` 的直接推送（即使仓库 private、GitHub ruleset 不生效时也拦）。
+
+紧急绕过（不推荐）：`git commit --no-verify` / `git push --no-verify`。
 
 **AI 协作约定（必须遵守）**：当用户表达要把分支合并到 `main`，或出现"本地直接 merge / push `main`"的意图时，AI 应主动：① 提醒不要本地直接合并；② 提醒先把仓库临时设为 public；③ 用 `gh` 核对 `Build & Test` 已通过；④ 引导走 PR 合并。
 
@@ -158,6 +162,7 @@ gh run view <run-id> --web            # 在浏览器打开该 run
 
 ## 8. 变更记录
 
+- 2026-06-17：新增 `scripts/git-hooks/pre-commit` 钩子，扫描暂存文件中的 API Key 模式；将 §3.1 钩子说明从单钩子描述改为两个钩子的统一说明块，并同步更新 scripts/git-hooks/README.md。原因：OpenRouter 和 MIMO API Key 因写入 `.env.example` 后直接 push 造成真实泄漏，需要在本地 commit 阶段增加自动拦截防线。影响范围：`scripts/git-hooks/`、`docs/spec/008 §3.1`、`docs/workflows/add-ai-provider.md §7`、`docs/development/environment.md`。是否需要 ADR：否。
 - 2026-06-13：新增仓库内置 `scripts/git-hooks/pre-push` 钩子（repo 级 `core.hooksPath` 安装，仅本仓库），在本地拦截向 `main` 的直接推送，作为 Free 私有仓库 ruleset 失效期的硬兜底；并把"main 只走 PR"提升进 `docs/README.md` §4 第 18 条核心决策。原因：用户要求让该纪律不只靠 AI 记忆、必要时能被强制发现。影响范围：`scripts/git-hooks/`、§3.1、`docs/README.md` §4。是否需要 ADR：否。
 - 2026-06-13：新增 §3.1 合并到 `main` 的标准流程（禁止本地直接合并、临时 public、`gh` 核对 `Build & Test`、走 PR），并写入 AI 协作约定。原因：用户要求规范"不允许直接 merge 到 main、合并时提醒切 public 并用 gh 检查状态、经 PR 合并"。影响范围：§3.1、`docs/README.md` §1.4 第 9 条。是否需要 ADR：否。
 - 2026-06-13：扩写 §4，改用 Rulesets 步骤，并新增 §4.1 强制范围说明：「Require PR」禁止直接 push `main`、PR 总跑 CI；Free 私有仓库 ruleset 不强制、仅 public 时生效；约定只在 public 窗口期合并 `main`。原因：用户询问能否只走 PR、本地 merge 是否会绕过测试。影响范围：§4、§4.1。是否需要 ADR：否。

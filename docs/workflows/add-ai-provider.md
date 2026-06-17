@@ -61,9 +61,21 @@
 
 运行当前任务方案列出的聚焦测试；涉及 Swift 工程行为时运行 `scripts/verify.sh`。文档-only 变更至少运行 `scripts/check-docs.sh`、占位符扫描、`git diff --check` 和 `git status --short`。
 
-## 7. 反例
+## 7. Probe 脚本凭证安全
+
+新增 Provider 时，如果同时新增开发用 probe 脚本（如 `scripts/probe/`），必须遵守以下规则：
+
+1. **Probe 脚本必须从 gitignored 的 `.env` 文件读取 API Key**，不得硬编码在脚本中，不得写入任何 git 跟踪文件。
+2. **`.env` 必须在创建本地文件之前加入 `.gitignore`**；不能在同一次 commit 中同时添加 `.gitignore` 条目和已有真实密钥的 `.env` 文件，因为暂存顺序不可靠。正确流程：先改 `.gitignore`，commit，再创建本地 `.env`。
+3. **提交给仓库的模板文件（`.env.example`、`.env.template` 等）只能包含格式占位符**，例如 `OPENROUTER_API_KEY=sk-or-v1-...`。提交前必须逐行对比 `.env` 和 `.env.example`，确认所有真实密钥已替换为占位符；AI 辅助写 `.env.example` 时，明确要求输出的是占位符版本，不是从本地 `.env` 复制的真实值。
+4. **提交含 `.env.example` 的 commit 前，在 commit message 中明确写"仅含占位符"**，作为额外的人工确认节点。
+5. **仓库内置 pre-commit hook**（位于 `scripts/git-hooks/pre-commit`），会自动扫描暂存文件中的 API Key 模式；首次 clone 后须按 `docs/development/environment.md` 执行一次 `git config core.hooksPath scripts/git-hooks` 激活。
+
+## 8. 反例
 
 - 在 SwiftUI View 里直接创建 `URLRequest` 或拼接 Authorization header。
 - 把 API Key 保存进 SQLite、日志、请求预览或同步目录。
 - 新增 Prompt 但只在代码里写字符串，不登记 `docs/prompts/`。
 - 让保存 Entry、打开页面或滚动列表自动触发 AI 请求。
+- 在同一次 commit 里同时添加 `.gitignore` 条目和已有真实密钥的 `.env.example`。
+- 从本地 `.env`（真实密钥）复制粘贴内容到 `.env.example` 后直接 commit，不做占位符替换。

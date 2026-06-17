@@ -167,6 +167,29 @@ xcrun simctl list devices available
 - Entry/附件/导出等完整数据库迁移体系、真实 AI Provider、同步引擎或 StoreKit 逻辑。
 - TTS、录音、Speech、OCR、照片权限等平台能力。
 
+## 首次 clone 后的必要配置
+
+以下步骤只需在每台新机器或重新 clone 后执行一次：
+
+```bash
+# 激活仓库内置 Git 钩子（pre-commit API Key 扫描 + pre-push main 分支保护）
+# 仅写入本仓库 .git/config，不带 --global，不影响其他仓库
+git config core.hooksPath scripts/git-hooks
+chmod +x scripts/git-hooks/*
+
+# 验证
+git config --get core.hooksPath   # 应输出 scripts/git-hooks
+
+# 复制 probe 脚本凭证模板，填入真实密钥（文件已 gitignore，不会提交）
+cp scripts/probe/.env.example scripts/probe/.env
+# 然后编辑 scripts/probe/.env，把占位符替换为真实 API Key
+```
+
+钩子说明见 [scripts/git-hooks/README.md](../../scripts/git-hooks/README.md)：
+- `pre-commit`：每次 `git commit` 前扫描暂存文件中的 API Key 模式，阻止真实密钥进入历史。
+- `pre-push`：阻止直接向 `main` 推送，强制走 PR 流程。
+- 误报绕过：`git commit --no-verify`（需人工确认无密钥后使用）。
+
 已完成的初始化验证包括：
 
 - `xcodegen generate`

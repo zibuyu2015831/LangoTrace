@@ -25,6 +25,11 @@ git config --unset core.hooksPath
 
 ## 当前钩子
 
+- **`pre-commit`**：扫描暂存文件中的 API Key 模式，防止真实密钥意外提交（见 [spec-008 §3.1](../../docs/spec/008-permissions-local-privacy-and-diagnostics.md)）。
+  - 检测 OpenRouter、Anthropic、OpenAI、MIMO、Google、Groq、xAI 等主流格式的真实密钥。
+  - `.env.example` 等模板文件只应包含占位符（如 `sk-or-v1-...`），hook 会区分真实密钥与占位符。
+  - 紧急绕过（仅在确认无密钥时）：`git commit --no-verify`。
+
 - **`pre-push`**：拦截向 `main` 的直接推送。`main` 的变更必须经 PR + `Build & Test` 绿勾合并（见 [CI 与分支协作 Runbook §3.1](../../docs/development/002-ci-and-branch-workflow.md)）。
   - 即使仓库为 private（此时 GitHub ruleset 在 Free 计划下不生效）本钩子仍在本地拦截，是 AI 记忆无关的硬兜底。
   - 紧急绕过（不推荐）：`git push --no-verify`。
