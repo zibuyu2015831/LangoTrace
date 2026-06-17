@@ -1,6 +1,6 @@
 # 任务方案：听写练习（本机对照闭环）
 
-状态：User Approved
+状态：Done
 自审核状态：Reviewed（2026-06-18 代码漂移复核，见 §13）
 类型：feature
 创建日期：2026-06-11
@@ -336,6 +336,17 @@ git status --short
 2026-06-11：方案创建并完成两轮自审核（见第 13 节）。尚未进入实现。
 2026-06-18：基于 E1/E2/R1/E3 落地后的真实代码做代码漂移复核（见第 13 节第二条记录）。E3 交付物全部命中预测，设计骨架成立；订正迁移版本（v15→v22，新表 v23）、`PracticeModeAvailability` 措辞、仓库 seam 泛化等漂移。E4-D1 经用户确认采用「声学/词汇层」口径。
 2026-06-18：用户给出整体实现授权，方案状态推进到 User Approved，进入 TDD 实现。实现按 §12 步骤 1–7 推进，每完成一小阶段做轻量验证 + commit。
+
+2026-06-18：E4 听写练习实现完成，方案推进到 Done。落地内容与 plan-vs-shipped 对账：
+
+- 步骤 1（Core diff，TDD）：新增 `PracticeDictationDiff`（NFC 归一化、标点抹除、Character 分词、词级 LCS 大小写折叠、差异数 = 各 gap `max(ref, attempt)`、2000 上限）与 `PracticeTextAttempt` / `PracticeTextAttemptDraft` / `PracticeDictationDiffSummary`。测试 `PracticeDictationDiffTests`（11 例，含先失败用例 `thirdPersonSDifferenceCountsAsOneDifference`、标点/大小写零差异、its/it's、emoji/CJK 安全、超限拒绝）全绿。commit `feat(core)`。
+- 步骤 2–4（Data，TDD）：`v23_create_practice_text_attempts` migration（CHECK `('dictation','backtranslation')`，回译 diff 列 NULL）；`GRDBPracticeRepository.recordTextAttempt` / `latestTextAttempt`，听写已练并入 `completedSentenceIDs`；`createOrRestoreShadowingSession` 泛化为 `createOrRestoreSession`（协议 + 实现 + 装配 + 既有测试同步）。测试 `PracticeTextAttemptRepositoryTests`（7 例：schema、attempt_number 递增、已练派生、软删除排除、回译 NULL diff、缺失 session 失败回滚、泛化 seam）全绿；full Data package 194 绿。commit `feat(data)`。
+- 步骤 5–6（UI，TDD）：`PracticeDictationSessionViewModel`（listening/compared 状态机、参考句对照前隐藏、重听计数、提交先算 diff 再持久化、持久化失败保留对照、再试一次回转、句间切换停止播放）；`PracticeDictationSessionView`（重听 + 已听 n 次 + 隐藏参考输入 + 对照视图 + 用户作答下划线/warn diff + “n 处差异 · 本机对照，不发送 AI” + 再试一次）；`PracticeSessionView` 改为按 exercise type 分发，跟读体抽出为 `PracticeShadowingSessionView`；`PracticeActions.submitDictationAttempt` + `PracticeDictationAttemptSubmission` + `inputTooLong` / `attemptSaveFailed` 失败；装配注册 `.dictation`、移除 shadowing-only guard、attempt 持久化（JSON diff summary）；10 个本地化 key（en/zh-Hans）。测试 `PracticeDictationSessionTests`（7 例）全绿；full UI package 482 绿。commit `feat(ui)`。
+- 步骤 7（文档收口）：spec 013 §2/§6/§9、platform-page-inventory（新增听写会话行 + 修订跟读会话 / 练习 Tab / 组件行 + changelog）、本备忘录采纳标注、本方案。
+- scope-down：E4-D1 最终口径为用户确认的「声学/词汇层计入、正字法层不计入」，标点在归一化阶段抹除（count 与显示均不涉及），不提供严格模式开关；与初稿一致，无范围缩减。
+- deferred：回译（E5）仅 schema 预留，未实现任何 UI / reference 逻辑；diff 显示侧标点弱化、Myers diff 定位改进、CJK 分词策略复审、attempt 配额管理列入后续（§20 剩余风险）。
+- 专项审查判断（§17）：本次含数据库 schema 变化（v23），命中专项审查触发条件；按 §17 在本实施记录中说明——schema 为 attempt 主数据新表，遵循 workflow `add-storage-migration` 的方案 / 测试 / 故障矩阵要求，migration 新库与既有升级路径由 Data 测试覆盖，attempt 隐私边界（local-only、不外发）已在 spec 013 §2 与本备忘录 §2 沉淀，未引入 ADR 冲突，不再单独开 review round。
+- 验证：本机执行 §16 聚焦与受影响包轻量验证（Core 11 + 203、Data 7 + 194、UI 7 + 482 全绿），`swiftformat --lint` / `swiftlint` 对改动文件 0 serious；全量 `xcodebuild` 三端构建与 App target 编译留待 CI（`Build & Test`，仓库当前 public）。未按 CLAUDE.md §1.4 主动运行 `scripts/verify.sh`。
 
 ## 19. 完成标准
 

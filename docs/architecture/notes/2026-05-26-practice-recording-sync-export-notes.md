@@ -18,6 +18,7 @@
 - completed practice recording 是用户练习证据，不是普通可重建 cache；普通 TTS cache cleanup 或容量 LRU 不得静默删除它。
 - 用户录音默认 local-only、excluded from system backup、excluded from default export、不同步。
 - 文件缺失或 hash mismatch 时，session 仍保持 completed，录音 source 应进入 unavailable / missing 状态。
+- **采纳（E4，2026-06-18）**：听写 / 回译文本作答 `practice_text_attempts`（v23）与练习录音同等对待——同为用户练习证据、本地主数据，不是可重建 cache，默认 local-only、不同步、不默认导出、不入诊断 / 日志、不参与 TTS cache 清理 / LRU。下文第 3 节的导出、可恢复备份、隐私标签、删除与对象存储重新决策范围同样覆盖 attempt 文本；attempt 文本体量虽小，但属于用户真实作答内容，隐私定位与录音一致，不得因“只是文本”而降级处理。
 
 ## 3. 后续任务必须重新决策的问题
 

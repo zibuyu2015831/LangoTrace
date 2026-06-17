@@ -4,7 +4,7 @@
 自审核状态：N/A（导航/指针文档，不含生产代码变更）
 类型：docs
 创建日期：2026-06-15
-最后更新日期：2026-06-17（E3 练习路由基础 + E2 照片写作修复系列全部提交；当前指针 E4）
+最后更新日期：2026-06-18（E4 听写练习实施完成并归档到 done/；当前指针 E5）
 
 ## 这份文档是什么
 
@@ -33,7 +33,7 @@
 
 ## 当前指针
 
-> **当前指针**：E4 `docs/plans/active/2026-06-11-07-feature-practice-dictation.md`。E3 练习方式路由基础已于 2026-06-17 实施完成并归档到 `docs/plans/done/2026-06-11-06-feature-practice-mode-routing-foundation.md`；当前 App 只注册 `.shadowing`，听写 / 回译不会作为假入口出现。
+> **当前指针**：E5 `docs/plans/active/2026-06-11-08-feature-practice-backtranslation.md`。E4 听写练习已于 2026-06-18 实施完成并归档到 `docs/plans/done/2026-06-11-07-feature-practice-dictation.md`；App 现注册 `shadowing / dictation` 两种练习方式，回译（E5）复用 `practice_text_attempts`（v23），但 diff 列恒 NULL（参考不判对错），仍待按方案推进，不作为假入口出现。
 
 ## 状态总表
 
@@ -50,7 +50,7 @@
 | 04-FU-c | E2 infra | `2026-06-17-bug-photo-writing-legacy-attachment-repair` | 照片写作旧数据附件修复与运行验证 | ✅ **Verified**（2026-06-17 模拟器验证通过，已移入 done/） |
 | 05 | R1 | `2026-06-11-05-feature-reading-experience-completion` | 阅读体验收口 | ✅ **Implemented**（2026-06-17 全 4 Phase 实施完成，已移入 done/） |
 | 06 | E3 | `2026-06-11-06-feature-practice-mode-routing-foundation` | 练习方式路由基础 | ✅ **Implemented**（2026-06-17 Core/Data/UI 轻量测试通过，已移入 done/） |
-| 07 | E4 | `2026-06-11-07-feature-practice-dictation` | 听写练习 | ⚪ Draft |
+| 07 | E4 | `2026-06-11-07-feature-practice-dictation` | 听写练习 | ✅ **Implemented**（2026-06-18 Core/Data/UI 轻量测试通过，已移入 done/） |
 | 08 | E5 | `2026-06-11-08-feature-practice-backtranslation` | 回译练习 | ⚪ Draft |
 | 09 | E6 | `2026-06-11-09-feature-ai-request-preview-and-log-foundation` | AI 请求预览 + 请求日志基础 | ⚪ Draft |
 | 10 | E7 | `2026-06-11-10-feature-memory-deposit-foundation` | 记忆沉淀基础 | ⚪ Draft |
