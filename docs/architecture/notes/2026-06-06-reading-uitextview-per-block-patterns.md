@@ -47,10 +47,8 @@ macOS 常规用法是 `NSScrollView { NSTextView }`，但阅读 Canvas 的 Scrol
 
 若未来需要跨 block 选择（例如选择连续两段构成的引文），需要改用全文档单一 UITextView / NSTextView，届时应创建独立任务方案。
 
-## 5. iPad inspector 折叠状态检测（待完善）
+## 5. iPad inspector 折叠状态检测（已采纳 → R1 Phase 3 落地）
 
-当前方案设计：iPad inspector 折叠时降级为底部 compact 面板。实现时发现 `ReadingDocumentCanvas` 没有暴露 `isInspectorExpanded` 状态，降级路径尚未实现。
+**采纳去向**：`docs/plans/done/2026-06-11-05-feature-reading-experience-completion.md` Phase 3（2026-06-17 落地，commit `04a67d2`）。
 
-**后续任务**：在 `ReadingLibraryView` 的 iPad 布局中，通过 `@State private var isInspectorExpanded: Bool = true` + `NavigationSplitView` 或手势检测，把折叠状态传给 `ReadingDocumentDetailView`，条件渲染底部 compact 面板。
-
-此备忘录供该后续任务方案引用。
+当前已实现：`ReadingLibraryView` 的 `desktopLibraryAndReader` 布局持有 `@State private var isInspectorFolded = false`；`ReadingLayoutModel.canFoldInspector` 仅对 `.pad` 平台且 `showsPersistentInspector == true` 返回 `true`（macOS inspector 保持常驻，不参与折叠）；iPad inspector 右上角提供折叠按钮（`sidebar.right`），折叠后画布右上角浮现展开按钮（`sidebar.left`），同时通过 `.safeAreaInset` 在画布底部条件渲染 `ReadingCompactLearningPanel`，保持「选中 → 解释」路径。折叠 / 展开过程不发起任何 AI 请求或 TTS，由 `ReadingInspectorCollapseTests`（5 条）覆盖 `canFoldInspector` 逻辑。

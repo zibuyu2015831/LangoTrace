@@ -4,7 +4,7 @@
 自审核状态：N/A（导航/指针文档，不含生产代码变更）
 类型：docs
 创建日期：2026-06-15
-最后更新日期：2026-06-17（E2 全 5 Phase 实施完成，文档收口，方案移入 done/；下一步：E3 练习方式路由基础）
+最后更新日期：2026-06-17（R1 阅读体验收口全 4 Phase 实施完成并归档；当前指针 E4）
 
 ## 这份文档是什么
 
@@ -33,7 +33,7 @@
 
 ## 当前指针
 
-> **当前指针**：E3（练习方式路由基础）——E2 全 5 Phase 于 2026-06-17 实施完成（972 个本机单包测试全绿），文档收口后方案移入 done/。下一步：从 `docs/plans/active/2026-06-11-06-feature-practice-mode-routing-foundation.md` 开始 E3 自审核 + 用户确认。
+> **当前指针**：E4 `docs/plans/active/2026-06-11-07-feature-practice-dictation.md`。E3 练习方式路由基础已于 2026-06-17 实施完成并归档到 `docs/plans/done/2026-06-11-06-feature-practice-mode-routing-foundation.md`；当前 App 只注册 `.shadowing`，听写 / 回译不会作为假入口出现。
 
 ## 状态总表
 
@@ -45,8 +45,9 @@
 | 02 | E0b | `2026-06-11-02-refactor-ui-architecture-debt` | UI/App 层结构债清偿 | ✅ **Verified**（2026-06-17 本机 UI/Data/Core 三包测试全绿，已移入 done/） |
 | 03 | E1 | `2026-06-11-03-feature-record-timeline-and-filters` | 记录生活时间线 + 三端筛选投影 | ✅ **Verified**（2026-06-17 全 5 Phase 实施完成 + post-E1 清理，已移入 done/） |
 | 04 | E2 | `2026-06-11-04-feature-entry-photo-attachment-and-photo-writing` | 照片附件主数据 + 照片引导写作 | ✅ **Verified**（2026-06-17 全 5 Phase 实施完成 + 文档收口，已移入 done/） |
-| 05 | R1 | `2026-06-11-05-feature-reading-experience-completion` | 阅读体验收口 | ⚪ Draft |
-| 06 | E3 | `2026-06-11-06-feature-practice-mode-routing-foundation` | 练习方式路由基础 | ⚪ Draft |
+| 04-FU | E2 follow-up | `2026-06-17-bug-photo-writing-detail-image-missing` | 照片写作记录详情不展示图片 | ✅ **Implemented**（2026-06-17 UI/Data 轻量测试通过，待后续模拟器人工补验） |
+| 05 | R1 | `2026-06-11-05-feature-reading-experience-completion` | 阅读体验收口 | ✅ **Implemented**（2026-06-17 全 4 Phase 实施完成，已移入 done/） |
+| 06 | E3 | `2026-06-11-06-feature-practice-mode-routing-foundation` | 练习方式路由基础 | ✅ **Implemented**（2026-06-17 Core/Data/UI 轻量测试通过，已移入 done/） |
 | 07 | E4 | `2026-06-11-07-feature-practice-dictation` | 听写练习 | ⚪ Draft |
 | 08 | E5 | `2026-06-11-08-feature-practice-backtranslation` | 回译练习 | ⚪ Draft |
 | 09 | E6 | `2026-06-11-09-feature-ai-request-preview-and-log-foundation` | AI 请求预览 + 请求日志基础 | ⚪ Draft |
@@ -116,6 +117,18 @@
 | 3 | `PhotoWritingView` 替换 mock `PhonePhotoWritingPreviewView`；`PhotoDisplayActions` 环境值；`AppEnvironment` 装配 | ✅ 已实施 + 本机测试绿 |
 | 4 | `EntryTimelineFilter.photo` 升级含 `hasPhotoAttachment`；`EntryCard` 缩略图；`EntryDetailView` 全宽照片 | ✅ 已实施 + 本机测试绿 |
 | 5 | 文档收口（impl map、platform inventory、spec 007、architecture note、方案移入 done/）| ✅ 已完成（commit c10c412）|
+
+## plan 05（R1）Phase 级子进度
+
+权威范围见方案 `docs/plans/done/2026-06-11-05-feature-reading-experience-completion.md`；此处仅记完成度。
+
+| Phase | 内容 | 状态 |
+|---|---|---|
+| 1 | DATA-08 结构构建统一（`rebuildStructure` 真实分句 + `importInlineDocument` 同事务构建 + v21 `content_revision` 列） | ✅ 已实施 + 本机测试绿 |
+| 2 | 阅读进度与收藏（v22 migration + `GRDBReadingLibraryRepository` + `ReadingWordCounter` + UI 三段元信息 + 收藏 + 筛选 chips） | ✅ 已实施 + 本机测试绿 |
+| 3 | iPad inspector 折叠降级（`canFoldInspector` + 折叠按钮 + 底部 compact 面板 safeAreaInset） | ✅ 已实施 + 本机测试绿 |
+| 4 | 解释语言模式面板控件（`switchExplanationMode` + `ExplanationLanguageModePicker` + 三端接线） | ✅ 已实施 + 本机测试绿 |
+| 5 | 文档收口（spec 012 变更记录 + platform inventory + 架构备忘录 §5 + migration 审查说明 + 移入 done/） | ✅ 已完成 |
 
 ## 维护约定
 
