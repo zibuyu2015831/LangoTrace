@@ -1,10 +1,10 @@
 # 任务方案：听写练习（本机对照闭环）
 
-状态：Draft
-自审核状态：Reviewed
+状态：User Approved
+自审核状态：Reviewed（2026-06-18 代码漂移复核，见 §13）
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-18（用户已给出整体实现授权，状态推进到 User Approved，进入 TDD 实现；基于 E1/E2/R1/E3 落地后的真实代码做事实刷新与决策定稿；E4-D1 已确认采用声学/词汇层口径）
 
 系列编号：E4（系列母方案：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`，实施顺序位于 E3 之后、E5 之前）。规模：M。前序依赖：E3（`docs/plans/active/2026-06-11-06-feature-practice-mode-routing-foundation.md`，practice mode 路由与可用性注册机制）。
 
@@ -26,13 +26,18 @@
 
 ## 2. 现状描述
 
-以下事实已对照 2026-06-11 HEAD 核验：
+以下事实已对照 2026-06-18 HEAD（E1/E2/R1/E3 落地后）重新核验，并标注与 2026-06-11 初稿假设的差异：
 
 - 练习域当前只有跟读闭环：`PracticeSessionView` / `PracticeSessionViewModel` / `PracticeControlBar` / `PracticePromptCard`（`Packages/LangoTraceUI/Sources/LangoTraceUI/`），录音走 `PracticeActions` → `GRDBPracticeRepository` + Speech `PracticeRecordingService`。
-- E3 落地后：`PracticeExerciseType` 含 `dictation` case、seed / snapshot 贯通 mode、`PracticeModeAvailability` 注册机制就绪、actions seam 为 `createOrRestoreSession`（非 shadowing 当前返回 disabled）。本方案以 E3 的交付物为前置事实。
-- TTS 示范播放：单句页"听示范"经 `PracticeSessionViewModel.playDemo` 注入的 playback 闭包，复用逐句 TTS playback coordinator 与 local artifact cache（spec 013 §4；`SentenceAudioPlaybackCoordinator.swift`、`SentenceTTSGeneration.swift` 在 Core）。TTS artifact 已有持久缓存（`tts_audio_artifacts` + `media_artifacts`）。
-- 文本作答没有任何持久化设施：`practice_sessions` / `practice_recordings` / `practice_recording_artifacts` 都是录音导向（v9 / v10 migration）；没有 `practice_text_attempts` 或等价表。当前 Data 最新 migration 为 `v15_reset_reading_explanation_cache_for_unix_epoch`。
-- Core 没有字符串 diff 能力。
+- **E3 交付物已落地并核验（初稿是预测，现为既成事实）**：
+  - `PracticeExerciseType`（`Packages/LangoTraceCore/Sources/LangoTraceCore/PracticeSession.swift`）含 `shadowing` / `dictation` / `backtranslation` 三 case。
+  - seed / snapshot 贯通 mode：`PracticeSessionRouteSeed`（`PracticeRouting.swift`）与 `PracticeSentenceSnapshot`（`PracticeSession.swift`，含 `exerciseType`、`targetTextSnapshot`、`targetTextHash` 等全字段）已就绪。
+  - actions seam 确为 `PracticeActions.createOrRestoreSession(_:snapshot:)`（`PracticeActions.swift`），且 `completedSentenceIDs(_:exerciseType:)` 已实现。
+  - **「可用 mode 注册」的真实形态需订正**：`PracticeModeAvailability`（`PracticeSentenceListPresentation.swift`）只是个 `struct(availableModes:)` 值类型，数据来自 `PracticeActions.availableExerciseTypes`；当前 `PracticeActionsAssembly.swift` 硬编码 `guard snapshot.exerciseType == .shadowing else { throw .disabled }`。因此「注册 `.dictation`」= 在装配处把 `.dictation` 加进 `availableExerciseTypes` + 移除该硬编码 guard，并非存在一个中央注册表。
+- TTS 示范播放：单句页"听示范"经 `PracticeSessionViewModel.playDemo`（签名 `@escaping @MainActor @Sendable () async -> SentenceAudioPresentationState`）注入的 playback 闭包，复用逐句 TTS playback coordinator 与 local artifact cache（spec 013 §4；`SentenceAudioPlaybackCoordinator.swift` 在 Core）。TTS artifact 已有持久缓存（`tts_audio_artifacts` + `media_artifacts`）。
+- 文本作答仍无任何持久化设施：`practice_sessions` / `practice_recordings` / `practice_recording_artifacts` 都是录音导向（v9 / v10 migration）；没有 `practice_text_attempts` 或等价表。**Data 最新 migration 已是 `v22_add_reading_progress_and_favorite_columns`（初稿假设的 v15 已过期）**；其中 **`v18_allow_practice_mode_exercise_types` 已把 `practice_sessions.exercise_type` 的 CHECK 扩到 `('shadowing','dictation','backtranslation')`**，即数据层闸门已为听写打开，本方案 attempt 表预计为 **v23**（实施时按当时最新顺序确认）。
+- **仓库 session 创建方法是 shadowing 专名**：`PracticeRepository` 协议当前只有 `createOrRestoreShadowingSession(languageSpaceID:snapshot:)`；session 行结构跨 mode 同构，差异只在 snapshot 已携带的 `exerciseType`。听写实施时将其泛化为按 `snapshot.exerciseType` 键控的 `createOrRestoreSession`，而非新增近重复方法（早期重构，CLAUDE.md §1.1）。
+- Core 没有字符串 diff 能力（已确认）。
 - `docs/architecture/notes/2026-06-06-reading-uitextview-per-block-patterns.md` §2 确立了多字节安全的 Character 计数约定（阅读域确立，本方案沿用同一原则）。
 
 ## 3. 目标
@@ -167,27 +172,31 @@ attempt 表覆盖 E5 的设计依据：
 
 ## 12. 实施方案
 
-### 决策 E4-D1：diff 宽容度（需用户确认）
+### 决策 E4-D1：diff 宽容度（2026-06-18 用户确认采用「声学/词汇层」口径）
 
-听写检验的是"听"，不可听见的差异不计入差异数：
+听写检验的是**听觉解码能力**（能否把听到的语音正确还原成词），不是正字法。差异分两层：
 
-- 标点 token 差异不计入差异数（听不出逗号 / 句号），渲染时弱化显示。
-- 纯大小写差异不计入差异数（听不出大写），等价匹配。
-- 拼写 / 词形差异计入（如 stay 与 stays——原型示例即 1 处差异）；多写、漏写、错写的词各计 1 处。
+- **声学/词汇层（计入差异数）**：拼写、词形（如 stay 与 stays——原型示例即 1 处差异）、同音异形词（its/it's、their/there/they're、to/too）、多写 / 漏写 / 错写的词各计 1 处。这些正是听写的学习信号，必须计入；按 word token 对齐、词内撇号算词的一部分的设计恰好能把 its/it's 判为差异。
+- **正字法层（不计入差异数）**：纯大小写差异（听不出大写，等价匹配）、独立标点差异（听不出逗号 / 句号）。
 
-理由：这是语言学习产品而非打字测验；对初级用户，把不可听见的差异计为错误会制造挫败感且无学习信号。该口径写入 spec 013 作为听写对照契约。
+理由：这是语言学习产品而非打字测验；对初级用户，把不在语音信号里的差异计为错误会制造挫败感且无学习信号，亦与产品"不做机械评分 / 惩罚"的定位一致。该口径写入 spec 013 作为听写对照契约。
+
+v1 边界（解掉初稿 D1「弱化显示标点」与 D2「标点不参与对齐」的张力）：
+
+- 标点在归一化阶段直接抹除，**count 与显示都不涉及标点**（最简，完全符合"不可听见不计入"）；"弱化显示标点差异"列为后续增强，本版不做。
+- **不提供严格模式开关**，避免设置面膨胀（见 §20 风险 2）。
 
 ### 决策 E4-D2：diff 算法语义
 
-1. 归一化：双方文本做 Unicode NFC 归一化、首尾修剪、连续空白折叠为单空格。
-2. 分词：按 Character 粒度扫描分为 word token（字母 / 数字 / 词内撇号与连字符）与 punctuation token；CJK 字符逐字成 token（对混排句安全）。全程使用 Swift String / Character API，不使用 UTF-16 偏移（与 per-block NSRange 备忘录 §2 同一约定）。
-3. 对齐：word token 序列做 LCS（最长公共子序列）对齐，比较时大小写折叠；punctuation token 不参与对齐计数。
+1. 归一化：双方文本做 Unicode NFC 归一化、首尾修剪、连续空白折叠为单空格；按 E4-D1，独立标点在此阶段直接抹除（不进入后续分词与对齐）。
+2. 分词：按 Character 粒度扫描分为 word token（字母 / 数字 / 词内撇号与连字符）；CJK 字符逐字成 token（对混排句安全）。全程使用 Swift String / Character API，不使用 UTF-16 偏移（与 per-block NSRange 备忘录 §2 同一约定）。
+3. 对齐：word token 序列做 LCS（最长公共子序列）对齐，比较时大小写折叠（大小写差异不计入）。
 4. 输出：`PracticeDictationDiffResult`：差异数、用户文本中各差异段的 Character range（供 AttributedString 下划线渲染）、差异分类（missing / extra / changed）。输入长度上限 2000 Character，超限拒绝（构造失败，不发生 O(n²) 失控）。
 
 ### 实施步骤
 
 1. Core diff（TDD）：先写失败测试（见第 15 节），实现 `PracticeDictationDiff.compare(attempt:reference:)` 纯函数。
-2. migration（一个，覆盖 E4 / E5；id 在实施时按当时最新注册顺序分配，需与 R1 的 migration 协调先后）：
+2. migration（一个，覆盖 E4 / E5；当前最新为 v22，本表预计为 **`v23_create_practice_text_attempts`**，实施时按当时最新注册顺序确认）。`exercise_type` 的 CHECK 约束为 `('dictation','backtranslation')`（shadowing 产出录音而非文本 attempt）：
 
 ```sql
 CREATE TABLE practice_text_attempts (
@@ -208,13 +217,13 @@ CREATE TABLE practice_text_attempts (
 
    索引：`(session_id, attempt_number)` 唯一、`(language_space_id, exercise_type)`。
 3. Repository：`recordTextAttempt`（事务内取下一 attempt_number、写行）、`latestTextAttempt(sessionID:)`、听写已练派生并入 E3 的 `completedSentenceIDs(materialID:exerciseType:)`（dictation：存在未软删 attempt 即已练）。
-4. Actions / 装配：`createOrRestoreSession` 的 `.dictation` 分支创建 / 恢复 `exercise_type = 'dictation'` 的 session（复用 E3 键控查询）；新增 `submitDictationAttempt` action：Core diff → repository 写入 → 返回 diff 结果；attempt 提交时把会话期听次计数一并落库。
+4. Repository / Actions / 装配：先把 `PracticeRepository.createOrRestoreShadowingSession` 泛化为按 `snapshot.exerciseType` 键控的 `createOrRestoreSession`（shadowing 行为不变，dictation 复用同一键控查询）；移除 `PracticeActionsAssembly` 中 `guard exerciseType == .shadowing else { throw .disabled }` 的硬编码闸门，并把 `.dictation` 加入 `availableExerciseTypes`；新增 `submitDictationAttempt` action：Core diff → repository `recordTextAttempt` 写入 → 返回 diff 结果；attempt 提交时把会话期听次计数一并落库。
 5. UI 会话页状态机（presentation model 先行、可测）：
    - 状态：`listening`（参考句隐藏；重听按钮 + 已听 n 次 + 输入框 + 提交）→ `compared`（参考句 + diff 渲染 + 计数 + footnote + 再试一次）。
    - 重听：复用 demo 播放注入（与跟读同一 seam）；播放仅显式点击触发；句间切换先停止播放后替换 seed（spec 013 §3）。
    - `compared` 后"再试一次"开启新 attempt（attempt_number 递增），参考句重新隐藏。
    - diff 渲染：AttributedString 在用户作答文本上对差异段加下划线 + warn 前景色；计数文案 `n 处差异 · 本机对照，不发送 AI`。
-6. 注册 `.dictation` 到 `PracticeModeAvailability`：句子列表分段控制出现 跟读 / 听写 两段。
+6. 句子列表 mode 可用性：`PracticeModeAvailability` 是值类型 helper（非中央注册表），其 `availableModes` 已由 `PracticeActions.availableExerciseTypes` 驱动（见步骤 4 的装配改动），句子列表分段控制随之出现 跟读 / 听写 两段。
 7. 文档收口：spec 013（E4-D1 契约、已练派生扩展）、页面清单、备忘录采纳标注；migration 命中专项审查判断。
 
 ### 故障与恢复路径（按 workflow 故障矩阵）
@@ -249,6 +258,21 @@ CREATE TABLE practice_text_attempts (
 写回修改：以上各项均已写回第 5、6、7、12、15 节。
 仍需用户确认的问题：E4-D1 宽容度口径；本方案整体范围与实现授权（推进到 User Approved）。
 是否允许进入实现：待用户确认后允许。
+```
+
+```text
+审核日期：2026-06-18
+审核方式：代码漂移复核（事实刷新 + 决策定稿），由真实代码只读核验驱动
+触发原因：本方案 §2 现状钉在 2026-06-11 HEAD，其后 E1/E2/R1/E3 已落地；初稿对 E3 的 API 是预测，需用真实代码校验，且若有漂移须订正后再进入实现。
+发现摘要：
+  - [设计成立] E3 交付物全部命中预测：PracticeExerciseType.dictation、createOrRestoreSession seam、completedSentenceIDs、PracticeSentenceSnapshot 贯通 mode、playDemo 注入、SentenceAudioPlaybackCoordinator 在 Core、无 practice_text_attempts、Core 无 diff——方案骨架无需重审。
+  - [事实漂移·已订正] 最新 migration v15 → v22；v18 已放开 exercise_type CHECK；新表落点改为 v23。写回 §2、§12 步骤 2。
+  - [措辞订正·已订正] PracticeModeAvailability 非「注册机制」而是值类型 helper，真实落点是 availableExerciseTypes + 移除 PracticeActionsAssembly 硬编码 guard。写回 §2、§12 步骤 4/6。
+  - [新落点·已纳入] PracticeRepository.createOrRestoreShadowingSession 为 shadowing 专名，泛化为按 exerciseType 键控的 createOrRestoreSession（早期重构，§1.1）。写回 §2、§12 步骤 4。
+  - [决策定稿] E4-D1 经用户确认采用「声学/词汇层计入、正字法层不计入」口径；解掉 D1/D2 标点张力（归一化阶段抹除标点，count 与显示均不涉及）；不做严格模式开关。写回 §12 E4-D1/E4-D2。
+写回修改：§1 头部、§2、§12（E4-D1/E4-D2/步骤 2/4/6）。
+仍需用户确认的问题：本方案整体范围与实现授权（推进到 User Approved）。E4-D1 已确认。
+是否允许进入实现：待用户给出实现授权后允许。
 ```
 
 ## 14. 复查方法
@@ -310,6 +334,8 @@ git status --short
 ## 18. 实施记录
 
 2026-06-11：方案创建并完成两轮自审核（见第 13 节）。尚未进入实现。
+2026-06-18：基于 E1/E2/R1/E3 落地后的真实代码做代码漂移复核（见第 13 节第二条记录）。E3 交付物全部命中预测，设计骨架成立；订正迁移版本（v15→v22，新表 v23）、`PracticeModeAvailability` 措辞、仓库 seam 泛化等漂移。E4-D1 经用户确认采用「声学/词汇层」口径。
+2026-06-18：用户给出整体实现授权，方案状态推进到 User Approved，进入 TDD 实现。实现按 §12 步骤 1–7 推进，每完成一小阶段做轻量验证 + commit。
 
 ## 19. 完成标准
 
