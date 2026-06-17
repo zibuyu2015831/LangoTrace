@@ -30,7 +30,7 @@ public final class ReadingDocumentStore: ObservableObject {
     let nativeLanguageCode: String
     let targetLanguageCode: String
     let proficiencyLevelCode: String
-    public internal(set) var currentExplanationMode: ExplanationLanguageMode
+    @Published public internal(set) var currentExplanationMode: ExplanationLanguageMode
 
     var generation: Int = 0
     var explanationTask: Task<Void, Never>?
@@ -107,6 +107,16 @@ public final class ReadingDocumentStore: ObservableObject {
         }
     }
 
+    /// Switches the active explanation language mode and re-issues the explanation for the current
+    /// selection if one exists and the mode changed. A no-op when the mode is unchanged.
+    public func switchExplanationMode(_ mode: ExplanationLanguageMode) {
+        guard mode != currentExplanationMode else { return }
+        currentExplanationMode = mode
+        if selectedSelection != nil {
+            explainSelection()
+        }
+    }
+
     public func replaceDocument(documentID: String, spaceID: String, contentRevision: Int = 1) {
         self.documentID = documentID
         self.spaceID = spaceID
@@ -120,6 +130,7 @@ public final class ReadingDocumentStore: ObservableObject {
         draftBody = ""
         explanationCache = [:]
         explainedSentenceIDs = []
+        currentExplanationMode = ExplanationLanguageMode.derive(from: proficiencyLevelCode)
         Task { await loadCacheForDocument() }
     }
 

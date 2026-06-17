@@ -19728,6 +19728,74 @@
         }
       }
     },
+    "reading.explanation.mode.picker.label": {
+      "comment": "Accessibility label for the three-segment explanation language mode picker.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explanation Language Mode"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解释语言模式"
+          }
+        }
+      }
+    },
+    "reading.explanation.mode.sourceLanguage": {
+      "comment": "Segment label: explanation is provided entirely in the user's native language.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "母语"
+          }
+        }
+      }
+    },
+    "reading.explanation.mode.bilingualBridge": {
+      "comment": "Segment label: explanation mixes native and target language for intermediate learners.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilingual"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双语"
+          }
+        }
+      }
+    },
+    "reading.explanation.mode.targetImmersion": {
+      "comment": "Segment label: explanation is provided entirely in the target language for advanced immersion.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immersion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沉浸"
+          }
+        }
+      }
+    },
     "reading.explanation.contains.explained.sentence": {
       "comment": "Hint shown when the selected text fragment overlaps a sentence that already has a cached explanation.",
       "localizations": {

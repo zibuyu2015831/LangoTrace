@@ -585,12 +585,48 @@ private struct ReadingActionPill: View {
     }
 }
 
+// MARK: - Explanation language mode picker
+
+/// Three-segment control for switching between explanation language modes.
+/// Shown when a selection is active in the inspector or compact panel.
+struct ExplanationLanguageModePicker: View {
+    let currentMode: ExplanationLanguageMode
+    let onSwitch: (ExplanationLanguageMode) -> Void
+
+    var body: some View {
+        Picker(localizedString("reading.explanation.mode.picker.label"), selection: Binding(
+            get: { currentMode },
+            set: { onSwitch($0) }
+        )) {
+            ForEach(ExplanationLanguageMode.allCases, id: \.self) { mode in
+                Text(localizedString(mode.labelKey)).tag(mode)
+            }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+    }
+}
+
+private extension ExplanationLanguageMode {
+    var labelKey: String {
+        switch self {
+        case .sourceLanguage: "reading.explanation.mode.sourceLanguage"
+        case .bilingualBridge: "reading.explanation.mode.bilingualBridge"
+        case .targetImmersion: "reading.explanation.mode.targetImmersion"
+        }
+    }
+}
+
+// MARK: - Inspector pane
+
 struct ReadingInspectorPane: View {
     let selection: ReadingSelectionContext?
     let explanationResult: ReadingSelectionExplanationResult?
     var explanationState: ReadingAsyncState = .idle
     var audioState: ReadingAsyncState = .idle
     var explanationSource: ExplanationResultSource?
+    var currentExplanationMode: ExplanationLanguageMode = .bilingualBridge
+    var onSwitchMode: ((ExplanationLanguageMode) -> Void)?
     let onExplain: () -> Void
     let onListen: () -> Void
     var onRegenerate: (() -> Void)?
@@ -662,6 +698,13 @@ struct ReadingInspectorPane: View {
                         )
                     }
                     Spacer(minLength: 0)
+                }
+
+                if let onSwitchMode {
+                    ExplanationLanguageModePicker(
+                        currentMode: currentExplanationMode,
+                        onSwitch: onSwitchMode
+                    )
                 }
 
                 ReadingExplanationResultView(
@@ -738,6 +781,8 @@ struct ReadingCompactLearningPanel: View {
     let audioState: ReadingAsyncState
     let panelState: ReadingCompactLearningPanelState
     var explanationSource: ExplanationResultSource?
+    var currentExplanationMode: ExplanationLanguageMode = .bilingualBridge
+    var onSwitchMode: ((ExplanationLanguageMode) -> Void)?
     let onExplain: () -> Void
     let onListen: () -> Void
     let onClear: () -> Void
@@ -834,6 +879,15 @@ struct ReadingCompactLearningPanel: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 14)
+
+            if let onSwitchMode {
+                ExplanationLanguageModePicker(
+                    currentMode: currentExplanationMode,
+                    onSwitch: onSwitchMode
+                )
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+            }
 
             if panelState == .content || panelState == .loading || panelState == .failed {
                 HStack {
