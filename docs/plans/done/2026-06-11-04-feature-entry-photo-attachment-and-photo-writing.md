@@ -1,10 +1,10 @@
 # 任务方案：记录照片附件主数据与照片引导写作闭环（系列 E2）
 
-状态：In Progress
+状态：Done
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-17（Phase 0 spike gate PASS，进入 Phase 1）
+最后更新日期：2026-06-17（Phase 5 文档收口，全部 Phase 完成，方案归档）
 
 ## 用户确认记录
 
@@ -365,6 +365,23 @@ scripts/check-docs.sh
 - **PhotosPicker 双端可用性**：iOS Simulator（iPhone 17，iOS 18）与 macOS（arm64）构建均通过；PhotosUI `PhotosPicker` 在 iOS 16+ / macOS 13+ 均可用，picker 模式不需要 `NSPhotoLibraryUsageDescription`；`PhotosPickerItem.loadTransferable(type: Data.self)` 通过系统 `Data: Transferable` 符合协议在两端统一可用；macOS picker 外观由系统决定（Photos app inline panel），API 层无差异。Phase 0 方案预留的"macOS picker 不可用则降级 fileImporter"风险**未触发**，无需降级。
 
 方案状态推进为 **In Progress**，Phase 0 gate PASS，可进入 Phase 1 生产实现。
+
+2026-06-17：**Phase 1 完成**。`MediaArtifactType` 增加 `entryPhotoOriginal` / `entryPhotoThumbnail`；`MediaArtifactDerivationKind` 增加 `photoImage`；`EntryPhotoAttachment` Core 模型落地（`EntryPhotoAttachment.swift`）；v17 migration 含 `media_artifacts` CHECK 扩展（表重建路径，沿 v10 先例）与 `entry_photo_attachments` 关联表（FK → entries ON DELETE CASCADE / language_spaces / media_artifacts、exif_stripped、created_at、sort_order）；`GRDBEntryPhotoAttachmentRepository` 落地（insertAttachment / attachments / updateThumbnailArtifact）；Data 包 `PhotoAttachmentRepositoryTests.swift` 测试全绿。
+
+2026-06-17：**Phase 2 完成**。`PhotoImportPipeline`（Data 包）落地：PhotosPickerItem 加载 Data → 写 staging → ImageIO EXIF GPS 剥离（保留方向）→ content hash → 原子移动 → 缩略图生成（最长边 256pt JPEG，可重建）→ GRDB 元数据事务（原图 artifact + attachment 行 + 缩略图 artifact）；任一步失败则清理 staging 不留半写；`entryPhotoOriginal` `delete_after = NULL`、三策略列 `localOnly / excludedFromSystemBackup / excludedByDefault` 固化为默认值；`PhotoImportPipelineTests.swift` 测试全绿。
+
+2026-06-17：**Phase 3 完成**。`PhotoWritingView.swift` 替换 `PhonePhotoWritingPreviewView.swift`（已从 git 删除）；`PhotoWritingActions.swift` 提供 `importPhoto` / `createEntry` action contract；`PhoneMainView.swift` 接线 `photoWriting` sheet；`createMockPhotoWritingEntry` 从 Data 包移除；保存语义：PhotosPicker maxSelectionCount 1 + 非空文本才允许保存；隐私声明 String Catalog key `photoWriting.privacy.disclaimer` 落地；`PhotoWritingSaveFlowTests.swift`（新建 `PhotoWriting/` 子目录）测试全绿；`PhoneIOSConvergenceTests.swift` 对应行已更新为 `PhotoWritingView.swift`。
+
+2026-06-17：**Phase 4 完成**。`EntryTimelineFilter.includes(entry:hasMaterialWithoutRecording:hasPhotoAttachment:)` 签名扩展 `hasPhotoAttachment: Bool` 参数；`.photo` case 升级为 `source == .photoWriting || hasPhotoAttachment`；全部调用点（`PadMainSections.swift`、`PhoneMainSections.swift`、`PadMainView.swift`、`PageClosureStateTests.swift`）同步更新传 `false` 占位（E7 接真实附件数据）；`EntryCard` 展示 44×44 缩略图（`PhotoDisplayActions` environment 异步加载，仅对 `photoWriting` entry 触发）；`EntryDetailView` 展示全宽 4:3 照片（`PhotoDisplayActions` environment 异步加载）；`PhotoDisplayActions.swift` environment key 落地（`\.photoDisplayActions`）；`GRDBEntryPhotoAttachmentRepository.photoRelativePath(forEntryID:)` 方法通过 JOIN + COALESCE(thumbnail, original) 获取最佳可用照片相对路径；`AppEnvironment` 装配 `photoDisplayActions`，`LangoTraceApp.swift` 注入根视图；`EntryTimelineFilterTests.swift` 测试全绿；UI 包全 440 tests 通过。提交 `bdde256`。
+
+2026-06-17：**Phase 5 完成**（文档收口）。
+- `docs/spec/media-artifacts/impl.md`：增加 v17 migration 事实、`entryPhotoOriginal` / `entryPhotoThumbnail` / `PhotoImportPipeline` / `GRDBEntryPhotoAttachmentRepository.photoRelativePath()` / `PhotoDisplayActions` / 三个新测试文件记录。
+- `docs/spec/learning-content/impl.md`：新增 `PhotoWritingView.swift`、`PhotoWritingActions.swift`、`PhotoDisplayActions.swift`、`PhotoImportPipeline`、`GRDBEntryPhotoAttachmentRepository` 代码文件列表；更新已知偏差，移除"照片和同步尚未接入"，增加照片写作入口已落地的事实说明。
+- `docs/platform-page-inventory.md`：「照片写作预览 / Local Mock」→「照片写作 / Implemented」；iPhone 代码事实源移除 `PhonePhotoWritingPreviewView.swift` 改为 `PhotoWritingView.swift`；`EntryCard` 记录缩略图事实；`EntryDetailView` 记录照片展示事实；section 7 iPhone sheet 更新 `photoWritingPreview` → `photoWriting`；变更记录增加 E2 条目。
+- `docs/spec/007-data-storage-migration-export-and-attachments.md`：变更记录增加照片附件基础设施落地事实。
+- `docs/architecture/notes/2026-05-23-local-media-artifact-extension-notes.md`：在"后续任务"标注已落地项；在"提升条件"标注 E2 已触发第一条（新增 `media_artifacts` 数据表 / 文件目录）。
+
+方案状态推进为 **Done**，归档至 `docs/plans/done/`。
 
 ## 19. 完成标准
 

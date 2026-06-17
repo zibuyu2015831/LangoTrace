@@ -22,7 +22,12 @@
 - iPhone 记录创建和详情：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainView.swift`
 - iPad 记录详情承载：`Packages/LangoTraceUI/Sources/LangoTraceUI/PadMainSections.swift`
 - macOS 记录详情承载：`Packages/LangoTraceUI/Sources/LangoTraceUI/MacWorkspaceContentView.swift`
-- Entry editor、detail 和 mock practice supporting views：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSupportingViews.swift`
+- Entry editor、detail 和 supporting views：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSupportingViews.swift`
+- 照片写作入口与流程：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoWritingView.swift`
+- 照片写作 action contract：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoWritingActions.swift`
+- 照片展示 environment key：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoDisplayActions.swift`
+- 照片导入流水线：`Packages/LangoTraceData/Sources/LangoTraceData/PhotoImportPipeline.swift`
+- 照片附件 repository：`Packages/LangoTraceData/Sources/LangoTraceData/GRDBEntryPhotoAttachmentRepository.swift`
 - App Shell 装配：`LangoTraceApp/AppEnvironment.swift`
 
 当前已经实现：
@@ -57,9 +62,10 @@
 - 当前真实学习材料请求支持 OpenAI Responses / OpenAI-compatible Chat；Anthropic / Gemini 学习材料请求体尚未接入，会按 unsupported provider / model 边界处理。
 - `GRDBLearningContentRepository` 已实现 `learningPracticeReadiness(for:) -> [String: Bool]` 聚合查询：通过 LEFT JOIN `practice_sessions` / `practice_recordings` / `media_artifacts` 链，推导每个 Entry 是否有对应学习材料（absent = noMaterial），有材料但无 completed recording（false = needsPractice），有材料且有 completed recording（true = practiceReady）；结果投影到 `LearningContentStore.practiceReadiness`，供 iPhone / iPad / macOS 筛选和状态 pill 使用。
 - `EntryTimeline.swift`（LangoTraceUI package）定义共享时间线类型：`EntryTimelineFilter`（all / photo / needsPractice / settled，settled 至 E7 前被 UI guard 屏蔽）、`EntryDayGroup`、`groupEntriesByDay()`、`EntryTimelineCounts`、`timelineCounts(entries:practiceReadiness:today:)`、`EntryMaterialStatus`（noMaterial / stale / fresh）、`materialStatus(entry:rendering:)` 和 `EntryMaterialStatusPill`；iPhone / iPad / macOS 三端共享这些类型，不重复维护平台专属筛选 enum。
-- 练习候选仍是候选入口；TTS、录音、真实练习评分、OCR、照片附件和同步尚未接入。
+- 练习候选仍是候选入口；TTS、录音、真实练习评分、OCR 和同步尚未接入。
 - 导出、可恢复备份、FTS、向量索引和对象级同步尚未实现。
-- TTS、录音、Speech、OCR、照片和同步尚未接入。
+- TTS、录音、Speech、OCR 和同步尚未接入。
+- 照片写作入口已落地：iPhone 记录 Hero「用照片开始」进入 `PhotoWritingView`，通过 `PhotoWritingActions.importPhoto` 调用 `PhotoImportPipeline`（EXIF GPS strip → hash → 缩略图 → staging → 原子 move → `GRDBEntryPhotoAttachmentRepository` 元数据事务），完成后创建 `source = .photoWriting` 的 Entry 并写入 GRDB，再导航到记录详情。`EntryCard` 对 `photoWriting` 类型在右侧展示 44×44 缩略图；`EntryDetailView` 在原文卡片上方展示全宽 4:3 照片。两处展示通过 `PhotoDisplayActions` 环境值异步加载，不直接持有文件路径。照片字节不发送 AI Provider。
 
 ## 4. 复查方法
 

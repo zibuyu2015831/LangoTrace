@@ -2,7 +2,7 @@
 
 状态：Current Implementation Map
 
-最后更新：2026-05-26
+最后更新：2026-06-17
 
 ## 1. 对应规范
 
@@ -29,18 +29,23 @@
 - Core 通用模型：`Packages/LangoTraceCore/Sources/LangoTraceCore/MediaArtifact.swift`
 - Core TTS artifact key：`Packages/LangoTraceCore/Sources/LangoTraceCore/TTSAudioArtifact.swift`
 - Core practice recording artifact key：`Packages/LangoTraceCore/Sources/LangoTraceCore/PracticeRecordingArtifact.swift`
+- Core photo attachment model：`Packages/LangoTraceCore/Sources/LangoTraceCore/EntryPhotoAttachment.swift`
 - Data metadata repository：`Packages/LangoTraceData/Sources/LangoTraceData/GRDBMediaArtifactRepository.swift`
 - Data file store：`Packages/LangoTraceData/Sources/LangoTraceData/LocalMediaArtifactFileStore.swift`
 - Data facade：`Packages/LangoTraceData/Sources/LangoTraceData/LocalMediaArtifactStore.swift`
 - Data playback resolver：`Packages/LangoTraceData/Sources/LangoTraceData/LocalMediaArtifactPlaybackSourceResolver.swift`
+- Data photo attachment repository：`Packages/LangoTraceData/Sources/LangoTraceData/GRDBEntryPhotoAttachmentRepository.swift`
+- Data photo import pipeline：`Packages/LangoTraceData/Sources/LangoTraceData/PhotoImportPipeline.swift`
+- UI photo display actions environment key：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoDisplayActions.swift`
 - DB schema：`Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift`
-- Test coverage：`Packages/LangoTraceData/Tests/LangoTraceDataTests/AppDatabaseTests.swift`、`MediaArtifactRepositoryTests.swift`、`LocalMediaArtifactStoreTests.swift`、`LocalMediaArtifactFileStoreTests.swift`、`MediaArtifactPlaybackSourceResolverTests.swift`
+- Test coverage：`Packages/LangoTraceData/Tests/LangoTraceDataTests/AppDatabaseTests.swift`、`MediaArtifactRepositoryTests.swift`、`LocalMediaArtifactStoreTests.swift`、`LocalMediaArtifactFileStoreTests.swift`、`MediaArtifactPlaybackSourceResolverTests.swift`、`MediaArtifactPhotoMigrationTests.swift`、`PhotoAttachmentRepositoryTests.swift`、`PhotoImportPipelineTests.swift`；UI 照片写作保存闭环：`Packages/LangoTraceUI/Tests/LangoTraceUITests/PhotoWriting/PhotoWritingSaveFlowTests.swift`
 
 当前已经实现：
 
 - `media_artifacts` / `tts_audio_artifacts` metadata。
 - `practice_recording_artifacts` typed metadata，以及 `MediaArtifactDerivationKind.practiceRecording`。
 - `v10_allow_practice_recording_media_derivation_kind` 旧库迁移，覆盖已有 v9 数据库中 `derivation_kind` CHECK 只允许 `ttsAudio` 时无法写入练习录音 artifact 的问题。
+- `v17_add_photo_artifact_types` 迁移：扩展 `media_artifacts.artifact_type` CHECK 允许 `entryPhotoOriginal` / `entryPhotoThumbnail`；新建 `entry_photo_attachments` 表（`id`、`entry_id`、`language_space_id`、`original_artifact_id`、`thumbnail_artifact_id`、`status`、`width`、`height`、`exif_stripped`、`created_at`、`sort_order`）及对应索引。
 - pending / ready file state。
 - TTS derivation key lookup、reservation、commit、ready 标记、precise invalidation、metadata deletion 和 cleanup selection。
 - Practice recording derivation key lookup、reservation、commit、ready 标记和与 `practice_recordings` / `practice_sessions.completed_recording_id` 的 cleanup exclusion。
@@ -48,6 +53,10 @@
 - App 管理的 `MediaArtifacts` 目录、staging 写入、相对路径校验、hash、move、删除和 staging cleanup。
 - TTS 和 practice recording facade 编排文件验证、reservation、move、ready 标记和失败补偿。
 - playback source resolver 校验 metadata 与文件 byte size / hash 一致后才返回本地 URL；单句练习页已接入录音回放入口，文件缺失或 hash mismatch 时保持 completed session 并向 UI 返回不可播放失败。
+- `PhotoImportPipeline`：从用户选择的原始 `PHAsset` 出发，经过 EXIF GPS 元数据剥离、内容 hash 计算、缩略图生成、staging 写入、原子 move 和 `GRDBEntryPhotoAttachmentRepository` 元数据事务的完整写入流水线；原始照片（`entryPhotoOriginal`）是用户主资产，`delete_after = NULL`，不进入 LRU 或派生缓存清理；缩略图（`entryPhotoThumbnail`）是可重建派生资产，可精确失效。照片字节不得发送给任何 AI Provider。
+- `GRDBEntryPhotoAttachmentRepository.photoRelativePath(forEntryID:)`：通过 SQL JOIN `media_artifacts`，以 `COALESCE(thumbnail_artifact_id, original_artifact_id)` 为优先策略返回最佳可用照片的 `relative_file_path`，供 `PhotoDisplayActions` 加载显示用。
+- `PhotoDisplayActions`：SwiftUI `@Environment` key（`\.photoDisplayActions`），封装 `loadPhotoData(entryID:) async -> Data?`；`AppEnvironment` 在启动时通过 `GRDBEntryPhotoAttachmentRepository` + `LocalMediaArtifactFileStore` 装配真实实现；App 根视图通过 `.environment(\.photoDisplayActions, ...)` 注入；UI 层不直接持有文件路径。
+- 照片主资产和派生资产均默认 `local-only`、`excluded from system backup`、`excluded by default from export`，不进入普通 LRU 清理，不进入同步。
 
 ## 4. 已知偏差
 
@@ -60,8 +69,11 @@
 
 练习录音无法回放、staging 文件未晋升为 ready artifact、或旧库 schema 约束疑似漂移时，优先按 `docs/testing/practice-recording-troubleshooting.md` 排查。
 
+照片不显示、图片数据返回 nil 或 `photoRelativePath` 返回 nil 时，检查 `entry_photo_attachments` 是否有对应行、`media_artifacts` 的 `file_state` 是否为 ready，以及 `LocalMediaArtifactFileStore` 是否能找到对应相对路径文件。
+
 ```bash
 swift test --package-path Packages/LangoTraceData
-rg "MediaArtifact|LocalMediaArtifactStore|ttsAudioArtifact|commitTTSAudioArtifact|derivation_kind|practiceRecording" Packages/LangoTraceCore Packages/LangoTraceData docs/spec docs/plans
+swift test --package-path Packages/LangoTraceUI
+rg "MediaArtifact|LocalMediaArtifactStore|ttsAudioArtifact|commitTTSAudioArtifact|derivation_kind|practiceRecording|entryPhotoOriginal|entryPhotoThumbnail|PhotoImportPipeline|PhotoDisplayActions|photoRelativePath" Packages/LangoTraceCore Packages/LangoTraceData Packages/LangoTraceUI docs/spec docs/plans
 scripts/verify.sh
 ```

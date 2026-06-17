@@ -24,9 +24,9 @@
 
 ## 后续任务必须重新决策的问题
 
-- 是否将 `media_artifacts` 设计为通用主表，并为 TTS、录音、导出产物设置扩展表或 typed metadata。
+- 是否将 `media_artifacts` 设计为通用主表，并为 TTS、录音、导出产物设置扩展表或 typed metadata。（已落地：`tts_audio_artifacts`、`practice_recording_artifacts`、`entry_photo_attachments` 分别为 typed extension；`media_artifacts` 通用主表已确认长期设计。）
 - 全文朗读音频是否复用逐句 TTS artifact，还是生成独立 paragraph / document level artifact。
-- 用户跟读录音和听写录音是用户主资产、练习结果附件，还是可删除的练习派生媒体。
+- 用户跟读录音和听写录音是用户主资产、练习结果附件，还是可删除的练习派生媒体。（注：照片附件已决策：`entryPhotoOriginal` 是用户主资产，`delete_after = NULL`，不进入 LRU；`entryPhotoThumbnail` 是可重建派生资产，可精确失效。跟读录音和听写录音的主资产 / 派生资产分类仍待决策。）
 - 音频文件是否进入普通导出、可恢复备份、iCloud / WebDAV / S3 / R2 同步；若进入，必须定义 manifest、加密、冲突处理、删除传播和恢复策略。
 - 多设备复用 TTS 音频时，是同步音频文件，还是只同步 metadata 后由各设备按需重新生成。
 - 批量预生成音频是否需要费用提示、队列、取消、失败恢复、速率限制和磁盘预算。
@@ -46,8 +46,8 @@
 
 以下任一情况出现时，应将本备忘录中的相关内容提升为正式 spec、architecture 文档或 ADR：
 
-- 新增 `media_artifacts` 数据表、文件目录或附件 manifest。
+- 新增 `media_artifacts` 数据表、文件目录或附件 manifest。（**已触发**：E2 任务于 2026-06-17 新增 `entry_photo_attachments` 表和 `entryPhotoOriginal` / `entryPhotoThumbnail` artifact type；相关内容已回写到 `docs/spec/media-artifacts/impl.md` 和 `docs/spec/007-data-storage-migration-export-and-attachments.md`；本备忘录的媒体资产通用主表、扩展表、privacy-sensitive 处理等设计原则已在正式 spec 中生效。）
 - TTS 音频进入同步、导出、备份或用户可见资产管理。
-- 用户录音、跟读录音或听写录音进入真实持久化。
+- 用户录音、跟读录音或听写录音进入真实持久化。（**部分已触发**：practice recording 已落地，为用户练习证据，不进入 LRU；跟读 / 听写录音的主资产分类仍待完整决策，见"后续任务必须重新决策的问题"。）
 - 后台音频播放成为产品承诺。
 - 引入官方托管 TTS、官方同步音频或跨设备音频复用服务。
