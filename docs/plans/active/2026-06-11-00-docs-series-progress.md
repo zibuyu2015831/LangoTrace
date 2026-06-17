@@ -4,7 +4,7 @@
 自审核状态：N/A（导航/指针文档，不含生产代码变更）
 类型：docs
 创建日期：2026-06-15
-最后更新日期：2026-06-17（R1 阅读体验收口全 4 Phase 实施完成并归档；当前指针 E4）
+最后更新日期：2026-06-17（E3 练习路由基础 + E2 照片写作修复系列全部提交；当前指针 E4）
 
 ## 这份文档是什么
 
@@ -45,7 +45,9 @@
 | 02 | E0b | `2026-06-11-02-refactor-ui-architecture-debt` | UI/App 层结构债清偿 | ✅ **Verified**（2026-06-17 本机 UI/Data/Core 三包测试全绿，已移入 done/） |
 | 03 | E1 | `2026-06-11-03-feature-record-timeline-and-filters` | 记录生活时间线 + 三端筛选投影 | ✅ **Verified**（2026-06-17 全 5 Phase 实施完成 + post-E1 清理，已移入 done/） |
 | 04 | E2 | `2026-06-11-04-feature-entry-photo-attachment-and-photo-writing` | 照片附件主数据 + 照片引导写作 | ✅ **Verified**（2026-06-17 全 5 Phase 实施完成 + 文档收口，已移入 done/） |
-| 04-FU | E2 follow-up | `2026-06-17-bug-photo-writing-detail-image-missing` | 照片写作记录详情不展示图片 | ✅ **Implemented**（2026-06-17 UI/Data 轻量测试通过，待后续模拟器人工补验） |
+| 04-FU | E2 follow-up | `2026-06-17-bug-photo-writing-detail-image-missing` | 照片写作记录详情不展示图片 | ✅ **Verified**（2026-06-17 模拟器验证通过，含旧库修复；已移入 done/） |
+| 04-FU-b | E2 infra | `2026-06-17-bug-photo-detail-card-layout` | 照片记录详情图片卡片布局修复 | ✅ **Verified**（2026-06-17 已实施 + 验证，已移入 done/） |
+| 04-FU-c | E2 infra | `2026-06-17-bug-photo-writing-legacy-attachment-repair` | 照片写作旧数据附件修复与运行验证 | ✅ **Verified**（2026-06-17 模拟器验证通过，已移入 done/） |
 | 05 | R1 | `2026-06-11-05-feature-reading-experience-completion` | 阅读体验收口 | ✅ **Implemented**（2026-06-17 全 4 Phase 实施完成，已移入 done/） |
 | 06 | E3 | `2026-06-11-06-feature-practice-mode-routing-foundation` | 练习方式路由基础 | ✅ **Implemented**（2026-06-17 Core/Data/UI 轻量测试通过，已移入 done/） |
 | 07 | E4 | `2026-06-11-07-feature-practice-dictation` | 听写练习 | ⚪ Draft |
@@ -59,6 +61,8 @@
 | 15 | E12 | `2026-06-11-15-feature-settings-status-projection` | 设置真实状态投影 | ⚪ Draft |
 | — | LM01 | `2026-06-15-01-feature-learner-model-boundary-and-ability-coverage` | 学习者模型边界 + Ability 覆盖 | ⚪ Draft |
 | — | — | `2026-06-15-chore-prototype-large-screen-density-and-state-coverage` | 原型大屏密度 + 状态原型补全 | ✅ **Verified**（2026-06-16 截图验收通过，已移入 done/） |
+| — | infra | `2026-06-17-bug-build-errors-xcodegen-import-exhaustive-switch` | XcodeGen 注册 + import + exhaustive switch 构建修复 | ✅ **Verified**（2026-06-17 已修复，已移入 done/） |
+| — | infra | `2026-06-17-bug-generation-sqlite-unique-constraint` | 生成学习材料 SQLite 唯一约束冲突修复 | ✅ **Verified**（2026-06-17 已修复，已移入 done/） |
 
 说明：
 
