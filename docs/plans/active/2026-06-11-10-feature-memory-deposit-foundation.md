@@ -4,7 +4,7 @@
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-17
 
 ## 用户确认记录
 
@@ -32,7 +32,7 @@
 - `memory_candidates` 已在 GRDB learning content 主路径中持久化（`v4_create_learning_content_infrastructure` migration，`Packages/LangoTraceData/Sources/LangoTraceData/AppDatabase.swift`），`status` CHECK 当前只允许 `'candidate'`；写入发生在 `GRDBLearningContentRepository.replaceAnalysisRows()`。
 - `MemoryItem`（`Packages/LangoTraceData/Sources/LangoTraceData/LearningContentModels.swift`，字段 `id` / `spaceID` / `entryID` / `text` / `note`）目前是 candidate 投影类型，不携带 kind、来源材料、沉淀时间或复习状态。
 - 全仓库不存在 `memory_items` 表、`加入记忆` 动作或 deposit 语义代码。
-- `PadFilter.memorized`（`Packages/LangoTraceUI/Sources/LangoTraceUI/PadMainModels.swift`）当前用 candidate 投影判断"已沉淀"，语义错误（candidate 自动产生，未经用户确认）。
+- **E1 完成后状态（2026-06-17）**：`PadFilter` enum 已在 E1（`docs/plans/done/2026-06-11-03-feature-record-timeline-and-filters.md`）中删除。三端筛选现为 `EntryTimelineFilter`（`Packages/LangoTraceUI/Sources/LangoTraceUI/EntryTimeline.swift`）。`EntryTimelineFilter.settled.includes(_:hasMaterialWithoutRecording:)` 当前始终返回 `false`，`FilterChipRow` 和 `PadSidebarView.visibleFilters` 通过 `.filter { $0 != .settled }` guard 隐藏 `已沉淀` chip，等待本任务填充真实判定逻辑。
 - 当前 migration 头部为 `v15_reset_reading_explanation_cache_for_unix_epoch`；本任务新增 migration 使用下一可用编号（按当前 HEAD 为 v16；若实施时已有其他 migration 落地则顺延，编号以实施时 `AppDatabase.swift` 为准）。
 
 ## 3. 目标
@@ -42,7 +42,7 @@
 3. 三端共享 `MemoryDepositActions` seam：从 memory candidate 或阅读选区显式沉淀一条记忆；重复沉淀幂等。
 4. iPhone 列表 / iPad 网格 / macOS 四列表格 + Inspector 的只读沉淀列表，按 `space_id` 隔离，数据来自真实 repository。
 5. 来源回链：沉淀项可导航回来源 Entry 详情或阅读文档；来源被删除时显示降级状态而不是崩溃或空导航。
-6. `PadFilter.memorized` 与 E1 时间线 `已沉淀` 筛选改用真实 `memory_items` 投影。
+6. 移除 `FilterChipRow` 和 `PadSidebarView.visibleFilters` 中的 `settled` chip guard，并将 `EntryTimelineFilter.settled.includes(entry:hasMaterialWithoutRecording:)` 替换为基于 `depositedEntryIDs(spaceID:)` 的真实判定，使 `已沉淀` chip 正式对用户可见。
 7. UI 全程不出现向量索引、embedding、检索基础设施等工程概念。
 
 ## 4. 范围
@@ -76,7 +76,7 @@
 ```text
 证据能证明什么：原型固定了沉淀列表的字段集合（目标文本/释义/类型/来源/日期）与三端形态；代码证明 candidate 数据可作为沉淀输入。
 证据不能证明什么：原型不能证明复习调度、主题聚合或搜索已被授权；candidate 投影不能证明沉淀语义已存在。
-迁移前提：migration 编号以实施时 AppDatabase.swift 为准；PadFilter.memorized 改造前提是 memory_items 查询可用。
+迁移前提：migration 编号以实施时 AppDatabase.swift 为准（E1 未新增 migration，当前仍为 v16）；`settled` chip guard 移除前提是 `memory_items` 查询已可用。
 照搬风险：直接把原型 mock 字段照搬为 schema 会漏掉来源引用完整性、软删除与 E8 复习字段；已在 schema 设计中补足。
 ```
 
@@ -141,7 +141,8 @@
 - `Packages/LangoTraceData/Sources/LangoTraceData/LearningContentModels.swift`（candidate 投影类型更名，见第 12 节）
 - `Packages/LangoTraceData/Sources/LangoTraceData/GRDBLearningContentRepository.swift`（candidate 投影查询调整）
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSections.swift`、`PadMainSections.swift`、`MacWorkspaceContentView.swift`、`LearningContentComponents.swift`（三端记忆页面）
-- `Packages/LangoTraceUI/Sources/LangoTraceUI/PadMainModels.swift`（`PadFilter.memorized` 真实投影）
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/EntryTimeline.swift`（移除 `settled` guard，填充真实判定逻辑）
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSections.swift`、`PadMainSections.swift`（移除 `visibleFilters` 中的 `settled` guard）
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/MemoryDepositActions.swift`（新增 seam）
 - 记录详情 / 阅读 inspector 对应视图文件（`加入记忆` 入口）
 - `LangoTraceApp/AppEnvironment.swift`（装配）
@@ -159,7 +160,7 @@
 - `docs/spec/007-data-storage-migration-export-and-attachments.md`（实施后补充 memory_items 落地事实）
 - `docs/platform-page-inventory.md`（三端记忆页面状态从 Local Mock 更新）
 - `docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md`（只读，采纳说明见第 6 节）
-- 前序依赖方案：`docs/plans/active/2026-06-11-03-feature-record-timeline-and-filters.md`（E1，筛选 seam）、`docs/plans/active/2026-06-11-04-feature-entry-photo-attachment-and-photo-writing.md`（E2，推荐先行）
+- 前序依赖方案：`docs/plans/done/2026-06-11-03-feature-record-timeline-and-filters.md`（E1，已完成；`EntryTimelineFilter.settled` guard 等待本任务移除）、`docs/plans/active/2026-06-11-04-feature-entry-photo-attachment-and-photo-writing.md`（E2，推荐先行）
 
 ## 11. bug 分析
 
@@ -215,7 +216,7 @@ dependency contract（与 E8 协调）：上述 6 个 review 字段由本 migrat
 3. UI seam：`MemoryDepositActions`（deposit、列表加载、来源解析），由 `AppEnvironment` 装配真实实现，测试用内存替身。记录详情 inspector 的 memory candidate 区与阅读 inspector 增加 `加入记忆` 按钮：未沉淀显示动作态，已沉淀显示 `已加入记忆` 完成态（确认语义清晰，二次点击不重复写入）。
 4. 三端列表：iPhone `MemoryView` 改为真实沉淀列表（目标文本 / 释义 / 来源 / kind pill）；iPad 记忆区改双列网格 + 左栏 kind 筛选（全部 / 词句 / 整句，`已掌握` 项显示但在 E8 前为空集）；macOS 改四列表格 + Inspector（词句详情、`听` 复用 `SentenceAudioPlaybackActions` 现有 seam 仅当来源句可解析时启用、来源链接）。移除 `MemoryLayerSummaryView` 的 mock 计数摘要用法。
 5. 回链导航：iPhone push 到 Entry 详情；iPad / macOS 切换到对应 route 并选中来源；来源不可达走降级态。复用各平台既有 route 类型，不新建并行导航栈。
-6. 筛选接线：`PadFilter.memorized` 与 E1 `已沉淀` 筛选改用 `depositedEntryIDs(spaceID:)` 投影；`needsPractice` 语义不在本任务修改。
+6. 筛选接线：移除三端 `visibleFilters` 中的 `settled` chip guard；将 `EntryTimelineFilter.settled.includes(entry:hasMaterialWithoutRecording:)` 替换为基于 `depositedEntryIDs(spaceID:)` 的真实判定；`needsPractice` 语义不在本任务修改。
 7. 文档同步与验证收口。
 
 ## 13. 严格方案自审核记录
@@ -233,7 +234,7 @@ dependency contract（与 E8 协调）：上述 6 个 review 字段由本 migrat
   - P2：重复沉淀同一 candidate 的幂等性未定义 → 已加入 partial unique index 与幂等返回语义。
   - P2：E8 字段若不进本 migration 会造成二次 migration → 已按系列约定写入 dependency contract。
   第二轮（测试 / 安全 / 落地）：
-  - P1：先失败测试初稿只覆盖 repository，未覆盖"candidate 投影与 deposited 主数据分离"的语义回归 → 测试落点补充 PadFilter / 投影测试。
+  - P1：先失败测试初稿只覆盖 repository，未覆盖"candidate 投影与 deposited 主数据分离"的语义回归 → 测试落点补充 `EntryTimelineFilter.settled` 接线 / 投影测试。
   - P2：UI 文案红线（向量/embedding）缺少机械验证方式 → 约束 3 补充 rg 验证提示。
   - P2：来源句 `听` 按钮可能在来源删除后触发空播放 → 12.2 第 4 步限定仅来源句可解析时启用。
 写回修改：以上各条均已写回第 6、7、12、15 节。
@@ -256,7 +257,7 @@ dependency contract（与 E8 协调）：上述 6 个 review 字段由本 migrat
   Packages/LangoTraceData/Tests/LangoTraceDataTests/Memory/GRDBMemoryItemRepositoryTests.swift（新增，功能子目录 Memory/）
   Packages/LangoTraceData/Tests/LangoTraceDataTests/Memory/AppDatabaseMemoryMigrationTests.swift（新增）
   Packages/LangoTraceUI/Tests/LangoTraceUITests/Memory/MemoryDepositActionsTests.swift（新增）
-  Packages/LangoTraceUI/Tests/LangoTraceUITests/Memory/MemoryListProjectionTests.swift（新增，含 PadFilter.memorized 真实投影回归）
+  Packages/LangoTraceUI/Tests/LangoTraceUITests/Memory/MemoryListProjectionTests.swift（新增，含 `EntryTimelineFilter.settled` 真实投影回归 + settled chip guard 移除验证）
 先失败用例：GRDBMemoryItemRepositoryTests.depositFromCandidateCreatesMemoryItemWithSnapshot —— 预期失败原因：memory_items 表与 MemoryItemRepository 尚不存在，编译失败 / 表缺失。
 聚焦验证命令：
   swift test --package-path Packages/LangoTraceData --filter GRDBMemoryItemRepositoryTests
@@ -293,7 +294,7 @@ scripts/check-docs.sh
 
 ## 18. 实施记录
 
-（实施时按时间追加；deferred / aborted 项按模板记录决策日志。）
+**2026-06-17（E1 完成后状态更新）**：E1 时间线与筛选方案已完成。`PadFilter` enum 已删除；三端筛选统一为 `EntryTimelineFilter`；`settled` chip 通过 `visibleFilters.filter { $0 != .settled }` guard 隐藏，等待本任务（E7）落地后移除。本方案 §2、§3、§4、§6、§8、§10、§12.2 step 6、§15 已同步更新，移除所有对已不存在的 `PadFilter.memorized` 的引用。当前 migration 头部为 v16（E1 未新增 migration）；本任务 `memory_items` migration 编号以实施时 AppDatabase.swift 为准。本方案仍处于 Draft 状态，实施前需用户单独确认。
 
 ## 19. 完成标准
 

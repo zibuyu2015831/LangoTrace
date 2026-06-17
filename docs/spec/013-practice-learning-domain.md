@@ -60,6 +60,7 @@
 - 录音、回放、示范播放和完成状态以主区 `PracticeSessionView` / action seam 为唯一事实源。
 - iPad 学习面板和 macOS Inspector 只展示 route 级练习上下文和状态投影，不持有 recorder、文件 URL 或 GRDB repository。
 - 练习列表与单句页在 macOS 使用 dedicated main scrolling，不被工作台外层 `ScrollView` 再包裹。
+- `learningPracticeReadiness(for spaceID:) -> [String: Bool]` 是时间线"待练习"筛选的只读投影查询（`EntryTimelineFilter.needsPractice`），通过 LEFT JOIN `learning_materials / practice_sessions / practice_recordings / media_artifacts` 链批量推导每个 Entry 的完成录音状态：字典缺失 entry key = 无学习材料；值 `false` = 有材料但无 completed recording（`completed_recording_id IS NULL`）；值 `true` = 有完成录音。该查询是只读派生投影，不写入任何练习状态；真实完成状态更新仍以 `PracticeActions` seam 为事实源。
 
 ## 8. 验证入口
 
@@ -69,4 +70,5 @@
 ## 9. 变更记录
 
 - 2026-06-11：创建练习学习域规范。原因：练习域的模型契约、route seed、隐私边界和扩展边界分散在页面清单、spec 003 和架构备忘录中，听写 / 回译等扩展落地前需要一份汇集的领域规范；本文档为既有已确认事实与边界的汇编，不引入新的产品决策。影响范围：后续练习相关任务的设计输入和检查清单。是否需要 ADR：否，沿用本地优先、用户显式触发和三端共享业务逻辑决策。
+- 2026-06-17：§7 新增 `learningPracticeReadiness` 只读投影查询说明。原因：E1 时间线与筛选方案在 Data 层新增了该查询作为"待练习"筛选的真实数据投影，其语义（`completed_recording_id IS NULL`）属于练习域范围；写入规范防止后续误将其用于写路径或与 `PracticeSessionView` 更新路径混淆。影响范围：时间线筛选、后续听写 / 回译等扩展的"是否有完成录音"查询。是否需要 ADR：否。
 - 2026-06-16：§5 新增 iOS 录音会话选项约束。原因：bug 修复揭示 `.allowBluetoothHFP` 会激活 BT HFP 双向通道污染后续 TTS 播放；该约束应沉淀到练习域规范，防止后续扩展（听写 / 回译录音等）重犯同类问题。影响范围：练习录音基础设施、后续听写 / 回译录音扩展。是否需要 ADR：否，沿用现有约束并交叉引用 spec/011 §13。

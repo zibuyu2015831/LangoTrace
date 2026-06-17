@@ -11646,23 +11646,6 @@
         }
       }
     },
-    "pad.filter.memorized": {
-      "comment": "iPad filter title.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Memorized"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已记忆"
-          }
-        }
-      }
-    },
     "pad.sentences.title": {
       "comment": "iPad sentence section title.",
       "localizations": {
