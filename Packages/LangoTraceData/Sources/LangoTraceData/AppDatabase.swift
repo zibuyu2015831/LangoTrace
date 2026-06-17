@@ -93,6 +93,18 @@ private extension AppDatabase {
         migrator.registerMigration("v17_add_photo_artifact_types") { db in
             try addPhotoArtifactTypes(db)
         }
+        migrator.registerMigration("v18_allow_practice_mode_exercise_types") { db in
+            try allowPracticeModeExerciseTypes(db)
+        }
+        migrator.registerMigration("v19_ensure_entry_photo_attachments") { db in
+            try ensureEntryPhotoAttachments(db)
+        }
+        migrator.registerMigration("v20_backfill_entry_photo_attachments_from_media_artifacts") { db in
+            try backfillEntryPhotoAttachmentsFromMediaArtifacts(db)
+        }
+        migrator.registerMigration("v21_add_reading_structure_content_revision") { db in
+            try addReadingStructureContentRevision(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
@@ -757,6 +769,116 @@ private extension AppDatabase {
         """)
     }
 
+    static func allowPracticeModeExerciseTypes(_ db: Database) throws {
+        if try !db.tableExists("practice_sessions") {
+            try dropPracticeRecordingInfrastructureIfPresent(db)
+            try createPracticeRecordingInfrastructure(db)
+            return
+        }
+
+        let existingColumns = Set(try Row.fetchAll(db, sql: "PRAGMA table_info(practice_sessions)").compactMap { row in
+            row["name"] as String?
+        })
+        let requiredColumns: Set<String> = [
+            "id", "language_space_id", "entry_id", "learning_material_id", "sentence_id",
+            "sentence_index", "target_text_snapshot", "translation_snapshot", "note_snapshot",
+            "target_text_hash", "target_language_code", "source_entry_body_hash",
+            "material_analysis_source_hash", "exercise_type", "status", "problem_marked",
+            "completed_recording_id", "completed_at", "created_at", "updated_at", "soft_deleted_at",
+        ]
+        if !requiredColumns.isSubset(of: existingColumns) {
+            let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM practice_sessions") ?? 0
+            guard count == 0 else {
+                throw DatabaseError(
+                    resultCode: .SQLITE_CONSTRAINT,
+                    message: "Cannot rebuild legacy practice_sessions with incomplete columns and existing data"
+                )
+            }
+            try dropPracticeRecordingInfrastructureIfPresent(db)
+            try createPracticeRecordingInfrastructure(db)
+            return
+        }
+
+        try db.execute(sql: "PRAGMA legacy_alter_table = ON")
+        defer {
+            try? db.execute(sql: "PRAGMA legacy_alter_table = OFF")
+        }
+
+        try db.execute(sql: """
+        DROP INDEX IF EXISTS idx_practice_sessions_sentence_exercise
+        """)
+        try db.execute(sql: """
+        DROP INDEX IF EXISTS idx_practice_sessions_entry_status
+        """)
+        try db.execute(sql: """
+        ALTER TABLE practice_sessions RENAME TO practice_sessions_v17
+        """)
+        try db.execute(sql: """
+        CREATE TABLE practice_sessions (
+          id TEXT PRIMARY KEY,
+          language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          entry_id TEXT NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+          learning_material_id TEXT NOT NULL REFERENCES learning_materials(id) ON DELETE CASCADE,
+          sentence_id TEXT REFERENCES learning_material_sentences(id) ON DELETE SET NULL,
+          sentence_index INTEGER NOT NULL,
+          target_text_snapshot TEXT NOT NULL,
+          translation_snapshot TEXT,
+          note_snapshot TEXT,
+          target_text_hash TEXT NOT NULL,
+          target_language_code TEXT NOT NULL,
+          source_entry_body_hash TEXT,
+          material_analysis_source_hash TEXT,
+          exercise_type TEXT NOT NULL,
+          status TEXT NOT NULL,
+          problem_marked INTEGER NOT NULL,
+          completed_recording_id TEXT REFERENCES practice_recordings(id) ON DELETE SET NULL,
+          completed_at REAL,
+          created_at REAL NOT NULL,
+          updated_at REAL NOT NULL,
+          soft_deleted_at REAL,
+          CHECK (sentence_index >= 0),
+          CHECK (length(trim(target_text_snapshot)) > 0),
+          CHECK (exercise_type IN ('shadowing', 'dictation', 'backtranslation')),
+          CHECK (status IN ('inProgress', 'completed')),
+          CHECK (problem_marked IN (0, 1))
+        )
+        """)
+        try db.execute(sql: """
+        INSERT INTO practice_sessions (
+          id, language_space_id, entry_id, learning_material_id, sentence_id,
+          sentence_index, target_text_snapshot, translation_snapshot, note_snapshot,
+          target_text_hash, target_language_code, source_entry_body_hash,
+          material_analysis_source_hash, exercise_type, status, problem_marked,
+          completed_recording_id, completed_at, created_at, updated_at, soft_deleted_at
+        )
+        SELECT
+          id, language_space_id, entry_id, learning_material_id, sentence_id,
+          sentence_index, target_text_snapshot, translation_snapshot, note_snapshot,
+          target_text_hash, target_language_code, source_entry_body_hash,
+          material_analysis_source_hash, exercise_type, status, problem_marked,
+          completed_recording_id, completed_at, created_at, updated_at, soft_deleted_at
+        FROM practice_sessions_v17
+        """)
+        try db.execute(sql: """
+        DROP TABLE practice_sessions_v17
+        """)
+        try db.execute(sql: """
+        CREATE UNIQUE INDEX idx_practice_sessions_sentence_exercise
+        ON practice_sessions(learning_material_id, sentence_id, sentence_index, exercise_type)
+        WHERE soft_deleted_at IS NULL
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_practice_sessions_entry_status
+        ON practice_sessions(entry_id, status, updated_at DESC)
+        """)
+    }
+
+    static func dropPracticeRecordingInfrastructureIfPresent(_ db: Database) throws {
+        try db.execute(sql: "DROP TABLE IF EXISTS practice_recording_artifacts")
+        try db.execute(sql: "DROP TABLE IF EXISTS practice_recordings")
+        try db.execute(sql: "DROP TABLE IF EXISTS practice_sessions")
+    }
+
     static func allowPracticeRecordingMediaDerivationKind(_ db: Database) throws {
         // `PRAGMA foreign_keys` is a no-op inside the migration transaction, so the
         // rebuild relies on the migrator's deferred foreign key handling instead.
@@ -972,6 +1094,114 @@ private extension AppDatabase {
         CREATE INDEX idx_entry_photo_attachments_space
         ON entry_photo_attachments(language_space_id, created_at DESC)
         """)
+    }
+
+    static func ensureEntryPhotoAttachments(_ db: Database) throws {
+        guard try !db.tableExists("entry_photo_attachments") else { return }
+        try db.execute(sql: """
+        CREATE TABLE entry_photo_attachments (
+          id TEXT PRIMARY KEY,
+          entry_id TEXT NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+          language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          original_artifact_id TEXT NOT NULL,
+          thumbnail_artifact_id TEXT,
+          status TEXT NOT NULL DEFAULT 'ready'
+            CHECK (status IN ('pending', 'ready')),
+          width INTEGER,
+          height INTEGER,
+          exif_stripped INTEGER NOT NULL DEFAULT 1,
+          created_at REAL NOT NULL,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          UNIQUE (entry_id, sort_order)
+        )
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_entry_photo_attachments_entry
+        ON entry_photo_attachments(entry_id, sort_order)
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_entry_photo_attachments_space
+        ON entry_photo_attachments(language_space_id, created_at DESC)
+        """)
+    }
+
+    static func backfillEntryPhotoAttachmentsFromMediaArtifacts(_ db: Database) throws {
+        guard try db.tableExists("entries"),
+              try db.tableExists("media_artifacts"),
+              try db.tableExists("entry_photo_attachments")
+        else {
+            return
+        }
+
+        let rows = try Row.fetchAll(db, sql: """
+        SELECT
+          original.id AS original_artifact_id,
+          original.language_space_id AS language_space_id,
+          original.owner_id AS entry_id,
+          original.created_at AS created_at,
+          (
+            SELECT thumb.id
+            FROM media_artifacts thumb
+            WHERE thumb.owner_type = 'entry'
+              AND thumb.owner_id = original.owner_id
+              AND thumb.artifact_type = 'entryPhotoThumbnail'
+              AND thumb.derivation_kind = 'photoImage'
+              AND thumb.file_state = 'ready'
+              AND thumb.invalidated_at IS NULL
+            ORDER BY thumb.created_at ASC, thumb.id ASC
+            LIMIT 1
+          ) AS thumbnail_artifact_id
+        FROM media_artifacts original
+        JOIN entries entry ON entry.id = original.owner_id
+        WHERE original.owner_type = 'entry'
+          AND original.artifact_type = 'entryPhotoOriginal'
+          AND original.derivation_kind = 'photoImage'
+          AND original.file_state = 'ready'
+          AND original.invalidated_at IS NULL
+          AND NOT EXISTS (
+            SELECT 1
+            FROM entry_photo_attachments existing
+            WHERE existing.original_artifact_id = original.id
+          )
+        ORDER BY original.owner_id ASC, original.created_at ASC, original.id ASC
+        """)
+
+        var nextSortOrderByEntry: [String: Int] = [:]
+        for row in rows {
+            let entryID: String = row["entry_id"]
+            if nextSortOrderByEntry[entryID] == nil {
+                let maxSortOrder = try Int.fetchOne(db, sql: """
+                SELECT MAX(sort_order) FROM entry_photo_attachments WHERE entry_id = ?
+                """, arguments: [entryID]) ?? -1
+                nextSortOrderByEntry[entryID] = maxSortOrder + 1
+            }
+
+            let sortOrder = nextSortOrderByEntry[entryID] ?? 0
+            nextSortOrderByEntry[entryID] = sortOrder + 1
+            let originalArtifactID: String = row["original_artifact_id"]
+            let languageSpaceID: String = row["language_space_id"]
+            let thumbnailArtifactID: String? = row["thumbnail_artifact_id"]
+            let createdAt: Double = row["created_at"]
+
+            try db.execute(
+                sql: """
+                INSERT INTO entry_photo_attachments (
+                    id, entry_id, language_space_id,
+                    original_artifact_id, thumbnail_artifact_id,
+                    status, width, height, exif_stripped, created_at, sort_order
+                ) VALUES (?, ?, ?, ?, ?, 'ready', NULL, NULL, 1, ?, ?)
+                """,
+                arguments: [
+                    "repaired-\(originalArtifactID)",
+                    entryID,
+                    languageSpaceID,
+                    originalArtifactID,
+                    thumbnailArtifactID,
+                    createdAt,
+                    sortOrder,
+                ]
+            )
+        }
     }
 
     static func setFileProtectionIfAvailable(for databaseURL: URL) throws {

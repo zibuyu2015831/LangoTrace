@@ -449,4 +449,20 @@ extension AppDatabase {
         try db.execute(sql: "DROP TABLE reading_import_operations")
         try db.execute(sql: "ALTER TABLE reading_import_operations_v16 RENAME TO reading_import_operations")
     }
+
+    // MARK: - v21
+
+    static func addReadingStructureContentRevision(_ db: Database) throws {
+        // Track which content_revision each structure row was built from so stale
+        // structure can be detected when document body changes.
+        // Guard: databases where v12 was a stub (legacy fixture/test scenarios) skip this migration.
+        guard try db.tableExists("reading_structure_blocks") else { return }
+        try db.alter(table: "reading_structure_blocks") { table in
+            table.add(column: "content_revision", .integer).notNull().defaults(to: 1)
+        }
+        guard try db.tableExists("reading_sentences") else { return }
+        try db.alter(table: "reading_sentences") { table in
+            table.add(column: "content_revision", .integer).notNull().defaults(to: 1)
+        }
+    }
 }

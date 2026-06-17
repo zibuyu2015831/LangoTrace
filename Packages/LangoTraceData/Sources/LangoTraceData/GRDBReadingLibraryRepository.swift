@@ -90,6 +90,15 @@ public extension GRDBReadingLibraryRepository {
                     now.timeIntervalSince1970,
                 ]
             )
+            try rebuildStructure(
+                documentID: id,
+                spaceID: input.spaceID,
+                sourceFormat: input.sourceFormat,
+                body: input.body,
+                structureVersion: 1,
+                contentRevision: 1,
+                db: db
+            )
             try rebuildSearchIndex(documentID: id, spaceID: input.spaceID, title: input.title, body: input.body, db: db)
             try recordLifecycle(documentID: id, spaceID: input.spaceID, eventType: .imported, db: db)
             return try summary(documentID: id, spaceID: input.spaceID, db: db)
@@ -651,6 +660,7 @@ private extension GRDBReadingLibraryRepository {
         )
 
         let document = ReadingMarkdownParser.parse(body, sourceFormat: sourceFormat)
+        var globalSentenceIndex = 0
         for (blockIndex, block) in document.blocks.enumerated() {
             let blockID = idGenerator()
             let sourceStartOffset = block.sourceRange?.lowerBound ?? 0
@@ -659,8 +669,9 @@ private extension GRDBReadingLibraryRepository {
                 sql: """
                 INSERT INTO reading_structure_blocks (
                     id, document_id, space_id, structure_version, block_index,
-                    block_kind, source_start_offset, source_length, plain_text, metadata_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+                    block_kind, source_start_offset, source_length, plain_text,
+                    metadata_json, content_revision
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)
                 """,
                 arguments: [
                     blockID,
@@ -672,33 +683,44 @@ private extension GRDBReadingLibraryRepository {
                     sourceStartOffset,
                     sourceLength,
                     block.text,
+                    contentRevision,
                 ]
             )
 
-            let trimmedText = block.text.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !trimmedText.isEmpty else { continue }
-            let sentenceID = idGenerator()
-            try db.execute(
-                sql: """
-                INSERT INTO reading_sentences (
-                    id, document_id, block_id, space_id, structure_version,
-                    sentence_index, character_offset, character_length, text_hash
-                ) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)
-                """,
-                arguments: [
-                    sentenceID,
-                    documentID,
-                    blockID,
-                    spaceID,
-                    structureVersion,
-                    blockIndex,
-                    trimmedText.count,
-                    StableHashing.sha256Hex(trimmedText),
-                ]
+            let sentences = ReadingTextSegmenter.segmentSentences(
+                block.text,
+                documentID: documentID,
+                contentRevision: contentRevision,
+                structureVersion: structureVersion,
+                blockID: blockID,
+                paragraphIndex: blockIndex
             )
+            for sentence in sentences {
+                let sentenceID = idGenerator()
+                try db.execute(
+                    sql: """
+                    INSERT INTO reading_sentences (
+                        id, document_id, block_id, space_id, structure_version,
+                        sentence_index, character_offset, character_length, text_hash,
+                        content_revision
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    arguments: [
+                        sentenceID,
+                        documentID,
+                        blockID,
+                        spaceID,
+                        structureVersion,
+                        globalSentenceIndex,
+                        sentence.characterOffset,
+                        sentence.characterLength,
+                        StableHashing.sha256Hex(sentence.text),
+                        contentRevision,
+                    ]
+                )
+                globalSentenceIndex += 1
+            }
         }
-
-        _ = contentRevision
     }
 
     func documentContent(id: String, spaceID: String, db: Database) throws -> ReadingLibraryDocumentContent {
