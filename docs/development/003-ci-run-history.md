@@ -144,7 +144,7 @@
 
 ---
 
-### Run 27700702770（进行中）
+### Run 27700702770（已取消）
 
 | 字段 | 值 |
 |---|---|
@@ -152,6 +152,21 @@
 | 触发时间 | 2026-06-17 23:34 CST |
 | 触发 commit | `fix: remove allowBluetoothHFP removed in iOS 26 SDK [ci]` |
 | 覆盖内容 | E3 + E2-FU + R1 + allowBluetoothHFP 修复 |
+| Job 总耗时 | 3m50s（提前取消） |
+| 结论 | ⚠️ cancelled |
+| 取消原因 | 紧随其后的 docs push（791d3cf，无 `[ci]`）触发 concurrency cancel，GitHub 自动终止旧 run；docs run（27700934480）因无 `[ci]` 被 skip，导致没有有效 CI 结论 |
+| 后续 | 补发空 commit `873b991`（`[ci]`），触发 run 27701227659 重跑
+
+---
+
+### Run 27701227659（进行中）
+
+| 字段 | 值 |
+|---|---|
+| Run ID | [27701227659](https://github.com/zibuyu2015831/LangoTrace/actions/runs/27701227659) |
+| 触发时间 | 2026-06-17 23:42 CST |
+| 触发 commit | `ci: retrigger Build & Test after concurrency cancel [ci]` |
+| 覆盖内容 | E3 + E2-FU + R1 + allowBluetoothHFP 修复（与 27700702770 等价） |
 | 结论 | ⏳ in_progress |
 
 *耗时待更新。*
