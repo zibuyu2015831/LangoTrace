@@ -11,10 +11,10 @@ struct PageClosureStateTests {
         let repository = InMemoryLearningContentRepository.seeded(spaceID: "en")
         let entries = repository.entries(for: "en")
 
-        #expect(entries.count(where: { EntryTimelineFilter.all.includes(entry: $0, hasMaterialWithoutRecording: false) }) == entries.count)
-        #expect(entries.filter { EntryTimelineFilter.photo.includes(entry: $0, hasMaterialWithoutRecording: false) }
+        #expect(entries.count(where: { EntryTimelineFilter.all.includes(entry: $0, hasMaterialWithoutRecording: false, hasPhotoAttachment: false) }) == entries.count)
+        #expect(entries.filter { EntryTimelineFilter.photo.includes(entry: $0, hasMaterialWithoutRecording: false, hasPhotoAttachment: false) }
             .allSatisfy { $0.source == .photoWriting })
-        #expect(entries.filter { EntryTimelineFilter.settled.includes(entry: $0, hasMaterialWithoutRecording: false) }
+        #expect(entries.filter { EntryTimelineFilter.settled.includes(entry: $0, hasMaterialWithoutRecording: false, hasPhotoAttachment: false) }
             .isEmpty)
     }
 

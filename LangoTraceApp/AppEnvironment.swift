@@ -21,6 +21,7 @@ struct AppEnvironment {
     let readingCacheStorage: (any ReadingExplanationCacheRepositoryProtocol)?
     let practiceActions: PracticeActions
     let photoWritingActions: PhotoWritingActions
+    let photoDisplayActions: PhotoDisplayActions
     let aiProviderSettingsActions: AIProviderSettingsActions
     let syncService: any SyncService
 
@@ -100,6 +101,29 @@ struct AppEnvironment {
             )
         }
 
+        let photoDisplayActions: PhotoDisplayActions
+        do {
+            let database = try databaseFactory.database()
+            let mediaRoot = try SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot()
+            let fileStore = try LocalMediaArtifactFileStore(rootDirectory: mediaRoot)
+            let attachmentRepo = GRDBEntryPhotoAttachmentRepository(database: database)
+            photoDisplayActions = PhotoDisplayActions { entryID in
+                guard let relativePath = try? attachmentRepo.photoRelativePath(forEntryID: entryID),
+                      let url = try? fileStore.absoluteURLForInternalUse(relativePath: relativePath)
+                else { return nil }
+                return try? Data(contentsOf: url)
+            }
+        } catch {
+            photoDisplayActions = .disabled
+            recordBootstrapComponentFailure(
+                component: "photo_display_actions",
+                error: error,
+                name: .aiProviderConfigurationDatabaseWriteFailed,
+                domain: .dataStorage,
+                diagnosticLogger: diagnosticLogger
+            )
+        }
+
         return AppEnvironment(
             makeLanguageSpaceRepository: {
                 try GRDBLanguageSpaceRepository(
@@ -123,6 +147,7 @@ struct AppEnvironment {
             readingCacheStorage: readingCacheStorage,
             practiceActions: practiceActions,
             photoWritingActions: photoWritingActions,
+            photoDisplayActions: photoDisplayActions,
             aiProviderSettingsActions: AIProviderSettingsActions(
                 loadDefaultProfile: {
                     let service = try makeAIProviderConfigurationService(

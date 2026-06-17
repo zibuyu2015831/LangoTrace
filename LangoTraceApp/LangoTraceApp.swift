@@ -122,6 +122,7 @@ struct LangoTraceApp: App {
         )
         .environment(\.locale, Locale(identifier: resolvedInterfaceLanguageCode))
         .environment(\.aiProviderSettingsActions, environment.aiProviderSettingsActions)
+        .environment(\.photoDisplayActions, environment.photoDisplayActions)
         .preferredColorScheme(appearancePreference.preferredColorScheme)
         .task {
             session.restoreLanguageSpace()

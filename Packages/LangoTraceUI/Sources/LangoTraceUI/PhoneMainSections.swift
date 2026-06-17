@@ -68,7 +68,8 @@ struct PhoneRecordWorkspaceView: View {
         entries.filter { entry in
             selectedFilter.includes(
                 entry: entry,
-                hasMaterialWithoutRecording: practiceReadiness[entry.id] == false
+                hasMaterialWithoutRecording: practiceReadiness[entry.id] == false,
+                hasPhotoAttachment: false
             )
         }
     }

@@ -47,7 +47,7 @@ struct PadSidebarView: View {
                         ForEach(visibleFilters, id: \.self) { filter in
                             FilterPill(
                                 titleKey: filter.titleKey,
-                                count: "\(entries.count { filter.includes(entry: $0, hasMaterialWithoutRecording: practiceReadiness[$0.id] == false) })",
+                                count: "\(entries.count { filter.includes(entry: $0, hasMaterialWithoutRecording: practiceReadiness[$0.id] == false, hasPhotoAttachment: false) })",
                                 active: activeFilter == filter
                             ) {
                                 onSelectFilter(filter)
@@ -184,7 +184,7 @@ struct PadWorkspaceContentView: View {
         .layoutPriority(1)
     }
 
-    // EntryDetailView owns its own ScrollView; this wrapper only handles layout.
+    /// EntryDetailView owns its own ScrollView; this wrapper only handles layout.
     @ViewBuilder
     private var workspaceOverview: some View {
         if let selectedEntry {

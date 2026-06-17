@@ -83,6 +83,26 @@ public struct GRDBEntryPhotoAttachmentRepository: @unchecked Sendable {
         }
     }
 
+    // MARK: - Display path lookup
+
+    /// Returns the relative file path for the best available photo artifact for the given entry.
+    /// Prefers thumbnail over original; returns nil when no attachment exists.
+    public func photoRelativePath(forEntryID entryID: String) throws -> String? {
+        try databaseQueue.read { db in
+            guard let row = try Row.fetchOne(db, sql: """
+            SELECT ma.relative_file_path
+            FROM entry_photo_attachments epa
+            JOIN media_artifacts ma
+              ON ma.id = COALESCE(epa.thumbnail_artifact_id, epa.original_artifact_id)
+            WHERE epa.entry_id = ?
+            ORDER BY epa.sort_order ASC
+            LIMIT 1
+            """, arguments: [entryID])
+            else { return nil }
+            return row["relative_file_path"]
+        }
+    }
+
     // MARK: - Thumbnail update
 
     public func updateThumbnailArtifact(

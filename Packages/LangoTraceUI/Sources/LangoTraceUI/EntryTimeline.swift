@@ -22,12 +22,13 @@ enum EntryTimelineFilter: CaseIterable, Equatable, Hashable {
 
     /// hasMaterialWithoutRecording: caller computes `practiceReadiness[entry.id] == false`
     /// (present in dict = has material, value false = no completed recording yet).
-    func includes(entry: LearningEntry, hasMaterialWithoutRecording: Bool) -> Bool {
+    /// hasPhotoAttachment: caller provides per-entry attachment presence (pass false until E7 wires attachment data).
+    func includes(entry: LearningEntry, hasMaterialWithoutRecording: Bool, hasPhotoAttachment: Bool) -> Bool {
         switch self {
         case .all: true
-        case .photo: entry.source == .photoWriting
+        case .photo: entry.source == .photoWriting || hasPhotoAttachment
         case .needsPractice: hasMaterialWithoutRecording
-        case .settled: false  // E7 will replace with real memory-deposit judgment
+        case .settled: false // E7 will replace with real memory-deposit judgment
         }
     }
 }
@@ -38,7 +39,9 @@ struct EntryDayGroup: Identifiable {
     let date: Date
     let entries: [LearningEntry]
 
-    var id: TimeInterval { date.timeIntervalSince1970 }
+    var id: TimeInterval {
+        date.timeIntervalSince1970
+    }
 }
 
 /// Groups `entries` (already sorted newest-first) into day buckets while preserving order.
@@ -99,7 +102,7 @@ func timelineCounts(
         today: todayCount,
         photo: photoCount,
         needsPractice: needsPracticeCount,
-        settled: 0  // E7
+        settled: 0 // E7
     )
 }
 

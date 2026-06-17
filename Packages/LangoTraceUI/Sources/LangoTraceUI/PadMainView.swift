@@ -129,7 +129,8 @@ struct PadMainView: View {
         entries.filter { entry in
             activeFilter.includes(
                 entry: entry,
-                hasMaterialWithoutRecording: contentStore.practiceReadiness[entry.id] == false
+                hasMaterialWithoutRecording: contentStore.practiceReadiness[entry.id] == false,
+                hasPhotoAttachment: false
             )
         }
     }

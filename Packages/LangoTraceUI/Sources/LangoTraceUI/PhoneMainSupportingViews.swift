@@ -108,11 +108,23 @@ struct EntryDetailView: View {
     let onGenerateLocalPreview: () -> Void
     let onPracticeSentence: (LearningRendering, RenderingSentence, Int) -> Void
 
+    @Environment(\.photoDisplayActions) private var photoDisplayActions
+    @State private var photoImage: Image?
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 if titlePresentation.showsInlineHeader {
                     EntryDetailHeader(entry: entry)
+                }
+                if let photoImage {
+                    photoImage
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity)
+                        .aspectRatio(4 / 3, contentMode: .fill)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .accessibilityLabel(localizedString("photoWriting.photo.accessibilityLabel"))
                 }
                 SourceEntryTextView(
                     entry: entry,
@@ -195,6 +207,19 @@ struct EntryDetailView: View {
                 : localizedString("entryDetail.title")
         )
         .langoPageBackground()
+        .task(id: entry.id) {
+            guard entry.source == .photoWriting else { return }
+            guard let data = await photoDisplayActions.loadPhotoData(entry.id) else { return }
+            #if os(iOS)
+                if let uiImage = UIImage(data: data) {
+                    photoImage = Image(uiImage: uiImage)
+                }
+            #elseif os(macOS)
+                if let nsImage = NSImage(data: data) {
+                    photoImage = Image(nsImage: nsImage)
+                }
+            #endif
+        }
     }
 
     private var generationTitleKey: String {
@@ -212,7 +237,7 @@ struct EntryDetailView: View {
             "entry.rendering.generateLearningMaterial.generatingSummary"
         case .blocked(.contentTooLong):
             "entry.rendering.generateLearningMaterial.tooLongSummary"
-        case .failed(let display):
+        case let .failed(display):
             switch display.category {
             case .authenticationFailed:
                 "entry.rendering.generateLearningMaterial.failedSummary.authFailed"
@@ -234,7 +259,7 @@ struct EntryDetailView: View {
         switch generationState {
         case .blocked(.contentTooLong), .blocked(.contentEmpty):
             .unavailable
-        case .failed(let display):
+        case let .failed(display):
             switch display.category {
             case .providerNotConfigured, .credentialMissing, .unsupportedProvider:
                 .unavailable
@@ -809,6 +834,9 @@ struct EntryCard: View {
     let rendering: LearningRendering?
     let action: () -> Void
 
+    @Environment(\.photoDisplayActions) private var photoDisplayActions
+    @State private var thumbnailImage: Image?
+
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 14) {
@@ -829,10 +857,19 @@ struct EntryCard: View {
                     }
                 }
 
-                Text(entry.body)
-                    .font(.body)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .top, spacing: 10) {
+                    Text(entry.body)
+                        .font(.body)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let thumbnailImage {
+                        thumbnailImage
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 44, height: 44)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                }
 
                 if let rendering {
                     Divider()
@@ -847,6 +884,19 @@ struct EntryCard: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(localizedString("entryCard.openDetail.label", entry.title))
+        .task(id: entry.id) {
+            guard entry.source == .photoWriting else { return }
+            guard let data = await photoDisplayActions.loadPhotoData(entry.id) else { return }
+            #if os(iOS)
+                if let uiImage = UIImage(data: data) {
+                    thumbnailImage = Image(uiImage: uiImage)
+                }
+            #elseif os(macOS)
+                if let nsImage = NSImage(data: data) {
+                    thumbnailImage = Image(nsImage: nsImage)
+                }
+            #endif
+        }
     }
 }
 
