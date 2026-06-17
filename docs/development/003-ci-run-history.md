@@ -37,9 +37,12 @@
 | SwiftLint | — | — | ~10s | 未单独测量 |
 | SwiftFormat | — | — | ~10s | 未单独测量 |
 | Check docs / whitespace | — | — | ~5s | 未单独测量 |
-| **Job 合计（典型）** | **5m57s** | **6m34s** | **~6m15s** | 含 push→runner 启动约 10s |
+| SwiftLint | 4s | ~10s | ~7s | — |
+| SwiftFormat | 6s | ~10s | ~8s | — |
+| Check docs / whitespace | — | — | ~2s | — |
+| **Job 合计（典型）** | **5m57s** | **7m13s** | **~6m30s** | 含 push→runner 启动约 10s；缓存 miss 构建步骤可达 7m+ |
 
-**估算方法**：触发后 3 分钟可以看 package 测试是否全绿；5 分钟后看 iOS build；6–7 分钟看最终结论。
+**估算方法**：触发后 3 分钟可以看 package 测试是否全绿；5 分钟后看 iOS build；6–7 分钟看最终结论。缓存失效（大批文件修改后首次 run）构建步骤可比基线慢 50–80%，属正常。
 
 ---
 
@@ -222,17 +225,43 @@
 
 ---
 
-### Run 27704455744（进行中）
+---
+
+## 2. 成功记录（续）
+
+### Run 27704455744
 
 | 字段 | 值 |
 |---|---|
 | Run ID | [27704455744](https://github.com/zibuyu2015831/LangoTrace/actions/runs/27704455744) |
 | 触发时间 | 2026-06-18 00:35 CST |
 | 触发 commit | `style: fix SwiftFormat violations across 16 files [ci]` |
-| 覆盖内容 | E3 + E2-FU + R1 + 全部修复（SwiftFormat 清理） |
-| 结论 | ⏳ in_progress |
+| 覆盖内容 | E3 + E2-FU + R1 + allowBluetoothHFP 修复 + concurrency 修复 + macOS 测试修复 + SwiftLint 阈值 + SwiftFormat 清理 |
+| Job 总耗时 | **7m13s** |
+| 结论 | ✅ success |
 
-*耗时待更新。*
+**步骤耗时（构建步骤偏高，因 16 文件格式化后缓存失效导致部分重编译）：**
+
+| 步骤 | 耗时 | 备注 |
+|---|---|---|
+| Install tools | 7s | — |
+| Cache Swift package builds | 23s（命中） | — |
+| Test LangoTraceCore | 21s | — |
+| Test LangoTraceData | 25s | — |
+| Test LangoTraceAI | 18s | — |
+| Test LangoTraceSpeech | 17s | — |
+| Test LangoTraceSync | 11s | — |
+| Test LangoTraceUI | 51s | — |
+| List schemes | 59s | — |
+| Resolve iOS Simulator destinations | 2s | runner 内复用，极快 |
+| Build iOS — iPhone | 75s | 缓存失效，高于基线 |
+| Build iOS — iPad | 10s | — |
+| Build macOS | 66s | 缓存失效，高于基线 |
+| Test macOS app | 25s | — |
+| SwiftLint | 4s | — |
+| SwiftFormat | 6s | — |
+| Check docs | 1s | — |
+| Check whitespace | 0s | — |
 
 ---
 
