@@ -227,6 +227,63 @@ struct MediaArtifactPhotoMigrationTests {
         }
     }
 
+    // MARK: - v19 repair: entry_photo_attachments missing from old v17 runs
+
+    @Test("v19 repair migration creates entry_photo_attachments when v17 ran without it")
+    func v19RepairMigrationCreatesEntryPhotoAttachmentsForLegacyV17Database() throws {
+        let queue = try DatabaseQueue()
+        try buildV17FixtureWithoutPhotoAttachmentsTable(queue)
+
+        _ = try AppDatabase(databaseQueue: queue)
+
+        try queue.read { db in
+            let tables = try String.fetchAll(db, sql: """
+            SELECT name FROM sqlite_master WHERE type='table' ORDER BY name
+            """)
+            #expect(tables.contains("entry_photo_attachments"))
+        }
+    }
+
+    @Test("v19 repair migration is idempotent when entry_photo_attachments already exists")
+    func v19RepairMigrationIsIdempotentWhenTableAlreadyExists() throws {
+        // Fresh inMemory DB: v17 already creates the table, v19 must not fail.
+        let database = try AppDatabase.inMemory()
+        try database.databaseQueue.read { db in
+            let tables = try String.fetchAll(db, sql: """
+            SELECT name FROM sqlite_master WHERE type='table' ORDER BY name
+            """)
+            #expect(tables.contains("entry_photo_attachments"))
+        }
+    }
+
+    @Test("v20 repair migration backfills attachments from existing photo artifacts")
+    func v20RepairMigrationBackfillsAttachmentsFromExistingPhotoArtifacts() throws {
+        let queue = try DatabaseQueue()
+        try buildV19FixtureWithPhotoArtifactsButMissingAttachmentRows(queue)
+
+        _ = try AppDatabase(databaseQueue: queue)
+
+        try queue.read { db in
+            let row = try Row.fetchOne(db, sql: """
+            SELECT
+                epa.entry_id,
+                epa.language_space_id,
+                epa.original_artifact_id,
+                epa.thumbnail_artifact_id,
+                epa.status,
+                epa.sort_order
+            FROM entry_photo_attachments epa
+            WHERE epa.entry_id = 'entry-legacy-photo'
+            """)
+            #expect(row?["entry_id"] as String? == "entry-legacy-photo")
+            #expect(row?["language_space_id"] as String? == "space-legacy")
+            #expect(row?["original_artifact_id"] as String? == "legacy-original")
+            #expect(row?["thumbnail_artifact_id"] as String? == "legacy-thumbnail")
+            #expect(row?["status"] as String? == "ready")
+            #expect(row?["sort_order"] as Int? == 0)
+        }
+    }
+
     // MARK: - Primary asset semantics: photo originals must not carry delete_after
 
     @Test("photo original artifact written with null delete_after satisfying primary asset policy")
@@ -301,6 +358,209 @@ private func insertPhotoArtifactRow(
             "\(artifactType)/space-1/\(id).jpg",
         ]
     )
+}
+
+/// Builds a database where v1-v18 are already recorded but entry_photo_attachments was never created.
+/// Simulates a device that ran v17 before the entry_photo_attachments creation was added to that migration.
+private func buildV17FixtureWithoutPhotoAttachmentsTable(_ queue: DatabaseQueue) throws {
+    var migrator = DatabaseMigrator()
+    migrator.registerMigration("v1_create_language_space_infrastructure") { db in
+        try db.execute(sql: """
+        CREATE TABLE language_spaces (
+          id TEXT PRIMARY KEY,
+          native_language_code TEXT NOT NULL,
+          target_language_code TEXT NOT NULL,
+          level TEXT NOT NULL,
+          display_name TEXT NOT NULL,
+          display_name_normalized TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          updated_at REAL NOT NULL,
+          last_opened_at REAL,
+          deleted_at REAL
+        )
+        """)
+    }
+    migrator.registerMigration("v4_create_learning_content_infrastructure") { db in
+        try db.execute(sql: """
+        CREATE TABLE entries (
+          id TEXT PRIMARY KEY,
+          space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          title TEXT NOT NULL,
+          body TEXT NOT NULL,
+          source TEXT NOT NULL,
+          scene TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          updated_at REAL NOT NULL,
+          deleted_at REAL
+        )
+        """)
+    }
+    for stub in [
+        "v2_create_ai_provider_configuration",
+        "v3_create_diagnostic_events",
+        "v5_add_learning_material_source_entry_body_hash",
+        "v6_create_ai_provider_tts_configuration",
+        "v7_create_media_artifact_infrastructure",
+        "v8_add_media_artifact_file_state",
+        "v9_create_practice_recording_infrastructure",
+        "v10_allow_practice_recording_media_derivation_kind",
+        "v11_add_ai_provider_endpoint_validation_summary",
+        "v12_create_reading_domain_infrastructure",
+        "v13_upgrade_reading_lifecycle_events_for_document_updates",
+        "v14_create_reading_explanation_cache",
+        "v15_reset_reading_explanation_cache_for_unix_epoch",
+        "v16_add_reading_fk_and_check_constraints",
+        "v17_add_photo_artifact_types",       // recorded but did NOT create entry_photo_attachments
+        "v18_allow_practice_mode_exercise_types",
+    ] {
+        migrator.registerMigration(stub) { _ in }
+    }
+    try migrator.migrate(queue)
+}
+
+/// Builds a database where v19 is recorded and entry_photo_attachments exists, but legacy
+/// photo media_artifacts were written without the attachment join row.
+private func buildV19FixtureWithPhotoArtifactsButMissingAttachmentRows(_ queue: DatabaseQueue) throws {
+    var migrator = DatabaseMigrator()
+    migrator.registerMigration("v1_create_language_space_infrastructure") { db in
+        try db.execute(sql: """
+        CREATE TABLE language_spaces (
+          id TEXT PRIMARY KEY,
+          native_language_code TEXT NOT NULL,
+          target_language_code TEXT NOT NULL,
+          level TEXT NOT NULL,
+          display_name TEXT NOT NULL,
+          display_name_normalized TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          updated_at REAL NOT NULL,
+          last_opened_at REAL,
+          deleted_at REAL
+        )
+        """)
+    }
+    migrator.registerMigration("v4_create_learning_content_infrastructure") { db in
+        try db.execute(sql: """
+        CREATE TABLE entries (
+          id TEXT PRIMARY KEY,
+          space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          title TEXT NOT NULL,
+          body TEXT NOT NULL,
+          source TEXT NOT NULL,
+          scene TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          updated_at REAL NOT NULL,
+          deleted_at REAL
+        )
+        """)
+    }
+    migrator.registerMigration("v7_create_media_artifact_infrastructure") { db in
+        try db.execute(sql: """
+        CREATE TABLE media_artifacts (
+          id TEXT PRIMARY KEY,
+          language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          owner_type TEXT NOT NULL,
+          owner_id TEXT NOT NULL,
+          owner_sub_id TEXT,
+          artifact_type TEXT NOT NULL,
+          derivation_kind TEXT NOT NULL,
+          derivation_key_hash TEXT NOT NULL,
+          relative_file_path TEXT NOT NULL,
+          mime_type TEXT NOT NULL,
+          byte_size INTEGER NOT NULL,
+          duration_seconds REAL,
+          content_hash TEXT NOT NULL,
+          created_at REAL NOT NULL,
+          last_accessed_at REAL NOT NULL,
+          invalidated_at REAL,
+          delete_after REAL,
+          backup_policy TEXT NOT NULL,
+          sync_policy TEXT NOT NULL,
+          export_policy TEXT NOT NULL,
+          file_state TEXT NOT NULL DEFAULT 'ready'
+            CHECK (file_state IN ('pending', 'ready'))
+        )
+        """)
+    }
+    migrator.registerMigration("v19_ensure_entry_photo_attachments") { db in
+        try db.execute(sql: """
+        CREATE TABLE entry_photo_attachments (
+          id TEXT PRIMARY KEY,
+          entry_id TEXT NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+          language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          original_artifact_id TEXT NOT NULL,
+          thumbnail_artifact_id TEXT,
+          status TEXT NOT NULL DEFAULT 'ready'
+            CHECK (status IN ('pending', 'ready')),
+          width INTEGER,
+          height INTEGER,
+          exif_stripped INTEGER NOT NULL DEFAULT 1,
+          created_at REAL NOT NULL,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          UNIQUE (entry_id, sort_order)
+        )
+        """)
+    }
+    for stub in [
+        "v2_create_ai_provider_configuration",
+        "v3_create_diagnostic_events",
+        "v5_add_learning_material_source_entry_body_hash",
+        "v6_create_ai_provider_tts_configuration",
+        "v8_add_media_artifact_file_state",
+        "v9_create_practice_recording_infrastructure",
+        "v10_allow_practice_recording_media_derivation_kind",
+        "v11_add_ai_provider_endpoint_validation_summary",
+        "v12_create_reading_domain_infrastructure",
+        "v13_upgrade_reading_lifecycle_events_for_document_updates",
+        "v14_create_reading_explanation_cache",
+        "v15_reset_reading_explanation_cache_for_unix_epoch",
+        "v16_add_reading_fk_and_check_constraints",
+        "v17_add_photo_artifact_types",
+        "v18_allow_practice_mode_exercise_types",
+    ] {
+        migrator.registerMigration(stub) { _ in }
+    }
+    try migrator.migrate(queue)
+
+    try queue.write { db in
+        try db.execute(sql: """
+        INSERT INTO language_spaces (
+            id, native_language_code, target_language_code, level,
+            display_name, display_name_normalized, created_at, updated_at,
+            last_opened_at, deleted_at
+        ) VALUES ('space-legacy', 'zh-Hans', 'en', 'b1', 'English', 'english', 1, 1, 1, NULL)
+        """)
+        try db.execute(sql: """
+        INSERT INTO entries (
+            id, space_id, title, body, source, scene, created_at, updated_at, deleted_at
+        ) VALUES (
+            'entry-legacy-photo', 'space-legacy', 'Legacy Photo', 'Body',
+            'photoWriting', '生活记录', 1, 1, NULL
+        )
+        """)
+        try db.execute(sql: """
+        INSERT INTO media_artifacts (
+            id, language_space_id, owner_type, owner_id, owner_sub_id,
+            artifact_type, derivation_kind, derivation_key_hash, relative_file_path,
+            mime_type, byte_size, duration_seconds, content_hash, created_at,
+            last_accessed_at, invalidated_at, delete_after, backup_policy,
+            file_state, sync_policy, export_policy
+        ) VALUES
+        (
+            'legacy-original', 'space-legacy', 'entry', 'entry-legacy-photo', NULL,
+            'entryPhotoOriginal', 'photoImage', 'legacy-original-key',
+            'entryPhotoOriginal/space-legacy/legacy-original.jpg', 'image/jpeg',
+            1024, NULL, 'legacy-original-hash', 10, 10, NULL, NULL,
+            'excludedFromSystemBackup', 'ready', 'localOnly', 'excludedByDefault'
+        ),
+        (
+            'legacy-thumbnail', 'space-legacy', 'entry', 'entry-legacy-photo', NULL,
+            'entryPhotoThumbnail', 'photoImage', 'legacy-thumbnail-key',
+            'entryPhotoThumbnail/space-legacy/legacy-thumbnail.jpg', 'image/jpeg',
+            128, NULL, 'legacy-thumbnail-hash', 11, 11, NULL, NULL,
+            'excludedFromSystemBackup', 'ready', 'localOnly', 'excludedByDefault'
+        )
+        """)
+    }
 }
 
 /// Builds a v16-state database with one TTS artifact seeded.

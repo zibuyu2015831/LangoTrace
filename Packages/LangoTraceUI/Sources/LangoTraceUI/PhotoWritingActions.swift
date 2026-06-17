@@ -1,9 +1,9 @@
 import Foundation
 
 /// Dependency injection contract for the photo writing save flow.
-/// The import closure receives the picker image bytes, entry ID, and space ID after the entry is
-/// created; returning normally means the attachment was saved. Throwing is non-fatal — the entry
-/// has already been created and navigation to the detail view proceeds.
+/// The import closure receives the picker image bytes, entry ID, and space ID during save.
+/// Returning normally means the attachment was saved. Throwing is fatal to the photo-writing
+/// save loop: callers must keep the draft on screen and avoid navigating to a no-photo detail.
 public struct PhotoWritingActions: Sendable {
     public var importPhoto: @Sendable (_ data: Data, _ entryID: String, _ spaceID: String) throws -> Void
 

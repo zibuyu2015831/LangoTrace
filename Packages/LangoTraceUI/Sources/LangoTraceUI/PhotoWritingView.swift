@@ -12,6 +12,7 @@ struct PhotoWritingView: View {
     @State private var selectedImageData: Data?
     @State private var selectedImage: Image?
     @State private var saveError: String?
+    @State private var isSaving = false
 
     var body: some View {
         NavigationStack {
@@ -39,9 +40,13 @@ struct PhotoWritingView: View {
                     Button {
                         performSave()
                     } label: {
-                        localizedText("photoWriting.createEntry")
+                        if isSaving {
+                            localizedText("common.saving")
+                        } else {
+                            localizedText("photoWriting.createEntry")
+                        }
                     }
-                    .disabled(!draftState.isSaveEnabled(hasPhoto: selectedImageData != nil))
+                    .disabled(isSaving || !draftState.isSaveEnabled(hasPhoto: selectedImageData != nil))
                 }
             }
         }
@@ -65,55 +70,11 @@ struct PhotoWritingView: View {
     // MARK: - Sub-views
 
     private var photoArea: some View {
-        PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
-            photoAreaContent
+        let currentSelectedImage = selectedImage
+        return PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
+            PhotoWritingPhotoAreaContent(selectedImage: currentSelectedImage)
         }
         .buttonStyle(.plain)
-    }
-
-    private var photoAreaContent: some View {
-        ZStack(alignment: .bottomLeading) {
-            Group {
-                if let selectedImage {
-                    selectedImage
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    photoPlaceholder
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(maxHeight: 220)
-            .clipped()
-        }
-        .aspectRatio(16 / 10, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(LangoTraceDesign.ColorToken.borderSubtle, lineWidth: 1)
-        }
-        .accessibilityLabel(localizedText("photoWriting.photo.accessibilityLabel"))
-    }
-
-    private var photoPlaceholder: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    LangoTraceDesign.ColorToken.surfaceAccentMuted,
-                    LangoTraceDesign.ColorToken.elevatedPaper,
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            VStack(spacing: 10) {
-                Image(systemName: "photo.badge.plus")
-                    .font(.system(size: 32))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.accent)
-                localizedText("photoWriting.photo.addPrompt")
-                    .font(.callout.weight(.medium))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            }
-        }
     }
 
     private var guidanceChipRow: some View {
@@ -209,6 +170,9 @@ struct PhotoWritingView: View {
     // MARK: - Actions
 
     private func performSave() {
+        guard !isSaving else { return }
+        isSaving = true
+        defer { isSaving = false }
         do {
             try onSave(draftState.draftText, selectedImageData)
             saveError = nil
@@ -229,5 +193,54 @@ struct PhotoWritingView: View {
         #else
             return nil
         #endif
+    }
+}
+
+private struct PhotoWritingPhotoAreaContent: View {
+    let selectedImage: Image?
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            Group {
+                if let selectedImage {
+                    selectedImage
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    photoPlaceholder
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(maxHeight: 220)
+            .clipped()
+        }
+        .aspectRatio(16 / 10, contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(LangoTraceDesign.ColorToken.borderSubtle, lineWidth: 1)
+        }
+        .accessibilityLabel(localizedText("photoWriting.photo.accessibilityLabel"))
+    }
+
+    private var photoPlaceholder: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    LangoTraceDesign.ColorToken.surfaceAccentMuted,
+                    LangoTraceDesign.ColorToken.elevatedPaper,
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            VStack(spacing: 10) {
+                Image(systemName: "photo.badge.plus")
+                    .font(.system(size: 32))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                localizedText("photoWriting.photo.addPrompt")
+                    .font(.callout.weight(.medium))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+        }
     }
 }

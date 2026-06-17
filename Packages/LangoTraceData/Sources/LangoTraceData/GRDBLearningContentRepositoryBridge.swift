@@ -9,6 +9,7 @@ protocol GRDBLearningContentRepositoryProtocol: Sendable {
     func memoryItems(for spaceID: String) throws -> [MemoryItem]
     func currentMaterial(for entryID: String) throws -> LearningMaterial?
     func createEntry(_ draft: NewLearningEntryDraft, in spaceID: String) throws -> LearningEntry
+    func deleteEntry(id: String) throws
     func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry
     func learningPracticeReadiness(for spaceID: String) throws -> [String: Bool]
 }
@@ -75,6 +76,12 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
         let entry = try repository.createEntry(draft, in: spaceID)
         selectedEntryIDs[spaceID] = entry.id
         return entry
+    }
+
+    public func deleteEntry(id: String) throws {
+        try repository.deleteEntry(id: id)
+        selectedEntryIDs = selectedEntryIDs.mapValues { $0 == id ? "" : $0 }
+        selectedEntryIDs = selectedEntryIDs.filter { !$0.value.isEmpty }
     }
 
     @discardableResult

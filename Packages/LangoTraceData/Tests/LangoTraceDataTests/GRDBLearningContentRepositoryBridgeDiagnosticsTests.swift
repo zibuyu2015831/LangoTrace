@@ -158,6 +158,10 @@ private struct FailingReadLearningContentRepository: GRDBLearningContentReposito
         throw LearningContentRepositoryError.databaseUnavailable
     }
 
+    func deleteEntry(id _: String) throws {
+        throw LearningContentRepositoryError.databaseUnavailable
+    }
+
     func updateEntryBody(entryID _: String, spaceID _: String, body _: String) throws -> LearningEntry {
         throw LearningContentRepositoryError.databaseUnavailable
     }

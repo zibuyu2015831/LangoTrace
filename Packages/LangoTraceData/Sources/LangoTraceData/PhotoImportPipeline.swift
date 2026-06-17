@@ -91,12 +91,16 @@ public struct PhotoImportPipeline: @unchecked Sendable {
 
         // From here: clean up staging on failure
         var stagedThumbnailPath: String?
+        var movedPermanentPaths: [String] = []
         var success = false
         defer {
             if !success {
-                try? fileStore.deleteFile(relativePath: stagedOriginal.relativeStagingPath)
+                _ = try? fileStore.deleteFile(relativePath: stagedOriginal.relativeStagingPath)
                 if let thumbPath = stagedThumbnailPath {
-                    try? fileStore.deleteFile(relativePath: thumbPath)
+                    _ = try? fileStore.deleteFile(relativePath: thumbPath)
+                }
+                for path in movedPermanentPaths {
+                    _ = try? fileStore.deleteFile(relativePath: path)
                 }
             }
         }
@@ -121,6 +125,7 @@ public struct PhotoImportPipeline: @unchecked Sendable {
         // Step 4: Move staged files to permanent locations
         do {
             try fileStore.moveStagedFile(stagedOriginal, to: originalPath)
+            movedPermanentPaths.append(originalPath)
         } catch {
             throw PhotoImportError.fileMoveFailed(underlying: error)
         }
@@ -128,7 +133,10 @@ public struct PhotoImportPipeline: @unchecked Sendable {
         if let thumb = stagedThumb, let thumbPath = thumbnailPath {
             // Thumbnail failure is non-fatal — log and continue without thumbnail
             if (try? fileStore.moveStagedFile(thumb, to: thumbPath)) == nil {
-                try? fileStore.deleteFile(relativePath: thumb.relativeStagingPath)
+                _ = try? fileStore.deleteFile(relativePath: thumb.relativeStagingPath)
+                stagedThumbnailPath = nil
+            } else {
+                movedPermanentPaths.append(thumbPath)
                 stagedThumbnailPath = nil
             }
         }

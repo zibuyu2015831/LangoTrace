@@ -46,6 +46,7 @@
 - `practice_recording_artifacts` typed metadata，以及 `MediaArtifactDerivationKind.practiceRecording`。
 - `v10_allow_practice_recording_media_derivation_kind` 旧库迁移，覆盖已有 v9 数据库中 `derivation_kind` CHECK 只允许 `ttsAudio` 时无法写入练习录音 artifact 的问题。
 - `v17_add_photo_artifact_types` 迁移：扩展 `media_artifacts.artifact_type` CHECK 允许 `entryPhotoOriginal` / `entryPhotoThumbnail`；新建 `entry_photo_attachments` 表（`id`、`entry_id`、`language_space_id`、`original_artifact_id`、`thumbnail_artifact_id`、`status`、`width`、`height`、`exif_stripped`、`created_at`、`sort_order`）及对应索引。
+- `v19_ensure_entry_photo_attachments` / `v20_backfill_entry_photo_attachments_from_media_artifacts` 旧库修复迁移：v19 修复已经记录旧 v17 但缺失 `entry_photo_attachments` 表的数据库；v20 对已有 ready `entryPhotoOriginal` media artifact metadata 但缺少 attachment row 的旧库状态生成 repair row。没有 `media_artifacts` metadata 的历史孤立文件不自动猜测绑定到 entry。
 - pending / ready file state。
 - TTS derivation key lookup、reservation、commit、ready 标记、precise invalidation、metadata deletion 和 cleanup selection。
 - Practice recording derivation key lookup、reservation、commit、ready 标记和与 `practice_recordings` / `practice_sessions.completed_recording_id` 的 cleanup exclusion。
@@ -53,7 +54,7 @@
 - App 管理的 `MediaArtifacts` 目录、staging 写入、相对路径校验、hash、move、删除和 staging cleanup。
 - TTS 和 practice recording facade 编排文件验证、reservation、move、ready 标记和失败补偿。
 - playback source resolver 校验 metadata 与文件 byte size / hash 一致后才返回本地 URL；单句练习页已接入录音回放入口，文件缺失或 hash mismatch 时保持 completed session 并向 UI 返回不可播放失败。
-- `PhotoImportPipeline`：从用户选择的原始 `PHAsset` 出发，经过 EXIF GPS 元数据剥离、内容 hash 计算、缩略图生成、staging 写入、原子 move 和 `GRDBEntryPhotoAttachmentRepository` 元数据事务的完整写入流水线；原始照片（`entryPhotoOriginal`）是用户主资产，`delete_after = NULL`，不进入 LRU 或派生缓存清理；缩略图（`entryPhotoThumbnail`）是可重建派生资产，可精确失效。照片字节不得发送给任何 AI Provider。
+- `PhotoImportPipeline`：从用户选择的原始 `PHAsset` 出发，经过 EXIF GPS 元数据剥离、内容 hash 计算、缩略图生成、staging 写入、原子 move 和 `GRDBEntryPhotoAttachmentRepository` 元数据事务的完整写入流水线；metadata 事务失败时清理已经 move 到永久目录的 original / thumbnail 文件，避免产生无 metadata / attachment 的孤立照片文件；原始照片（`entryPhotoOriginal`）是用户主资产，`delete_after = NULL`，不进入 LRU 或派生缓存清理；缩略图（`entryPhotoThumbnail`）是可重建派生资产，可精确失效。照片字节不得发送给任何 AI Provider。
 - `GRDBEntryPhotoAttachmentRepository.photoRelativePath(forEntryID:)`：通过 SQL JOIN `media_artifacts`，以 `COALESCE(thumbnail_artifact_id, original_artifact_id)` 为优先策略返回最佳可用照片的 `relative_file_path`，供 `PhotoDisplayActions` 加载显示用。
 - `PhotoDisplayActions`：SwiftUI `@Environment` key（`\.photoDisplayActions`），封装 `loadPhotoData(entryID:) async -> Data?`；`AppEnvironment` 在启动时通过 `GRDBEntryPhotoAttachmentRepository` + `LocalMediaArtifactFileStore` 装配真实实现；App 根视图通过 `.environment(\.photoDisplayActions, ...)` 注入；UI 层不直接持有文件路径。
 - 照片主资产和派生资产均默认 `local-only`、`excluded from system backup`、`excluded by default from export`，不进入普通 LRU 清理，不进入同步。
@@ -69,7 +70,7 @@
 
 练习录音无法回放、staging 文件未晋升为 ready artifact、或旧库 schema 约束疑似漂移时，优先按 `docs/testing/practice-recording-troubleshooting.md` 排查。
 
-照片不显示、图片数据返回 nil 或 `photoRelativePath` 返回 nil 时，检查 `entry_photo_attachments` 是否有对应行、`media_artifacts` 的 `file_state` 是否为 ready，以及 `LocalMediaArtifactFileStore` 是否能找到对应相对路径文件。
+照片不显示、图片数据返回 nil 或 `photoRelativePath` 返回 nil 时，检查 `entry_photo_attachments` 是否有对应行、`media_artifacts` 的 `file_state` 是否为 ready，以及 `LocalMediaArtifactFileStore` 是否能找到对应相对路径文件。若只有 `MediaArtifacts/entryPhotoOriginal` 文件、但没有 `media_artifacts` metadata，不能安全自动恢复到具体 entry；应显示缺失态并避免后续导入继续产生孤立文件。
 
 ```bash
 swift test --package-path Packages/LangoTraceData

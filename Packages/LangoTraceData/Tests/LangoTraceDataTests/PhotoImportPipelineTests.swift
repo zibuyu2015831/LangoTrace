@@ -182,6 +182,40 @@ struct PhotoImportPipelineTests {
         }
     }
 
+    @Test("metadata failure removes moved permanent photo files")
+    func metadataFailureRemovesMovedPermanentPhotoFiles() throws {
+        let rootDir = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: rootDir) }
+
+        let fileStore = try makeFileStore(rootDir: rootDir)
+        let database = try AppDatabase.inMemory()
+        let pipeline = makePipeline(
+            fileStore: fileStore,
+            database: database,
+            idSequence: ["orig-cleanup", "thumb-cleanup", "attach-cleanup"]
+        )
+        let jpegData = try makeMinimalJPEGData()
+
+        #expect(throws: PhotoImportError.self) {
+            _ = try pipeline.importPhoto(
+                data: jpegData,
+                entryID: "missing-entry",
+                spaceID: "missing-space"
+            )
+        }
+
+        let originalURL = rootDir.appendingPathComponent("entryPhotoOriginal/missing-space/orig-cleanup.jpg")
+        let thumbnailURL = rootDir.appendingPathComponent("entryPhotoThumbnail/missing-space/thumb-cleanup.jpg")
+        #expect(!FileManager.default.fileExists(atPath: originalURL.path))
+        #expect(!FileManager.default.fileExists(atPath: thumbnailURL.path))
+
+        let stagingDir = rootDir.appendingPathComponent("staging")
+        if FileManager.default.fileExists(atPath: stagingDir.path) {
+            let remaining = try FileManager.default.contentsOfDirectory(atPath: stagingDir.path)
+            #expect(remaining.isEmpty, "Staging must be clean after metadata failure")
+        }
+    }
+
     // MARK: - EXIF GPS stripping
 
     @Test("import strips GPS coordinates from EXIF metadata")

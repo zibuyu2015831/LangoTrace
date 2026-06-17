@@ -15,6 +15,7 @@ public protocol LearningContentRepository: AnyObject {
     func selectEntry(id: String, spaceID: String)
     @discardableResult
     func createEntry(spaceID: String, title: String, body: String, source: EntrySource) throws -> LearningEntry
+    func deleteEntry(id: String) throws
     @discardableResult
     func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry
     @discardableResult
@@ -122,6 +123,22 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
         entriesBySpace[spaceID, default: []].insert(entry, at: 0)
         selectedEntryIDs[spaceID] = entry.id
         return entry
+    }
+
+    public func deleteEntry(id: String) throws {
+        for (spaceID, entries) in entriesBySpace {
+            guard let index = entries.firstIndex(where: { $0.id == id }) else {
+                continue
+            }
+            entriesBySpace[spaceID]?.remove(at: index)
+            if selectedEntryIDs[spaceID] == id {
+                selectedEntryIDs[spaceID] = entriesBySpace[spaceID]?.first?.id
+            }
+            renderingsByEntryID[id] = nil
+            practiceItemsByEntryID[id] = nil
+            return
+        }
+        throw LearningContentRepositoryError.entryNotFound
     }
 
     @discardableResult
@@ -318,6 +335,10 @@ public final class UnavailableLearningContentRepository: LearningContentReposito
     public func selectEntry(id _: String, spaceID _: String) {}
 
     public func createEntry(spaceID _: String, title _: String, body _: String, source _: EntrySource) throws -> LearningEntry {
+        throw LearningContentRepositoryError.databaseUnavailable
+    }
+
+    public func deleteEntry(id _: String) throws {
         throw LearningContentRepositoryError.databaseUnavailable
     }
 
