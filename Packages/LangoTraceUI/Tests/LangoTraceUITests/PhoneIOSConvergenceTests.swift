@@ -186,7 +186,7 @@ struct PhoneIOSConvergenceTests {
         #expect(supportingViews.contains("foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)"))
         #expect(supportingViews.contains(".frame(minHeight: 44, alignment: .center)"))
         #expect(!supportingViews.contains("private struct EntryTextEditorSurface"))
-        #expect(!supportingViews.contains("RoundedRectangle(cornerRadius: 12, style: .continuous)"))
+        #expect(supportingViews.contains("EntryDetailPhotoLayout.loadedCard"))
         #expect(!supportingViews.contains("navigationTitle(sheetTitle)"))
         #expect(supportingViews.contains("@State private var isEditorPresented = false"))
         #expect(supportingViews.contains(".sheet(isPresented: $isEditorPresented)"))

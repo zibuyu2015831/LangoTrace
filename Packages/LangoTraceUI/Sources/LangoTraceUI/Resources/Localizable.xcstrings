@@ -8214,6 +8214,108 @@
         }
       }
     },
+    "entry.detail.photo.loading.title": {
+      "comment": "Entry detail photo region title while loading a local photo attachment.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载照片"
+          }
+        }
+      }
+    },
+    "entry.detail.photo.loading.summary": {
+      "comment": "Entry detail photo region summary while loading a local photo attachment.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading the local attachment on this device."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取本机保存的照片附件。"
+          }
+        }
+      }
+    },
+    "entry.detail.photo.unavailable.title": {
+      "comment": "Entry detail photo region title when a photo-writing entry has no available local attachment.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo missing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片缺失"
+          }
+        }
+      }
+    },
+    "entry.detail.photo.unavailable.summary": {
+      "comment": "Entry detail photo region summary when a photo-writing entry has no available local attachment.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This photo record does not have a readable local image attachment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条照片记录没有可读取的本地图片附件。"
+          }
+        }
+      }
+    },
+    "entry.detail.photo.failed.title": {
+      "comment": "Entry detail photo region title when local photo data cannot be decoded.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo could not be shown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片无法显示"
+          }
+        }
+      }
+    },
+    "entry.detail.photo.failed.summary": {
+      "comment": "Entry detail photo region summary when local photo data cannot be decoded.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local attachment exists, but the image data could not be decoded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地附件存在，但图片数据无法解码。"
+          }
+        }
+      }
+    },
     "common.errorSaveFailedRetry": {
       "comment": "Generic error message when a save action fails, asking the user to retry.",
       "localizations": {

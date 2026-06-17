@@ -66,7 +66,7 @@
 - 练习候选仍是候选入口；TTS、录音、真实练习评分、OCR 和同步尚未接入。
 - 导出、可恢复备份、FTS、向量索引和对象级同步尚未实现。
 - TTS、录音、Speech、OCR 和同步尚未接入。
-- 照片写作入口已落地：iPhone 记录 Hero「用照片开始」进入 `PhotoWritingView`，通过 `PhotoWritingActions.importPhoto` 调用 `PhotoImportPipeline`（EXIF GPS strip → hash → 缩略图 → staging → 原子 move → `GRDBEntryPhotoAttachmentRepository` 元数据事务），完成后创建 `source = .photoWriting` 的 Entry 并写入 GRDB，再导航到记录详情。`EntryCard` 对 `photoWriting` 类型在右侧展示 44×44 缩略图；`EntryDetailView` 在原文卡片上方展示全宽 4:3 照片。两处展示通过 `PhotoDisplayActions` 环境值异步加载，不直接持有文件路径。照片字节不发送 AI Provider。
+- 照片写作入口已落地：iPhone 记录 Hero「用照片开始」进入 `PhotoWritingView`，通过 `PhotoWritingActions.importPhoto` 调用 `PhotoImportPipeline`（EXIF GPS strip → hash → 缩略图 → staging → 原子 move → `GRDBEntryPhotoAttachmentRepository` 元数据事务），完成后创建 `source = .photoWriting` 的 Entry 并写入 GRDB，再导航到记录详情。`EntryCard` 对 `photoWriting` 类型在右侧展示 44×44 缩略图；`EntryDetailView` 在原文卡片上方展示带背景、圆角、描边和高度上限的照片卡片，成功态使用缩放适配而不是裁切填充。两处展示通过 `PhotoDisplayActions` 环境值异步加载，不直接持有文件路径；详情页对加载中、附件缺失和解码失败显示同一外层 chrome 的可见降级态，不再静默隐藏照片区域。照片字节不发送 AI Provider。
 
 ## 4. 复查方法
 

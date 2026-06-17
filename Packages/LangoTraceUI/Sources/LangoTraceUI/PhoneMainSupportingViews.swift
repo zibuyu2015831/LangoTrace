@@ -110,6 +110,7 @@ struct EntryDetailView: View {
 
     @Environment(\.photoDisplayActions) private var photoDisplayActions
     @State private var photoImage: Image?
+    @State private var photoPresentation: EntryDetailPhotoPresentation = .notApplicable
 
     var body: some View {
         ScrollView {
@@ -117,14 +118,12 @@ struct EntryDetailView: View {
                 if titlePresentation.showsInlineHeader {
                     EntryDetailHeader(entry: entry)
                 }
-                if let photoImage {
-                    photoImage
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: .infinity)
-                        .aspectRatio(4 / 3, contentMode: .fill)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .accessibilityLabel(localizedString("photoWriting.photo.accessibilityLabel"))
+                let currentPhotoPresentation = displayedPhotoPresentation
+                if currentPhotoPresentation.shouldRenderRegion {
+                    EntryDetailPhotoSection(
+                        presentation: currentPhotoPresentation,
+                        photoImage: photoImage
+                    )
                 }
                 SourceEntryTextView(
                     entry: entry,
@@ -208,17 +207,38 @@ struct EntryDetailView: View {
         )
         .langoPageBackground()
         .task(id: entry.id) {
+            photoImage = nil
+            photoPresentation = EntryDetailPhotoPresentation.initialState(for: entry)
             guard entry.source == .photoWriting else { return }
-            guard let data = await photoDisplayActions.loadPhotoData(entry.id) else { return }
+            guard let data = await photoDisplayActions.loadPhotoData(entry.id) else {
+                photoPresentation = .unavailable
+                return
+            }
             #if os(iOS)
                 if let uiImage = UIImage(data: data) {
                     photoImage = Image(uiImage: uiImage)
+                    photoPresentation = .loaded
+                } else {
+                    photoPresentation = .failed
                 }
             #elseif os(macOS)
                 if let nsImage = NSImage(data: data) {
                     photoImage = Image(nsImage: nsImage)
+                    photoPresentation = .loaded
+                } else {
+                    photoPresentation = .failed
                 }
+            #else
+                photoPresentation = .failed
             #endif
+        }
+    }
+
+    private var displayedPhotoPresentation: EntryDetailPhotoPresentation {
+        if photoPresentation == .notApplicable {
+            EntryDetailPhotoPresentation.initialState(for: entry)
+        } else {
+            photoPresentation
         }
     }
 
@@ -285,6 +305,72 @@ struct EntryDetailView: View {
             return localizedString("entryDetail.title")
         }
         return trimmed
+    }
+}
+
+private struct EntryDetailPhotoSection: View {
+    let presentation: EntryDetailPhotoPresentation
+    let photoImage: Image?
+    private let layout = EntryDetailPhotoLayout.loadedCard
+
+    var body: some View {
+        Group {
+            if presentation == .loaded, let photoImage {
+                loadedPhoto(photoImage)
+            } else {
+                photoStatus
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .background(LangoTraceDesign.ColorToken.elevatedPaper)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            if layout.hasVisibleChrome {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(LangoTraceDesign.ColorToken.borderSubtle, lineWidth: 1)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func loadedPhoto(_ image: Image) -> some View {
+        switch layout.imageSizing {
+        case .fit:
+            image
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity, maxHeight: layout.maximumImageHeight)
+                .padding(8)
+                .accessibilityLabel(localizedString("photoWriting.photo.accessibilityLabel"))
+        }
+    }
+
+    private var photoStatus: some View {
+        VStack(spacing: 10) {
+            if presentation == .loading {
+                ProgressView()
+                    .controlSize(.regular)
+            } else {
+                Image(systemName: "photo")
+                    .font(.title2)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+            if let titleKey = presentation.titleKey {
+                localizedText(titleKey)
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+            }
+            if let summaryKey = presentation.summaryKey {
+                localizedText(summaryKey)
+                    .font(.footnote)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, minHeight: 220)
+        .accessibilityElement(children: .combine)
     }
 }
 
