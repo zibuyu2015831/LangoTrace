@@ -195,4 +195,3 @@ func createdEntriesReceiveLocalPreviewOnlyAfterExplicitGeneration() throws {
     #expect(repository.practiceItems(for: entry.id).count == 1)
     #expect(repository.memoryItems(for: "en").contains { $0.entryID == entry.id })
 }
-

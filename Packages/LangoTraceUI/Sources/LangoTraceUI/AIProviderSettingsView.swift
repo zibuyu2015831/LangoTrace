@@ -354,7 +354,7 @@ private extension AIProviderSettingsView {
                     var resolvedForSnapshot = false
                     if draft.text.endpoint.independentCredential.requiresAPIKey,
                        draft.text.endpoint.independentCredential.apiKeyDraft
-                           .trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                       .trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                        let credentialID = draft.text.endpoint.credentialID,
                        let metadata = savedCredentialMetadataByID[credentialID],
                        let secret = try? await actions.resolveCredentialSecret(metadata),
@@ -538,34 +538,34 @@ private extension AIProviderSettingsView {
     var statusIconName: String {
         switch draft.testState {
         case .testing:
-            return "clock.arrow.circlepath"
+            "clock.arrow.circlepath"
         case .succeeded:
-            return "checkmark.circle"
+            "checkmark.circle"
         case .partial:
-            return "exclamationmark.circle"
+            "exclamationmark.circle"
         case .cancelled:
-            return "xmark.circle"
+            "xmark.circle"
         case .missingRequiredFields, .failed, .unsupportedProvider:
-            return "exclamationmark.triangle"
+            "exclamationmark.triangle"
         case .idle:
-            return "lock.circle"
+            "lock.circle"
         }
     }
 
     var statusTone: Color {
         switch draft.testState {
         case .testing:
-            return LangoTraceDesign.ColorToken.accent
+            LangoTraceDesign.ColorToken.accent
         case .succeeded:
-            return LangoTraceDesign.ColorToken.stateReady
+            LangoTraceDesign.ColorToken.stateReady
         case .partial, .unsupportedProvider:
-            return LangoTraceDesign.ColorToken.warning
+            LangoTraceDesign.ColorToken.warning
         case .cancelled:
-            return LangoTraceDesign.ColorToken.textSecondary
+            LangoTraceDesign.ColorToken.textSecondary
         case .missingRequiredFields, .failed:
-            return LangoTraceDesign.ColorToken.danger
+            LangoTraceDesign.ColorToken.danger
         case .idle:
-            return LangoTraceDesign.ColorToken.accent
+            LangoTraceDesign.ColorToken.accent
         }
     }
 

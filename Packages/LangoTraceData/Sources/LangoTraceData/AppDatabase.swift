@@ -779,10 +779,10 @@ private extension AppDatabase {
             return
         }
 
-        let existingColumns = Set(try Row.fetchAll(db, sql: "PRAGMA table_info(practice_sessions)").compactMap { row in
+        let existingColumns = try Set(Row.fetchAll(db, sql: "PRAGMA table_info(practice_sessions)").compactMap { row in
             row["name"] as String?
         })
-        let requiredColumns: Set<String> = [
+        let requiredColumns: Set = [
             "id", "language_space_id", "entry_id", "learning_material_id", "sentence_id",
             "sentence_index", "target_text_snapshot", "translation_snapshot", "note_snapshot",
             "target_text_hash", "target_language_code", "source_entry_body_hash",

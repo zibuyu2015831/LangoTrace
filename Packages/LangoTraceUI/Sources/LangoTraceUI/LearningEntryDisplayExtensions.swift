@@ -4,11 +4,11 @@ extension EntryPracticeStatus {
     var displayLabel: String {
         switch self {
         case .notStarted:
-            return String(localized: "entry.practiceStatus.notStarted", bundle: .module)
+            String(localized: "entry.practiceStatus.notStarted", bundle: .module)
         case let .practiced(count):
-            return String(format: String(localized: "entry.practiceStatus.practiced", bundle: .module), count)
+            String(format: String(localized: "entry.practiceStatus.practiced", bundle: .module), count)
         case .memorized:
-            return String(localized: "entry.practiceStatus.memorized", bundle: .module)
+            String(localized: "entry.practiceStatus.memorized", bundle: .module)
         }
     }
 }

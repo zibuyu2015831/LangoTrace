@@ -113,7 +113,7 @@ struct ReadingProgressAndFavoriteTests {
         )
 
         let summary = try #require(try repository.listDocuments(spaceID: "space-1").first)
-        if case .completed(let at) = summary.readingProgressState {
+        if case let .completed(at) = summary.readingProgressState {
             #expect(at.timeIntervalSince1970 == now.timeIntervalSince1970)
         } else {
             #expect(Bool(false), "Expected .completed, got \(summary.readingProgressState)")

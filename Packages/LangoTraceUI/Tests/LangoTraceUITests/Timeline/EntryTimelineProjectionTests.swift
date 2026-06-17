@@ -8,9 +8,9 @@ import Testing
 struct EntryTimelineProjectionTests {
     // MARK: - Fixtures
 
-    private static let fixedToday = Date(timeIntervalSince1970: 1_800_000_000)  // 2027-01-15
+    private static let fixedToday = Date(timeIntervalSince1970: 1_800_000_000) // 2027-01-15
     private static let fixedYesterday = Date(timeIntervalSince1970: 1_800_000_000 - 86400)
-    private static let fixedTwoDaysAgo = Date(timeIntervalSince1970: 1_800_000_000 - 172800)
+    private static let fixedTwoDaysAgo = Date(timeIntervalSince1970: 1_800_000_000 - 172_800)
     private var calendar: Calendar {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "UTC")!
@@ -35,7 +35,7 @@ struct EntryTimelineProjectionTests {
     func groupsEntriesByDayWithTodayFirst() {
         let e1 = entry(id: "e1", createdAt: Self.fixedToday)
         let e2 = entry(id: "e2", createdAt: Self.fixedYesterday)
-        let entries = [e1, e2]  // already newest-first from repository
+        let entries = [e1, e2] // already newest-first from repository
         let groups = groupEntriesByDay(entries, calendar: calendar)
 
         #expect(groups.count == 2)
@@ -46,7 +46,7 @@ struct EntryTimelineProjectionTests {
     @Test("entries from the same day are grouped together")
     func groupsEntriesFromSameDayTogether() {
         let t0 = Self.fixedToday
-        let t1 = t0 - 3600   // 1 hour earlier, same day
+        let t1 = t0 - 3600 // 1 hour earlier, same day
         let e1 = entry(id: "e1", createdAt: t0)
         let e2 = entry(id: "e2", createdAt: t1)
         let groups = groupEntriesByDay([e1, e2], calendar: calendar)

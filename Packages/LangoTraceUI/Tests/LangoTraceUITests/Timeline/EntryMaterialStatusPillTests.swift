@@ -22,7 +22,7 @@ struct EntryMaterialStatusPillTests {
 
     private func makeRendering(entry: LearningEntry, sentenceCount: Int = 2, useStaleHash: Bool = false) -> LearningRendering {
         let hash = useStaleHash ? "stale-hash-000" : LearningMaterialTextHash.sha256(for: entry.body)
-        let sentences = (0..<sentenceCount).map { i in
+        let sentences = (0 ..< sentenceCount).map { i in
             RenderingSentence(id: "s\(i)", translation: "Trans", targetText: "Target", note: "")
         }
         return LearningRendering(
@@ -58,7 +58,7 @@ struct EntryMaterialStatusPillTests {
     func stalePreservesSentenceCount() {
         let entry = makeEntry()
         let rendering = makeRendering(entry: entry, sentenceCount: 5, useStaleHash: true)
-        if case .stale(let count) = materialStatus(entry: entry, rendering: rendering) {
+        if case let .stale(count) = materialStatus(entry: entry, rendering: rendering) {
             #expect(count == 5)
         } else {
             Issue.record("Expected .stale but got different status")
@@ -78,7 +78,7 @@ struct EntryMaterialStatusPillTests {
     func freshPreservesSentenceCount() {
         let entry = makeEntry()
         let rendering = makeRendering(entry: entry, sentenceCount: 7)
-        if case .fresh(let count) = materialStatus(entry: entry, rendering: rendering) {
+        if case let .fresh(count) = materialStatus(entry: entry, rendering: rendering) {
             #expect(count == 7)
         } else {
             Issue.record("Expected .fresh but got different status")

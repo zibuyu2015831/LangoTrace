@@ -1,11 +1,10 @@
-@testable import LangoTraceUI
 import LangoTraceCore
+@testable import LangoTraceUI
 import Testing
 
 @MainActor
 @Suite("Reading explanation mode switch (Phase 4)", .serialized)
 struct ReadingExplanationModeSwitchTests {
-
     // MARK: - switchExplanationMode without a selection
 
     @Test("switchExplanationMode updates currentExplanationMode without selection")

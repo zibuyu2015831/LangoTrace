@@ -20,13 +20,13 @@ enum ReadingExplanationOperationStatus {
 
     var persistedFailureCategory: String? {
         switch self {
-        case .failed(let category): category
+        case let .failed(category): category
         default: nil
         }
     }
 }
 
-// Single point that maps ReadingExplanationOperationStatus to the repository record.
+/// Single point that maps ReadingExplanationOperationStatus to the repository record.
 struct ReadingExplanationOperationRecorder {
     private let repository: GRDBReadingLibraryRepository
     private var base: ReadingAIExplanationOperationRecord
@@ -38,7 +38,8 @@ struct ReadingExplanationOperationRecorder {
 
     func record(_ status: ReadingExplanationOperationStatus,
                 profile: AIProviderConfigurationProfile? = nil,
-                endpoint: AIProviderEndpointInput? = nil) {
+                endpoint: AIProviderEndpointInput? = nil)
+    {
         var record = base
         record.providerProfileID = profile?.id ?? base.providerProfileID
         record.providerEndpointID = endpoint?.id ?? base.providerEndpointID
@@ -51,7 +52,7 @@ struct ReadingExplanationOperationRecorder {
     }
 }
 
-// ReadingExplanationOperationStatus needs Equatable for .pending nil check
+/// ReadingExplanationOperationStatus needs Equatable for .pending nil check
 extension ReadingExplanationOperationStatus: Equatable {
     static func == (lhs: ReadingExplanationOperationStatus, rhs: ReadingExplanationOperationStatus) -> Bool {
         switch (lhs, rhs) {

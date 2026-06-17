@@ -382,7 +382,7 @@ public extension TTSProviderAdapterKind {
         case .groqAudioSpeech:
             [.mp3, .wav, .opus, .flac, .pcm]
         case .customOpenAICompatibleAudioSpeech:
-            TTSAudioFormat.allCases  // user-controlled endpoint; allow all
+            TTSAudioFormat.allCases // user-controlled endpoint; allow all
         case .geminiGenerateContentTTS:
             // Confirmed: Gemini TTS only supports PCM output.
             [.pcm]

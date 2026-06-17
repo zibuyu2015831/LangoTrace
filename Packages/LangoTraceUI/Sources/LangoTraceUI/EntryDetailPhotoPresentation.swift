@@ -1,5 +1,5 @@
-import LangoTraceData
 import CoreGraphics
+import LangoTraceData
 
 enum EntryDetailPhotoImageSizing: Equatable {
     case fit

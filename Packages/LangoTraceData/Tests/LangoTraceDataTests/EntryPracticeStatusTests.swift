@@ -1,6 +1,6 @@
 import Foundation
-@testable import LangoTraceData
 import LangoTraceCore
+@testable import LangoTraceData
 import Testing
 
 @Suite("EntryPracticeStatus model")

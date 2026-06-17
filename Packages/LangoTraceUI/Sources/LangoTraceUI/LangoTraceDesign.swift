@@ -374,8 +374,7 @@ extension View {
     }
 
     func langoTextFieldStyle() -> some View {
-        self
-            .textFieldStyle(.plain)
+        textFieldStyle(.plain)
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(LangoTraceDesign.ColorToken.surfaceMuted)

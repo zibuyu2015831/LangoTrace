@@ -410,7 +410,7 @@ private func buildV17FixtureWithoutPhotoAttachmentsTable(_ queue: DatabaseQueue)
         "v14_create_reading_explanation_cache",
         "v15_reset_reading_explanation_cache_for_unix_epoch",
         "v16_add_reading_fk_and_check_constraints",
-        "v17_add_photo_artifact_types",       // recorded but did NOT create entry_photo_attachments
+        "v17_add_photo_artifact_types", // recorded but did NOT create entry_photo_attachments
         "v18_allow_practice_mode_exercise_types",
     ] {
         migrator.registerMigration(stub) { _ in }

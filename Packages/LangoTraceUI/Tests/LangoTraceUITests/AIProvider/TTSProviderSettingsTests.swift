@@ -179,9 +179,9 @@ struct TTSProviderSettingsTests {
     @Test("Loaded legacy OpenAI TTS config upgrades coral voice away from tts-1 before save and probe")
     func loadedLegacyOpenAITTSConfigUpgradesCoralVoiceAwayFromTTS1BeforeSaveAndProbe() throws {
         var draft = AIProviderDraftConfiguration(provider: .openAI)
-        draft.applyLoadedProfile(try loadedTTSProfile())
-        draft.applyLoadedTTSVoiceProfile(
-            try TTSVoiceProfile.make(
+        try draft.applyLoadedProfile(loadedTTSProfile())
+        try draft.applyLoadedTTSVoiceProfile(
+            TTSVoiceProfile.make(
                 id: "voice-en",
                 endpointID: "endpoint-tts",
                 languageCode: "en",
@@ -211,9 +211,9 @@ struct TTSProviderSettingsTests {
     @Test("Loaded legacy OpenRouter TTS config (gpt-4o-mini-audio-preview) normalizes to gpt-audio-mini before save and probe")
     func loadedLegacyOpenRouterTTSConfigNormalizesPreviewModelToGptAudioMini() throws {
         var draft = AIProviderDraftConfiguration(provider: .openRouter)
-        draft.applyLoadedProfile(try loadedOpenRouterTTSProfile())
-        draft.applyLoadedTTSVoiceProfile(
-            try TTSVoiceProfile.make(
+        try draft.applyLoadedProfile(loadedOpenRouterTTSProfile())
+        try draft.applyLoadedTTSVoiceProfile(
+            TTSVoiceProfile.make(
                 id: "voice-en-openrouter",
                 endpointID: "endpoint-tts-openrouter",
                 languageCode: "en",
@@ -245,9 +245,9 @@ struct TTSProviderSettingsTests {
     @Test("Loaded legacy OpenRouter TTS config (gpt-audio-mini) stays on gpt-audio-mini (already the working model)")
     func loadedLegacyOpenRouterTTSConfigGptAudioMiniStaysOnGptAudioMini() throws {
         var draft = AIProviderDraftConfiguration(provider: .openRouter)
-        draft.applyLoadedProfile(try loadedOpenRouterTTSProfile())
-        draft.applyLoadedTTSVoiceProfile(
-            try TTSVoiceProfile.make(
+        try draft.applyLoadedProfile(loadedOpenRouterTTSProfile())
+        try draft.applyLoadedTTSVoiceProfile(
+            TTSVoiceProfile.make(
                 id: "voice-en-openrouter",
                 endpointID: "endpoint-tts-openrouter",
                 languageCode: "en",

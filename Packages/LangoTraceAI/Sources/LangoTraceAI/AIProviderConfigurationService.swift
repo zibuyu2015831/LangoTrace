@@ -700,7 +700,7 @@ private extension AIProviderConfigurationService {
         // openRouterAudioSpeech is now the default for new OpenRouter configs (hexgrad/kokoro-82m
         // via /audio/speech); existing openRouterMultimodalAudio configs are kept as-is and their
         // legacy model names are rewritten to the canonical multimodal model.
-        if endpoint.providerPresetID == "openrouter" && settings.adapterKind == .openRouterMultimodalAudio {
+        if endpoint.providerPresetID == "openrouter", settings.adapterKind == .openRouterMultimodalAudio {
             let targetModel = "openai/gpt-audio-mini"
             let needsModelFix = endpoint.modelName == "openai/gpt-4o-mini-audio-preview"
                 || endpoint.modelName == "openai/gpt-4o-mini-tts-2025-12-15"
