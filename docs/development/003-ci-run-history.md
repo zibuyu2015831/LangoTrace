@@ -207,7 +207,7 @@
 
 ---
 
-### Run 27703576422（进行中）
+### Run 27703576422
 
 | 字段 | 值 |
 |---|---|
@@ -215,6 +215,21 @@
 | 触发时间 | 2026-06-18 00:21 CST |
 | 触发 commit | `ci: raise SwiftLint length thresholds for early-stage codebase [ci]` |
 | 覆盖内容 | E3 + E2-FU + R1 + 全部修复 |
+| 结论 | ❌ failure |
+| 失败步骤 | SwiftFormat |
+| 失败原因 | 16 个文件存在 SwiftFormat 违规（hoistPatternLet、docComments、wrapMultilineStatementBraces、consecutiveBlankLines、sortImports、hoistTry、redundantType、andOperator、redundantReturn、redundantSelf、indent 等），这些文件在之前的 E2-FU / E3 / R1 开发中未跑 swiftformat |
+| 修复 commit | `c0e4baf style: fix SwiftFormat violations across 16 files [ci]` |
+
+---
+
+### Run 27704455744（进行中）
+
+| 字段 | 值 |
+|---|---|
+| Run ID | [27704455744](https://github.com/zibuyu2015831/LangoTrace/actions/runs/27704455744) |
+| 触发时间 | 2026-06-18 00:35 CST |
+| 触发 commit | `style: fix SwiftFormat violations across 16 files [ci]` |
+| 覆盖内容 | E3 + E2-FU + R1 + 全部修复（SwiftFormat 清理） |
 | 结论 | ⏳ in_progress |
 
 *耗时待更新。*
