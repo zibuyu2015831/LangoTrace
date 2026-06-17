@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
 
 # Opt every JavaScript action onto Node.js 24 ahead of GitHub forcing it on
 # 2026-06-16, so checkout/cache (and any other JS action) stop emitting the

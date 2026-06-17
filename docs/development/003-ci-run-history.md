@@ -159,17 +159,25 @@
 
 ---
 
-### Run 27701227659（进行中）
+### Run 27701227659（已取消）
 
 | 字段 | 值 |
 |---|---|
 | Run ID | [27701227659](https://github.com/zibuyu2015831/LangoTrace/actions/runs/27701227659) |
 | 触发时间 | 2026-06-17 23:42 CST |
 | 触发 commit | `ci: retrigger Build & Test after concurrency cancel [ci]` |
-| 覆盖内容 | E3 + E2-FU + R1 + allowBluetoothHFP 修复（与 27700702770 等价） |
-| 结论 | ⏳ in_progress |
+| 覆盖内容 | E3 + E2-FU + R1 + allowBluetoothHFP 修复 |
+| Job 总耗时 | 54s（提前取消） |
+| 结论 | ⚠️ cancelled |
+| 取消原因 | 同上：ci-run-history.md 更新 commit（24d7166，无 `[ci]`）推送后触发 concurrency cancel |
+| 根本原因分析 | workflow 的 `concurrency.cancel-in-progress: true` + 同一 `group` 配置，导致任何 push（含被 skip 的无标记 commit）都会 cancel 正在跑的 job；skip run 不消耗 runner 资源，却会错误地杀掉有效 CI run |
+| 修复 | 将 `cancel-in-progress: false` + `group` 加入 `github.sha`，每个 commit 独立 concurrency slot，不再相互 cancel；见 commit `ci: fix concurrency cancel-in-progress` |
 
-*耗时待更新。*
+---
+
+### Run 27701227659 之后（进行中）
+
+*下一次 [ci] run 信息待填入。*
 
 ---
 
