@@ -7065,6 +7065,40 @@
         }
       }
     },
+    "reading.inspector.fold": {
+      "comment": "Accessibility label for the button that folds/hides the reading inspector panel on iPad.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Inspector"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收起解释面板"
+          }
+        }
+      }
+    },
+    "reading.inspector.expand": {
+      "comment": "Accessibility label for the button that expands/shows the reading inspector panel on iPad.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Inspector"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "展开解释面板"
+          }
+        }
+      }
+    },
     "reading.library.delete": {
       "comment": "Delete reading document action.",
       "localizations": {

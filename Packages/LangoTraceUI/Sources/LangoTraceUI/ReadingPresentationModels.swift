@@ -31,6 +31,11 @@ public struct ReadingLayoutModel: Equatable, Sendable {
     public var workspaceStyle: ReadingWorkbenchStyle
     public var showsPersistentInspector: Bool
 
+    /// True only for iPad with a persistent side inspector. Mac inspector stays resident.
+    public var canFoldInspector: Bool {
+        platform == .pad && showsPersistentInspector
+    }
+
     public static func platform(_ platform: ReadingPlatformRole) -> ReadingLayoutModel {
         switch platform {
         case .phone:

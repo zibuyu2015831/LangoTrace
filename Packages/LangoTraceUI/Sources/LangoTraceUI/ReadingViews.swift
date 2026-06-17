@@ -16,6 +16,7 @@ struct ReadingLibraryView: View {
     @State private var isFileImporterPresented = false
     @State private var collectionDrafts: [String: String] = [:]
     @State private var tagDrafts: [String: String] = [:]
+    @State private var isInspectorFolded = false
 
     init(
         platform: ReadingPlatformRole,
@@ -127,7 +128,7 @@ struct ReadingLibraryView: View {
                 libraryWorkbenchPane(layout: layout)
                 Divider()
                 readerWorkbenchPane(layout: layout)
-                if layout.showsPersistentInspector {
+                if layout.showsPersistentInspector, !effectiveFolded(layout: layout) {
                     Divider()
                     inspectorWorkbenchPane(layout: layout)
                 }
@@ -138,12 +139,16 @@ struct ReadingLibraryView: View {
                 libraryPane
                 Divider()
                 readerPane
-                if layout.showsPersistentInspector {
+                if layout.showsPersistentInspector, !effectiveFolded(layout: layout) {
                     Divider()
                     inspectorPane
                 }
             }
         }
+    }
+
+    private func effectiveFolded(layout: ReadingLayoutModel) -> Bool {
+        layout.canFoldInspector && isInspectorFolded
     }
 
     private func libraryWorkbenchPane(layout: ReadingLayoutModel) -> some View {
@@ -154,7 +159,8 @@ struct ReadingLibraryView: View {
     }
 
     private func readerWorkbenchPane(layout: ReadingLayoutModel) -> some View {
-        ScrollView {
+        let folded = effectiveFolded(layout: layout)
+        return ScrollView {
             readerWorkbenchBody(layout: layout)
                 .padding(.horizontal, layout.workspaceStyle == .balancedWorkbench ? 28 : 24)
                 .padding(.vertical, 24)
@@ -162,15 +168,74 @@ struct ReadingLibraryView: View {
         }
         .background(LangoTraceDesign.ColorToken.surfaceBase)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .overlay(alignment: .topTrailing) {
+            if folded {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isInspectorFolded = false
+                    }
+                } label: {
+                    Image(systemName: "sidebar.right")
+                        .font(.body)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                        .padding(10)
+                        .background(LangoTraceDesign.ColorToken.surfacePanel)
+                        .clipShape(.circle)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 20)
+                .padding(.trailing, 16)
+                .accessibilityLabel(localizedString("reading.inspector.expand"))
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if folded,
+               let selection = documentStore.selectedSelection,
+               documentStore.compactLearningPanelState != .hidden
+            {
+                ReadingCompactLearningPanel(
+                    selection: selection,
+                    explanationResult: documentStore.explanationResult,
+                    explanationState: documentStore.explanationState,
+                    audioState: documentStore.audioState,
+                    panelState: documentStore.compactLearningPanelState,
+                    explanationSource: documentStore.explanationSource,
+                    onExplain: { documentStore.explainSelection() },
+                    onListen: { documentStore.playSelectionSentence() },
+                    onClear: { documentStore.clearSelection() },
+                    onRegenerate: { documentStore.regenerateExplanation() }
+                )
+            }
+        }
     }
 
     private func inspectorWorkbenchPane(layout: ReadingLayoutModel) -> some View {
-        inspectorPane
-            .frame(width: layout.workspaceStyle == .balancedWorkbench ? 292 : 268)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 20)
-            .frame(maxHeight: .infinity, alignment: .top)
-            .background(LangoTraceDesign.ColorToken.surfaceInspector)
+        VStack(alignment: .leading, spacing: 0) {
+            if layout.canFoldInspector {
+                HStack {
+                    Spacer()
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isInspectorFolded = true
+                        }
+                    } label: {
+                        Image(systemName: "sidebar.right")
+                            .font(.body)
+                            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(localizedString("reading.inspector.fold"))
+                }
+                .padding(.top, 16)
+                .padding(.horizontal, 16)
+            }
+            inspectorPane
+                .padding(.horizontal, 16)
+                .padding(.vertical, layout.canFoldInspector ? 8 : 20)
+        }
+        .frame(width: layout.workspaceStyle == .balancedWorkbench ? 292 : 268)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(LangoTraceDesign.ColorToken.surfaceInspector)
     }
 
     private var libraryPane: some View {
