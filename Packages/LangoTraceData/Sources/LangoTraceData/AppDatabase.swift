@@ -105,6 +105,9 @@ private extension AppDatabase {
         migrator.registerMigration("v21_add_reading_structure_content_revision") { db in
             try addReadingStructureContentRevision(db)
         }
+        migrator.registerMigration("v22_add_reading_progress_and_favorite_columns") { db in
+            try addReadingProgressAndFavoriteColumns(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 

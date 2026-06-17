@@ -53,6 +53,7 @@ public extension GRDBReadingLibraryRepository {
             let id = idGenerator()
             let now = clock()
             let hash = StableHashing.sha256Hex(input.body)
+            let wordCount = ReadingWordCounter.wordCount(for: input.body, languageCode: input.targetLanguageCode)
             try db.execute(
                 sql: """
                 INSERT INTO reading_documents (
@@ -62,10 +63,10 @@ public extension GRDBReadingLibraryRepository {
                     original_mime_type, original_uti, original_byte_size, body_hash,
                     content_revision, structure_version, target_language_code,
                     import_status, library_status, created_at, updated_at,
-                    imported_at, deleted_at, restored_at, last_opened_at
+                    imported_at, deleted_at, restored_at, last_opened_at, body_word_count
                 ) VALUES (
                     ?, ?, ?, ?, ?, ?, ?, 'inline', ?, NULL, NULL, ?, ?, ?, ?, ?, ?,
-                    1, 1, ?, 'ready', 'active', ?, ?, ?, NULL, NULL, ?
+                    1, 1, ?, 'ready', 'active', ?, ?, ?, NULL, NULL, ?, ?
                 )
                 """,
                 arguments: [
@@ -88,6 +89,7 @@ public extension GRDBReadingLibraryRepository {
                     now.timeIntervalSince1970,
                     now.timeIntervalSince1970,
                     now.timeIntervalSince1970,
+                    wordCount,
                 ]
             )
             try rebuildStructure(
@@ -108,6 +110,7 @@ public extension GRDBReadingLibraryRepository {
     func listDocuments(
         spaceID: String,
         includeDeleted: Bool = false,
+        filter: ReadingLibraryFilter = .all,
         search: ReadingLibrarySearchQuery? = nil
     ) throws -> [ReadingLibraryDocumentSummary] {
         try databaseQueue.read { db in
@@ -115,6 +118,9 @@ public extension GRDBReadingLibraryRepository {
             var arguments: StatementArguments = [spaceID]
             if !includeDeleted {
                 conditions.append("d.library_status = 'active'")
+            }
+            if filter == .favoritesOnly {
+                conditions.append("d.is_favorite = 1")
             }
             if let search {
                 conditions.append("""
@@ -241,6 +247,58 @@ public extension GRDBReadingLibraryRepository {
             )
             try recordLifecycle(documentID: input.documentID, spaceID: input.spaceID, eventType: .updated, db: db)
             return try documentContent(id: input.documentID, spaceID: input.spaceID, db: db)
+        }
+    }
+
+    func setFavorite(documentID: String, spaceID: String, isFavorite: Bool) throws {
+        try databaseQueue.write { db in
+            try requireDocument(id: documentID, spaceID: spaceID, db: db)
+            try db.execute(
+                sql: """
+                UPDATE reading_documents
+                SET is_favorite = ?, updated_at = ?
+                WHERE id = ? AND space_id = ?
+                """,
+                arguments: [isFavorite ? 1 : 0, clock().timeIntervalSince1970, documentID, spaceID]
+            )
+        }
+    }
+
+    func updateReadingProgress(
+        documentID: String,
+        spaceID: String,
+        percent: Int,
+        blockIndex: Int,
+        characterOffset: Int,
+        structureVersion: Int,
+        contentRevision: Int,
+        completedAt: Date?
+    ) throws {
+        try databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                UPDATE reading_documents
+                SET reading_progress_percent = ?,
+                    last_read_block_index = ?,
+                    last_read_character_offset = ?,
+                    last_read_structure_version = ?,
+                    last_read_content_revision = ?,
+                    read_completed_at = ?,
+                    updated_at = ?
+                WHERE id = ? AND space_id = ?
+                """,
+                arguments: [
+                    percent,
+                    blockIndex,
+                    characterOffset,
+                    structureVersion,
+                    contentRevision,
+                    completedAt.map(\.timeIntervalSince1970),
+                    clock().timeIntervalSince1970,
+                    documentID,
+                    spaceID,
+                ]
+            )
         }
     }
 
@@ -529,6 +587,15 @@ private extension GRDBReadingLibraryRepository {
             """,
             arguments: [documentID, spaceID]
         )
+        let progressState: ReadingProgressState =
+            if let completedAt = (row["read_completed_at"] as Double?).map(Date.init(timeIntervalSince1970:)) {
+                .completed(at: completedAt)
+            } else if let percent = row["reading_progress_percent"] as Int? {
+                .reading(percent: percent)
+            } else {
+                .unstarted
+            }
+
         return ReadingLibraryDocumentSummary(
             id: documentID,
             spaceID: spaceID,
@@ -559,7 +626,10 @@ private extension GRDBReadingLibraryRepository {
             ),
             tagNames: tagNames,
             collectionTitles: collectionTitles,
-            lastOpenedAt: (row["last_opened_at"] as Double?).map(Date.init(timeIntervalSince1970:))
+            lastOpenedAt: (row["last_opened_at"] as Double?).map(Date.init(timeIntervalSince1970:)),
+            isFavorite: (row["is_favorite"] as Int? ?? 0) != 0,
+            readingProgressState: progressState,
+            bodyWordCount: row["body_word_count"] as Int? ?? 0
         )
     }
 

@@ -674,9 +674,18 @@ private struct ReadingPhoneLibraryHomeView: View {
             } else {
                 LazyVStack(alignment: .leading, spacing: 12) {
                     ForEach(store.filteredDocuments, id: \.id) { document in
-                        ReadingLibraryDocumentRow(document: document) {
-                            onOpenDocument(document.id)
-                        }
+                        ReadingLibraryDocumentRow(
+                            document: document,
+                            onOpen: { onOpenDocument(document.id) },
+                            onToggleFavorite: {
+                                Task {
+                                    await store.setFavorite(
+                                        documentID: document.id,
+                                        isFavorite: !document.isFavorite
+                                    )
+                                }
+                            }
+                        )
                     }
                 }
             }

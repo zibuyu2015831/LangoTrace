@@ -1,10 +1,10 @@
 # 任务方案：阅读体验收口（进度、收藏、结构统一与解释语言模式收尾）
 
-状态：Draft
+状态：User Approved
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-17
 
 系列编号：R1（系列母方案：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`，实施顺序位于 E2 照片写作（`docs/plans/active/2026-06-11-04-feature-entry-photo-attachment-and-photo-writing.md`）之后、E3 练习模式路由（`docs/plans/active/2026-06-11-06-feature-practice-mode-routing-foundation.md`）之前）。无硬代码依赖：本方案不依赖 E1 / E2 的交付物，可在用户确认后独立实现。
 
@@ -16,6 +16,8 @@
 
 1. 是否同意在本方案中解除归档方案 D3 决策的"面板内语言模式切换控件 Deferred"状态（架构已就绪，无需迁移）。
 2. 阅读进度的"已读完"判定口径（见第 12 节 Phase 2 决策 R1-D2）。
+
+**用户确认（2026-06-17）：以上两项均已获用户确认。D3 Deferred 解除，面板内解释语言模式切换控件纳入本方案 Phase 4；R1-D2 口径（最后一个 block 完整滚入可视区域时记 `read_completed_at`）已接受。本方案整体范围与实现授权同步确认，状态推进至 `User Approved`。**
 
 ## 1. 需求或 bug 描述
 
@@ -55,7 +57,7 @@
 
 - `reading_documents` 当前 28 列（`AppDatabaseReadingMigration.swift:45-92`），没有任何阅读进度、阅读位置或收藏列。
 - 资料库行 UI（`ReadingViewComponents.swift` 的 `ReadingLibraryDocumentRow`）不展示进度与收藏；筛选只有平台内已有形态，无 `全部 / 收藏` chips。
-- Data package 当前 migration 注册顺序为 v1 至 v15，最新为 `v15_reset_reading_explanation_cache_for_unix_epoch`（`AppDatabase.swift:90` 附近注册）。
+- Data package 当前 migration 注册顺序为 v1 至 v17，最新为 `v17_add_photo_artifact_types`（`AppDatabase.swift:93` 注册）。v16（`v16_add_reading_fk_and_check_constraints`）重建了 `reading_explanation_cache` FK 与 `reading_import_operations` CHECK 约束，未触及 `reading_documents`；v17（E2）增加照片资产类型。本方案新 migration 预计为 **v18**。
 
 ### 2.3 iPad inspector 折叠
 
@@ -254,7 +256,7 @@
 
 ### Phase 2：阅读进度与收藏（migration + repository + UI）
 
-migration（与 Phase 1 合并为一个 migration，id 在实施时按当时最新注册顺序分配，当前最新为 `v15_reset_reading_explanation_cache_for_unix_epoch`，预计为 v16）为 `reading_documents` 新增：
+migration（与 Phase 1 合并为一个 migration，id 在实施时按当时最新注册顺序分配，当前最新为 `v17_add_photo_artifact_types`，预计为 **v18**）为 `reading_documents` 新增：
 
 - `is_favorite INTEGER NOT NULL DEFAULT 0`
 - `reading_progress_percent INTEGER`（0–100，空表示未开始）
@@ -309,10 +311,10 @@ migration（与 Phase 1 合并为一个 migration，id 在实施时按当时最�
   - [P3] 收藏标记需要形状 + 文字，不只靠颜色（spec 003）；已写入 Phase 2。
 写回修改：以上各项均已写回第 3、7、12、15、16 节。
 仍需用户确认的问题：
-  1. 解除 D3 Deferred（面板内 mode 切换控件纳入本方案）。
-  2. R1-D2 已读完口径（最后 block 完整滚入可视区域）。
-  3. 本方案整体范围与实现授权（推进到 User Approved）。
-是否允许进入实现：待用户确认后允许。
+  1. 解除 D3 Deferred（面板内 mode 切换控件纳入本方案）。✅ 已确认（2026-06-17）
+  2. R1-D2 已读完口径（最后 block 完整滚入可视区域）。✅ 已确认（2026-06-17）
+  3. 本方案整体范围与实现授权（推进到 User Approved）。✅ 已确认（2026-06-17）
+是否允许进入实现：用户已确认，可进入实现。
 ```
 
 ## 14. 复查方法

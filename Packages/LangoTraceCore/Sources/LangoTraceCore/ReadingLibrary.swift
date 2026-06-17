@@ -29,6 +29,17 @@ public enum ReadingLibraryStatus: String, Equatable, Hashable, Sendable {
     }
 }
 
+public enum ReadingProgressState: Equatable, Sendable {
+    case unstarted
+    case reading(percent: Int)
+    case completed(at: Date)
+}
+
+public enum ReadingLibraryFilter: Equatable, Sendable {
+    case all
+    case favoritesOnly
+}
+
 public struct ReadingLibraryDocumentSummary: Equatable, Sendable {
     public var id: String
     public var spaceID: String
@@ -39,6 +50,9 @@ public struct ReadingLibraryDocumentSummary: Equatable, Sendable {
     public var tagNames: [String]
     public var collectionTitles: [String]
     public var lastOpenedAt: Date?
+    public var isFavorite: Bool
+    public var readingProgressState: ReadingProgressState
+    public var bodyWordCount: Int
 
     public init(
         id: String,
@@ -49,7 +63,10 @@ public struct ReadingLibraryDocumentSummary: Equatable, Sendable {
         libraryStatus: ReadingLibraryStatus,
         tagNames: [String],
         collectionTitles: [String],
-        lastOpenedAt: Date?
+        lastOpenedAt: Date?,
+        isFavorite: Bool = false,
+        readingProgressState: ReadingProgressState = .unstarted,
+        bodyWordCount: Int = 0
     ) {
         self.id = id
         self.spaceID = spaceID
@@ -60,6 +77,15 @@ public struct ReadingLibraryDocumentSummary: Equatable, Sendable {
         self.tagNames = tagNames
         self.collectionTitles = collectionTitles
         self.lastOpenedAt = lastOpenedAt
+        self.isFavorite = isFavorite
+        self.readingProgressState = readingProgressState
+        self.bodyWordCount = bodyWordCount
+    }
+
+    public func withFavorite(_ value: Bool) -> ReadingLibraryDocumentSummary {
+        var copy = self
+        copy.isFavorite = value
+        return copy
     }
 }
 

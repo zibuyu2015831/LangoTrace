@@ -7218,6 +7218,57 @@
         }
       }
     },
+    "reading.library.filter.favorites": {
+      "comment": "Reading library favorites filter chip label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收藏"
+          }
+        }
+      }
+    },
+    "reading.library.favorite.toggle": {
+      "comment": "Accessibility label for the favorite toggle button on a reading document row.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorite"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收藏"
+          }
+        }
+      }
+    },
+    "reading.progress.completed": {
+      "comment": "Reading progress label when document is fully read.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已读完"
+          }
+        }
+      }
+    },
     "reading.library.import.file": {
       "comment": "Import reading file action.",
       "localizations": {
@@ -8210,6 +8261,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "点击选择照片"
+          }
+        }
+      }
+    },
+    "common.saving": {
+      "comment": "Save button title while a save operation is in progress.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存中"
           }
         }
       }
@@ -11693,6 +11761,108 @@
           "stringUnit": {
             "state": "translated",
             "value": "跟读练习"
+          }
+        }
+      }
+    },
+    "practice.modes.shadowing": {
+      "comment": "Practice mode title for shadowing.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shadowing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟读"
+          }
+        }
+      }
+    },
+    "practice.modes.dictation": {
+      "comment": "Practice mode title for dictation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "听写"
+          }
+        }
+      }
+    },
+    "practice.modes.backtranslation": {
+      "comment": "Practice mode title for backtranslation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回译"
+          }
+        }
+      }
+    },
+    "practice.sentenceList.modePicker": {
+      "comment": "Accessibility label for the practice sentence list mode picker.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice mode"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习方式"
+          }
+        }
+      }
+    },
+    "practice.sentenceList.practiced": {
+      "comment": "Status label for a sentence that has been practiced in the selected mode.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practiced"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已练"
+          }
+        }
+      }
+    },
+    "practice.sentenceList.continueFrom": {
+      "comment": "CTA title to continue practice from a sentence position. Placeholder is the 1-based sentence number.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue from sentence %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从第 %lld 句继续"
           }
         }
       }

@@ -465,4 +465,20 @@ extension AppDatabase {
             table.add(column: "content_revision", .integer).notNull().defaults(to: 1)
         }
     }
+
+    // MARK: - v22
+
+    static func addReadingProgressAndFavoriteColumns(_ db: Database) throws {
+        guard try db.tableExists("reading_documents") else { return }
+        try db.alter(table: "reading_documents") { table in
+            table.add(column: "is_favorite", .integer).notNull().defaults(to: 0)
+            table.add(column: "reading_progress_percent", .integer)
+            table.add(column: "last_read_block_index", .integer)
+            table.add(column: "last_read_character_offset", .integer)
+            table.add(column: "last_read_structure_version", .integer)
+            table.add(column: "last_read_content_revision", .integer)
+            table.add(column: "read_completed_at", .double)
+            table.add(column: "body_word_count", .integer)
+        }
+    }
 }

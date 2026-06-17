@@ -1,3 +1,4 @@
+import Foundation
 import LangoTraceCore
 
 public struct ReadingExplanationRequest: Equatable, Sendable {
@@ -103,6 +104,8 @@ public struct ReadingLibraryActions: Sendable {
     public var markDocumentOpened: @Sendable (String, String) async throws -> Void
     public var assignCollection: @Sendable (String, String, String) async throws -> Void
     public var tagDocument: @Sendable (String, String, String) async throws -> Void
+    public var setFavorite: @Sendable (String, String, Bool) async throws -> Void
+    public var updateReadingProgress: @Sendable (String, String, Int, Int, Int, Int, Int, Date?) async throws -> Void
 
     public init(
         listDocuments: @escaping @Sendable (String, Bool, ReadingLibrarySearchQuery?) async throws
@@ -116,7 +119,10 @@ public struct ReadingLibraryActions: Sendable {
         restoreDocument: @escaping @Sendable (String, String) async throws -> Void,
         markDocumentOpened: @escaping @Sendable (String, String) async throws -> Void,
         assignCollection: @escaping @Sendable (String, String, String) async throws -> Void = { _, _, _ in },
-        tagDocument: @escaping @Sendable (String, String, String) async throws -> Void = { _, _, _ in }
+        tagDocument: @escaping @Sendable (String, String, String) async throws -> Void = { _, _, _ in },
+        setFavorite: @escaping @Sendable (String, String, Bool) async throws -> Void = { _, _, _ in },
+        updateReadingProgress: @escaping @Sendable (String, String, Int, Int, Int, Int, Int, Date?) async throws
+            -> Void = { _, _, _, _, _, _, _, _ in }
     ) {
         self.listDocuments = listDocuments
         self.importPastedText = importPastedText
@@ -127,6 +133,8 @@ public struct ReadingLibraryActions: Sendable {
         self.markDocumentOpened = markDocumentOpened
         self.assignCollection = assignCollection
         self.tagDocument = tagDocument
+        self.setFavorite = setFavorite
+        self.updateReadingProgress = updateReadingProgress
     }
 
     public static let disabled = ReadingLibraryActions(

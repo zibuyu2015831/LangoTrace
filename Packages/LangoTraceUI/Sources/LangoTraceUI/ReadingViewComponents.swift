@@ -63,6 +63,7 @@ struct ReadingLibraryDocumentRow: View {
     let document: ReadingLibraryDocumentSummary
     let onOpen: () -> Void
     var isSelected = false
+    var onToggleFavorite: (() -> Void)?
 
     var body: some View {
         Button(action: onOpen) {
@@ -90,9 +91,14 @@ struct ReadingLibraryDocumentRow: View {
                                 .clipShape(.capsule)
                             tagCollectionLine
                         }
+                        metadataLine
                     }
 
                     Spacer(minLength: 0)
+
+                    if onToggleFavorite != nil {
+                        favoriteButton
+                    }
                 }
             }
             .padding(16)
@@ -136,6 +142,55 @@ struct ReadingLibraryDocumentRow: View {
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 .lineLimit(1)
         }
+    }
+
+    @ViewBuilder
+    private var metadataLine: some View {
+        let parts = metadataParts
+        if !parts.isEmpty {
+            Text(parts.joined(separator: " · "))
+                .font(.caption)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                .lineLimit(1)
+        }
+    }
+
+    private var metadataParts: [String] {
+        var parts: [String] = []
+        if document.bodyWordCount > 0 {
+            parts.append("\(document.bodyWordCount) words")
+        }
+        if let opened = document.lastOpenedAt {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .none
+            parts.append(formatter.string(from: opened))
+        }
+        switch document.readingProgressState {
+        case .unstarted:
+            break
+        case let .reading(percent):
+            parts.append("\(percent)%")
+        case .completed:
+            parts.append(localizedString("reading.progress.completed"))
+        }
+        return parts
+    }
+
+    private var favoriteButton: some View {
+        Button {
+            onToggleFavorite?()
+        } label: {
+            Image(systemName: document.isFavorite ? "bookmark.fill" : "bookmark")
+                .font(.body)
+                .foregroundStyle(
+                    document.isFavorite
+                        ? LangoTraceDesign.ColorToken.accent
+                        : LangoTraceDesign.ColorToken.textSecondary
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(localizedString("reading.library.favorite.toggle"))
     }
 }
 
@@ -246,7 +301,10 @@ struct ReadingLibraryPane: View {
                 onOpen: {
                     onOpenDocument(document.id)
                 },
-                isSelected: store.selectedDocument?.id == document.id && platform != .phone
+                isSelected: store.selectedDocument?.id == document.id && platform != .phone,
+                onToggleFavorite: {
+                    Task { await store.setFavorite(documentID: document.id, isFavorite: !document.isFavorite) }
+                }
             )
             .contextMenu {
                 metadataContextMenu(for: document)
@@ -313,24 +371,69 @@ struct ReadingLibraryFilterControls: View {
     @ObservedObject var store: ReadingLibraryStore
 
     var body: some View {
-        HStack(spacing: 8) {
-            ReadingLibraryFilterMenu(
-                label: localizedString("reading.library.collection.filter"),
-                value: store.selectedCollectionFilter ?? localizedString("reading.library.filter.all"),
-                options: store.availableCollectionFilters
-            ) { selection in
-                store.updateCollectionFilter(selection)
-            }
+        VStack(alignment: .leading, spacing: 8) {
+            libraryFilterChips
+            HStack(spacing: 8) {
+                ReadingLibraryFilterMenu(
+                    label: localizedString("reading.library.collection.filter"),
+                    value: store.selectedCollectionFilter ?? localizedString("reading.library.filter.all"),
+                    options: store.availableCollectionFilters
+                ) { selection in
+                    store.updateCollectionFilter(selection)
+                }
 
-            ReadingLibraryFilterMenu(
-                label: localizedString("reading.library.tag.filter"),
-                value: store.selectedTagFilter ?? localizedString("reading.library.filter.all"),
-                options: store.availableTagFilters
-            ) { selection in
-                store.updateTagFilter(selection)
+                ReadingLibraryFilterMenu(
+                    label: localizedString("reading.library.tag.filter"),
+                    value: store.selectedTagFilter ?? localizedString("reading.library.filter.all"),
+                    options: store.availableTagFilters
+                ) { selection in
+                    store.updateTagFilter(selection)
+                }
             }
         }
         .accessibilityElement(children: .contain)
+    }
+
+    private var libraryFilterChips: some View {
+        HStack(spacing: 8) {
+            ReadingLibraryChip(
+                label: localizedString("reading.library.filter.all"),
+                isSelected: store.selectedLibraryFilter == .all
+            ) {
+                store.updateLibraryFilter(.all)
+            }
+            ReadingLibraryChip(
+                label: localizedString("reading.library.filter.favorites"),
+                isSelected: store.selectedLibraryFilter == .favoritesOnly
+            ) {
+                store.updateLibraryFilter(.favoritesOnly)
+            }
+        }
+    }
+}
+
+private struct ReadingLibraryChip: View {
+    let label: String
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            Text(label)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(
+                    isSelected ? Color.white : LangoTraceDesign.ColorToken.textPrimary
+                )
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    isSelected
+                        ? LangoTraceDesign.ColorToken.accent
+                        : LangoTraceDesign.ColorToken.surfacePanel
+                )
+                .clipShape(.capsule)
+        }
+        .buttonStyle(.plain)
     }
 }
 

@@ -390,6 +390,19 @@ private func makeReadingLibraryActions(
         tagDocument: { id, spaceID, name in
             let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
             try repository.tagDocument(documentID: id, spaceID: spaceID, name: name)
+        },
+        setFavorite: { id, spaceID, isFavorite in
+            let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
+            try repository.setFavorite(documentID: id, spaceID: spaceID, isFavorite: isFavorite)
+        },
+        updateReadingProgress: { id, spaceID, percent, blockIndex, characterOffset, structureVersion, contentRevision, completedAt in
+            let repository = try GRDBReadingLibraryRepository(database: databaseFactory.database())
+            try repository.updateReadingProgress(
+                documentID: id, spaceID: spaceID,
+                percent: percent, blockIndex: blockIndex, characterOffset: characterOffset,
+                structureVersion: structureVersion, contentRevision: contentRevision,
+                completedAt: completedAt
+            )
         }
     )
 }

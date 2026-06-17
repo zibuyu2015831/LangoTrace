@@ -16,6 +16,7 @@ final class ReadingLibraryStore: ObservableObject {
     @Published private(set) var searchText = ""
     @Published private(set) var selectedCollectionFilter: String?
     @Published private(set) var selectedTagFilter: String?
+    @Published private(set) var selectedLibraryFilter: ReadingLibraryFilter = .all
     @Published private(set) var loadState: ReadingAsyncState = .idle
     @Published private(set) var importState: ReadingAsyncState = .idle
     @Published private(set) var selectedDocument: ReadingLibraryDocumentContent?
@@ -44,6 +45,7 @@ final class ReadingLibraryStore: ObservableObject {
         searchText = ""
         selectedCollectionFilter = nil
         selectedTagFilter = nil
+        selectedLibraryFilter = .all
         invalidateInFlightWork()
     }
 
@@ -180,6 +182,41 @@ final class ReadingLibraryStore: ObservableObject {
 
     func updateTagFilter(_ value: String?) {
         selectedTagFilter = normalizedFilter(value)
+    }
+
+    func updateLibraryFilter(_ filter: ReadingLibraryFilter) {
+        selectedLibraryFilter = filter
+    }
+
+    func setFavorite(documentID: String, isFavorite: Bool) async {
+        do {
+            try await actions.setFavorite(documentID, languageSpace.id, isFavorite)
+            if let idx = documents.firstIndex(where: { $0.id == documentID }) {
+                documents[idx] = documents[idx].withFavorite(isFavorite)
+            }
+        } catch {
+            loadState = .failed
+        }
+    }
+
+    func saveReadingProgress(
+        documentID: String,
+        percent: Int,
+        blockIndex: Int,
+        characterOffset: Int,
+        structureVersion: Int,
+        contentRevision: Int,
+        completedAt: Date?
+    ) async {
+        do {
+            try await actions.updateReadingProgress(
+                documentID, languageSpace.id,
+                percent, blockIndex, characterOffset,
+                structureVersion, contentRevision, completedAt
+            )
+        } catch {
+            // progress is best-effort; don't surface to user
+        }
     }
 
     func assignCollection(documentID: String, title: String) async throws {
@@ -353,7 +390,8 @@ extension ReadingLibraryStore {
             let tagMatches = selectedTagFilter.map {
                 document.tagNames.contains($0)
             } ?? true
-            return collectionMatches && tagMatches
+            let favoriteMatches = selectedLibraryFilter == .favoritesOnly ? document.isFavorite : true
+            return collectionMatches && tagMatches && favoriteMatches
         }
     }
 }
