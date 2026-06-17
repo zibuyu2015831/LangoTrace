@@ -175,9 +175,33 @@
 
 ---
 
-### Run 27701227659 之后（进行中）
+### Run 27701699855
 
-*下一次 [ci] run 信息待填入。*
+| 字段 | 值 |
+|---|---|
+| Run ID | [27701699855](https://github.com/zibuyu2015831/LangoTrace/actions/runs/27701699855) |
+| 触发时间 | 2026-06-17 23:50 CST |
+| 触发 commit | `ci: fix concurrency cancel-in-progress + retrigger Build & Test [ci]` |
+| 覆盖内容 | E3 + E2-FU + R1 + allowBluetoothHFP 修复 + workflow concurrency 修复 |
+| Job 总耗时 | 10m8s（提前终止） |
+| 结论 | ❌ failure |
+| 失败步骤 | Test macOS app |
+| 失败原因 | `AppEnvironmentPracticeBootstrapTests` 两个 bug：(1) 仍使用 E3 已重命名的 `createOrRestoreShadowingSession`（编译失败）；(2) `practiceSnapshot` helper 使用未加 materialID 前缀的 `sentenceID: "sentence-1"`，而 DB 实际存储 `"material-1-sentence-1"`，导致 `practice_sessions.sentence_id` FK constraint 失败 |
+| 修复 commit | `470d885 fix(tests): update AppEnvironmentPracticeBootstrapTests for E3 PracticeActions rename [ci]` |
+
+---
+
+### Run 27702909733（进行中）
+
+| 字段 | 值 |
+|---|---|
+| Run ID | [27702909733](https://github.com/zibuyu2015831/LangoTrace/actions/runs/27702909733) |
+| 触发时间 | 2026-06-18 00:09 CST |
+| 触发 commit | `fix(tests): update AppEnvironmentPracticeBootstrapTests for E3 PracticeActions rename [ci]` |
+| 覆盖内容 | E3 + E2-FU + R1 + allowBluetoothHFP 修复 + concurrency 修复 + macOS 测试修复 |
+| 结论 | ⏳ in_progress |
+
+*耗时待更新。*
 
 ---
 
