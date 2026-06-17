@@ -25,6 +25,7 @@
 - Entry editor、detail 和 supporting views：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSupportingViews.swift`
 - 照片写作入口与流程：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoWritingView.swift`
 - 照片写作 action contract：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoWritingActions.swift`
+- 照片写作草稿状态与引导 chip：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoWritingDraftState.swift`
 - 照片展示 environment key：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoDisplayActions.swift`
 - 照片导入流水线：`Packages/LangoTraceData/Sources/LangoTraceData/PhotoImportPipeline.swift`
 - 照片附件 repository：`Packages/LangoTraceData/Sources/LangoTraceData/GRDBEntryPhotoAttachmentRepository.swift`
