@@ -37,7 +37,7 @@ final class AppEnvironmentPracticeBootstrapTests: XCTestCase {
             )
         )
         do {
-            _ = try await environment.practiceActions.createOrRestoreShadowingSession(
+            _ = try await environment.practiceActions.createOrRestoreSession(
                 languageSpace.id,
                 PracticeSentenceSnapshot(
                     entryID: "missing-entry",
@@ -100,7 +100,7 @@ final class AppEnvironmentPracticeBootstrapTests: XCTestCase {
             mediaArtifactsRoot: mediaRoot,
             recordingEngine: FakeAppPracticeRecordingEngine(fileStore: fileStore)
         )
-        let session = try await actions.createOrRestoreShadowingSession(
+        let session = try await actions.createOrRestoreSession(
             "space-1",
             practiceSnapshot(entryID: material.entryID, materialID: material.id)
         )
@@ -122,7 +122,7 @@ final class AppEnvironmentPracticeBootstrapTests: XCTestCase {
             recordingEngine: FailingAppPracticeRecordingEngine(),
             diagnosticLogger: logger
         )
-        let session = try await actions.createOrRestoreShadowingSession(
+        let session = try await actions.createOrRestoreSession(
             "space-1",
             practiceSnapshot(entryID: material.entryID, materialID: material.id)
         )
@@ -220,7 +220,7 @@ private func practiceSnapshot(entryID: String, materialID: String) -> PracticeSe
     PracticeSentenceSnapshot(
         entryID: entryID,
         learningMaterialID: materialID,
-        sentenceID: "sentence-1",
+        sentenceID: "\(materialID)-sentence-1",
         sentenceIndex: 0,
         targetTextSnapshot: "I booked the train this morning.",
         targetTextHash: "target-hash-1",
