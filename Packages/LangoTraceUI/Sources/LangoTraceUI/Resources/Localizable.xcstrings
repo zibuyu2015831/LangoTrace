@@ -8078,6 +8078,159 @@
         }
       }
     },
+    "photoWriting.chip.describeScene": {
+      "comment": "Guidance chip label: prompt user to describe the scene in the photo.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe the scene"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "描述场景"
+          }
+        }
+      }
+    },
+    "photoWriting.chip.describeScene.hint": {
+      "comment": "Hint shown below chips when user selects the describe-scene chip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What's the setting? What do you see in this moment?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场景在哪里？照片里有什么？"
+          }
+        }
+      }
+    },
+    "photoWriting.chip.recordFeelings": {
+      "comment": "Guidance chip label: prompt user to record their feelings.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record feelings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记下感受"
+          }
+        }
+      }
+    },
+    "photoWriting.chip.recordFeelings.hint": {
+      "comment": "Hint shown below chips when user selects the record-feelings chip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How does this moment make you feel?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一刻让你感受到什么？"
+          }
+        }
+      }
+    },
+    "photoWriting.draft.placeholder": {
+      "comment": "Placeholder text in the photo writing text editor.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write about this photo…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写下你对这张照片的想法……"
+          }
+        }
+      }
+    },
+    "photoWriting.privacy.notice": {
+      "comment": "Privacy footer on the photo writing page — photo bytes stay local.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your photo stays on this device and is never sent to AI providers."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片仅保存在本设备，不会发送给 AI Provider。"
+          }
+        }
+      }
+    },
+    "photoWriting.photo.accessibilityLabel": {
+      "comment": "Accessibility label for the selected photo area in photo writing.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选照片"
+          }
+        }
+      }
+    },
+    "photoWriting.photo.addPrompt": {
+      "comment": "Label inside the photo placeholder prompting the user to pick a photo.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to select a photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击选择照片"
+          }
+        }
+      }
+    },
+    "common.errorSaveFailedRetry": {
+      "comment": "Generic error message when a save action fails, asking the user to retry.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save failed. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存失败，请重试。"
+          }
+        }
+      }
+    },
     "hero.secondaryUnavailable": {
       "comment": "Inline status explaining secondary hero actions are not connected yet.",
       "localizations": {

@@ -24,6 +24,7 @@ public struct LangoTraceRootView: View {
     private let readingTTSAction: ReadingTTSAction
     private let readingCacheStorage: (any ExplanationCacheStorage)?
     private let practiceActions: PracticeActions
+    private let photoWritingActions: PhotoWritingActions
     private let interfaceLanguagePreference: InterfaceLanguagePreference
     private let appearancePreference: AppearancePreference
     private let launchRecoveryFailed: Bool
@@ -52,6 +53,7 @@ public struct LangoTraceRootView: View {
         readingTTSAction: @escaping ReadingTTSAction = { _ in .cancelled },
         readingCacheStorage: (any ExplanationCacheStorage)? = nil,
         practiceActions: PracticeActions = .disabled,
+        photoWritingActions: PhotoWritingActions = .disabled,
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         appearancePreference: AppearancePreference = .system,
         launchRecoveryFailed: Bool = false,
@@ -77,6 +79,7 @@ public struct LangoTraceRootView: View {
         self.readingTTSAction = readingTTSAction
         self.readingCacheStorage = readingCacheStorage
         self.practiceActions = practiceActions
+        self.photoWritingActions = photoWritingActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
         self.launchRecoveryFailed = launchRecoveryFailed
@@ -123,6 +126,7 @@ public struct LangoTraceRootView: View {
                         readingTTSAction: readingTTSAction,
                         readingCacheStorage: readingCacheStorage,
                         practiceActions: practiceActions,
+                        photoWritingActions: photoWritingActions,
                         interfaceLanguagePreference: interfaceLanguagePreference,
                         appearancePreference: appearancePreference,
                         onAddLanguageSpace: onAddLanguageSpace,
@@ -233,6 +237,7 @@ private struct PlatformMainView: View {
     let readingTTSAction: ReadingTTSAction
     let readingCacheStorage: (any ExplanationCacheStorage)?
     let practiceActions: PracticeActions
+    let photoWritingActions: PhotoWritingActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
@@ -255,6 +260,7 @@ private struct PlatformMainView: View {
         readingTTSAction: @escaping ReadingTTSAction,
         readingCacheStorage: (any ExplanationCacheStorage)? = nil,
         practiceActions: PracticeActions,
+        photoWritingActions: PhotoWritingActions,
         interfaceLanguagePreference: InterfaceLanguagePreference,
         appearancePreference: AppearancePreference,
         onAddLanguageSpace: @escaping (CreateLanguageSpaceInput) -> Void,
@@ -273,6 +279,7 @@ private struct PlatformMainView: View {
         self.readingTTSAction = readingTTSAction
         self.readingCacheStorage = readingCacheStorage
         self.practiceActions = practiceActions
+        self.photoWritingActions = photoWritingActions
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
         self.onAddLanguageSpace = onAddLanguageSpace
@@ -328,6 +335,7 @@ private struct PlatformMainView: View {
                     readingTTSAction: readingTTSAction,
                     readingCacheStorage: readingCacheStorage,
                     practiceActions: practiceActions,
+                    photoWritingActions: photoWritingActions,
                     interfaceLanguagePreference: interfaceLanguagePreference,
                     appearancePreference: appearancePreference,
                     onAddLanguageSpace: onAddLanguageSpace,

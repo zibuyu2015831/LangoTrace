@@ -20,16 +20,17 @@ struct PhoneIOSConvergenceTests {
             contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
             encoding: .utf8
         )
-        let photoWritingPreview = try String(
-            contentsOf: sourceFileURL(named: "PhonePhotoWritingPreviewView.swift"),
+        let photoWritingView = try String(
+            contentsOf: sourceFileURL(named: "PhotoWritingView.swift"),
             encoding: .utf8
         )
         let practiceRows = try String(contentsOf: sourceFileURL(named: "PhonePracticeRows.swift"), encoding: .utf8)
         let sections = try String(contentsOf: sourceFileURL(named: "PhoneMainSections.swift"), encoding: .utf8)
 
-        #expect(phoneMainView.contains("case .photoWritingPreview"))
-        #expect(phoneMainView.contains("createMockPhotoWritingEntry()"))
-        #expect(photoWritingPreview.contains("PhotoWritingPreviewView"))
+        #expect(phoneMainView.contains("case .photoWriting"))
+        #expect(!phoneMainView.contains("createMockPhotoWritingEntry"))
+        #expect(photoWritingView.contains("PhotoWritingView"))
+        #expect(photoWritingView.contains("PhotosPicker"))
         #expect(supportingViews.contains("photoWriting.startWithPhoto"))
         #expect(!supportingViews.contains(#"SecondaryActionChip(titleKey: "common.listen""#))
         #expect(practiceRows.contains("PracticeEntryCard"))

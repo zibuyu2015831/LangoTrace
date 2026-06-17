@@ -18,8 +18,6 @@ public protocol LearningContentRepository: AnyObject {
     @discardableResult
     func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry
     @discardableResult
-    func createMockPhotoWritingEntry(spaceID: String) throws -> LearningEntry
-    @discardableResult
     func generateLocalPreview(for entryID: String, spaceID: String) -> LearningRendering?
     func rendering(for entryID: String) -> LearningRendering?
     func practiceItems(for entryID: String) -> [PracticeItem]
@@ -139,27 +137,6 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
         entries[index].body = trimmedBody
         entriesBySpace[spaceID] = entries
         return entries[index]
-    }
-
-    @discardableResult
-    public func createMockPhotoWritingEntry(spaceID: String) throws -> LearningEntry {
-        let entryID = "photo-writing-\(nextEntryNumber)-\(spaceID)"
-        nextEntryNumber += 1
-
-        let entry = MockPhotoWritingContent.entry(
-            id: entryID,
-            spaceID: spaceID,
-            sequenceNumber: nextEntryNumber
-        )
-        let rendering = MockPhotoWritingContent.rendering(for: entry)
-
-        entriesBySpace[spaceID, default: []].insert(entry, at: 0)
-        selectedEntryIDs[spaceID] = entry.id
-        renderingsByEntryID[entry.id] = rendering
-        practiceItemsByEntryID[entry.id] = MockPhotoWritingContent.practiceItems(for: entry)
-        memoryItemsBySpace[spaceID, default: []].insert(MockPhotoWritingContent.memoryItem(for: entry), at: 0)
-
-        return entry
     }
 
     @discardableResult
@@ -348,10 +325,6 @@ public final class UnavailableLearningContentRepository: LearningContentReposito
         throw LearningContentRepositoryError.databaseUnavailable
     }
 
-    public func createMockPhotoWritingEntry(spaceID _: String) throws -> LearningEntry {
-        throw LearningContentRepositoryError.databaseUnavailable
-    }
-
     public func generateLocalPreview(for _: String, spaceID _: String) -> LearningRendering? {
         nil
     }
@@ -360,7 +333,7 @@ public final class UnavailableLearningContentRepository: LearningContentReposito
         nil
     }
 
-    public func saveRendering(_ rendering: LearningRendering) {}
+    public func saveRendering(_: LearningRendering) {}
 
     public func practiceItems(for _: String) -> [PracticeItem] {
         []
@@ -380,82 +353,5 @@ public final class UnavailableLearningContentRepository: LearningContentReposito
 
     public func learningPracticeReadiness(for _: String) -> [String: Bool] {
         [:]
-    }
-}
-
-private enum MockPhotoWritingContent {
-    static func entry(id: String, spaceID: String, sequenceNumber: Int) -> LearningEntry {
-        LearningEntry(
-            id: id,
-            spaceID: spaceID,
-            title: "窗边早餐",
-            body: "早上在窗边吃早餐，阳光照在桌子上。我突然觉得今天可以慢一点开始。",
-            source: .photoWriting,
-            scene: "今天",
-            createdAt: Date(timeIntervalSince1970: TimeInterval(1_800_100_000 + sequenceNumber)),
-            practiceStatus: .practiced(sessionCount: 2)
-        )
-    }
-
-    static func rendering(for entry: LearningEntry) -> LearningRendering {
-        LearningRendering(
-            id: "\(entry.id)-rendering",
-            entryID: entry.id,
-            targetText: """
-            I had breakfast by the window this morning, with sunlight falling across the table. \
-            It made me feel like I could start the day a little more slowly.
-            """,
-            promptLabel: "照片写作预览",
-            providerLabel: "LangoTrace Local Preview",
-            isMock: true,
-            sourceEntryBodyHash: LearningMaterialTextHash.sha256(for: entry.body),
-            sentences: sentences(for: entry)
-        )
-    }
-
-    static func practiceItems(for entry: LearningEntry) -> [PracticeItem] {
-        [
-            PracticeItem(
-                id: "\(entry.id)-practice-listening",
-                entryID: entry.id,
-                title: "听",
-                kind: .listening,
-                summary: "照片写作 · 2 句"
-            ),
-            PracticeItem(
-                id: "\(entry.id)-practice-shadowing",
-                entryID: entry.id,
-                title: "跟读",
-                kind: .shadowing,
-                summary: "选一句开始跟读"
-            ),
-        ]
-    }
-
-    static func memoryItem(for entry: LearningEntry) -> MemoryItem {
-        MemoryItem(
-            id: "\(entry.id)-memory",
-            spaceID: entry.spaceID,
-            entryID: entry.id,
-            text: "start the day slowly",
-            note: "来自“窗边早餐”，表达放慢一天开始的节奏。"
-        )
-    }
-
-    private static func sentences(for entry: LearningEntry) -> [RenderingSentence] {
-        [
-            RenderingSentence(
-                id: "\(entry.id)-sentence-1",
-                translation: "早上在窗边吃早餐，阳光照在桌子上。",
-                targetText: "I had breakfast by the window this morning, with sunlight falling across the table.",
-                note: "with sunlight falling across the table 比直译更自然。"
-            ),
-            RenderingSentence(
-                id: "\(entry.id)-sentence-2",
-                translation: "我突然觉得今天可以慢一点开始。",
-                targetText: "It made me feel like I could start the day a little more slowly.",
-                note: "start the day a little more slowly 适合表达放慢节奏。"
-            ),
-        ]
     }
 }

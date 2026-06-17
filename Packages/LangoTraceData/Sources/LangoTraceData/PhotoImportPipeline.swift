@@ -42,6 +42,18 @@ public struct PhotoImportPipeline: @unchecked Sendable {
 
     public init(
         fileStore: LocalMediaArtifactFileStore,
+        database: AppDatabase,
+        clock: @escaping @Sendable () -> Date = Date.init,
+        idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }
+    ) {
+        self.fileStore = fileStore
+        databaseQueue = database.databaseQueue
+        self.clock = clock
+        self.idGenerator = idGenerator
+    }
+
+    init(
+        fileStore: LocalMediaArtifactFileStore,
         databaseQueue: DatabaseQueue,
         clock: @escaping @Sendable () -> Date = Date.init,
         idGenerator: @escaping @Sendable () -> String = { UUID().uuidString }

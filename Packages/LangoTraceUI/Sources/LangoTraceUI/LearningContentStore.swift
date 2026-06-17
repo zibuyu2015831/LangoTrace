@@ -69,13 +69,6 @@ final class LearningContentStore: ObservableObject {
         return entry
     }
 
-    @discardableResult
-    func createMockPhotoWritingEntry() throws -> LearningEntry {
-        let entry = try repository.createMockPhotoWritingEntry(spaceID: spaceID)
-        reload()
-        return entry
-    }
-
     func rendering(for entry: LearningEntry) -> LearningRendering? {
         rendering(for: entry.id)
     }

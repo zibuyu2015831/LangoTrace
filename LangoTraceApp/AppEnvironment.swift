@@ -5,8 +5,8 @@ import LangoTraceData
 import LangoTraceSpeech
 import LangoTraceSync
 import LangoTraceUI
-import SwiftUI
 import os
+import SwiftUI
 
 private let generationLogger = Logger(subsystem: "com.zibuyu.LangoTrace", category: "generation")
 
@@ -20,6 +20,7 @@ struct AppEnvironment {
     let readingTTSAction: ReadingTTSAction
     let readingCacheStorage: (any ReadingExplanationCacheRepositoryProtocol)?
     let practiceActions: PracticeActions
+    let photoWritingActions: PhotoWritingActions
     let aiProviderSettingsActions: AIProviderSettingsActions
     let syncService: any SyncService
 
@@ -79,6 +80,26 @@ struct AppEnvironment {
             )
         }
 
+        let photoWritingActions: PhotoWritingActions
+        do {
+            let database = try databaseFactory.database()
+            let mediaRoot = try SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot()
+            let fileStore = try LocalMediaArtifactFileStore(rootDirectory: mediaRoot)
+            let pipeline = PhotoImportPipeline(fileStore: fileStore, database: database)
+            photoWritingActions = PhotoWritingActions { data, entryID, spaceID in
+                _ = try pipeline.importPhoto(data: data, entryID: entryID, spaceID: spaceID)
+            }
+        } catch {
+            photoWritingActions = .disabled
+            recordBootstrapComponentFailure(
+                component: "photo_writing_actions",
+                error: error,
+                name: .aiProviderConfigurationDatabaseWriteFailed,
+                domain: .dataStorage,
+                diagnosticLogger: diagnosticLogger
+            )
+        }
+
         return AppEnvironment(
             makeLanguageSpaceRepository: {
                 try GRDBLanguageSpaceRepository(
@@ -101,6 +122,7 @@ struct AppEnvironment {
             ),
             readingCacheStorage: readingCacheStorage,
             practiceActions: practiceActions,
+            photoWritingActions: photoWritingActions,
             aiProviderSettingsActions: AIProviderSettingsActions(
                 loadDefaultProfile: {
                     let service = try makeAIProviderConfigurationService(

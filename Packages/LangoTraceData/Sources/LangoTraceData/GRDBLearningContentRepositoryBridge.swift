@@ -85,16 +85,6 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
     }
 
     @discardableResult
-    public func createMockPhotoWritingEntry(spaceID: String) throws -> LearningEntry {
-        try createEntry(
-            spaceID: spaceID,
-            title: "窗边早餐",
-            body: "早上在窗边吃早餐，阳光照在桌子上。我突然觉得今天可以慢一点开始。",
-            source: .photoWriting
-        )
-    }
-
-    @discardableResult
     public func generateLocalPreview(for entryID: String, spaceID _: String) -> LearningRendering? {
         rendering(for: entryID)
     }

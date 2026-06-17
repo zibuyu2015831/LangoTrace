@@ -98,6 +98,7 @@ struct LangoTraceApp: App {
             readingTTSAction: environment.readingTTSAction,
             readingCacheStorage: environment.readingCacheStorage,
             practiceActions: environment.practiceActions,
+            photoWritingActions: environment.photoWritingActions,
             interfaceLanguagePreference: interfaceLanguagePreference,
             appearancePreference: appearancePreference,
             launchRecoveryFailed: session.recoveryState == .failed,

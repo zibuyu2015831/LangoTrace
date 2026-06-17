@@ -11,15 +11,15 @@ enum PhoneRoute: Hashable {
 
 enum PhoneSheet: Identifiable {
     case entryEditor
-    case photoWritingPreview
+    case photoWriting
     case languageSpaceSwitcher
 
     var id: String {
         switch self {
         case .entryEditor:
             "entry-editor"
-        case .photoWritingPreview:
-            "photo-writing-preview"
+        case .photoWriting:
+            "photo-writing"
         case .languageSpaceSwitcher:
             "language-space-switcher"
         }

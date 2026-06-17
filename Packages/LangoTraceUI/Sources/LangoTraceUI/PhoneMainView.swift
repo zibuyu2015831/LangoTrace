@@ -11,6 +11,7 @@ struct PhoneMainView: View {
     let readingTTSAction: ReadingTTSAction
     let readingCacheStorage: (any ExplanationCacheStorage)?
     let practiceActions: PracticeActions
+    let photoWritingActions: PhotoWritingActions
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
@@ -33,7 +34,7 @@ struct PhoneMainView: View {
                     practiceReadiness: contentStore.practiceReadiness,
                     renderingForEntry: rendering(for:),
                     onNewEntry: { presentedSheet = .entryEditor },
-                    onPhotoWriting: { presentedSheet = .photoWritingPreview },
+                    onPhotoWriting: { presentedSheet = .photoWriting },
                     onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
                     onSettingsAction: { navModel.push(.settingsList, on: .entries) },
                     onSelectEntry: showEntryDetail
@@ -124,9 +125,13 @@ struct PhoneMainView: View {
                     presentedSheet = nil
                     navModel.push(.entryDetail(entry.id), on: .entries)
                 }
-            case .photoWritingPreview:
-                PhotoWritingPreviewView(languageSpace: languageSpace) {
-                    guard let entry = try? contentStore.createMockPhotoWritingEntry() else { return }
+            case .photoWriting:
+                PhotoWritingView(languageSpace: languageSpace) { body, imageData in
+                    let title = String(body.trimmingCharacters(in: .whitespacesAndNewlines).prefix(80))
+                    let entry = try contentStore.createEntry(title: title, body: body, source: .photoWriting)
+                    if let data = imageData {
+                        try? photoWritingActions.importPhoto(data, entry.id, languageSpace.id)
+                    }
                     presentedSheet = nil
                     navModel.push(.entryDetail(entry.id), on: .entries)
                 } onDismiss: {
@@ -189,8 +194,8 @@ struct PhoneMainView: View {
         navModel.push(.entryDetail(entry.id), on: .entries)
     }
 
-    // Returns the destination view for a given route, capturing the active tab
-    // so nested navigation closures push/replace on the correct per-tab stack.
+    /// Returns the destination view for a given route, capturing the active tab
+    /// so nested navigation closures push/replace on the correct per-tab stack.
     @ViewBuilder
     fileprivate func destination(for route: PhoneRoute, activeTab tab: PhoneRootTab) -> some View {
         switch route {
