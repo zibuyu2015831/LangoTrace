@@ -942,6 +942,36 @@ private extension AppDatabase {
         CREATE INDEX idx_media_artifacts_owner
         ON media_artifacts(owner_type, owner_id, owner_sub_id, invalidated_at)
         """)
+
+        // Create entry_photo_attachments table in the same migration transaction.
+        // original_artifact_id and thumbnail_artifact_id are stored as plain text (no FK)
+        // to avoid cascade ordering conflicts with media_artifacts cleanup.
+        // entry_id carries ON DELETE CASCADE so deletion propagates from entries.
+        try db.execute(sql: """
+        CREATE TABLE entry_photo_attachments (
+          id TEXT PRIMARY KEY,
+          entry_id TEXT NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+          language_space_id TEXT NOT NULL REFERENCES language_spaces(id) ON DELETE CASCADE,
+          original_artifact_id TEXT NOT NULL,
+          thumbnail_artifact_id TEXT,
+          status TEXT NOT NULL DEFAULT 'ready'
+            CHECK (status IN ('pending', 'ready')),
+          width INTEGER,
+          height INTEGER,
+          exif_stripped INTEGER NOT NULL DEFAULT 1,
+          created_at REAL NOT NULL,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          UNIQUE (entry_id, sort_order)
+        )
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_entry_photo_attachments_entry
+        ON entry_photo_attachments(entry_id, sort_order)
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_entry_photo_attachments_space
+        ON entry_photo_attachments(language_space_id, created_at DESC)
+        """)
     }
 
     static func setFileProtectionIfAvailable(for databaseURL: URL) throws {

@@ -10,7 +10,6 @@ import Testing
 
 @Suite("Media artifact photo migration (E2 Phase 0 spike gate)")
 struct MediaArtifactPhotoMigrationTests {
-
     // MARK: - Forward path: fresh schema accepts photo types
 
     @Test("v17 migration accepts entryPhotoOriginal with photoImage derivation kind")
@@ -25,8 +24,8 @@ struct MediaArtifactPhotoMigrationTests {
                 db: db
             )
             let count = try Int.fetchOne(db, sql: """
-                SELECT COUNT(*) FROM media_artifacts WHERE artifact_type = 'entryPhotoOriginal'
-                """) ?? 0
+            SELECT COUNT(*) FROM media_artifacts WHERE artifact_type = 'entryPhotoOriginal'
+            """) ?? 0
             #expect(count == 1)
         }
     }
@@ -43,8 +42,8 @@ struct MediaArtifactPhotoMigrationTests {
                 db: db
             )
             let count = try Int.fetchOne(db, sql: """
-                SELECT COUNT(*) FROM media_artifacts WHERE artifact_type = 'entryPhotoThumbnail'
-                """) ?? 0
+            SELECT COUNT(*) FROM media_artifacts WHERE artifact_type = 'entryPhotoThumbnail'
+            """) ?? 0
             #expect(count == 1)
         }
     }
@@ -77,8 +76,8 @@ struct MediaArtifactPhotoMigrationTests {
                 db: db
             )
             let count = try Int.fetchOne(db, sql: """
-                SELECT COUNT(*) FROM media_artifacts WHERE artifact_type = 'ttsSentenceAudio'
-                """) ?? 0
+            SELECT COUNT(*) FROM media_artifacts WHERE artifact_type = 'ttsSentenceAudio'
+            """) ?? 0
             #expect(count == 1)
         }
     }
@@ -96,14 +95,135 @@ struct MediaArtifactPhotoMigrationTests {
             let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM media_artifacts") ?? 0
             #expect(count == 1)
             let row = try Row.fetchOne(db, sql: """
-                SELECT artifact_type, derivation_kind, backup_policy, sync_policy, export_policy
-                FROM media_artifacts WHERE id = 'tts-artifact-v16'
-                """)
+            SELECT artifact_type, derivation_kind, backup_policy, sync_policy, export_policy
+            FROM media_artifacts WHERE id = 'tts-artifact-v16'
+            """)
             #expect(row?["artifact_type"] as String? == "ttsSentenceAudio")
             #expect(row?["derivation_kind"] as String? == "ttsAudio")
             #expect(row?["backup_policy"] as String? == "excludedFromSystemBackup")
             #expect(row?["sync_policy"] as String? == "localOnly")
             #expect(row?["export_policy"] as String? == "excludedByDefault")
+        }
+    }
+
+    // MARK: - v17 creates entry_photo_attachments table
+
+    @Test("v17 migration creates entry_photo_attachments table")
+    func v17MigrationCreatesEntryPhotoAttachmentsTable() throws {
+        let database = try AppDatabase.inMemory()
+        try database.databaseQueue.read { db in
+            let tables = try String.fetchAll(db, sql: """
+            SELECT name FROM sqlite_master WHERE type='table' ORDER BY name
+            """)
+            #expect(tables.contains("entry_photo_attachments"))
+        }
+    }
+
+    @Test("v17 migration allows inserting a photo attachment row")
+    func v17MigrationAllowsInsertingPhotoAttachmentRow() throws {
+        let database = try AppDatabase.inMemory()
+        try database.databaseQueue.write { db in
+            try insertPhotoMigrationPrerequisites(db)
+            try insertPhotoArtifactRow(
+                id: "orig-1",
+                artifactType: "entryPhotoOriginal",
+                derivationKind: "photoImage",
+                db: db
+            )
+            try db.execute(sql: """
+            INSERT INTO entry_photo_attachments (
+                id, entry_id, language_space_id,
+                original_artifact_id, thumbnail_artifact_id,
+                status, width, height, exif_stripped, created_at, sort_order
+            ) VALUES (
+                'attach-1', 'entry-1', 'space-1',
+                'orig-1', NULL,
+                'ready', 1920, 1080, 1, 1.0, 0
+            )
+            """)
+            let count = try Int.fetchOne(db, sql: """
+            SELECT COUNT(*) FROM entry_photo_attachments
+            """) ?? 0
+            #expect(count == 1)
+        }
+    }
+
+    @Test("v17 migration enforces unique constraint on entry_id + sort_order")
+    func v17MigrationRejectsDuplicateSortOrderForSameEntry() throws {
+        let database = try AppDatabase.inMemory()
+        try database.databaseQueue.write { db in
+            try insertPhotoMigrationPrerequisites(db)
+            try insertPhotoArtifactRow(
+                id: "orig-a",
+                artifactType: "entryPhotoOriginal",
+                derivationKind: "photoImage",
+                db: db
+            )
+            try insertPhotoArtifactRow(
+                id: "orig-b",
+                artifactType: "entryPhotoOriginal",
+                derivationKind: "photoImage",
+                db: db
+            )
+            try db.execute(sql: """
+            INSERT INTO entry_photo_attachments (
+                id, entry_id, language_space_id,
+                original_artifact_id, thumbnail_artifact_id,
+                status, width, height, exif_stripped, created_at, sort_order
+            ) VALUES ('attach-a', 'entry-1', 'space-1', 'orig-a', NULL, 'ready', NULL, NULL, 1, 1.0, 0)
+            """)
+            #expect(throws: DatabaseError.self) {
+                try db.execute(sql: """
+                INSERT INTO entry_photo_attachments (
+                    id, entry_id, language_space_id,
+                    original_artifact_id, thumbnail_artifact_id,
+                    status, width, height, exif_stripped, created_at, sort_order
+                ) VALUES ('attach-b', 'entry-1', 'space-1', 'orig-b', NULL, 'ready', NULL, NULL, 1, 1.0, 0)
+                """)
+            }
+        }
+    }
+
+    @Test("v17 migration cascades attachment deletion when entry is deleted")
+    func v17MigrationCascadesAttachmentDeletionWhenEntryDeleted() throws {
+        let database = try AppDatabase.inMemory()
+        try database.databaseQueue.write { db in
+            try insertPhotoMigrationPrerequisites(db)
+            try insertPhotoArtifactRow(
+                id: "orig-cascade",
+                artifactType: "entryPhotoOriginal",
+                derivationKind: "photoImage",
+                db: db
+            )
+            try db.execute(sql: """
+            INSERT INTO entry_photo_attachments (
+                id, entry_id, language_space_id,
+                original_artifact_id, thumbnail_artifact_id,
+                status, width, height, exif_stripped, created_at, sort_order
+            ) VALUES ('attach-cascade', 'entry-1', 'space-1', 'orig-cascade', NULL, 'ready', NULL, NULL, 1, 1.0, 0)
+            """)
+
+            try db.execute(sql: "DELETE FROM entries WHERE id = 'entry-1'")
+
+            let count = try Int.fetchOne(db, sql: """
+            SELECT COUNT(*) FROM entry_photo_attachments
+            """) ?? 0
+            #expect(count == 0, "Attachment must be deleted when its entry is deleted")
+        }
+    }
+
+    @Test("v17 upgrade from v16 fixture also creates entry_photo_attachments table")
+    func v17UpgradeFromV16CreatesEntryPhotoAttachmentsTable() throws {
+        let queue = try DatabaseQueue()
+        try buildV16FixtureWithTTSArtifact(queue)
+
+        _ = try AppDatabase(databaseQueue: queue)
+
+        try queue.read { db in
+            let tables = try String.fetchAll(db, sql: """
+            SELECT name FROM sqlite_master WHERE type='table' ORDER BY name
+            """)
+            #expect(tables.contains("entry_photo_attachments"))
         }
     }
 
@@ -130,8 +250,8 @@ struct MediaArtifactPhotoMigrationTests {
             )
             """)
             let row = try Row.fetchOne(db, sql: """
-                SELECT delete_after FROM media_artifacts WHERE id = 'photo-primary-asset'
-                """)
+            SELECT delete_after FROM media_artifacts WHERE id = 'photo-primary-asset'
+            """)
             let deleteAfter = row?["delete_after"] as Double?
             #expect(deleteAfter == nil, "Photo originals are primary assets and must never carry delete_after")
         }
@@ -178,14 +298,14 @@ private func insertPhotoArtifactRow(
             artifactType,
             derivationKind,
             "\(artifactType)-\(id)-key-hash",
-            "\(artifactType)/space-1/\(id).jpg"
+            "\(artifactType)/space-1/\(id).jpg",
         ]
     )
 }
 
-// Builds a v16-state database with one TTS artifact seeded.
-// When AppDatabase(databaseQueue:) is called on this queue, it applies only v17.
-// The TTS artifact must survive the v17 CHECK constraint table rebuild intact.
+/// Builds a v16-state database with one TTS artifact seeded.
+/// When AppDatabase(databaseQueue:) is called on this queue, it applies only v17.
+/// The TTS artifact must survive the v17 CHECK constraint table rebuild intact.
 private func buildV16FixtureWithTTSArtifact(_ queue: DatabaseQueue) throws {
     var migrator = DatabaseMigrator()
     migrator.registerMigration("v1_create_language_space_infrastructure") { db in
@@ -210,7 +330,9 @@ private func buildV16FixtureWithTTSArtifact(_ queue: DatabaseQueue) throws {
         "v4_create_learning_content_infrastructure",
         "v5_add_learning_material_source_entry_body_hash",
         "v6_create_ai_provider_tts_configuration",
-    ] { migrator.registerMigration(stub) { _ in } }
+    ] {
+        migrator.registerMigration(stub) { _ in }
+    }
 
     // Create media_artifacts at v16 final state (v10 rebuild + file_state column added in v8).
     // This simulates the schema a real device at v16 would have before v17 migration.
@@ -278,7 +400,9 @@ private func buildV16FixtureWithTTSArtifact(_ queue: DatabaseQueue) throws {
         "v14_create_reading_explanation_cache",
         "v15_reset_reading_explanation_cache_for_unix_epoch",
         "v16_add_reading_fk_and_check_constraints",
-    ] { migrator.registerMigration(stub) { _ in } }
+    ] {
+        migrator.registerMigration(stub) { _ in }
+    }
 
     try migrator.migrate(queue)
 

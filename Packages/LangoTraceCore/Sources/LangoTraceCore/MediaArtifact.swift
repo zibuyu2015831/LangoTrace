@@ -71,11 +71,14 @@ public enum MediaArtifactType: String, CaseIterable, Sendable {
     case dictationRecording
     case ocrIntermediate
     case exportTemporary
+    case entryPhotoOriginal
+    case entryPhotoThumbnail
 }
 
 public enum MediaArtifactDerivationKind: String, CaseIterable, Sendable {
     case ttsAudio
     case practiceRecording
+    case photoImage
 }
 
 public struct MediaArtifactPolicy: Equatable, Sendable {
@@ -94,6 +97,14 @@ public struct MediaArtifactPolicy: Equatable, Sendable {
     }
 
     public static let defaultDerivedMediaPolicy = MediaArtifactPolicy(
+        backupPolicy: .excludedFromSystemBackup,
+        syncPolicy: .localOnly,
+        exportPolicy: .excludedByDefault
+    )
+
+    /// Photo originals are primary user assets: same policy values as derived media,
+    /// but callers must never set deleteAfter on rows using this policy.
+    public static let photoOriginalPolicy = MediaArtifactPolicy(
         backupPolicy: .excludedFromSystemBackup,
         syncPolicy: .localOnly,
         exportPolicy: .excludedByDefault
