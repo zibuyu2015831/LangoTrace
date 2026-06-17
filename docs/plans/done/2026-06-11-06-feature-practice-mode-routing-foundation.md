@@ -1,16 +1,20 @@
 # 任务方案：练习方式路由基础（mode 路由、句子列表分段控制与续练入口）
 
-状态：Draft
+状态：Implemented
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-17
 
 系列编号：E3（系列母方案：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`，实施顺序位于 R1 之后、E4 听写与 E5 回译之前）。规模：S。
 
 ## 用户确认记录
 
 本方案在 2026-06-11 系列母方案（`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`）的用户授权下创建。该授权仅覆盖"制定方案文档"本身；本方案进入生产代码实现前，仍需用户单独确认范围与实现授权，并将状态推进到 `User Approved`。
+
+2026-06-17（会话 A）：用户在完成 E2 follow-up bug 后要求”继续推进主任务开发”，本会话据此确认 E3 实现授权，并将状态推进到 `In Progress`。
+
+2026-06-17（会话 B）：用户确认方案整体范围；Actions seam 更名（`createOrRestoreShadowingSession` → `createOrRestoreSession`）已获明确接受。注意：截至本次确认，E3 相关实现代码尚未提交（工作树未见 `PracticeRouting.swift` / `PracticeSessionViews.swift` 等变更），实现仍可正常开始。
 
 ## 1. 需求或 bug 描述
 
@@ -29,7 +33,7 @@
 
 - `PracticeSessionRouteSeed` 定义在 `Packages/LangoTraceUI/Sources/LangoTraceUI/PracticeRouting.swift:6-75`，**已经包含 `exerciseType: PracticeExerciseType` 字段**，但所有构造路径（`:32`、`:45`、`:156`）硬编码 `.shadowing`。spec 013 §6 与 `docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md` §2.3 写的"需要增加 practice mode 字段"相对当前代码已部分过期：字段已存在，缺的是枚举扩展、构造贯通与入口表达。本方案落地后应同步修正这两处文档表述。
 - `PracticeExerciseType` 定义在 `Packages/LangoTraceCore/Sources/LangoTraceCore/PracticeSession.swift:3-5`，当前只有 `case shadowing`。
-- `practice_sessions` 表已有 `exercise_type TEXT` 列（v9 migration，`AppDatabase.swift:663-751`）；`GRDBPracticeRepository.swift` 的 session 查找已按 `exercise_type` 作为键之一（`:165-191` 的 `session(materialID:sentenceID:sentenceIndex:exerciseType:)`），即同一句子在不同练习方式下是不同 session。**不需要新的 migration**。
+- `practice_sessions` 表已有 `exercise_type TEXT` 列（v9 migration，`AppDatabase.swift:663-751`）；`GRDBPracticeRepository.swift` 的 session 查找已按 `exercise_type` 作为键之一（`:165-191` 的 `session(materialID:sentenceID:sentenceIndex:exerciseType:)`），即同一句子在不同练习方式下是不同 session。实施期 RED 测试发现 v9 schema 的 `CHECK` 约束只允许 `shadowing`，因此本方案需要 v18 migration 重建 `practice_sessions` 约束，允许 `shadowing / dictation / backtranslation` 三个稳定 rawValue。
 - 行解析回退：`PracticeExerciseType(rawValue:) ?? .shadowing`（`GRDBPracticeRepository.swift:194` 附近）。新增枚举 case 后旧库行不受影响。
 - `PracticeSentenceListView`（`Packages/LangoTraceUI/Sources/LangoTraceUI/PracticeSessionViews.swift:5-55`）：单一固定视图，无分段控制、无"已练"状态、无续练 CTA；它不自行查询完成状态，列表数据由 `LearningRendering.sentences` 提供。
 - `GRDBPracticeRepository` 没有"按 material + exercise type 列出已练句子"的查询；"已练"语义已有定义：最近一次 ready recording 派生（spec 013 §2）。
@@ -57,7 +61,7 @@
 ## 5. 不做什么
 
 - 不实现听写会话（E4）与回译会话（E5）的任何页面、diff、attempt 持久化或 AI 点评。
-- 不新增 GRDB migration：`exercise_type` 列已存在。
+- 不新增练习会话字段或新表；但需要 v18 GRDB migration 扩展 `practice_sessions.exercise_type` 的 `CHECK` 约束，以匹配新增枚举 case。
 - 不改练习 Tab 首层（记录卡片列表维持现状，页面清单红线）。
 - 不在分段控制中渲染任何未注册可用性的方式：不出现禁用假按钮、`规划中` 文案或大段 unavailable 说明（页面清单 §8 红线）。
 - 不做"已练"状态的手动标记完成（spec 013 §2：完成态由 ready recording 派生，不设手动标记）。
@@ -71,12 +75,12 @@
 - 架构备忘录：`docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md` §2.3——采纳"`PracticeSessionRouteSeed` 携带 practice mode、`practice_sessions` 已有 exercise type 字段可承接"；本方案核验后修正其中"需要增加字段"的表述（字段已存在，需要的是贯通）。
 - 代码证据：第 2 节逐条（`PracticeRouting.swift:6-75`、`PracticeSession.swift:3-5`、`GRDBPracticeRepository.swift:165-191`、`PracticeSessionViews.swift:5-55`、三端承载文件）。
 - 页面清单：`docs/platform-page-inventory.md` §8 红线与 §9 维护规则。
-- workflow：本方案属于平台页面变化，已读取 `docs/workflows/add-platform-screen.md`；无数据迁移，不命中 `add-storage-migration.md`。
+- workflow：本方案属于平台页面变化，已读取 `docs/workflows/add-platform-screen.md`；实施期发现 `exercise_type` CHECK 约束需要迁移后，按存储变更边界补充 v18 migration 与 Data package 聚焦测试。
 
 ```text
-证据能证明什么：seed 与存储层已为多 mode 预留（字段 + 键控查询），扩展是低风险贯通而非重设计。
+证据能证明什么：seed 与存储层已为多 mode 预留（字段 + 键控查询），但 schema CHECK 约束仍需扩展；整体仍是低风险贯通而非重设计。
 证据不能证明什么：不能证明听写 / 回译会话本身的可行性（属 E4 / E5）。
-迁移前提：枚举 rawValue 与 exercise_type 存储值保持一致。
+迁移前提：枚举 rawValue 与 exercise_type 存储值保持一致；v18 migration 保留既有行并扩展 CHECK 约束。
 照搬风险：spec 013 §6 与备忘录 §2.3 的"需要增加字段"表述过期，照搬会重复造字段；以当前代码为准。
 ```
 
@@ -168,10 +172,11 @@
 5. 列表 presentation：新增纯 presentation 计算（放入可测的 helper / presentation model）：
    - 输入：句子数组 + 已练句子标识集合（按当前 mode）+ 可用方式。
    - 输出：每行 practiced 标记、`continueTarget`（第一个未练句 index 与编号文案 `从第 n 句继续`）、是否渲染分段控制。全句已练时不显示 CTA。
-6. Data 查询：`GRDBPracticeRepository` 新增 `completedSentenceIDs(materialID:exerciseType:)`——返回该 material 下、该方式、状态 completed 或存在 ready recording 的 `sentence_id` 集合（与 spec 013 §2"由最近一次 ready recording 派生"一致；completed 但录音缺失的 session 仍计已练）。
-7. UI 装配：`PracticeSentenceListView` 接入分段控制（仅多方式时渲染）、行尾已练标记、底部续练 CTA（整行 Button，≥44pt）；CTA 点击即构造对应句子的 seed 进入会话。三端承载文件只传新参数，不复制视图。
-8. 本地化：新增 `practice.modes.shadowing / dictation / backtranslation`、`practice.sentenceList.practiced`、`practice.sentenceList.continueFrom`（含占位 n）等 key 的 zh-Hans / en 文案。
-9. 文档收口：修正 spec 013 §6 与备忘录 §2.3 的字段表述，更新页面清单。
+6. Data schema：新增 v18 migration，重建 `practice_sessions` 的 `exercise_type` CHECK 约束为 `shadowing / dictation / backtranslation`，不新增字段或表，保留既有数据和索引。
+7. Data 查询：`GRDBPracticeRepository` 新增 `completedSentenceIDs(materialID:exerciseType:)`——返回该 material 下、该方式、状态 completed 或存在 ready recording 的 `sentence_id` 集合（与 spec 013 §2"由最近一次 ready recording 派生"一致；completed 但录音缺失的 session 仍计已练）。
+8. UI 装配：`PracticeSentenceListView` 接入分段控制（仅多方式时渲染）、行尾已练标记、底部续练 CTA（整行 Button，≥44pt）；CTA 点击即构造对应句子的 seed 进入会话。三端承载文件只传新参数，不复制视图。
+9. 本地化：新增 `practice.modes.shadowing / dictation / backtranslation`、`practice.sentenceList.practiced`、`practice.sentenceList.continueFrom`（含占位 n）等 key 的 zh-Hans / en 文案。
+10. 文档收口：修正 spec 013 §6 与备忘录 §2.3 的字段表述，更新页面清单。
 
 ## 13. 严格方案自审核记录
 
@@ -191,8 +196,10 @@
   - [P2] 行解析回退 `?? .shadowing` 会把未来未知 rawValue 静默归为跟读；当前三 case 下可接受，作为剩余风险记录（若后续新增方式应改为显式失败或保留原值）。
   - [P3] 本地化 key 列表补全。
 写回修改：以上各项均已写回第 2、3、5、12、15、20 节。
-仍需用户确认的问题：本方案整体范围与实现授权（推进到 User Approved）；Actions seam 更名（createOrRestoreShadowingSession → createOrRestoreSession）是否接受。
-是否允许进入实现：待用户确认后允许。
+仍需用户确认的问题：
+  - 本方案整体范围与实现授权（推进到 User Approved）。✅ 已确认（2026-06-17）
+  - Actions seam 更名（createOrRestoreShadowingSession → createOrRestoreSession）是否接受。✅ 已确认（2026-06-17）
+是否允许进入实现：用户已确认，可进入实现。
 ```
 
 ## 14. 复查方法
@@ -243,11 +250,33 @@ git status --short
 - `docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md`：§2.3 采纳标注——是。
 - `docs/platform-page-inventory.md`：句子练习列表条目能力更新——是。
 - ADR：无核心决策变化。
-- `docs/review/`：无数据库 schema 变化，不命中专项审查硬触发；平台页面变化按日常文档影响检查处理。
+- `docs/review/`：实施期新增 v18 migration，已在本方案、spec 013 和页面清单记录 schema 影响；因本次只扩展既有 CHECK 约束、不新增字段 / 表 / 隐私边界，专项文档审查不单独开 round，按任务方案内文档影响检查收口。
 
 ## 18. 实施记录
 
 2026-06-11：方案创建并完成两轮自审核（见第 13 节）。尚未进入实现。
+
+2026-06-17：实施期 RED 测试发现原方案“不需要新的 migration”判断不完整：`exercise_type` 列虽已存在，但 schema CHECK 约束只允许 `shadowing`。方案修订为新增 v18 migration 扩展约束，并保留“不新增练习会话字段或新表”的范围边界。
+
+2026-06-17：实现完成。落地内容包括 `PracticeExerciseType` 三 case rawValue 契约、`PracticeSessionRouteSeed` / snapshot / 句间导航 exercise type 贯通、`PracticeActions` seam 泛化、句子列表 `PracticeModeAvailability` / 已练状态 / 续练 CTA、`GRDBPracticeRepository.completedSentenceIDs(materialID:exerciseType:)` 查询，以及 v18 `practice_sessions.exercise_type` CHECK 约束迁移。当前 App 装配只注册 `.shadowing`，因此不会展示未实现的听写 / 回译 segment。
+
+2026-06-17：plan-vs-shipped 对账完成。原方案目标 1-6 均已交付；唯一范围修订是新增 v18 migration 以修正实施期发现的 schema CHECK 约束，已写回第 2、5、6、12、17 节和 spec / 页面清单 / 架构备忘录。无 deferred 代码项；模拟器三端视觉仍作为剩余人工验收风险保留。
+
+2026-06-17：验证记录：
+
+```text
+聚焦：
+- swift test --package-path Packages/LangoTraceCore --filter PracticeExerciseTypeTests：1 test passed
+- swift test --package-path Packages/LangoTraceData --filter GRDBPracticeRepositoryTests：5 tests passed
+- swift test --package-path Packages/LangoTraceUI --filter PracticeSentenceListPresentationTests：4 tests passed
+- swift test --package-path Packages/LangoTraceUI --filter PracticeSessionViewModelTests：9 tests passed
+- swift test --package-path Packages/LangoTraceUI --filter PracticeRouteSeedTests：13 tests passed
+
+受影响 package：
+- swift test --package-path Packages/LangoTraceCore：188 tests / 24 suites passed
+- swift test --package-path Packages/LangoTraceData：171 tests / 16 suites passed
+- swift test --package-path Packages/LangoTraceUI：452 tests / 61 suites passed
+```
 
 ## 19. 完成标准
 
@@ -261,4 +290,5 @@ git status --short
 
 1. `PracticeExerciseType(rawValue:) ?? .shadowing` 的静默回退在未来新增方式时可能掩盖数据问题；本方案三 case 范围内无实际影响，记录待后续练习方式扩展时复审。
 2. "已练"按方式独立计算意味着同一句跟读已练、听写未练；这是产品预期（每种方式独立闭环），但首次切换方式时用户可能误以为进度丢失；E4 落地时在 UI 文案上复查。
-3. Actions seam 更名牵动 App Shell 装配与既有 ViewModel 测试，属一次性机械修改；如遗漏会在编译期暴露。
+3. Actions seam 更名牵动 App Shell 装配与既有 ViewModel 测试，属一次性机械修改；当前已由 UI package 编译和 ViewModel 测试覆盖。
+4. 本会话未跑模拟器人工验收；分段控制隐藏态、续练 CTA 和已练标记的真实视觉节奏仍需后续 iPhone / iPad / macOS 人工补验。

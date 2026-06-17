@@ -7,35 +7,51 @@ struct PracticeSentenceListView: View {
     let rendering: LearningRendering?
     let languageSpace: LanguageSpacePreview
     let sentenceAudioPlaybackStates: [String: SentenceAudioPresentationState]
+    let practiceActions: PracticeActions
     let onListenSentence: (LearningRendering, RenderingSentence, Int) -> Void
     let onPracticeSentence: (PracticeSessionRouteSeed) -> Void
+
+    @State private var selectedExerciseType: PracticeExerciseType = .shadowing
+    @State private var practicedSentenceIDs: Set<String> = []
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 SectionHeader(titleKey: "practice.shadowing.title", subtitle: entry.title)
                 if let rendering {
-                    ForEach(Array(rendering.sentences.enumerated()), id: \.element.id) { index, sentence in
-                        SentencePairView(
-                            index: index + 1,
-                            sentence: sentence,
-                            playbackState: sentenceAudioPlaybackStates[sentence.id] ?? .idle,
-                            onListen: {
-                                onListenSentence(rendering, sentence, index)
-                            },
-                            onPractice: {
-                                onPracticeSentence(
-                                    PracticeSessionRouteSeed(
-                                        entry: entry,
-                                        rendering: rendering,
-                                        sentence: sentence,
-                                        sentenceIndex: index,
-                                        targetLanguageCode: languageSpace.targetLanguageCode,
-                                        capturedAt: Date()
-                                    )
-                                )
-                            }
+                    let presentation = listPresentation(for: rendering)
+                    if presentation.shouldShowModeSelector {
+                        practiceModePicker(modes: presentation.availableModes)
+                    }
+                    if let continueTarget = presentation.continueTarget,
+                       rendering.sentences.indices.contains(continueTarget.sentenceIndex)
+                    {
+                        continueButton(
+                            target: continueTarget,
+                            rendering: rendering,
+                            sentence: rendering.sentences[continueTarget.sentenceIndex]
                         )
+                    }
+                    ForEach(Array(rendering.sentences.enumerated()), id: \.element.id) { index, sentence in
+                        VStack(alignment: .leading, spacing: 8) {
+                            SentencePairView(
+                                index: index + 1,
+                                sentence: sentence,
+                                playbackState: sentenceAudioPlaybackStates[sentence.id] ?? .idle,
+                                onListen: {
+                                    onListenSentence(rendering, sentence, index)
+                                },
+                                onPractice: {
+                                    onPracticeSentence(seed(for: rendering, sentence: sentence, index: index))
+                                }
+                            )
+                            if presentation.rows.indices.contains(index),
+                               presentation.rows[index].isPracticed
+                            {
+                                practicedStatus
+                                    .padding(.horizontal, 14)
+                            }
+                        }
                     }
                 } else {
                     CapabilityStatusRow(
@@ -51,6 +67,121 @@ struct PracticeSentenceListView: View {
         }
         .navigationTitle(localizedText("practice.title"))
         .langoPageBackground()
+        .task(id: practiceProgressTaskID) {
+            await loadPracticedSentenceIDs()
+        }
+    }
+
+    private var practiceModeAvailability: PracticeModeAvailability {
+        PracticeModeAvailability(availableModes: practiceActions.availableExerciseTypes)
+    }
+
+    private var practiceProgressTaskID: String {
+        [
+            rendering?.id ?? "no-rendering",
+            selectedExerciseType.rawValue,
+            practiceActions.availableExerciseTypes.map(\.rawValue).joined(separator: ","),
+        ].joined(separator: "::")
+    }
+
+    private func listPresentation(for rendering: LearningRendering) -> PracticeSentenceListPresentation {
+        PracticeSentenceListPresentation(
+            sentences: rendering.sentences,
+            selectedMode: selectedExerciseType,
+            practicedSentenceIDs: practicedSentenceIDs,
+            availability: practiceModeAvailability
+        )
+    }
+
+    private func seed(
+        for rendering: LearningRendering,
+        sentence: RenderingSentence,
+        index: Int
+    ) -> PracticeSessionRouteSeed {
+        PracticeSessionRouteSeed(
+            entry: entry,
+            rendering: rendering,
+            sentence: sentence,
+            sentenceIndex: index,
+            targetLanguageCode: languageSpace.targetLanguageCode,
+            exerciseType: selectedExerciseType,
+            capturedAt: Date()
+        )
+    }
+
+    private func loadPracticedSentenceIDs() async {
+        guard let rendering else {
+            practicedSentenceIDs = []
+            return
+        }
+        do {
+            practicedSentenceIDs = try await practiceActions.completedSentenceIDs(rendering.id, selectedExerciseType)
+        } catch {
+            practicedSentenceIDs = []
+        }
+    }
+
+    private func practiceModePicker(modes: [PracticeExerciseType]) -> some View {
+        Picker(selection: $selectedExerciseType) {
+            ForEach(modes, id: \.self) { mode in
+                localizedText(mode.localizedTitleKey)
+                    .tag(mode)
+            }
+        } label: {
+            localizedText("practice.sentenceList.modePicker")
+        }
+        .pickerStyle(.segmented)
+    }
+
+    private func continueButton(
+        target: PracticeSentenceListContinueTarget,
+        rendering: LearningRendering,
+        sentence: RenderingSentence
+    ) -> some View {
+        Button {
+            onPracticeSentence(seed(for: rendering, sentence: sentence, index: target.sentenceIndex))
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "play.fill")
+                    .font(.subheadline.weight(.semibold))
+                Text(localizedString(target.titleKey, target.position))
+                    .font(.subheadline.weight(.semibold))
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+            .frame(minHeight: 44)
+            .padding(.horizontal, 14)
+            .background(LangoTraceDesign.ColorToken.surfaceAccentMuted.opacity(0.7))
+            .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var practicedStatus: some View {
+        Label {
+            localizedText("practice.sentenceList.practiced")
+        } icon: {
+            Image(systemName: "checkmark.circle.fill")
+        }
+        .font(.footnote.weight(.medium))
+        .foregroundStyle(LangoTraceDesign.ColorToken.stateReady)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private extension PracticeExerciseType {
+    var localizedTitleKey: String {
+        switch self {
+        case .shadowing:
+            "practice.modes.shadowing"
+        case .dictation:
+            "practice.modes.dictation"
+        case .backtranslation:
+            "practice.modes.backtranslation"
+        }
     }
 }
 

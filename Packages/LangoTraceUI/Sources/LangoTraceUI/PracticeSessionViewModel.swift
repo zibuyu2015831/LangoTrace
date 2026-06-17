@@ -47,7 +47,7 @@ final class PracticeSessionViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         do {
-            session = try await actions.createOrRestoreShadowingSession(languageSpaceID, snapshot)
+            session = try await actions.createOrRestoreSession(languageSpaceID, snapshot)
             failure = nil
         } catch {
             failure = .missingSession

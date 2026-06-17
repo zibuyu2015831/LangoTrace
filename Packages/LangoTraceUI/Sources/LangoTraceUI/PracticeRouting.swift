@@ -19,6 +19,7 @@ struct PracticeSessionRouteSeed: Hashable {
         sentence: RenderingSentence,
         sentenceIndex: Int,
         targetLanguageCode: String,
+        exerciseType: PracticeExerciseType = .shadowing,
         capturedAt: Date
     ) {
         let targetTextHash = StableHashing.sha256Hex(sentence.targetText)
@@ -28,7 +29,7 @@ struct PracticeSessionRouteSeed: Hashable {
         self.sentenceIndex = sentenceIndex
         self.targetTextHash = targetTextHash
         self.targetLanguageCode = targetLanguageCode
-        exerciseType = .shadowing
+        self.exerciseType = exerciseType
         snapshot = PracticeSentenceSnapshot(
             entryID: entry.id,
             learningMaterialID: rendering.id,
@@ -41,13 +42,14 @@ struct PracticeSessionRouteSeed: Hashable {
             noteSnapshot: sentence.note.isEmpty ? nil : sentence.note,
             sourceEntryBodyHash: rendering.sourceEntryBodyHash,
             materialAnalysisSourceHash: nil,
-            exerciseType: .shadowing,
+            exerciseType: exerciseType,
             capturedAt: capturedAt
         )
         navigationContext = PracticeSessionNavigationContext(
             entryID: entry.id,
             learningMaterialID: rendering.id,
             targetLanguageCode: targetLanguageCode,
+            exerciseType: exerciseType,
             sourceEntryBodyHash: rendering.sourceEntryBodyHash,
             items: rendering.sentences.enumerated().map { offset, sentence in
                 PracticeSessionNavigationItem(
@@ -81,6 +83,7 @@ struct PracticeSessionRouteSeed: Hashable {
             String(sentenceIndex),
             targetTextHash,
             targetLanguageCode,
+            exerciseType.rawValue,
         ].joined(separator: "::")
     }
 
@@ -152,7 +155,7 @@ struct PracticeSessionRouteSeed: Hashable {
             noteSnapshot: item.noteSnapshot,
             sourceEntryBodyHash: navigationContext.sourceEntryBodyHash,
             materialAnalysisSourceHash: nil,
-            exerciseType: .shadowing,
+            exerciseType: navigationContext.exerciseType,
             capturedAt: capturedAt
         )
 
@@ -181,6 +184,7 @@ struct PracticeSessionNavigationContext: Hashable {
     var entryID: String
     var learningMaterialID: String
     var targetLanguageCode: String
+    var exerciseType: PracticeExerciseType
     var sourceEntryBodyHash: String
     var items: [PracticeSessionNavigationItem]
 

@@ -2,6 +2,8 @@ import Foundation
 
 public enum PracticeExerciseType: String, CaseIterable, Hashable, Sendable {
     case shadowing
+    case dictation
+    case backtranslation
 }
 
 public enum PracticeSessionPhase: String, CaseIterable, Hashable, Sendable {

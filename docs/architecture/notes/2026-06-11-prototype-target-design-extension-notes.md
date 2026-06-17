@@ -41,6 +41,13 @@
 - 后续必须重新决策：听写校对是否纯本机（原型按本机校对设计）；回译参考表达的来源（已有 LearningMaterial 翻译 vs 新 AI 请求，后者必须走显式触发和请求预览边界）。
 - 录音 / 练习产物的同步、导出边界见 [2026-05-26-practice-recording-sync-export-notes.md](2026-05-26-practice-recording-sync-export-notes.md)。
 
+**E3 采纳结论（2026-06-17）**：
+
+- `PracticeSessionRouteSeed` 已有 `exerciseType` 字段；E3 采纳的是 mode 贯通和可用性控制，而不是新增第二套 route。
+- `PracticeExerciseType` 稳定 rawValue 已扩展为 `shadowing / dictation / backtranslation`；v18 migration 将 `practice_sessions.exercise_type` CHECK 约束同步扩展到三种值。
+- 句子列表通过 `PracticeModeAvailability` 决定是否显示分段控制；当前 App 装配只注册 `.shadowing`，因此不会暴露未实现的听写 / 回译假入口。
+- `GRDBPracticeRepository.completedSentenceIDs(materialID:exerciseType:)` 支持按练习方式独立计算“已练”和续练 CTA；E4 / E5 后续只可在真实会话能力完成后注册对应 mode。
+
 ### 2.4 搜索（`prototypes/mac/search.html`、iPad 顶部搜索）
 
 - 目标设计：macOS 为 Command Palette 风格全局搜索，iPad 为顶部搜索浮层；范围限定当前语言空间。

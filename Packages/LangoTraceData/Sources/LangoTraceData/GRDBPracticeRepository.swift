@@ -141,6 +141,37 @@ public struct GRDBPracticeRepository: PracticeRepository, @unchecked Sendable {
             return mediaArtifact(from: row)
         }
     }
+
+    public func completedSentenceIDs(
+        materialID: String,
+        exerciseType: PracticeExerciseType
+    ) async throws -> Set<String> {
+        try await databaseQueue.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT DISTINCT practice_sessions.sentence_id
+                FROM practice_sessions
+                WHERE practice_sessions.learning_material_id = ?
+                  AND practice_sessions.exercise_type = ?
+                  AND practice_sessions.sentence_id IS NOT NULL
+                  AND practice_sessions.soft_deleted_at IS NULL
+                  AND (
+                    practice_sessions.status = 'completed'
+                    OR EXISTS (
+                        SELECT 1
+                        FROM practice_recordings
+                        WHERE practice_recordings.session_id = practice_sessions.id
+                          AND practice_recordings.status = 'ready'
+                          AND practice_recordings.invalidated_at IS NULL
+                    )
+                  )
+                """,
+                arguments: [materialID, exerciseType.rawValue]
+            )
+            return Set(rows.compactMap { row in row["sentence_id"] as String? })
+        }
+    }
 }
 
 public enum PracticeRepositoryError: Error, Equatable, Sendable {

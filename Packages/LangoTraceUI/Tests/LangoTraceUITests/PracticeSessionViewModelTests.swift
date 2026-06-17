@@ -242,7 +242,7 @@ private final class RecordingPracticeActions: @unchecked Sendable {
 
     var actions: PracticeActions {
         PracticeActions(
-            createOrRestoreShadowingSession: { _, snapshot in
+            createOrRestoreSession: { _, snapshot in
                 PracticeSession(
                     id: "session-1",
                     languageSpaceID: "space-1",

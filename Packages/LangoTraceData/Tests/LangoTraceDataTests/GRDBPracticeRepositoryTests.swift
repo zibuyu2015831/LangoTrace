@@ -1,4 +1,5 @@
 import Foundation
+import GRDB
 import LangoTraceCore
 @testable import LangoTraceData
 import Testing
@@ -99,6 +100,60 @@ struct GRDBPracticeRepositoryTests {
         #expect(resolved?.derivationKind == .practiceRecording)
     }
 
+    @Test("Repository lists completed sentence ids by material and exercise type")
+    func repositoryListsCompletedSentenceIDsByMaterialAndExerciseType() async throws {
+        let database = try AppDatabase.inMemory()
+        try await MediaArtifactTestFixtures.seedPrerequisites(in: database)
+        try await MediaArtifactTestFixtures.seedPracticeSessionSourceSentences(in: database, count: 3)
+        let repository = GRDBPracticeRepository(database: database)
+        try await database.databaseQueue.write { db in
+            try insertPracticeSession(
+                id: "session-shadowing-1",
+                sentenceID: "sentence-1",
+                sentenceIndex: 0,
+                exerciseType: .shadowing,
+                status: .completed,
+                db: db
+            )
+            try insertPracticeSession(
+                id: "session-shadowing-2",
+                sentenceID: "sentence-2",
+                sentenceIndex: 1,
+                exerciseType: .shadowing,
+                status: .completed,
+                db: db
+            )
+            try insertPracticeSession(
+                id: "session-dictation-1",
+                sentenceID: "sentence-1",
+                sentenceIndex: 0,
+                exerciseType: .dictation,
+                status: .completed,
+                db: db
+            )
+            try insertPracticeSession(
+                id: "session-shadowing-active",
+                sentenceID: "sentence-3",
+                sentenceIndex: 2,
+                exerciseType: .shadowing,
+                status: .inProgress,
+                db: db
+            )
+        }
+
+        let shadowing = try await repository.completedSentenceIDs(
+            materialID: "material-1",
+            exerciseType: .shadowing
+        )
+        let dictation = try await repository.completedSentenceIDs(
+            materialID: "material-1",
+            exerciseType: .dictation
+        )
+
+        #expect(shadowing == ["sentence-1", "sentence-2"])
+        #expect(dictation == ["sentence-1"])
+    }
+
     @Test("Repository rejects ready recording artifacts with non practice derivation")
     func repositoryRejectsReadyRecordingArtifactsWithNonPracticeDerivation() async throws {
         let database = try AppDatabase.inMemory()
@@ -151,7 +206,62 @@ private func practiceSnapshot() -> PracticeSentenceSnapshot {
     )
 }
 
+private func insertPracticeSession(
+    id: String,
+    sentenceID: String,
+    sentenceIndex: Int,
+    exerciseType: PracticeExerciseType,
+    status: PracticeSessionStatus,
+    db: Database
+) throws {
+    try db.execute(
+        sql: """
+        INSERT INTO practice_sessions (
+            id, language_space_id, entry_id, learning_material_id, sentence_id,
+            sentence_index, target_text_snapshot, translation_snapshot, note_snapshot,
+            target_text_hash, target_language_code, source_entry_body_hash,
+            material_analysis_source_hash, exercise_type, status, problem_marked,
+            completed_recording_id, completed_at, created_at, updated_at, soft_deleted_at
+        ) VALUES (?, 'space-1', 'entry-1', 'material-1', ?, ?, 'Target', '译文', 'Note',
+            'target-hash', 'en', 'source-hash', 'analysis-hash', ?, ?, 0,
+            NULL, ?, 100, 100, NULL)
+        """,
+        arguments: [
+            id,
+            sentenceID,
+            sentenceIndex,
+            exerciseType.rawValue,
+            status.rawValue,
+            status == .completed ? 100.0 : nil,
+        ]
+    )
+}
+
 private extension MediaArtifactTestFixtures {
+    static func seedPracticeSessionSourceSentences(in database: AppDatabase, count: Int) async throws {
+        try await database.databaseQueue.write { db in
+            for index in 1 ... count {
+                try db.execute(
+                    sql: """
+                    INSERT INTO learning_material_sentences (
+                        id, material_id, position, native_sentence, target_sentence,
+                        literal_translation, natural_translation, grammar_notes_json,
+                        key_points_json, created_at, updated_at
+                    ) VALUES (?, 'material-1', ?, ?, ?, ?, ?, '[]', '[]', 1, 1)
+                    """,
+                    arguments: [
+                        "sentence-\(index)",
+                        index - 1,
+                        "原文 \(index)",
+                        "Target sentence \(index).",
+                        "Target sentence \(index).",
+                        "译文 \(index)",
+                    ]
+                )
+            }
+        }
+    }
+
     static func seedPracticeSessionSourceSentence(in database: AppDatabase) async throws {
         try await database.databaseQueue.write { db in
             try db.execute(

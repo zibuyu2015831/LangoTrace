@@ -69,6 +69,11 @@ final class LearningContentStore: ObservableObject {
         return entry
     }
 
+    func deleteEntry(id: String) throws {
+        try repository.deleteEntry(id: id)
+        reload()
+    }
+
     func rendering(for entry: LearningEntry) -> LearningRendering? {
         rendering(for: entry.id)
     }

@@ -127,11 +127,16 @@ struct PhoneMainView: View {
                 }
             case .photoWriting:
                 PhotoWritingView(languageSpace: languageSpace) { body, imageData in
-                    let title = String(body.trimmingCharacters(in: .whitespacesAndNewlines).prefix(80))
-                    let entry = try contentStore.createEntry(title: title, body: body, source: .photoWriting)
-                    if let data = imageData {
-                        try? photoWritingActions.importPhoto(data, entry.id, languageSpace.id)
-                    }
+                    let coordinator = PhotoWritingSaveCoordinator(
+                        createEntry: { title, body, source in
+                            try contentStore.createEntry(title: title, body: body, source: source)
+                        },
+                        deleteEntry: { entryID in
+                            try contentStore.deleteEntry(id: entryID)
+                        },
+                        importPhoto: photoWritingActions.importPhoto
+                    )
+                    let entry = try coordinator.save(body: body, imageData: imageData, spaceID: languageSpace.id)
                     presentedSheet = nil
                     navModel.push(.entryDetail(entry.id), on: .entries)
                 } onDismiss: {
@@ -216,6 +221,7 @@ struct PhoneMainView: View {
                     rendering: rendering(for: entry),
                     languageSpace: languageSpace,
                     sentenceAudioPlaybackStates: sentenceAudioStates,
+                    practiceActions: practiceActions,
                     onListenSentence: { rendering, sentence, index in
                         Task {
                             await contentStore.handleSentenceAudioTap(

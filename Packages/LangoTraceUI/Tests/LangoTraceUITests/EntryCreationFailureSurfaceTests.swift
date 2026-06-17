@@ -40,6 +40,17 @@ struct EntryCreationFailureSurfaceTests {
         #expect(components.contains("var errorTextKey: String?"))
     }
 
+    @Test("Photo writing import failures are not swallowed after entry creation")
+    func photoWritingImportFailuresAreNotSwallowedAfterEntryCreation() throws {
+        let phone = try source("PhoneMainView.swift")
+        let actions = try source("PhotoWritingActions.swift")
+
+        #expect(phone.contains("let entry = try coordinator.save(body: body, imageData: imageData, spaceID: languageSpace.id)"))
+        #expect(!phone.contains("try? photoWritingActions.importPhoto"))
+        #expect(actions.contains("Throwing is fatal to the photo-writing"))
+        #expect(!actions.contains("Throwing is non-fatal"))
+    }
+
     private func source(_ name: String) throws -> String {
         try String(contentsOf: langoTraceUISourceFileURL(named: name), encoding: .utf8)
     }

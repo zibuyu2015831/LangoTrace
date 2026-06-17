@@ -33,6 +33,30 @@ struct PracticeRouteSeedTests {
         #expect(seed.snapshot.targetTextHash.count == 64)
     }
 
+    @Test("Route seed carries selected exercise type into snapshot neighbors and identity")
+    func routeSeedCarriesSelectedExerciseTypeIntoSnapshotNeighborsAndIdentity() throws {
+        let entry = makeEntry()
+        let rendering = makeRendering(sentenceCount: 2)
+
+        let seed = PracticeSessionRouteSeed(
+            entry: entry,
+            rendering: rendering,
+            sentence: rendering.sentences[0],
+            sentenceIndex: 0,
+            targetLanguageCode: "en",
+            exerciseType: .dictation,
+            capturedAt: Date(timeIntervalSince1970: 100)
+        )
+        let next = try #require(seed.neighboringSeed(direction: .next, capturedAt: Date(timeIntervalSince1970: 200)))
+
+        #expect(seed.exerciseType == .dictation)
+        #expect(seed.snapshot.exerciseType == .dictation)
+        #expect(next.exerciseType == .dictation)
+        #expect(next.snapshot.exerciseType == .dictation)
+        #expect(seed.practiceRouteIdentity.contains("dictation"))
+        #expect(next.practiceRouteIdentity.contains("dictation"))
+    }
+
     @Test("Route seed builds neighboring seeds within the same rendering")
     func routeSeedBuildsNeighboringSeeds() {
         let entry = makeEntry()

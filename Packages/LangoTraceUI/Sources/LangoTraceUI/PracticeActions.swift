@@ -12,26 +12,38 @@ public struct PracticeRecordingStart: Sendable {
 }
 
 public struct PracticeActions: Sendable {
-    public var createOrRestoreShadowingSession: @Sendable (
+    public var availableExerciseTypes: [PracticeExerciseType]
+    public var createOrRestoreSession: @Sendable (
         String,
         PracticeSentenceSnapshot
     ) async throws -> PracticeSession
+    public var completedSentenceIDs: @Sendable (
+        String,
+        PracticeExerciseType
+    ) async throws -> Set<String>
     public var startRecording: @Sendable (PracticeSession) async throws -> PracticeRecordingStart
     public var stopRecording: @Sendable (PracticeSession, String) async throws -> PracticeSession
     public var complete: @Sendable (PracticeSession, String) async throws -> PracticeSession
     public var playRecording: @Sendable (PracticeSession, String) async throws -> Void
 
     public init(
-        createOrRestoreShadowingSession: @escaping @Sendable (
+        availableExerciseTypes: [PracticeExerciseType] = [.shadowing],
+        createOrRestoreSession: @escaping @Sendable (
             String,
             PracticeSentenceSnapshot
         ) async throws -> PracticeSession,
+        completedSentenceIDs: @escaping @Sendable (
+            String,
+            PracticeExerciseType
+        ) async throws -> Set<String> = { _, _ in [] },
         startRecording: @escaping @Sendable (PracticeSession) async throws -> PracticeRecordingStart,
         stopRecording: @escaping @Sendable (PracticeSession, String) async throws -> PracticeSession,
         complete: @escaping @Sendable (PracticeSession, String) async throws -> PracticeSession,
         playRecording: @escaping @Sendable (PracticeSession, String) async throws -> Void
     ) {
-        self.createOrRestoreShadowingSession = createOrRestoreShadowingSession
+        self.availableExerciseTypes = availableExerciseTypes
+        self.createOrRestoreSession = createOrRestoreSession
+        self.completedSentenceIDs = completedSentenceIDs
         self.startRecording = startRecording
         self.stopRecording = stopRecording
         self.complete = complete
@@ -39,7 +51,7 @@ public struct PracticeActions: Sendable {
     }
 
     public static let disabled = PracticeActions(
-        createOrRestoreShadowingSession: { languageSpaceID, snapshot in
+        createOrRestoreSession: { languageSpaceID, snapshot in
             PracticeSession(
                 id: "disabled-\(snapshot.learningMaterialID)-\(snapshot.sentenceIndex)",
                 languageSpaceID: languageSpaceID,

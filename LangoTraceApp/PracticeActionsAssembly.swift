@@ -26,10 +26,19 @@ enum PracticeActionsAssembly {
         )
 
         return PracticeActions(
-            createOrRestoreShadowingSession: { languageSpaceID, snapshot in
-                try await repository.createOrRestoreShadowingSession(
+            createOrRestoreSession: { languageSpaceID, snapshot in
+                guard snapshot.exerciseType == .shadowing else {
+                    throw PracticeActionFailure.disabled
+                }
+                return try await repository.createOrRestoreShadowingSession(
                     languageSpaceID: languageSpaceID,
                     snapshot: snapshot
+                )
+            },
+            completedSentenceIDs: { materialID, exerciseType in
+                try await repository.completedSentenceIDs(
+                    materialID: materialID,
+                    exerciseType: exerciseType
                 )
             },
             startRecording: { session in

@@ -256,6 +256,7 @@ struct MacWorkspaceContentView: View {
                 rendering: contentStore.rendering(for: entry),
                 languageSpace: languageSpace,
                 sentenceAudioPlaybackStates: sentenceAudioStates,
+                practiceActions: practiceActions,
                 onListenSentence: { rendering, sentence, index in
                     Task {
                         await contentStore.handleSentenceAudioTap(
