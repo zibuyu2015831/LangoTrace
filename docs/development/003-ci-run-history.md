@@ -191,7 +191,7 @@
 
 ---
 
-### Run 27702909733（进行中）
+### Run 27702909733
 
 | 字段 | 值 |
 |---|---|
@@ -199,6 +199,22 @@
 | 触发时间 | 2026-06-18 00:09 CST |
 | 触发 commit | `fix(tests): update AppEnvironmentPracticeBootstrapTests for E3 PracticeActions rename [ci]` |
 | 覆盖内容 | E3 + E2-FU + R1 + allowBluetoothHFP 修复 + concurrency 修复 + macOS 测试修复 |
+| Job 总耗时 | 6m53s（提前终止） |
+| 结论 | ❌ failure |
+| 失败步骤 | SwiftLint |
+| 失败原因 | 11 个 file_length / function_body_length / type_body_length error：AppEnvironment.swift、AppDatabase.swift 等多个大文件超出默认上限（1000/100/350），由 E2-FU、E3、R1 引入的迁移文件、UI 组合文件和长测试函数导致 |
+| 修复 commit | `24db7a0 ci: raise SwiftLint length thresholds for early-stage codebase [ci]` |
+
+---
+
+### Run 27703576422（进行中）
+
+| 字段 | 值 |
+|---|---|
+| Run ID | [27703576422](https://github.com/zibuyu2015831/LangoTrace/actions/runs/27703576422) |
+| 触发时间 | 2026-06-18 00:21 CST |
+| 触发 commit | `ci: raise SwiftLint length thresholds for early-stage codebase [ci]` |
+| 覆盖内容 | E3 + E2-FU + R1 + 全部修复 |
 | 结论 | ⏳ in_progress |
 
 *耗时待更新。*
