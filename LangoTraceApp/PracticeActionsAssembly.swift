@@ -18,6 +18,7 @@ enum PracticeActionsAssembly {
             audioFileValidator: TTSAudioFileValidator(mediaArtifactsRoot: mediaArtifactsRoot)
         )
         let repository = GRDBPracticeRepository(database: database)
+        let learningContentRepository = GRDBLearningContentRepository(database: database)
         let playbackSourceResolver = LocalMediaArtifactPlaybackSourceResolver(fileStore: fileStore)
         let recordingPlayer = TTSAudioPlaybackService()
         let recordingService = PracticeRecordingService(
@@ -26,7 +27,7 @@ enum PracticeActionsAssembly {
         )
 
         return PracticeActions(
-            availableExerciseTypes: [.shadowing, .dictation],
+            availableExerciseTypes: [.shadowing, .dictation, .backtranslation],
             createOrRestoreSession: { languageSpaceID, snapshot in
                 try await repository.createOrRestoreSession(
                     languageSpaceID: languageSpaceID,
@@ -77,21 +78,56 @@ enum PracticeActionsAssembly {
                     throw PracticeActionFailure.playbackUnavailable
                 }
             },
-            submitDictationAttempt: { session, submission in
-                _ = try await repository.recordTextAttempt(
-                    draft: PracticeTextAttemptDraft(
-                        sessionID: session.id,
-                        languageSpaceID: session.languageSpaceID,
-                        exerciseType: .dictation,
-                        attemptText: submission.attemptText,
-                        referenceTextSnapshot: submission.referenceText,
-                        diffDifferenceCount: submission.differenceCount,
-                        diffSummaryJSON: encodeDiffSummary(submission.summary),
-                        listenCount: submission.listenCount
-                    )
+            submitDictationAttempt: makeSubmitDictationAttempt(repository: repository),
+            submitBacktranslationAttempt: makeSubmitBacktranslationAttempt(repository: repository),
+            fetchSentenceAnalysis: { materialID, sentenceIndex in
+                try learningContentRepository.sentenceAnalysis(
+                    materialID: materialID,
+                    sentenceIndex: sentenceIndex
                 )
             }
         )
+    }
+
+    private static func makeSubmitDictationAttempt(
+        repository: GRDBPracticeRepository
+    ) -> @Sendable (PracticeSession, PracticeDictationAttemptSubmission) async throws -> Void {
+        { session, submission in
+            _ = try await repository.recordTextAttempt(
+                draft: PracticeTextAttemptDraft(
+                    sessionID: session.id,
+                    languageSpaceID: session.languageSpaceID,
+                    exerciseType: .dictation,
+                    attemptText: submission.attemptText,
+                    referenceTextSnapshot: submission.referenceText,
+                    diffDifferenceCount: submission.differenceCount,
+                    diffSummaryJSON: encodeDiffSummary(submission.summary),
+                    listenCount: submission.listenCount
+                )
+            )
+        }
+    }
+
+    private static func makeSubmitBacktranslationAttempt(
+        repository: GRDBPracticeRepository
+    ) -> @Sendable (PracticeSession, PracticeBacktranslationAttemptSubmission) async throws -> Void {
+        { session, submission in
+            // Backtranslation is not judged: the repository forces the diff
+            // columns and listen count to neutral values regardless of what is
+            // passed here (see GRDBPracticeRepository.recordTextAttempt).
+            _ = try await repository.recordTextAttempt(
+                draft: PracticeTextAttemptDraft(
+                    sessionID: session.id,
+                    languageSpaceID: session.languageSpaceID,
+                    exerciseType: .backtranslation,
+                    attemptText: submission.attemptText,
+                    referenceTextSnapshot: submission.referenceText,
+                    diffDifferenceCount: nil,
+                    diffSummaryJSON: nil,
+                    listenCount: 0
+                )
+            )
+        }
     }
 
     private static func encodeDiffSummary(_ summary: PracticeDictationDiffSummary) -> String? {
