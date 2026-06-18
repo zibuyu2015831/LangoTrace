@@ -23,6 +23,8 @@ struct AppEnvironment {
     let photoWritingActions: PhotoWritingActions
     let photoDisplayActions: PhotoDisplayActions
     let aiProviderSettingsActions: AIProviderSettingsActions
+    let aiRequestPreviewActions: AIRequestPreviewActions
+    let aiRequestLogActions: AIRequestLogActions
     let syncService: any SyncService
 
     // AppEnvironment assembles the cross-package production graph in one place.
@@ -124,6 +126,32 @@ struct AppEnvironment {
             )
         }
 
+        // E6: local, non-sensitive AI request log + same-source preview seam.
+        let aiRequestLogRepository: (any AIRequestLogRepository)? =
+            (try? databaseFactory.database()).map { GRDBAIRequestLogRepository(database: $0) }
+        let aiRequestLogRecorder = AIRequestLogRecorder(repository: aiRequestLogRepository)
+        let aiRequestPreviewEndpointCache = AIRequestPreviewEndpointCache()
+        // Warm the cache so the iPad / macOS preview card can show the real
+        // configured provider + model; until loaded / when unconfigured the card
+        // falls back to the explicit offline state.
+        Task {
+            guard let database = try? databaseFactory.database() else { return }
+            let configurationRepository = GRDBAIProviderConfigurationRepository(database: database)
+            let profile = try? await configurationRepository.loadDefaultProfile()
+            aiRequestPreviewEndpointCache.set(profile?.textGenerationEndpointInput)
+        }
+        let aiRequestPreviewActions = AIRequestPreviewActions { entry in
+            guard let endpoint = aiRequestPreviewEndpointCache.current() else { return nil }
+            return .learningMaterialGeneration(
+                endpoint: endpoint,
+                lengthBucket: AIRequestLengthBucket(characterCount: entry.body.count)
+            )
+        }
+        let aiRequestLogActions = AIRequestLogActions {
+            guard let repository = aiRequestLogRepository else { return [] }
+            return await (try? repository.recentAll(limit: 100)) ?? []
+        }
+
         return AppEnvironment(
             makeLanguageSpaceRepository: {
                 try GRDBLanguageSpaceRepository(
@@ -133,13 +161,15 @@ struct AppEnvironment {
             learningContentRepository: learningContentRepository,
             learningMaterialGenerationActions: makeLearningMaterialGenerationActions(
                 databaseFactory: databaseFactory,
-                credentialStore: credentialStore
+                credentialStore: credentialStore,
+                aiRequestLogRecorder: aiRequestLogRecorder
             ),
             sentenceAudioPlaybackActions: sentenceAudioPlaybackCoordinatorBox.actions(),
             readingLibraryActions: makeReadingLibraryActions(databaseFactory: databaseFactory),
             readingExplanationAction: makeReadingExplanationAction(
                 databaseFactory: databaseFactory,
-                credentialStore: credentialStore
+                credentialStore: credentialStore,
+                aiRequestLogRecorder: aiRequestLogRecorder
             ),
             readingTTSAction: makeReadingTTSAction(
                 sentenceAudioPlaybackActions: sentenceAudioPlaybackCoordinatorBox.actions()
@@ -237,14 +267,37 @@ struct AppEnvironment {
                     await diagnosticLogger.record(event)
                 }
             ),
+            aiRequestPreviewActions: aiRequestPreviewActions,
+            aiRequestLogActions: aiRequestLogActions,
             syncService: DisabledSyncService()
         )
     }
 }
 
+/// Thread-safe holder for the cached default text-generation endpoint that backs
+/// the synchronous preview-card projection seam (mirrors the locked-box pattern
+/// E0a adopted over `nonisolated(unsafe) static var`).
+final class AIRequestPreviewEndpointCache: @unchecked Sendable {
+    private let lock = NSLock()
+    private var endpoint: AIProviderEndpointInput?
+
+    func set(_ endpoint: AIProviderEndpointInput?) {
+        lock.lock()
+        defer { lock.unlock() }
+        self.endpoint = endpoint
+    }
+
+    func current() -> AIProviderEndpointInput? {
+        lock.lock()
+        defer { lock.unlock() }
+        return endpoint
+    }
+}
+
 private func makeReadingExplanationAction(
     databaseFactory: SharedAppDatabaseFactory,
-    credentialStore: any AIProviderCredentialStore
+    credentialStore: any AIProviderCredentialStore,
+    aiRequestLogRecorder: AIRequestLogRecorder
 ) -> ReadingExplanationAction {
     { request in
         let database = try databaseFactory.database()
@@ -278,40 +331,50 @@ private func makeReadingExplanationAction(
             profile: profile,
             credentialStore: credentialStore
         )
-        let service = ReadingSelectionExplanationService(httpClient: URLSessionAIProviderHTTPClient())
-        do {
-            let result = try await service.explain(
-                ReadingSelectionExplanationServiceRequest(
-                    endpoint: endpoint,
-                    plaintextSecret: plaintextSecret,
-                    input: ReadingSelectionExplanationInput(
-                        documentID: request.documentID,
-                        sourceAnchorID: request.sourceAnchorID,
-                        selectedText: request.selectedText,
-                        selectionScope: request.selectionScope,
-                        containingSentence: request.containingSentence,
-                        previousSentence: request.previousSentence,
-                        nextSentence: request.nextSentence,
-                        containingParagraph: request.containingParagraph,
-                        contextMode: request.contextMode,
-                        contextText: request.contextText,
-                        nativeLanguageCode: request.nativeLanguageCode,
-                        targetLanguageCode: request.targetLanguageCode,
-                        proficiencyLevelCode: request.proficiencyLevelCode,
-                        explanationLanguageMode: request.explanationLanguageMode
-                    )
-                )
+        let serviceRequest = ReadingSelectionExplanationServiceRequest(
+            endpoint: endpoint,
+            plaintextSecret: plaintextSecret,
+            input: ReadingSelectionExplanationInput(
+                documentID: request.documentID,
+                sourceAnchorID: request.sourceAnchorID,
+                selectedText: request.selectedText,
+                selectionScope: request.selectionScope,
+                containingSentence: request.containingSentence,
+                previousSentence: request.previousSentence,
+                nextSentence: request.nextSentence,
+                containingParagraph: request.containingParagraph,
+                contextMode: request.contextMode,
+                contextText: request.contextText,
+                nativeLanguageCode: request.nativeLanguageCode,
+                targetLanguageCode: request.targetLanguageCode,
+                proficiencyLevelCode: request.proficiencyLevelCode,
+                explanationLanguageMode: request.explanationLanguageMode
             )
+        )
+        let service = ReadingSelectionExplanationService(httpClient: URLSessionAIProviderHTTPClient())
+        func recordRequestLog(_ outcome: AIRequestLogOutcome) async {
+            await aiRequestLogRecorder.record(
+                serviceRequest.makeLogEntry(id: UUID().uuidString, outcome: outcome, createdAt: Date())
+            )
+        }
+        do {
+            let result = try await service.explain(serviceRequest)
             recorder.record(.succeeded, profile: profile, endpoint: endpoint)
+            await recordRequestLog(.success)
             return result
         } catch let error as CancellationError {
             recorder.record(.cancelled, profile: profile, endpoint: endpoint)
+            await recordRequestLog(.cancelled)
             throw error
         } catch let error as ReadingSelectionExplanationServiceError {
             recorder.record(.failed(category: "\(error.category)"), profile: profile, endpoint: endpoint)
+            await recordRequestLog(
+                error.category == .cancelled ? .cancelled : .failed(AIRequestLogFailureBucket(error.category))
+            )
             throw error
         } catch {
             recorder.record(.failed(category: "providerRejected"), profile: profile, endpoint: endpoint)
+            await recordRequestLog(.failed(.providerRejected))
             throw error
         }
     }
@@ -457,7 +520,8 @@ private func recordBootstrapComponentFailure(
 // swiftlint:disable:next function_body_length
 private func makeLearningMaterialGenerationActions(
     databaseFactory: SharedAppDatabaseFactory,
-    credentialStore: any AIProviderCredentialStore
+    credentialStore: any AIProviderCredentialStore,
+    aiRequestLogRecorder: AIRequestLogRecorder
 ) -> LearningMaterialGenerationActions {
     LearningMaterialGenerationActions(
         generateMaterial: { input, operationID, bucket in
@@ -486,6 +550,13 @@ private func makeLearningMaterialGenerationActions(
                         kind: .generate,
                         bucket: bucket,
                         repository: learningRepository
+                    )
+                    await aiRequestLogRecorder.recordLearningMaterial(
+                        operationID: operationID,
+                        endpoint: nil,
+                        bucket: bucket,
+                        promptID: LearningMaterialPromptRegistry.generationPromptID,
+                        outcome: .failed(.providerNotConfigured)
                     )
                     return .failed(.providerNotConfigured)
                 }
@@ -530,6 +601,13 @@ private func makeLearningMaterialGenerationActions(
                         completedAt: Date()
                     )
                 )
+                await aiRequestLogRecorder.recordLearningMaterial(
+                    operationID: operationID,
+                    endpoint: endpoint,
+                    bucket: bucket,
+                    promptID: LearningMaterialPromptRegistry.generationPromptID,
+                    outcome: .success
+                )
                 return .generated(material)
             } catch let error as LearningMaterialGenerationServiceError {
                 generationLogger.error("generate failed: \(error.category.rawValue, privacy: .public)")
@@ -540,6 +618,13 @@ private func makeLearningMaterialGenerationActions(
                     kind: .generate,
                     bucket: bucket,
                     repository: GRDBLearningContentRepository(database: databaseFactory.database())
+                )
+                await aiRequestLogRecorder.recordLearningMaterial(
+                    operationID: operationID,
+                    endpoint: nil,
+                    bucket: bucket,
+                    promptID: LearningMaterialPromptRegistry.generationPromptID,
+                    outcome: AIRequestLogRecorder.outcome(for: error.category)
                 )
                 return .failed(error.category)
             } catch let error as AIProviderCredentialStoreError {
@@ -556,6 +641,13 @@ private func makeLearningMaterialGenerationActions(
                     bucket: bucket,
                     repository: GRDBLearningContentRepository(database: databaseFactory.database())
                 )
+                await aiRequestLogRecorder.recordLearningMaterial(
+                    operationID: operationID,
+                    endpoint: nil,
+                    bucket: bucket,
+                    promptID: LearningMaterialPromptRegistry.generationPromptID,
+                    outcome: .failed(AIRequestLogFailureBucket(category))
+                )
                 return .failed(category)
             } catch {
                 generationLogger.error("generate failed: unknown — \(String(describing: error), privacy: .public)")
@@ -566,6 +658,13 @@ private func makeLearningMaterialGenerationActions(
                     kind: .generate,
                     bucket: bucket,
                     repository: GRDBLearningContentRepository(database: databaseFactory.database())
+                )
+                await aiRequestLogRecorder.recordLearningMaterial(
+                    operationID: operationID,
+                    endpoint: nil,
+                    bucket: bucket,
+                    promptID: LearningMaterialPromptRegistry.generationPromptID,
+                    outcome: .failed(.unknown)
                 )
                 return .failed(.unknown)
             }
@@ -613,6 +712,13 @@ private func makeLearningMaterialGenerationActions(
                         promptID: LearningMaterialPromptRegistry.analysisPromptID,
                         repository: learningRepository
                     )
+                    await aiRequestLogRecorder.recordLearningMaterial(
+                        operationID: operationID,
+                        endpoint: nil,
+                        bucket: bucket,
+                        promptID: LearningMaterialPromptRegistry.analysisPromptID,
+                        outcome: .failed(.providerNotConfigured)
+                    )
                     return .failed(.providerNotConfigured)
                 }
                 let plaintextSecret = try await resolveLearningMaterialSecret(
@@ -655,6 +761,13 @@ private func makeLearningMaterialGenerationActions(
                         completedAt: Date()
                     )
                 )
+                await aiRequestLogRecorder.recordLearningMaterial(
+                    operationID: operationID,
+                    endpoint: endpoint,
+                    bucket: bucket,
+                    promptID: LearningMaterialPromptRegistry.analysisPromptID,
+                    outcome: .success
+                )
                 return .generated(material)
             } catch let error as LearningMaterialGenerationServiceError {
                 generationLogger.error("analyze failed: \(error.category.rawValue, privacy: .public)")
@@ -666,6 +779,13 @@ private func makeLearningMaterialGenerationActions(
                     bucket: bucket,
                     promptID: LearningMaterialPromptRegistry.analysisPromptID,
                     repository: GRDBLearningContentRepository(database: databaseFactory.database())
+                )
+                await aiRequestLogRecorder.recordLearningMaterial(
+                    operationID: operationID,
+                    endpoint: nil,
+                    bucket: bucket,
+                    promptID: LearningMaterialPromptRegistry.analysisPromptID,
+                    outcome: AIRequestLogRecorder.outcome(for: error.category)
                 )
                 return .failed(error.category)
             } catch let error as AIProviderCredentialStoreError {
@@ -683,6 +803,13 @@ private func makeLearningMaterialGenerationActions(
                     promptID: LearningMaterialPromptRegistry.analysisPromptID,
                     repository: GRDBLearningContentRepository(database: databaseFactory.database())
                 )
+                await aiRequestLogRecorder.recordLearningMaterial(
+                    operationID: operationID,
+                    endpoint: nil,
+                    bucket: bucket,
+                    promptID: LearningMaterialPromptRegistry.analysisPromptID,
+                    outcome: .failed(AIRequestLogFailureBucket(category))
+                )
                 return .failed(category)
             } catch {
                 generationLogger.error("analyze failed: unknown — \(String(describing: error), privacy: .public)")
@@ -694,6 +821,13 @@ private func makeLearningMaterialGenerationActions(
                     bucket: bucket,
                     promptID: LearningMaterialPromptRegistry.analysisPromptID,
                     repository: GRDBLearningContentRepository(database: databaseFactory.database())
+                )
+                await aiRequestLogRecorder.recordLearningMaterial(
+                    operationID: operationID,
+                    endpoint: nil,
+                    bucket: bucket,
+                    promptID: LearningMaterialPromptRegistry.analysisPromptID,
+                    outcome: .failed(.unknown)
                 )
                 return .failed(.unknown)
             }

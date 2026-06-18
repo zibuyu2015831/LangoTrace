@@ -8,6 +8,8 @@ struct MacInspectorContent: View {
     let settingsCapabilities: [SettingsCapability]
     let contentStore: LearningContentStore
 
+    @Environment(\.aiRequestPreviewActions) private var aiRequestPreviewActions
+
     var body: some View {
         content
     }
@@ -21,9 +23,14 @@ struct MacInspectorContent: View {
                     title: localizedString("mac.inspector.entryMetadata.title"),
                     text: "\(entry.displaySourceTitle) · \(entry.displayScene) · \(entry.practiceStatus.displayLabel)"
                 )
-                RequestPreviewCard(entry: entry, rendering: contentStore.rendering(for: entry))
+                RequestPreviewCard(
+                    entry: entry,
+                    rendering: contentStore.rendering(for: entry),
+                    projection: aiRequestPreviewActions.projection(entry)
+                )
                 memoryCandidates(for: entry)
                 LocalizedTextPanel(titleKey: "mac.inspector.privacy.title", textKey: "mac.inspector.privacy.body")
+                AIRequestLogListView()
             } else {
                 LocalizedTextPanel(titleKey: "mac.inspector.noEntry.title", textKey: "mac.inspector.noEntry.body")
             }

@@ -81,6 +81,21 @@ public enum AIRequestLogOutcome: Equatable, Sendable {
     case success
     case cancelled
     case failed(AIRequestLogFailureBucket)
+
+    public var status: AIRequestLogStatus {
+        switch self {
+        case .success: .success
+        case .cancelled: .cancelled
+        case .failed: .failed
+        }
+    }
+
+    public var failureBucket: AIRequestLogFailureBucket? {
+        switch self {
+        case .success, .cancelled: nil
+        case let .failed(bucket): bucket
+        }
+    }
 }
 
 /// A single non-sensitive request log row.

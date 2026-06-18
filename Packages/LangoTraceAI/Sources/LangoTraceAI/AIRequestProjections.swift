@@ -25,20 +25,33 @@ private let alwaysExcludedContent: [AIRequestContentDescriptor] = [
     .otherLanguageSpaces,
 ]
 
-public extension LearningMaterialServiceGenerationRequest {
-    /// Projection for a generation request (builds learning material from the
-    /// current entry body).
-    func previewProjection() -> AIRequestPreviewProjection {
+public extension AIRequestPreviewProjection {
+    /// Single-source factory for the learning-material generation projection,
+    /// shared by the request-based `previewProjection()` and the App-Shell
+    /// preview seam (which builds it from a cached endpoint before any request
+    /// exists). Content categories live here so both paths stay in sync.
+    static func learningMaterialGeneration(
+        endpoint: AIProviderEndpointInput,
+        lengthBucket: AIRequestLengthBucket
+    ) -> AIRequestPreviewProjection {
         AIRequestPreviewProjection(
             capability: .learningMaterialGeneration,
             providerPresetID: endpoint.providerPresetID,
             modelName: endpoint.modelName,
             promptID: LearningMaterialPromptRegistry.generationPromptID,
             promptVersion: LearningMaterialPromptRegistry.promptVersion,
-            lengthBucket: AIRequestLengthBucket(lengthBucket),
+            lengthBucket: lengthBucket,
             includedContent: [.currentEntryBody],
             excludedContent: alwaysExcludedContent
         )
+    }
+}
+
+public extension LearningMaterialServiceGenerationRequest {
+    /// Projection for a generation request (builds learning material from the
+    /// current entry body).
+    func previewProjection() -> AIRequestPreviewProjection {
+        .learningMaterialGeneration(endpoint: endpoint, lengthBucket: AIRequestLengthBucket(lengthBucket))
     }
 
     /// Non-sensitive log row for this request's outcome.
@@ -143,22 +156,5 @@ private struct LearningMaterialLogContext {
             failureBucket: outcome.failureBucket,
             createdAt: createdAt
         )
-    }
-}
-
-private extension AIRequestLogOutcome {
-    var status: AIRequestLogStatus {
-        switch self {
-        case .success: .success
-        case .cancelled: .cancelled
-        case .failed: .failed
-        }
-    }
-
-    var failureBucket: AIRequestLogFailureBucket? {
-        switch self {
-        case .success, .cancelled: nil
-        case let .failed(bucket): bucket
-        }
     }
 }

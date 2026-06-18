@@ -10,6 +10,8 @@ struct PadLearningPanelView: View {
     let contentStore: LearningContentStore
     let onRoute: (PadWorkspaceRoute) -> Void
 
+    @Environment(\.aiRequestPreviewActions) private var aiRequestPreviewActions
+
     private let contentPadding = EdgeInsets(top: 22, leading: 22, bottom: 22, trailing: 32)
 
     var body: some View {
@@ -148,7 +150,12 @@ struct PadLearningPanelView: View {
                 systemImage: "gearshape",
                 action: { onRoute(.settingsList) }
             )
-            RequestPreviewCard(entry: entry, rendering: selectedRendering)
+            RequestPreviewCard(
+                entry: entry,
+                rendering: selectedRendering,
+                projection: aiRequestPreviewActions.projection(entry)
+            )
+            AIRequestLogListView()
         }
     }
 
