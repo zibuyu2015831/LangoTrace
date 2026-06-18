@@ -53,6 +53,22 @@ public struct PracticeBacktranslationAttemptSubmission: Sendable {
     }
 }
 
+/// The content the user explicitly chooses to send for an AI critique (系列 E5
+/// Slice 2). Only the three short texts — the native-meaning prompt, the user's
+/// own answer, and the reference sentence. App Shell resolves the language /
+/// proficiency codes from the language space; nothing else is sent.
+public struct PracticeBacktranslationReviewSubmission: Sendable {
+    public var nativeSentence: String
+    public var userAttempt: String
+    public var referenceSentence: String
+
+    public init(nativeSentence: String, userAttempt: String, referenceSentence: String) {
+        self.nativeSentence = nativeSentence
+        self.userAttempt = userAttempt
+        self.referenceSentence = referenceSentence
+    }
+}
+
 public struct PracticeActions: Sendable {
     public var availableExerciseTypes: [PracticeExerciseType]
     public var createOrRestoreSession: @Sendable (
@@ -82,6 +98,15 @@ public struct PracticeActions: Sendable {
         String,
         Int
     ) async throws -> LearningSentenceAnalysis?
+    /// Explicitly-triggered optional AI critique (系列 E5 Slice 2). Only invoked
+    /// from the "请 AI 点评" button — never automatically. App Shell resolves the
+    /// endpoint + language/proficiency, sends the three short texts, writes a
+    /// non-sensitive request log, and maps failures to
+    /// `PracticeBacktranslationReviewFailure`.
+    public var reviewBacktranslation: @Sendable (
+        String,
+        PracticeBacktranslationReviewSubmission
+    ) async throws -> PracticeBacktranslationReviewResult
 
     public init(
         availableExerciseTypes: [PracticeExerciseType] = [.shadowing],
@@ -108,7 +133,13 @@ public struct PracticeActions: Sendable {
         fetchSentenceAnalysis: @escaping @Sendable (
             String,
             Int
-        ) async throws -> LearningSentenceAnalysis? = { _, _ in nil }
+        ) async throws -> LearningSentenceAnalysis? = { _, _ in nil },
+        reviewBacktranslation: @escaping @Sendable (
+            String,
+            PracticeBacktranslationReviewSubmission
+        ) async throws -> PracticeBacktranslationReviewResult = { _, _ in
+            throw PracticeBacktranslationReviewFailure(category: .providerNotConfigured)
+        }
     ) {
         self.availableExerciseTypes = availableExerciseTypes
         self.createOrRestoreSession = createOrRestoreSession
@@ -120,6 +151,7 @@ public struct PracticeActions: Sendable {
         self.submitDictationAttempt = submitDictationAttempt
         self.submitBacktranslationAttempt = submitBacktranslationAttempt
         self.fetchSentenceAnalysis = fetchSentenceAnalysis
+        self.reviewBacktranslation = reviewBacktranslation
     }
 
     public static let disabled = PracticeActions(

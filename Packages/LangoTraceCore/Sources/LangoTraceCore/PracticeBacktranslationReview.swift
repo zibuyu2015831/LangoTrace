@@ -84,3 +84,15 @@ public enum PracticeBacktranslationReviewFailureCategory: Equatable, Sendable {
     case cancelled
     case invalidStructuredResponse
 }
+
+/// UI-facing failure for the critique action, carrying the category so the
+/// session can show a precise, non-network-masking failure state. App Shell maps
+/// the AI service error onto this so the UI layer stays decoupled from the AI
+/// package.
+public struct PracticeBacktranslationReviewFailure: Error, Equatable, Sendable {
+    public var category: PracticeBacktranslationReviewFailureCategory
+
+    public init(category: PracticeBacktranslationReviewFailureCategory) {
+        self.category = category
+    }
+}

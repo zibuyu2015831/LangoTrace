@@ -74,6 +74,8 @@ struct RequestPreviewCardModel: Equatable {
         case .currentLearningText: localizedString("requestPreview.content.currentLearningText")
         case .selectedReadingPassage: localizedString("requestPreview.content.selectedReadingPassage")
         case .readingContextWindow: localizedString("requestPreview.content.readingContextWindow")
+        case .practiceAttempt: localizedString("requestPreview.content.practiceAttempt")
+        case .backtranslationReferenceSentence: localizedString("requestPreview.content.backtranslationReferenceSentence")
         case .nativeLanguageProfile: localizedString("requestPreview.content.nativeLanguageProfile")
         case .targetLanguageProfile: localizedString("requestPreview.content.targetLanguageProfile")
         case .proficiencyLevel: localizedString("requestPreview.content.proficiencyLevel")
