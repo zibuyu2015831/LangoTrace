@@ -1,6 +1,6 @@
 # 任务方案：同步引擎与 iCloud 首通道基础（Sync Engine + Adapter + CloudKit）（E11）
 
-状态：User Approved（按切片：引擎切片本轮落地 + ADR-013；CloudKit 通道/entitlement 诚实 defer）
+状态：In Progress（引擎切片已落地并 CI 绿 + ADR-007；CloudKit 真实通道/entitlement/变更跟踪 schema 写路径/双设备验证诚实 defer，方案保持 active）
 自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
@@ -329,3 +329,19 @@ scripts/check-docs.sh
 - keep-multiple-versions 缺少解决 UI 时冲突可能累积；Slice C 提供计数与列表保底，解决界面为后续方案。
 - 四类对象之外（reading、AI 配置）暂不同步造成跨设备体验不完整；范围扩展按同步 spec 演进。
 - schema 在 E2 / E4 / E7 后仍变化会触发同步对象版本演进；依赖 PortableSnapshot 的 snapshotVersion 规则兜底。
+
+## 实施记录
+
+2026-06-18（批量 run，引擎切片 + 诚实 defer）：feature/e11-sync-engine 分支落地纯逻辑同步引擎。
+  - 引擎切片（LangoTraceSync，CI-gated）：`SyncRecord`（不透明 payload + revision/updatedAt/isDeleted）、`SyncAdapter` 协议、`SyncConflictResolver`（last-writer-wins）、`SyncEngine.synchronize`（拉取→冲突解决→收敛→推送缺失/落后）、`SyncService` 从空 marker 升级为真实协议（isEnabled + synchronize()，DisabledSyncService 实现 no-op）。测试 6（冲突解决、merge+push、remote-wins、双引擎收敛、tombstone 传播、boundary）。新增 **ADR-007** 同步引擎架构（决策 13 具体化）+ architecture note `2026-06-18-sync-engine-deferred-channel`。
+  - **诚实 defer**（依赖不存在的 iCloud 基础设施 / 需真实设备账号验证），恢复入口见 architecture note：
+    1. 真实 `CloudKitSyncAdapter`（#if canImport(CloudKit) 包裹，不进引擎单测）。
+    2. iOS/macOS iCloud entitlement + container 注册 + project.yml（需付费 Apple Developer iCloud capability；entitlement 改动可能破无签名 CI 构建，须隔离验证）。
+    3. 变更跟踪 schema（v27 sync_metadata + tombstones）+ 各 repository 写路径 revision/tombstone 挂钩 + GRDB `SyncLocalStore`（行↔SyncRecord，payload 复用 E10 Portable snapshot）；device id 入 app_state（不同步）。
+    4. v1 同步对象编码：复用 PortableEntry/MemorySnapshot + 新建 language space 编码；learning material/reading/practice 同步随其 snapshot（E10 deferred）。
+    5. 冲突 keep-multiple-versions（纯逻辑，方案 Slice C）+ SyncSettingsView + 双设备人工验证。
+  本方案因真实通道 + schema 写路径 + 双设备验证 deferred 保持 **In Progress、留 active/**；引擎切片 + ADR-007 已落地并 CI 绿，deferred 段落齐全、有恢复入口。**决策 9/12/13 未反转**（secrets/派生/设备本地永不同步）。
+
+## 完成状态（批量 run）
+
+引擎切片（Sync Engine + Adapter 协议 + 冲突逻辑 + 真实 SyncService 协议 + ADR-007）完成 + CI 绿。完整 E11（真实 iCloud/CloudKit 通道 + entitlement + 变更跟踪写路径 + 双设备验证）未完成——属诚实 defer（iCloud 基础设施/付费 capability/真实账号/多设备在当前环境不存在，无法验证），非「可完成却未完成」。后续以本方案 + ADR-007 + architecture note 为恢复入口。
