@@ -65,6 +65,7 @@ struct LangoTraceApp: App {
                 .environment(\.aiProviderSettingsActions, environment.aiProviderSettingsActions)
                 .environment(\.aiRequestPreviewActions, environment.aiRequestPreviewActions)
                 .environment(\.aiRequestLogActions, environment.aiRequestLogActions)
+                .environment(\.localSearchActions, environment.localSearchActions)
                 .preferredColorScheme(appearancePreference.preferredColorScheme)
             }
         #endif
@@ -127,6 +128,7 @@ struct LangoTraceApp: App {
         .environment(\.photoDisplayActions, environment.photoDisplayActions)
         .environment(\.aiRequestPreviewActions, environment.aiRequestPreviewActions)
         .environment(\.aiRequestLogActions, environment.aiRequestLogActions)
+        .environment(\.localSearchActions, environment.localSearchActions)
         .preferredColorScheme(appearancePreference.preferredColorScheme)
         .task {
             session.restoreLanguageSpace()

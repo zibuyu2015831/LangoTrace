@@ -57,14 +57,14 @@ enum PadFooterAction {
 
 enum PadSheet: Identifiable {
     case entryEditor
-    case unavailableSearch
+    case search
 
     var id: String {
         switch self {
         case .entryEditor:
             "entry-editor"
-        case .unavailableSearch:
-            "unavailable-search"
+        case .search:
+            "search"
         }
     }
 }

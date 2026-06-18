@@ -27,6 +27,7 @@ struct MacMainView: View {
     @State private var selectedEntryID: String?
     @State private var route: MacWorkspaceRoute = .overview
     @State private var isEntryEditorPresented = false
+    @State private var isSearchPresented = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -67,8 +68,7 @@ struct MacMainView: View {
             }
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
-                    selectedSection = .entries
-                    route = .unavailable("search")
+                    isSearchPresented = true
                 } label: {
                     Label {
                         localizedText("common.search")
@@ -99,7 +99,14 @@ struct MacMainView: View {
                 .transition(reduceMotion ? .identity : .opacity)
             }
         }
+        .overlay {
+            if isSearchPresented {
+                searchOverlay
+                    .transition(reduceMotion ? .identity : .opacity)
+            }
+        }
         .animation(panelAnimation, value: isEntryEditorPresented)
+        .animation(panelAnimation, value: isSearchPresented)
         .onAppear {
             contentStore.ensureSeeded()
             selectedEntryID = selectedEntryID ?? contentStore.selectedEntry?.id
@@ -108,8 +115,7 @@ struct MacMainView: View {
             isEntryEditorPresented = true
         }
         .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.search)) { _ in
-            selectedSection = .entries
-            route = .unavailable("search")
+            isSearchPresented = true
         }
         .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.toggleSidebar)) { _ in
             isSidebarVisible.toggle()
@@ -175,6 +181,37 @@ struct MacMainView: View {
         selectedEntryID = entry.id
         contentStore.selectEntry(entry)
         route = .entryDetail(entry.id)
+    }
+
+    private var searchOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.18)
+                .ignoresSafeArea()
+                .onTapGesture { isSearchPresented = false }
+            SearchPaletteView(
+                spaceID: languageSpace.id,
+                onSelect: handleSearchSelection,
+                onClose: { isSearchPresented = false }
+            )
+            .frame(maxWidth: 640)
+            .padding(.top, 80)
+            .frame(maxHeight: .infinity, alignment: .top)
+        }
+    }
+
+    private func handleSearchSelection(_ hit: SearchHit) {
+        isSearchPresented = false
+        switch hit.kind {
+        case .entry:
+            selectedSection = .entries
+            selectedEntryID = hit.objectID
+            route = .entryDetail(hit.objectID)
+        case .readingDocument:
+            selectedSection = .reading
+            route = .overview
+        case .memoryItem:
+            break
+        }
     }
 
     private func routeFooterAction(_ action: MacFooterAction) {
