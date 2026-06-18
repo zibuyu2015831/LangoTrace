@@ -35,7 +35,7 @@
 
 > **批量自主执行已编排**（2026-06-18）：E6…LM01 的全部剩余工作项方案，由仓库根目录编排手册 `BATCH-EXECUTION-PLAYBOOK.md` 统一驱动（用户已完全预授权，每方案独立分支 → 本地 merge dev → CI 绿 → 移 done/，不动 main，AI 自审后重排顺序）；`/goal` 指令见根目录 `BATCH-EXECUTION-GOAL.md`。本仪表盘仍为进度事实源，run 级游标见 Playbook §9。
 
-> **当前指针**：E12 `docs/plans/active/2026-06-11-15-feature-settings-status-projection.md`（设置真实状态投影；系列最后一份，本轮实现中）。**LM01（学习者模型边界 + Ability 知识覆盖）已于 2026-06-18 落地并 CI 全绿**（run `27749945215`，已移入 done/）：新独立包 LangoTraceLearnerModel + compute-on-read 覆盖聚合，无 migration。**E11（同步引擎）引擎切片已于 2026-06-18 落地并 CI 全绿**（run `27749378002`）：Sync Engine + Adapter 协议 + 冲突解决器 + 真实 SyncService 协议 + **ADR-007**；CloudKit 真实通道 / entitlement / 变更跟踪 schema 写路径 / 双设备验证诚实 defer，E11 保持 In Progress/active。**E10（导入导出）Slice 1 已于 2026-06-18 落地并 CI 全绿**（run `27748408455`）：非敏感主数据导出/导入引擎（manifest + SHA-256 + verify-before-write 同 id skip）；Slice 2（macOS 文件面板/附件打包）+ 加密备份诚实 defer，E10 保持 In Progress/active。
+> **当前指针**：**系列收尾**。批量 run 的 9 份工作项方案已全部处置——**E6 / E5（S1+S2）/ E9 / E7 / E8 / LM01 / E12 已实现 + CI 全绿并移入 `done/`**；**E10 Slice 1 与 E11 引擎切片已落地 + CI 全绿，因依赖不存在的基础设施（加密 KDF/安全存储；iCloud container/付费 capability/真实账号/多设备）诚实 defer，保持 In Progress 留 `active/`**，恢复入口见各自 architecture note。E12（设置真实状态投影，run `27752466241`）为最后一份。详见 Playbook §9「整批结束」。：Sync Engine + Adapter 协议 + 冲突解决器 + 真实 SyncService 协议 + **ADR-007**；CloudKit 真实通道 / entitlement / 变更跟踪 schema 写路径 / 双设备验证诚实 defer，E11 保持 In Progress/active。**E10（导入导出）Slice 1 已于 2026-06-18 落地并 CI 全绿**（run `27748408455`）：非敏感主数据导出/导入引擎（manifest + SHA-256 + verify-before-write 同 id skip）；Slice 2（macOS 文件面板/附件打包）+ 加密备份诚实 defer，E10 保持 In Progress/active。
 >
 > _历史指针_：E10 `docs/plans/active/2026-06-11-13-feature-import-export-backup.md`。**E8（记忆复习队列）已于 2026-06-18 落地并 CI 全绿**（run `27747133409`，已移入 done/）：Core 固定间隔调度器 + repository 复习方法 + iPhone 统计条/复习会话；无新 migration。
 >
@@ -70,7 +70,7 @@
 | 12 | E9 | `2026-06-11-12-feature-local-fts-search` | 本地 FTS 全文搜索 | ✅ **Implemented**（2026-06-18 CI run `27742853935` Build & Test 全绿，已移入 done/） |
 | 13 | E10 | `2026-06-11-13-feature-import-export-backup` | 导入导出与可恢复备份包 | 🟡 **In Progress**（Slice 1 非敏感导出/导入引擎 2026-06-18 CI run `27748408455` 全绿；Slice 2 macOS 文件面板/附件打包 + 加密备份 + 其余主数据表诚实 defer，方案保持 active） |
 | 14 | E11 | `2026-06-11-14-feature-sync-engine-icloud-foundation` | 同步引擎 + iCloud 首通道 | 🟡 **In Progress**（引擎切片：Sync Engine + Adapter 协议 + 冲突解决器 + 真实 SyncService 协议 + ADR-007，2026-06-18 CI run `27749378002` 全绿；CloudKit 真实通道 / entitlement / 变更跟踪 schema 写路径 / 双设备验证诚实 defer，方案保持 active） |
-| 15 | E12 | `2026-06-11-15-feature-settings-status-projection` | 设置真实状态投影 | ⚪ Draft |
+| 15 | E12 | `2026-06-11-15-feature-settings-status-projection` | 设置真实状态投影 | ✅ **Implemented**（2026-06-18 CI run `27752466241` Build & Test 全绿，已移入 done/；设置行值投影 + UIV-08 硬编码清零；sync 行真实通道接线 deferred） |
 | — | LM01 | `2026-06-15-01-feature-learner-model-boundary-and-ability-coverage` | 学习者模型边界 + Ability 覆盖 | ✅ **Implemented**（2026-06-18 CI run `27749945215` Build & Test 全绿，已移入 done/；新独立包 LangoTraceLearnerModel + 知识覆盖 compute-on-read，无 migration） |
 | — | — | `2026-06-15-chore-prototype-large-screen-density-and-state-coverage` | 原型大屏密度 + 状态原型补全 | ✅ **Verified**（2026-06-16 截图验收通过，已移入 done/） |
 | — | infra | `2026-06-17-bug-build-errors-xcodegen-import-exhaustive-switch` | XcodeGen 注册 + import + exhaustive switch 构建修复 | ✅ **Verified**（2026-06-17 已修复，已移入 done/） |
@@ -80,6 +80,7 @@
 
 - 01–15 是 2026-06-11 全量代码审查派生的连号实施系列；E 编码与处置见主控文档附录 A。
 - 后两份为 2026-06-15 新增：LM01 已落地并 CI 绿（独立包 LangoTraceLearnerModel + Ability 知识覆盖 compute-on-read），已移入 done/；原型收尾已实现并自审核 Reviewed，仅差归档。
+- **批量 run（2026-06-18）已收尾**：01–15 + LM01 系列里，E6 / E5（S1+S2）/ E9 / E7 / E8 / LM01 / E12 全部 Implemented + CI 绿并移入 done/；E10（Slice 1）与 E11（引擎切片）已落地 + CI 绿，但因依赖不存在的基础设施（加密 KDF/安全存储；iCloud container/付费 capability/真实账号/多设备）诚实 defer，保持 In Progress 留 active/，恢复入口见各自 architecture note。
 
 ## plan 01（E0a）Phase 级子进度
 

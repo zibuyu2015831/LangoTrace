@@ -1,6 +1,6 @@
 # 任务方案：设置真实状态投影（行值、AI / 同步状态与本地数据占用）（E12）
 
-状态：User Approved（批量 run 预授权；E6/E11 前置已落地，sync 行如实降级为「未启用」）
+状态：Implemented（2026-06-18 批量 run；CI run `27752466241` Build & Test 全绿，已移入 done/）
 自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离子代理用当前 HEAD 复核漂移，结论见下）
 类型：feature
 创建日期：2026-06-11
@@ -266,6 +266,11 @@ scripts/check-docs.sh
   - **Slice A（Core + Data）**：Core `SettingsProjectionModels`——`AIProviderListStatus`（notConfigured/configured/missingKey/partiallyAvailable，纯函数 `make(from: AIProviderConfigurationProfile?)` 从非敏感快照派生 + `footerStatus` 映射进 4 例 footer 枚举 + `localizedValueKey`）、`SyncListStatus`（从 `isEnabled` 派生）、`LocalDataUsage`、`SettingsStatusProjection`。Data `SettingsCapabilityProjectionService`（仅依赖 `AIProviderConfigurationRepository`，**编译期零 Keychain**——不引用 credential store）+ `LocalDataUsageService`（DB + -wal/-shm + MediaArtifacts 体积，缺路径计 0）。测试：Core 派生（含 footer 映射 + 红线结构）、Data 经真实 GRDB repo（configured/missingKey/empty）+ usage service 临时目录。
   - **Slice B（UI + App）**：`LearningContentStore` 新增 `@Published settingsStatus` + 注入 `loadSettingsStatus` 闭包 + `refreshSettingsStatus()`（后台计算，渲染读缓存）。App `AppEnvironment.loadSettingsStatus` 由 config repo + `syncService.isEnabled`（DisabledSyncService→未启用）+ usage service 装配；经 `LangoTraceRootView`→`PlatformMainView`→store，以及 macOS Settings scene 的 `@State` + `.task` 注入。`CapabilityStatusRow` 加 trailing 值槽（builder `.trailingValue(_:)`，零改既有 init）。设置主列表（iPhone `SettingsView`、iPad/mac `LangoTraceSettingsSceneView`）行尾显示真实值（界面语言/外观/AI/同步/本地数据体积）；**UIV-08** 修复——`PadMainSections`/`MacMainView` footer 与 `PadLearningPanelView` AI/sync 行改投影驱动，移除 `.notConfigured`/`.off`/`.ready`/`.unavailable` 硬编码。新增本地化 key（en+zh-Hans，措辞避开禁用词）。测试：UI 行值解析/投影→能力色调映射/UIV-08 源码回归 + Core/Data 切片测试；本地 `ThreePlatformPresentationCopy`/`PremiumUIBehavior` 守卫全绿（UI 515 / Core 233 / Data 236 本地通过）。
   - 漂移修正（对照实现前复核）：`AIProviderProfileStatus` 6 例（含 `.draft`，draft→notConfigured）；凭证存在性来自 `ai_provider_credentials.secret_presence`（非 endpoint summary），渲染零 Keychain 由「投影只依赖 SQLite repo」结构性保证；无 migration（复用现列）；`AIProviderStatus`/`SyncProviderStatus` 在 Core `PrivacyStatus.swift`，投影经 `footerStatus` 映射；UI 不依赖 Sync，sync 值由 App 桥接 `isEnabled`。
+  - CI：合并 dev `merge(E12): ... [ci]`（commit `46df14a`），首跑 iOS build 失败（`SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot()` 抛错未 `try`）；修复（commit `f261f67`：在非逃逸初始化闭包内 `try?` 解析 DB URL + media root，usage service 成 `let` 供 @Sendable 闭包安全捕获）后 **CI run `27752466241` Build & Test 全绿**（三端构建 + macOS app 测试 + lint + docs）。
+
+## 完成状态（批量 run）
+
+第 3 节目标 1–6 全部落地（投影解耦、AI 行值、sync 行值、本地数据体积、界面/外观行值、UIV-08 硬编码清零）并有代码 + 测试 + CI 证据；本地化 key（en+zh-Hans）通过 `ThreePlatformPresentationCopy`/`PremiumUIBehaviorTests` 守卫；CI run `27752466241` 三端构建 + macOS 测试全绿。属**可完成且已完成**，移入 `docs/plans/done/`。sync 行值在 E11 真实通道落地后接 `SyncStatusProjection` 的二次接线为 deferred 入口（当前 `isEnabled` 降级如实成立，已在剩余风险记录）。
 
 ## 19. 完成标准
 

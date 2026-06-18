@@ -166,11 +166,11 @@ LM01                    （学习者模型边界：相对基础，但 Draft；�
 ## 9. 当前 run 状态（每次推进同步更新）
 
 - 排定顺序（自审核后定稿）：**E6 → E5 Slice2 → E9 → E7 → E8 → E10 → E11 → LM01 → E12**（采纳 §7 建议顺序；E6 解锁 E5 Slice2 与 E12 的 AI 状态源；E9 相对独立可早做；E7→E8 记忆链；E10→E11 导出先于同步；E12 依赖最多子系统放最后）。每份方案进入前的隔离自审核可微调其后续顺序，调整记入本节。
-- 当前方案：**E12**（`docs/plans/active/2026-06-11-15-feature-settings-status-projection.md`）— 设置真实状态投影；系列**最后一份**。实现前隔离漂移复核已完成（见下「E12 漂移复核结论」）。
-- 当前 Phase：E12 实现前（E6 + E5S2 + E9 + E7 + E8 + LM01 已收口；E10 Slice 1 + E11 引擎切片已落地 CI 绿、In Progress 留 active 诚实 defer）
-- 最后 commit：（待 E12）；上一份 LM01 merge `10524ed` + docs `56b3e5f`
-- 最后 CI run：LM01 `27749945215`（绿）；上一绿 E11 `27749378002`
-- 已收口（移入 done/）：**E6**（`27738605916`）、**E5（S1+S2）**（`27741263024`）、**E9**（`27742853935`）、**E7**（`27745572810`）、**E8**（`27747133409`）、**LM01**（`27749945215`）
+- **当前方案：整批结束（无下一份）。** 第 8 节停止条件已满足——全部 9 份工作项方案均已处置（7 完成 + CI 绿移 done/；2 诚实 defer 留 active/）。
+- 当前 Phase：**收尾**。E6 + E5S2 + E9 + E7 + E8 + LM01 + E12 已收口；E10 Slice 1 + E11 引擎切片已落地 CI 绿、In Progress 留 active 诚实 defer。
+- 最后 commit：E12 merge `46df14a` + CI fix `f261f67`（dev，`[ci]`）
+- 最后 CI run：**E12 `27752466241`（绿）**；上一绿 LM01 `27749945215`
+- 已收口（移入 done/）：**E6**（`27738605916`）、**E5（S1+S2）**（`27741263024`）、**E9**（`27742853935`）、**E7**（`27745572810`）、**E8**（`27747133409`）、**LM01**（`27749945215`）、**E12**（`27752466241`）
 - In Progress 诚实 defer（留 active/，已落地部分 CI 绿）：**E10 Slice 1**（`27748408455`；defer macOS 文件面板/附件打包 + 加密备份 + 其余主数据表，见 architecture note `2026-06-18-export-backup-deferred-slices`）；**E11 引擎切片**（`27749378002`；defer CloudKit 真实通道 + entitlement + v27 变更跟踪 schema 写路径 + 双设备验证，见 architecture note `2026-06-18-sync-engine-deferred-channel` + ADR-007）
 - deferred / 待裁决项：E7 reading-来源沉淀 + 增量索引（后续优化）；E8 iPad/mac 复习入口（seam/view 已可复用，后续小项）。**LM01**：账本/cursor 增量聚合 + band/盲点/分技能 + 练习评分信号 + 三层 Memory/Style + 总览页 UI 全部留 LM02/LM03（v1 仅 Ability 知识覆盖 compute-on-read，有意范围）。
 - 关键漂移基线（E11 实际落地）：引擎切片 = 纯逻辑 SyncEngine + SyncAdapter 协议 + SyncConflictResolver(last-writer-wins) + SyncRecord + SyncService 升真实协议（DisabledSyncService no-op）+ ADR-007；**比自审核 Slice A 更窄**——v27 change-tracking schema（sync_metadata + tombstones）+ repository 写路径 revision/tombstone 挂钩与 CloudKit 通道**一并 defer**（它们只被真实 adapter 驱动，无通道时落地即「建了不读」，恢复入口见 architecture note `2026-06-18-sync-engine-deferred-channel` + ADR-007 §7）。
