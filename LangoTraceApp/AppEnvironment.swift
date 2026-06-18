@@ -951,7 +951,7 @@ private func recordLearningMaterialFailure(
     )
 }
 
-private extension AIProviderConfigurationProfile {
+extension AIProviderConfigurationProfile {
     var textGenerationEndpointInput: AIProviderEndpointInput? {
         endpoints.first { endpoint in
             endpoint.purpose == .textGeneration && endpoint.isEnabled
