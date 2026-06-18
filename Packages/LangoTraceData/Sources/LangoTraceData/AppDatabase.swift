@@ -117,6 +117,9 @@ private extension AppDatabase {
         migrator.registerMigration("v25_create_local_search_index") { db in
             try createLocalSearchIndexInfrastructure(db)
         }
+        migrator.registerMigration("v26_create_memory_item_infrastructure") { db in
+            try createMemoryItemInfrastructure(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
