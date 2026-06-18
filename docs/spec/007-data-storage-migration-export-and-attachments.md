@@ -202,3 +202,12 @@ E8 在 E7 `memory_items`（v26）的 review 列上落地本地固定间隔复习
 - `MemoryItemRepository` 扩展：`dueItems`（state IN new/scheduled 且 due<=now，new 视为立即可复习）、`recordReviewOutcome`（单事务读→scheduler→写回并自增 review_count）、`markMastered`/`resumeReview`、`memoryStatistics`（本周沉淀按 `created_at` 落在本地周一起始当周，在 Swift 用 Calendar 派生而非 SQL；待复习；已掌握）。
 - UI：三端记忆面顶部统计条（本周沉淀/待复习/已掌握）+「开始复习」入口；共享 `MemoryReviewSessionView` 小批量（默认 10）复习会话：目标文本先行→看释义→记得/还要再看→标记已掌握，中途退出安全（已提交反馈已落库，未复习项留队列）。
 - 边界：全程本地、不发外部请求、不建向量/检索（守核心决策 12 + embedding 红线），低压力文案不暴露算法概念。复习数据是主数据；同步/导出留 E10/E11。
+
+## 变更记录补充：非敏感导出/导入引擎落地（E10 Slice 1，2026-06-18）
+
+E10 Slice 1 落地本地非敏感导出/导入引擎（无新 migration，导出只读、导入走 INSERT OR IGNORE 同 id skip）：
+
+- Core `ImportExport`：`PortableEntrySnapshot`/`PortableMemorySnapshot`/`ExportManifest`/`PortableExportPackage` + 确定性 SHA-256 payload checksum（按 id 排序，与行序无关）+ `formatVersion` 兼容门。
+- Data `GRDBLocalExportService`：`exportPackage(spaceID:)`/`exportPackageData` 导出 entries + deposited memory_items（用户主数据）；`preview`/`importPackage` verify-before-write（先校验 formatVersion ≤ 当前 + checksum，再同 id skip 合并）。明文开放格式，**无加密**——secrets 是排除而非保护（核心决策 9）；manifest schemaVersion 记 `v26`（informational）。
+- 排除保证（有测试断言导出 JSON 不含 keychain/secret/api_key）：凭证/Keychain 列、provider/TTS 配置、ai_request_logs 与 operation 摘要、search_index/向量/cache/tts artifacts 派生、app_state 设备本地。
+- **deferred**（见 `docs/architecture/notes/2026-06-18-export-backup-deferred-slices.md`）：Slice 2（macOS `fileExporter`/`fileImporter` + entitlement + 附件文件打包，需 macOS runner 验证）、加密/口令备份包（依赖不存在的 KDF/安全存储）、其余主数据表（learning materials/reading/practice）导出。引擎格式已证明，扩展为机械工作。
