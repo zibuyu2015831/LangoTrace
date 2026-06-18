@@ -1,6 +1,6 @@
 # 任务方案：记忆沉淀基础（memory_items 主数据与三端只读沉淀列表）（E7）
 
-状态：User Approved
+状态：Implemented（待 CI 收尾补 run id）
 自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
@@ -327,3 +327,15 @@ scripts/check-docs.sh
 - candidate 被重新分析替换后，已沉淀项的 `source_candidate_id` 会悬挂；快照语义保证显示不受影响，但去重键对"同一文本再次沉淀"不生效，可能出现近似重复项；后续记忆管理方案处理合并。
 - 词典能力交叉（2026-05-25 备忘录）未纳入，未来词句沉淀与词典条目的关系需要独立方案。
 - 本环境（Linux）无法做模拟器人工验证，三端视觉与导航行为需 macOS 环境补验。
+
+## 实施记录
+
+2026-06-18（批量 run 落地）：feature/e7-memory-deposit 分支按 TDD 落地，本机轻量验证 + CI 重验证。
+  - Phase A（Core+Data，CI-gated）：Core `DepositedMemoryItem`/`MemoryItemKind`(5→2 映射)/`MemoryReviewState`/`MemoryItemSourceKind`/`MemoryDepositInput`/`MemoryItemRepository`/`PracticeBacktranslation`无关；`v26_create_memory_item_infrastructure`（sibling 文件 `AppDatabaseMemoryMigration`，含 E8 review 列 + 候选去重 partial unique index + entry ON DELETE SET NULL）；`GRDBMemoryItemRepository`（幂等 deposit/depositCandidate、list、softDelete、depositedCandidateIDs/depositedEntryIDs）。测试 8（schema、幂等、候选解析沉淀、kind 映射、projections、软删）。解锁 E8 + E9 记忆搜索组。
+  - Phase B（UI+App）：`MemoryDepositActions` env seam + App Shell 装配 `GRDBMemoryItemRepository`；iPhone `MemoryView` 已沉淀列表 + 候选「加入记忆/已加入」动作；iPad/macOS 记忆面只读沉淀列表；`EntryTimelineFilter.settled` 真实判定（hasDepositedMemory，默认 false），settled chip 在 Phone/Pad 取消隐藏并 threaded depositedEntryIDs（含 iPad 侧栏计数）；本地化 en/zh-Hans。全 UI 套件 504 绿。
+  - 文档：spec 007 变更记录、platform-inventory、learning-content impl（沉淀来源）。
+
+scope 决策（留痕）：
+- 沉淀来源 v1 仅候选（source_kind='candidate'）；reading-selection 来源沉淀因缺幂等键 deferred（自审核 P1-3，写入后续：reading 选区身份键确定后补 partial unique index）。
+- 沉淀动作入口 v1 在 iPhone 记忆 Tab 候选行；iPad/macOS 记忆面为只读沉淀列表（动作入口后续可补，read-only 列表已满足「三端只读沉淀列表」）。
+- E9 记忆搜索组按写路径接入 `memory_items` 索引为后续优化（当前 E9 记忆组零态降级仍成立）。

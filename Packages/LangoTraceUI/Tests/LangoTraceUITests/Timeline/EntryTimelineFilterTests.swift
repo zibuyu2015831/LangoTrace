@@ -57,6 +57,23 @@ struct EntryTimelineFilterTests {
         #expect(!EntryTimelineFilter.photo.includes(entry: typed, hasMaterialWithoutRecording: false, hasPhotoAttachment: false))
     }
 
+    // MARK: - settled (E7 memory deposit)
+
+    @Test("settled requires the entry to have at least one deposited memory item")
+    func settledRequiresDepositedMemory() {
+        let entry = makeEntry()
+        #expect(EntryTimelineFilter.settled.includes(
+            entry: entry, hasMaterialWithoutRecording: false, hasPhotoAttachment: false, hasDepositedMemory: true
+        ))
+        #expect(!EntryTimelineFilter.settled.includes(
+            entry: entry, hasMaterialWithoutRecording: false, hasPhotoAttachment: false, hasDepositedMemory: false
+        ))
+        // Default (no deposited-memory info) is not settled.
+        #expect(!EntryTimelineFilter.settled.includes(
+            entry: entry, hasMaterialWithoutRecording: true, hasPhotoAttachment: true
+        ))
+    }
+
     // MARK: - needsPractice
 
     @Test("needsPractice requires hasMaterialWithoutRecording to be true")
