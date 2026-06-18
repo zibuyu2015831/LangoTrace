@@ -132,6 +132,51 @@ public extension ReadingSelectionExplanationServiceRequest {
     }
 }
 
+public extension PracticeBacktranslationReviewServiceRequest {
+    /// Projection for a back-translation critique request — fills the reserved
+    /// `practiceBacktranslationReview` capability (系列 E5 Slice 2 / E6 seam).
+    func previewProjection() -> AIRequestPreviewProjection {
+        AIRequestPreviewProjection(
+            capability: .practiceBacktranslationReview,
+            providerPresetID: endpoint.providerPresetID,
+            modelName: endpoint.modelName,
+            promptID: PracticeBacktranslationReviewPromptRegistry.promptID,
+            promptVersion: PracticeBacktranslationReviewPromptRegistry.promptVersion,
+            lengthBucket: AIRequestLengthBucket(characterCount: reviewCharacterCount),
+            includedContent: [
+                .practiceAttempt,
+                .backtranslationReferenceSentence,
+                .nativeLanguageProfile,
+                .targetLanguageProfile,
+                .proficiencyLevel,
+            ],
+            excludedContent: alwaysExcludedContent
+        )
+    }
+
+    func makeLogEntry(id: String, outcome: AIRequestLogOutcome, createdAt: Date) -> AIRequestLogEntry {
+        AIRequestLogEntry(
+            id: id,
+            operationID: DiagnosticOperationID(rawValue: id),
+            capability: .practiceBacktranslationReview,
+            providerPresetID: endpoint.providerPresetID,
+            endpointPurpose: endpoint.purpose,
+            adapterKind: endpoint.adapterKind,
+            modelName: endpoint.modelName,
+            promptID: PracticeBacktranslationReviewPromptRegistry.promptID,
+            promptVersion: PracticeBacktranslationReviewPromptRegistry.promptVersion,
+            inputLengthBucket: AIRequestLengthBucket(characterCount: reviewCharacterCount),
+            status: outcome.status,
+            failureBucket: outcome.failureBucket,
+            createdAt: createdAt
+        )
+    }
+
+    private var reviewCharacterCount: Int {
+        input.nativeSentence.count + input.userAttempt.count + input.referenceSentence.count
+    }
+}
+
 /// Shared learning-material metadata for building a log row from either the
 /// generation or analysis request without a long parameter list.
 private struct LearningMaterialLogContext {
