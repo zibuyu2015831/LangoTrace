@@ -38,7 +38,7 @@ struct PadMainView: View {
                 isLearningPanelVisible: isLearningPanelVisible,
                 onToggleTimeline: { isTimelineVisible.toggle() },
                 onToggleLearningPanel: { isLearningPanelVisible.toggle() },
-                onSearch: { presentedSheet = .unavailableSearch },
+                onSearch: { presentedSheet = .search },
                 onNewEntry: { presentedSheet = .entryEditor }
             )
             Divider()
@@ -101,10 +101,18 @@ struct PadMainView: View {
                     setRoute(.entryDetail(entry.id))
                     presentedSheet = nil
                 }
-            case .unavailableSearch:
-                UnavailableCapabilityView(content: .search) {
-                    presentedSheet = nil
-                }
+            case .search:
+                SearchPaletteView(
+                    spaceID: languageSpace.id,
+                    onSelect: { hit in
+                        presentedSheet = nil
+                        if hit.kind == .entry {
+                            selectedEntryID = hit.objectID
+                            setRoute(.entryDetail(hit.objectID))
+                        }
+                    },
+                    onClose: { presentedSheet = nil }
+                )
             }
         }
         .onAppear {

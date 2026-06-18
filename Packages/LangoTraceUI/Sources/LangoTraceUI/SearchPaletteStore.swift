@@ -2,7 +2,7 @@ import Foundation
 import LangoTraceCore
 import SwiftUI
 
-/// Local search seam injected from App Shell (系列 E9). Pure local — backed by
+/// Local search seam injected from App Shell (E9). Pure local — backed by
 /// `GRDBLocalSearchRepository`. `rebuildIndex` repopulates the FTS index from
 /// main data; the palette calls it on open so results are fresh without
 /// per-write index maintenance in v1.
@@ -41,7 +41,7 @@ final class SearchPaletteStore: ObservableObject {
     @Published private(set) var selectedHitID: String?
 
     private let spaceID: String
-    private let actions: LocalSearchActions
+    private var actions: LocalSearchActions
     private let perGroupLimit: Int
     private let debounceMilliseconds: Int
     private var searchTask: Task<Void, Never>?
@@ -72,6 +72,12 @@ final class SearchPaletteStore: ObservableObject {
         !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !isSearching
             && results.isEmpty
+    }
+
+    /// Swaps in the environment-injected actions (the store is created with
+    /// `.disabled` before the SwiftUI environment is available).
+    func reconnect(_ actions: LocalSearchActions) {
+        self.actions = actions
     }
 
     /// Rebuilds the index on open so the palette reflects current content.

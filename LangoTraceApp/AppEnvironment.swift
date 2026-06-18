@@ -25,6 +25,7 @@ struct AppEnvironment {
     let aiProviderSettingsActions: AIProviderSettingsActions
     let aiRequestPreviewActions: AIRequestPreviewActions
     let aiRequestLogActions: AIRequestLogActions
+    let localSearchActions: LocalSearchActions
     let syncService: any SyncService
 
     // AppEnvironment assembles the cross-package production graph in one place.
@@ -157,6 +158,21 @@ struct AppEnvironment {
             return await (try? repository.recentAll(limit: 100)) ?? []
         }
 
+        // E9: local FTS search (rebuildable derived data; rebuild-on-open).
+        let localSearchRepository: (any LocalSearchRepository)? =
+            (try? databaseFactory.database()).map { GRDBLocalSearchRepository(database: $0) }
+        let localSearchActions = LocalSearchActions(
+            search: { query, spaceID in
+                guard let localSearchRepository else { return .empty(query: query) }
+                return await (try? localSearchRepository.search(query: query, spaceID: spaceID, perGroupLimit: 5))
+                    ?? .empty(query: query)
+            },
+            rebuildIndex: { spaceID in
+                guard let localSearchRepository else { return }
+                try? await localSearchRepository.rebuildSearchIndex(spaceID: spaceID)
+            }
+        )
+
         return AppEnvironment(
             makeLanguageSpaceRepository: {
                 try GRDBLanguageSpaceRepository(
@@ -274,6 +290,7 @@ struct AppEnvironment {
             ),
             aiRequestPreviewActions: aiRequestPreviewActions,
             aiRequestLogActions: aiRequestLogActions,
+            localSearchActions: localSearchActions,
             syncService: DisabledSyncService()
         )
     }
