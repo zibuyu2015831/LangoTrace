@@ -3202,6 +3202,278 @@
         }
       }
     },
+    "entry.detail.collapse": {
+      "comment": "Button that collapses a long entry detail text card back to its preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收起"
+          }
+        }
+      }
+    },
+    "entry.detail.expand": {
+      "comment": "Button that expands a collapsed entry detail text card to show the full text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show full text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "展开全文"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerateMenu": {
+      "comment": "Accessibility label / title for the learning material regenerate menu.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regenerate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新生成"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerateMenu.translate": {
+      "comment": "Menu item: re-translate the learning material from the native record.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Re-translate from record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新翻译（按中文记录）"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerateMenu.reanalyze": {
+      "comment": "Menu item: re-explain (re-analyze) the current target text into sentences.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Re-explain current text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新讲解（当前英文）"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerate.confirmTitle": {
+      "comment": "Confirmation dialog title before overwriting learning material via regenerate/reanalyze.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace current content?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换当前内容？"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerate.confirmMessage": {
+      "comment": "Confirmation dialog message explaining regenerate overwrites edits and runs an AI request.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This overwrites the current expression and any manual edits, and runs an AI request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会覆盖当前的英文表达和你的手动修改，并发起一次 AI 请求。"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerate.confirm": {
+      "comment": "Confirmation dialog confirm button that overwrites learning material.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换"
+          }
+        }
+      }
+    },
+    "entry.reading.title": {
+      "comment": "Navigation title for the bilingual immersive reading page.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双语阅读"
+          }
+        }
+      }
+    },
+    "entry.reading.open": {
+      "comment": "Accessibility label for opening the bilingual reading page from the entry detail.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read full text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阅读全文"
+          }
+        }
+      }
+    },
+    "entry.reading.fontSize.decrease": {
+      "comment": "Accessibility label for decreasing the reading font size.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decrease text size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缩小字号"
+          }
+        }
+      }
+    },
+    "entry.reading.fontSize.increase": {
+      "comment": "Accessibility label for increasing the reading font size.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Increase text size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放大字号"
+          }
+        }
+      }
+    },
+    "entry.reading.reveal.hint": {
+      "comment": "Accessibility hint telling the user a tap reveals the native translation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to show the translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点按显示译文"
+          }
+        }
+      }
+    },
+    "entry.reading.empty": {
+      "comment": "Shown on the reading page when there is no learning material to read yet.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No learning material to read yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有可阅读的学习材料。"
+          }
+        }
+      }
+    },
+    "entry.reading.playAll": {
+      "comment": "Accessibility label for starting continuous read-aloud of the whole passage.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play all"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连续播放"
+          }
+        }
+      }
+    },
+    "entry.reading.playAll.stop": {
+      "comment": "Accessibility label for stopping continuous read-aloud.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop playback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止播放"
+          }
+        }
+      }
+    },
     "entry.detail.sourceText.editFallbackTitle": {
       "comment": "Entry detail source text editor sheet fallback title.",
       "localizations": {

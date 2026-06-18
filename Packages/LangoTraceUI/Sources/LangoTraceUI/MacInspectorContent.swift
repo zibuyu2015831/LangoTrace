@@ -17,7 +17,7 @@ struct MacInspectorContent: View {
     @ViewBuilder
     private var content: some View {
         switch route {
-        case let .entryDetail(entryID):
+        case let .entryDetail(entryID), let .bilingualReading(entryID):
             if let entry = entries.first(where: { $0.id == entryID }) {
                 TextPanel(
                     title: localizedString("mac.inspector.entryMetadata.title"),

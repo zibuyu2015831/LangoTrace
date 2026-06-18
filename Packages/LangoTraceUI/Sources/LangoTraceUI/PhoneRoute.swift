@@ -2,6 +2,7 @@ import LangoTraceData
 
 enum PhoneRoute: Hashable {
     case entryDetail(String)
+    case bilingualReading(String)
     case readingDocument(String)
     case practiceSentenceList(String)
     case practiceSentence(PracticeSessionRouteSeed)

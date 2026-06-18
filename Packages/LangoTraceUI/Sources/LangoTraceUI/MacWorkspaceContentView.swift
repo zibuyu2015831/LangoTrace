@@ -44,6 +44,8 @@ struct MacWorkspaceContentView: View {
             overviewContent
         case let .entryDetail(entryID):
             entryDetail(entryID: entryID)
+        case let .bilingualReading(entryID):
+            bilingualReading(entryID: entryID)
         case .reading:
             ReadingLibraryView(
                 platform: .mac,
@@ -262,8 +264,26 @@ struct MacWorkspaceContentView: View {
             entryID: entry.id,
             contentStore: contentStore,
             titlePresentation: .embeddedHeader,
-            onPracticeSentence: { onRoute(.practiceSentence($0)) }
+            onPracticeSentence: { onRoute(.practiceSentence($0)) },
+            onOpenReading: { onRoute(.bilingualReading($0)) }
         )
+    }
+
+    @ViewBuilder
+    private func bilingualReading(entryID: String) -> some View {
+        if let entry = entries.first(where: { $0.id == entryID }) {
+            EntryReadingStoreView(
+                languageSpace: languageSpace,
+                entryID: entry.id,
+                contentStore: contentStore
+            )
+        } else {
+            LocalizedCompactPanel(
+                titleKey: "mac.entryMissing.title",
+                textKey: "mac.entryMissing.body",
+                systemImage: "exclamationmark.circle"
+            )
+        }
     }
 
     @ViewBuilder

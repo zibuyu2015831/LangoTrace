@@ -12,6 +12,8 @@ final class LearningContentStore: ObservableObject {
     private let loadSettingsStatus: @Sendable () async -> SettingsStatusProjection
     private var runningOperationsByEntryID: [String: RunningLearningMaterialOperation] = [:]
     private var sentenceAudioPlaybackObservationTasks: [String: Task<Void, Never>] = [:]
+    private var sentenceSequence: SentenceSequencePlayback?
+    private var sentenceSequenceContext: SentenceSequenceContext?
 
     @Published private(set) var entries: [LearningEntry] = []
     @Published private(set) var selectedEntry: LearningEntry?
@@ -19,6 +21,9 @@ final class LearningContentStore: ObservableObject {
     @Published private(set) var settingsCapabilities: [SettingsCapability] = []
     @Published private(set) var generationStates: [String: LearningMaterialGenerationState] = [:]
     @Published private(set) var sentenceAudioPlaybackStates: [String: SentenceAudioPresentationState] = [:]
+    /// The sentence currently being auto-played in a continuous reading sequence, or nil when
+    /// no sequence is running. Drives the reading page's "now playing" highlight.
+    @Published private(set) var activeSequenceSentenceID: String?
     /// entryID → hasCompletedRecording; only entries with a current learning material appear here.
     @Published private(set) var practiceReadiness: [String: Bool] = [:]
     /// E12 settings row values (AI / sync / local data). Defaults to the truthful fresh state
@@ -406,6 +411,23 @@ extension LearningContentStore {
         sentenceIndex: Int,
         languageSpace: LanguageSpacePreview
     ) async -> SentenceAudioPresentationState {
+        // An explicit single-sentence tap takes over from any running continuous sequence.
+        cancelSentenceSequenceIfActive()
+        return await performSentenceAudioTap(
+            rendering: rendering,
+            sentence: sentence,
+            sentenceIndex: sentenceIndex,
+            languageSpace: languageSpace
+        )
+    }
+
+    @discardableResult
+    private func performSentenceAudioTap(
+        rendering: LearningRendering,
+        sentence: RenderingSentence,
+        sentenceIndex: Int,
+        languageSpace: LanguageSpacePreview
+    ) async -> SentenceAudioPresentationState {
         let request = SentenceAudioRequest(
             languageSpaceID: languageSpace.id,
             owner: .learningMaterialSentence(materialID: rendering.id, sentenceIndex: sentenceIndex),
@@ -418,6 +440,107 @@ extension LearningContentStore {
         setSentenceAudioPlaybackState(state, for: sentence.id)
         observeSentenceAudioPlaybackState(for: sentence.id, request: request)
         return state
+    }
+
+    /// Start continuous playback of the whole passage from `index`. The store is the sole
+    /// driver of the sequence: it advances only on a sentence's natural completion. Any
+    /// external interruption (single-sentence tap, stop, leaving the page) clears the
+    /// sequence first, so a sentence going idle for those reasons never auto-advances.
+    func playSentenceSequence(
+        rendering: LearningRendering,
+        languageSpace: LanguageSpacePreview,
+        startingAt index: Int = 0
+    ) async {
+        let sentenceIDs = rendering.sentences.map(\.id)
+        guard sentenceIDs.indices.contains(index) else { return }
+        var sequence = SentenceSequencePlayback(totalCount: sentenceIDs.count)
+        let step = sequence.start(at: index)
+        sentenceSequence = sequence
+        sentenceSequenceContext = SentenceSequenceContext(
+            rendering: rendering,
+            languageSpace: languageSpace,
+            sentenceIDs: sentenceIDs
+        )
+        guard case let .play(playIndex) = step else {
+            clearSentenceSequence()
+            return
+        }
+        activeSequenceSentenceID = sentenceIDs[playIndex]
+        await playSequenceSentence(at: playIndex)
+    }
+
+    func stopSentenceSequence() async {
+        clearSentenceSequence()
+        await stopSentenceAudioPlayback()
+    }
+
+    var isSentenceSequenceActive: Bool {
+        sentenceSequence?.isActive ?? false
+    }
+
+    private func playSequenceSentence(at index: Int) async {
+        guard let context = sentenceSequenceContext,
+              context.rendering.sentences.indices.contains(index)
+        else { return }
+        await performSentenceAudioTap(
+            rendering: context.rendering,
+            sentence: context.rendering.sentences[index],
+            sentenceIndex: index,
+            languageSpace: context.languageSpace
+        )
+    }
+
+    private var currentSequenceSentenceID: String? {
+        guard let index = sentenceSequence?.currentIndex,
+              let context = sentenceSequenceContext,
+              context.sentenceIDs.indices.contains(index)
+        else { return nil }
+        return context.sentenceIDs[index]
+    }
+
+    private func clearSentenceSequence() {
+        sentenceSequence = nil
+        sentenceSequenceContext = nil
+        activeSequenceSentenceID = nil
+    }
+
+    private func cancelSentenceSequenceIfActive() {
+        guard sentenceSequence != nil else { return }
+        clearSentenceSequence()
+    }
+
+    private func advanceSentenceSequenceIfNeeded(
+        sentenceID: String,
+        previous: SentenceAudioPresentationState?,
+        current: SentenceAudioPresentationState
+    ) {
+        guard sentenceSequence != nil, currentSequenceSentenceID == sentenceID else { return }
+        switch current {
+        case .idle:
+            // The sequence is the sole driver and external interruptions clear it first, so an
+            // active sentence reaching idle here is a natural completion → advance.
+            guard previous?.activeKey != nil else { return }
+            advanceSentenceSequence()
+        case .failed, .requiresConfiguration:
+            clearSentenceSequence()
+        case .generating, .playing, .paused:
+            break
+        }
+    }
+
+    private func advanceSentenceSequence() {
+        guard var sequence = sentenceSequence else { return }
+        let step = sequence.advanceAfterCompletion()
+        sentenceSequence = sequence
+        switch step {
+        case let .play(index):
+            if let context = sentenceSequenceContext, context.sentenceIDs.indices.contains(index) {
+                activeSequenceSentenceID = context.sentenceIDs[index]
+            }
+            Task { await playSequenceSentence(at: index) }
+        case .finished:
+            clearSentenceSequence()
+        }
     }
 
     func handlePracticeDemoTap(
@@ -469,6 +592,7 @@ extension LearningContentStore {
     }
 
     private func setSentenceAudioPlaybackState(_ state: SentenceAudioPresentationState, for sentenceID: String) {
+        let previous = sentenceAudioPlaybackStates[sentenceID]
         if state.activeKey != nil {
             for existingSentenceID in sentenceAudioPlaybackStates.keys where existingSentenceID != sentenceID {
                 if sentenceAudioPlaybackStates[existingSentenceID]?.activeKey != nil {
@@ -477,7 +601,14 @@ extension LearningContentStore {
             }
         }
         sentenceAudioPlaybackStates[sentenceID] = state
+        advanceSentenceSequenceIfNeeded(sentenceID: sentenceID, previous: previous, current: state)
     }
+}
+
+private struct SentenceSequenceContext {
+    let rendering: LearningRendering
+    let languageSpace: LanguageSpacePreview
+    let sentenceIDs: [String]
 }
 
 private struct RunningLearningMaterialOperation {
