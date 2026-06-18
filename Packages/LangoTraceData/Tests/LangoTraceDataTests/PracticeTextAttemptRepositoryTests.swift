@@ -191,16 +191,21 @@ struct PracticeTextAttemptRepositoryTests {
         #expect(attempt.diffSummaryJSON == nil)
         #expect(attempt.listenCount == 0)
 
-        let stored = try await database.databaseQueue.read { db in
-            try Row.fetchOne(
+        // Extract Sendable values inside the read closure; GRDB's `Row` is not
+        // Sendable and must not cross the async boundary.
+        let stored = try await database.databaseQueue.read { db -> (Int?, String?, Int?) in
+            guard let row = try Row.fetchOne(
                 db,
                 sql: "SELECT diff_difference_count, diff_summary_json, listen_count FROM practice_text_attempts WHERE id = ?",
                 arguments: [attempt.id]
-            )
+            ) else {
+                return (nil, nil, nil)
+            }
+            return (row["diff_difference_count"], row["diff_summary_json"], row["listen_count"])
         }
-        #expect((stored?["diff_difference_count"] as Int?) == nil)
-        #expect((stored?["diff_summary_json"] as String?) == nil)
-        #expect((stored?["listen_count"] as Int?) == 0)
+        #expect(stored.0 == nil)
+        #expect(stored.1 == nil)
+        #expect(stored.2 == 0)
     }
 
     @Test("Backtranslation completed sentences derive from an attempt and stay isolated from other modes")
