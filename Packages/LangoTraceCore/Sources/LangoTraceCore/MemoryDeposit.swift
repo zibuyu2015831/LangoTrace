@@ -166,4 +166,20 @@ public protocol MemoryItemRepository: Sendable {
     /// candidate from storage, then deposits idempotently). Returns nil if the
     /// candidate no longer exists. The UI only knows the candidate id.
     func depositCandidate(candidateID: String, spaceID: String) async throws -> DepositedMemoryItem?
+
+    // MARK: - Review queue (E8)
+
+    /// Items due for review (state `new`/`scheduled`, due now or with no due
+    /// date), oldest-due first, capped at `limit`.
+    func dueItems(spaceID: String, limit: Int, now: Date) async throws -> [DepositedMemoryItem]
+    /// Applies the learner's feedback through `MemoryReviewScheduler` in one
+    /// transaction, advancing the review columns. Returns the updated item (nil
+    /// if missing/soft-deleted).
+    func recordReviewOutcome(id: String, outcome: MemoryReviewOutcome, now: Date) async throws -> DepositedMemoryItem?
+    /// Manually marks an item mastered.
+    func markMastered(id: String, now: Date) async throws
+    /// Resumes review for a mastered item.
+    func resumeReview(id: String, now: Date) async throws
+    /// Low-pressure dashboard counts for a space.
+    func memoryStatistics(spaceID: String, now: Date) async throws -> MemoryStatistics
 }

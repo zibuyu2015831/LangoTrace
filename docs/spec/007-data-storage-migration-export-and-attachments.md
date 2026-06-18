@@ -193,3 +193,12 @@ E7 落地 `memory_items` 作为用户主数据（§3.1.1），归属语言空间
 - `MemoryItemRepository`（Core 协议）+ `GRDBMemoryItemRepository`：幂等 `depositCandidate`（同候选二次沉淀返回既有项）、`listMemoryItems`、`depositedCandidateIDs`/`depositedEntryIDs`、`softDelete`。
 - UI：iPhone/iPad/macOS 记忆面展示只读沉淀列表；iPhone 候选行提供显式「加入记忆/已加入」动作；`EntryTimelineFilter.settled` 由 `depositedEntryIDs` 真实判定（Phone/Pad 时间线与侧栏计数已接线）。
 - 同步/导出：沉淀记忆是主数据，同步（E11）/导出（E10）留对应方案；本切片不含同步/导出。E8 复习队列复用本表 review 列、不新增 migration。E9 记忆搜索组待消费本表（当前仍零态，按写路径接入索引为后续）。
+
+## 变更记录补充：记忆复习队列落地（E8，2026-06-18）
+
+E8 在 E7 `memory_items`（v26）的 review 列上落地本地固定间隔复习，**不新增 migration**：
+
+- Core 纯 `MemoryReviewScheduler`（注入 clock，间隔阶梯 [1,3,7,14,30] 天，状态机 `new→scheduled→(阶梯顶端)mastered`，`还要再看` 重置首鬰、`markMastered`/`resumeReview`）+ `MemoryReviewOutcome`（记得/还要再看）+ `MemoryStatistics`。
+- `MemoryItemRepository` 扩展：`dueItems`（state IN new/scheduled 且 due<=now，new 视为立即可复习）、`recordReviewOutcome`（单事务读→scheduler→写回并自增 review_count）、`markMastered`/`resumeReview`、`memoryStatistics`（本周沉淀按 `created_at` 落在本地周一起始当周，在 Swift 用 Calendar 派生而非 SQL；待复习；已掌握）。
+- UI：三端记忆面顶部统计条（本周沉淀/待复习/已掌握）+「开始复习」入口；共享 `MemoryReviewSessionView` 小批量（默认 10）复习会话：目标文本先行→看释义→记得/还要再看→标记已掌握，中途退出安全（已提交反馈已落库，未复习项留队列）。
+- 边界：全程本地、不发外部请求、不建向量/检索（守核心决策 12 + embedding 红线），低压力文案不暴露算法概念。复习数据是主数据；同步/导出留 E10/E11。

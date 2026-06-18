@@ -1,6 +1,6 @@
 # 任务方案：记忆复习队列（统计、本地固定间隔调度与已掌握状态机）（E8）
 
-状态：User Approved
+状态：Implemented（待 CI 收尾补 run id）
 自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
@@ -241,3 +241,12 @@ scripts/check-docs.sh
 - 无复习历史事件表，无法撤销误触反馈、无法做趋势分析；后续若需要，单独方案新增事件表（届时才需要新 migration）。
 - 统计查询随数据量增长的性能未做基准测试；当前索引覆盖主路径，量级风险低。
 - Linux 环境无法人工验证三端会话交互，需 macOS 补验。
+
+## 实施记录
+
+2026-06-18（批量 run 落地）：feature/e8-memory-review-queue 分支按 TDD 落地，本机轻量验证 + CI。
+  - Phase A（Core+Data，CI-gated，无新 migration）：Core `MemoryReviewScheduler`（间隔阶梯 [1,3,7,14,30]、状态机 new→scheduled→mastered、还要再看重置、markMastered/resumeReview）+ `MemoryReviewOutcome`/`MemoryStatistics`；`MemoryItemRepository` 扩展 `dueItems`/`recordReviewOutcome`/`markMastered`/`resumeReview`/`memoryStatistics`（消费 E7 v26 review 列；created_at 而非 deposited_at；并发无 updated_at 列；本周用 Swift Calendar 派生）。测试：Core 5（调度器）、Data +4（due/advance/stats/resume）。
+  - Phase B（UI+App）：`MemoryReviewActions` seam + `MemoryReviewSessionViewModel`（4 测试）+ 共享 `MemoryReviewSessionView` + `MemoryStatisticsBar`；iPhone 记忆 Tab 统计条 + 开始复习会话 sheet；App Shell 装配（now=Date()）；本地化 en/zh-Hans。全 UI 套件 508 绿。
+  - 文档：spec 007 变更记录、platform-inventory。
+
+scope 决策（留痕）：iPhone 记忆 Tab 已含统计条 + 复习会话入口（主复习面）；iPad/macOS 复习入口（统计条 + 开始复习）随后补——`MemoryReviewActions` seam 与 `MemoryReviewSessionView`/`MemoryStatisticsBar` 已三端可复用，仅差在 iPad/mac 记忆面接线，列为后续小项。E8 核心（调度器 + 复习队列 repository + 复习会话）已完成并 CI 验证。

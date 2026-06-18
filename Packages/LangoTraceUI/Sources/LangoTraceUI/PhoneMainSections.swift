@@ -208,9 +208,12 @@ struct MemoryView: View {
     var onSettingsAction: (() -> Void)?
 
     @Environment(\.memoryDepositActions) private var memoryDepositActions
+    @Environment(\.memoryReviewActions) private var memoryReviewActions
     @State private var deposited: [DepositedMemoryItem] = []
     @State private var depositedCandidateIDs: Set<String> = []
     @State private var depositingCandidateID: String?
+    @State private var statistics: MemoryStatistics = .zero
+    @State private var isReviewing = false
 
     var body: some View {
         PhonePage(
@@ -219,6 +222,7 @@ struct MemoryView: View {
             onLanguageSpaceAction: onLanguageSpaceAction,
             onSettingsAction: onSettingsAction
         ) {
+            MemoryStatisticsBar(statistics: statistics, onStartReview: { isReviewing = true })
             depositedSection
             SectionHeader(titleKey: "phone.memory.personal.title", subtitleKey: "phone.memory.personal.subtitle")
             if memoryItems.isEmpty {
@@ -235,6 +239,9 @@ struct MemoryView: View {
         }
         .task(id: languageSpace.id) {
             await reloadDeposited()
+        }
+        .sheet(isPresented: $isReviewing, onDismiss: { Task { await reloadDeposited() } }) {
+            MemoryReviewSessionView(spaceID: languageSpace.id, onClose: { isReviewing = false })
         }
     }
 
@@ -289,6 +296,45 @@ struct MemoryView: View {
     private func reloadDeposited() async {
         deposited = await memoryDepositActions.listDeposited(languageSpace.id)
         depositedCandidateIDs = await memoryDepositActions.depositedCandidateIDs(languageSpace.id)
+        statistics = await memoryReviewActions.statistics(languageSpace.id)
+    }
+}
+
+/// Shared low-pressure memory dashboard bar (E8): this-week deposited, due, and
+/// mastered counts plus the "start review" entry. Used on all three platforms.
+struct MemoryStatisticsBar: View {
+    let statistics: MemoryStatistics
+    let onStartReview: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 16) {
+                statColumn(titleKey: "memory.stats.deposited", value: statistics.depositedThisWeek)
+                statColumn(titleKey: "memory.stats.due", value: statistics.dueCount)
+                statColumn(titleKey: "memory.stats.mastered", value: statistics.masteredCount)
+            }
+            Button(action: onStartReview) {
+                Label(localizedString("memory.review.start"), systemImage: "play.circle")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(LangoTraceDesign.ColorToken.whiteInk)
+            .background(LangoTraceDesign.ColorToken.accent)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .langoPanel()
+    }
+
+    private func statColumn(titleKey: String, value: Int) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("\(value)")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+            localizedText(titleKey)
+                .font(.caption)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+        }
     }
 }
 

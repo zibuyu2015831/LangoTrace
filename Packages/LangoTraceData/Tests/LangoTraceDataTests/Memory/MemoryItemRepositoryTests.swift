@@ -128,6 +128,52 @@ struct MemoryItemRepositoryTests {
         #expect(result == nil)
     }
 
+    @Test("a freshly deposited item is immediately due for review")
+    func freshDepositIsDue() async throws {
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let repository = try GRDBMemoryItemRepository(database: makeDatabase())
+        let deposited = try await repository.deposit(input())
+        let due = try await repository.dueItems(spaceID: "space-1", limit: 10, now: now)
+        #expect(due.map(\.id) == [deposited.id])
+    }
+
+    @Test("recording 'remembered' advances state out of the immediate due window and bumps the count")
+    func recordRememberedAdvances() async throws {
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let repository = try GRDBMemoryItemRepository(database: makeDatabase())
+        let deposited = try await repository.deposit(input())
+        let updated = try await repository.recordReviewOutcome(id: deposited.id, outcome: .remembered, now: now)
+        #expect(updated?.reviewState == .scheduled)
+        #expect(updated?.reviewCount == 1)
+        #expect(try await repository.dueItems(spaceID: "space-1", limit: 10, now: now).isEmpty)
+    }
+
+    @Test("statistics report deposited-this-week, due and mastered counts")
+    func statistics() async throws {
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let repository = try GRDBMemoryItemRepository(database: makeDatabase(), clock: { now })
+        let a = try await repository.deposit(input(candidateID: "c-a"))
+        _ = try await repository.deposit(input(candidateID: "c-b"))
+        try await repository.markMastered(id: a.id, now: now)
+
+        let stats = try await repository.memoryStatistics(spaceID: "space-1", now: now)
+        #expect(stats.depositedThisWeek == 2)
+        #expect(stats.masteredCount == 1)
+        #expect(stats.dueCount == 1)
+    }
+
+    @Test("resume review brings a mastered item back into the due queue")
+    func resumeReviewRequeues() async throws {
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let repository = try GRDBMemoryItemRepository(database: makeDatabase())
+        let deposited = try await repository.deposit(input())
+        try await repository.markMastered(id: deposited.id, now: now)
+        #expect(try await repository.dueItems(spaceID: "space-1", limit: 10, now: now).isEmpty)
+        try await repository.resumeReview(id: deposited.id, now: now)
+        let later = now.addingTimeInterval(2 * 86400)
+        #expect(try await repository.dueItems(spaceID: "space-1", limit: 10, now: later).map(\.id) == [deposited.id])
+    }
+
     @Test("candidate kinds map onto the two deposit kinds")
     func candidateKindMapping() {
         #expect(MemoryItemKind(.word) == .wordPhrase)
