@@ -284,6 +284,7 @@ struct PhoneIOSConvergenceTests {
     func shadowingSessionUsesCenteredStageWithBottomDockedControlDeck() throws {
         let source = try String(contentsOf: sourceFileURL(named: "PracticeSessionViews.swift"), encoding: .utf8)
         let promptCard = try String(contentsOf: sourceFileURL(named: "PracticePromptCard.swift"), encoding: .utf8)
+        let controlBar = try String(contentsOf: sourceFileURL(named: "PracticeControlBar.swift"), encoding: .utf8)
 
         // Stage + deck layout intent is resolved through the testable layout model.
         #expect(source.contains("PracticeShadowingLayout.resolve("))
@@ -297,6 +298,10 @@ struct PhoneIOSConvergenceTests {
         // The prompt card gained an opt-in centered emphasis without losing disclosure structure.
         #expect(promptCard.contains("var isCentered: Bool"))
         #expect(promptCard.contains("multilineTextAlignment(multilineAlignment)"))
+        // The control bar sits directly on the deck surface: no inner panel chrome (no box-in-card),
+        // but keeps a stroke-free vertical inset so the primary button stays clear of the navigation bar.
+        #expect(!controlBar.contains(".langoPanel("))
+        #expect(controlBar.contains(".padding(.vertical, 14)"))
     }
 
     @Test("iPad and Mac practice shells match the iOS repeatable recording flow")

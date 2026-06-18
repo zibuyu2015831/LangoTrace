@@ -280,6 +280,7 @@ private extension LearningMaterialGenerationService {
                 "natural_translation": ["type": "string"],
                 "grammar_notes": [
                     "type": "array",
+                    "minItems": 1,
                     "items": [
                         "type": "object",
                         "additionalProperties": false,

@@ -13,6 +13,7 @@ func learningMaterialPromptRegistryRendersGenerationPromptContract() {
     #expect(prompt.id == "builtin.learning_material.generate.v1")
     #expect(prompt.version == "1")
     #expect(prompt.system.contains("Return exactly one JSON object"))
+    #expect(prompt.system.contains("at least one useful grammar_note"))
     #expect(prompt.user.contains("schema_version"))
     #expect(prompt.user.contains("native_language_code: zh-Hans"))
     #expect(prompt.user.contains("target_language_code: en"))
@@ -35,6 +36,7 @@ func learningMaterialPromptRegistryRendersAnalysisPromptContract() {
     #expect(prompt.id == "builtin.learning_material.analyze_current_text.v1")
     #expect(prompt.version == "1")
     #expect(prompt.system.contains("Do not rewrite the learning text"))
+    #expect(prompt.system.contains("at least one useful grammar_note"))
     #expect(prompt.user.contains("learning_text"))
 }
 
@@ -66,6 +68,9 @@ func learningMaterialGenerationServiceBuildsChatRequestAndParsesResponse() async
         + ".properties.memory_candidates.items.properties.kind.enum"
     let practiceKindEnum = "response_format.json_schema.schema.properties.analysis"
         + ".properties.practice_candidates.items.properties.kind.enum"
+    let grammarNotesMinItems = "response_format.json_schema.schema.properties.analysis"
+        + ".properties.sentences.items.properties.grammar_notes.minItems"
+    #expect(requests[0].jsonBodyInt(grammarNotesMinItems) == 1)
     #expect(requests[0].jsonBodyStringArray(revisionCategoryEnum) == [
         "grammar",
         "wordChoice",

@@ -222,6 +222,10 @@ extension URLRequest {
         jsonBodyValue(at: dottedPath) as? [String]
     }
 
+    func jsonBodyInt(_ dottedPath: String) -> Int? {
+        (jsonBodyValue(at: dottedPath) as? NSNumber)?.intValue
+    }
+
     private func jsonBodyValue(at dottedPath: String) -> Any? {
         guard let httpBody,
               let object = try? JSONSerialization.jsonObject(with: httpBody) as? [String: Any]
