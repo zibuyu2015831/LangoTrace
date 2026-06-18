@@ -211,7 +211,16 @@ struct PhoneMainView: View {
                     entryID: entry.id,
                     contentStore: contentStore,
                     titlePresentation: .objectNavigationTitle,
-                    onPracticeSentence: { seed in navModel.push(.practiceSentence(seed), on: tab) }
+                    onPracticeSentence: { seed in navModel.push(.practiceSentence(seed), on: tab) },
+                    onOpenReading: { entryID in navModel.push(.bilingualReading(entryID), on: tab) }
+                )
+            }
+        case let .bilingualReading(entryID):
+            if let entry = entry(id: entryID) {
+                EntryReadingStoreView(
+                    languageSpace: languageSpace,
+                    entryID: entry.id,
+                    contentStore: contentStore
                 )
             }
         case let .practiceSentenceList(entryID):

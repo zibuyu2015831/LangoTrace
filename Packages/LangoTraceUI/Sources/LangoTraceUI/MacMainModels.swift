@@ -71,6 +71,7 @@ enum MacWorkspaceSection: CaseIterable, Hashable {
 enum MacWorkspaceRoute: Equatable {
     case overview
     case entryDetail(String)
+    case bilingualReading(String)
     case reading
     case practiceSentenceList(String)
     case practiceSentence(PracticeSessionRouteSeed)
@@ -81,7 +82,7 @@ enum MacWorkspaceRoute: Equatable {
     var usesDedicatedMainScrolling: Bool {
         switch self {
         case .practiceSentenceList, .practiceSentence, .languageSpaceManagement,
-             .entryDetail, .reading:
+             .entryDetail, .bilingualReading, .reading:
             true
         case .overview, .settings, .unavailable:
             false

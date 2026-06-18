@@ -4,6 +4,7 @@ import LangoTraceData
 enum PadWorkspaceRoute: Equatable {
     case workspace
     case entryDetail(String)
+    case bilingualReading(String)
     case practiceSentenceList(String)
     case practiceSentence(PracticeSessionRouteSeed)
     case reading
@@ -19,6 +20,8 @@ enum PadWorkspaceRoute: Equatable {
             "pad.route.workspace"
         case .entryDetail:
             "entryDetail.title"
+        case .bilingualReading:
+            "entry.reading.title"
         case .practiceSentenceList, .practiceSentence:
             "tab.practice"
         case .reading:

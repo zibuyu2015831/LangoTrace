@@ -48,7 +48,7 @@ struct PageClosureStateTests {
         #expect(sectionsSource.contains("PadWorkspaceContentView"))
         #expect(learningPanelSource.contains("let route: PadWorkspaceRoute"))
         #expect(learningPanelSource.contains("switch route"))
-        #expect(learningPanelSource.contains("case .workspace, .entryDetail, .practice"))
+        #expect(learningPanelSource.contains("case .workspace, .entryDetail, .bilingualReading, .practice"))
         #expect(learningPanelSource.contains("case .settingsList, .settings"))
         #expect(learningPanelSource.contains("settingsContextContent"))
         #expect(learningPanelSource.contains("case .memory"))

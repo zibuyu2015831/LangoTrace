@@ -159,6 +159,8 @@ struct PadWorkspaceContentView: View {
                 workspaceOverview
             case let .entryDetail(entryID):
                 entryDetail(entryID: entryID)
+            case let .bilingualReading(entryID):
+                bilingualReading(entryID: entryID)
             case let .practiceSentenceList(entryID):
                 practiceSentenceList(entryID: entryID)
             case let .practiceSentence(seed):
@@ -268,10 +270,27 @@ struct PadWorkspaceContentView: View {
             entryID: entry.id,
             contentStore: contentStore,
             titlePresentation: .embeddedHeader,
-            onPracticeSentence: { onRoute(.practiceSentence($0)) }
+            onPracticeSentence: { onRoute(.practiceSentence($0)) },
+            onOpenReading: { onRoute(.bilingualReading($0)) }
         )
         .padding(26)
         .frame(maxWidth: 820, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private func bilingualReading(entryID: String) -> some View {
+        if let entry = entries.first(where: { $0.id == entryID }) {
+            EntryReadingStoreView(
+                languageSpace: languageSpace,
+                entryID: entry.id,
+                contentStore: contentStore
+            )
+            .padding(26)
+            .frame(maxWidth: 820, alignment: .leading)
+        } else {
+            EmptyWorkspacePanel()
+                .padding(26)
+        }
     }
 
     @ViewBuilder

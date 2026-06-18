@@ -149,12 +149,36 @@ struct PhoneIOSConvergenceTests {
         #expect(supportingViews.contains("LearningMaterialEditorView"))
         #expect(supportingViews.contains("TextEditor(text: $draftText)"))
         #expect(supportingViews.contains("entry.rendering.learningText.save"))
-        #expect(supportingViews.contains("entry.rendering.learningText.reanalyze"))
+        // Reanalyze ("重新讲解") now lives inside the regenerate menu rather than a standalone button.
+        #expect(supportingViews.contains("entry.detail.learningText.regenerateMenu.reanalyze"))
         #expect(supportingViews.contains("entry.rendering.learningText.analyzing"))
         #expect(supportingViews.contains("entry.rendering.learningText.analysisFailed"))
         #expect(phoneMainView.contains("EntryDetailStoreView("))
         #expect(supportingViews.contains("contentStore.updateLearningText"))
         #expect(supportingViews.contains("contentStore.analyzeCurrentLearningText"))
+    }
+
+    @Test("Entry detail collapses long text cards and exposes an always-available regenerate menu")
+    func entryDetailCollapsesLongTextAndExposesRegenerateMenu() throws {
+        let supportingViews = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
+            encoding: .utf8
+        )
+
+        // Both the source and learning cards collapse with a line-based (Dynamic-Type-safe) preview.
+        #expect(supportingViews.contains("EntrySourceCollapsePresentation.make(for: entry.body)"))
+        #expect(supportingViews.contains("EntrySourceCollapsePresentation.make(for: rendering.targetText)"))
+        #expect(supportingViews.contains(#"localizedText(isExpanded ? "entry.detail.collapse" : "entry.detail.expand")"#))
+        #expect(supportingViews.contains(".lineLimit(collapse?.collapsedLineLimit)"))
+
+        // Regenerate / reanalyze are a single explicit-trigger menu, no longer gated on staleness,
+        // with an overwrite confirmation before running an AI request.
+        #expect(supportingViews.contains("LearningMaterialActionAvailability.make("))
+        #expect(supportingViews.contains("entry.detail.learningText.regenerateMenu.translate"))
+        #expect(supportingViews.contains(".confirmationDialog("))
+        #expect(supportingViews.contains("entry.detail.learningText.regenerate.confirmMessage"))
+        #expect(!supportingViews.contains("if sourceEntryIsStale, let onRegenerate"))
+        #expect(!supportingViews.contains("private var canReanalyze: Bool"))
     }
 
     @Test("iPhone detail uses dynamic text cards without squeezing reading columns")
@@ -180,7 +204,7 @@ struct PhoneIOSConvergenceTests {
         #expect(supportingViews.contains("entry.detail.learningText.titleFormat"))
         #expect(supportingViews.contains("entry.detail.sourceText.edit"))
         #expect(supportingViews.contains("entry.detail.learningText.sourceStale"))
-        #expect(supportingViews.contains("entry.detail.learningText.regenerate"))
+        #expect(supportingViews.contains("entry.detail.learningText.regenerateMenu"))
         #expect(supportingViews.contains("HStack(alignment: .center, spacing: 12)"))
         #expect(supportingViews.contains(".font(.subheadline.weight(.semibold))"))
         #expect(supportingViews.contains("foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)"))

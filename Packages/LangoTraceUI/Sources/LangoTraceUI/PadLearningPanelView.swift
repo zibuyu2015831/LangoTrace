@@ -33,7 +33,7 @@ struct PadLearningPanelView: View {
     @ViewBuilder
     private var panelContent: some View {
         switch route {
-        case .workspace, .entryDetail, .practiceSentenceList, .practiceSentence:
+        case .workspace, .entryDetail, .bilingualReading, .practiceSentenceList, .practiceSentence:
             SectionCaption(titleKey: "pad.learningPanel.title", subtitleKey: "pad.learningPanel.subtitle")
             if let selectedEntry {
                 entryLearningContent(selectedEntry)

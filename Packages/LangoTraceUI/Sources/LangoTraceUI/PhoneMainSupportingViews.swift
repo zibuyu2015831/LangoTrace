@@ -107,6 +107,7 @@ struct EntryDetailView: View {
     var onListenSentence: ((LearningRendering, RenderingSentence, Int) -> Void)?
     let onGenerateLocalPreview: () -> Void
     let onPracticeSentence: (LearningRendering, RenderingSentence, Int) -> Void
+    var onOpenReading: (() -> Void)?
 
     @Environment(\.photoDisplayActions) private var photoDisplayActions
     @State private var photoImage: Image?
@@ -141,7 +142,8 @@ struct EntryDetailView: View {
                                 onUpdateLearningText(rendering.id, learningText)
                             },
                             onReanalyze: onAnalyzeCurrentLearningText,
-                            onRegenerate: onGenerateLearningMaterial
+                            onRegenerate: onGenerateLearningMaterial,
+                            onOpenReading: onOpenReading
                         )
                     } else {
                         EntryDetailTextCard(
@@ -380,6 +382,7 @@ struct EntryDetailStoreView: View {
     @ObservedObject var contentStore: LearningContentStore
     let titlePresentation: EntryDetailTitlePresentation
     let onPracticeSentence: (PracticeSessionRouteSeed) -> Void
+    var onOpenReading: ((String) -> Void)?
 
     var body: some View {
         if let entry = contentStore.entry(id: entryID) {
@@ -446,7 +449,8 @@ struct EntryDetailStoreView: View {
                             capturedAt: Date()
                         )
                     )
-                }
+                },
+                onOpenReading: onOpenReading.map { handler in { handler(entry.id) } }
             )
         }
     }
@@ -477,7 +481,9 @@ private struct SourceEntryTextView: View {
             title: sourceTextTitle,
             text: entry.body,
             textEmphasis: .secondary,
-            accessibilityLabelKey: "entry.detail.sourceText.accessibilityLabel"
+            statusKey: nil,
+            accessibilityLabelKey: "entry.detail.sourceText.accessibilityLabel",
+            collapse: EntrySourceCollapsePresentation.make(for: entry.body)
         ) {
             if onSave != nil {
                 Button {
@@ -541,9 +547,23 @@ private struct LearningMaterialEditorView: View {
     let onSave: (String) -> Void
     let onReanalyze: () -> Void
     let onRegenerate: (() -> Void)?
+    let onOpenReading: (() -> Void)?
 
     @State private var draftText: String
     @State private var isEditorPresented = false
+    @State private var pendingRegeneration: PendingLearningRegeneration?
+
+    private enum PendingLearningRegeneration: Identifiable {
+        case translate
+        case reanalyze
+
+        var id: String {
+            switch self {
+            case .translate: "translate"
+            case .reanalyze: "reanalyze"
+            }
+        }
+    }
 
     init(
         rendering: LearningRendering,
@@ -552,7 +572,8 @@ private struct LearningMaterialEditorView: View {
         sourceEntryIsStale: Bool,
         onSave: @escaping (String) -> Void,
         onReanalyze: @escaping () -> Void,
-        onRegenerate: (() -> Void)?
+        onRegenerate: (() -> Void)?,
+        onOpenReading: (() -> Void)?
     ) {
         self.rendering = rendering
         self.generationState = generationState
@@ -561,6 +582,7 @@ private struct LearningMaterialEditorView: View {
         self.onSave = onSave
         self.onReanalyze = onReanalyze
         self.onRegenerate = onRegenerate
+        self.onOpenReading = onOpenReading
         _draftText = State(initialValue: rendering.targetText)
     }
 
@@ -570,26 +592,45 @@ private struct LearningMaterialEditorView: View {
             text: rendering.targetText,
             textEmphasis: .primary,
             statusKey: statusKey,
-            accessibilityLabelKey: "entry.rendering.learningText.accessibilityLabel"
+            accessibilityLabelKey: "entry.rendering.learningText.accessibilityLabel",
+            collapse: EntrySourceCollapsePresentation.make(for: rendering.targetText)
         ) {
-            if sourceEntryIsStale, let onRegenerate, !generationState.isRunning {
-                Button(action: onRegenerate) {
-                    Image(systemName: "sparkles")
+            if let onOpenReading {
+                Button(action: onOpenReading) {
+                    Image(systemName: "book")
                         .frame(minWidth: 44, minHeight: 44)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(LangoTraceDesign.ColorToken.accent)
-                .accessibilityLabel(localizedText("entry.detail.learningText.regenerate"))
+                .accessibilityLabel(localizedText("entry.reading.open"))
             }
-            if canReanalyze {
-                Button(action: onReanalyze) {
-                    Image(systemName: "text.magnifyingglass")
-                        .frame(minWidth: 44, minHeight: 44)
+            Menu {
+                Button {
+                    pendingRegeneration = .translate
+                } label: {
+                    Label(
+                        localizedString("entry.detail.learningText.regenerateMenu.translate"),
+                        systemImage: "character.book.closed"
+                    )
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
-                .accessibilityLabel(localizedText("entry.rendering.learningText.reanalyze"))
+                .disabled(!(availability.canRegenerate && onRegenerate != nil))
+                Button {
+                    pendingRegeneration = .reanalyze
+                } label: {
+                    Label(
+                        localizedString("entry.detail.learningText.regenerateMenu.reanalyze"),
+                        systemImage: "text.magnifyingglass"
+                    )
+                }
+                .disabled(!availability.canReanalyze)
+            } label: {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .frame(minWidth: 44, minHeight: 44)
             }
+            .menuIndicator(.hidden)
+            .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+            .disabled(!(availability.canRegenerate || availability.canReanalyze))
+            .accessibilityLabel(localizedText("entry.detail.learningText.regenerateMenu"))
             Button {
                 draftText = rendering.targetText
                 isEditorPresented = true
@@ -599,8 +640,27 @@ private struct LearningMaterialEditorView: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(LangoTraceDesign.ColorToken.accent)
-            .disabled(generationState.isRunning)
+            .disabled(!availability.canEdit)
             .accessibilityLabel(localizedText("entry.rendering.learningText.edit"))
+        }
+        .confirmationDialog(
+            localizedText("entry.detail.learningText.regenerate.confirmTitle"),
+            isPresented: regenerationConfirmationBinding,
+            titleVisibility: .visible,
+            presenting: pendingRegeneration
+        ) { pending in
+            Button(localizedString("entry.detail.learningText.regenerate.confirm"), role: .destructive) {
+                switch pending {
+                case .translate: onRegenerate?()
+                case .reanalyze: onReanalyze()
+                }
+                pendingRegeneration = nil
+            }
+            Button(localizedString("common.cancel"), role: .cancel) {
+                pendingRegeneration = nil
+            }
+        } message: { _ in
+            localizedText("entry.detail.learningText.regenerate.confirmMessage")
         }
         .onChange(of: rendering.targetText) {
             draftText = rendering.targetText
@@ -649,8 +709,22 @@ private struct LearningMaterialEditorView: View {
         return !trimmed.isEmpty && trimmed != rendering.targetText && !generationState.isRunning
     }
 
-    private var canReanalyze: Bool {
-        generationState.analysisIsStale && !generationState.isRunning
+    private var availability: LearningMaterialActionAvailability {
+        LearningMaterialActionAvailability.make(
+            generationState: generationState,
+            sourceEntryIsStale: sourceEntryIsStale
+        )
+    }
+
+    private var regenerationConfirmationBinding: Binding<Bool> {
+        Binding(
+            get: { pendingRegeneration != nil },
+            set: { isPresented in
+                if !isPresented {
+                    pendingRegeneration = nil
+                }
+            }
+        )
     }
 }
 
@@ -665,7 +739,21 @@ private struct EntryDetailTextCard<ActionContent: View>: View {
     let textEmphasis: Emphasis
     var statusKey: String?
     var accessibilityLabelKey: String
+    /// When non-nil and `isExpandable`, the body text collapses to `collapsedLineLimit`
+    /// lines with an inline expand/collapse control (line-based so Dynamic Type is
+    /// respected). When nil the text renders in full, preserving prior behavior.
+    var collapse: EntrySourceCollapsePresentation?
     @ViewBuilder var actions: () -> ActionContent
+
+    @State private var isExpanded = false
+
+    private var isCollapsible: Bool {
+        collapse?.isExpandable ?? false
+    }
+
+    private var showingCollapsed: Bool {
+        isCollapsible && !isExpanded
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -688,15 +776,41 @@ private struct EntryDetailTextCard<ActionContent: View>: View {
                 }
                 .frame(minHeight: 44, alignment: .center)
             }
-            Text(text)
-                .font(textEmphasis == .primary ? .body.weight(.medium) : .body)
-                .lineSpacing(4)
-                .foregroundStyle(textColor)
+            bodyText
+            if isCollapsible {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isExpanded.toggle()
+                    }
+                } label: {
+                    localizedText(isExpanded ? "entry.detail.collapse" : "entry.detail.expand")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                        .frame(minHeight: 44, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .langoPanel(padding: 14)
+    }
+
+    @ViewBuilder
+    private var bodyText: some View {
+        let text = Text(text)
+            .font(textEmphasis == .primary ? .body.weight(.medium) : .body)
+            .lineSpacing(4)
+            .foregroundStyle(textColor)
+        if showingCollapsed {
+            text
+                .lineLimit(collapse?.collapsedLineLimit)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .accessibilityLabel(localizedText(accessibilityLabelKey))
+        } else {
+            text
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 .accessibilityLabel(localizedText(accessibilityLabelKey))
         }
-        .langoPanel(padding: 14)
     }
 
     private var textColor: Color {
@@ -721,13 +835,15 @@ private extension EntryDetailTextCard where ActionContent == EmptyView {
         text: String,
         textEmphasis: Emphasis,
         statusKey: String? = nil,
-        accessibilityLabelKey: String
+        accessibilityLabelKey: String,
+        collapse: EntrySourceCollapsePresentation? = nil
     ) {
         self.title = title
         self.text = text
         self.textEmphasis = textEmphasis
         self.statusKey = statusKey
         self.accessibilityLabelKey = accessibilityLabelKey
+        self.collapse = collapse
         actions = { EmptyView() }
     }
 }
