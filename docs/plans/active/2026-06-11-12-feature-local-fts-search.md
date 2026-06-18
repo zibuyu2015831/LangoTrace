@@ -1,6 +1,6 @@
 # 任务方案：本地 FTS 全文搜索（mac Command Palette 与 iPad 搜索接入）（E9）
 
-状态：User Approved
+状态：Implemented（待 CI 收尾时补 run id）
 自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
@@ -295,3 +295,17 @@ scripts/check-docs.sh
 - 阅读 per-block 锚点依赖 R1 的结构稳定性；若 R1 范围调整，本任务阅读命中定位需同步复核。
 - iPhone 无全局搜索入口在用户侧可能形成三端差异疑问；已列为仍需用户确认项。
 - Linux 环境无法执行 Phase 0 与人工键盘验证，相关步骤必须在 macOS 环境完成。
+
+## 18. 实施记录
+
+2026-06-18（批量 run 落地）：feature/e9-local-fts-search 分支按 TDD 分阶段落地，本机轻量验证（Core/Data/UI 单包测试 + swiftformat/swiftlint），重测试走 CI。
+  - Phase 1-2（commit Core+Data）：Core `SearchModels`（`SearchObjectKind`/`SearchHit`/`SearchResultGroup`/`SearchResults`/UTF-safe `SearchHighlighting`）+ `LocalSearchRepository` 协议；`v25_create_local_search_index`（FTS5 trigram 虚表 + `search_index_meta`）；`SearchIndexWriter`（应用层同事务 upsert/remove）+ `GRDBLocalSearchRepository`（trigram MATCH / <3 字符 LIKE 降级 / space 隔离 / per-group 截断 / 从 entries+当前 learning_text+reading 当前结构 blocks 全量 rebuild）。测试：Core 4、Data 8（**含 FTS5 trigram availability 在本机确认**、CJK 子串、短词降级、space 隔离、rebuild 丢弃软删）。
+  - Phase 3（commit UI store）：`LocalSearchActions` env seam + `SearchPaletteStore`（防抖、stale-result 丢弃、跨组键盘环绕、零态/indexing、rebuild-on-open）。测试 6。
+  - Phase 4（commit UI+App）：共享 `SearchPaletteView`；复用既有搜索命令（⌘F），repoint macOS 工具栏/命令 + iPad sheet 从 `.unavailable("search")` 到真实浮层；记录命中→记录详情、阅读命中→阅读区；`AppEnvironment` 装配 `GRDBLocalSearchRepository`+`LocalSearchActions`，两处根注入。全 UI 套件 503 绿。
+  - 文档：spec 007 变更记录补充 + platform-inventory 搜索行更新。
+
+scope 决策（留痕，§1.1 首版可限定范围、底层为后续预留）：
+- **索引维护 = rebuild-on-open（v1）**，非按写路径增量 upsert。理由：所有写入经 repository，rebuild 从主数据全量重建、零旁路漏更新风险，个人数据量级 rebuild 成本可接受，且完全可测试。`SearchIndexWriter` 增量 upsert 已就绪并测试，按写路径接线（entry 创建/更新/软删、reading 导入/软删/恢复、reanalysis）列为后续优化（届时 rebuild 仍为一致性兜底）。
+- **reading 命中按文档级**（一文档一行，body=当前结构版本 blocks 拼接），未做 per-block 锚点行；per-block 锚点导航（plan §3.7）列为后续优化，命中先打开文档。
+- **命中导航**：记录→记录详情已接；阅读→选中阅读区（未滚动到具体 block，随 per-block 锚点优化一并补）；记忆→零态（E7 未落地、无 `memory_items`，方案 §3.8 既定降级）。
+- iPhone 不提供全局搜索入口（方案 §5 既定，原型无该页）。

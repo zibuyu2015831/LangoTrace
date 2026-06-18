@@ -173,3 +173,13 @@
 - 2026-05-20：补充基础设施完整建设原则。原因：语言空间持久化与启动恢复讨论确认，数据基础设施不能只实现单语言空间临时版本，否则会在多空间、删除、导出、同步和迁移阶段造成返工。影响范围：Language Space、Repository、SQLite / GRDB schema、启动恢复、导出、删除和测试。是否需要 ADR：否，属于既有本地优先与数据规范的实施约束。
 - 2026-05-20：补充语言空间 SQLite / GRDB 已落地事实。原因：语言空间数据基础设施实现后，长期数据规范需要区分已完成的语言空间主数据与尚未持久化的 Entry / 附件 / 导出。影响范围：Language Space schema、Repository、Application Support 数据库位置、soft delete、current app state 和测试要求。是否需要 ADR：否，延续本地优先和语言空间 ADR。
 - 2026-05-18：创建数据存储、迁移、导出与附件规范。原因：spec 深审确认正式数据层规范缺失，而当前内存 mock repository 不等于长期 SQLite / GRDB 边界。影响范围：Data package、Repository、附件、导入导出、同步前置设计和测试。是否需要 ADR：否，沿用本地优先和 SQLite / GRDB 候选决策。
+
+## 变更记录补充：本地 FTS 全文搜索落地（E9，2026-06-18）
+
+E9 落地本地 FTS5 全文搜索基础设施，作为**本地可重建派生数据**（沿用 §FTS/索引边界与核心决策 12）：
+
+- migration `v25_create_local_search_index`：`search_index` 为 FTS5 `tokenize='trigram'` 虚表（`object_kind`/`object_id`/`space_id`/`reading_block_index` 为 UNINDEXED 元数据列，`title`/`body` 为索引列），trigram 对 CJK 与拉丁文本统一支持子串匹配；附 `search_index_meta` 单行版本表记录 `index_schema_version`。
+- 维护策略（决策 12.1）：应用层集中写入 `SearchIndexWriter`（upsert/remove，同事务），v1 以 `GRDBLocalSearchRepository.rebuildSearchIndex(spaceID:)` 从主数据（entries + 当前 learning_text、reading_documents 当前结构版本的 blocks）全量重建为索引维护路径（搜索浮层打开时 rebuild，保证新鲜）；按写路径增量 upsert 列为后续优化。
+- 查询：`GRDBLocalSearchRepository.search(query:spaceID:perGroupLimit:)` 分组（记录/阅读/记忆）、按 `space_id` 隔离、trigram MATCH（查询 ≥3 字符）/ `LIKE` 降级（<3 字符）、FTS rank 排序、每组截断；高亮区间用 Core `SearchHighlighting`（UTF-safe grapheme 偏移）。
+- 边界：FTS 索引**不同步、导出非必需、可全量重建**；搜索全链路只依赖 GRDB，不接触任何 Provider/网络（约束 1/2）。记忆分组在 E7（`memory_items`）落地前以零态降级。
+- tokenizer 可用性：部署目标 iOS 18 / macOS 15 的系统 SQLite 含 FTS5 + trigram；availability 已由 `LocalSearchTests` 在 CI macOS runner 上确认（创建 trigram 虚表 + MATCH 查询成功）。
