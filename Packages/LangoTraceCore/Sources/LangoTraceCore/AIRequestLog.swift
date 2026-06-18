@@ -127,3 +127,15 @@ public struct AIRequestLogEntry: Equatable, Identifiable, Sendable {
         self.createdAt = createdAt
     }
 }
+
+/// Persistence boundary for the local request log. Writes prune older rows per
+/// capability so the log stays bounded; reads are newest-first.
+public protocol AIRequestLogRepository: Sendable {
+    /// Appends a row and prunes the capability's history to the retention cap in
+    /// the same transaction.
+    func append(_ entry: AIRequestLogEntry) async throws
+    /// Most recent rows for a single capability, newest first.
+    func recent(capability: AIRequestCapability, limit: Int) async throws -> [AIRequestLogEntry]
+    /// Most recent rows across all capabilities, newest first.
+    func recentAll(limit: Int) async throws -> [AIRequestLogEntry]
+}

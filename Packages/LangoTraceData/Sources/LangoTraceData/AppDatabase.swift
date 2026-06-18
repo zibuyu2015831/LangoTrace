@@ -111,6 +111,9 @@ private extension AppDatabase {
         migrator.registerMigration("v23_create_practice_text_attempts") { db in
             try createPracticeTextAttemptsInfrastructure(db)
         }
+        migrator.registerMigration("v24_create_ai_request_logs") { db in
+            try createAIRequestLogsInfrastructure(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
@@ -803,6 +806,37 @@ private extension AppDatabase {
         try db.execute(sql: """
         CREATE INDEX idx_practice_text_attempts_space_exercise
         ON practice_text_attempts(language_space_id, exercise_type)
+        """)
+    }
+
+    /// `ai_request_logs` (系列 E6): local, non-sensitive, content-free request
+    /// log. Columns are a column-level allowlist mirroring `AIRequestLogEntry`;
+    /// there is deliberately no content / prompt-body / credential column. Local
+    /// diagnostic data — not synced, not exported. The CHECK invariants pin the
+    /// status vocabulary and require failed rows to carry a failure bucket.
+    static func createAIRequestLogsInfrastructure(_ db: Database) throws {
+        try db.execute(sql: """
+        CREATE TABLE ai_request_logs (
+          id TEXT PRIMARY KEY,
+          operation_id TEXT NOT NULL,
+          capability TEXT NOT NULL,
+          provider_preset_id TEXT,
+          endpoint_purpose TEXT,
+          adapter_kind TEXT,
+          model_name TEXT,
+          prompt_id TEXT,
+          prompt_version TEXT,
+          input_length_bucket TEXT NOT NULL,
+          status TEXT NOT NULL,
+          failure_bucket TEXT,
+          created_at REAL NOT NULL,
+          CHECK (status IN ('success', 'failed', 'cancelled')),
+          CHECK (status <> 'failed' OR failure_bucket IS NOT NULL)
+        )
+        """)
+        try db.execute(sql: """
+        CREATE INDEX idx_ai_request_logs_capability_created_at
+        ON ai_request_logs(capability, created_at)
         """)
     }
 
