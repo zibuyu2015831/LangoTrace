@@ -73,6 +73,27 @@ public enum AIRequestLogFailureBucket: String, Codable, CaseIterable, Equatable,
             self = .unknown
         }
     }
+
+    public init(_ category: PracticeBacktranslationReviewFailureCategory) {
+        switch category {
+        case .providerNotConfigured:
+            self = .providerNotConfigured
+        case .authenticationFailed:
+            self = .credentialMissing
+        case .networkUnavailable:
+            self = .network
+        case .timeout:
+            self = .timeout
+        case .rateLimited, .providerRejected:
+            self = .providerRejected
+        case .unsupportedProvider, .unsupportedModel:
+            self = .unsupported
+        case .invalidStructuredResponse:
+            self = .invalidResponse
+        case .cancelled:
+            self = .unknown
+        }
+    }
 }
 
 /// The outcome of an attempted outbound AI request, used to stamp a log row.

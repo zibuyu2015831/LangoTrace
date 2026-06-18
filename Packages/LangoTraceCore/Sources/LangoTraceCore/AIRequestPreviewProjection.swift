@@ -27,6 +27,8 @@ public enum AIRequestContentDescriptor: String, Codable, CaseIterable, Equatable
     case currentLearningText
     case selectedReadingPassage
     case readingContextWindow
+    case practiceAttempt
+    case backtranslationReferenceSentence
     case nativeLanguageProfile
     case targetLanguageProfile
     case proficiencyLevel
