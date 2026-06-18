@@ -89,14 +89,14 @@ struct PadLearningPanelView: View {
             CapabilityStatusRow(
                 localizedTitleKey: SettingsCapability.Kind.aiProvider.localizedTitleKey,
                 localizedSummaryKey: "pad.learningPanel.settings.aiProvider.summary",
-                status: .ready,
+                status: capabilityStatus(forAIProvider: contentStore.settingsStatus.aiProvider),
                 systemImage: SettingsCapability.Kind.aiProvider.systemImage,
                 action: { onRoute(.settings(.aiProvider)) }
             )
             CapabilityStatusRow(
                 localizedTitleKey: SettingsCapability.Kind.sync.localizedTitleKey,
                 localizedSummaryKey: "pad.learningPanel.settings.sync.summary",
-                status: .unavailable,
+                status: capabilityStatus(forSync: contentStore.settingsStatus.sync),
                 systemImage: SettingsCapability.Kind.sync.systemImage,
                 action: { onRoute(.settings(.sync)) }
             )

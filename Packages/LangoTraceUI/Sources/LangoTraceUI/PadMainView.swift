@@ -246,10 +246,13 @@ struct PadMainView: View {
             selectedEntry: selectedEntry,
             activeFilter: activeFilter,
             route: route,
+            aiStatus: contentStore.settingsStatus.aiProvider.footerStatus,
+            syncStatus: contentStore.settingsStatus.sync.footerStatus,
             onSelectEntry: selectEntry,
             onSelectFilter: selectFilter,
             onRoute: setRoute
         )
+        .task { await contentStore.refreshSettingsStatus() }
     }
 
     private var writingDesk: some View {

@@ -25,6 +25,7 @@ public struct LangoTraceRootView: View {
     private let readingCacheStorage: (any ExplanationCacheStorage)?
     private let practiceActions: PracticeActions
     private let photoWritingActions: PhotoWritingActions
+    private let loadSettingsStatus: @Sendable () async -> SettingsStatusProjection
     private let interfaceLanguagePreference: InterfaceLanguagePreference
     private let appearancePreference: AppearancePreference
     private let launchRecoveryFailed: Bool
@@ -54,6 +55,7 @@ public struct LangoTraceRootView: View {
         readingCacheStorage: (any ExplanationCacheStorage)? = nil,
         practiceActions: PracticeActions = .disabled,
         photoWritingActions: PhotoWritingActions = .disabled,
+        loadSettingsStatus: @escaping @Sendable () async -> SettingsStatusProjection = { SettingsStatusProjection() },
         interfaceLanguagePreference: InterfaceLanguagePreference = .system,
         appearancePreference: AppearancePreference = .system,
         launchRecoveryFailed: Bool = false,
@@ -80,6 +82,7 @@ public struct LangoTraceRootView: View {
         self.readingCacheStorage = readingCacheStorage
         self.practiceActions = practiceActions
         self.photoWritingActions = photoWritingActions
+        self.loadSettingsStatus = loadSettingsStatus
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
         self.launchRecoveryFailed = launchRecoveryFailed
@@ -127,6 +130,7 @@ public struct LangoTraceRootView: View {
                         readingCacheStorage: readingCacheStorage,
                         practiceActions: practiceActions,
                         photoWritingActions: photoWritingActions,
+                        loadSettingsStatus: loadSettingsStatus,
                         interfaceLanguagePreference: interfaceLanguagePreference,
                         appearancePreference: appearancePreference,
                         onAddLanguageSpace: onAddLanguageSpace,
@@ -238,6 +242,7 @@ private struct PlatformMainView: View {
     let readingCacheStorage: (any ExplanationCacheStorage)?
     let practiceActions: PracticeActions
     let photoWritingActions: PhotoWritingActions
+    let loadSettingsStatus: @Sendable () async -> SettingsStatusProjection
     let interfaceLanguagePreference: InterfaceLanguagePreference
     let appearancePreference: AppearancePreference
     let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
@@ -261,6 +266,7 @@ private struct PlatformMainView: View {
         readingCacheStorage: (any ExplanationCacheStorage)? = nil,
         practiceActions: PracticeActions,
         photoWritingActions: PhotoWritingActions,
+        loadSettingsStatus: @escaping @Sendable () async -> SettingsStatusProjection,
         interfaceLanguagePreference: InterfaceLanguagePreference,
         appearancePreference: AppearancePreference,
         onAddLanguageSpace: @escaping (CreateLanguageSpaceInput) -> Void,
@@ -280,6 +286,7 @@ private struct PlatformMainView: View {
         self.readingCacheStorage = readingCacheStorage
         self.practiceActions = practiceActions
         self.photoWritingActions = photoWritingActions
+        self.loadSettingsStatus = loadSettingsStatus
         self.interfaceLanguagePreference = interfaceLanguagePreference
         self.appearancePreference = appearancePreference
         self.onAddLanguageSpace = onAddLanguageSpace
@@ -293,7 +300,8 @@ private struct PlatformMainView: View {
                 repository: learningContentRepository,
                 spaceID: languageSpace.id,
                 generationActions: learningMaterialGenerationActions,
-                sentenceAudioPlaybackActions: sentenceAudioPlaybackActions
+                sentenceAudioPlaybackActions: sentenceAudioPlaybackActions,
+                loadSettingsStatus: loadSettingsStatus
             )
         )
         _readingLibraryStore = StateObject(

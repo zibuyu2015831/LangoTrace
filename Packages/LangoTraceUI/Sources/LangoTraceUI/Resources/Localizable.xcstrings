@@ -22082,6 +22082,108 @@
           }
         }
       }
+    },
+    "settings.value.aiProvider.notConfigured": {
+      "comment": "Settings row value: AI provider not set up yet.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未配置"
+          }
+        }
+      }
+    },
+    "settings.value.aiProvider.configured": {
+      "comment": "Settings row value: AI provider configured and ready.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已配置"
+          }
+        }
+      }
+    },
+    "settings.value.aiProvider.missingKey": {
+      "comment": "Settings row value: AI provider configured but its key is missing.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key missing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺密钥"
+          }
+        }
+      }
+    },
+    "settings.value.aiProvider.partial": {
+      "comment": "Settings row value: some AI endpoints ready, some not.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partly ready"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分可用"
+          }
+        }
+      }
+    },
+    "settings.value.sync.notEnabled": {
+      "comment": "Settings row value: sync is off; data stays on this device.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未启用"
+          }
+        }
+      }
+    },
+    "settings.value.localData.computing": {
+      "comment": "Settings row value: local data size is still being computed.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calculating…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计算中…"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
