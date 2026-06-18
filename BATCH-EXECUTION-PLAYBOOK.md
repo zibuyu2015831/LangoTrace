@@ -166,13 +166,14 @@ LM01                    （学习者模型边界：相对基础，但 Draft；�
 ## 9. 当前 run 状态（每次推进同步更新）
 
 - 排定顺序（自审核后定稿）：**E6 → E5 Slice2 → E9 → E7 → E8 → E10 → E11 → LM01 → E12**（采纳 §7 建议顺序；E6 解锁 E5 Slice2 与 E12 的 AI 状态源；E9 相对独立可早做；E7→E8 记忆链；E10→E11 导出先于同步；E12 依赖最多子系统放最后）。每份方案进入前的隔离自审核可微调其后续顺序，调整记入本节。
-- 当前方案：**E6**（`docs/plans/active/2026-06-11-09-feature-ai-request-preview-and-log-foundation.md`）— 自审核中
-- 当前 Phase：自审核（实现前）
-- 最后 commit：_无（本 run 尚未产出代码提交）_
-- 最后 CI run：_无_
-- 已收口（移入 done/）：_无_
-- deferred / 待裁决项：_无_
-- 关键漂移基线（自审核必核）：最新 migration = **v23**（`v23_create_practice_text_attempts`），故 E6 新表为 **v24**（方案原文写 v15，已过期）。
+- 当前方案：**E5 Slice 2**（`docs/plans/active/2026-06-11-08-feature-practice-backtranslation.md`）— 回译可选 AI 点评，自审核已完成（见下），待实现
+- 当前 Phase：E5 Slice 2 实现前（E6 已收口）
+- 最后 commit：`a72850a`（E6 merge into dev）
+- 最后 CI run：`27738605916`（E6 Build & Test success on dev）
+- 已收口（移入 done/）：**E6**（2026-06-18，CI `27738605916` 全绿）
+- deferred / 待裁决项：_无_（E5 Slice 2 的「单独隐私授权」门禁由批量 run §1 总授权满足——预授权 dev 阶段构建，实现保留运行期显式「请 AI 点评」触发，不默认自动外发；不构成 deferred）
+- 关键漂移基线：最新 migration = **v24**（`v24_create_ai_request_logs`，E6 落地）；下一新表从 **v25** 起。E5 Slice 2 经自审核确认**不需要新 migration**（复用 `practice_text_attempts`，点评为短生命周期 UI 状态 + E6 `ai_request_logs` 写日志）。
+- E5 Slice 2 自审核结论（隔离子代理，2026-06-18）：无 P0，无核心决策/ADR 反转；E6 技术门禁已满足（预留 capability `practiceBacktranslationReview` + 日志设施）；需新增 seam：Core 点评 input/result/failureCategory + `AIRequestLogFailureBucket` 第三 init 重载；AI `PracticeBacktranslationReviewService` + Prompt（镜像 ReadingSelectionExplanationService，字段分隔符包裹）；`AIRequestProjections.swift` 填预留 capability 的 previewProjection()/makeLogEntry()；`AIRequestContentDescriptor` 加 `practiceAttempt`/`backtranslationReferenceSentence` 两 case；UI `PracticeBacktranslationSessionViewModel` 显式「请 AI 点评」触发 + `PracticeActions.reviewBacktranslation`；App-Shell 经 `AIRequestLogRecorder.record(_:)` 写日志；测试用 fake HTTP client 可 CI 绿无需真实凭证。
 
 > 维护约定：本节是 run 级游标，只记「跑到哪、下一步从哪继续」；详细决策、验证结果、TDD 落点写回各子方案与仪表盘 00。
 

@@ -1,6 +1,6 @@
 # 任务方案：AI 请求预览与请求日志基础（真实"将发送内容"投影 + ai_request_logs）
 
-状态：User Approved
+状态：Implemented（2026-06-18，CI run `27738605916` Build & Test 全绿）
 自审核状态：Reviewed（2026-06-18 第二轮隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
@@ -288,7 +288,7 @@ git status --short
 
 - `docs/spec/005-ai-provider-prompt-and-privacy.md`：§4.3 / §4.4 实现状态与允许字段落地记录——是。
 - `docs/platform-page-inventory.md`：iPad 面板预览卡真实化、mac Inspector、iPhone 按需入口、日志列表条目——是。
-- **PrivacyStatus 文案决策项**：今日 commit `274b7db` 刚把隐私状态摘要修正为不承诺请求预览（含 `PrivacyStatusLocalizationTests` 防回归断言）。本方案落地后预览成为真实能力，可以考虑恢复基于预览的隐私摘要表达；该恢复必须：用户显式确认 → 有意调整防回归测试（保留对未实现能力的禁止语义）→ 文案变更记录写回 spec 008 或独立小方案。本方案只登记决策入口，不静默恢复——是。
+- **PrivacyStatus 文案决策项（已决议）**：commit `274b7db` 把隐私状态摘要收紧为不承诺请求预览（含 `PrivacyStatusLocalizationTests` 防回归断言）。**本方案决定不恢复**基于预览的隐私摘要表达，维持收紧文案与防回归测试不变。理由（系统架构师判断，批量 run §4.2 自主决策）：预览虽已成真实能力，但隐私摘要文案的回摆属独立隐私表达变更，应单独留痕、单独评审，不在基础设施方案里夹带；当前离线/未配置 Provider 时预览本就显示显式离线态，隐私摘要继续保持「仅显式触发才发送」的保守表达更安全。后续若要恢复，须：用户显式确认 → 有意调整防回归测试 → 文案变更写回 spec 008 独立小方案。本方案未改 PrivacyStatus 文案与其测试——保持现状。
 - `docs/workflows/add-ai-provider.md` / `add-prompt.md`：落地后检查是否需要把"投影函数 + 日志接入"补入手册步骤——是（workflow 为顺序手册，不改变权威关系）。
 - ADR：无核心决策变化（透明性能力沿用 ADR-005 本地优先边界）。
 - `docs/review/`：数据库 schema 变化 + 请求日志属 AI Provider 域，命中专项审查触发条件，实现完成后创建 review round 或在本方案实施记录中说明。
@@ -320,6 +320,22 @@ git status --short
 2026-06-11：方案创建并完成两轮自审核（见第 13 节）。尚未进入实现。
 
 2026-06-18：批量 run 实现前隔离自审核完成（见 §13bis），状态推进 User Approved，开 feature/e6-ai-request-preview-log 分支进入 TDD 实现。
+
+2026-06-18：E6 实现完成并 CI 全绿（dev，run `27738605916` Build & Test success，含 Core/Data/AI/Speech/Sync/UI 六包测试 + iPhone/iPad/macOS 三端构建 + macOS app 测试 + SwiftLint/SwiftFormat + check-docs）。分支 feature/e6-ai-request-preview-log，4 个 Phase commit（b15dd43 Core / 9b594fb Data / ac483ca AI / 91ccbf0 UI+App / fd5da86 docs），merge commit `a72850a`。
+
+落地事实（按 §12 步骤对账）：
+- 步骤 1 Core：`AIRequestPreviewProjection.swift`（`AIRequestCapability` 含预留 `practiceBacktranslationReview`、`AIRequestContentDescriptor` 封闭描述符、`AIRequestLengthBucket`、`AIRequestPreviewProjection`）+ `AIRequestLog.swift`（`AIRequestLogEntry` 结构上无内容字段、`AIRequestLogStatus`、`AIRequestLogFailureBucket` 含两域常驻映射、`AIRequestLogOutcome`、`AIRequestLogRepository` 协议）。测试 `AIRequestLogModelTests`（8）。
+- 步骤 2 Data：`v24_create_ai_request_logs`（列级 allowlist + CHECK：status 词表、failed 行必带 bucket）+ `GRDBAIRequestLogRepository`（append 同事务 window-function 按 capability 修剪 200、recent/recentAll、空表安全）。测试 `AIRequestLogRepositoryTests`（6，含 content-free schema 断言）。
+- 步骤 3 AI：`AIRequestProjections.swift` 三 request struct 的 `previewProjection()`/`makeLogEntry()` 同源构造（纯函数，不渲染 Prompt 正文）+ `AIRequestPreviewProjection.learningMaterialGeneration(...)` 单源工厂。测试 `AIRequestPreviewProjectionTests`（6）。
+- 步骤 4 UI：`RequestPreviewCard` 真实投影渲染（mock 保留本地草稿、未配置显式离线态）；`AIRequestPreviewPresentation`（`RequestPreviewCardModel`）+ `AIRequestLogListView`（`AIRequestLogRowModel`，内容无正文）；接 iPad 面板 / macOS Inspector / 设置 AI Provider 详情；本地化 en+zh-Hans。测试 `RequestPreviewCardTests`（5）。
+- 步骤 5 装配：App-Shell `AIRequestLogRecorder`（镜像 `ReadingExplanationOperationRecorder`）在 `AppEnvironment` 包裹 generate/analyze/explain 三态写真实日志；`AIRequestPreviewActions`/`AIRequestLogActions` env seam，`AIRequestPreviewEndpointCache`（NSLock）缓存默认 endpoint 供同步投影；`LangoTraceApp` 注入两 seam。依赖方向：AI service 保持纯执行器，不向 LangoTraceAI 注入 sink（采纳 §13bis P0-2 修正）。
+- 步骤 6 文档：spec 005 §4.3/§4.4 实现状态变更记录、platform-page-inventory 预览卡状态更新 + `AIRequestLogListView` 条目、变更记录。
+
+完成标准对账（§19）：1 测试齐全且首失败用例转绿 ✓；2 两真实路径预览+日志可用、E5 Slice2 可经新增 capability+投影接入（预留 case 已验证扩展性）✓；3 iPad/mac/iPhone 红线：iPhone 无持久预览卡，日志列表经设置 AI Provider 详情可达 ✓；4 PrivacyStatus 决策见 §17（决定不恢复，留痕）✓；5 文档影响检查完成 ✓。
+
+scope 决策（留痕，非 deferred）：
+- iPhone 入口（E6-D2）采纳「设置 AI Provider 详情挂日志列表」作为 iPhone/跨平台可达入口，未额外做记录详情 footnote 旁的按需预览展开 sheet（iPhone 红线只要求无持久卡，已满足）；该按需展开属可选增强，未纳入本切片。
+- `AIRequestLogEntry` 未含 durationBucket（方案 §12 步骤 1 曾列出）：需请求计时管线，本切片以 status/failure/length 三维满足透明性，durationBucket 留作后续增强。
 
 ## 19. 完成标准
 
