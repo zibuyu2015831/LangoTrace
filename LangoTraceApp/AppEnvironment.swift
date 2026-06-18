@@ -49,6 +49,12 @@ struct AppEnvironment {
             )
         }
 
+        // E6/E5-Slice2: local, non-sensitive AI request log recorder (built early
+        // so practice actions can write critique request logs).
+        let aiRequestLogRepository: (any AIRequestLogRepository)? =
+            (try? databaseFactory.database()).map { GRDBAIRequestLogRepository(database: $0) }
+        let aiRequestLogRecorder = AIRequestLogRecorder(repository: aiRequestLogRepository)
+
         let readingCacheStorage: (any ReadingExplanationCacheRepositoryProtocol)?
         do {
             readingCacheStorage = try GRDBReadingExplanationCacheRepository(
@@ -70,7 +76,9 @@ struct AppEnvironment {
             practiceActions = try PracticeActionsAssembly.makeActions(
                 database: databaseFactory.database(),
                 mediaArtifactsRoot: SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot(),
-                diagnosticLogger: diagnosticLogger
+                diagnosticLogger: diagnosticLogger,
+                credentialStore: credentialStore,
+                aiRequestLogRecorder: aiRequestLogRecorder
             )
         } catch {
             practiceActions = .disabled
@@ -126,10 +134,7 @@ struct AppEnvironment {
             )
         }
 
-        // E6: local, non-sensitive AI request log + same-source preview seam.
-        let aiRequestLogRepository: (any AIRequestLogRepository)? =
-            (try? databaseFactory.database()).map { GRDBAIRequestLogRepository(database: $0) }
-        let aiRequestLogRecorder = AIRequestLogRecorder(repository: aiRequestLogRepository)
+        // E6: same-source preview seam (request log recorder built earlier above).
         let aiRequestPreviewEndpointCache = AIRequestPreviewEndpointCache()
         // Warm the cache so the iPad / macOS preview card can show the real
         // configured provider + model; until loaded / when unconfigured the card
@@ -873,7 +878,7 @@ private func makeLearningMaterialGenerationActions(
     )
 }
 
-private func resolveLearningMaterialSecret(
+func resolveLearningMaterialSecret(
     endpoint: AIProviderEndpointInput,
     profile: AIProviderConfigurationProfile,
     credentialStore: any AIProviderCredentialStore

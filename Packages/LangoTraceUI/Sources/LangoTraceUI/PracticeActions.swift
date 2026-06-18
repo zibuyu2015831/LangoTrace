@@ -53,7 +53,7 @@ public struct PracticeBacktranslationAttemptSubmission: Sendable {
     }
 }
 
-/// The content the user explicitly chooses to send for an AI critique (系列 E5
+/// The content the user explicitly chooses to send for an AI critique (E5
 /// Slice 2). Only the three short texts — the native-meaning prompt, the user's
 /// own answer, and the reference sentence. App Shell resolves the language /
 /// proficiency codes from the language space; nothing else is sent.
@@ -98,8 +98,8 @@ public struct PracticeActions: Sendable {
         String,
         Int
     ) async throws -> LearningSentenceAnalysis?
-    /// Explicitly-triggered optional AI critique (系列 E5 Slice 2). Only invoked
-    /// from the "请 AI 点评" button — never automatically. App Shell resolves the
+    /// Explicitly-triggered optional AI critique (E5 Slice 2). Only invoked
+    /// from the "Ask AI to review" button — never automatically. App Shell resolves the
     /// endpoint + language/proficiency, sends the three short texts, writes a
     /// non-sensitive request log, and maps failures to
     /// `PracticeBacktranslationReviewFailure`.

@@ -65,8 +65,8 @@ final class PracticeBacktranslationSessionViewModel: ObservableObject {
         case revealed
     }
 
-    /// Optional AI critique state (系列 E5 Slice 2). Starts `idle`; only moves to
-    /// `sending` on an explicit "请 AI 点评" tap — never automatically.
+    /// Optional AI critique state (E5 Slice 2). Starts `idle`; only moves to
+    /// `sending` on an explicit "Ask AI to review" tap — never automatically.
     enum ReviewState: Equatable {
         case idle
         case sending
@@ -175,7 +175,7 @@ final class PracticeBacktranslationSessionViewModel: ObservableObject {
         }
     }
 
-    /// Whether the explicit "请 AI 点评" action is offered. Only after the
+    /// Whether the explicit "Ask AI to review" action is offered. Only after the
     /// reference is revealed, with a real attempt + reference, and not mid-send.
     var canRequestReview: Bool {
         guard phase == .revealed, reviewState != .sending else {
