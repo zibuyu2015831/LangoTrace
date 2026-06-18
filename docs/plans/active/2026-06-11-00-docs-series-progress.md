@@ -35,7 +35,7 @@
 
 > **批量自主执行已编排**（2026-06-18）：E6…LM01 的全部剩余工作项方案，由仓库根目录编排手册 `BATCH-EXECUTION-PLAYBOOK.md` 统一驱动（用户已完全预授权，每方案独立分支 → 本地 merge dev → CI 绿 → 移 done/，不动 main，AI 自审后重排顺序）；`/goal` 指令见根目录 `BATCH-EXECUTION-GOAL.md`。本仪表盘仍为进度事实源，run 级游标见 Playbook §9。
 
-> **当前指针**：E11 `docs/plans/active/2026-06-11-14-feature-sync-engine-icloud-foundation.md`（同步引擎，引擎切片本轮 + ADR-013；CloudKit 通道诚实 defer）。**E10（导入导出）Slice 1 已于 2026-06-18 落地并 CI 全绿**（run `27748408455`）：非敏感主数据导出/导入引擎（manifest + SHA-256 + verify-before-write 同 id skip）；Slice 2（macOS 文件面板/附件打包）+ 加密备份诚实 defer，E10 保持 In Progress/active。
+> **当前指针**：LM01 `docs/plans/active/2026-06-15-01-feature-learner-model-boundary-and-ability-coverage.md`（学习者模型边界 + Ability 知识覆盖；本轮实现中）。**E11（同步引擎）引擎切片已于 2026-06-18 落地并 CI 全绿**（run `27749378002`）：Sync Engine + Adapter 协议 + 冲突解决器 + 真实 SyncService 协议 + **ADR-007**；CloudKit 真实通道 / entitlement / 变更跟踪 schema 写路径 / 双设备验证诚实 defer，E11 保持 In Progress/active。**E10（导入导出）Slice 1 已于 2026-06-18 落地并 CI 全绿**（run `27748408455`）：非敏感主数据导出/导入引擎（manifest + SHA-256 + verify-before-write 同 id skip）；Slice 2（macOS 文件面板/附件打包）+ 加密备份诚实 defer，E10 保持 In Progress/active。
 >
 > _历史指针_：E10 `docs/plans/active/2026-06-11-13-feature-import-export-backup.md`。**E8（记忆复习队列）已于 2026-06-18 落地并 CI 全绿**（run `27747133409`，已移入 done/）：Core 固定间隔调度器 + repository 复习方法 + iPhone 统计条/复习会话；无新 migration。
 >
@@ -69,7 +69,7 @@
 | 11 | E8 | `2026-06-11-11-feature-memory-review-queue` | 记忆复习队列 | ✅ **Implemented**（2026-06-18 CI run `27747133409` Build & Test 全绿，已移入 done/） |
 | 12 | E9 | `2026-06-11-12-feature-local-fts-search` | 本地 FTS 全文搜索 | ✅ **Implemented**（2026-06-18 CI run `27742853935` Build & Test 全绿，已移入 done/） |
 | 13 | E10 | `2026-06-11-13-feature-import-export-backup` | 导入导出与可恢复备份包 | 🟡 **In Progress**（Slice 1 非敏感导出/导入引擎 2026-06-18 CI run `27748408455` 全绿；Slice 2 macOS 文件面板/附件打包 + 加密备份 + 其余主数据表诚实 defer，方案保持 active） |
-| 14 | E11 | `2026-06-11-14-feature-sync-engine-icloud-foundation` | 同步引擎 + iCloud 首通道 | ⚪ Draft |
+| 14 | E11 | `2026-06-11-14-feature-sync-engine-icloud-foundation` | 同步引擎 + iCloud 首通道 | 🟡 **In Progress**（引擎切片：Sync Engine + Adapter 协议 + 冲突解决器 + 真实 SyncService 协议 + ADR-007，2026-06-18 CI run `27749378002` 全绿；CloudKit 真实通道 / entitlement / 变更跟踪 schema 写路径 / 双设备验证诚实 defer，方案保持 active） |
 | 15 | E12 | `2026-06-11-15-feature-settings-status-projection` | 设置真实状态投影 | ⚪ Draft |
 | — | LM01 | `2026-06-15-01-feature-learner-model-boundary-and-ability-coverage` | 学习者模型边界 + Ability 覆盖 | ⚪ Draft |
 | — | — | `2026-06-15-chore-prototype-large-screen-density-and-state-coverage` | 原型大屏密度 + 状态原型补全 | ✅ **Verified**（2026-06-16 截图验收通过，已移入 done/） |
@@ -79,7 +79,7 @@
 说明：
 
 - 01–15 是 2026-06-11 全量代码审查派生的连号实施系列；E 编码与处置见主控文档附录 A。
-- 后两份为 2026-06-15 新增：LM01 仍 Draft；原型收尾已实现并自审核 Reviewed，仅差归档。
+- 后两份为 2026-06-15 新增：LM01 引擎实现已落地（独立包 LangoTraceLearnerModel + Ability 知识覆盖 compute-on-read），CI 验证中；原型收尾已实现并自审核 Reviewed，仅差归档。
 
 ## plan 01（E0a）Phase 级子进度
 

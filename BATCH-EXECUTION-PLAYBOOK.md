@@ -166,16 +166,15 @@ LM01                    （学习者模型边界：相对基础，但 Draft；�
 ## 9. 当前 run 状态（每次推进同步更新）
 
 - 排定顺序（自审核后定稿）：**E6 → E5 Slice2 → E9 → E7 → E8 → E10 → E11 → LM01 → E12**（采纳 §7 建议顺序；E6 解锁 E5 Slice2 与 E12 的 AI 状态源；E9 相对独立可早做；E7→E8 记忆链；E10→E11 导出先于同步；E12 依赖最多子系统放最后）。每份方案进入前的隔离自审核可微调其后续顺序，调整记入本节。
-- 当前方案：**E11**（`docs/plans/active/2026-06-11-14-feature-sync-engine-icloud-foundation.md`）— 同步引擎 + iCloud 首通道，实现前隔离自审核已完成（见该方案「批量 run 实现前隔离自审核」段），按切片：引擎切片（Core 引擎/适配器协议/FakeAdapter/冲突逻辑 + v27 change-tracking schema）+ ADR-013 本轮落地；CloudKit 真实通道/entitlement/双设备验证诚实 defer
-- 当前 Phase：E11 实现前（E6 + E5S2 + E9 + E7 + E8 已收口；E10 Slice 1 已落地 CI 绿、In Progress 留 active 诚实 defer）
-- 最后 commit：`4fe89ea`（E10 CI fix on dev）
-- 最后 CI run：`27748408455`（E10 Slice 1 Build & Test success on dev）
+- 当前方案：**LM01**（`docs/plans/active/2026-06-15-01-feature-learner-model-boundary-and-ability-coverage.md`）— 学习者模型边界 + Ability 知识覆盖；实现前漂移复核已完成（见该方案「批量 run 实现前漂移复核」段），引擎实现已落地、CI 验证中。下一份：**E12**（最后一份）。
+- 当前 Phase：LM01 CI 验证中（E6 + E5S2 + E9 + E7 + E8 已收口；E10 Slice 1 + E11 引擎切片已落地 CI 绿、In Progress 留 active 诚实 defer）
+- 最后 commit：`10524ed`（LM01 merge on dev，含 `[ci]`）
+- 最后 CI run：LM01 `27749945215`（验证中）；上一绿 E11 `27749378002`
 - 已收口（移入 done/）：**E6**（`27738605916`）、**E5（S1+S2）**（`27741263024`）、**E9**（`27742853935`）、**E7**（`27745572810`）、**E8**（`27747133409`）
-- In Progress 诚实 defer（留 active/，已落地部分 CI 绿）：**E10 Slice 1**（`27748408455`；defer macOS 文件面板/附件打包 + 加密备份 + 其余主数据表，见 architecture note `2026-06-18-export-backup-deferred-slices`）
-- deferred / 待裁决项：E7 reading-来源沉淀 + 增量索引（后续优化）；E8 iPad/mac 复习入口（seam/view 已可复用，后续小项）。**E10 将含诚实 defer**：加密/口令备份包（依赖不存在的 KDF/安全存储）+ Slice 2（macOS 文件面板 entitlement + 附件文件打包，需 macOS 验证）。
-- 关键漂移基线：最新 migration = **v26**；E10 **无新 migration**（导出只读、导入走既有 repository 写路径；manifest schema version 读 live v26 不硬编码）。
-- 关键漂移基线（E11）：最新 migration = **v26**；E11 change-tracking schema = **v27**（sync_metadata + tombstones；若 sync_conflict_versions 单列则 v28）。当前 SyncService 是空 marker + DisabledSyncService no-op（LangoTraceSync/SyncBoundary.swift）。E10 的 Portable 编码在 Core ImportExport.swift（PortableEntry/MemorySnapshot），PortableLearningMaterial 不存在。
-- E11 自审核结论（隔离子代理，2026-06-18）：无决策 9/12/13 反转（决策 13 须新增 ADR 具体化）。**CloudKit 真实通道诚实 defer**（iCloud container/付费 capability/真实账号/多设备/entitlement 在 CI 与本环境不存在，无法验证；entitlement 改动还可能破无签名 CI 构建）。CI-greenable 引擎切片：v27 schema + 写路径 revision/tombstone 挂钩 + 排除反向测试（Slice A）；SyncService 升真实协议 + SyncAdapter 协议 + SyncEngine + FakeSyncAdapter 双引擎 roundtrip + payload 隐私扫描（Slice B1，不 import CloudKit）；冲突 keep-multiple-versions 纯 Core 逻辑 + SyncSettings 投影（Slice C）；+ ADR-013。v1 同步对象缩为 entries/memory（已有 Portable 编码）+ 新建 language space 编码，learning material 同步随其 snapshot defer。device id 入 app_state（不同步）。
+- In Progress 诚实 defer（留 active/，已落地部分 CI 绿）：**E10 Slice 1**（`27748408455`；defer macOS 文件面板/附件打包 + 加密备份 + 其余主数据表，见 architecture note `2026-06-18-export-backup-deferred-slices`）；**E11 引擎切片**（`27749378002`；defer CloudKit 真实通道 + entitlement + v27 变更跟踪 schema 写路径 + 双设备验证，见 architecture note `2026-06-18-sync-engine-deferred-channel` + ADR-007）
+- deferred / 待裁决项：E7 reading-来源沉淀 + 增量索引（后续优化）；E8 iPad/mac 复习入口（seam/view 已可复用，后续小项）。**LM01**：账本/cursor 增量聚合 + band/盲点/分技能 + 练习评分信号 + 三层 Memory/Style + 总览页 UI 全部留 LM02/LM03（v1 仅 Ability 知识覆盖 compute-on-read，有意范围）。
+- 关键漂移基线（E11 实际落地）：引擎切片 = 纯逻辑 SyncEngine + SyncAdapter 协议 + SyncConflictResolver(last-writer-wins) + SyncRecord + SyncService 升真实协议（DisabledSyncService no-op）+ ADR-007；**比自审核 Slice A 更窄**——v27 change-tracking schema（sync_metadata + tombstones）+ repository 写路径 revision/tombstone 挂钩与 CloudKit 通道**一并 defer**（它们只被真实 adapter 驱动，无通道时落地即「建了不读」，恢复入口见 architecture note `2026-06-18-sync-engine-deferred-channel` + ADR-007 §7）。
+- 关键漂移基线（LM01 实际落地）：最新 migration = **v26**（无新增）；新包 **LangoTraceLearnerModel**（deps Core+Data+GRDB）；`AppDatabase.reader` 读 seam 已加；memory_items 实际列名 `text`/`example_native`/`soft_deleted_at`（非方案旧名）；覆盖按 `language_spaces.target_language_code` JOIN 合并、compute-on-read 无持久化；红线测试（未沉淀 candidate 不进覆盖）已加。AppEnvironment 已装配 GRDBLearnerContextProvider（暂无 UI 消费者，供 LM02 接入）。
 
 > 维护约定：本节是 run 级游标，只记「跑到哪、下一步从哪继续」；详细决策、验证结果、TDD 落点写回各子方案与仪表盘 00。
 
