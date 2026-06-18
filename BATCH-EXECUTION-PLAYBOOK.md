@@ -166,14 +166,14 @@ LM01                    （学习者模型边界：相对基础，但 Draft；�
 ## 9. 当前 run 状态（每次推进同步更新）
 
 - 排定顺序（自审核后定稿）：**E6 → E5 Slice2 → E9 → E7 → E8 → E10 → E11 → LM01 → E12**（采纳 §7 建议顺序；E6 解锁 E5 Slice2 与 E12 的 AI 状态源；E9 相对独立可早做；E7→E8 记忆链；E10→E11 导出先于同步；E12 依赖最多子系统放最后）。每份方案进入前的隔离自审核可微调其后续顺序，调整记入本节。
-- 当前方案：**E9**（`docs/plans/active/2026-06-11-12-feature-local-fts-search.md`）— 本地 FTS 全文搜索，实现前隔离自审核已完成（见该方案「批量 run 实现前隔离自审核」段），状态 User Approved，待实现
-- 当前 Phase：E9 实现前（E6 + E5 Slice2 已收口）
-- 最后 commit：`1c09385`（E5 Slice2 CI fix on dev）
-- 最后 CI run：`27741263024`（E5 Slice2 Build & Test success on dev）
-- 已收口（移入 done/）：**E6**（CI `27738605916`）、**E5（Slice1+Slice2）**（CI `27741263024`）
+- 当前方案：**E7**（`docs/plans/active/2026-06-11-10-feature-memory-deposit-foundation.md`）— 记忆沉淀基础，实现前隔离自审核已完成（见该方案「批量 run 实现前隔离自审核」段），状态 User Approved，待实现
+- 当前 Phase：E7 实现前（E6 + E5 Slice2 + E9 已收口）
+- 最后 commit：`de222e2`（E9 CI fix on dev）
+- 最后 CI run：`27742853935`（E9 Build & Test success on dev）
+- 已收口（移入 done/）：**E6**（CI `27738605916`）、**E5（Slice1+Slice2）**（CI `27741263024`）、**E9**（CI `27742853935`）
 - deferred / 待裁决项：_无_
-- 关键漂移基线：最新 migration = **v24**；下一新表从 **v25** 起。E9 FTS 虚表 = **v25+**，inline `db.execute("CREATE VIRTUAL TABLE … USING fts5")`。部署目标 iOS18/macOS15 → FTS5+trigram 可用。复用既有 ⌘F `LangoTraceAppCommand.search`（当前指 `.unavailable("search")`），不新增 ⌘K。memory 搜索组仅零态降级（E7 未落地、无 `memory_items` 表）。
-- E9 自审核结论（隔离子代理，2026-06-18）：无 P0 架构阻塞，无核心决策/ADR 反转（FTS=本地可重建派生数据，spec 007 + 决策 12）；修订项已写回 E9 方案。真实可索引列：entries(title,body) 排软删、learning_materials.learning_text(is_current=1)、reading_documents(title,body；managedFile 时 body 为 NULL 须经 reading repo body resolver)、reading 逐块锚点用 reading_structure_blocks/reading_sentences。
+- 关键漂移基线：最新 migration = **v25**；下一新表从 **v26** 起。E7 记忆表 = **v26_create_memory_item_infrastructure**（sibling 文件放 helper，AppDatabase.swift 已近 file_length 1300 上限）。
+- E7 自审核结论（隔离子代理，2026-06-18）：无 P0 架构阻塞，无核心决策/ADR 反转（memory_items 是主数据，spec 007 §3.1 + ADR-004；决策 12 仅约束向量索引）。关键修订：①v26；②候选 5 kind→deposit kind 显式映射(word/phrase→wordPhrase、sentencePattern→sentence、grammarPoint/errorPattern 显式定)；③新 Core 类型命名 DepositedMemoryItem/MemoryRecord 避免 MemoryItem 跨包 rename；④reading 来源沉淀需幂等键或 defer；⑤memory_items 须含 E8 review 列（review_state/review_rung/review_due_at/last_reviewed_at/review_count/mastered_at）；建议 Phase A（Core+Data+repo+v26）先 CI 绿即解锁 E8 + E9 记忆搜索组。
 
 > 维护约定：本节是 run 级游标，只记「跑到哪、下一步从哪继续」；详细决策、验证结果、TDD 落点写回各子方案与仪表盘 00。
 

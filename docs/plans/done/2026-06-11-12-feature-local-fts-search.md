@@ -1,6 +1,6 @@
 # 任务方案：本地 FTS 全文搜索（mac Command Palette 与 iPad 搜索接入）（E9）
 
-状态：Implemented（待 CI 收尾时补 run id）
+状态：Implemented（2026-06-18 CI run `27742853935` Build & Test 全绿；首跑 `27742420148` 因 AppDatabase.swift file_length 超限失败，fix 后绿）
 自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11

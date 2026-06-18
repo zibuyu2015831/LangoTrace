@@ -1,10 +1,28 @@
 # 任务方案：记忆沉淀基础（memory_items 主数据与三端只读沉淀列表）（E7）
 
-状态：Draft
-自审核状态：Reviewed
+状态：User Approved
+自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-17
+最后更新日期：2026-06-18（批量 run 实现前隔离自审核：migration v26、候选 5 kind→deposit kind 映射、避免 MemoryItem 跨包改名、E8 复用 review 列、reading 沉淀幂等）
+
+## 批量 run 实现前隔离自审核（2026-06-18）
+
+```text
+审核方式：隔离子代理只读，用当前 HEAD（de222e2 附近，E9 已并入 dev）核验方案现状
+核心决策/ADR 反转检查：无。memory_items 是用户主数据（spec 007 §3.1.1/§3.1.2 已列 MemoryItem 为主数据；决策 12 仅约束向量索引），每行 space_id NOT NULL REFERENCES language_spaces（ADR-004），同步/导出留 E11/E10。无反转。
+确认漂移与修订（实现时按此为准）：
+  [P0-1] migration 漂移：最新已是 v25（v25_create_local_search_index）。E7 记忆表须为 **v26_create_memory_item_infrastructure**，inline static helper + 注册于 AppDatabase.migrate()（参考 AppDatabaseReadingMigration/AppDatabaseSearchMigration 的 sibling extension 文件模式，注意 AppDatabase.swift 已近 file_length 上限 1300，新 helper 放 sibling 文件）。
+  [P0-2] 候选 kind 与 deposit kind 映射必须显式：memory_candidates.kind 有 5 值（word/phrase/sentencePattern/grammarPoint/errorPattern，LearningMaterialGenerationModels.swift），方案的 memory_items.kind CHECK('wordPhrase','sentence') 需明确映射：word/phrase→wordPhrase、sentencePattern→sentence、grammarPoint/errorPattern 显式映射或排除。加 TDD 断言每种候选 kind 落到预期 deposit kind。
+  [P1-1] 行号漂移：EntryTimelineFilter.settled.includes 签名已为 includes(entry:hasMaterialWithoutRecording:hasPhotoAttachment:)（E2 加了第三参数，EntryTimeline.swift:26）；settled 当前恒 false（:31），visibleFilters 过滤 .settled 仅在 Phone(:97)+Pad(:19)，Mac 无该 chip。
+  [P1-2] 避免 MemoryItem 跨包改名：Data 投影 MemoryItem（候选投影，LearningContentModels.swift:116）被 ~14 处 Data+UI 消费（contentStore.memoryItems 三端渲染）。新 Core 主数据类型建议命名 **DepositedMemoryItem / MemoryRecord**，保留 Data 投影不动，避免跨包 rename churn。
+  [P1-3] reading 来源沉淀需幂等键：候选来源用 (space_id, source_candidate_id) 去重；reading-selection 来源无幂等键会重复写入。要么加 reading 路径 partial unique index，要么本切片 reading 来源沉淀 defer（只做候选来源沉淀）。
+  现状确认：memory_candidates 已持久化（GRDBLearningContentRepository.replaceAnalysisRows INSERT，reanalysis 时删除，CASCADE）；当前 contentStore.memoryItems 显示的是【候选投影】非沉淀数据。E7 的「显式沉淀候选→memory_items 主数据表 + 快照解耦候选 CASCADE 生命周期」语义正确（spec 007 §3.1.2）。
+  E8 契约（已核对一致）：memory_items 须含 review 列 review_state CHECK('new'/'scheduled'/'mastered')、review_rung、review_due_at、last_reviewed_at、review_count、mastered_at；E8 不新增 migration、消费 E7 schema。
+有序 seam（修订）：v26 迁移(sibling 文件) → Core DepositedMemoryItem/MemoryItemKind/SourceReference/DepositInput + 5→2 kind 映射 → MemoryItemRepository 协议 + GRDBMemoryItemRepository(deposit/list/softDelete/depositedEntryIDs，bridge emitReadFailed) → UI MemoryDepositActions「加入记忆」seam + 三端只读沉淀列表 + settled 真实判定 → AppEnvironment 装配 → 文档。
+建议分阶段（P2-2）：Phase A = Core+Data+repo+v26+tests（CI 绿即解锁 E8 + E9 记忆搜索组）；Phase B/C = UI 沉淀动作 + 三端列表。
+是否允许进入实现：是（批量 run §1 预授权 + 本轮漂移已修订）。
+```
 
 ## 用户确认记录
 

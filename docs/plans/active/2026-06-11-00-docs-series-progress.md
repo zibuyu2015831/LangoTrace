@@ -35,7 +35,9 @@
 
 > **批量自主执行已编排**（2026-06-18）：E6…LM01 的全部剩余工作项方案，由仓库根目录编排手册 `BATCH-EXECUTION-PLAYBOOK.md` 统一驱动（用户已完全预授权，每方案独立分支 → 本地 merge dev → CI 绿 → 移 done/，不动 main，AI 自审后重排顺序）；`/goal` 指令见根目录 `BATCH-EXECUTION-GOAL.md`。本仪表盘仍为进度事实源，run 级游标见 Playbook §9。
 
-> **当前指针**：E9 `docs/plans/active/2026-06-11-12-feature-local-fts-search.md`（本地 FTS 全文搜索）。**E5 Slice 2（回译可选 AI 点评）已于 2026-06-18 落地并 CI 全绿**（run `27741263024`，已连同 Slice 1 移入 done/）：显式「请 AI 点评」触发 + footnote 披露 + 无判定输出契约 + E6 预览/日志接入，运行期保留显式触发（核心决策 10）。E5 整体收口。
+> **当前指针**：E7 `docs/plans/active/2026-06-11-10-feature-memory-deposit-foundation.md`（记忆沉淀基础）。**E9（本地 FTS 全文搜索）已于 2026-06-18 落地并 CI 全绿**（run `27742853935`，已移入 done/）：v25 FTS5 trigram 索引 + 应用层 writer + 分组查询（trigram/LIKE 降级、space 隔离、rebuild-on-open）+ mac 命令面板/iPad sheet 复用既有搜索命令；记忆搜索组待 E7 落地。E7 解锁 E8（复习队列）与 E9 记忆搜索组。
+>
+> _历史指针_：E9 `docs/plans/active/2026-06-11-12-feature-local-fts-search.md`（本地 FTS 全文搜索）。**E5 Slice 2（回译可选 AI 点评）已于 2026-06-18 落地并 CI 全绿**（run `27741263024`，已连同 Slice 1 移入 done/）：显式「请 AI 点评」触发 + footnote 披露 + 无判定输出契约 + E6 预览/日志接入，运行期保留显式触发（核心决策 10）。E5 整体收口。
 >
 > _下方为历史指针_：E5 Slice 2 `docs/plans/active/2026-06-11-08-feature-practice-backtranslation.md`（回译可选 AI 点评）。**E6（AI 请求预览 + 请求日志基础）已于 2026-06-18 落地并 CI 全绿**（run `27738605916`，已移入 done/）：Core 投影/日志模型、v24 `ai_request_logs`、AI 同源 previewProjection()/makeLogEntry()、UI 真实预览卡 + 内容无正文日志列表（iPad/mac/设置可达）、App-Shell `AIRequestLogRecorder` 在真实 generate/analyze/explain 三态写日志。E6 解锁 E5 Slice 2 的技术门禁（预留 capability `practiceBacktranslationReview`）。E5 Slice 2 的「单独隐私授权」门禁由批量 run 总授权 §1 满足（预授权 dev 阶段构建该功能，实现须保留运行期显式「请 AI 点评」触发，不默认自动外发）。下一步推进 E5 Slice 2。
 
@@ -59,7 +61,7 @@
 | 09 | E6 | `2026-06-11-09-feature-ai-request-preview-and-log-foundation` | AI 请求预览 + 请求日志基础 | ✅ **Implemented**（2026-06-18 CI run `27738605916` Build & Test 全绿，已移入 done/） |
 | 10 | E7 | `2026-06-11-10-feature-memory-deposit-foundation` | 记忆沉淀基础 | ⚪ Draft |
 | 11 | E8 | `2026-06-11-11-feature-memory-review-queue` | 记忆复习队列 | ⚪ Draft |
-| 12 | E9 | `2026-06-11-12-feature-local-fts-search` | 本地 FTS 全文搜索 | ⚪ Draft |
+| 12 | E9 | `2026-06-11-12-feature-local-fts-search` | 本地 FTS 全文搜索 | ✅ **Implemented**（2026-06-18 CI run `27742853935` Build & Test 全绿，已移入 done/） |
 | 13 | E10 | `2026-06-11-13-feature-import-export-backup` | 导入导出与可恢复备份包 | ⚪ Draft |
 | 14 | E11 | `2026-06-11-14-feature-sync-engine-icloud-foundation` | 同步引擎 + iCloud 首通道 | ⚪ Draft |
 | 15 | E12 | `2026-06-11-15-feature-settings-status-projection` | 设置真实状态投影 | ⚪ Draft |
