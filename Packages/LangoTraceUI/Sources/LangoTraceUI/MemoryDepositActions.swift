@@ -8,21 +8,27 @@ public struct MemoryDepositActions: Sendable {
     public var depositCandidate: @Sendable (_ candidateID: String, _ spaceID: String) async -> Bool
     public var listDeposited: @Sendable (_ spaceID: String) async -> [DepositedMemoryItem]
     public var depositedCandidateIDs: @Sendable (_ spaceID: String) async -> Set<String>
+    /// Entry ids with at least one deposited memory item (drives the `settled`
+    /// timeline filter).
+    public var depositedEntryIDs: @Sendable (_ spaceID: String) async -> Set<String>
 
     public init(
         depositCandidate: @escaping @Sendable (String, String) async -> Bool,
         listDeposited: @escaping @Sendable (String) async -> [DepositedMemoryItem],
-        depositedCandidateIDs: @escaping @Sendable (String) async -> Set<String>
+        depositedCandidateIDs: @escaping @Sendable (String) async -> Set<String>,
+        depositedEntryIDs: @escaping @Sendable (String) async -> Set<String> = { _ in [] }
     ) {
         self.depositCandidate = depositCandidate
         self.listDeposited = listDeposited
         self.depositedCandidateIDs = depositedCandidateIDs
+        self.depositedEntryIDs = depositedEntryIDs
     }
 
     public static let disabled = MemoryDepositActions(
         depositCandidate: { _, _ in false },
         listDeposited: { _ in [] },
-        depositedCandidateIDs: { _ in [] }
+        depositedCandidateIDs: { _ in [] },
+        depositedEntryIDs: { _ in [] }
     )
 }
 

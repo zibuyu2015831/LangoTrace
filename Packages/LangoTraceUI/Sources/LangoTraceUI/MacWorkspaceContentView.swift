@@ -30,6 +30,9 @@ struct MacWorkspaceContentView: View {
     let onShowEntry: (LearningEntry) -> Void
     let onRoute: (MacWorkspaceRoute) -> Void
 
+    @Environment(\.memoryDepositActions) private var memoryDepositActions
+    @State private var depositedMemory: [DepositedMemoryItem] = []
+
     var body: some View {
         sectionContent
     }
@@ -184,11 +187,26 @@ struct MacWorkspaceContentView: View {
     private var memoryContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader(titleKey: "mac.memory.section.title", subtitleKey: "mac.memory.section.subtitle")
+            SectionHeader(titleKey: "phone.memory.deposited.title", subtitleKey: "phone.memory.deposited.subtitle")
+            if depositedMemory.isEmpty {
+                LocalizedCompactPanel(
+                    titleKey: "memory.deposited.empty.title",
+                    textKey: "memory.deposited.empty.body",
+                    systemImage: "checkmark.seal"
+                )
+            } else {
+                ForEach(depositedMemory) { item in
+                    CompactPanel(title: item.text, text: item.note, systemImage: "checkmark.seal")
+                }
+            }
             MemoryLayerSummaryView(memoryItems: memoryItems)
             ForEach(memoryItems) { item in
                 CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
             }
             UnavailableCapabilityView(content: .vectorIndex)
+        }
+        .task(id: languageSpace.id) {
+            depositedMemory = await memoryDepositActions.listDeposited(languageSpace.id)
         }
     }
 

@@ -28,6 +28,8 @@ struct PadMainView: View {
     @State private var route: PadWorkspaceRoute = .workspace
     @State private var presentedSheet: PadSheet?
     @State private var activeFilter: EntryTimelineFilter = .all
+    @Environment(\.memoryDepositActions) private var memoryDepositActions
+    @State private var depositedEntryIDs: Set<String> = []
 
     private let learningPanelTrailingInset: CGFloat = 24
 
@@ -120,6 +122,9 @@ struct PadMainView: View {
             selectedEntryID = selectedEntryID ?? contentStore.selectedEntry?.id
             applyAdaptivePanelVisibility()
         }
+        .task(id: languageSpace.id) {
+            depositedEntryIDs = await memoryDepositActions.depositedEntryIDs(languageSpace.id)
+        }
         .onChange(of: horizontalSizeClass) {
             applyAdaptivePanelVisibility()
         }
@@ -138,7 +143,8 @@ struct PadMainView: View {
             activeFilter.includes(
                 entry: entry,
                 hasMaterialWithoutRecording: contentStore.practiceReadiness[entry.id] == false,
-                hasPhotoAttachment: false
+                hasPhotoAttachment: false,
+                hasDepositedMemory: depositedEntryIDs.contains(entry.id)
             )
         }
     }
@@ -233,6 +239,7 @@ struct PadMainView: View {
         PadSidebarView(
             languageSpace: languageSpace,
             entries: entries,
+            depositedEntryIDs: depositedEntryIDs,
             filteredEntries: filteredEntries,
             practiceReadiness: contentStore.practiceReadiness,
             renderingForEntry: { contentStore.rendering(for: $0) },

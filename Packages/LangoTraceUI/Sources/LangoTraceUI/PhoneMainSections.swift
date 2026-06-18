@@ -14,6 +14,8 @@ struct PhoneRecordWorkspaceView: View {
     let onSelectEntry: (LearningEntry) -> Void
 
     @State private var selectedFilter: EntryTimelineFilter = .all
+    @Environment(\.memoryDepositActions) private var memoryDepositActions
+    @State private var depositedEntryIDs: Set<String> = []
 
     var body: some View {
         PhonePage(
@@ -62,6 +64,9 @@ struct PhoneRecordWorkspaceView: View {
                 }
             }
         }
+        .task(id: languageSpace.id) {
+            depositedEntryIDs = await memoryDepositActions.depositedEntryIDs(languageSpace.id)
+        }
     }
 
     private var filteredEntries: [LearningEntry] {
@@ -69,7 +74,8 @@ struct PhoneRecordWorkspaceView: View {
             selectedFilter.includes(
                 entry: entry,
                 hasMaterialWithoutRecording: practiceReadiness[entry.id] == false,
-                hasPhotoAttachment: false
+                hasPhotoAttachment: false,
+                hasDepositedMemory: depositedEntryIDs.contains(entry.id)
             )
         }
     }
@@ -94,7 +100,7 @@ private struct FilterChipRow: View {
     @Binding var selectedFilter: EntryTimelineFilter
 
     private var visibleFilters: [EntryTimelineFilter] {
-        EntryTimelineFilter.allCases.filter { $0 != .settled }
+        EntryTimelineFilter.allCases
     }
 
     var body: some View {

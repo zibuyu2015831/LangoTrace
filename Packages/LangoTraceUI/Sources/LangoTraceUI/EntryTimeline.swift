@@ -22,13 +22,20 @@ enum EntryTimelineFilter: CaseIterable, Equatable, Hashable {
 
     /// hasMaterialWithoutRecording: caller computes `practiceReadiness[entry.id] == false`
     /// (present in dict = has material, value false = no completed recording yet).
-    /// hasPhotoAttachment: caller provides per-entry attachment presence (pass false until E7 wires attachment data).
-    func includes(entry: LearningEntry, hasMaterialWithoutRecording: Bool, hasPhotoAttachment: Bool) -> Bool {
+    /// hasPhotoAttachment: caller provides per-entry attachment presence.
+    /// hasDepositedMemory: caller computes `depositedEntryIDs.contains(entry.id)` (E7) — an entry
+    /// is "settled" once at least one of its memory candidates has been deposited.
+    func includes(
+        entry: LearningEntry,
+        hasMaterialWithoutRecording: Bool,
+        hasPhotoAttachment: Bool,
+        hasDepositedMemory: Bool = false
+    ) -> Bool {
         switch self {
         case .all: true
         case .photo: entry.source == .photoWriting || hasPhotoAttachment
         case .needsPractice: hasMaterialWithoutRecording
-        case .settled: false // E7 will replace with real memory-deposit judgment
+        case .settled: hasDepositedMemory
         }
     }
 }

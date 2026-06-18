@@ -5,6 +5,7 @@ import SwiftUI
 struct PadSidebarView: View {
     let languageSpace: LanguageSpacePreview
     let entries: [LearningEntry]
+    let depositedEntryIDs: Set<String>
     let filteredEntries: [LearningEntry]
     let practiceReadiness: [String: Bool]
     let renderingForEntry: (LearningEntry) -> LearningRendering?
@@ -16,7 +17,7 @@ struct PadSidebarView: View {
     let onRoute: (PadWorkspaceRoute) -> Void
 
     private var visibleFilters: [EntryTimelineFilter] {
-        EntryTimelineFilter.allCases.filter { $0 != .settled }
+        EntryTimelineFilter.allCases
     }
 
     var body: some View {
@@ -47,7 +48,7 @@ struct PadSidebarView: View {
                         ForEach(visibleFilters, id: \.self) { filter in
                             FilterPill(
                                 titleKey: filter.titleKey,
-                                count: "\(entries.count { filter.includes(entry: $0, hasMaterialWithoutRecording: practiceReadiness[$0.id] == false, hasPhotoAttachment: false) })",
+                                count: "\(matchCount(for: filter))",
                                 active: activeFilter == filter
                             ) {
                                 onSelectFilter(filter)
@@ -108,6 +109,17 @@ struct PadSidebarView: View {
     private var dayGroups: [EntryDayGroup] {
         groupEntriesByDay(filteredEntries)
     }
+
+    private func matchCount(for filter: EntryTimelineFilter) -> Int {
+        entries.count { entry in
+            filter.includes(
+                entry: entry,
+                hasMaterialWithoutRecording: practiceReadiness[entry.id] == false,
+                hasPhotoAttachment: false,
+                hasDepositedMemory: depositedEntryIDs.contains(entry.id)
+            )
+        }
+    }
 }
 
 struct PadWorkspaceContentView: View {
@@ -134,6 +146,9 @@ struct PadWorkspaceContentView: View {
     let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
     let onAppearancePreferenceChange: (AppearancePreference) -> Void
     let onRoute: (PadWorkspaceRoute) -> Void
+
+    @Environment(\.memoryDepositActions) private var memoryDepositActions
+    @State private var depositedMemory: [DepositedMemoryItem] = []
 
     var body: some View {
         Group {
@@ -331,6 +346,18 @@ struct PadWorkspaceContentView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 SectionCaption(titleKey: "pad.memory.section.title", subtitleKey: "pad.memory.section.subtitle")
+                SectionCaption(titleKey: "phone.memory.deposited.title", subtitleKey: "phone.memory.deposited.subtitle")
+                if depositedMemory.isEmpty {
+                    LocalizedCompactPanel(
+                        titleKey: "memory.deposited.empty.title",
+                        textKey: "memory.deposited.empty.body",
+                        systemImage: "checkmark.seal"
+                    )
+                } else {
+                    ForEach(depositedMemory) { item in
+                        CompactPanel(title: item.text, text: item.note, systemImage: "checkmark.seal")
+                    }
+                }
                 MemoryLayerSummaryView(memoryItems: memoryItems)
                 ForEach(memoryItems) { item in
                     CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
@@ -339,6 +366,9 @@ struct PadWorkspaceContentView: View {
             }
             .padding(26)
             .frame(maxWidth: 820, alignment: .leading)
+            .task(id: languageSpace.id) {
+                depositedMemory = await memoryDepositActions.listDeposited(languageSpace.id)
+            }
         }
     }
 

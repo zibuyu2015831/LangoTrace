@@ -189,6 +189,10 @@ struct AppEnvironment {
             depositedCandidateIDs: { spaceID in
                 guard let memoryItemRepository else { return [] }
                 return await (try? memoryItemRepository.depositedCandidateIDs(spaceID: spaceID)) ?? []
+            },
+            depositedEntryIDs: { spaceID in
+                guard let memoryItemRepository else { return [] }
+                return await (try? memoryItemRepository.depositedEntryIDs(spaceID: spaceID)) ?? []
             }
         )
 
