@@ -139,6 +139,100 @@ public struct GRDBMemoryItemRepository: MemoryItemRepository, @unchecked Sendabl
             )
         }
     }
+
+    public func dueItems(spaceID: String, limit: Int, now: Date) async throws -> [DepositedMemoryItem] {
+        guard limit > 0 else { return [] }
+        return try await databaseQueue.read { db in
+            try Row.fetchAll(
+                db,
+                sql: """
+                SELECT * FROM memory_items
+                WHERE space_id = ? AND soft_deleted_at IS NULL
+                  AND review_state IN ('new', 'scheduled')
+                  AND (review_due_at IS NULL OR review_due_at <= ?)
+                ORDER BY (review_due_at IS NULL) DESC, review_due_at ASC, created_at ASC
+                LIMIT ?
+                """,
+                arguments: [spaceID, now.timeIntervalSince1970, limit]
+            ).compactMap(Self.item(from:))
+        }
+    }
+
+    public func recordReviewOutcome(id: String, outcome: MemoryReviewOutcome, now: Date) async throws -> DepositedMemoryItem? {
+        try await databaseQueue.write { db in
+            guard let current = try Row.fetchOne(
+                db,
+                sql: "SELECT * FROM memory_items WHERE id = ? AND soft_deleted_at IS NULL",
+                arguments: [id]
+            ).flatMap(Self.item(from:)) else {
+                return nil
+            }
+            let schedule = MemoryReviewScheduler.schedule(
+                state: current.reviewState,
+                rung: current.reviewRung,
+                outcome: outcome,
+                now: now
+            )
+            return try Self.applySchedule(schedule, toItemID: id, incrementReviewCount: true, lastReviewedAt: now, db: db)
+        }
+    }
+
+    public func markMastered(id: String, now: Date) async throws {
+        try await databaseQueue.write { db in
+            _ = try Self.applySchedule(
+                MemoryReviewScheduler.markMastered(now: now),
+                toItemID: id,
+                incrementReviewCount: false,
+                lastReviewedAt: now,
+                db: db
+            )
+        }
+    }
+
+    public func resumeReview(id: String, now: Date) async throws {
+        try await databaseQueue.write { db in
+            _ = try Self.applySchedule(
+                MemoryReviewScheduler.resumeReview(now: now),
+                toItemID: id,
+                incrementReviewCount: false,
+                lastReviewedAt: nil,
+                db: db
+            )
+        }
+    }
+
+    public func memoryStatistics(spaceID: String, now: Date) async throws -> MemoryStatistics {
+        let weekStart = Self.startOfWeek(for: now)
+        return try await databaseQueue.read { db in
+            let deposited = try Int.fetchOne(
+                db,
+                sql: """
+                SELECT count(*) FROM memory_items
+                WHERE space_id = ? AND soft_deleted_at IS NULL AND created_at >= ?
+                """,
+                arguments: [spaceID, weekStart.timeIntervalSince1970]
+            ) ?? 0
+            let due = try Int.fetchOne(
+                db,
+                sql: """
+                SELECT count(*) FROM memory_items
+                WHERE space_id = ? AND soft_deleted_at IS NULL
+                  AND review_state IN ('new', 'scheduled')
+                  AND (review_due_at IS NULL OR review_due_at <= ?)
+                """,
+                arguments: [spaceID, now.timeIntervalSince1970]
+            ) ?? 0
+            let mastered = try Int.fetchOne(
+                db,
+                sql: """
+                SELECT count(*) FROM memory_items
+                WHERE space_id = ? AND soft_deleted_at IS NULL AND review_state = 'mastered'
+                """,
+                arguments: [spaceID]
+            ) ?? 0
+            return MemoryStatistics(depositedThisWeek: deposited, dueCount: due, masteredCount: mastered)
+        }
+    }
 }
 
 private extension GRDBMemoryItemRepository {
@@ -157,6 +251,50 @@ private extension GRDBMemoryItemRepository {
                 item.difficulty.rawValue, item.createdAt.timeIntervalSince1970,
             ]
         )
+    }
+
+    static func applySchedule(
+        _ schedule: MemoryReviewSchedule,
+        toItemID id: String,
+        incrementReviewCount: Bool,
+        lastReviewedAt: Date?,
+        db: Database
+    ) throws -> DepositedMemoryItem? {
+        try db.execute(
+            sql: """
+            UPDATE memory_items
+            SET review_state = ?,
+                review_rung = ?,
+                review_due_at = ?,
+                mastered_at = ?,
+                last_reviewed_at = COALESCE(?, last_reviewed_at),
+                review_count = review_count + ?
+            WHERE id = ? AND soft_deleted_at IS NULL
+            """,
+            arguments: [
+                schedule.state.rawValue,
+                schedule.rung,
+                schedule.dueAt?.timeIntervalSince1970,
+                schedule.masteredAt?.timeIntervalSince1970,
+                lastReviewedAt?.timeIntervalSince1970,
+                incrementReviewCount ? 1 : 0,
+                id,
+            ]
+        )
+        return try Row.fetchOne(
+            db,
+            sql: "SELECT * FROM memory_items WHERE id = ? AND soft_deleted_at IS NULL",
+            arguments: [id]
+        ).flatMap(item(from:))
+    }
+
+    /// Local week start (Monday 00:00 in the current calendar) for the
+    /// "deposited this week" stat — computed in Swift, not SQL.
+    static func startOfWeek(for now: Date) -> Date {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = 2 // Monday
+        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
+        return calendar.date(from: components) ?? now
     }
 
     static func fetchByCandidate(_ db: Database, spaceID: String, candidateID: String) throws -> DepositedMemoryItem? {
