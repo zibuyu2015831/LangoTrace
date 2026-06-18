@@ -406,6 +406,7 @@ git status --short
   - Stage C（`1a89619`）：`PracticeActions` 新增 `submitBacktranslationAttempt` + `fetchSentenceAnalysis` + `PracticeBacktranslationAttemptSubmission`；新建 `PracticeBacktranslationSessionViewModel` / `PracticeBacktranslationSessionView`；`PracticeSessionView` 拆出独立 `.backtranslation` case；新增 13 个本地化 key 与 6 个 presentation 测试（首红 `referenceCardHiddenUntilUserReveals`）。轻量验证：`swift test` LangoTraceData 197 / LangoTraceUI 488 全绿。
   - Stage D（`614e8ab`）：`PracticeActionsAssembly` 装配回译 actions 并把 `availableExerciseTypes` 注册第三段 `.backtranslation`（View 已落地，满足 spec 013 §6 顺序约束）；App target 编译验证留待 CI Build & Test。
   - Stage E：同步 `platform-page-inventory`（新增回译会话页行 + 组件清单 + 变更记录）、`spec/013` §2/§6 与变更记录。Slice 2 维持 deferred（E6 + 单独隐私授权未满足，约束 7 / E5-D4），未包装进 Slice 1 完成叙事；本方案保持 active。
+  - CI 收口：首跑 `27734118877` 因测试从 async `databaseQueue.read` 闭包返回非 `Sendable` 的 GRDB `Row` 失败（本机工具链未暴露），改为闭包内提取 `(Int?, String?, Int?)` 元组后 `27734245351` ✅ 全绿（7m54s，含 iPhone/iPad/macOS App target 构建 + macOS app 回译注册编译验证 + SwiftLint/SwiftFormat/Check docs）。两跑均录入 `docs/development/003-ci-run-history.md`。至此 Slice 1 全量（含 App target 编译）已 CI 验证通过。
 
 ## 19. 完成标准
 
