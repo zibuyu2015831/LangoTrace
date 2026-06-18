@@ -512,6 +512,54 @@ func secondGenerationForSameEntrySucceeds() throws {
     #expect(current?.analysis.practiceCandidates.count == 1)
 }
 
+@Test("sentenceAnalysis returns the rich analysis for a material sentence by position")
+func sentenceAnalysisReturnsRichFieldsByPosition() throws {
+    let repository = try makeRepository()
+    let entry = try repository.createEntry(sampleDraft(), in: "space-1")
+    let material = try repository.saveGeneratedMaterial(
+        sampleGenerationResult(entryID: entry.id, spaceID: "space-1"),
+        for: entry.id
+    )
+
+    let analysis = try repository.sentenceAnalysis(materialID: material.id, sentenceIndex: 0)
+
+    #expect(analysis?.targetSentence == "I went to a cafe today.")
+    #expect(analysis?.naturalTranslation == "I went to a cafe today.")
+    #expect(analysis?.literalTranslation == "I today went to cafe.")
+    #expect(analysis?.grammarNotes == ["Past tense verb"])
+    #expect(analysis?.keyPoints == ["went to"])
+}
+
+@Test("sentenceAnalysis returns nil for a position with no analysis")
+func sentenceAnalysisReturnsNilForMissingPosition() throws {
+    let repository = try makeRepository()
+    let entry = try repository.createEntry(sampleDraft(), in: "space-1")
+    let material = try repository.saveGeneratedMaterial(
+        sampleGenerationResult(entryID: entry.id, spaceID: "space-1"),
+        for: entry.id
+    )
+
+    let analysis = try repository.sentenceAnalysis(materialID: material.id, sentenceIndex: 99)
+
+    #expect(analysis == nil)
+}
+
+@Test("GRDB bridge surfaces sentenceAnalysis through the LearningContentRepository protocol")
+func grdbBridgeExposesSentenceAnalysis() throws {
+    let repository = try makeRepository()
+    let bridge = GRDBLearningContentRepositoryBridge(repository: repository)
+    let entry = try repository.createEntry(sampleDraft(), in: "space-1")
+    let material = try repository.saveGeneratedMaterial(
+        sampleGenerationResult(entryID: entry.id, spaceID: "space-1"),
+        for: entry.id
+    )
+
+    let analysis = bridge.sentenceAnalysis(materialID: material.id, sentenceIndex: 0)
+
+    #expect(analysis?.targetSentence == "I went to a cafe today.")
+    #expect(analysis?.grammarNotes == ["Past tense verb"])
+}
+
 private func makeRepository() throws -> GRDBLearningContentRepository {
     let database = try AppDatabase.inMemory()
     try database.databaseQueue.write { db in

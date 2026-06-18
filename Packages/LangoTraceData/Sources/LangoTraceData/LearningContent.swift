@@ -30,6 +30,12 @@ public protocol LearningContentRepository: AnyObject {
     /// that have a current learning material in the given space.
     /// Entries without any learning material are absent from the result.
     func learningPracticeReadiness(for spaceID: String) -> [String: Bool]
+    /// Returns the rich per-sentence analysis for a material sentence by its
+    /// position, or `nil` if absent. The backtranslation reference card (E5)
+    /// reads this lazily on reveal; the lossy `RenderingSentence` projection
+    /// cannot carry `naturalTranslation` / `literalTranslation` / `keyPoints`.
+    /// Fully local, read-only.
+    func sentenceAnalysis(materialID: String, sentenceIndex: Int) -> LearningSentenceAnalysis?
 }
 
 public final class InMemoryLearningContentRepository: LearningContentRepository {
@@ -297,6 +303,29 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
         return result
     }
 
+    /// Maps a stored rendering sentence (keyed by rendering id == materialID,
+    /// position == sentenceIndex) to a `LearningSentenceAnalysis`. The mock
+    /// rendering only carries `targetText` / `translation` / `note`, so the
+    /// richer fields degrade gracefully (empty / single note).
+    public func sentenceAnalysis(materialID: String, sentenceIndex: Int) -> LearningSentenceAnalysis? {
+        guard let rendering = renderingsByEntryID.values.first(where: { $0.id == materialID }),
+              rendering.sentences.indices.contains(sentenceIndex)
+        else {
+            return nil
+        }
+        let sentence = rendering.sentences[sentenceIndex]
+        return LearningSentenceAnalysis(
+            id: sentence.id,
+            nativeSentence: sentence.translation,
+            targetSentence: sentence.targetText,
+            literalTranslation: "",
+            naturalTranslation: sentence.targetText,
+            grammarNotes: sentence.note.isEmpty ? [] : [sentence.note],
+            keyPoints: [],
+            position: sentenceIndex
+        )
+    }
+
     private static func makeMockRendering(for entry: LearningEntry) -> LearningRendering {
         let targetText = "I wrote down a small moment from my day, and I can turn it into language practice."
         return LearningRendering(
@@ -374,5 +403,9 @@ public final class UnavailableLearningContentRepository: LearningContentReposito
 
     public func learningPracticeReadiness(for _: String) -> [String: Bool] {
         [:]
+    }
+
+    public func sentenceAnalysis(materialID _: String, sentenceIndex _: Int) -> LearningSentenceAnalysis? {
+        nil
     }
 }

@@ -122,6 +122,29 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
         }
     }
 
+    /// Returns the rich per-sentence analysis for a material sentence by its
+    /// position, or `nil` if no such sentence exists. This is the read seam for
+    /// backtranslation (E5): the lossy `RenderingSentence` projection drops
+    /// `naturalTranslation` / `literalTranslation` / `keyPoints`, so a fuller
+    /// analysis read is needed. Reuses the existing `sentence(from:)` row parser.
+    /// Fully local, read-only — no network.
+    public func sentenceAnalysis(materialID: String, sentenceIndex: Int) throws -> LearningSentenceAnalysis? {
+        try databaseQueue.read { db in
+            guard let row = try Row.fetchOne(
+                db,
+                sql: """
+                SELECT * FROM learning_material_sentences
+                WHERE material_id = ? AND position = ?
+                LIMIT 1
+                """,
+                arguments: [materialID, sentenceIndex]
+            ) else {
+                return nil
+            }
+            return try sentence(from: row)
+        }
+    }
+
     public func saveGeneratedMaterial(_ result: LearningMaterialGenerationResult, for entryID: String) throws -> LearningMaterial {
         try databaseQueue.write { db in
             try saveGeneratedMaterial(result, for: entryID, db: db)

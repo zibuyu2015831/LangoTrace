@@ -154,6 +154,10 @@ private struct FailingReadLearningContentRepository: GRDBLearningContentReposito
         throw LearningContentRepositoryError.databaseUnavailable
     }
 
+    func sentenceAnalysis(materialID _: String, sentenceIndex _: Int) throws -> LearningSentenceAnalysis? {
+        throw LearningContentRepositoryError.databaseUnavailable
+    }
+
     func createEntry(_: NewLearningEntryDraft, in _: String) throws -> LearningEntry {
         throw LearningContentRepositoryError.databaseUnavailable
     }

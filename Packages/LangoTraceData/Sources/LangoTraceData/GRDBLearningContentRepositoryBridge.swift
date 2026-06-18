@@ -8,6 +8,7 @@ protocol GRDBLearningContentRepositoryProtocol: Sendable {
     func practiceItems(for entryID: String) throws -> [PracticeItem]
     func memoryItems(for spaceID: String) throws -> [MemoryItem]
     func currentMaterial(for entryID: String) throws -> LearningMaterial?
+    func sentenceAnalysis(materialID: String, sentenceIndex: Int) throws -> LearningSentenceAnalysis?
     func createEntry(_ draft: NewLearningEntryDraft, in spaceID: String) throws -> LearningEntry
     func deleteEntry(id: String) throws
     func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry
@@ -151,6 +152,15 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
         } catch {
             emitReadFailed(operation: "learningPracticeReadiness", error: error)
             return [:]
+        }
+    }
+
+    public func sentenceAnalysis(materialID: String, sentenceIndex: Int) -> LearningSentenceAnalysis? {
+        do {
+            return try repository.sentenceAnalysis(materialID: materialID, sentenceIndex: sentenceIndex)
+        } catch {
+            emitReadFailed(operation: "sentenceAnalysis", error: error)
+            return nil
         }
     }
 }
