@@ -2,6 +2,7 @@ import Foundation
 import LangoTraceAI
 import LangoTraceCore
 import LangoTraceData
+import LangoTraceLearnerModel
 import LangoTraceSpeech
 import LangoTraceSync
 import LangoTraceUI
@@ -29,6 +30,10 @@ struct AppEnvironment {
     let memoryDepositActions: MemoryDepositActions
     let memoryReviewActions: MemoryReviewActions
     let syncService: any SyncService
+    // LM01: the Learner Model seam is assembled here so LM02's overview UI can consume
+    // Ability knowledge coverage without re-wiring. No UI reads it yet (compute-on-read,
+    // pure local; nil when the database is unavailable).
+    let learnerContextProvider: (any LearnerContextProvider)?
 
     // AppEnvironment assembles the cross-package production graph in one place.
     // swiftlint:disable:next function_body_length cyclomatic_complexity
@@ -178,6 +183,10 @@ struct AppEnvironment {
         // E7: memory deposit (user main data; explicit "add to memory" action).
         let memoryItemRepository: (any MemoryItemRepository)? =
             (try? databaseFactory.database()).map { GRDBMemoryItemRepository(database: $0) }
+
+        // LM01: Learner Model Ability coverage (compute-on-read, pure local).
+        let learnerContextProvider: (any LearnerContextProvider)? =
+            (try? databaseFactory.database()).map { GRDBLearnerContextProvider(reader: $0.reader) }
         let memoryDepositActions = MemoryDepositActions(
             depositCandidate: { candidateID, spaceID in
                 guard let memoryItemRepository else { return false }
@@ -337,7 +346,8 @@ struct AppEnvironment {
             localSearchActions: localSearchActions,
             memoryDepositActions: memoryDepositActions,
             memoryReviewActions: memoryReviewActions,
-            syncService: DisabledSyncService()
+            syncService: DisabledSyncService(),
+            learnerContextProvider: learnerContextProvider
         )
     }
 }

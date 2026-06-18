@@ -1,10 +1,34 @@
 # 任务方案：学习者模型模块边界 + Ability 知识覆盖（LM01，v1 compute-on-read）
 
-状态：Draft
-自审核状态：Reviewed
+状态：User Approved（批量 run 预授权；plan-10 / E7 前置已落地并 CI 绿，硬前置满足）
+自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离子代理用当前 HEAD 复核漂移，结论写回下方）
 类型：feature
 创建日期：2026-06-15
-最后更新日期：2026-06-15
+最后更新日期：2026-06-18（批量 run 实现前漂移复核：memory_items 列名 / migration 版本 / reader seam 修正）
+
+## 批量 run 实现前漂移复核（2026-06-18）
+
+```text
+复核方式：隔离 Explore 子代理只读核验当前 HEAD（E7/E10/E11 已落地 dev）。
+核心决策/ADR 反转检查：无。本方案是 ADR-006 的实施，沿用其全部决策；纯本地零外发不触发决策 #10。
+前置满足：plan-10（E7 memory deposit）已落地（migration v26_create_memory_item_infrastructure），硬前置满足，可进入实现。
+确认漂移与修订（实现按此为准，覆盖正文 12.3 的旧列名假设）：
+  [P0] memory_items 实际列名与方案假设不符（E7 落地形态）：
+    - 目标语言知识点文本列是 `text`（非 `target_text`）。
+    - 软删列是 `soft_deleted_at REAL`（非 `deleted_at`）。
+    - 无 `native_text` 列（有 `example_native`，但那是例句母语解释，非覆盖键，本方案不读）。
+    - 主键 `id`、外键 `space_id TEXT REFERENCES language_spaces(id) ON DELETE CASCADE`、`kind` CHECK('wordPhrase','sentence') 与方案一致。
+    → 覆盖聚合 SQL 用 `mi.text` 归并、`mi.soft_deleted_at IS NULL` 过滤、`mi.kind` 直映 2 值。
+  [P0] migration 头部已是 v26（方案写 v15 是 pre-E7 快照）；本方案仍**不新增 migration**（compute-on-read）。
+  [P0] AppDatabase 无 public reader：现有 `let databaseQueue: DatabaseQueue`（internal）。
+    → 本方案新增 `public var reader: DatabaseReader { databaseQueue }`（最小读 seam，DatabaseQueue 已符合 DatabaseReader）。
+  [P1] GRDBMemoryItemRepository 的 init 取 `AppDatabase`（非裸 reader）；为最小公开面，GRDBLearnerContextProvider 取注入的 `DatabaseReader`，App 装配传 `appDatabase.reader`。
+  [P1] language_spaces：`id` / `target_language_code TEXT NOT NULL` / `deleted_at DOUBLE` 均与方案一致。
+  [P1] AppEnvironment 不持有 AppDatabase 字段，按现有 `databaseFactory.database()` 惰性模式装配（与 memoryItemRepository 同款 `(try? databaseFactory.database()).map { ... }`）。
+  [P2] Core 无 LanguageCode 类型（有 LanguageLevel CEFR），languageCode 用 String，方案假设正确。
+  [P2] 测试构造内存库用 `AppDatabase.inMemory()`，与 Data 既有测试一致；LM01 测试经 `database.reader` 注入。
+是否允许进入实现：是（批量 run §1 预授权 + 前置满足 + 纯本地不触发决策 #10）。
+```
 
 ## 用户确认记录
 
