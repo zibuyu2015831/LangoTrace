@@ -1,6 +1,6 @@
 # 任务方案：记忆复习队列（统计、本地固定间隔调度与已掌握状态机）（E8）
 
-状态：Implemented（待 CI 收尾补 run id）
+状态：Implemented（2026-06-18 CI run `27747133409` Build & Test 全绿；首跑 `27746717467` 因 bootstrap cyclomatic_complexity 超限失败，fix 后绿）
 自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11

@@ -1,10 +1,33 @@
 # 任务方案：导入导出与可恢复备份包（macOS 首发）（E10）
 
-状态：Draft
-自审核状态：Reviewed
+状态：User Approved（按切片实施：Slice 1 本轮落地，Slice 2 + 加密备份诚实 defer）
+自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-18（批量 run 实现前隔离自审核：表清单对账 v26、诚实 defer 加密备份、切片化、密钥相邻表排除）
+
+## 批量 run 实现前隔离自审核（2026-06-18）
+
+```text
+审核方式：隔离子代理只读，用当前 HEAD（E8 已落地 dev）核验方案现状
+核心决策/ADR 反转检查：无（落地 P0/P1 修订后）。导出排除密钥（决策 9）、排除可重建 FTS/向量（决策 12）、本地优先用户触发（ADR-005/决策 7）、不发可读 Markdown 导出充当备份（spec 007 §4）。
+确认漂移与修订（实现时按此为准）：
+  [P0] 表清单 stale：方案把 E2 照片 / E7 memory_items 当「未来」，且漏 E5 practice_text_attempts、E6 ai_request_logs、E9 search_index。按 v26 现状重写 per-table disposition：
+    - 主数据（导出）：entries、learning_materials(+sentences/revision_notes)、memory_items、practice_sessions(+practice_recordings 元数据，文件 gated)、practice_text_attempts、reading 主表(documents/structure/sentences/collections/tags/positions/source_anchors/lifecycle)、entry_photo_attachments(元数据，文件 gated)、language_spaces(导出空间)。
+    - 派生（排除，可重建）：memory_candidates、practice_candidates、search_index/search_index_meta、reading_document_search_index、reading_explanation_cache、tts_audio_artifacts(文件)。
+    - 诊断/运行期（排除）：ai_request_logs、learning_material_operations、reading_ai_explanation_operations、reading_import_operations。
+    - 设备本地（排除）：app_state（current_language_space_id 设备本地）。
+  [P0] 诚实 defer 边界（写进 §3/§5/§20）：**现在落地**明文、开放格式、非敏感主数据导出包 + manifest + SHA-256 + import 预览/版本校验/同 id skip 合并——无需加密、无需新安全存储（因为 secrets 是排除而非加密）；**defer**加密/口令备份包（依赖不存在的 KDF/密钥管理），凭证永不导出（决策 9，Keychain）。defer 项写 architecture/notes 续传入口。
+  [P1] 密钥相邻：把 AI provider config 表（含 keychain_service/account/secret_presence 列）、TTS settings 表、ai_request_logs 显式列入「禁止导出表清单」+ 排除测试断言导出 JSON 不含 keychain_*/secret_presence。
+  [P1] 媒体：文件在 LocalMediaArtifactFileStore 根目录；导出 toggle 是对 media_artifacts 默认 excluded-from-export policy 的显式用户授权覆盖；缩略图 + TTS 文件不打包；附件文件打包 = Slice 2（macOS 文件面板 + entitlement）。
+  [P1] seam：mac 接线点是 MacWorkspaceContentView.swift:101（.importExport case，非 MacMainView.swift）；iPad route 出范围。
+  [P0] 切片（CI-greenable）：
+    Slice 1（Linux swift test 绿，本轮）：Core/Data 纯 PortableSnapshot codable 家族（entry/material+children/memory_item/practice_session 元数据/practice_text_attempt/reading_document+structure，roundtrip + 未知字段容忍 + snapshotVersion）→ ExportPackageWriter 写入注入目录 URL（GRDB 一致性读快照，data/*.json + manifest + SHA-256，禁止表+白名单+密钥排除测试，无附件文件）→ ImportPackageReader+preview（manifest 解析、hash 校验、版本拒绝高 schema、计数/冲突预览、确认前零写）+ ImportMergeService 同 id skip 走既有 repository（临时 GRDB DB 测试）→ ImportExportActions UI 状态机 + 预览确认门 + 错误投影。
+    Slice 2（macOS runner gated，defer）：entitlement files.user-selected.read-write + fileImporter/fileExporter 面板 + security-scoped URL + 附件文件打包。
+    deferred（独立方案）：加密备份包、provider/TTS 配置导出、iPhone/iPad 入口。
+  无新 migration（v26；manifest schema version 读 live 迁移标识 v26，不硬编码）。
+是否允许进入实现：Slice 1 是（批量 run §1 预授权）；Slice 2 + 加密 defer 到 macOS 验证 / 独立方案，本轮 E10 为 Slice 1 落地 + 诚实 defer 记录。
+```
 
 ## 用户确认记录
 
