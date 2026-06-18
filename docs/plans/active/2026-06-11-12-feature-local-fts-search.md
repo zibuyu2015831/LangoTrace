@@ -1,10 +1,25 @@
 # 任务方案：本地 FTS 全文搜索（mac Command Palette 与 iPad 搜索接入）（E9）
 
-状态：Draft
-自审核状态：Reviewed
+状态：User Approved
+自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-18（批量 run 实现前隔离自审核：migration v25+、部署目标 iOS18/macOS15→FTS5+trigram 可用、复用既有 ⌘F search command、memory 组因 E7 未落地仅零态降级）
+
+## 批量 run 实现前隔离自审核（2026-06-18）
+
+```text
+审核方式：隔离子代理只读，用当前 HEAD（aa480e4 系附近）核验方案 §2/§12 现状
+核心决策/ADR 反转检查：无。FTS 索引为本地可重建派生数据（spec 007 §FTS/索引 + 核心决策 12），方案 §5/§7 已按不同步、不导出必需、可重建处理；tokenizer 选型写 spec 007（非 ADR），权威分流正确。
+确认漂移与修订（实现时按此为准）：
+  [P0-1] migration 漂移：最新已是 v24（v24_create_ai_request_logs，AppDatabase.swift:114），FTS 虚表 migration 须从 v25 起，用 inline db.execute(sql:"CREATE VIRTUAL TABLE … USING fts5(...)")（db.create(table:) 无法表达虚表），无 Migrations/ 目录。
+  [P0-2] 部署目标实为 iOS 18.0 / macOS 15.0（project.yml），系统 SQLite ≥3.43 含 FTS5+trigram；GRDB 7.10 已定义 SQLITE_ENABLE_FTS5（Package.resolved + checkout Package.swift）。FTS5 可用，Phase 0 spike 从“平台风险闸”降级为“确认测试”；短查询(<3 char)走 LIKE 降级仍为合理产品选择（trigram 需 ≥3 char）。
+  [P0-3] E7 未落地：无 memory_items 表（E7 仍在 active/ Draft；现有 MemoryItem 是候选投影 mock）。memory 搜索组仅做零态降级，写入索引的 writer hook 不纳入本切片，gate 到 E7 后（写入 §20 剩余风险，不写入 §12 实施步骤）。
+  [P1-1] 搜索命令已存在且为 ⌘F：LangoTraceApp.swift:199-203 CommandMenu("Workspace") Button("Search").keyboardShortcut("f")；MacMainView 已 onReceive(.search)→route=.unavailable("search")，toolbar magnifyingglass 同样指向 .unavailable("search")。E9 应【复用既有 LangoTraceAppCommand.search】，把 MacMainView 接收端 + toolbar 从 .unavailable("search") 改指真实 palette，不新增 ⌘K（否则双入口）。§8 的“⌘K command”改为“复用 search command + AppEnvironment 装配 LocalSearchRepository”。
+  真实可索引列（FTS 必须引用真实列）：entries(title, body)（AppDatabase.swift:370-382，排除 deleted_at 软删）、learning_materials.learning_text（仅 is_current=1，:395/:422-424）、reading_documents(title, body)（body 对 body_storage_kind=managedFile 为 NULL，回填须经 reading repo body resolver，AppDatabaseReadingMigration.swift:50-83）；reading 逐块锚点用 reading_structure_blocks/reading_sentences（:141-173）。reading 已有 reading_document_search_index + rebuildSearchIndex（LIKE，:692-695）可借鉴。
+有序 seam（修订）：v25 fts5 虚表 + meta → SearchIndexWriter(Data，entry/learning_material/reading 写路径，不含 memory) → LocalSearchRepository(Core 协议)+GRDBLocalSearchRepository(Data) → SearchModels(Core，UTF-safe 高亮 range) → SearchPaletteStore(UI) → MacSearchPaletteView（repoint 既有 search 接收端）+ PadSearchOverlayView（替换 PadSheet.unavailableSearch）+ AppEnvironment 装配。
+是否允许进入实现：是（批量 run §1 预授权 + 本轮漂移已修订）。
+```
 
 ## 用户确认记录
 

@@ -1,10 +1,10 @@
 # 任务方案：回译练习（本地参考对照 + 可选 AI 点评）
 
-状态：In Progress（Slice 1 已落地，纯本地；Slice 2 deferred 待 E6 + 单独隐私授权）
-自审核状态：Reviewed（2026-06-18 代码漂移后双轮重审，见第 13 节第二条记录）
+状态：Implemented（Slice 1 + Slice 2 均已落地并 CI 全绿；Slice 1 run `27734245351`、Slice 2 run `27741263024`）
+自审核状态：Reviewed（Slice 1 双轮重审 + Slice 2 批量 run 实现前隔离自审核，见第 13 节）
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-18（用户授权后按 TDD 落地 Slice 1，见第 18 节 Slice 1 落地记录）
+最后更新日期：2026-06-18（批量 run 落地 Slice 2 可选 AI 点评，见第 18 节 Slice 2 落地记录）
 
 系列编号：E5（系列母方案：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`，实施顺序位于 E4 之后；Slice 2 必须晚于 E6）。规模：M。
 
@@ -407,6 +407,15 @@ git status --short
   - Stage D（`614e8ab`）：`PracticeActionsAssembly` 装配回译 actions 并把 `availableExerciseTypes` 注册第三段 `.backtranslation`（View 已落地，满足 spec 013 §6 顺序约束）；App target 编译验证留待 CI Build & Test。
   - Stage E：同步 `platform-page-inventory`（新增回译会话页行 + 组件清单 + 变更记录）、`spec/013` §2/§6 与变更记录。Slice 2 维持 deferred（E6 + 单独隐私授权未满足，约束 7 / E5-D4），未包装进 Slice 1 完成叙事；本方案保持 active。
   - CI 收口：首跑 `27734118877` 因测试从 async `databaseQueue.read` 闭包返回非 `Sendable` 的 GRDB `Row` 失败（本机工具链未暴露），改为闭包内提取 `(Int?, String?, Int?)` 元组后 `27734245351` ✅ 全绿（7m54s，含 iPhone/iPad/macOS App target 构建 + macOS app 回译注册编译验证 + SwiftLint/SwiftFormat/Check docs）。两跑均录入 `docs/development/003-ci-run-history.md`。至此 Slice 1 全量（含 App target 编译）已 CI 验证通过。
+
+2026-06-18（Slice 2 落地，批量 run）：E6（请求预览 + ai_request_logs）已落地解锁技术门禁；隐私门禁由批量 run 总授权满足（`BATCH-EXECUTION-PLAYBOOK.md` §1 预授权 dev 阶段构建该功能，实现保留运行期显式「请 AI 点评」触发、不默认自动外发，满足核心决策 10 与 E5-D4②）。按 TDD 分阶段落地 Slice 2（feature/e5s2-backtranslation-ai-review）：
+  - Phase 1（`1307446`）：Core `PracticeBacktranslationReviewInput/Observation/Result`（observation/suggestion 形态、无判定字段）+ `FailureCategory`（镜像 reading）+ `PracticeBacktranslationReviewFailure`；`AIRequestContentDescriptor` 新增 `practiceAttempt`/`backtranslationReferenceSentence`；`AIRequestLogFailureBucket(PracticeBacktranslationReviewFailureCategory)` 常驻映射；Core 测试 3。
+  - Phase 2（`a10f7ad`）：AI `PracticeBacktranslationReviewService` + `PromptRegistry`（用户内容分隔符包裹防注入、schema `practice_backtranslation_review.v1`、parser 拒绝缺字段/超限）+ `ServiceRequest`/`ServiceError`；`previewProjection()`/`makeLogEntry()` 填 E6 预留 capability `practiceBacktranslationReview`；AI 测试 8（含注入安全、取消、unsupportedProvider）。
+  - Phase 3a（`0d3ed57`）：`PracticeActions.reviewBacktranslation` + `PracticeBacktranslationReviewSubmission`（默认 disabled）；viewmodel `ReviewState`（idle→sending→reviewed/failed）+ `requestReview`/`cancelReview`；reveal/load 绝不自动外发；UI 测试（no-auto-send、显式触发出结果、失败分类不伪装网络、reveal 前不可达）。
+  - Phase 3b（`80f51b6`）：App-Shell `PracticeActionsAssembly.makeReviewBacktranslation`（解析默认 endpoint + 语言空间目标语言/水平，调用 service，写 `ai_request_logs`，映射失败）；`AppEnvironment` 把 `credentialStore` + `AIRequestLogRecorder` 注入练习装配（recorder 提前创建）；`resolveLearningMaterialSecret` 改 internal；`PracticeBacktranslationSessionView` footnote 披露 + 「请 AI 点评」按钮 + sending/取消 + 致意/观察/建议/语体结果 + 精确失败态；本地化 en/zh-Hans。全 UI 套件 497 绿。
+  - Phase 4（`ae9c04f`）：Prompt 文档 `docs/prompts/practice/backtranslation-review.md` + README 登记 + spec 013 §6 + platform-inventory 变更记录。
+  - CI 收口：merge `aa480e4` 首跑 `27741038412` ❌ —— iPhone build 报 `textGenerationEndpointInput is inaccessible due to fileprivate`（App target 编译才暴露的跨文件访问级别问题，本机单包测试不覆盖）。fix `1c09385` 把该 helper 从 fileprivate 提升为 internal，重跑 `27741263024` ✅ 全绿（含 iPhone/iPad/macOS App target 构建 + macOS app 测试 + SwiftLint/SwiftFormat/check-docs）。
+  至此 Slice 1 + Slice 2 全量完成并 CI 验证通过，方案移入 `done/`。
 
 ## 19. 完成标准
 

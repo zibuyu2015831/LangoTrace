@@ -166,14 +166,14 @@ LM01                    （学习者模型边界：相对基础，但 Draft；�
 ## 9. 当前 run 状态（每次推进同步更新）
 
 - 排定顺序（自审核后定稿）：**E6 → E5 Slice2 → E9 → E7 → E8 → E10 → E11 → LM01 → E12**（采纳 §7 建议顺序；E6 解锁 E5 Slice2 与 E12 的 AI 状态源；E9 相对独立可早做；E7→E8 记忆链；E10→E11 导出先于同步；E12 依赖最多子系统放最后）。每份方案进入前的隔离自审核可微调其后续顺序，调整记入本节。
-- 当前方案：**E5 Slice 2**（`docs/plans/active/2026-06-11-08-feature-practice-backtranslation.md`）— 回译可选 AI 点评，自审核已完成（见下），待实现
-- 当前 Phase：E5 Slice 2 实现前（E6 已收口）
-- 最后 commit：`a72850a`（E6 merge into dev）
-- 最后 CI run：`27738605916`（E6 Build & Test success on dev）
-- 已收口（移入 done/）：**E6**（2026-06-18，CI `27738605916` 全绿）
-- deferred / 待裁决项：_无_（E5 Slice 2 的「单独隐私授权」门禁由批量 run §1 总授权满足——预授权 dev 阶段构建，实现保留运行期显式「请 AI 点评」触发，不默认自动外发；不构成 deferred）
-- 关键漂移基线：最新 migration = **v24**（`v24_create_ai_request_logs`，E6 落地）；下一新表从 **v25** 起。E5 Slice 2 经自审核确认**不需要新 migration**（复用 `practice_text_attempts`，点评为短生命周期 UI 状态 + E6 `ai_request_logs` 写日志）。
-- E5 Slice 2 自审核结论（隔离子代理，2026-06-18）：无 P0，无核心决策/ADR 反转；E6 技术门禁已满足（预留 capability `practiceBacktranslationReview` + 日志设施）；需新增 seam：Core 点评 input/result/failureCategory + `AIRequestLogFailureBucket` 第三 init 重载；AI `PracticeBacktranslationReviewService` + Prompt（镜像 ReadingSelectionExplanationService，字段分隔符包裹）；`AIRequestProjections.swift` 填预留 capability 的 previewProjection()/makeLogEntry()；`AIRequestContentDescriptor` 加 `practiceAttempt`/`backtranslationReferenceSentence` 两 case；UI `PracticeBacktranslationSessionViewModel` 显式「请 AI 点评」触发 + `PracticeActions.reviewBacktranslation`；App-Shell 经 `AIRequestLogRecorder.record(_:)` 写日志；测试用 fake HTTP client 可 CI 绿无需真实凭证。
+- 当前方案：**E9**（`docs/plans/active/2026-06-11-12-feature-local-fts-search.md`）— 本地 FTS 全文搜索，实现前隔离自审核已完成（见该方案「批量 run 实现前隔离自审核」段），状态 User Approved，待实现
+- 当前 Phase：E9 实现前（E6 + E5 Slice2 已收口）
+- 最后 commit：`1c09385`（E5 Slice2 CI fix on dev）
+- 最后 CI run：`27741263024`（E5 Slice2 Build & Test success on dev）
+- 已收口（移入 done/）：**E6**（CI `27738605916`）、**E5（Slice1+Slice2）**（CI `27741263024`）
+- deferred / 待裁决项：_无_
+- 关键漂移基线：最新 migration = **v24**；下一新表从 **v25** 起。E9 FTS 虚表 = **v25+**，inline `db.execute("CREATE VIRTUAL TABLE … USING fts5")`。部署目标 iOS18/macOS15 → FTS5+trigram 可用。复用既有 ⌘F `LangoTraceAppCommand.search`（当前指 `.unavailable("search")`），不新增 ⌘K。memory 搜索组仅零态降级（E7 未落地、无 `memory_items` 表）。
+- E9 自审核结论（隔离子代理，2026-06-18）：无 P0 架构阻塞，无核心决策/ADR 反转（FTS=本地可重建派生数据，spec 007 + 决策 12）；修订项已写回 E9 方案。真实可索引列：entries(title,body) 排软删、learning_materials.learning_text(is_current=1)、reading_documents(title,body；managedFile 时 body 为 NULL 须经 reading repo body resolver)、reading 逐块锚点用 reading_structure_blocks/reading_sentences。
 
 > 维护约定：本节是 run 级游标，只记「跑到哪、下一步从哪继续」；详细决策、验证结果、TDD 落点写回各子方案与仪表盘 00。
 
