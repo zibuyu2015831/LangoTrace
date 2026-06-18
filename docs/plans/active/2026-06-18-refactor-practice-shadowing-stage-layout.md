@@ -1,6 +1,6 @@
 # 任务方案：练习跟读单句页改为「句子舞台 + 底部控制台」布局
 
-状态：User Approved
+状态：Implemented
 自审核状态：Reviewed
 类型：refactor
 创建日期：2026-06-18
@@ -280,7 +280,8 @@ swift test --package-path Packages/LangoTraceUI
 - `PhoneIOSConvergenceTests` 追加 `shadowingSessionUsesCenteredStageWithBottomDockedControlDeck`，锁定 `PracticeShadowingLayout.resolve` / `safeAreaInset(edge: .bottom` / `PracticeControlDeckHeightKey` / `controlDeck(session:)` / `isCentered: true` / prompt card `var isCentered` 与 `multilineTextAlignment(multilineAlignment)`；既有练习断言保留。
 - 更新 `docs/platform-page-inventory.md` L54 与组件映射行（新增 `PracticeShadowingLayout.swift`、改写跟读单句页结构事实）。`docs/spec/learning-content/impl.md` 经检索未描述跟读单句页布局 → 无需改。`docs/spec/013-practice-learning-domain.md:68` 复核：三端仍单一主滚动体、未被外层包裹 → 无需改实质规则。
 - 本机轻量验证：`swiftformat --lint`（4 文件 0 待格式化，2 文件已 format 写回）、`swiftlint`（改动区无新增 error；既有 `type_body_length` / `opening_brace` / `type_name` 为改动区外 pre-existing 警告）、`scripts/check-docs.sh` ok、`git diff --check` 干净。
-- 重测试（全量单包 `swift test`、convergence/copy/appearance/routeSeed 回归、iPhone 17 模拟器 clean build + 截图）按用户约束走 GitHub Actions，尚未执行（见验证命令与下方完成标准）。
+- 重测试走 GitHub Actions：PR #1（→ dev）`Build & Test` **success**（run `27767341820`，6m5s），覆盖 xcodegen + 三端构建 + `swift test --package-path Packages/LangoTraceUI` 全量（含新增 layout 测试与 convergence 新断言）+ swiftlint/swiftformat/check-docs。PR 已合并到 dev（merge commit `692039c`），远端分支已删。
+- 视觉确认：按用户要求本机重新 `xcodegen generate` + iPhone 17 模拟器 `xcodebuild build`（BUILD SUCCEEDED）、重启模拟器、`simctl install` + `launch`（PID 启动成功），由用户在模拟器内人工验收跟读单句页舞台 + 控制台、短句居中、释义展开、失败态。用户视觉验收通过后再将本方案移入 `docs/plans/done/`。
 
 ## 18. 完成标准
 
