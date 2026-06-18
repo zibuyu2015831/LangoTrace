@@ -341,9 +341,13 @@ struct MemoryStatisticsBar: View {
 struct SettingsView: View {
     let languageSpace: LanguageSpacePreview
     let capabilities: [SettingsCapability]
+    let settingsStatus: SettingsStatusProjection
+    let interfaceLanguagePreference: InterfaceLanguagePreference
+    let appearancePreference: AppearancePreference
     let onLanguageSpaceAction: () -> Void
     let onSettingsAction: (() -> Void)?
     let onSelectCapability: (SettingsCapability.Kind) -> Void
+    var onAppearRefresh: () -> Void = {}
 
     var body: some View {
         PhonePage(
@@ -362,8 +366,15 @@ struct SettingsView: View {
                     showsStatusBadge: false,
                     action: { onSelectCapability(capability.kind) }
                 )
+                .trailingValue(settingsRowValue(
+                    for: capability.kind,
+                    status: settingsStatus,
+                    interfaceLanguage: interfaceLanguagePreference,
+                    appearance: appearancePreference
+                ))
             }
         }
+        .onAppear(perform: onAppearRefresh)
     }
 }
 

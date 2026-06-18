@@ -34,6 +34,9 @@ struct AppEnvironment {
     // Ability knowledge coverage without re-wiring. No UI reads it yet (compute-on-read,
     // pure local; nil when the database is unavailable).
     let learnerContextProvider: (any LearnerContextProvider)?
+    // E12: recomputes settings row values (AI provider / sync / local data) off the main
+    // thread from non-sensitive snapshots only — never Keychain plaintext, never a probe.
+    let loadSettingsStatus: @Sendable () async -> SettingsStatusProjection
 
     // AppEnvironment assembles the cross-package production graph in one place.
     // swiftlint:disable:next function_body_length cyclomatic_complexity
@@ -187,6 +190,34 @@ struct AppEnvironment {
         // LM01: Learner Model Ability coverage (compute-on-read, pure local).
         let learnerContextProvider: (any LearnerContextProvider)? =
             (try? databaseFactory.database()).map { GRDBLearnerContextProvider(reader: $0.reader) }
+
+        // E12: settings status projection. Reads only the non-sensitive config snapshot and
+        // the on-disk footprint; the sync value comes from the (disabled) sync service.
+        let settingsConfigRepository: GRDBAIProviderConfigurationRepository? =
+            (try? databaseFactory.database()).map { GRDBAIProviderConfigurationRepository(database: $0) }
+        let settingsUsageService = (databaseURL ?? (try? LanguageSpaceDatabaseLocation.defaultDatabaseURL()))
+            .map {
+                LocalDataUsageService(
+                    databaseURL: $0,
+                    mediaArtifactsRoot: SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot()
+                )
+            }
+        let settingsSyncService = DisabledSyncService()
+        let syncEnabledSnapshot = settingsSyncService.isEnabled
+        let loadSettingsStatus: @Sendable () async -> SettingsStatusProjection = {
+            var aiProvider: AIProviderListStatus = .notConfigured
+            if let settingsConfigRepository {
+                aiProvider = await SettingsCapabilityProjectionService(
+                    configurationRepository: settingsConfigRepository
+                ).aiProviderStatus()
+            }
+            let localData = await settingsUsageService?.computeUsage()
+            return SettingsStatusProjection(
+                aiProvider: aiProvider,
+                sync: SyncListStatus.make(isEnabled: syncEnabledSnapshot),
+                localData: localData
+            )
+        }
         let memoryDepositActions = MemoryDepositActions(
             depositCandidate: { candidateID, spaceID in
                 guard let memoryItemRepository else { return false }
@@ -347,7 +378,8 @@ struct AppEnvironment {
             memoryDepositActions: memoryDepositActions,
             memoryReviewActions: memoryReviewActions,
             syncService: DisabledSyncService(),
-            learnerContextProvider: learnerContextProvider
+            learnerContextProvider: learnerContextProvider,
+            loadSettingsStatus: loadSettingsStatus
         )
     }
 }

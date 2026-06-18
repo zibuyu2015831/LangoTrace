@@ -12,6 +12,8 @@ struct PadSidebarView: View {
     let selectedEntry: LearningEntry?
     let activeFilter: EntryTimelineFilter
     let route: PadWorkspaceRoute
+    var aiStatus: AIProviderStatus = .notConfigured
+    var syncStatus: SyncProviderStatus = .off
     let onSelectEntry: (LearningEntry) -> Void
     let onSelectFilter: (EntryTimelineFilter) -> Void
     let onRoute: (PadWorkspaceRoute) -> Void
@@ -87,8 +89,8 @@ struct PadSidebarView: View {
 
             LanguageSpaceFooter(
                 languageSpace: languageSpace,
-                aiStatus: .notConfigured,
-                syncStatus: .off,
+                aiStatus: aiStatus,
+                syncStatus: syncStatus,
                 isCompact: false,
                 onLanguageSpace: { onRoute(PadFooterAction.languageSpace.route) },
                 onAIStatus: { onRoute(PadFooterAction.aiProvider.route) },

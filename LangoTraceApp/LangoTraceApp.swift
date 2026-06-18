@@ -16,6 +16,7 @@ struct LangoTraceApp: App {
     private let interfaceLanguagePreferenceStore: UserDefaultsInterfaceLanguageStore
     private let appearancePreferenceStore: UserDefaultsAppearancePreferenceStore
     @StateObject private var session: AppSessionState
+    @State private var settingsSceneStatus = SettingsStatusProjection()
     @State private var interfaceLanguagePreference: InterfaceLanguagePreference
     @State private var appearancePreference: AppearancePreference
 
@@ -46,6 +47,7 @@ struct LangoTraceApp: App {
             Settings {
                 LangoTraceSettingsSceneView(
                     capabilities: settingsCapabilities,
+                    settingsStatus: settingsSceneStatus,
                     languageSpace: session.currentLanguageSpace,
                     languageSpaces: session.languageSpaces,
                     interfaceLanguagePreference: interfaceLanguagePreference,
@@ -69,6 +71,7 @@ struct LangoTraceApp: App {
                 .environment(\.memoryDepositActions, environment.memoryDepositActions)
                 .environment(\.memoryReviewActions, environment.memoryReviewActions)
                 .preferredColorScheme(appearancePreference.preferredColorScheme)
+                .task { settingsSceneStatus = await environment.loadSettingsStatus() }
             }
         #endif
     }
@@ -104,6 +107,7 @@ struct LangoTraceApp: App {
             readingCacheStorage: environment.readingCacheStorage,
             practiceActions: environment.practiceActions,
             photoWritingActions: environment.photoWritingActions,
+            loadSettingsStatus: environment.loadSettingsStatus,
             interfaceLanguagePreference: interfaceLanguagePreference,
             appearancePreference: appearancePreference,
             launchRecoveryFailed: session.recoveryState == .failed,

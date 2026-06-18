@@ -107,3 +107,22 @@ public struct LocalDataUsage: Sendable, Equatable {
         self.totalBytes = totalBytes
     }
 }
+
+/// The full set of settings row values an observable store publishes for the UI to render.
+/// Defaults match the truthful "fresh install" state (no provider, sync off, usage not yet
+/// computed), so a view that has not refreshed shows correct values rather than a mock.
+public struct SettingsStatusProjection: Sendable, Equatable {
+    public var aiProvider: AIProviderListStatus
+    public var sync: SyncListStatus
+    public var localData: LocalDataUsage?
+
+    public init(
+        aiProvider: AIProviderListStatus = .notConfigured,
+        sync: SyncListStatus = .notEnabled,
+        localData: LocalDataUsage? = nil
+    ) {
+        self.aiProvider = aiProvider
+        self.sync = sync
+        self.localData = localData
+    }
+}

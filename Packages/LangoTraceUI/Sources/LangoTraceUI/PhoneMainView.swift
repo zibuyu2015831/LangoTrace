@@ -283,9 +283,13 @@ struct PhoneMainView: View {
             SettingsView(
                 languageSpace: languageSpace,
                 capabilities: contentStore.settingsCapabilities,
+                settingsStatus: contentStore.settingsStatus,
+                interfaceLanguagePreference: interfaceLanguagePreference,
+                appearancePreference: appearancePreference,
                 onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
                 onSettingsAction: nil,
-                onSelectCapability: { kind in navModel.push(.settings(kind), on: tab) }
+                onSelectCapability: { kind in navModel.push(.settings(kind), on: tab) },
+                onAppearRefresh: { Task { await contentStore.refreshSettingsStatus() } }
             )
         }
     }

@@ -4,6 +4,7 @@ import SwiftUI
 
 public struct LangoTraceSettingsSceneView: View {
     private let capabilities: [SettingsCapability]
+    private let settingsStatus: SettingsStatusProjection
     private let languageSpace: LanguageSpacePreview?
     private let languageSpaces: [LanguageSpace]
     private let interfaceLanguagePreference: InterfaceLanguagePreference
@@ -18,6 +19,7 @@ public struct LangoTraceSettingsSceneView: View {
 
     public init(
         capabilities: [SettingsCapability],
+        settingsStatus: SettingsStatusProjection = SettingsStatusProjection(),
         languageSpace: LanguageSpacePreview?,
         languageSpaces: [LanguageSpace] = [],
         interfaceLanguagePreference: InterfaceLanguagePreference,
@@ -30,6 +32,7 @@ public struct LangoTraceSettingsSceneView: View {
         onAppearancePreferenceChange: @escaping (AppearancePreference) -> Void
     ) {
         self.capabilities = capabilities
+        self.settingsStatus = settingsStatus
         self.languageSpace = languageSpace
         self.languageSpaces = languageSpaces
         self.interfaceLanguagePreference = interfaceLanguagePreference
@@ -89,6 +92,12 @@ public struct LangoTraceSettingsSceneView: View {
                         }
                     }
                 )
+                .trailingValue(settingsRowValue(
+                    for: capability.kind,
+                    status: settingsStatus,
+                    interfaceLanguage: interfaceLanguagePreference,
+                    appearance: appearancePreference
+                ))
             }
         }
     }

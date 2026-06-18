@@ -9,6 +9,7 @@ final class LearningContentStore: ObservableObject {
     private let spaceID: String
     private let generationActions: LearningMaterialGenerationActions
     private let sentenceAudioPlaybackActions: SentenceAudioPlaybackActions
+    private let loadSettingsStatus: @Sendable () async -> SettingsStatusProjection
     private var runningOperationsByEntryID: [String: RunningLearningMaterialOperation] = [:]
     private var sentenceAudioPlaybackObservationTasks: [String: Task<Void, Never>] = [:]
 
@@ -20,18 +21,29 @@ final class LearningContentStore: ObservableObject {
     @Published private(set) var sentenceAudioPlaybackStates: [String: SentenceAudioPresentationState] = [:]
     /// entryID → hasCompletedRecording; only entries with a current learning material appear here.
     @Published private(set) var practiceReadiness: [String: Bool] = [:]
+    /// E12 settings row values (AI / sync / local data). Defaults to the truthful fresh state
+    /// until `refreshSettingsStatus()` runs off the main thread when a settings surface appears.
+    @Published private(set) var settingsStatus = SettingsStatusProjection()
 
     init(
         repository: any LearningContentRepository,
         spaceID: String,
         generationActions: LearningMaterialGenerationActions = .disabled,
-        sentenceAudioPlaybackActions: SentenceAudioPlaybackActions = .disabled
+        sentenceAudioPlaybackActions: SentenceAudioPlaybackActions = .disabled,
+        loadSettingsStatus: @escaping @Sendable () async -> SettingsStatusProjection = { SettingsStatusProjection() }
     ) {
         self.repository = repository
         self.spaceID = spaceID
         self.generationActions = generationActions
         self.sentenceAudioPlaybackActions = sentenceAudioPlaybackActions
+        self.loadSettingsStatus = loadSettingsStatus
         reload()
+    }
+
+    /// Recomputes settings row values off the main thread (the projection reads SQLite + the
+    /// filesystem). Render paths read the cached `settingsStatus`; they never block on this.
+    func refreshSettingsStatus() async {
+        settingsStatus = await loadSettingsStatus()
     }
 
     deinit {

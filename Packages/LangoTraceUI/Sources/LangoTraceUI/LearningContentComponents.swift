@@ -249,6 +249,18 @@ struct CapabilityStatusRow: View {
     let systemImage: String
     let showsStatusBadge: Bool
     let action: (() -> Void)?
+    /// E12: an already-resolved, localized muted value shown at the trailing edge of the
+    /// settings list (e.g. the current AI provider / sync / appearance value). The settings
+    /// main list uses this in place of a status badge.
+    private var resolvedTrailingValue: String?
+
+    /// Attaches a trailing muted value to the row. Returns a modified copy so the existing
+    /// initializers stay unchanged.
+    func trailingValue(_ value: String?) -> CapabilityStatusRow {
+        var copy = self
+        copy.resolvedTrailingValue = value
+        return copy
+    }
 
     init(
         title: String,
@@ -361,6 +373,12 @@ struct CapabilityStatusRow: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
+            if let resolvedTrailingValue {
+                Text(resolvedTrailingValue)
+                    .font(.callout)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    .padding(.top, 7)
+            }
             if let trailingImage {
                 Image(systemName: trailingImage)
                     .font(.footnote.weight(.bold))

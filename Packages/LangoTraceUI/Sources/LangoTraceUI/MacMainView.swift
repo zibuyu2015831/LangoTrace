@@ -243,8 +243,8 @@ struct MacMainView: View {
             Spacer()
             LanguageSpaceFooter(
                 languageSpace: languageSpace,
-                aiStatus: .notConfigured,
-                syncStatus: .off,
+                aiStatus: contentStore.settingsStatus.aiProvider.footerStatus,
+                syncStatus: contentStore.settingsStatus.sync.footerStatus,
                 isCompact: true,
                 onLanguageSpace: { routeFooterAction(.languageSpace) },
                 onAIStatus: { routeFooterAction(.aiProvider) },
@@ -252,6 +252,7 @@ struct MacMainView: View {
                 onSettings: { routeFooterAction(.settings) }
             )
         }
+        .task { await contentStore.refreshSettingsStatus() }
         .padding(24)
         .frame(width: LangoTraceDesign.Density.macSidebarWidth, alignment: .topLeading)
         .frame(maxHeight: .infinity, alignment: .topLeading)
