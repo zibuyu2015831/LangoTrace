@@ -166,14 +166,14 @@ LM01                    （学习者模型边界：相对基础，但 Draft；�
 ## 9. 当前 run 状态（每次推进同步更新）
 
 - 排定顺序（自审核后定稿）：**E6 → E5 Slice2 → E9 → E7 → E8 → E10 → E11 → LM01 → E12**（采纳 §7 建议顺序；E6 解锁 E5 Slice2 与 E12 的 AI 状态源；E9 相对独立可早做；E7→E8 记忆链；E10→E11 导出先于同步；E12 依赖最多子系统放最后）。每份方案进入前的隔离自审核可微调其后续顺序，调整记入本节。
-- 当前方案：**E7**（`docs/plans/active/2026-06-11-10-feature-memory-deposit-foundation.md`）— 记忆沉淀基础，实现前隔离自审核已完成（见该方案「批量 run 实现前隔离自审核」段），状态 User Approved，待实现
-- 当前 Phase：E7 实现前（E6 + E5 Slice2 + E9 已收口）
-- 最后 commit：`de222e2`（E9 CI fix on dev）
-- 最后 CI run：`27742853935`（E9 Build & Test success on dev）
-- 已收口（移入 done/）：**E6**（CI `27738605916`）、**E5（Slice1+Slice2）**（CI `27741263024`）、**E9**（CI `27742853935`）
-- deferred / 待裁决项：_无_
-- 关键漂移基线：最新 migration = **v25**；下一新表从 **v26** 起。E7 记忆表 = **v26_create_memory_item_infrastructure**（sibling 文件放 helper，AppDatabase.swift 已近 file_length 1300 上限）。
-- E7 自审核结论（隔离子代理，2026-06-18）：无 P0 架构阻塞，无核心决策/ADR 反转（memory_items 是主数据，spec 007 §3.1 + ADR-004；决策 12 仅约束向量索引）。关键修订：①v26；②候选 5 kind→deposit kind 显式映射(word/phrase→wordPhrase、sentencePattern→sentence、grammarPoint/errorPattern 显式定)；③新 Core 类型命名 DepositedMemoryItem/MemoryRecord 避免 MemoryItem 跨包 rename；④reading 来源沉淀需幂等键或 defer；⑤memory_items 须含 E8 review 列（review_state/review_rung/review_due_at/last_reviewed_at/review_count/mastered_at）；建议 Phase A（Core+Data+repo+v26）先 CI 绿即解锁 E8 + E9 记忆搜索组。
+- 当前方案：**E8**（`docs/plans/active/2026-06-11-11-feature-memory-review-queue.md`）— 记忆复习队列，实现前隔离自审核已完成（见该方案「批量 run 实现前隔离自审核」段），状态 User Approved，待实现
+- 当前 Phase：E8 实现前（E6 + E5 Slice2 + E9 + E7 已收口）
+- 最后 commit：`1321dd4`（E7 CI fix on dev）
+- 最后 CI run：`27745572810`（E7 Build & Test success on dev）
+- 已收口（移入 done/）：**E6**（CI `27738605916`）、**E5（Slice1+Slice2）**（CI `27741263024`）、**E9**（CI `27742853935`）、**E7**（CI `27745572810`）
+- deferred / 待裁决项：_无_。E7 内 reading-来源沉淀（缺幂等键）+ 候选→memory_items 增量索引（E9 记忆搜索组零态）作为后续优化记于 E7 实施记录，不阻塞。
+- 关键漂移基线：最新 migration = **v26**（`v26_create_memory_item_infrastructure`）；下一新表从 **v27** 起。**E8 无新 migration**（v26 已含 review 列）。memory_items review 列名：review_state CHECK('new','scheduled','mastered')/review_rung/review_due_at/last_reviewed_at/review_count/mastered_at；沉淀时间戳列为 **created_at**（非 deposited_at），表**无 updated_at**。
+- E8 自审核结论（隔离子代理，2026-06-18）：无 P0 架构阻塞，无核心决策/ADR 反转（纯本地复习本地数据）。关键修订：①幻列 deposited_at→created_at；②无 updated_at（并发检查用 review_count/last_reviewed_at）；③Core 协议/模型在 MemoryDeposit.swift（非 MemoryItem.swift），MemoryReviewState 已存在；④新增 Core 纯 MemoryReviewScheduler（注入 clock、固定阶梯、new→scheduled→mastered）+ MemoryItemRepository 新增 dueItems/recordReviewOutcome/markMastered/resumeReview/memoryStatistics；⑤「本周」用 Swift Calendar 从 epoch 派生。CI-greenable 单轮，无 defer。
 
 > 维护约定：本节是 run 级游标，只记「跑到哪、下一步从哪继续」；详细决策、验证结果、TDD 落点写回各子方案与仪表盘 00。
 

@@ -1,10 +1,26 @@
 # 任务方案：记忆复习队列（统计、本地固定间隔调度与已掌握状态机）（E8）
 
-状态：Draft
-自审核状态：Reviewed
+状态：User Approved
+自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-18（批量 run 实现前隔离自审核：E7 已落地，幻列 deposited_at→created_at、无 updated_at、Core 协议在 MemoryDeposit.swift、新增 review-update 方法 + 纯 scheduler、无新 migration）
+
+## 批量 run 实现前隔离自审核（2026-06-18）
+
+```text
+审核方式：隔离子代理只读，用当前 HEAD（875a6c0，E7 已落地 dev）核验方案现状
+核心决策/ADR 反转检查：无。纯本地复习本地记忆数据，不发外部请求、不建向量表（守核心决策 12 + embedding 备忘录红线），符合 spec 007 §3.1.1 MemoryItem 主数据 Update 路径。无 ADR 变更。
+确认漂移与修订（实现时按此为准）：
+  [P0-1] 幻列：方案「本周沉淀」用 deposited_at，E7 实际列为 **created_at**（AppDatabaseMemoryMigration.swift:31，无 deposited_at）。全部 deposited_at→created_at。
+  [近P0] 幻列：方案乐观并发检查提到 updated_at，memory_items **无 updated_at** 列（只有 created_at/soft_deleted_at）。改用 review_count / last_reviewed_at 做并发检查。
+  [P1] 现状 stale：E7 已落地，三端记忆页已渲染真实 DepositedMemoryItem 只读列表（iPhone PhoneMainSections、iPad PadMainSections、mac MacWorkspaceContentView），MemoryDepositActions seam 已在 AppEnvironment 接线。E8 统计条 + 复习入口挂真实沉淀数据，不混候选 mock。
+  [P1] 落点漂移：Core 模型/协议在 **MemoryDeposit.swift**（非方案写的 MemoryItem.swift / Data 层 MemoryItemRepository.swift）。MemoryReviewState 枚举(new/scheduled/mastered)已存在、DepositedMemoryItem 已带全 review 字段——E8 不需补状态模型，只新增 scheduler + outcome。
+  6 个 review 列名逐字匹配 E7（review_state CHECK('new','scheduled','mastered')、review_rung、review_due_at、last_reviewed_at、review_count、mastered_at，均 NOT NULL DEFAULT 或 nullable 如 E7）。
+  无新 migration（v26 已含列）；若将来加复习历史事件表才是 v27。
+有序 seam：Core 纯 MemoryReviewScheduler（注入 clock，固定阶梯如 [1,3,7,14,30] 天，状态机 new→scheduled→mastered）+ MemoryReviewOutcome 枚举 → MemoryItemRepository(Core 协议) 新增 dueItems/recordReviewOutcome/markMastered/resumeReview/memoryStatistics + GRDB 实现（复用既有 clock 注入构造器）→ UI 复习会话 + 统计条（挂真实沉淀数据，复用 PracticeSession 式会话先例）→ AppEnvironment 装配 → 文档。「本周」用 Swift Calendar/TimeZone 从 epoch 派生，不在 SQL 算周。
+是否允许进入实现：是（批量 run §1 预授权 + 本轮漂移已修订）。
+```
 
 ## 用户确认记录
 
