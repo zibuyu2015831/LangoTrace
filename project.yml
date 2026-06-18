@@ -21,6 +21,8 @@ packages:
     path: Packages/LangoTraceSpeech
   LangoTraceSync:
     path: Packages/LangoTraceSync
+  LangoTraceLearnerModel:
+    path: Packages/LangoTraceLearnerModel
 
 settings:
   base:
@@ -76,6 +78,8 @@ targets:
         product: LangoTraceSpeech
       - package: LangoTraceSync
         product: LangoTraceSync
+      - package: LangoTraceLearnerModel
+        product: LangoTraceLearnerModel
 
   LangoTrace-macOS:
     type: application
@@ -121,6 +125,8 @@ targets:
         product: LangoTraceSpeech
       - package: LangoTraceSync
         product: LangoTraceSync
+      - package: LangoTraceLearnerModel
+        product: LangoTraceLearnerModel
 
   LangoTraceAppTests:
     type: bundle.unit-test

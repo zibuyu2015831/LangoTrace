@@ -5,6 +5,13 @@ import LangoTraceCore
 public struct AppDatabase: @unchecked Sendable {
     let databaseQueue: DatabaseQueue
 
+    /// Minimal read-only seam for cross-package compute-on-read consumers (e.g. the
+    /// Learner Model's ability coverage). Exposes the queue as a `DatabaseReader` so
+    /// callers can run read transactions without reaching the writable queue.
+    public var reader: DatabaseReader {
+        databaseQueue
+    }
+
     public init(databaseQueue: DatabaseQueue) throws {
         self.databaseQueue = databaseQueue
         // `PRAGMA foreign_keys` is a no-op inside a transaction, so it must run
