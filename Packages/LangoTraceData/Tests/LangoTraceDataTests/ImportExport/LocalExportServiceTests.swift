@@ -103,7 +103,10 @@ struct LocalExportServiceTests {
 
     @Test("a higher format version is rejected")
     func higherFormatVersionRejected() throws {
-        let entries = [PortableEntrySnapshot(id: "e1", spaceID: "s", title: "t", body: "b", source: "typedText", scene: "x", createdAt: Date(timeIntervalSince1970: 0), updatedAt: Date(timeIntervalSince1970: 0))]
+        let entries = [PortableEntrySnapshot(
+            id: "e1", spaceID: "s", title: "t", body: "b", source: "typedText", scene: "x",
+            createdAt: Date(timeIntervalSince1970: 0), updatedAt: Date(timeIntervalSince1970: 0)
+        )]
         let manifest = ExportManifest(
             formatVersion: LangoTraceExportFormat.currentFormatVersion + 1,
             schemaVersion: "v999", spaceID: "s", entryCount: 1, memoryCount: 0,
