@@ -1,10 +1,32 @@
 # 任务方案：设置真实状态投影（行值、AI / 同步状态与本地数据占用）（E12）
 
-状态：Draft
-自审核状态：Reviewed
+状态：User Approved（批量 run 预授权；E6/E11 前置已落地，sync 行如实降级为「未启用」）
+自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离子代理用当前 HEAD 复核漂移，结论见下）
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-18（批量 run 实现前漂移复核：AIProviderProfileStatus 6 例 / secret_presence 快照 / UIV-08 行号 / Core PrivacyStatus 枚举 / UI 不依赖 Sync / CapabilityStatusRow 无值槽 / 渲染禁用词）
+
+## 批量 run 实现前漂移复核（2026-06-18）
+
+```text
+复核方式：隔离子代理只读核验当前 HEAD（E6/E7/E8/E9/LM01 已收口，E10 S1/E11 引擎切片在 active）。
+核心决策/ADR 反转检查：无。决策 9（凭证只入 Keychain、不外发）+ 备忘录 §4（渲染零 Keychain/零网络）是硬边界，本方案遵守不反转。
+确认漂移与修订（实现按此为准，覆盖正文旧假设）：
+  [P0] sync 行真实值 = `syncService.isEnabled`（现恒 false → 「未启用」），如实投影非硬编码；SyncStatusProjection 已随 E11 真实通道一并 defer，E12 不依赖它（方案 §3「E11 后接 SyncStatusProjection」改为：E11 引擎切片下仍为 isEnabled 降级，真实通道落地后再接）。
+  [P0] **LangoTraceUI 不依赖 LangoTraceSync** → footer/列表不能直读 SyncService，须 App 层把 isEnabled 桥接为 Core `SyncProviderStatus` 注入。
+  [P0] 渲染禁用词：`ThreePlatformPresentationCopyTests` 禁可见英文 `unavailable`/`not connected` 等 + 扫 `settings.`/`capabilityStatus.` key 前缀与 UI 源码；`PremiumUIBehaviorTests` 禁 UI 源码任何汉字。→ 行值必须 en+zh-Hans 本地化 key，UI .swift 零中文，措辞避开禁用词（如「未启用」EN 用 "Off"/"Not set up" 而非 "unavailable/not connected"）。
+  [P1] `AIProviderProfileStatus` 实为 6 例（含 `.draft`）；凭证存在性快照在 `ai_provider_credentials.secret_presence`（`AIProviderSecretPresence`：present/missing/inaccessible/unknown），写点 `markCredentialState`/`insert(_:credential)`（纯 Data 侧，非 Data/AI 接缝）；`GRDBAIProviderConfigurationRepository` 不 import Keychain，`loadDefaultProfile()`/`credential(from:)` 零 Keychain 可读 → 投影直接复用，结构性保证零 Keychain。
+  [P1] migration 实为 v26，无新列需求（复用现列，**无 migration**）。
+  [P1] Core `AIProviderStatus` 仅 4 例（notConfigured/configured/unavailable/error，在 `PrivacyStatus.swift` 非 footer 文件）→ 投影 `AIProviderListStatus`（notConfigured/configured/missingKey/partiallyAvailable）映射进 footer 4 例（missingKey→error 或 notConfigured，partiallyAvailable→configured，映射在 App/Core，记入测试）。
+  [P1] UIV-08 行号漂移：PadMainSections 90–91、MacMainView 246–247、PadLearningPanelView 89–101；**MacWorkspaceContentView 无 AI/sync 行**（其 .unavailable 是真实能力事实，不改）。
+  [P2] `CapabilityStatusRow`（LearningContentComponents.swift）无 trailing 值槽 → 加可选 value param；`settingsCapabilities` 是 `GRDBLearningContentRepositoryBridge` 静态数组（忽略 spaceID）。
+  [P2] `LocalDataUsageService` 不存在；DB 路径 `LanguageSpaceDatabaseLocation`（+ -wal/-shm），MediaArtifacts root 在 App 层 `SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot()` → 须注入两路径。界面语言/外观偏好已由 `UserDefaultsInterfaceLanguageStore`/`UserDefaultsAppearancePreferenceStore` 持久化。
+  设置渲染入口：iPhone `PhoneMainSections`，iPad/mac 共享 `LangoTraceSettingsSceneView`。
+切片（均可完成、无 defer）：
+  Slice A（Core + Data）：SettingsProjectionModels（AIProviderListStatus/SyncListStatus + 映射 + localizedValueKey）+ SettingsCapabilityProjection（AI 状态由 secret_presence + profile/endpoint 快照派生，零 Keychain）+ LocalDataUsageService（注入路径，后台 + 缓存）+ 测试。
+  Slice B（UI + App）：CapabilityStatusRow 值槽 + 设置行值渲染 + UIV-08 接线移除硬编码 + footer 注入 + App 装配（含 sync isEnabled 桥接）+ 本地化 key（en+zh-Hans）+ UI 测试（含 ThreePlatformPresentationCopy / PremiumUIBehavior 本地跑）。
+是否允许进入实现：是（批量 run §1 预授权；全部可实现到可验证边界，无 defer）。
+```
 
 ## 用户确认记录
 
