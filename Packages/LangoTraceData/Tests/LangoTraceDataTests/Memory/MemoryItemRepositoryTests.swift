@@ -90,6 +90,44 @@ struct MemoryItemRepositoryTests {
         #expect(try await repository.depositedEntryIDs(spaceID: "space-1").isEmpty)
     }
 
+    @Test("depositCandidate resolves the full candidate from storage and deposits")
+    func depositCandidateResolvesAndDeposits() async throws {
+        let database = try makeDatabase()
+        try await database.databaseQueue.write { db in
+            try db.execute(sql: """
+            INSERT INTO learning_materials (
+                id, entry_id, space_id, input_kind, prompt_mode, learning_text, original_generated_text,
+                analysis_source_hash, analysis_status, prompt_id, prompt_version, provider_preset_id,
+                model_name, is_current, created_at, updated_at
+            ) VALUES ('mat-1','entry-1','space-1','nativeRecord','automaticLearningMaterial','text','text',
+                'h','fresh','p','1','openai','m',1,0,0)
+            """)
+            try db.execute(sql: """
+            INSERT INTO memory_candidates (
+                id, space_id, entry_id, material_id, kind, text, explanation_native,
+                example_target, example_native, difficulty, status, created_at, updated_at
+            ) VALUES ('cand-x','space-1','entry-1','mat-1','grammarPoint','present perfect','recent past',
+                'I have eaten','我吃过了','medium','candidate',0,0)
+            """)
+        }
+        let repository = GRDBMemoryItemRepository(database: database)
+        let deposited = try await repository.depositCandidate(candidateID: "cand-x", spaceID: "space-1")
+        #expect(deposited?.kind == .sentence)
+        #expect(deposited?.text == "present perfect")
+        #expect(deposited?.entryID == "entry-1")
+        // Idempotent: a second deposit returns the same row.
+        let again = try await repository.depositCandidate(candidateID: "cand-x", spaceID: "space-1")
+        #expect(again?.id == deposited?.id)
+        #expect(try await repository.listMemoryItems(spaceID: "space-1").count == 1)
+    }
+
+    @Test("depositCandidate returns nil for an unknown candidate")
+    func depositCandidateUnknownReturnsNil() async throws {
+        let repository = GRDBMemoryItemRepository(database: try makeDatabase())
+        let result = try await repository.depositCandidate(candidateID: "missing", spaceID: "space-1")
+        #expect(result == nil)
+    }
+
     @Test("candidate kinds map onto the two deposit kinds")
     func candidateKindMapping() {
         #expect(MemoryItemKind(.word) == .wordPhrase)

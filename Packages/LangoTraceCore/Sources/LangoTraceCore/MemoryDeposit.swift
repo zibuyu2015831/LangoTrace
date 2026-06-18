@@ -162,4 +162,8 @@ public protocol MemoryItemRepository: Sendable {
     /// `settled` timeline filter).
     func depositedEntryIDs(spaceID: String) async throws -> Set<String>
     func softDelete(id: String) async throws
+    /// Deposits from a persisted analysis candidate by id (resolves the full
+    /// candidate from storage, then deposits idempotently). Returns nil if the
+    /// candidate no longer exists. The UI only knows the candidate id.
+    func depositCandidate(candidateID: String, spaceID: String) async throws -> DepositedMemoryItem?
 }

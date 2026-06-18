@@ -26,6 +26,7 @@ struct AppEnvironment {
     let aiRequestPreviewActions: AIRequestPreviewActions
     let aiRequestLogActions: AIRequestLogActions
     let localSearchActions: LocalSearchActions
+    let memoryDepositActions: MemoryDepositActions
     let syncService: any SyncService
 
     // AppEnvironment assembles the cross-package production graph in one place.
@@ -173,6 +174,24 @@ struct AppEnvironment {
             }
         )
 
+        // E7: memory deposit (user main data; explicit "add to memory" action).
+        let memoryItemRepository: (any MemoryItemRepository)? =
+            (try? databaseFactory.database()).map { GRDBMemoryItemRepository(database: $0) }
+        let memoryDepositActions = MemoryDepositActions(
+            depositCandidate: { candidateID, spaceID in
+                guard let memoryItemRepository else { return false }
+                return await ((try? memoryItemRepository.depositCandidate(candidateID: candidateID, spaceID: spaceID)) ?? nil) != nil
+            },
+            listDeposited: { spaceID in
+                guard let memoryItemRepository else { return [] }
+                return await (try? memoryItemRepository.listMemoryItems(spaceID: spaceID)) ?? []
+            },
+            depositedCandidateIDs: { spaceID in
+                guard let memoryItemRepository else { return [] }
+                return await (try? memoryItemRepository.depositedCandidateIDs(spaceID: spaceID)) ?? []
+            }
+        )
+
         return AppEnvironment(
             makeLanguageSpaceRepository: {
                 try GRDBLanguageSpaceRepository(
@@ -291,6 +310,7 @@ struct AppEnvironment {
             aiRequestPreviewActions: aiRequestPreviewActions,
             aiRequestLogActions: aiRequestLogActions,
             localSearchActions: localSearchActions,
+            memoryDepositActions: memoryDepositActions,
             syncService: DisabledSyncService()
         )
     }

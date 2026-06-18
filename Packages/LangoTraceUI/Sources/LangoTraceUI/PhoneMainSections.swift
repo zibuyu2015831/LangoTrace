@@ -201,6 +201,11 @@ struct MemoryView: View {
     let onLanguageSpaceAction: () -> Void
     var onSettingsAction: (() -> Void)?
 
+    @Environment(\.memoryDepositActions) private var memoryDepositActions
+    @State private var deposited: [DepositedMemoryItem] = []
+    @State private var depositedCandidateIDs: Set<String> = []
+    @State private var depositingCandidateID: String?
+
     var body: some View {
         PhonePage(
             titleKey: "tab.memory",
@@ -208,6 +213,7 @@ struct MemoryView: View {
             onLanguageSpaceAction: onLanguageSpaceAction,
             onSettingsAction: onSettingsAction
         ) {
+            depositedSection
             SectionHeader(titleKey: "phone.memory.personal.title", subtitleKey: "phone.memory.personal.subtitle")
             if memoryItems.isEmpty {
                 LocalizedCompactPanel(
@@ -217,10 +223,66 @@ struct MemoryView: View {
                 )
             } else {
                 ForEach(memoryItems) { item in
-                    CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
+                    candidateRow(item)
                 }
             }
         }
+        .task(id: languageSpace.id) {
+            await reloadDeposited()
+        }
+    }
+
+    @ViewBuilder
+    private var depositedSection: some View {
+        SectionHeader(titleKey: "phone.memory.deposited.title", subtitleKey: "phone.memory.deposited.subtitle")
+        if deposited.isEmpty {
+            LocalizedCompactPanel(
+                titleKey: "memory.deposited.empty.title",
+                textKey: "memory.deposited.empty.body",
+                systemImage: "checkmark.seal"
+            )
+        } else {
+            ForEach(deposited) { item in
+                CompactPanel(title: item.text, text: item.note, systemImage: "checkmark.seal")
+            }
+        }
+    }
+
+    private func candidateRow(_ item: MemoryItem) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            CompactPanel(title: item.text, text: item.note, systemImage: "bookmark")
+            if depositedCandidateIDs.contains(item.id) {
+                Label(localizedString("memory.deposit.added"), systemImage: "checkmark.seal.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.privacyLocal)
+            } else {
+                Button {
+                    Task { await deposit(item) }
+                } label: {
+                    Label(localizedString("memory.deposit.action"), systemImage: "plus.circle")
+                        .font(.caption.weight(.semibold))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                .disabled(depositingCandidateID == item.id)
+            }
+        }
+    }
+
+    private func deposit(_ item: MemoryItem) async {
+        depositingCandidateID = item.id
+        let ok = await memoryDepositActions.depositCandidate(item.id, languageSpace.id)
+        depositingCandidateID = nil
+        if ok {
+            depositedCandidateIDs.insert(item.id)
+            await reloadDeposited()
+        }
+    }
+
+    private func reloadDeposited() async {
+        deposited = await memoryDepositActions.listDeposited(languageSpace.id)
+        depositedCandidateIDs = await memoryDepositActions.depositedCandidateIDs(languageSpace.id)
     }
 }
 

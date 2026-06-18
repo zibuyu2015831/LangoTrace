@@ -41,20 +41,7 @@ public struct GRDBMemoryItemRepository: MemoryItemRepository, @unchecked Sendabl
                 difficulty: input.difficulty,
                 createdAt: now
             )
-            try db.execute(
-                sql: """
-                INSERT INTO memory_items (
-                    id, space_id, entry_id, source_kind, source_candidate_id, kind, text, note,
-                    example_target, example_native, difficulty, review_state, review_rung,
-                    review_due_at, last_reviewed_at, review_count, mastered_at, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', 0, NULL, NULL, 0, NULL, ?)
-                """,
-                arguments: [
-                    item.id, item.spaceID, item.entryID, item.sourceKind.rawValue, item.sourceCandidateID,
-                    item.kind.rawValue, item.text, item.note, item.exampleTarget, item.exampleNative,
-                    item.difficulty.rawValue, item.createdAt.timeIntervalSince1970,
-                ]
-            )
+            try Self.insert(item, in: db)
             return item
         }
     }
@@ -101,6 +88,48 @@ public struct GRDBMemoryItemRepository: MemoryItemRepository, @unchecked Sendabl
         }
     }
 
+    public func depositCandidate(candidateID: String, spaceID: String) async throws -> DepositedMemoryItem? {
+        let id = makeID()
+        let now = clock()
+        return try await databaseQueue.write { db in
+            if let existing = try Self.fetchByCandidate(db, spaceID: spaceID, candidateID: candidateID) {
+                return existing
+            }
+            guard let candidate = try Row.fetchOne(
+                db,
+                sql: """
+                SELECT entry_id, kind, text, explanation_native, example_target, example_native, difficulty
+                FROM memory_candidates
+                WHERE id = ? AND space_id = ?
+                """,
+                arguments: [candidateID, spaceID]
+            ) else {
+                return nil
+            }
+            guard let candidateKind = LearningMemoryCandidate.Kind(rawValue: candidate["kind"] as String),
+                  let difficulty = LearningMemoryCandidate.Difficulty(rawValue: candidate["difficulty"] as String)
+            else {
+                return nil
+            }
+            let item = DepositedMemoryItem(
+                id: id,
+                spaceID: spaceID,
+                entryID: candidate["entry_id"],
+                sourceKind: .candidate,
+                sourceCandidateID: candidateID,
+                kind: MemoryItemKind(candidateKind),
+                text: candidate["text"],
+                note: candidate["explanation_native"],
+                exampleTarget: candidate["example_target"],
+                exampleNative: candidate["example_native"],
+                difficulty: difficulty,
+                createdAt: now
+            )
+            try Self.insert(item, in: db)
+            return item
+        }
+    }
+
     public func softDelete(id: String) async throws {
         let now = clock().timeIntervalSince1970
         try await databaseQueue.write { db in
@@ -113,6 +142,23 @@ public struct GRDBMemoryItemRepository: MemoryItemRepository, @unchecked Sendabl
 }
 
 private extension GRDBMemoryItemRepository {
+    static func insert(_ item: DepositedMemoryItem, in db: Database) throws {
+        try db.execute(
+            sql: """
+            INSERT INTO memory_items (
+                id, space_id, entry_id, source_kind, source_candidate_id, kind, text, note,
+                example_target, example_native, difficulty, review_state, review_rung,
+                review_due_at, last_reviewed_at, review_count, mastered_at, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', 0, NULL, NULL, 0, NULL, ?)
+            """,
+            arguments: [
+                item.id, item.spaceID, item.entryID, item.sourceKind.rawValue, item.sourceCandidateID,
+                item.kind.rawValue, item.text, item.note, item.exampleTarget, item.exampleNative,
+                item.difficulty.rawValue, item.createdAt.timeIntervalSince1970,
+            ]
+        )
+    }
+
     static func fetchByCandidate(_ db: Database, spaceID: String, candidateID: String) throws -> DepositedMemoryItem? {
         try Row.fetchOne(
             db,
