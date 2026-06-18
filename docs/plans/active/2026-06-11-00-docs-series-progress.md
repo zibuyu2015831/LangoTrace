@@ -35,7 +35,7 @@
 
 > **批量自主执行已编排**（2026-06-18）：E6…LM01 的全部剩余工作项方案，由仓库根目录编排手册 `BATCH-EXECUTION-PLAYBOOK.md` 统一驱动（用户已完全预授权，每方案独立分支 → 本地 merge dev → CI 绿 → 移 done/，不动 main，AI 自审后重排顺序）；`/goal` 指令见根目录 `BATCH-EXECUTION-GOAL.md`。本仪表盘仍为进度事实源，run 级游标见 Playbook §9。
 
-> **当前指针**：**系列收尾**。批量 run 的 9 份工作项方案已全部处置——**E6 / E5（S1+S2）/ E9 / E7 / E8 / LM01 / E12 已实现 + CI 全绿并移入 `done/`**；**E10 Slice 1 与 E11 引擎切片已落地 + CI 全绿，因依赖不存在的基础设施（加密 KDF/安全存储；iCloud container/付费 capability/真实账号/多设备）诚实 defer，保持 In Progress 留 `active/`**，恢复入口见各自 architecture note。E12（设置真实状态投影，run `27752466241`）为最后一份。详见 Playbook §9「整批结束」。：Sync Engine + Adapter 协议 + 冲突解决器 + 真实 SyncService 协议 + **ADR-007**；CloudKit 真实通道 / entitlement / 变更跟踪 schema 写路径 / 双设备验证诚实 defer，E11 保持 In Progress/active。**E10（导入导出）Slice 1 已于 2026-06-18 落地并 CI 全绿**（run `27748408455`）：非敏感主数据导出/导入引擎（manifest + SHA-256 + verify-before-write 同 id skip）；Slice 2（macOS 文件面板/附件打包）+ 加密备份诚实 defer，E10 保持 In Progress/active。
+> **当前指针**：**系列收尾**。批量 run 的 9 份工作项方案已全部处置——**E6 / E5（S1+S2）/ E9 / E7 / E8 / LM01 / E12 已实现 + CI 全绿并移入 `done/`**；**E10 Slice 1 与 E11 引擎切片已落地 + CI 全绿，因依赖不存在的基础设施（加密 KDF/安全存储；iCloud container/付费 capability/真实账号/多设备）诚实 defer，保持 In Progress 留 `active/`**，恢复入口见各自 architecture note。E12（设置真实状态投影，run `27752466241`）为最后一份。E10/E11 的落地与 defer 边界详见状态总表第 13/14 行与各自方案「完成状态（批量 run）」段；批量游标详见 Playbook §9「整批结束」。
 >
 > _历史指针_：E10 `docs/plans/active/2026-06-11-13-feature-import-export-backup.md`。**E8（记忆复习队列）已于 2026-06-18 落地并 CI 全绿**（run `27747133409`，已移入 done/）：Core 固定间隔调度器 + repository 复习方法 + iPhone 统计条/复习会话；无新 migration。
 >
