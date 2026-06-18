@@ -1,10 +1,10 @@
 # 任务方案：AI 请求预览与请求日志基础（真实"将发送内容"投影 + ai_request_logs）
 
-状态：Draft
-自审核状态：Reviewed
+状态：User Approved
+自审核状态：Reviewed（2026-06-18 第二轮隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-18（批量 run E6 实现前隔离自审核：修正 migration 版本漂移 v15→v24、依赖方向改 App-Shell recorder、失败 taxonomy 常驻映射、generate/analyze/explain 入口、行号漂移）
 
 系列编号：E6（系列母方案：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`，实施顺序位于 E5 之后启动，但必须先于 E5 Slice 2 完成）。规模：M-L。
 
@@ -293,9 +293,33 @@ git status --short
 - ADR：无核心决策变化（透明性能力沿用 ADR-005 本地优先边界）。
 - `docs/review/`：数据库 schema 变化 + 请求日志属 AI Provider 域，命中专项审查触发条件，实现完成后创建 review round 或在本方案实施记录中说明。
 
+## 13bis. 第二轮隔离自审核记录（2026-06-18，批量 run 实现前）
+
+```text
+审核日期：2026-06-18
+审核方式：隔离审查（子代理只读，用当前 HEAD 代码逐条核验方案 §2 现状断言）
+审核轮次：实现前漂移复核（第二轮）
+核心决策 / ADR 反转检查：无。ai_request_logs 为本地诊断性数据（不同步/不导出/无内容字段），透明性能力沿用 ADR-005 本地优先边界与核心决策 9/10；不构成暂停条件，准予进入实现。
+确认的漂移与修订（已写回对应章节）：
+  [P0-1] E0a 并未统一失败 taxonomy（仅在各域枚举补 case）。各域 FailureCategory→日志封闭分桶的映射是【常驻设计】，不是过渡映射。证据：LearningMaterialGenerationFailureCategory（Core/LearningMaterialGenerationModels.swift:29，16 case）、ReadingSelectionExplanationFailureCategory（Core/ReadingAIExplanation.swift:86，10 case）仍按域分散；无统一 FailureCategory 类型。→ 步骤 3 与 §20 风险 2 改为常驻映射表。
+  [P0-2] 依赖方向：现有非敏感 operation 摘要不是由 AI service 写入，而是【App Shell recorder】写入。证据：LangoTraceApp/ReadingExplanationOperationRecorder.swift + AppEnvironment.swift:265-316 在 explain 调用前后 record(.pending/.succeeded/.cancelled/.failed)；AI service 是纯执行器，不 import Data、不持 sink。→ E6-D1/步骤 3 改为新增 App-Shell `AIRequestLogRecorder`（镜像 ReadingExplanationOperationRecorder）在 AppEnvironment 包裹 generate/analyze/explain，不向 LangoTraceAI 注入 sink。Core 仍持非敏感模型 + 封闭枚举（仿 DiagnosticAttribute，DiagnosticEvent.swift:97），Data 持 repository。
+  [P1-1] migration 漂移：最新已是 v23_create_practice_text_attempts（AppDatabase.swift:111），新表为 **v24_create_ai_request_logs**，沿用 db.create(table:) inline 模式（无 Migrations/ 目录、无独立 SQL 文件）。
+  [P1-2] 投影挂在公共入口 generate(_:)（:68）/ analyze(_:)（:89）/ explain(_:)（:152）消费的 request 结构上，非私有 makeRequest（:173）。请求结构 LearningMaterialServiceGenerationRequest 在 :4。
+  [P2-1] RequestPreviewCard 现位于 LearningContentComponents.swift:165-204（cases/use-site 行为不变；PadLearningPanelView.swift:151、MacInspectorContent.swift:24 验证准确）。
+  [P2-3] 预留 capability practiceBacktranslationReview 接入的是 E5 Slice1 既有 seam（PracticeMode.backtranslation 小写、submitBacktranslationAttempt）；注意学习材料 kind 用 backTranslation（驼峰），两拼写并存，capability 采用 practiceBacktranslationReview。
+写回修改：§2 现状、§8 路径、§12 步骤 1-3 与 E6-D1、§15 TDD seed、§20 风险均已同步。
+仍需用户确认的问题（不阻塞，批量 run 预授权下按推荐方案直接采纳并留痕）：
+  - E6-D2 iPhone 入口：采纳「记录详情按需展开 + 设置 AI Provider 详情挂日志列表」。
+  - E6-D3 取消记日志：采纳 status=cancelled、无失败分类。
+  - PrivacyStatus 文案恢复：本方案【不恢复】，维持 274b7db 收紧文案与防回归测试，只登记决策入口（§17）。理由：恢复属独立隐私文案变更，应单独留痕，不在基础设施方案里夹带。
+是否允许进入实现：是（批量 run §1 预授权 + 本轮漂移已修订写回）。
+```
+
 ## 18. 实施记录
 
 2026-06-11：方案创建并完成两轮自审核（见第 13 节）。尚未进入实现。
+
+2026-06-18：批量 run 实现前隔离自审核完成（见 §13bis），状态推进 User Approved，开 feature/e6-ai-request-preview-log 分支进入 TDD 实现。
 
 ## 19. 完成标准
 
