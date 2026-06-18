@@ -140,7 +140,9 @@ Ability / Memory / Style 三层，分区键按层而定，全局共享，统一�
 
 ## 影响
 
-- **工程**：新增 Learner Model 模块边界（Core 模型 + GRDB 命名空间 + `LearnerContextProvider` 供给 seam）；消费者（材料生成、解释模式、练习、复习、语伴）经统一 Provider 取用户上下文，不自建 store。
+> **实施进展（2026-06-18，LM01 落地，CI run `27749945215` 绿）**：本 ADR 系列第一份（LM01）已实现并合入 `dev`。落地形态：新建独立 Swift Package **`LangoTraceLearnerModel`**（deps Core + Data + GRDB，对应 §1「系统级横切子系统」物理边界），承载 `AbilityCoverage` / `AbilityCoverageEntry` / `AbilityCoverageKind`（v1 仅 `wordPhrase`/`sentence`）/ `LearnerEvidenceRef` / `LearnerSourceType` 域模型 + `LearnerContextProvider` 唯一 seam；`GRDBLearnerContextProvider` 以 **compute-on-read** 从 active 沉淀 `memory_items`（JOIN `language_spaces.target_language_code`）聚合 Ability 知识覆盖，按 §8「Ability 真派生不持久化」**不新增表/无 migration**，删除经 active-only 读天然级联（§7）。严守 §4 红线：**不读 `memory_candidates`、无 band/level/difficulty**。§9 的分析账本/cursor 形态按方案推迟到 LM02 引入 band 重估时一次建对（v1 compute-on-read 下账本即「建了不读」）。盲点 / 水平 band / 分技能 / Memory / Style / 总览页 UI 均为 LM02/LM03，未在 LM01 实现。详见 [LM01 方案](../plans/done/2026-06-15-01-feature-learner-model-boundary-and-ability-coverage.md)。
+
+- **工程**：新增 Learner Model 模块边界（独立包 `LangoTraceLearnerModel`：域模型 + GRDB 实现 + `LearnerContextProvider` 供给 seam；LM01 已落地）；消费者（材料生成、解释模式、练习、复习、语伴）经统一 Provider 取用户上下文，不自建 store。
 - **数据模型**：新增分析账本表与三层派生存储；按层分叉持久化（Ability local-only 不备份，Memory / Style 进导出 + 备份）；provenance `source_refs` 作为派生结果一等字段。
 - **隐私 / 定位文档**：本 ADR 的隐私重定义需与 `product-main-reference.md`（§11 / §27）、`spec/008`、ADR-005 保持一致（已联动修订）；核心决策 #4 补充「Learner Model 横切空间」、#6 细化「自评 = 种子、评估 = 演进内部值」、#10 明确两类外发与一次性授权 UX。
 - **计划系列**：在现有 01–15 系列后追加（不重编）——① Learner Model 边界 + Ability 覆盖视图（接 plan 10）→ ② 学习画像总览页 + 水平信号演进 + 分技能占位（接 plan 11）→ ③ 语伴（最后）。硬门控：先关闭 2026-06-11 Mac 验证门再实现。

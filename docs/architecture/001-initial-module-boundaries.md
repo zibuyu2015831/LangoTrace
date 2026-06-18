@@ -113,17 +113,28 @@
 
 第一阶段不实现 WebDAV / S3 / R2 / iCloud 同步。
 
+### 2.8 LearnerModel（2026-06-18 LM01 新增）
+
+职责：
+
+- 系统级、横切语言空间的学习者模型子系统（ADR-006）。
+- Ability / Memory / Style 三层域模型与 provenance。
+- `LearnerContextProvider` 对外唯一供给 seam（消费者经此取用户上下文，不自建 store）。
+
+依赖 Core + Data + GRDB；不被 Core / Data 反向依赖（无环）。LM01 仅落地 Ability 知识覆盖（compute-on-read，无新表）；Memory / Style 与账本/band 留 LM02/LM03。
+
 ## 3. 依赖方向
 
 推荐依赖方向：
 
 ```text
 App Shell -> UI -> Core
-App Shell -> Data / AI / Speech / Sync
+App Shell -> Data / AI / Speech / Sync / LearnerModel
 Data -> Core
 AI -> Core
 Speech -> Core
 Sync -> Core
+LearnerModel -> Core, Data
 ```
 
 约束：

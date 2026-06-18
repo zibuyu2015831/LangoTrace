@@ -1,6 +1,6 @@
 # 任务方案：学习者模型模块边界 + Ability 知识覆盖（LM01，v1 compute-on-read）
 
-状态：User Approved（批量 run 预授权；plan-10 / E7 前置已落地并 CI 绿，硬前置满足）
+状态：Implemented（2026-06-18 批量 run；CI run `27749945215` Build & Test 全绿，已移入 done/）
 自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离子代理用当前 HEAD 复核漂移，结论写回下方）
 类型：feature
 创建日期：2026-06-15
@@ -322,7 +322,19 @@ scripts/check-docs.sh
 
 ## 18. 实施记录
 
-（实施时按时间追加；deferred / aborted 项按模板记录决策日志。）
+2026-06-18（批量 run）：feature/lm01-learner-model 分支落地 Ability 知识覆盖。
+  - 新建独立包 **`Packages/LangoTraceLearnerModel`**（deps Core + Data + GRDB；产品库 + 测试 target），登记进 `project.yml`（`packages:` + iOS/macOS/AppTests target 依赖）。
+  - Core/域模型（包内）：`AbilityCoverage`（languageCode + entries + generatedAt，无 band/level 字段）、`AbilityCoverageEntry`（text + kind + occurrenceCount + evidence）、`AbilityCoverageKind`（v1 仅 `wordPhrase`/`sentence`）、`LearnerEvidenceRef`（sourceType + sourceID + 预留 weight）、`LearnerSourceType`（可扩展，v1 仅 `memoryItem`）、`LearnerContextProvider` 协议（唯一稳定 seam）。
+  - `GRDBLearnerContextProvider.abilityCoverage(languageCode:)`：compute-on-read，SQL JOIN `memory_items` ↔ `language_spaces`，按 `ls.target_language_code` 过滤、`mi.soft_deleted_at IS NULL` + `ls.deleted_at IS NULL`，按 `text` 归并、计 occurrenceCount、挂 `.memoryItem` provenance。读路径零写库（CQS）。**不读 `memory_candidates`、无 band/level/difficulty**（ADR-006 §4 红线）。
+  - Data：`AppDatabase` 新增 `public var reader: DatabaseReader { databaseQueue }`（最小只读 seam）。App：`AppEnvironment` 装配 `GRDBLearnerContextProvider(reader: appDatabase.reader)`（暂无 UI 消费者，契约就绪供 LM02）。
+  - 测试（10）：值类型 3（kind 两值 / provenance / Equatable）+ GRDB 7（按 language code 合并去重 / 双空间按 code 合并且改名不分裂 / 跨语言隔离 / 软删项失效兄弟空间仍计 / 软删空间归零 / 空覆盖不报错 / **红线：未沉淀 candidate 全链路 fixture 不进覆盖**）。`swift test --package-path Packages/LangoTraceLearnerModel` 全绿；Data 包回归全绿。
+  - 漂移修正（对照实现前复核）：memory_items 实际列 `text`/`example_native`/`soft_deleted_at`（非方案旧名 target_text/native_text/deleted_at）；migration 头部 v26（无新增）；reader seam 新加；provider 取注入 `DatabaseReader`。
+  - 提交 `feat(learner): add LangoTraceLearnerModel package + Ability knowledge coverage (LM01)`；合并 dev `merge(LM01): ... [ci]`（commit `10524ed`）；CI run **`27749945215` Build & Test 全绿**。
+  - **范围如期收窄**（非 defer，v1 有意范围）：账本/cursor 增量聚合、band/盲点/分技能、练习评分信号、Memory/Style 两层、总览页 UI 全部留 LM02/LM03；`LearnerSourceType` 已可扩展，后续行为信号无需改契约。
+
+## 完成状态（批量 run）
+
+第 3 节目标 1–4 全部落地（独立包 + 域模型 + Provider 契约 + compute-on-read 聚合 + App 装配）；第 16 节聚焦与受影响包测试全绿；CI run `27749945215` Build & Test 全绿。属**可完成且已完成**，移入 `docs/plans/done/`。LM02/LM03 范围为有意的后续阶段，非未完成的本方案工作。
 
 ## 19. 完成标准
 
