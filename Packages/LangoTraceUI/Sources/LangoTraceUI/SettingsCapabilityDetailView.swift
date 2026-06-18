@@ -102,9 +102,14 @@ struct SettingsCapabilityDetailView: View {
     @ViewBuilder
     private var aiProviderSettingsContainer: some View {
         if let languageSpace {
-            AIProviderSettingsView(
-                languageContext: AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)
-            )
+            VStack(alignment: .leading, spacing: 16) {
+                AIProviderSettingsView(
+                    languageContext: AIProviderProbeLanguageContext(languageCode: languageSpace.targetLanguageCode)
+                )
+                // E6: request log lives in system settings, reachable on every
+                // platform (iPhone has no persistent preview card — red line).
+                AIRequestLogListView()
+            }
             .frame(maxWidth: aiProviderSettingsContentMaxWidth, alignment: .leading)
         } else {
             // Defensive boundary: never crash when a space-scoped detail is shown without a space.

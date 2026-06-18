@@ -55,7 +55,9 @@ struct PageClosureStateTests {
         #expect(learningPanelSource.contains("case .importExport"))
         #expect(learningPanelSource.contains("case .languageSpaceManagement"))
         #expect(learningPanelSource.contains("entryLearningContent"))
-        #expect(learningPanelSource.contains("RequestPreviewCard(entry: entry, rendering: selectedRendering)"))
+        // E6: the preview card is fed the real "will-send" projection seam.
+        #expect(learningPanelSource.contains("RequestPreviewCard("))
+        #expect(learningPanelSource.contains("projection: aiRequestPreviewActions.projection(entry)"))
     }
 
     @Test("Pad learning panel keeps content away from trailing edge")

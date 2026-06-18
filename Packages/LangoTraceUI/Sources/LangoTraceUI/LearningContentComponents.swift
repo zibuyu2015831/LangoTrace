@@ -165,6 +165,13 @@ struct SentencePairView: View {
 struct RequestPreviewCard: View {
     let entry: LearningEntry
     let rendering: LearningRendering?
+    /// Real "will-send" projection (nil when generation is not configured or on
+    /// surfaces that do not supply one).
+    var projection: AIRequestPreviewProjection?
+
+    private var model: RequestPreviewCardModel {
+        RequestPreviewCardModel(projection: projection, entry: entry, rendering: rendering)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -174,10 +181,7 @@ struct RequestPreviewCard: View {
                 Image(systemName: "eye")
             }
             .font(.headline)
-            Text(previewCopy.body)
-                .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+            content
             Divider()
             localizedText("requestPreview.notSent")
                 .font(.callout)
@@ -194,12 +198,45 @@ struct RequestPreviewCard: View {
         .langoPanel()
     }
 
-    private var previewCopy: RequestPreviewCopy {
-        if rendering?.isMock == false {
-            return .externalRequest(entryTitle: entry.title, promptLabel: rendering?.promptLabel)
+    @ViewBuilder
+    private var content: some View {
+        switch model.state {
+        case let .localDraft(body):
+            previewBody(body)
+        case .offline:
+            previewBody(localizedString("requestPreview.realtime.offline"))
+        case let .projected(provider, modelName, lengthLabel, includedLabels):
+            VStack(alignment: .leading, spacing: 6) {
+                fieldRow("requestPreview.field.provider", provider)
+                fieldRow("requestPreview.field.model", modelName)
+                fieldRow("requestPreview.field.length", lengthLabel)
+                localizedText("requestPreview.includes.header")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                ForEach(includedLabels, id: \.self) { label in
+                    Text("· \(label)")
+                        .font(.callout)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                }
+            }
         }
+    }
 
-        return .localMock(entryTitle: entry.title, promptLabel: rendering?.promptLabel)
+    private func previewBody(_ text: String) -> some View {
+        Text(text)
+            .font(.callout)
+            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func fieldRow(_ titleKey: String, _ value: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            localizedText(titleKey)
+                .font(.caption)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            Text(value)
+                .font(.callout.weight(.medium))
+        }
     }
 }
 
