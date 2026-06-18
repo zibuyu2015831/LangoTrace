@@ -48,7 +48,10 @@ struct PracticeControlBar: View {
             .tint(LangoTraceDesign.ColorToken.primaryActionFill)
             .disabled(primaryDisabled)
         }
-        .langoPanel(padding: 14)
+        // Sit directly on the docked deck surface (which already paints elevatedPaper + a top
+        // hairline): no inner panel fill/stroke, avoiding a redundant card-in-card outline.
+        // Keep a stroke-free vertical inset so the primary button stays clear of the navigation bar.
+        .padding(.vertical, 14)
     }
 
     private func secondaryButton(

@@ -77,12 +77,20 @@ input_kind must be nativeRecord, targetWriting, mixed, or uncertain.
 learning_text must be in the target learning language. For target-language writing, return a natural
 revised version and revision_notes.
 analysis must be based on learning_text, not the original source text.
+For every sentence in analysis.sentences, include at least one useful grammar_note (point_native and
+explanation_native) written in the native language; if the sentence is simple, note the single most
+relevant point such as tense, collocation, article, or word order. Never return an empty
+grammar_notes array.
 """
 
 private let analysisSystemPrompt = """
 You analyze an edited learning text for language practice.
 Do not rewrite the learning text.
 Return exactly one JSON object with schema_version learning_material.v1 and analysis.
+For every sentence in analysis.sentences, include at least one useful grammar_note (point_native and
+explanation_native) written in the native language; if the sentence is simple, note the single most
+relevant point such as tense, collocation, article, or word order. Never return an empty
+grammar_notes array.
 Do not include markdown, code fences, prose outside JSON, API keys, provider metadata, logs,
 or prompt text.
 """

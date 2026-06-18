@@ -59,6 +59,7 @@ Prompt id：
 
 版本记录：
 
+- 2026-06-18：要求每句至少产出一条 grammar_note（Prompt id / version / schema_version 不变）。原因：`generationSystemPrompt` / `analysisSystemPrompt` 此前从不要求逐句讲解，provider-native `grammar_notes` schema 无 `minItems`，本地校验也接受空数组，导致 AI 常返回 `"grammar_notes": []`，跟读页数据驱动的「查看讲解」toggle（`note != nil` 门控）因此隐藏。现两处 system prompt 均要求 analysis.sentences 每句至少一条有价值的 grammar_note（简单句给最相关一点），Generate / Analyze 两处 JSON Schema 的 grammar_notes 加 `minItems: 1`；本地校验保持宽容（不新增 ≥1 硬要求），非合规 Provider 返回空数组时优雅降级（该句隐藏 toggle），不让整次生成失败。比照 2026-06-11 先例，属收紧既有契约字段下限、非 schema 结构变更，故保持 id / version / schema_version 不变。影响范围：LangoTraceAI 与 AI tests、本文档。是否需要 ADR：否。
 - 2026-06-11：解析层与本文档契约对齐（Prompt id / version / schema 不变）。原因：`LearningMaterialGenerationService` 此前未在本地执行数组数量与字符串长度校验，且把非法枚举值静默回退为默认值（`?? .clarity` / `?? .phrase` / `?? .medium` / `?? .backTranslation`）、接受 JSON 前后的自然语言文本。现解析层按本文档 schema 执行本地校验：sentences 1–20、memory_candidates ≤ 12、practice_candidates ≤ 6、revision_notes ≤ 12、每句 grammar_notes / key_points ≤ 3、字符串非空且不超过对应 maxLength（learning_text ≤ 12000 等）；非法枚举、超限数组、超长字符串和 JSON 外的自然语言前后缀一律归类为 `invalidStructuredResponse`；仅允许剥离包裹整个 JSON object 的 Markdown code fence。影响范围：LangoTraceAI 与 AI tests。是否需要 ADR：否，属于既有契约的实施落地。
 - 2026-05-23：收口生产 JSON Schema 与本文档枚举 / 字段契约。原因：代码中的 Provider-native schema 曾使用 `vocabulary` / `style` / `expression` / `writing` 等不能原样映射到 Core / Data 枚举的值，并且 OpenAI Responses adapter 未绑定 strict JSON Schema。现已统一为 `wordChoice`、`naturalness`、`sentencePattern`、`grammarPoint`、`errorPattern`、`listening`、`backTranslation` 等当前契约值；Responses 和 Chat adapter 均传入 strict JSON Schema，解析层把结构化 grammar / key point 和 sentence position 映射为当前持久化模型。影响范围：LangoTraceAI、Core state、UI reanalysis state、AI tests。是否需要 ADR：否，属于实现与既有 Prompt Registry 契约对齐。
 - 2026-05-23：补充运行时 JSON Schema 绑定要求。原因：仅要求 `Return JSON only` 不能稳定约束深层字段、枚举、数组上限和额外字段；真实实现必须通过 Provider-native schema 或 fallback schema prompt 加解析校验来保证结构化输出质量。影响范围：LangoTraceAI、Prompt Registry、AI tests、Data mapping tests。是否需要 ADR：否，属于既有结构化输出规范的实施细化。
@@ -113,6 +114,7 @@ Output limits:
 - Return at most 6 practice candidates.
 - If length_policy is medium, each sentence may contain at most 2 grammar_notes and at most 2 key_points.
 - If length_policy is short, each sentence may contain at most 3 grammar_notes and at most 3 key_points.
+- Each sentence must include at least one useful grammar_note (point_native and explanation_native) in the native language; if the sentence is simple, note the single most relevant point such as tense, collocation, article, or word order. Never return an empty grammar_notes array.
 
 Structured output rules:
 - The runtime request includes the Generate JSON Schema as response_json_schema or as the provider-native structured output schema.
@@ -190,6 +192,7 @@ LangoTrace 帮助单个用户从自己的生活记录中学习目标语言。你
 - 最多返回 6 个练习候选。
 - length_policy 为 medium 时，每句最多 2 条 grammar_notes 和 2 条 key_points。
 - length_policy 为 short 时，每句最多 3 条 grammar_notes 和 3 条 key_points。
+- 每句必须至少包含一条有价值的 grammar_note（point_native 和 explanation_native，用母语书写）；句子简单时给出最相关的一点，如时态、搭配、冠词或语序。不得返回空的 grammar_notes 数组。
 
 结构化输出规则：
 - 运行时请求会把 Generate JSON Schema 作为 response_json_schema 或 Provider 原生结构化输出 schema 一并传入。
@@ -249,6 +252,7 @@ Rules:
 - Return at most 6 practice candidates.
 - If length_policy is medium, each sentence may contain at most 2 grammar_notes and at most 2 key_points.
 - If length_policy is short, each sentence may contain at most 3 grammar_notes and at most 3 key_points.
+- Each sentence must include at least one useful grammar_note (point_native and explanation_native) in the native language; if the sentence is simple, note the single most relevant point such as tense, collocation, article, or word order. Never return an empty grammar_notes array.
 
 Structured output rules:
 - The runtime request includes the Analyze JSON Schema as response_json_schema or as the provider-native structured output schema.
@@ -301,6 +305,7 @@ Use the attached response_json_schema exactly. Return JSON only.
 - 最多返回 6 个练习候选。
 - length_policy 为 medium 时，每句最多 2 条 grammar_notes 和 2 条 key_points。
 - length_policy 为 short 时，每句最多 3 条 grammar_notes 和 3 条 key_points。
+- 每句必须至少包含一条有价值的 grammar_note（point_native 和 explanation_native，用母语书写）；句子简单时给出最相关的一点，如时态、搭配、冠词或语序。不得返回空的 grammar_notes 数组。
 
 结构化输出规则：
 - 运行时请求会把 Analyze JSON Schema 作为 response_json_schema 或 Provider 原生结构化输出 schema 一并传入。
@@ -495,6 +500,7 @@ current_learning_text:
         },
         "grammar_notes": {
           "type": "array",
+          "minItems": 1,
           "maxItems": 3,
           "items": {
             "type": "object",
@@ -716,6 +722,7 @@ current_learning_text:
         },
         "grammar_notes": {
           "type": "array",
+          "minItems": 1,
           "maxItems": 3,
           "items": {
             "type": "object",
