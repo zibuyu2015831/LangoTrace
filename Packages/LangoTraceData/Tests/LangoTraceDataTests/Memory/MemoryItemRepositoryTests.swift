@@ -123,7 +123,7 @@ struct MemoryItemRepositoryTests {
 
     @Test("depositCandidate returns nil for an unknown candidate")
     func depositCandidateUnknownReturnsNil() async throws {
-        let repository = GRDBMemoryItemRepository(database: try makeDatabase())
+        let repository = try GRDBMemoryItemRepository(database: makeDatabase())
         let result = try await repository.depositCandidate(candidateID: "missing", spaceID: "space-1")
         #expect(result == nil)
     }
