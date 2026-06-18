@@ -36,6 +36,23 @@ public struct PracticeDictationAttemptSubmission: Sendable {
     }
 }
 
+/// A backtranslation answer ready to persist. Backtranslation never judges
+/// right/wrong, so the payload carries only the user's answer and the reference
+/// text snapshot — no diff, no summary, no listen count (never judged right or
+/// wrong). The
+/// reference text comes from the sentence snapshot, decoupled from the lazily
+/// fetched rich analysis, so persistence succeeds even if the analysis seam
+/// yields nothing.
+public struct PracticeBacktranslationAttemptSubmission: Sendable {
+    public var attemptText: String
+    public var referenceText: String
+
+    public init(attemptText: String, referenceText: String) {
+        self.attemptText = attemptText
+        self.referenceText = referenceText
+    }
+}
+
 public struct PracticeActions: Sendable {
     public var availableExerciseTypes: [PracticeExerciseType]
     public var createOrRestoreSession: @Sendable (
@@ -54,6 +71,17 @@ public struct PracticeActions: Sendable {
         PracticeSession,
         PracticeDictationAttemptSubmission
     ) async throws -> Void
+    public var submitBacktranslationAttempt: @Sendable (
+        PracticeSession,
+        PracticeBacktranslationAttemptSubmission
+    ) async throws -> Void
+    /// Lazily reads the rich per-sentence analysis (materialID, sentenceIndex)
+    /// for the backtranslation reference card. Returns nil when no analysis
+    /// exists; the reference card then degrades to the snapshot fields.
+    public var fetchSentenceAnalysis: @Sendable (
+        String,
+        Int
+    ) async throws -> LearningSentenceAnalysis?
 
     public init(
         availableExerciseTypes: [PracticeExerciseType] = [.shadowing],
@@ -72,7 +100,15 @@ public struct PracticeActions: Sendable {
         submitDictationAttempt: @escaping @Sendable (
             PracticeSession,
             PracticeDictationAttemptSubmission
-        ) async throws -> Void = { _, _ in throw PracticeActionFailure.disabled }
+        ) async throws -> Void = { _, _ in throw PracticeActionFailure.disabled },
+        submitBacktranslationAttempt: @escaping @Sendable (
+            PracticeSession,
+            PracticeBacktranslationAttemptSubmission
+        ) async throws -> Void = { _, _ in throw PracticeActionFailure.disabled },
+        fetchSentenceAnalysis: @escaping @Sendable (
+            String,
+            Int
+        ) async throws -> LearningSentenceAnalysis? = { _, _ in nil }
     ) {
         self.availableExerciseTypes = availableExerciseTypes
         self.createOrRestoreSession = createOrRestoreSession
@@ -82,6 +118,8 @@ public struct PracticeActions: Sendable {
         self.complete = complete
         self.playRecording = playRecording
         self.submitDictationAttempt = submitDictationAttempt
+        self.submitBacktranslationAttempt = submitBacktranslationAttempt
+        self.fetchSentenceAnalysis = fetchSentenceAnalysis
     }
 
     public static let disabled = PracticeActions(

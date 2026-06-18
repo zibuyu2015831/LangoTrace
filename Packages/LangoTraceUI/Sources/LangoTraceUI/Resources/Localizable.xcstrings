@@ -9255,6 +9255,227 @@
         }
       }
     },
+    "practice.backtranslation.guidance.summary": {
+      "comment": "Summary guiding the user to generate learning material before backtranslating.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This sentence has no learning material yet. Open the entry to generate it, then come back to back-translate."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这句话还没有学习材料。请到记录详情生成后再回来回译。"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.guidance.title": {
+      "comment": "Title of the guidance shown when a sentence has no analysis for backtranslation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate learning material first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先生成学习材料"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.hint": {
+      "comment": "Reassurance that backtranslation is not graded; close in meaning is enough.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There's more than one good version — close in meaning is enough."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参考表达不止一种，意思贴近即可。"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.input.placeholder": {
+      "comment": "Placeholder for the backtranslation answer input.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write your target-language version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写下你的目标语言表达"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.keyPoints": {
+      "comment": "Label for the key points in the backtranslation reference.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重点"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.literalTranslation": {
+      "comment": "Label for the literal reference translation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Literal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直译"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.naturalTranslation": {
+      "comment": "Label for the natural reference translation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Natural expression"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自然表达"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.notes": {
+      "comment": "Label for the grammar/usage notes in the backtranslation reference.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "说明"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.prompt": {
+      "comment": "Label for the native-language meaning prompt in backtranslation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native meaning"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中文原意"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.reference": {
+      "comment": "Label for the reference expression shown after reveal.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参考表达"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.retry": {
+      "comment": "Button to start a fresh backtranslation attempt.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再写一次"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.reveal": {
+      "comment": "Button to reveal the reference for comparison in backtranslation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reveal reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对照参考"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.yourAnswer": {
+      "comment": "Label for the user's target-language expression in backtranslation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your expression"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的表达"
+          }
+        }
+      }
+    },
     "practice.continue.accessibilityLabel": {
       "comment": "Practice continuation accessibility label with entry title.",
       "localizations": {

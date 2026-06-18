@@ -223,7 +223,14 @@ struct PracticeSessionView: View {
                 onStopDemo: onStopDemo,
                 onNavigateSentence: onNavigateSentence
             )
-        case .shadowing, .backtranslation:
+        case .backtranslation:
+            PracticeBacktranslationSessionView(
+                languageSpaceID: languageSpaceID,
+                routeSeed: routeSeed,
+                actions: actions,
+                onNavigateSentence: onNavigateSentence
+            )
+        case .shadowing:
             PracticeShadowingSessionView(
                 languageSpaceID: languageSpaceID,
                 routeSeed: routeSeed,
