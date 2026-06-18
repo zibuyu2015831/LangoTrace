@@ -31,7 +31,7 @@ struct AppEnvironment {
     let syncService: any SyncService
 
     // AppEnvironment assembles the cross-package production graph in one place.
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     static func bootstrap(databaseURL: URL? = nil) -> AppEnvironment {
         let databaseFactory = SharedAppDatabaseFactory(databaseURL: databaseURL)
         let credentialStore = KeychainAIProviderCredentialStore()
