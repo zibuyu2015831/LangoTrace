@@ -195,13 +195,15 @@ struct AppEnvironment {
         // the on-disk footprint; the sync value comes from the (disabled) sync service.
         let settingsConfigRepository: GRDBAIProviderConfigurationRepository? =
             (try? databaseFactory.database()).map { GRDBAIProviderConfigurationRepository(database: $0) }
-        let settingsUsageService = (databaseURL ?? (try? LanguageSpaceDatabaseLocation.defaultDatabaseURL()))
-            .map {
-                LocalDataUsageService(
-                    databaseURL: $0,
-                    mediaArtifactsRoot: SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot()
-                )
-            }
+        let settingsUsageService: LocalDataUsageService? = {
+            guard let settingsDatabaseURL = databaseURL ?? (try? LanguageSpaceDatabaseLocation.defaultDatabaseURL()),
+                  let settingsMediaArtifactsRoot = try? SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot()
+            else { return nil }
+            return LocalDataUsageService(
+                databaseURL: settingsDatabaseURL,
+                mediaArtifactsRoot: settingsMediaArtifactsRoot
+            )
+        }()
         let settingsSyncService = DisabledSyncService()
         let syncEnabledSnapshot = settingsSyncService.isEnabled
         let loadSettingsStatus: @Sendable () async -> SettingsStatusProjection = {

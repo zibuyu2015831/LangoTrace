@@ -262,7 +262,10 @@ scripts/check-docs.sh
 
 ## 18. 实施记录
 
-（实施时按时间追加。）
+2026-06-18（批量 run，两切片）：feature/e12-settings-projection。
+  - **Slice A（Core + Data）**：Core `SettingsProjectionModels`——`AIProviderListStatus`（notConfigured/configured/missingKey/partiallyAvailable，纯函数 `make(from: AIProviderConfigurationProfile?)` 从非敏感快照派生 + `footerStatus` 映射进 4 例 footer 枚举 + `localizedValueKey`）、`SyncListStatus`（从 `isEnabled` 派生）、`LocalDataUsage`、`SettingsStatusProjection`。Data `SettingsCapabilityProjectionService`（仅依赖 `AIProviderConfigurationRepository`，**编译期零 Keychain**——不引用 credential store）+ `LocalDataUsageService`（DB + -wal/-shm + MediaArtifacts 体积，缺路径计 0）。测试：Core 派生（含 footer 映射 + 红线结构）、Data 经真实 GRDB repo（configured/missingKey/empty）+ usage service 临时目录。
+  - **Slice B（UI + App）**：`LearningContentStore` 新增 `@Published settingsStatus` + 注入 `loadSettingsStatus` 闭包 + `refreshSettingsStatus()`（后台计算，渲染读缓存）。App `AppEnvironment.loadSettingsStatus` 由 config repo + `syncService.isEnabled`（DisabledSyncService→未启用）+ usage service 装配；经 `LangoTraceRootView`→`PlatformMainView`→store，以及 macOS Settings scene 的 `@State` + `.task` 注入。`CapabilityStatusRow` 加 trailing 值槽（builder `.trailingValue(_:)`，零改既有 init）。设置主列表（iPhone `SettingsView`、iPad/mac `LangoTraceSettingsSceneView`）行尾显示真实值（界面语言/外观/AI/同步/本地数据体积）；**UIV-08** 修复——`PadMainSections`/`MacMainView` footer 与 `PadLearningPanelView` AI/sync 行改投影驱动，移除 `.notConfigured`/`.off`/`.ready`/`.unavailable` 硬编码。新增本地化 key（en+zh-Hans，措辞避开禁用词）。测试：UI 行值解析/投影→能力色调映射/UIV-08 源码回归 + Core/Data 切片测试；本地 `ThreePlatformPresentationCopy`/`PremiumUIBehavior` 守卫全绿（UI 515 / Core 233 / Data 236 本地通过）。
+  - 漂移修正（对照实现前复核）：`AIProviderProfileStatus` 6 例（含 `.draft`，draft→notConfigured）；凭证存在性来自 `ai_provider_credentials.secret_presence`（非 endpoint summary），渲染零 Keychain 由「投影只依赖 SQLite repo」结构性保证；无 migration（复用现列）；`AIProviderStatus`/`SyncProviderStatus` 在 Core `PrivacyStatus.swift`，投影经 `footerStatus` 映射；UI 不依赖 Sync，sync 值由 App 桥接 `isEnabled`。
 
 ## 19. 完成标准
 
