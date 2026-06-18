@@ -183,3 +183,13 @@ E9 落地本地 FTS5 全文搜索基础设施，作为**本地可重建派生数
 - 查询：`GRDBLocalSearchRepository.search(query:spaceID:perGroupLimit:)` 分组（记录/阅读/记忆）、按 `space_id` 隔离、trigram MATCH（查询 ≥3 字符）/ `LIKE` 降级（<3 字符）、FTS rank 排序、每组截断；高亮区间用 Core `SearchHighlighting`（UTF-safe grapheme 偏移）。
 - 边界：FTS 索引**不同步、导出非必需、可全量重建**；搜索全链路只依赖 GRDB，不接触任何 Provider/网络（约束 1/2）。记忆分组在 E7（`memory_items`）落地前以零态降级。
 - tokenizer 可用性：部署目标 iOS 18 / macOS 15 的系统 SQLite 含 FTS5 + trigram；availability 已由 `LocalSearchTests` 在 CI macOS runner 上确认（创建 trigram 虚表 + MATCH 查询成功）。
+
+## 变更记录补充：记忆沉淀主数据落地（E7，2026-06-18）
+
+E7 落地 `memory_items` 作为用户主数据（§3.1.1），归属语言空间（ADR-004），从分析候选显式沉淀：
+
+- migration `v26_create_memory_item_infrastructure`：`memory_items`（space_id NOT NULL、entry_id ON DELETE SET NULL 使沉淀项在来源记录删除后仍存活、source_kind='candidate'、kind CHECK('wordPhrase','sentence')、difficulty、created_at、soft_deleted_at）+ E8 复习生命周期列（review_state CHECK('new','scheduled','mastered')、review_rung、review_due_at、last_reviewed_at、review_count、mastered_at），候选去重 partial unique index `(space_id, source_candidate_id)`。
+- 主数据 vs 派生：沉淀项是**快照**（text/note/example 从候选拷贝），与 `memory_candidates`（派生、reanalysis 时 CASCADE 删除）解耦——候选重生成不影响已沉淀记忆。候选 5 kind→沉淀 2 kind 映射：word/phrase→wordPhrase、sentencePattern/grammarPoint/errorPattern→sentence。
+- `MemoryItemRepository`（Core 协议）+ `GRDBMemoryItemRepository`：幂等 `depositCandidate`（同候选二次沉淀返回既有项）、`listMemoryItems`、`depositedCandidateIDs`/`depositedEntryIDs`、`softDelete`。
+- UI：iPhone/iPad/macOS 记忆面展示只读沉淀列表；iPhone 候选行提供显式「加入记忆/已加入」动作；`EntryTimelineFilter.settled` 由 `depositedEntryIDs` 真实判定（Phone/Pad 时间线与侧栏计数已接线）。
+- 同步/导出：沉淀记忆是主数据，同步（E11）/导出（E10）留对应方案；本切片不含同步/导出。E8 复习队列复用本表 review 列、不新增 migration。E9 记忆搜索组待消费本表（当前仍零态，按写路径接入索引为后续）。
