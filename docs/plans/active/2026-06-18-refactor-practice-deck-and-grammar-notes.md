@@ -70,4 +70,7 @@ iPhone 17 模拟器验收跟读单句页后，用户提出两点：
 
 ## 8. 实现记录
 
-- 待填：CI run、合并 commit、视觉验收结论。
+- 本机轻量自查：swiftformat（改动文件 0 需格式化）、swiftlint（413 warning / 0 serious，无新增于改动文件）、check-docs ok、git diff --check clean、`swift test --package-path Packages/LangoTraceAI` 163 测试全绿（含新增 prompt 指令子串断言与 `grammar_notes.minItems == 1` 断言）。
+- CI：PR #2 `Build & Test` run `27771443586` 成功（三端 build + UI 单包 + 全量测试 + lint 全绿）。
+- 合并：PR #2 经绿勾合并到 `dev`，merge commit `60e0454`，feature 分支已删。
+- 视觉验收：iPhone 17 模拟器已重建 + 重装，交由用户人工验收（控制台无内描边、间距正常；对已重新生成含讲解的材料出现「查看讲解」）。验收通过后将本方案移入 `docs/plans/done/`。
