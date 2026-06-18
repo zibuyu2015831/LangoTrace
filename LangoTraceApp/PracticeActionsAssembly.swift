@@ -1,4 +1,5 @@
 import Foundation
+import LangoTraceAI
 import LangoTraceCore
 import LangoTraceData
 import LangoTraceSpeech
@@ -9,7 +10,9 @@ enum PracticeActionsAssembly {
         database: AppDatabase,
         mediaArtifactsRoot: URL,
         recordingEngine: (any PracticeRecordingEngine)? = nil,
-        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger()
+        diagnosticLogger: any DiagnosticLogging = DisabledDiagnosticLogger(),
+        credentialStore: (any AIProviderCredentialStore)? = nil,
+        aiRequestLogRecorder: AIRequestLogRecorder = AIRequestLogRecorder(repository: nil)
     ) throws -> PracticeActions {
         let fileStore = try LocalMediaArtifactFileStore(rootDirectory: mediaArtifactsRoot)
         let mediaStore = LocalMediaArtifactStore(
@@ -85,8 +88,76 @@ enum PracticeActionsAssembly {
                     materialID: materialID,
                     sentenceIndex: sentenceIndex
                 )
-            }
+            },
+            reviewBacktranslation: makeReviewBacktranslation(
+                database: database,
+                credentialStore: credentialStore,
+                aiRequestLogRecorder: aiRequestLogRecorder
+            )
         )
+    }
+
+    /// Explicitly-triggered optional AI critique (系列 E5 Slice 2). Resolves the
+    /// default text endpoint + the language space's target language / proficiency,
+    /// sends only the three short texts, writes a non-sensitive request log, and
+    /// maps failures onto `PracticeBacktranslationReviewFailure`. Never auto-runs —
+    /// only the "请 AI 点评" button reaches here.
+    private static func makeReviewBacktranslation(
+        database: AppDatabase,
+        credentialStore: (any AIProviderCredentialStore)?,
+        aiRequestLogRecorder: AIRequestLogRecorder
+    ) -> @Sendable (String, PracticeBacktranslationReviewSubmission) async throws -> PracticeBacktranslationReviewResult {
+        { languageSpaceID, submission in
+            guard let credentialStore else {
+                throw PracticeBacktranslationReviewFailure(category: .providerNotConfigured)
+            }
+            let configurationRepository = GRDBAIProviderConfigurationRepository(database: database)
+            guard let profile = try await configurationRepository.loadDefaultProfile(),
+                  let endpoint = profile.textGenerationEndpointInput
+            else {
+                throw PracticeBacktranslationReviewFailure(category: .providerNotConfigured)
+            }
+            let space = try? GRDBLanguageSpaceRepository(database: database).languageSpace(id: languageSpaceID)
+            let input = PracticeBacktranslationReviewInput(
+                nativeSentence: submission.nativeSentence,
+                userAttempt: submission.userAttempt,
+                referenceSentence: submission.referenceSentence,
+                targetLanguageCode: space?.targetLanguageCode ?? "",
+                proficiencyLevelCode: space?.level.rawValue ?? "",
+                explanationLanguageMode: .bilingualBridge
+            )
+            let secret: String?
+            do {
+                secret = try await resolveLearningMaterialSecret(
+                    endpoint: endpoint,
+                    profile: profile,
+                    credentialStore: credentialStore
+                )
+            } catch {
+                throw PracticeBacktranslationReviewFailure(category: .providerNotConfigured)
+            }
+            let request = PracticeBacktranslationReviewServiceRequest(
+                endpoint: endpoint,
+                plaintextSecret: secret,
+                input: input
+            )
+            let service = PracticeBacktranslationReviewService(httpClient: URLSessionAIProviderHTTPClient())
+            let logID = UUID().uuidString
+            do {
+                let result = try await service.review(request)
+                await aiRequestLogRecorder.record(request.makeLogEntry(id: logID, outcome: .success, createdAt: Date()))
+                return result
+            } catch let error as PracticeBacktranslationReviewServiceError {
+                let outcome: AIRequestLogOutcome = error.category == .cancelled
+                    ? .cancelled
+                    : .failed(AIRequestLogFailureBucket(error.category))
+                await aiRequestLogRecorder.record(request.makeLogEntry(id: logID, outcome: outcome, createdAt: Date()))
+                throw PracticeBacktranslationReviewFailure(category: error.category)
+            } catch is CancellationError {
+                await aiRequestLogRecorder.record(request.makeLogEntry(id: logID, outcome: .cancelled, createdAt: Date()))
+                throw PracticeBacktranslationReviewFailure(category: .cancelled)
+            }
+        }
     }
 
     private static func makeSubmitDictationAttempt(

@@ -158,6 +158,7 @@ struct PracticeBacktranslationSessionView: View {
                 .font(.footnote)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
+            reviewSection
             Button {
                 viewModel.retry()
             } label: {
@@ -169,6 +170,88 @@ struct PracticeBacktranslationSessionView: View {
             .foregroundStyle(LangoTraceDesign.ColorToken.accent)
         }
         .langoPanel()
+    }
+
+    /// Optional AI critique (E5 Slice 2). The footnote pre-discloses the send
+    /// scope and timing; the request only fires on the explicit button tap.
+    @ViewBuilder
+    private var reviewSection: some View {
+        Divider()
+        Text(localizedString("practice.backtranslation.review.footnote"))
+            .font(.caption)
+            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+        switch viewModel.reviewState {
+        case .idle:
+            Button {
+                viewModel.requestReview()
+            } label: {
+                Label(localizedString("practice.backtranslation.review.button"), systemImage: "sparkles")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(minHeight: 44)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+            .opacity(viewModel.canRequestReview ? 1 : 0.5)
+            .disabled(!viewModel.canRequestReview)
+        case .sending:
+            HStack(spacing: 10) {
+                ProgressView()
+                Text(localizedString("practice.backtranslation.review.sending"))
+                    .font(.subheadline)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                Spacer()
+                Button(localizedString("practice.backtranslation.review.cancel")) {
+                    viewModel.cancelReview()
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+            }
+        case let .reviewed(result):
+            reviewResult(result)
+        case let .failed(category):
+            CapabilityStatusRow(
+                localizedTitleKey: "practice.backtranslation.review.failed.title",
+                localizedSummaryKey: reviewFailureSummaryKey(category),
+                status: .unavailable,
+                systemImage: "exclamationmark.triangle",
+                action: nil
+            )
+        }
+    }
+
+    private func reviewResult(_ result: PracticeBacktranslationReviewResult) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(result.acknowledgement)
+                .font(.body)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            if !result.observations.isEmpty {
+                referenceList(
+                    titleKey: "practice.backtranslation.review.observations",
+                    items: result.observations.map { "\($0.phenomenon): \($0.explanation)" }
+                )
+            }
+            if !result.suggestions.isEmpty {
+                referenceList(titleKey: "practice.backtranslation.review.suggestions", items: result.suggestions)
+            }
+            if let registerNote = result.registerNote, !registerNote.isEmpty {
+                referenceBlock(titleKey: "practice.backtranslation.review.registerNote", value: registerNote)
+            }
+        }
+    }
+
+    private func reviewFailureSummaryKey(_ category: PracticeBacktranslationReviewFailureCategory) -> String {
+        switch category {
+        case .providerNotConfigured: "practice.backtranslation.review.failed.providerNotConfigured"
+        case .unsupportedProvider, .unsupportedModel: "practice.backtranslation.review.failed.unsupported"
+        case .authenticationFailed: "practice.backtranslation.review.failed.authentication"
+        case .rateLimited, .providerRejected: "practice.backtranslation.review.failed.providerRejected"
+        case .networkUnavailable: "practice.backtranslation.review.failed.network"
+        case .timeout: "practice.backtranslation.review.failed.timeout"
+        case .cancelled: "practice.backtranslation.review.failed.providerRejected"
+        case .invalidStructuredResponse: "practice.backtranslation.review.failed.invalidResponse"
+        }
     }
 
     private var answerRecap: some View {
