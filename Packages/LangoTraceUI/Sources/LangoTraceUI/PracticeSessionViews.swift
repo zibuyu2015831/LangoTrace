@@ -254,6 +254,7 @@ struct PracticeShadowingSessionView: View {
     @StateObject private var viewModel: PracticeSessionViewModel
     @State private var isTranslationExpanded = false
     @State private var isExplanationExpanded = false
+    @State private var controlDeckHeight: CGFloat = 0
 
     init(
         languageSpaceID: String,
@@ -281,64 +282,40 @@ struct PracticeShadowingSessionView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                PracticePromptCard(
-                    snapshot: routeSeed.snapshot,
-                    isTranslationExpanded: isTranslationExpanded,
-                    isExplanationExpanded: isExplanationExpanded,
-                    onToggleTranslation: {
-                        isTranslationExpanded.toggle()
-                    },
-                    onToggleExplanation: {
-                        isExplanationExpanded.toggle()
-                    }
-                )
-                if let session = viewModel.session {
-                    PracticeControlBar(
-                        session: session,
-                        isRecording: viewModel.isRecording,
-                        isPlayingDemo: viewModel.isPlayingDemo,
-                        isPlayingRecording: viewModel.isPlayingRecording,
-                        onPlayDemo: {
-                            Task { await viewModel.playDemo() }
-                        },
-                        onStartRecording: {
-                            Task { await viewModel.startRecording() }
-                        },
-                        onStopRecording: {
-                            Task { await viewModel.stopRecording() }
-                        },
-                        onPlayRecording: {
-                            Task { await viewModel.playLatestRecording() }
-                        }
+        let layout = PracticeShadowingLayout.resolve(
+            hasSession: viewModel.session != nil,
+            hasVisibleFailure: viewModel.visibleFailure != nil
+        )
+        // Single ScrollView main scroller + bottom-docked control deck (safeAreaInset),
+        // so macOS keeps its dedicated, un-nested scrolling (spec 013) while the sentence
+        // becomes a vertically-centered Hero that fills the viewport.
+        GeometryReader { proxy in
+            ScrollView {
+                stageContent
+                    .frame(maxWidth: stageMaxWidth)
+                    .frame(
+                        maxWidth: .infinity,
+                        minHeight: max(0, proxy.size.height - controlDeckHeight),
+                        alignment: layout.stageFrameAlignment
                     )
-                    PracticeSentenceNavigationBar(
-                        routeSeed: routeSeed,
-                        isNavigationDisabled: viewModel.isRecording || viewModel.isPlayingRecording,
-                        onNavigate: navigateSentence
-                    )
-                    if let failure = viewModel.visibleFailure {
-                        CapabilityStatusRow(
-                            localizedTitleKey: "practice.failure.title",
-                            localizedSummaryKey: failure.localizedSummaryKey,
-                            status: .unavailable,
-                            systemImage: "exclamationmark.triangle",
-                            action: nil
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 18)
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if layout.rendersControlDeck, let session = viewModel.session {
+                    controlDeck(session: session)
+                        .background(
+                            GeometryReader { deckProxy in
+                                Color.clear.preference(
+                                    key: PracticeControlDeckHeightKey.self,
+                                    value: deckProxy.size.height
+                                )
+                            }
                         )
-                    }
-                } else {
-                    CapabilityStatusRow(
-                        localizedTitleKey: "practice.noContent.title",
-                        localizedSummaryKey: "practice.noContent.summary",
-                        status: .unavailable,
-                        systemImage: "waveform",
-                        action: nil
-                    )
                 }
             }
-            .padding(20)
         }
+        .onPreferenceChange(PracticeControlDeckHeightKey.self) { controlDeckHeight = $0 }
         .navigationTitle(localizedText("practice.title"))
         .langoPracticeInlineNavigationTitle()
         .langoPageBackground()
@@ -347,6 +324,88 @@ struct PracticeShadowingSessionView: View {
         }
         .onChange(of: routeSeed.practiceRouteIdentity) { _, _ in
             resetPromptDisclosures()
+        }
+    }
+
+    private let stageMaxWidth: CGFloat = 560
+
+    private var stageContent: some View {
+        VStack(alignment: .center, spacing: 18) {
+            PracticePromptCard(
+                snapshot: routeSeed.snapshot,
+                isTranslationExpanded: isTranslationExpanded,
+                isExplanationExpanded: isExplanationExpanded,
+                isCentered: true,
+                onToggleTranslation: {
+                    isTranslationExpanded.toggle()
+                },
+                onToggleExplanation: {
+                    isExplanationExpanded.toggle()
+                }
+            )
+            if viewModel.session != nil {
+                if let failure = viewModel.visibleFailure {
+                    CapabilityStatusRow(
+                        localizedTitleKey: "practice.failure.title",
+                        localizedSummaryKey: failure.localizedSummaryKey,
+                        status: .unavailable,
+                        systemImage: "exclamationmark.triangle",
+                        action: nil
+                    )
+                }
+            } else {
+                CapabilityStatusRow(
+                    localizedTitleKey: "practice.noContent.title",
+                    localizedSummaryKey: "practice.noContent.summary",
+                    status: .unavailable,
+                    systemImage: "waveform",
+                    action: nil
+                )
+            }
+        }
+    }
+
+    /// Bottom-docked transport: control bar first, in-record navigation after it
+    /// (spec 003 §4.3 keeps the navigation below the action card and free of card chrome).
+    private func controlDeck(session: PracticeSession) -> some View {
+        VStack(spacing: 12) {
+            PracticeControlBar(
+                session: session,
+                isRecording: viewModel.isRecording,
+                isPlayingDemo: viewModel.isPlayingDemo,
+                isPlayingRecording: viewModel.isPlayingRecording,
+                onPlayDemo: {
+                    Task { await viewModel.playDemo() }
+                },
+                onStartRecording: {
+                    Task { await viewModel.startRecording() }
+                },
+                onStopRecording: {
+                    Task { await viewModel.stopRecording() }
+                },
+                onPlayRecording: {
+                    Task { await viewModel.playLatestRecording() }
+                }
+            )
+            PracticeSentenceNavigationBar(
+                routeSeed: routeSeed,
+                isNavigationDisabled: viewModel.isRecording || viewModel.isPlayingRecording,
+                onNavigate: navigateSentence
+            )
+        }
+        .frame(maxWidth: stageMaxWidth)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 24)
+        .padding(.top, 14)
+        .padding(.bottom, 6)
+        .background(alignment: .top) {
+            ZStack(alignment: .top) {
+                LangoTraceDesign.ColorToken.elevatedPaper
+                Rectangle()
+                    .fill(LangoTraceDesign.ColorToken.hairline)
+                    .frame(height: 1)
+            }
+            .ignoresSafeArea(edges: .bottom)
         }
     }
 

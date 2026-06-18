@@ -6,6 +6,7 @@ struct PracticePromptCard: View {
     let snapshot: PracticeSentenceSnapshot
     let isTranslationExpanded: Bool
     let isExplanationExpanded: Bool
+    var isCentered: Bool = false
     let onToggleTranslation: () -> Void
     let onToggleExplanation: () -> Void
 
@@ -17,11 +18,25 @@ struct PracticePromptCard: View {
         )
     }
 
+    private var stackAlignment: HorizontalAlignment {
+        isCentered ? .center : .leading
+    }
+
+    private var multilineAlignment: TextAlignment {
+        isCentered ? .center : .leading
+    }
+
+    private var targetFont: Font {
+        isCentered ? .title2.weight(.semibold) : .title3.weight(.semibold)
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: stackAlignment, spacing: 14) {
             Text(presentation.targetText)
-                .font(.title3.weight(.semibold))
+                .font(targetFont)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                .multilineTextAlignment(multilineAlignment)
+                .frame(maxWidth: .infinity, alignment: isCentered ? .center : .leading)
                 .fixedSize(horizontal: false, vertical: true)
 
             disclosureControls

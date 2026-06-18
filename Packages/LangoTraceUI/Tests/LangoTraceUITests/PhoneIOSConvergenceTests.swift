@@ -280,6 +280,25 @@ struct PhoneIOSConvergenceTests {
         #expect(!source.contains("PracticeSnapshotPanel("))
     }
 
+    @Test("Shadowing session uses a centered stage with a bottom-docked control deck")
+    func shadowingSessionUsesCenteredStageWithBottomDockedControlDeck() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "PracticeSessionViews.swift"), encoding: .utf8)
+        let promptCard = try String(contentsOf: sourceFileURL(named: "PracticePromptCard.swift"), encoding: .utf8)
+
+        // Stage + deck layout intent is resolved through the testable layout model.
+        #expect(source.contains("PracticeShadowingLayout.resolve("))
+        #expect(source.contains(".safeAreaInset(edge: .bottom"))
+        #expect(source.contains("PracticeControlDeckHeightKey"))
+        #expect(source.contains("private func controlDeck(session: PracticeSession)"))
+        #expect(source.contains("isCentered: true"))
+        // Control bar stays above the in-record navigation (spec 003 keeps navigation after the action card).
+        #expect(source.contains("PracticeControlBar("))
+        #expect(source.contains("PracticeSentenceNavigationBar("))
+        // The prompt card gained an opt-in centered emphasis without losing disclosure structure.
+        #expect(promptCard.contains("var isCentered: Bool"))
+        #expect(promptCard.contains("multilineTextAlignment(multilineAlignment)"))
+    }
+
     @Test("iPad and Mac practice shells match the iOS repeatable recording flow")
     func iPadAndMacPracticeShellsMatchIOSRepeatableRecordingFlow() throws {
         let padLearningPanel = try String(
