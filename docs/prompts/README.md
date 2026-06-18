@@ -96,6 +96,7 @@ Prompt 文档不是单独产品决策源。如果 Prompt 引入新的产品能�
 - [AI Provider Configuration Probe Prompts](ai-provider/provider-configuration-probe.md)：AI Provider 配置页文本、JSON、语言支持和内置图片合成测试请求。
 - [One-Tap Learning Material Prompts](learning-material/one-tap-learning-material.md)：一键生成学习材料和重新分析当前学习文本的完整 Prompt、JSON schema、隐私边界和评测方式。
 - [Reading Selection Explanation Prompt](reading/selection-explanation.md)：阅读资料选区解释的完整 Prompt、JSON schema、显式触发条件和 selection-only 隐私边界。
+- [Practice Back-Translation Review Prompt](practice/backtranslation-review.md)：回译练习可选 AI 点评的完整 Prompt、无判定字段的 JSON schema、显式「请 AI 点评」触发条件、五字段发送范围和分隔符注入防御（E5 Slice 2）。
 
 ## 8. 版本记录
 
@@ -105,3 +106,4 @@ Prompt 文档不是单独产品决策源。如果 Prompt 引入新的产品能�
 - 2026-05-23：登记一键生成学习材料 Prompt 设计。原因：用户确认完整 GRDB 持久化路径后，真实学习内容请求需要提前明确 Prompt 正文、结构化输出契约和隐私边界。影响范围：LangoTraceAI、LangoTraceData、LangoTraceUI、Prompt Registry 和学习材料任务方案。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-25：补充 Prompt 文档必填字段、评测和变更规则。原因：参考 OpenWriter Prompt Registry 和 VMark 故障恢复矩阵后，真实 Prompt 需要更明确记录 id / version / schema、代码锚点、隐私等级、日志允许字段和测试文件。影响范围：Prompt Registry、AI service 测试、Data 映射测试和请求预览审查。是否需要 ADR：否。
 - 2026-06-01：登记阅读选区解释 Prompt。原因：Reading vertical slice 新增真实 Provider 请求，Prompt Registry 必须记录完整文案、结构化输出契约和 selection-only 隐私边界。影响范围：LangoTraceAI、Reading UI、AI Provider 隐私规范和 Reading spec。是否需要 ADR：否。
+- 2026-06-18：登记回译可选 AI 点评 Prompt（E5 Slice 2）。原因：回译练习新增显式触发的可选 AI 点评，真实发送用户作答给 Provider，需登记完整文案、无判定字段输出契约、五字段发送范围、分隔符注入防御和 E6 预览 / 日志边界。影响范围：LangoTraceAI、LangoTraceCore、LangoTraceUI、App Shell、Prompt Registry、spec 013、AI Provider 隐私规范。是否需要 ADR：否，沿用 ADR-005 与核心决策 10。
