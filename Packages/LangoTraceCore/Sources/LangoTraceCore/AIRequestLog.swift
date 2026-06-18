@@ -75,6 +75,14 @@ public enum AIRequestLogFailureBucket: String, Codable, CaseIterable, Equatable,
     }
 }
 
+/// The outcome of an attempted outbound AI request, used to stamp a log row.
+/// `cancelled` carries no failure bucket; `failed` always does.
+public enum AIRequestLogOutcome: Equatable, Sendable {
+    case success
+    case cancelled
+    case failed(AIRequestLogFailureBucket)
+}
+
 /// A single non-sensitive request log row.
 ///
 /// The model layer *structurally* cannot hold user content: there is no
