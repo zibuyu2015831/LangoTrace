@@ -1,10 +1,31 @@
 # 任务方案：同步引擎与 iCloud 首通道基础（Sync Engine + Adapter + CloudKit）（E11）
 
-状态：Draft
-自审核状态：Reviewed
+状态：User Approved（按切片：引擎切片本轮落地 + ADR-013；CloudKit 通道/entitlement 诚实 defer）
+自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-18（批量 run 实现前隔离自审核：CloudKit 通道诚实 defer、引擎切片 CI-greenable、PortableSnapshot 路径/learning-material 编码漂移修正、v27）
+
+## 批量 run 实现前隔离自审核（2026-06-18）
+
+```text
+审核方式：隔离子代理只读，用当前 HEAD（E10 Slice1 已落地 dev）核验现状
+核心决策/ADR 反转检查：无。决策 9（secrets 不同步，Keychain）、决策 12（FTS/向量不同步可重建）、决策 13（Sync Engine + Adapter 非 CloudKit-only）均被保护；决策 13 由本方案【具体化】并须新增 ADR（CLAUDE.md §4 要求）。
+当前同步表面：`LangoTraceSync/SyncBoundary.swift` 的 `SyncService` 是空 marker 协议 + `DisabledSyncService` no-op，AppEnvironment 装配 DisabledSyncService。数据层无 sync_metadata/tombstones/revision/device 列。无 iCloud entitlement（iOS 无 entitlements 文件；macOS entitlements 无 iCloud 键）。
+确认漂移与修订（实现时按此为准）：
+  [P0] PortableSnapshot 漂移：E10 仅 Slice1 落地，类型在 **Core `ImportExport.swift`**（`PortableEntrySnapshot`/`PortableMemorySnapshot`/`PortableExportPackage`），非方案写的 Data/Export/PortableSnapshots.swift；**`PortableLearningMaterial` 不存在**（E10 deferred）。→ 修正路径/类型名；learning-material 同步对象编码**不存在**，v1 同步范围缩为已有 Portable 编码的对象（entries、memory）+ 新建 language space 编码，learning material 同步 defer 到其 snapshot 落地。
+  [P0] CloudKit 通道**诚实 defer**：CloudKitSyncAdapter 真实行为 + iOS/macOS iCloud container entitlement + 付费 Apple Developer iCloud capability + CloudKit zone/record schema + 双设备/双账号真机验证——CI macOS runner 与本环境均不具备，无法验证。Slice B 拆 B1(CI-greenable)/B2(deferred)。B2 + entitlement + project.yml iCloud 改动 deferred（entitlement 改动还可能打破无签名 CI 构建，P1）。CloudKit 代码若落仓须 #if canImport(CloudKit) 包裹、不进引擎单测路径。
+  [P1] 分层：可移植同步对象类型放 Core（与 Portable*Snapshot 同居）；SyncEngine 依赖 Core 类型 + Data 提供的 repository 抽象（远端变更经 repository 写路径），LangoTraceSync 不直接耦合 GRDB。
+  [P2] device id 存 app_state（设备本地，不同步），加反向测试。
+  migration：v27 sync_metadata + tombstones（空库/旧库/重复 + 排除反向测试），本地可测不依赖 iCloud；若 sync_conflict_versions 单列则 v28。
+CI-greenable 切片（本轮）：
+  Slice A：v27 sync_metadata + tombstones migration + 对象写路径 revision/tombstone 挂钩 + 排除表反向测试 + device id 入 app_state。
+  Slice B1：`SyncService` 从空 marker 升为真实协议 + `SyncAdapter` 协议 + `SyncEngine`（Core/纯逻辑）+ `FakeSyncAdapter` 双引擎 roundtrip + payload 隐私全文扫描 + 错误分类。引擎不 import CloudKit。
+  Slice C 纯逻辑：冲突 keep-multiple-versions 纯 Core 逻辑 + SyncSettingsView 投影（不读 Keychain/不发网络）。
+  + 新增 ADR 记录决策 13 具体化（Sync Engine + Adapter，CloudKit 为首适配器）。
+deferred（写 architecture/notes 恢复入口）：CloudKitSyncAdapter 真实实现 + iOS/macOS iCloud entitlement + container 注册 + CloudKit schema + 双设备人工验证 + learning material 同步对象编码。理由：iCloud 基础设施（付费 capability/container/真实账号/多设备）在当前环境不存在，无法验证；按 build-to-verifiable-boundary 落地引擎/适配器协议/冲突逻辑 + 单测，真实 iCloud 通道明确延后，不伪造完成。
+是否允许进入实现：引擎切片 + ADR 是（批量 run §1 预授权）；CloudKit 通道 defer。本轮 E11 为引擎切片落地 + 诚实 defer，方案保持 In Progress 留 active/。
+```
 
 ## 用户确认记录
 

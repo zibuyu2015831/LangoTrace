@@ -35,7 +35,9 @@
 
 > **批量自主执行已编排**（2026-06-18）：E6…LM01 的全部剩余工作项方案，由仓库根目录编排手册 `BATCH-EXECUTION-PLAYBOOK.md` 统一驱动（用户已完全预授权，每方案独立分支 → 本地 merge dev → CI 绿 → 移 done/，不动 main，AI 自审后重排顺序）；`/goal` 指令见根目录 `BATCH-EXECUTION-GOAL.md`。本仪表盘仍为进度事实源，run 级游标见 Playbook §9。
 
-> **当前指针**：E10 `docs/plans/active/2026-06-11-13-feature-import-export-backup.md`（导入导出与备份，按切片：Slice 1 本轮、加密备份诚实 defer）。**E8（记忆复习队列）已于 2026-06-18 落地并 CI 全绿**（run `27747133409`，已移入 done/）：Core 固定间隔调度器 + repository 复习方法 + iPhone 统计条/复习会话；无新 migration。
+> **当前指针**：E11 `docs/plans/active/2026-06-11-14-feature-sync-engine-icloud-foundation.md`（同步引擎，引擎切片本轮 + ADR-013；CloudKit 通道诚实 defer）。**E10（导入导出）Slice 1 已于 2026-06-18 落地并 CI 全绿**（run `27748408455`）：非敏感主数据导出/导入引擎（manifest + SHA-256 + verify-before-write 同 id skip）；Slice 2（macOS 文件面板/附件打包）+ 加密备份诚实 defer，E10 保持 In Progress/active。
+>
+> _历史指针_：E10 `docs/plans/active/2026-06-11-13-feature-import-export-backup.md`。**E8（记忆复习队列）已于 2026-06-18 落地并 CI 全绿**（run `27747133409`，已移入 done/）：Core 固定间隔调度器 + repository 复习方法 + iPhone 统计条/复习会话；无新 migration。
 >
 > _历史指针_：E8 `docs/plans/active/2026-06-11-11-feature-memory-review-queue.md`（记忆复习队列）。**E7（记忆沉淀基础）已于 2026-06-18 落地并 CI 全绿**（run `27745572810`，已移入 done/）：v26 memory_items 主数据（含 E8 review 列）+ 幂等候选沉淀 + 三端只读沉淀列表 + iPhone 加入记忆动作 + 真实 settled 时间线筛选；解锁 E8 复习队列与 E9 记忆搜索组。
 >
@@ -66,7 +68,7 @@
 | 10 | E7 | `2026-06-11-10-feature-memory-deposit-foundation` | 记忆沉淀基础 | ✅ **Implemented**（2026-06-18 CI run `27745572810` Build & Test 全绿，已移入 done/） |
 | 11 | E8 | `2026-06-11-11-feature-memory-review-queue` | 记忆复习队列 | ✅ **Implemented**（2026-06-18 CI run `27747133409` Build & Test 全绿，已移入 done/） |
 | 12 | E9 | `2026-06-11-12-feature-local-fts-search` | 本地 FTS 全文搜索 | ✅ **Implemented**（2026-06-18 CI run `27742853935` Build & Test 全绿，已移入 done/） |
-| 13 | E10 | `2026-06-11-13-feature-import-export-backup` | 导入导出与可恢复备份包 | ⚪ Draft |
+| 13 | E10 | `2026-06-11-13-feature-import-export-backup` | 导入导出与可恢复备份包 | 🟡 **In Progress**（Slice 1 非敏感导出/导入引擎 2026-06-18 CI run `27748408455` 全绿；Slice 2 macOS 文件面板/附件打包 + 加密备份 + 其余主数据表诚实 defer，方案保持 active） |
 | 14 | E11 | `2026-06-11-14-feature-sync-engine-icloud-foundation` | 同步引擎 + iCloud 首通道 | ⚪ Draft |
 | 15 | E12 | `2026-06-11-15-feature-settings-status-projection` | 设置真实状态投影 | ⚪ Draft |
 | — | LM01 | `2026-06-15-01-feature-learner-model-boundary-and-ability-coverage` | 学习者模型边界 + Ability 覆盖 | ⚪ Draft |
