@@ -33,6 +33,8 @@
 
 ## 当前指针
 
+> **批量自主执行已编排**（2026-06-18）：E6…LM01 的全部剩余工作项方案，由仓库根目录编排手册 `BATCH-EXECUTION-PLAYBOOK.md` 统一驱动（用户已完全预授权，每方案独立分支 → 本地 merge dev → CI 绿 → 移 done/，不动 main，AI 自审后重排顺序）；`/goal` 指令见根目录 `BATCH-EXECUTION-GOAL.md`。本仪表盘仍为进度事实源，run 级游标见 Playbook §9。
+
 > **当前指针**：E6 `docs/plans/active/2026-06-11-09-feature-ai-request-preview-and-log-foundation.md`。E5 **Slice 1（纯本地回译）已于 2026-06-18 落地并 CI 验证全绿**（run `27734245351`，含 iPhone/iPad/macOS App target 构建 + macOS app 回译注册编译验证）：App 现注册 `shadowing / dictation / backtranslation` 三段，回译题面→作答→对照参考三态闭环，参考经新增只读 seam `LearningContentRepository.sentenceAnalysis` 懒加载 + snapshot 兜底，attempt 复用 `practice_text_attempts`（diff 列由 `recordTextAttempt` repository 不变量恒 NULL）。**E5 Slice 2（可选 AI 点评）deferred**，双重门禁待 E6 落地 + 单独隐私授权，故 E5 方案保持 active；下一步推进 E6，E6 完成后再回到 E5 Slice 2。
 
 ## 状态总表
