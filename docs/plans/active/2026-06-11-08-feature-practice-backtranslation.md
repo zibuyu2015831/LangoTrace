@@ -1,10 +1,10 @@
 # 任务方案：回译练习（本地参考对照 + 可选 AI 点评）
 
 状态：Draft
-自审核状态：Reviewed
+自审核状态：Reviewed（2026-06-18 代码漂移后双轮重审，见第 13 节第二条记录）
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-11
+最后更新日期：2026-06-18（E3/E4 落地后双轮重审，修订 §2/§4/§7/§8/§12/§15/§16/§20 并新增决策 E5-D3）
 
 系列编号：E5（系列母方案：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`，实施顺序位于 E4 之后；Slice 2 必须晚于 E6）。规模：M。
 
@@ -36,13 +36,15 @@ Slice 2（可选 AI 点评）：
 
 ## 2. 现状描述
 
-以下事实已对照 2026-06-11 HEAD 核验：
+以下事实初稿对照 2026-06-11 HEAD，**已于 2026-06-18 对照当前 HEAD `7438e43`（E3/E4 已落地）逐项重新核验**，下文已是重审后的当前事实：
 
-- E3 / E4 落地后（本方案前置事实）：`PracticeExerciseType.backtranslation` case 已存在（E3）、mode 路由与会话承载结构就绪（E3 / E4）、`practice_text_attempts` 表已建且 schema 含 exercise_type 与可空 diff 列（E4）。
-- 参考表达数据已存在于 GRDB learning content 主路径：`LearningSentenceAnalysis`（`Packages/LangoTraceCore/Sources/LangoTraceCore/LearningMaterialGenerationModels.swift:325-354`）含 `nativeSentence`、`targetSentence`、`literalTranslation`、`naturalTranslation`、`grammarNotes`、`keyPoints`；`PracticeSentenceSnapshot` 已携带 `translationSnapshot`（母语原意题面）与 `noteSnapshot`。
-- 句子分析的读取路径：`GRDBLearningContentRepository`（Data package）已有按 material 读取 analysis 的能力（learning content 主路径，spec/learning-content/impl.md）。
-- AI 请求执行现状：学习材料生成走 `LearningMaterialGenerationService`（`Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialGenerationService.swift`），阅读解释走 `ReadingSelectionExplanationService`（同目录）；两者都有 Prompt registry + 结构化输出 schema + parser + 失败分类的成熟模式。`docs/prompts/` 已有 learning-material 与 reading 两个登记目录。
-- 当前不存在任何回译 UI、回译 Prompt 或"AI 点评"请求路径。
+- E3 / E4 落地后（本方案前置事实，已核验）：`PracticeExerciseType.backtranslation` case 已存在（E3）、mode 路由与会话承载结构就绪（E3 / E4）、`practice_text_attempts` 表已建且 schema 含 exercise_type 与可空 diff 列（E4）。Core 层 `PracticeTextAttempt` / `PracticeTextAttemptDraft` 的 `diffDifferenceCount` / `diffSummaryJSON` 已是可空字段并在 doc comment 中标注"backtranslation 时恒 nil"（`Packages/LangoTraceCore/Sources/LangoTraceCore/PracticeTextAttempt.swift:14-25`）——泛型表地基已就绪。
+- **【2026-06-18 重审修正】参考表达富字段在当前读取投影下不可达，方案立论需新建读取 seam**：`LearningSentenceAnalysis`（`Packages/LangoTraceCore/Sources/LangoTraceCore/LearningMaterialGenerationModels.swift:323-352`）确含 `nativeSentence` / `targetSentence` / `literalTranslation` / `naturalTranslation` / `grammarNotes` / `keyPoints`；**但句子列表 → 练习的唯一数据载体 `RenderingSentence` 只有 `id / translation / targetText / note` 四字段**（`Packages/LangoTraceData/Sources/LangoTraceData/LearningContentModels.swift:48-60`），bridge 投影时把 `grammarNotes.joined("\n")` 压成 `note`，并**丢弃** `literalTranslation` / `naturalTranslation` / `keyPoints`（`GRDBLearningContentRepositoryBridge.swift:191`）。`PracticeSentenceSnapshot` 同样只携带 `translationSnapshot` / `noteSnapshot` / `targetTextSnapshot`，无富分析字段。`LearningContentRepository` 协议（`LearningContent.swift:11-33`）**没有**任何返回 `LearningSentenceAnalysis` 的 public 方法（`GRDBLearningContentRepository.sentence(from:)` 在 `:776` 是 private helper）。结论见决策 E5-D1（修订版）：Slice 1 若要呈现方案设想的参考内容，**必须新建按句返回 `LearningSentenceAnalysis` 投影的 public 读取 seam + 协议方法 + InMemory/Unavailable 实现**；不能仅"复用既有查询"。
+- **【2026-06-18 重审修正】回译已练派生路径已就绪，无需新建 SQL**：`completedSentenceIDs(materialID:exerciseType:)`（`GRDBPracticeRepository.swift:145-180`）的 EXISTS 子句已含"任意未软删 text_attempt"，并按 session 的 `exercise_type` 隔离；backtranslation session 一旦创建并写 attempt，已练派生自动成立，Slice 1 仅需新增 `.backtranslation` 专项隔离测试。
+- **【2026-06-18 重审修正】`.backtranslation` 当前占位路由到跟读视图**：`PracticeSessionView` dispatch 中 `.backtranslation` 与 `.shadowing` 合并走 `PracticeShadowingSessionView`（`PracticeSessionViews.swift:226-234`）。实现 Slice 1 必须把该 case 拆出，独立路由到新建 `PracticeBacktranslationSessionView`；在该 View 落地前不得在 assembly 把 `.backtranslation` 加入 `availableExerciseTypes`（否则点回译进入录音界面，违反 spec 013 §6 红线）。
+- **【2026-06-18 重审修正】actions 层当前是听写专用形态**：`PracticeActions` 落地的是 `submitDictationAttempt` + `PracticeDictationAttemptSubmission`（强绑 diff / summary / listenCount，`PracticeActions.swift:17-37,53-56`），不是泛型 text-attempt。回译提交形态见决策 E5-D3。E4 已留下 `PracticeDictationSessionView` + `PracticeDictationSessionViewModel` 作为新建回译 View/ViewModel 的具体范本。
+- AI 请求执行现状：学习材料生成走 `LearningMaterialGenerationService`，阅读解释走 `ReadingSelectionExplanationService`（同目录）；两者都有 Prompt registry + 结构化输出 schema + parser + 失败分类的成熟模式，`ReadingSelectionExplanationFailureCategory` 已覆盖 spec 005 §4.6 八类失败，可作 Slice 2 失败分类范本。`docs/prompts/` 已有 learning-material 与 reading 两个登记目录；reading 解释 Prompt 已在 v4 引入 delimiter-wrapping 防 newline 注入（Slice 2 须采纳，见 §7 约束 6）。
+- 当前不存在任何回译 UI、回译 Prompt 或"AI 点评"请求路径。E6（`ai_request_logs` + 请求预览投影）尚未实现，对应方案仍在 `docs/plans/active/`。
 - 隐私基线：`docs/spec/013-practice-learning-domain.md` §6——"回译参考表达如需新 AI 请求，必须遵守 spec 005 的显式触发与请求边界"；`docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md` §2.3——回译参考来源（已有翻译 vs 新 AI 请求）是需要重新决策的点。
 
 ## 3. 目标
@@ -65,7 +67,7 @@ Slice 2：
 
 - Slice 1：
   - UI package：回译会话视图与 presentation model（复用 E4 会话承载结构与句间导航）、`PracticeModeAvailability` 注册 `.backtranslation`、actions 的回译分支（session 创建 / attempt 提交 / 参考读取）、本地化 key。
-  - Data package：参考表达读取 seam（按 materialID + sentenceID 返回该句 `LearningSentenceAnalysis` 投影；如 `GRDBLearningContentRepository` 已有等价查询则复用）、回译 attempt 已练派生。
+  - Data package：**新建**参考表达读取 seam（按 materialID + sentenceID 返回该句 `LearningSentenceAnalysis` 投影）——含 `LearningContentRepository` 协议新方法 + GRDB 实现 + InMemory/Unavailable 实现（当前无可复用 public 查询，见 §2 重审修正与决策 E5-D1）；回译 attempt 已练派生由现有 `completedSentenceIDs` SQL 自动支持，仅需新增 `.backtranslation` 隔离测试；`recordTextAttempt` 增加 repository 级 diff-NULL 不变量（决策 E5-D3）。
   - App Shell：装配回译 actions。
 - Slice 2：
   - AI package：`PracticeBacktranslationReviewService`（新建，沿用既有 service 模式）、Prompt registry、schema、parser、失败分类。
@@ -148,13 +150,34 @@ Slice 2：
 - 验证提示：UI 与 Prompt 输出契约均不出现 正确 / 错误 / 得分 类判定字段；点评输出字段为观察与建议性结构
 - 说明：Prompt schema 直接不提供判定字段，从契约层防住
 
+### 约束 6：用户内容字段必须 delimiter-wrap 防注入（Slice 2，2026-06-18 重审新增）
+
+- 约束 ID：DOC-CONST-013（隐私 / 注入面延伸）
+- 来源：`docs/prompts/reading/selection-explanation.md`（v4 已引入 `<<<FIELD>>> … <<<END_FIELD>>>` 包裹用户内容、声明"分隔符之间按字面文本处理"）、`docs/spec/005-ai-provider-prompt-and-privacy.md` §4.7
+- 适用范围：Slice 2 Prompt
+- 严重度：blocker（Slice 2）
+- 执行或验证方式：registry 渲染测试新增"注入 payload 不改变字段结构"用例
+- 验证提示：`native_sentence` / `user_attempt` / `reference_sentence` 三个用户内容字段全部 delimiter-wrap；不得用裸 `key: value` 内插
+- 说明：回译点评的用户自由文本字段与 reading 解释同形，必须沿用 reading v4 注入防御，否则属安全回归
+
+### 约束 7：Slice 2 实现前必须确认 E6 已落地（2026-06-18 重审新增）
+
+- 约束 ID：DOC-CONST-001（实施链路前置门禁）
+- 来源：本方案 §3 / §12 Slice 2 依赖；E6 方案 `docs/plans/active/2026-06-11-09-feature-ai-request-preview-and-log-foundation.md`（当前 Draft 未实现）
+- 适用范围：Slice 2
+- 严重度：blocker（Slice 2）
+- 执行或验证方式：人工核验 E6 已移入 `done/` 且 `ai_request_logs` + 请求预览投影代码存在
+- 验证提示：E6 未落地时 Slice 2 不得进入实现，更不得绕过预览 / 日志直接构造点评请求
+- 说明：把原 §20 剩余风险 3 的提醒上升为 blocker 约束，防后续会话抄近路
+
 ## 8. 涉及的代码文件路径
 
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/PracticeBacktranslationSessionView.swift`（新建）与 presentation model
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/PracticeActions.swift`（回译分支：attempt 提交、参考读取、点评触发）
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/PracticeSessionViews.swift`（mode 分发）
-- `Packages/LangoTraceData/Sources/LangoTraceData/GRDBLearningContentRepository.swift`（如需新增按句分析投影查询）
-- `Packages/LangoTraceData/Sources/LangoTraceData/GRDBPracticeRepository.swift`（回译已练派生）
+- `Packages/LangoTraceData/Sources/LangoTraceData/LearningContent.swift`（`LearningContentRepository` 协议新增按句 `LearningSentenceAnalysis` 投影读取方法 + InMemory / Unavailable 实现）
+- `Packages/LangoTraceData/Sources/LangoTraceData/GRDBLearningContentRepository.swift`（**新建**按 materialID + sentenceID 的 analysis 投影查询，复用既有 private `sentence(from:)` 行解析）
+- `Packages/LangoTraceData/Sources/LangoTraceData/GRDBPracticeRepository.swift`（`recordTextAttempt` 增加 backtranslation diff-NULL repository 级不变量；回译已练派生为现有 SQL 已支持，仅补测试）
 - `Packages/LangoTraceAI/Sources/LangoTraceAI/PracticeBacktranslationReviewService.swift`（新建，Slice 2）
 - `Packages/LangoTraceCore/Sources/LangoTraceCore/`（点评输入 / 结果 / 失败分类模型，Slice 2）
 - `LangoTraceApp/`（装配）
@@ -174,7 +197,7 @@ Slice 2：
 - `docs/prompts/practice/backtranslation-review.md`（新建，Slice 2）与 `docs/prompts/README.md` 登记。
 - `docs/spec/013-practice-learning-domain.md`（回译落地后 §5/§6 变更记录；Slice 2 把"回译新 AI 请求"从边界提醒转为已落地事实）。
 - `docs/platform-page-inventory.md`（回译会话页条目）。
-- `docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md`（§2.3 参考来源决策的采纳标注）。
+- `docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md`（§2.3 已加 "E5 采纳结论"：参考来源 closed、新增句分析读取 seam 地基提醒、diff-NULL L2/L3 分档与 schema CHECK deferred、占位路由债——2026-06-18 已写入）。
 
 ## 11. bug 分析
 
@@ -182,9 +205,31 @@ Slice 2：
 
 ## 12. 实施方案
 
-### 决策 E5-D1：参考表达来源
+### 决策 E5-D1：参考表达来源（2026-06-18 重审修订）
 
 Slice 1 参考卡内容 = 该句 `targetSentence`（参考句）+ `naturalTranslation` / `literalTranslation`（必要时）+ `grammarNotes` / `keyPoints`（说明），全部来自该句已有 `LearningSentenceAnalysis`；snapshot 的 `noteSnapshot` 作为兜底说明。无分析的句子在回译方式下显示引导态（去记录详情生成学习材料），不内嵌生成请求。
+
+**重审修正（承重）**：初稿假设这些富字段可经既有读取路径复用，核验为假——`RenderingSentence` / `PracticeSentenceSnapshot` 投影只保留 `targetText` 与 `grammarNotes`-joined-as-`note`，丢弃 `naturalTranslation` / `literalTranslation` / `keyPoints`，且无返回 `LearningSentenceAnalysis` 的 public seam（见 §2 重审修正）。
+
+**架构师裁定（2026-06-18，已采纳新建 seam，否决缩水方案）**：
+
+- **为什么不缩水为 `targetSentence` + note 最小卡**：回译方式的教学价值正是"用户表达 vs 富参考 + 语法/时态说明"的对照（原型明确展示 said/says 时态差异）。砍掉 `naturalTranslation` / `keyPoints` 等于把回译降级成"看一眼答案"，与产品北极星"把生活变成**有质量的**学习材料"和原型设计直接冲突。按 CLAUDE.md §1.2，不为省事在产品核心能力上缩水。
+- **为什么新建 seam 是长期正确而非过度设计**：`RenderingSentence` 是 UI 渲染类型，不应承载全部分析字段（不能靠加宽它解决）；有损 bridge 投影是潜在债，记忆沉淀（E7）、复习队列（E8）、FTS（E9）后续都会需要比 `RenderingSentence` 更富的句分析读取。把读取能力补在 **Repository 层**（句分析主路径）一次到位，是这些能力的共同地基，符合 §1.2"首次落地即长期可扩展"。成本低：复用既有 `SELECT * FROM learning_material_sentences WHERE material_id = ? ORDER BY position` 的 `sentence(from:)` 行解析，仅加一个按 position 过滤的查询。
+- **seam 签名**：`LearningContentRepository.sentenceAnalysis(materialID:sentenceIndex:) -> LearningSentenceAnalysis?`（key = materialID + position，对齐 `learning_material_sentences` 的 `ORDER BY position` 与 snapshot 的 `sentenceIndex`）。直接返回 Core 既有 `LearningSentenceAnalysis`，不新造投影类型。GRDB 实现复用 private `sentence(from:)`；InMemory / Unavailable 各补实现。纯本地只读，零网络。
+- **数据流：懒加载于"对照参考"时刻，而非预载进 snapshot**：参考富字段在用户点"对照参考"（reveal）时才经 seam 读取并渲染；不塞进 `PracticeSentenceRouteSeed` / snapshot（保持快照轻量、数据访问与用户意图对齐、避免 stale read，且分析被重新生成时 reveal 取到的是当前值）。
+- **attempt 持久化与 seam 解耦（降级稳健）**：作答写入的 `referenceTextSnapshot` = snapshot 已携带的 `targetTextSnapshot`，**不依赖新 seam**；因此即便 seam 读取失败 / 返回 nil，attempt 仍正常落表，参考卡降级为 `targetTextSnapshot` + `noteSnapshot` 兜底渲染（见故障矩阵）。
+
+### 决策 E5-D3：actions 层提交形态与 diff-NULL 不变量（2026-06-18 重审新增）
+
+1. **actions 形态**：不复用听写专用 `submitDictationAttempt` / `PracticeDictationAttemptSubmission`（其强绑 diff / summary / listenCount，对回译语义污染）。`PracticeActions` 新增并列闭包 `submitBacktranslationAttempt`，载荷仅 `attemptText` + `referenceText`（无 diff / summary）；回译无"听"步骤，不携带 listenCount（落表时 listen_count 恒 0）。内部构造 `PracticeTextAttemptDraft`（diff 列 nil）。Core 的 `PracticeTextAttemptDraft` 已是泛型，无需改 Core。
+2. **diff-NULL repository 级不变量（架构师裁定采纳）**：现状 `recordTextAttempt`（`GRDBPracticeRepository.swift:199-220`）对所有 exercise_type 盲写 draft 的 diff / summary / listen_count，"恒 NULL"仅靠调用方自觉。本方案在 `recordTextAttempt` 内对 `exerciseType == .backtranslation` 强制 diff_difference_count / diff_summary_json 写 NULL、listen_count 写 0（契约层防住，对齐约束 5 与 CLAUDE.md §1.2）。E4 既有 `backtranslationAttemptStoresNullDiff`（调用方传 nil → 存 nil）保留；本方案新增"draft 携带非 nil diff 时 repository 仍归 NULL"的不变量测试。
+
+   **为什么是 repository 守卫而非 schema CHECK**：`回译不判对错` 是北极星级产品边界（§5、约束 5），值得超越"调用方约定"的强制。三档防护——L1 调用方约定（现状，有洞）/ L2 repository 守卫（本方案采纳）/ L3 schema CHECK（最强）。`recordTextAttempt` 是 `practice_text_attempts` 的**唯一**写入路径，L2 即可对所有真实调用方关闭该洞；L3 需要 SQLite 表重建迁移，而该表 v23 才落地、无真实数据，此刻为单一不变量新开一条 rebuild-only 迁移属过度（违反 §1.1）。故 L2 立即落地，L3 作为"下一次自然触及 `practice_text_attempts` 的迁移顺带加 CHECK"的提醒写入架构备忘录（`docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md` §2.3 E5 采纳结论）。
+
+### 决策 E5-D4：切片实施授权与顺序（2026-06-18 架构师裁定）
+
+- **Slice 1 = 当前实施目标，建议立即进入**：纯本地、零网络；attempt 是本地主数据，隐私类别与已发布的练习录音同级（默认不同步 / 不导出 / 不外发 / 不进诊断），不跨越任何**新**隐私边界；依赖仅 E4（已 done）。架构师建议授权 Slice 1 进入 TDD。
+- **Slice 2 = 双重门禁，本次不放行**：①技术门禁——E6（`ai_request_logs` + 请求预览投影）须先落地（约束 7）；②隐私门禁——Slice 2 把用户作答外发 Provider，属隐私核心边界（README §4.10、ADR-005），须用户**单独显式授权**且授权记录单独可见。架构师不自代用户做外发授权；E5-D2 发送范围（五字段）作为该授权的口径建议。Slice 2 维持 deferred，不包装进 Slice 1 完成叙事。
 
 ### 决策 E5-D2：点评发送范围（Slice 2）
 
@@ -193,25 +238,27 @@ Slice 1 参考卡内容 = 该句 `targetSentence`（参考句）+ `naturalTransl
 ### Slice 1 步骤
 
 1. 先写失败测试（见第 15 节）：回译 presentation model 三态（answering → revealed）与参考卡隐藏边界。
-2. presentation model：`answering`（题面 = `translationSnapshot`；输入框；"对照参考"在作答非空后可用）→ `revealed`（参考卡展开 + "请 AI 点评"入口位（Slice 2 前不渲染）+ 再试一次）。参考卡渲染输入来自 E5-D1 投影。
-3. Data：按 materialID + sentenceID 的分析投影查询（如已有等价查询则复用并加测试）；attempt 写入复用 E4 repository（exercise_type = backtranslation、diff 列 NULL——repository 层断言听写专用列不被回译路径写入）；回译已练派生并入 `completedSentenceIDs`。
-4. actions / 装配：`createOrRestoreSession` 的 `.backtranslation` 分支；`submitBacktranslationAttempt`（写 attempt + 返回参考投影）；注册 `.backtranslation` 到 `PracticeModeAvailability`（分段控制三段齐全）。
-5. 本地化：题面标签（中文原意 / 你的表达 / 参考表达）、引导态、"参考表达不止一种，意思贴近即可"等文案 key。
+2. presentation model：`answering`（题面 = `translationSnapshot`；输入框；"对照参考"在作答非空后可用）→ `revealed`（参考卡展开 + "请 AI 点评"入口位（Slice 2 前不渲染）+ 再试一次）。参考卡渲染输入来自 E5-D1 投影。题面 `translationSnapshot` 可空，缺失时显示引导态（见故障矩阵），不渲染空题面。
+3. Data：**新建**按 materialID + sentenceID 的 `LearningSentenceAnalysis?` 投影读取 seam（协议方法 + GRDB 实现复用 private `sentence(from:)` + InMemory/Unavailable，见 E5-D1）；attempt 写入复用 E4 `recordTextAttempt` 并新增 backtranslation diff-NULL repository 不变量（E5-D3）；回译已练派生为现有 `completedSentenceIDs` SQL 已支持，仅新增 `.backtranslation` 隔离测试（不改 SQL）。
+4. View 路由拆分：把 `PracticeSessionView` dispatch 的 `.backtranslation` 从 `.shadowing` 合并分支拆出，独立 case 路由到**新建** `PracticeBacktranslationSessionView`（+ `PracticeBacktranslationSessionViewModel`，以 E4 `PracticeDictationSessionView`/`ViewModel` 为范本；回译无 demo 播放，init 不接收 / 不消费 `onPlayDemo`/`onStopDemo`）。
+5. actions / 装配：`createOrRestoreSession` 的 `.backtranslation` 分支；`PracticeActions` 新增 `submitBacktranslationAttempt`（载荷仅 attemptText + referenceText，见 E5-D3）；**在 `PracticeBacktranslationSessionView` 落地后**才在 App Shell 装配处把 `.backtranslation` 加入 `availableExerciseTypes`（驱动 `PracticeModeAvailability`）；落地前不得注册（spec 013 §6 红线：不得点亮 segment 却进入跟读/disabled 页）。
+6. 本地化：题面标签（中文原意 / 你的表达 / 参考表达）、引导态、"参考表达不止一种，意思贴近即可"等文案 key。
 
-### Slice 2 步骤（E6 落地后）
+### Slice 2 步骤（**前置门禁**：E6 已落地，见约束 7；E6 未进 done/ 不得开始）
 
-6. Core 模型：`PracticeBacktranslationReviewInput / Result / FailureCategory`（失败分类对齐 spec 005 §4.6 与 E0a 错误分类整备）。
-7. Prompt：`builtin.practice.backtranslation_review.v1`，schema `practice_backtranslation_review.v1`。输出契约（结构化 JSON，无判定字段）：`acknowledgement`（作答中成立之处）、`observations[]`（差异观察：现象 + 解释，上限条数）、`suggestions[]`（更自然表达建议，上限条数）、`register_note`（语体 / 时态等说明，可空）。解释语言遵循语言空间水平派生的解释语言模式（复用 `ExplanationLanguageMode` 派生，作为 Prompt 输入变量）。
-8. AI service（TDD）：registry 渲染测试（变量齐全、不含未授权内容）、parser 测试（拒绝缺字段 / 额外字段 / 自然语言前后缀）、取消与失败分类测试；HTTP 走既有生产 client 边界。
-9. UI：点评按钮 + footnote（提前披露发送范围与时机）+ E6 预览入口；状态机：idle → previewable → sending → reviewed / failed / cancelled；取消终止任务且不写失败日志事件（与既有取消语义一致）。
-10. 接入 E6：发送前预览投影（capability = practice_backtranslation_review）；完成 / 失败 / 取消写 ai_request_logs 非敏感行。
-11. 文档：Prompt 文档 + README 登记 + spec 013 变更记录。
+7. Core 模型：`PracticeBacktranslationReviewInput / Result / FailureCategory`。失败分类**以 `ReadingSelectionExplanationFailureCategory` 为范本**（已覆盖 spec 005 §4.6 八类 + "模型不支持(非 OpenAI-compatible)"），复用或抽共享，不新造一套概念。
+8. Prompt：`builtin.practice.backtranslation_review.v1`，schema `practice_backtranslation_review.v1`。**用户内容字段 `native_sentence` / `user_attempt` / `reference_sentence` 必须 delimiter-wrap（沿用 reading v4 `<<<FIELD>>> … <<<END_FIELD>>>` 模式，约束 6）**，不得裸内插。输出契约（结构化 JSON，无判定字段）：`acknowledgement`、`observations[]`（现象 + 解释，上限条数）、`suggestions[]`（上限条数）、`register_note`（可空）。解释语言复用 `ExplanationLanguageMode` 派生作为 Prompt 输入变量。
+9. AI service（TDD）：registry 渲染测试（变量齐全、不含未授权内容、**注入 payload 不改变字段结构**）、parser 测试（拒绝缺字段 / 额外字段 / 自然语言前后缀）、取消与失败分类测试；HTTP 走既有生产 client 边界。
+10. UI：点评按钮 + footnote（提前披露发送范围与时机）+ E6 预览入口；状态机：idle → previewable → sending → reviewed / failed / cancelled；取消终止任务且不写失败日志事件（与既有取消语义一致）。
+11. 接入 E6：发送前预览投影（capability = practice_backtranslation_review）；完成 / 失败 / 取消写 ai_request_logs 非敏感行。
+12. 文档：Prompt 文档 + README 登记 + spec 013 变更记录。
 
 ### 故障与恢复路径
 
 | 故障 | 恢复路径 | 验证 |
 | --- | --- | --- |
 | 该句无 LearningMaterial 分析 | 回译方式显示引导态，不崩溃、不发请求 | presentation 测试 |
+| 题面（母语原意 `translationSnapshot`）缺失 | 显示引导态 / 降级提示，不渲染空题面，可导航回记录详情 | presentation 测试 |
 | attempt 写入失败 | 回滚 + UI 可重试，作答文本保留在输入态 | Data + UI 测试 |
 | Provider 未配置 / Key 缺失（Slice 2） | credential missing 可恢复状态，按钮态明确 | service 测试 |
 | 点评返回非法 JSON | 拒绝解析，显示可重试失败，不写持久层 | parser 测试 |
@@ -241,6 +288,41 @@ Slice 1 参考卡内容 = 该句 `targetSentence`（参考句）+ `naturalTransl
 是否允许进入实现：待用户确认后允许。
 ```
 
+```text
+审核日期：2026-06-18
+审核方式：隔离审查（两个独立子代理，分别承担第一轮 / 第二轮）+ 主会话代码核验与写回
+审核轮次：双轮（代码漂移后重审）
+触发原因：方案 2026-06-11 自审时 E3/E4 尚为未来方案，现已落地为当前 HEAD 7438e43 代码；按 plan-review-protocol §2.2 重新核验"方案当前事实是否来自当前代码"。
+未使用隔离审查的原因：本轮已使用隔离子代理，不适用。
+发现摘要（主会话已逐条用代码核验）：
+  P0：
+  - [P0-1] 立论级事实错误：参考富字段（naturalTranslation/literalTranslation/keyPoints）在 RenderingSentence/snapshot 投影中被丢弃，无返回 LearningSentenceAnalysis 的 public seam；Slice 1 必须新建 Data 读取 seam + 协议方法。核验：LearningContentModels.swift:48-60、GRDBLearningContentRepositoryBridge.swift:191、LearningContent.swift:11-33。→ 写回 §2、§4、§8、E5-D1、§12 步骤 3、§15。
+  - [P0-2] .backtranslation 当前占位路由到 PracticeShadowingSessionView（PracticeSessionViews.swift:226-234）；须拆分独立 case 并约束 mode 注册顺序（spec 013 §6 红线）。→ 写回 §2、§12 步骤 4/5。
+  P1：
+  - [P1-A] "diff 恒 NULL"现为调用方约定非 repository 保证（recordTextAttempt 盲写，:199-220）。裁定：升级为 repository 级不变量（CLAUDE.md §1.2 契约层防住），保留 E4 既有调用方测试。→ 决策 E5-D3、§12 步骤 3、§15。
+  - [P1-B] §15/§16 未隔离 Slice 2(E6 依赖)的红绿命令，损害磁盘可恢复性。→ §15/§16 已分段并标注 E6 前置。
+  - [P1-C] Slice 2 用户自由文本字段未采纳 reading v4 的 delimiter-wrapping 防注入，属安全回归。→ 新增约束 6、§12 步骤 8/9。
+  - [P1-D] actions 层为听写专用形态，回译提交形态未定稿。→ 决策 E5-D3（并列 submitBacktranslationAttempt，不复用听写载荷）。
+  - [P1-E] Slice 2 依赖的 E6 当前 Draft 未实现，前置门禁仅在剩余风险一笔带过。→ 升级为 blocker 约束 7。
+  P2：
+  - 回译已练派生为现有 completedSentenceIDs SQL 已支持（GRDBPracticeRepository.swift:168-173），方案误写成待实现 → 改为"仅加隔离测试"。
+  - 题面 translationSnapshot 可空，缺失态未定义 → 故障矩阵新增一行。
+  - 回译 View 不应照抄 E4 的 demo 闭包 → §12 步骤 4 注明。
+  - Slice 2 FailureCategory 以 ReadingSelectionExplanationFailureCategory 为范本 → §12 步骤 7。
+  P3：
+  - §2 行号 325-354 → 323-352 已校准；§15 用例名改 Swift Testing 风格（referenceCardHiddenUntilUserReveals）。
+写回修改：§2 现状、§4 范围、§7 约束 6/7、§8 代码路径、§12（E5-D1 修订 + 新增 E5-D3 + Slice 1 步骤重排 + 故障矩阵）、§15 TDD、§16 验证命令、§20 剩余风险均已同步更新（非仅记于本记录）。
+仍需用户确认的问题（2026-06-18 架构师裁定后更新）：
+  原 3 项待确认问题已由架构师按项目北极星与 §1.1/§1.2 裁定并写回方案，结论如下：
+  1. [P0-1 范围] 已裁定**新建 Data 读取 seam**（否决缩水方案）：seam 是 E7/E8/E9 共同地基、成本低、缩水会违反产品北极星——见 E5-D1 架构师裁定。
+  2. [P1-A] 已裁定采纳 **repository 级 diff-NULL 不变量（L2）**，schema CHECK（L3）deferred 到下次自然迁移——见 E5-D3。
+  3. [切片授权] 已裁定 **Slice 1 建议立即进入、Slice 2 双重门禁不放行**——见 E5-D4。
+  仅剩需用户最终拍板项：
+  - Slice 1 的实现启动确认（架构师建议 proceed；用户给 go 即进入 TDD）。
+  - Slice 2 的外发隐私授权 + E5-D2 五字段发送范围口径（架构师不代用户授权外发；E6 落地后单独走确认链路）。
+是否允许进入实现：Slice 1 架构决策已收敛，待用户一句启动确认即可进入 TDD；Slice 2 在 E6 落地且单独隐私授权前不允许进入实现（约束 7 + E5-D4）。
+```
+
 ## 14. 复查方法
 
 1. Slice 1 行为：句子列表切"回译"→ 题面只见中文原意 → 作答 → 对照参考：参考卡展开且内容来自该句真实分析；全程抓包 / 测试断言无网络请求。
@@ -252,39 +334,52 @@ Slice 1 参考卡内容 = 该句 `targetSentence`（参考句）+ `naturalTransl
 
 ## 15. TDD / 测试落点
 
+测试命名遵循 E4 范本的 Swift Testing 风格（`@Test("…") func name()`，无 `test` 前缀）。
+
 ```text
-测试落点：
-  1. Packages/LangoTraceUI/Tests/LangoTraceUITests/Practice/PracticeBacktranslationSessionTests.swift（新建：三态状态机、参考卡隐藏、引导态、Slice 2 触发与取消）
-  2. Packages/LangoTraceData/Tests/LangoTraceDataTests/PracticeTextAttemptRepositoryTests.swift（扩展：回译行写入、diff 列恒 NULL、已练派生）
-  3. Packages/LangoTraceAI/Tests/LangoTraceAITests/PracticeBacktranslationReviewServiceTests.swift（新建，Slice 2：registry 渲染、schema、parser 拒绝路径、失败分类、取消）
-先失败用例：
-  testReferenceCardHiddenUntilUserReveals
+Slice 1 测试落点（当前红绿路径）：
+  1. Packages/LangoTraceUI/Tests/LangoTraceUITests/Practice/PracticeBacktranslationSessionTests.swift（新建：三态状态机、参考卡隐藏、无分析/无题面引导态、submitBacktranslationAttempt 构造 draft 不含 diff/listenCount）
+  2. Packages/LangoTraceData/Tests/LangoTraceDataTests/PracticeTextAttemptRepositoryTests.swift（扩展）：
+     - backtranslation diff-NULL repository 不变量（draft 携带非 nil diff 时仍归 NULL）——E5-D3 新增；
+     - backtranslation 已练派生（completedSentenceIDs 对 .backtranslation 与 shadowing/dictation 隔离）；
+     - 注：E4 既有 backtranslationAttemptStoresNullDiff（调用方传 nil → 存 nil）保留，不重复。
+  3. Packages/LangoTraceData/Tests/LangoTraceDataTests/（learning content 读取测试，文件名按现有组织就近）：新建按 materialID+sentenceID 返回 LearningSentenceAnalysis 投影 seam 的读取测试（命中返回富字段、缺失返回 nil）。
+
+Slice 1 先失败用例（首红）：
+  referenceCardHiddenUntilUserReveals
   —— 构造回译 presentation model（含完整分析投影），断言初始 answering 态下参考投影不可见、reveal 动作后可见；presentation model 尚不存在，按 stub-first 建空模型使断言失败成红。
-  Slice 2 先失败用例：testPromptContainsOnlyAllowedFields —— registry 渲染结果断言包含五个允许变量且不包含 entry 正文 / 其他句子文本。
-聚焦验证命令：
-  swift test --package-path Packages/LangoTraceUI --filter PracticeBacktranslationSessionTests
-  swift test --package-path Packages/LangoTraceAI --filter PracticeBacktranslationReviewServiceTests
+
+Slice 2 测试落点（E6 落地后，非当前红绿路径）：
+  4. Packages/LangoTraceAI/Tests/LangoTraceAITests/PracticeBacktranslationReviewServiceTests.swift（新建，以 ReadingSelectionExplanationServiceTests 为范本：registry 渲染、schema、parser 拒绝路径、失败分类、取消、注入 payload 不改变字段结构）。
+Slice 2 先失败用例：promptContainsOnlyAllowedFields —— registry 渲染结果断言仅含五个允许变量、用户内容字段已 delimiter-wrap，且不含 entry 正文 / 其他句子文本。
+
+聚焦验证命令：见 §16（Slice 1 与 Slice 2 已分段）。
 不新增单元测试的原因（如适用）：点评真实输出质量依赖用户自带模型，无法 CI 自动化；以契约测试 + 人工抽检兜底（与学习材料生成同口径）。
+App target 装配（PracticeActionsAssembly 注册 .backtranslation）的编译验证不在 swift test 覆盖内，留待 CI Build & Test（与 E4 同口径）。
 ```
 
 ## 16. 验证命令
 
 ```bash
-# 聚焦（红绿循环）
+# === Slice 1 聚焦（当前红绿循环）===
 swift test --package-path Packages/LangoTraceUI --filter PracticeBacktranslationSessionTests
 swift test --package-path Packages/LangoTraceData --filter PracticeTextAttemptRepositoryTests
-swift test --package-path Packages/LangoTraceAI --filter PracticeBacktranslationReviewServiceTests
 
-# 受影响 package 轻量验证
-swift test --package-path Packages/LangoTraceCore
+# Slice 1 受影响 package 轻量验证
 swift test --package-path Packages/LangoTraceData
-swift test --package-path Packages/LangoTraceAI
 swift test --package-path Packages/LangoTraceUI
 
-# 文档（含 Prompt 登记检查）
+# === Slice 2 聚焦（仅在 E6 落地后执行；E6 未完成时 AI 命令会因缺预览/日志投影编译失败，属预期）===
+# swift test --package-path Packages/LangoTraceAI --filter PracticeBacktranslationReviewServiceTests
+# swift test --package-path Packages/LangoTraceCore
+# swift test --package-path Packages/LangoTraceAI
+
+# 文档（Slice 2 含 Prompt 登记检查）
 scripts/check-docs.sh
 git diff --check
 git status --short
+
+# App target 装配编译：留待 CI Build & Test（本机不跑全量 verify.sh）
 ```
 
 ## 17. 文档影响检查
@@ -299,7 +394,11 @@ git status --short
 
 ## 18. 实施记录
 
-2026-06-11：方案创建并完成两轮自审核（见第 13 节）。尚未进入实现。
+2026-06-11：方案创建并完成两轮自审核（见第 13 节第一条记录）。尚未进入实现。
+
+2026-06-18：E3/E4 落地后做代码漂移重审（隔离双子代理 + 主会话代码核验，见第 13 节第二条记录）。确认 1 条立论级事实错误（P0-1：参考富字段不可达，需新建 Data 读取 seam）+ 1 条红线风险（P0-2：占位路由）+ 多条落点漂移；已写回 §2/§4/§7/§8/§12/§15/§16/§20 并新增决策 E5-D3。
+
+2026-06-18（续）：按用户要求，架构师就重审遗留的 3 项待确认问题基于项目北极星与 §1.1/§1.2 深入裁定并写回——P0-1 采纳新建 Data 读取 seam（E5-D1，含懒加载 + snapshot 兜底架构）、P1-A 采纳 repository 级 diff-NULL 不变量（E5-D3，schema CHECK deferred）、切片授权采纳 Slice 1 立即进入 + Slice 2 双重门禁（E5-D4）。架构决策已收敛，架构师裁定记录入 `docs/architecture/notes/...§2.3 E5 采纳结论`。Slice 1 待用户一句启动确认即进入 TDD；Slice 2 维持 deferred。
 
 ## 19. 完成标准
 
@@ -319,5 +418,6 @@ deferred / aborted 项是否已从完成叙事中剥离：是。
 
 1. 参考说明质量取决于既有学习材料生成质量；分析字段为空或质量差时参考卡信息量低——属上游能力质量问题，回译 UI 以可空渲染兜底。
 2. 点评输出语言与质量随用户模型波动（与解释语言模式同源风险）；契约只能约束结构不能约束语言遵从，运行期不因语言漂移硬失败。
-3. Slice 2 等待 E6 期间，revealed 态的点评入口位不渲染；若系列顺序调整导致 E5 全量先行，必须回到本方案重审 Slice 2 依赖（不允许绕过预览 / 日志直接发请求）。
+3. Slice 2 等待 E6 期间，revealed 态的点评入口位不渲染（已升级为 blocker 约束 7：E6 未落地不得实现 Slice 2，不允许绕过预览 / 日志直接发请求）。
+5.（2026-06-18 新增）Slice 1 新建的 Data 读取 seam 是回译参考卡的承重依赖；若该句 `LearningSentenceAnalysis` 富字段质量差或部分为空，参考卡以可空渲染兜底（与风险 1 同源），不因字段缺失硬失败。
 4. 同句多次 attempt 的参考卡重复展开体验未深究（每次 reveal 内容相同）；可接受，后续记忆域沉淀能力再优化。

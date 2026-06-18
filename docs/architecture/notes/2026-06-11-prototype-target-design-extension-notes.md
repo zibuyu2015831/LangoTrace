@@ -48,6 +48,13 @@
 - 句子列表通过 `PracticeModeAvailability` 决定是否显示分段控制；当前 App 装配只注册 `.shadowing`，因此不会暴露未实现的听写 / 回译假入口。
 - `GRDBPracticeRepository.completedSentenceIDs(materialID:exerciseType:)` 支持按练习方式独立计算“已练”和续练 CTA；E4 / E5 后续只可在真实会话能力完成后注册对应 mode。
 
+**E5 采纳结论（2026-06-18，回译方案重审裁定，详见 `docs/plans/active/2026-06-11-08-feature-practice-backtranslation.md` E5-D1/D3/D4）**：
+
+- **回译参考表达来源决策落定**：采纳"已有 `LearningSentenceAnalysis`（纯本地只读），否决新 AI 请求"；新 AI 请求仅作为 Slice 2 可选点评，且双重门禁（E6 预览/日志 + 单独隐私授权）。本条原"后续必须重新决策"项至此 closed。
+- **新增句分析读取 seam（跨任务地基）**：`RenderingSentence` / `PracticeSentenceSnapshot` 是有损投影（丢弃 `naturalTranslation` / `literalTranslation` / `keyPoints`），且无 public 读取 `LearningSentenceAnalysis` 的方法。E5 在 `LearningContentRepository` 新增 `sentenceAnalysis(materialID:sentenceIndex:) -> LearningSentenceAnalysis?`（复用 `sentence(from:)` 行解析）。**提醒后续任务**：记忆沉淀（E7）、复习队列（E8）、FTS（E9）若需富句分析，优先复用此 seam，不要再加宽 `RenderingSentence`（UI 渲染类型）。
+- **`practice_text_attempts` diff-NULL 不变量分档**：E5 采纳 repository 级守卫（L2，`recordTextAttempt` 对 backtranslation 强制 diff/listen_count 归零）。**提醒后续迁移**：理想形态是 schema CHECK（L3，`CHECK (exercise_type != 'backtranslation' OR (diff_difference_count IS NULL AND diff_summary_json IS NULL))`）；为避免此刻新开 rebuild-only 迁移（表 v23 新建、无真实数据），L3 deferred 到下一次自然触及 `practice_text_attempts` 的迁移顺带加上。
+- **占位路由债**：`.backtranslation` 在 E3/E4 期间占位路由到 `PracticeShadowingSessionView`；E5 落地 `PracticeBacktranslationSessionView` 时必须拆出独立 case，且 View 落地前不得在装配注册 `.backtranslation`（spec 013 §6 红线）。
+
 ### 2.4 搜索（`prototypes/mac/search.html`、iPad 顶部搜索）
 
 - 目标设计：macOS 为 Command Palette 风格全局搜索，iPad 为顶部搜索浮层；范围限定当前语言空间。
