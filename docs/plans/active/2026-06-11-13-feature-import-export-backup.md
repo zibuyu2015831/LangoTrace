@@ -1,6 +1,6 @@
 # 任务方案：导入导出与可恢复备份包（macOS 首发）（E10）
 
-状态：User Approved（按切片实施：Slice 1 本轮落地，Slice 2 + 加密备份诚实 defer）
+状态：In Progress（Slice 1 引擎已落地并 CI 绿；Slice 2 + 加密备份 + 其余主数据表诚实 defer，方案保持 active）
 自审核状态：Reviewed（2026-06-18 批量 run 实现前隔离自审核，用当前代码核验漂移）
 类型：feature
 创建日期：2026-06-11
@@ -290,3 +290,17 @@ scripts/check-docs.sh
 - 大体积附件导出的进度与取消体验只做基础版（可取消 + 已写入清理），未做断点续传。
 - snapshotVersion 演进规则在 E11 对齐前只有导出一个消费方，规则的充分性要在 E11 自审核中复核。
 - Linux 环境无法验证面板、entitlement 与真实文件系统行为，必须 macOS 补验。
+
+## 实施记录
+
+2026-06-18（批量 run，Slice 1 落地 + 诚实 defer）：feature/e10-import-export 分支落地非敏感导出/导入引擎。
+  - Slice 1（Core+Data，CI-gated，无新 migration）：Core `ImportExport`（snapshot 家族 + manifest + SHA-256 + formatVersion 门）+ Data `GRDBLocalExportService`（exportPackage/exportPackageData/preview/importPackage：entries + deposited memory 导出，verify-before-write 同 id skip 合并）。测试 5（roundtrip 恢复、重导 skip、篡改 checksum 拒绝、formatVersion 拒绝、导出无 secrets）。文档：spec 007 变更记录 + architecture note `2026-06-18-export-backup-deferred-slices`。
+  - **诚实 defer（依赖当前不存在能力 / 需 macOS 验证）**，恢复入口见 architecture note：
+    1. Slice 2：macOS `fileExporter`/`fileImporter` UI + `files.user-selected.read-write` entitlement + 附件文件打包——需 macOS runner 验证；引擎 Data 接口已就绪，接文件面板即可。`MacWorkspaceContentView` `.importExport` 仍 unavailable 占位。
+    2. 加密/口令备份包——依赖不存在的 KDF/密钥管理/加密-at-rest 安全存储（现仅 Keychain 存 AI key 引用）。基础设施落地前不实现；凭证永不导出（决策 9）。
+    3. 其余主数据表导出（learning materials/reading/practice）——引擎格式已证明，机械扩展。
+  本方案因 Slice 2 + 加密 + 其余表 deferred 保持 **In Progress、留在 active/**（不移 done/），Slice 1 已落地部分已合并 dev 并 CI 绿，deferred 段落齐全、有恢复入口。
+
+## 完成状态（批量 run）
+
+Slice 1 引擎完成 + CI 绿。完整 E10（含 macOS UI / 附件打包 / 加密备份 / 全表导出）未完成——属诚实 defer（macOS 验证 + 不存在的加密安全存储 + 机械扩展），非「可完成却未完成」。后续以本方案 + architecture note 为恢复入口。
