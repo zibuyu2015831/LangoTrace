@@ -1,10 +1,10 @@
 # 任务方案：回译练习（本地参考对照 + 可选 AI 点评）
 
-状态：Draft
+状态：In Progress（Slice 1 已落地，纯本地；Slice 2 deferred 待 E6 + 单独隐私授权）
 自审核状态：Reviewed（2026-06-18 代码漂移后双轮重审，见第 13 节第二条记录）
 类型：feature
 创建日期：2026-06-11
-最后更新日期：2026-06-18（E3/E4 落地后双轮重审，修订 §2/§4/§7/§8/§12/§15/§16/§20 并新增决策 E5-D3）
+最后更新日期：2026-06-18（用户授权后按 TDD 落地 Slice 1，见第 18 节 Slice 1 落地记录）
 
 系列编号：E5（系列母方案：`docs/plans/active/2026-06-11-chore-code-review-and-dev-plan-series.md`，实施顺序位于 E4 之后；Slice 2 必须晚于 E6）。规模：M。
 
@@ -399,6 +399,13 @@ git status --short
 2026-06-18：E3/E4 落地后做代码漂移重审（隔离双子代理 + 主会话代码核验，见第 13 节第二条记录）。确认 1 条立论级事实错误（P0-1：参考富字段不可达，需新建 Data 读取 seam）+ 1 条红线风险（P0-2：占位路由）+ 多条落点漂移；已写回 §2/§4/§7/§8/§12/§15/§16/§20 并新增决策 E5-D3。
 
 2026-06-18（续）：按用户要求，架构师就重审遗留的 3 项待确认问题基于项目北极星与 §1.1/§1.2 深入裁定并写回——P0-1 采纳新建 Data 读取 seam（E5-D1，含懒加载 + snapshot 兜底架构）、P1-A 采纳 repository 级 diff-NULL 不变量（E5-D3，schema CHECK deferred）、切片授权采纳 Slice 1 立即进入 + Slice 2 双重门禁（E5-D4）。架构决策已收敛，架构师裁定记录入 `docs/architecture/notes/...§2.3 E5 采纳结论`。Slice 1 待用户一句启动确认即进入 TDD；Slice 2 维持 deferred。
+
+2026-06-18（Slice 1 落地）：用户审核通过并授权立即实施，按 TDD 分四阶段落地 Slice 1（纯本地），每阶段轻量验证 + commit：
+  - Stage A（`8ca409d`）：新建 Data 读取 seam `LearningContentRepository.sentenceAnalysis(materialID:sentenceIndex:) -> LearningSentenceAnalysis?`（GRDB 复用 `sentence(from:)` + bridge + InMemory/Unavailable），先红测试 `sentenceAnalysisReturnsRichFieldsByPosition` / `...ReturnsNilForMissingPosition` / `grdbBridgeExposesSentenceAnalysis`。
+  - Stage B（`fe1b89e`）：`recordTextAttempt` 加 backtranslation diff-NULL repository 级不变量（diff 列归 NULL、listen_count 归 0），新增 `backtranslationRepositoryForcesNullDiffEvenWhenDraftCarriesIt` 与回译已练跨模式隔离测试。
+  - Stage C（`1a89619`）：`PracticeActions` 新增 `submitBacktranslationAttempt` + `fetchSentenceAnalysis` + `PracticeBacktranslationAttemptSubmission`；新建 `PracticeBacktranslationSessionViewModel` / `PracticeBacktranslationSessionView`；`PracticeSessionView` 拆出独立 `.backtranslation` case；新增 13 个本地化 key 与 6 个 presentation 测试（首红 `referenceCardHiddenUntilUserReveals`）。轻量验证：`swift test` LangoTraceData 197 / LangoTraceUI 488 全绿。
+  - Stage D（`614e8ab`）：`PracticeActionsAssembly` 装配回译 actions 并把 `availableExerciseTypes` 注册第三段 `.backtranslation`（View 已落地，满足 spec 013 §6 顺序约束）；App target 编译验证留待 CI Build & Test。
+  - Stage E：同步 `platform-page-inventory`（新增回译会话页行 + 组件清单 + 变更记录）、`spec/013` §2/§6 与变更记录。Slice 2 维持 deferred（E6 + 单独隐私授权未满足，约束 7 / E5-D4），未包装进 Slice 1 完成叙事；本方案保持 active。
 
 ## 19. 完成标准
 
