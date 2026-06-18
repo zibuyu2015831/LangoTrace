@@ -196,6 +196,17 @@ public struct GRDBPracticeRepository: PracticeRepository, @unchecked Sendable {
             ) ?? 0) + 1
             let id = idGenerator()
             let now = clock()
+
+            // Repository-level invariant (E5-D3): backtranslation never judges
+            // right/wrong (North-Star product boundary), and has no listen step.
+            // `recordTextAttempt` is the sole write path for practice_text_attempts,
+            // so neutralize diff/listen fields here regardless of caller intent
+            // rather than relying on a caller convention.
+            let isBacktranslation = draft.exerciseType == .backtranslation
+            let diffDifferenceCount = isBacktranslation ? nil : draft.diffDifferenceCount
+            let diffSummaryJSON = isBacktranslation ? nil : draft.diffSummaryJSON
+            let listenCount = isBacktranslation ? 0 : draft.listenCount
+
             try db.execute(
                 sql: """
                 INSERT INTO practice_text_attempts (
@@ -212,9 +223,9 @@ public struct GRDBPracticeRepository: PracticeRepository, @unchecked Sendable {
                     nextAttemptNumber,
                     draft.attemptText,
                     draft.referenceTextSnapshot,
-                    draft.diffDifferenceCount,
-                    draft.diffSummaryJSON,
-                    draft.listenCount,
+                    diffDifferenceCount,
+                    diffSummaryJSON,
+                    listenCount,
                     now.timeIntervalSince1970,
                 ]
             )

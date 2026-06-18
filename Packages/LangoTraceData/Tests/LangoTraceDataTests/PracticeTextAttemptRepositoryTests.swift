@@ -158,6 +158,94 @@ struct PracticeTextAttemptRepositoryTests {
         #expect(attempt.diffSummaryJSON == nil)
     }
 
+    @Test("Backtranslation diff columns are forced NULL by the repository even if a draft carries them")
+    func backtranslationRepositoryForcesNullDiffEvenWhenDraftCarriesIt() async throws {
+        let database = try await makeSeededDatabase()
+        let repository = GRDBPracticeRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 100) },
+            idGenerator: SequentialIDGenerator(prefix: "bt").next
+        )
+        let session = try await repository.createOrRestoreSession(
+            languageSpaceID: "space-1",
+            snapshot: dictationSnapshot(exerciseType: .backtranslation)
+        )
+
+        // A misbehaving caller passes non-nil diff fields and a listen count;
+        // "回译不判对错" is a North-Star boundary, so the repository (the sole
+        // write path) must neutralize them regardless of the caller.
+        let attempt = try await repository.recordTextAttempt(
+            draft: PracticeTextAttemptDraft(
+                sessionID: session.id,
+                languageSpaceID: "space-1",
+                exerciseType: .backtranslation,
+                attemptText: "I booked it",
+                referenceTextSnapshot: "I booked the train this morning.",
+                diffDifferenceCount: 5,
+                diffSummaryJSON: "{\"differenceCount\":5,\"segments\":[]}",
+                listenCount: 3
+            )
+        )
+
+        #expect(attempt.diffDifferenceCount == nil)
+        #expect(attempt.diffSummaryJSON == nil)
+        #expect(attempt.listenCount == 0)
+
+        let stored = try await database.databaseQueue.read { db in
+            try Row.fetchOne(
+                db,
+                sql: "SELECT diff_difference_count, diff_summary_json, listen_count FROM practice_text_attempts WHERE id = ?",
+                arguments: [attempt.id]
+            )
+        }
+        #expect((stored?["diff_difference_count"] as Int?) == nil)
+        #expect((stored?["diff_summary_json"] as String?) == nil)
+        #expect((stored?["listen_count"] as Int?) == 0)
+    }
+
+    @Test("Backtranslation completed sentences derive from an attempt and stay isolated from other modes")
+    func backtranslationCompletedSentencesAreIsolatedByMode() async throws {
+        let database = try await makeSeededDatabase()
+        let repository = GRDBPracticeRepository(
+            database: database,
+            clock: { Date(timeIntervalSince1970: 100) },
+            idGenerator: SequentialIDGenerator(prefix: "session").next
+        )
+        let session = try await repository.createOrRestoreSession(
+            languageSpaceID: "space-1",
+            snapshot: dictationSnapshot(exerciseType: .backtranslation)
+        )
+        _ = try await repository.recordTextAttempt(
+            draft: PracticeTextAttemptDraft(
+                sessionID: session.id,
+                languageSpaceID: "space-1",
+                exerciseType: .backtranslation,
+                attemptText: "I booked it",
+                referenceTextSnapshot: "I booked the train this morning.",
+                diffDifferenceCount: nil,
+                diffSummaryJSON: nil,
+                listenCount: 0
+            )
+        )
+
+        let backtranslationDone = try await repository.completedSentenceIDs(
+            materialID: "material-1",
+            exerciseType: .backtranslation
+        )
+        let shadowingDone = try await repository.completedSentenceIDs(
+            materialID: "material-1",
+            exerciseType: .shadowing
+        )
+        let dictationDone = try await repository.completedSentenceIDs(
+            materialID: "material-1",
+            exerciseType: .dictation
+        )
+
+        #expect(backtranslationDone == ["sentence-1"])
+        #expect(shadowingDone.isEmpty)
+        #expect(dictationDone.isEmpty)
+    }
+
     @Test("Recording an attempt for a missing session fails without writing a row")
     func recordingAttemptForMissingSessionFails() async throws {
         let database = try await makeSeededDatabase()
