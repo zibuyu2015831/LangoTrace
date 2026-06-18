@@ -265,6 +265,62 @@
 
 ---
 
+### Run 27734118877（E5 Slice 1）
+
+| 字段 | 值 |
+|---|---|
+| Run ID | [27734118877](https://github.com/zibuyu2015831/LangoTrace/actions/runs/27734118877) |
+| 触发时间 | 2026-06-18 11:09 CST（workflow_dispatch） |
+| 触发 commit | `docs(practice): record E5 Slice 1 backtranslation landing (E5)`（HEAD docs commit，push 无 `[ci]` 被 skip，故用 workflow_dispatch 触发） |
+| 覆盖内容 | E5 Slice 1 纯本地回译（sentenceAnalysis seam + diff-NULL 不变量 + 回译会话 + 装配 + 文档） |
+| Job 总耗时 | 1m37s（提前终止） |
+| 结论 | ❌ failure |
+| 失败步骤 | Test LangoTraceData |
+| 失败原因 | `PracticeTextAttemptRepositoryTests` 把非 Sendable 的 GRDB `Row?` 跨 `async databaseQueue.read` 边界返回；CI 严格并发检查拒绝（`cannot use optional chaining on non-optional value of type '()'`），本机工具链较宽松未捕获 |
+| 修复 commit | `f798610 test(data): keep GRDB Row inside the read closure in backtranslation test (E5) [ci]`（改为在闭包内提取 `(Int?, String?, Int?)` Sendable 元组） |
+
+> **经验**：GRDB `Row` 不是 `Sendable`，不能从 `async` 的 `read`/`write` 闭包返回；必须在闭包内提取 Sendable 值（标量、`Set`、元组）。本机工具链不强制此约束，CI 才暴露——后续测试从 async DB 读取时一律在闭包内取标量。
+
+---
+
+## 2. 成功记录（续二）
+
+### Run 27734245351（E5 Slice 1 收口）
+
+| 字段 | 值 |
+|---|---|
+| Run ID | [27734245351](https://github.com/zibuyu2015831/LangoTrace/actions/runs/27734245351) |
+| 触发时间 | 2026-06-18 11:13 CST |
+| 触发 commit | `test(data): keep GRDB Row inside the read closure in backtranslation test (E5) [ci]` |
+| 覆盖内容 | E5 Slice 1 纯本地回译全量（Data seam + diff-NULL 不变量 + 回译会话 + App 装配注册 + 文档）+ Row Sendable 修复 |
+| Job 总耗时 | **7m54s** |
+| 结论 | ✅ success |
+
+**步骤耗时：**
+
+| 步骤 | 耗时 | 备注 |
+|---|---|---|
+| Install tools | 8s | — |
+| Cache Swift package builds | 23s（命中） | — |
+| Test LangoTraceCore | 30s | — |
+| Test LangoTraceData | 33s | — |
+| Test LangoTraceAI | 29s | — |
+| Test LangoTraceSpeech | 24s | — |
+| Test LangoTraceSync | 14s | — |
+| Test LangoTraceUI | 74s | 缓存部分失效，略高于基线 |
+| List schemes | 31s | — |
+| Resolve iOS Simulator destinations | 3s | — |
+| Build iOS — iPhone | 63s | 缓存部分失效 |
+| Build iOS — iPad | 10s | — |
+| Build macOS | 73s | 缓存部分失效 |
+| Test macOS app | 34s | App target 装配 + 回译注册编译验证通过 |
+| SwiftLint | 4s | — |
+| SwiftFormat | 6s | — |
+| Check docs | 1s | — |
+| Check whitespace | 0s | — |
+
+---
+
 ## 4. 维护约定
 
 - 每次 CI `success` 后，将 run 数据追加到「成功记录」，并用新数据更新「步骤耗时基线」均值。
