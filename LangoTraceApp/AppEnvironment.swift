@@ -27,6 +27,7 @@ struct AppEnvironment {
     let aiRequestLogActions: AIRequestLogActions
     let localSearchActions: LocalSearchActions
     let memoryDepositActions: MemoryDepositActions
+    let memoryReviewActions: MemoryReviewActions
     let syncService: any SyncService
 
     // AppEnvironment assembles the cross-package production graph in one place.
@@ -196,6 +197,26 @@ struct AppEnvironment {
             }
         )
 
+        // E8: local memory review queue (fixed-interval scheduler over E7 columns).
+        let memoryReviewActions = MemoryReviewActions(
+            loadDueBatch: { spaceID, limit in
+                guard let memoryItemRepository else { return [] }
+                return await (try? memoryItemRepository.dueItems(spaceID: spaceID, limit: limit, now: Date())) ?? []
+            },
+            recordOutcome: { id, outcome in
+                guard let memoryItemRepository else { return }
+                _ = try? await memoryItemRepository.recordReviewOutcome(id: id, outcome: outcome, now: Date())
+            },
+            markMastered: { id in
+                guard let memoryItemRepository else { return }
+                try? await memoryItemRepository.markMastered(id: id, now: Date())
+            },
+            statistics: { spaceID in
+                guard let memoryItemRepository else { return .zero }
+                return await (try? memoryItemRepository.memoryStatistics(spaceID: spaceID, now: Date())) ?? .zero
+            }
+        )
+
         return AppEnvironment(
             makeLanguageSpaceRepository: {
                 try GRDBLanguageSpaceRepository(
@@ -315,6 +336,7 @@ struct AppEnvironment {
             aiRequestLogActions: aiRequestLogActions,
             localSearchActions: localSearchActions,
             memoryDepositActions: memoryDepositActions,
+            memoryReviewActions: memoryReviewActions,
             syncService: DisabledSyncService()
         )
     }
