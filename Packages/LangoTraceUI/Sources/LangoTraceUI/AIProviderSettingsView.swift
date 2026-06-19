@@ -5,6 +5,7 @@ import SwiftUI
 struct AIProviderSettingsView: View {
     @Environment(\.aiProviderSettingsActions) private var actions
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     #if os(iOS)
         @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
@@ -21,7 +22,10 @@ struct AIProviderSettingsView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        // Establish a dependency on the interface locale so inline `localizedText`
+        // copy in this container re-renders on language change.
+        let _ = locale
+        return VStack(alignment: .leading, spacing: 18) {
             textModelSection
             optionalModelSection(
                 titleKey: "aiProviderSettings.speechModel.title",

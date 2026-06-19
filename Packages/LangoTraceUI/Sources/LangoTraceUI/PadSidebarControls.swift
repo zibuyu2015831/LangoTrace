@@ -8,7 +8,7 @@ struct SidebarSectionTitle: View {
     }
 
     var body: some View {
-        localizedText(titleKey)
+        LocalizedText(titleKey)
             .font(.caption.weight(.bold))
             .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
     }
@@ -102,9 +102,9 @@ struct SectionCaption: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            localizedText(titleKey)
+            LocalizedText(titleKey)
                 .font(.headline)
-            localizedText(subtitleKey)
+            LocalizedText(subtitleKey)
                 .font(.footnote)
                 .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
         }
@@ -115,12 +115,12 @@ struct EmptyWorkspacePanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label {
-                localizedText("entry.empty.title")
+                LocalizedText("entry.empty.title")
             } icon: {
                 Image(systemName: "square.and.pencil")
             }
             .font(.headline)
-            localizedText("ipad.emptyWorkspace.body")
+            LocalizedText("ipad.emptyWorkspace.body")
                 .font(.body)
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)

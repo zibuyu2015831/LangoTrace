@@ -69,9 +69,9 @@ struct LocalizedCompactPanel: View {
                 .background(LangoTraceDesign.ColorToken.surfaceAccentMuted)
                 .clipShape(Circle())
             VStack(alignment: .leading, spacing: 6) {
-                localizedText(titleKey)
+                LocalizedText(titleKey)
                     .font(.headline)
-                localizedText(textKey)
+                LocalizedText(textKey)
                     .font(.callout)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -103,7 +103,7 @@ struct InlineStatusLabel: View {
     var body: some View {
         Label {
             if let localizedTextKey {
-                localizedText(localizedTextKey)
+                LocalizedText(localizedTextKey)
             } else {
                 Text(text)
             }

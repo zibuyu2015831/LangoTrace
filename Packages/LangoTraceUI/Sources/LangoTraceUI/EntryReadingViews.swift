@@ -223,7 +223,7 @@ struct EntryReadingView: View {
     }
 
     private var emptyCard: some View {
-        localizedText("entry.reading.empty")
+        LocalizedText("entry.reading.empty")
             .font(.callout)
             .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)

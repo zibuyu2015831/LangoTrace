@@ -4,11 +4,16 @@ import SwiftUI
 struct SyncSettingsView: View {
     let languageSpace: LanguageSpacePreview
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.locale) private var locale
     @State private var draft = SyncSettingsDraft()
     @State private var showsICloudPreview = false
     @State private var showsS3Draft = false
 
     var body: some View {
+        // Establish a dependency on the interface locale so this container's
+        // inline `localizedText` copy re-renders on language change; value-stable
+        // leaf subviews resolve reactively via `LocalizedText`.
+        let _ = locale
         syncSettingsContent
             .sheet(isPresented: $showsICloudPreview) {
                 NavigationStack {
@@ -223,9 +228,9 @@ private struct SyncScopeRow: View {
                 .frame(width: 28, height: 28)
 
             VStack(alignment: .leading, spacing: 4) {
-                localizedText(item.titleKey)
+                LocalizedText(item.titleKey)
                     .font(.callout.weight(.semibold))
-                localizedText(item.summaryKey)
+                LocalizedText(item.summaryKey)
                     .font(.footnote)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -241,7 +246,7 @@ private struct SyncScopeRow: View {
                 .accessibilityLabel(localizedString(item.titleKey))
                 .accessibilityValue(localizedString(item.state.titleKey))
             } else {
-                localizedText(item.state.titleKey)
+                LocalizedText(item.state.titleKey)
                     .font(.caption.weight(.bold))
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     .padding(.horizontal, 8)
@@ -289,7 +294,7 @@ private struct ICloudSyncPreviewView: View {
                 Button {
                     dismiss()
                 } label: {
-                    localizedText("syncSettings.iCloudPreview.close")
+                    LocalizedText("syncSettings.iCloudPreview.close")
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.primaryActionForeground)
                         .frame(maxWidth: .infinity, minHeight: LangoTraceDesign.Density.minimumTouchTarget)

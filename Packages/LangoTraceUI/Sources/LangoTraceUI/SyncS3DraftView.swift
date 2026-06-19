@@ -165,12 +165,14 @@ private struct SyncSettingsTextField: View {
     @Binding var text: String
     let keyboardHint: AIProviderKeyboardHint
 
+    @Environment(\.locale) private var locale
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            localizedText(titleKey)
+            LocalizedText(titleKey)
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-            TextField(localizedString(titleKey), text: $text)
+            TextField(localizedString(titleKey, locale: locale), text: $text)
                 .langoSyncTextInput(keyboardHint: keyboardHint)
                 .padding(.horizontal, 12)
                 .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)

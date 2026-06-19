@@ -7,6 +7,40 @@ func localizedText(_ key: String) -> Text {
     Text(localizedString(key))
 }
 
+/// Reactive chrome text leaf.
+///
+/// Unlike the free `localizedText(_:)` (which resolves from the non-observable
+/// global resolver and therefore does not re-render on language change), this
+/// view reads `@Environment(\.locale)` — injected by the App from the resolved
+/// interface-language code — and resolves copy directly from that locale. Reading
+/// the environment establishes a SwiftUI dependency, so the leaf re-renders the
+/// instant the interface language changes, even when its other inputs are stable.
+/// Resolving from the passed locale (not the global box) also avoids any ordering
+/// dependency on when the resolver box is written.
+struct LocalizedText: View {
+    let key: String
+
+    @Environment(\.locale) private var locale
+
+    init(_ key: String) {
+        self.key = key
+    }
+
+    var body: Text {
+        Text(localizedString(key, locale: locale))
+    }
+}
+
+/// Locale-scoped chrome lookup for the reactive view path. The free
+/// `localizedString(_:)` overload keeps reading the global resolver for
+/// non-View callers and the App-init early path.
+func localizedString(_ key: String, locale: Locale) -> String {
+    LocalizedChromeCatalog.shared.localizedString(
+        for: key,
+        preferredLanguageCodes: [locale.identifier]
+    )
+}
+
 func localizedString(_ key: String) -> String {
     LocalizedChromeCatalog.shared.localizedString(
         for: key,

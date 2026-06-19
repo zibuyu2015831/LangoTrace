@@ -124,9 +124,11 @@ private struct FilterChipButton: View {
     let isSelected: Bool
     let action: () -> Void
 
+    @Environment(\.locale) private var locale
+
     var body: some View {
         Button(action: action) {
-            localizedText(titleKey)
+            LocalizedText(titleKey)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(
                     isSelected
@@ -145,7 +147,7 @@ private struct FilterChipButton: View {
         .buttonStyle(.plain)
         .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
         .contentShape(Rectangle())
-        .accessibilityLabel(localizedText(titleKey))
+        .accessibilityLabel(Text(localizedString(titleKey, locale: locale)))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

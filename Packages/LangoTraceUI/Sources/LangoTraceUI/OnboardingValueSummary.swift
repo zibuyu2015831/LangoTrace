@@ -15,11 +15,11 @@ struct PadOnboardingValueStripItem: View {
             valueIcon(systemImage: item.systemImage)
 
             VStack(alignment: .leading, spacing: 4) {
-                localizedText(item.titleKey)
+                LocalizedText(item.titleKey)
                     .font(.headline)
                     .foregroundStyle(LangoTraceDesign.ColorToken.ink)
                     .fixedSize(horizontal: false, vertical: true)
-                localizedText(item.subtitleKey)
+                LocalizedText(item.subtitleKey)
                     .font(.footnote)
                     .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
                     .fixedSize(horizontal: false, vertical: true)
@@ -38,11 +38,11 @@ struct PadOnboardingValueListItem: View {
                 .frame(width: 58, height: 58)
 
             VStack(alignment: .leading, spacing: 6) {
-                localizedText(item.titleKey)
+                LocalizedText(item.titleKey)
                     .font(.headline)
                     .foregroundStyle(LangoTraceDesign.ColorToken.ink)
                     .fixedSize(horizontal: false, vertical: true)
-                localizedText(item.subtitleKey)
+                LocalizedText(item.subtitleKey)
                     .font(.subheadline)
                     .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
                     .fixedSize(horizontal: false, vertical: true)
