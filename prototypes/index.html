@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>语迹 LangoTrace · 多端原型总览</title>
+<link rel="stylesheet" href="shared/tokens.css">
+<link rel="stylesheet" href="shared/components.css">
+<style>
+  .intro {
+    max-width: 760px;
+    margin-bottom: 34px;
+  }
+  .intro .slogan { font-size: 17px; color: var(--ink-2); margin-top: 10px; }
+  .platform-section { margin-bottom: 38px; }
+  .platform-section h2 {
+    font-size: 18px; font-weight: 720; letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+  .platform-section .platform-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 14px; }
+  .page-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+  }
+  .page-link {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 14px 16px;
+    border-radius: var(--r-md);
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-card);
+    color: var(--ink);
+    transition: background-color 0.2s ease;
+  }
+  .page-link:hover { background: var(--surface-2); text-decoration: none; }
+  .page-link .pl-title { font-size: 15px; font-weight: 680; display: flex; align-items: center; gap: 8px; }
+  .page-link .pl-sub { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .principles { margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="intro">
+    <div class="proto-eyebrow">LangoTrace Prototypes · 2026-06</div>
+    <h1 style="font-size:32px;font-weight:760;letter-spacing:-0.02em">语迹 · 多端原型总览</h1>
+    <p class="slogan">用生活记录学习语言 · Learn languages from your life</p>
+    <p class="proto-note" style="margin-top:14px;margin-bottom:0">本原型集覆盖已实现页面与路线中待开发页面的目标设计。当前实现事实以 <code>docs/platform-page-inventory.md</code> 为准；标注 <span class="tag-target-design">目标设计</span> 的页面或区块尚未实现，不构成实现授权。</p>
+  </div>
+
+  <div class="platform-section">
+    <h2>iPhone</h2>
+    <p class="platform-sub">单列、大入口、一次聚焦一个任务。四 Tab：记录 / 阅读 / 练习 / 记忆，设置经顶部 gear 进入。</p>
+    <div class="page-grid">
+      <a class="page-link" href="iphone/welcome.html"><span class="pl-title">Welcome</span><span class="pl-sub">首次启动的产品定位说明，无营销化首屏</span></a>
+      <a class="page-link" href="iphone/onboarding.html"><span class="pl-title">Onboarding</span><span class="pl-sub">母语 / 目标语言 / 水平自评，创建第一个语言空间</span></a>
+      <a class="page-link" href="iphone/record.html"><span class="pl-title">记录 Tab · 时间线</span><span class="pl-sub">Hero 双入口 + 按日分组生活时间线与筛选</span></a>
+      <a class="page-link" href="iphone/entry-editor.html"><span class="pl-title">写一句 · 编辑 sheet</span><span class="pl-sub">标题 + 正文的本地记录编辑</span></a>
+      <a class="page-link" href="iphone/photo-writing.html"><span class="pl-title">照片写作</span><span class="pl-sub">从一张照片出发引导表达</span></a>
+      <a class="page-link" href="iphone/entry-detail.html"><span class="pl-title">记录详情</span><span class="pl-sub">双文本卡、生成 / 重新分析、逐句 听 / 练</span></a>
+      <a class="page-link" href="iphone/reading.html"><span class="pl-title">阅读 Tab · 资料库</span><span class="pl-sub">导入、搜索、筛选与文档列表</span></a>
+      <a class="page-link" href="iphone/reading-document.html"><span class="pl-title">阅读详情</span><span class="pl-sub">连续正文 + 选中文本的底部学习面板</span></a>
+      <a class="page-link" href="iphone/practice.html"><span class="pl-title">练习 Tab</span><span class="pl-sub">可练习记录卡片列表</span></a>
+      <a class="page-link" href="iphone/practice-sentences.html"><span class="pl-title">练习 · 句子列表</span><span class="pl-sub">记录内句子队列与练习方式入口</span></a>
+      <a class="page-link" href="iphone/practice-session.html"><span class="pl-title">练习 · 单句跟读</span><span class="pl-sub">听示范、录音、回放、句间导航</span></a>
+      <a class="page-link" href="iphone/practice-dictation.html"><span class="pl-title">练习 · 听写 <span class="tag-target-design">目标设计</span></span><span class="pl-sub">听音频写句子，本机校对</span></a>
+      <a class="page-link" href="iphone/practice-backtranslation.html"><span class="pl-title">练习 · 回译 <span class="tag-target-design">目标设计</span></span><span class="pl-sub">看母语回译目标语言，对照参考表达</span></a>
+      <a class="page-link" href="iphone/memory.html"><span class="pl-title">记忆 Tab <span class="tag-target-design">目标设计</span></span><span class="pl-sub">从生活沉淀的词句与低压力复习</span></a>
+      <a class="page-link" href="iphone/settings.html"><span class="pl-title">设置</span><span class="pl-sub">语言空间、界面语言、外观、AI、同步等</span></a>
+      <a class="page-link" href="iphone/settings-ai-provider.html"><span class="pl-title">设置 · AI Provider</span><span class="pl-sub">文本 / 语音 / 向量模型配置与分能力测试</span></a>
+      <a class="page-link" href="iphone/settings-sync.html"><span class="pl-title">设置 · 同步</span><span class="pl-sub">iCloud 推荐路径与 S3 高级配置</span></a>
+      <a class="page-link" href="iphone/language-spaces.html"><span class="pl-title">语言空间</span><span class="pl-sub">快速切换 sheet 与完整管理页</span></a>
+    </div>
+  </div>
+
+  <div class="platform-section">
+    <h2>状态与边界 · iPhone</h2>
+    <p class="platform-sub">兑现「状态有设计」原则：空 / 加载 / 失败 / 未配置不是裸文本。每类至少一页，优先对应已实现行为。</p>
+    <div class="page-grid">
+      <a class="page-link" href="iphone/record-empty.html"><span class="pl-title">记录 · 首启空态</span><span class="pl-sub">新用户前门，引导写下第一条记录</span></a>
+      <a class="page-link" href="iphone/entry-detail-generating.html"><span class="pl-title">记录详情 · 生成中</span><span class="pl-sub">生成学习材料加载态 + 取消入口</span></a>
+      <a class="page-link" href="iphone/entry-detail-failed.html"><span class="pl-title">记录详情 · 生成失败</span><span class="pl-sub">为何失败 + 重试 + 本地记录未受影响</span></a>
+      <a class="page-link" href="iphone/settings-ai-provider-unconfigured.html"><span class="pl-title">设置 · AI 未配置</span><span class="pl-sub">引导态 + 能力 gated 说明 + 本地优先披露</span></a>
+      <a class="page-link" href="iphone/memory-empty.html"><span class="pl-title">记忆 · 空态 <span class="tag-target-design">目标设计</span></span><span class="pl-sub">从真实学习行为沉淀词句</span></a>
+    </div>
+  </div>
+
+  <div class="platform-section">
+    <h2>iPad</h2>
+    <p class="platform-sub">三栏工作台：左侧时间线 / 入口，中央主区为视觉焦点，右侧学习面板随 route 展示上下文，两侧可收起。</p>
+    <div class="page-grid">
+      <a class="page-link" href="ipad/workspace.html"><span class="pl-title">学习工作台</span><span class="pl-sub">时间线 + 记录详情 + 学习面板三栏</span></a>
+      <a class="page-link" href="ipad/reading.html"><span class="pl-title">阅读工作台</span><span class="pl-sub">资料库侧栏 + 阅读画布 + 学习 inspector</span></a>
+      <a class="page-link" href="ipad/practice.html"><span class="pl-title">练习</span><span class="pl-sub">句子列表与单句跟读在主区进行</span></a>
+      <a class="page-link" href="ipad/memory.html"><span class="pl-title">记忆 <span class="tag-target-design">目标设计</span></span><span class="pl-sub">沉淀地图与主题召回</span></a>
+      <a class="page-link" href="ipad/settings.html"><span class="pl-title">设置</span><span class="pl-sub">设置焦点态与共享能力详情</span></a>
+    </div>
+  </div>
+
+  <div class="platform-section">
+    <h2>macOS</h2>
+    <p class="platform-sub">桌面工作台：Sidebar + 主区 + Inspector + 菜单命令，更高信息密度与键盘路径。</p>
+    <div class="page-grid">
+      <a class="page-link" href="mac/workspace.html"><span class="pl-title">工作台</span><span class="pl-sub">Today / Entries、记录详情与 Inspector</span></a>
+      <a class="page-link" href="mac/reading.html"><span class="pl-title">阅读</span><span class="pl-sub">三栏阅读工作台与右键解释</span></a>
+      <a class="page-link" href="mac/practice.html"><span class="pl-title">练习</span><span class="pl-sub">桌面密度的句子列表与单句跟读</span></a>
+      <a class="page-link" href="mac/memory.html"><span class="pl-title">记忆 <span class="tag-target-design">目标设计</span></span><span class="pl-sub">资料库式记忆浏览</span></a>
+      <a class="page-link" href="mac/settings.html"><span class="pl-title">设置</span><span class="pl-sub">工作台设置区与原生 Settings 语义</span></a>
+      <a class="page-link" href="mac/search.html"><span class="pl-title">全局搜索 <span class="tag-target-design">目标设计</span></span><span class="pl-sub">Command Palette 式当前空间搜索</span></a>
+      <a class="page-link" href="mac/import-export.html"><span class="pl-title">导入导出 <span class="tag-target-design">目标设计</span></span><span class="pl-sub">导出包范围、附件开关与密钥边界</span></a>
+    </div>
+  </div>
+
+  <div class="proto-annotations principles" style="margin-left:0;max-width:860px">
+    <h2>设计原则</h2>
+    <ul>
+      <li><strong>安静、清晰、长期可读</strong>：学习工具感与个人资料库感；无游戏化闯关、社区 feed、营销海报。</li>
+      <li><strong>视觉基准</strong>：沿用 2026-05-23 已审核外观色板 — 暖纸面背景、墨色文字、松绿 accent；系统字体栈；内联描边 SVG 图标，无 emoji 图标。</li>
+      <li><strong>本地优先与显式触发</strong>：照片、日记、音频只在用户明确触发 AI 能力时外发；AI / 同步状态有可理解的 UI 表达但不打扰主流程。</li>
+      <li><strong>状态有设计</strong>：空状态、加载、失败、未配置均不是裸文本；状态不以颜色为唯一信息。</li>
+      <li><strong>触控与可访问性</strong>：触控目标 ≥ 44pt；图标按钮带辅助标签；动效尊重 Reduce Motion。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

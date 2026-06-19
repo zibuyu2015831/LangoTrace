@@ -2,6 +2,8 @@
 .vscode/
 .idea/
 .claude/
+.superpowers/
+/AI-Coding-Context
 
 # macOS
 .DS_Store
@@ -52,10 +54,30 @@ playground.xcworkspace
 .env.*
 !.env.example
 
+# Local GitHub CLI token (fine-grained PAT, project-scoped; never commit)
+/.gh-token
+
+# Local reference project symlinks
+/docs/reference/projects/vmark
+
 # Logs and temporary files
+/logs/
+
+# Probe scripts — real credentials and generated audio output
+scripts/probe/.env
+scripts/probe/audio/**/*.wav
+scripts/probe/audio/**/*.mp3
+scripts/probe/audio/**/*.pcm
+scripts/probe/audio/**/*.opus
+scripts/probe/audio/**/*.aac
+scripts/probe/audio/**/*.flac
+scripts/probe/audio/**/*.ogg
 *.log
 *.tmp
 *.swp
+
+# Local scratch images (screenshots, ad-hoc diagrams)
+/img/
 
 # CocoaPods
 #
@@ -86,3 +108,9 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# One-off local build logs (use logs/ for diagnostics)
+/build_output*.txt
+
+# Python bytecode caches
+__pycache__/

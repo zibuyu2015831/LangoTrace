@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+mode="show"
+last_duration="30m"
+device="booted"
+use_macos=0
+category="all"
+output_path=""
+update_latest=1
+
+usage() {
+  cat <<'EOF'
+用法:
+  scripts/capture-runtime-log [选项]
+
+说明:
+  采集 LangoTrace 运行时日志到项目根目录 logs/，方便本机 AI 辅助排查。
+  默认从 booted iOS Simulator 导出最近 30 分钟日志，并写入 logs/latest.log。
+
+选项:
+  --last <duration>       导出最近一段历史日志，例如 5m、30m、1h。默认 30m。
+  --stream                实时采集日志，直到手动中断。
+  --device <uuid|booted>  指定模拟器设备。默认 booted。
+  --macos                 采集宿主机 macOS unified log，而不是 simulator log。
+  --category <name>       追加分类过滤。当前支持 all、ai-provider。默认 all。
+  --output <path>         指定输出文件路径。默认 logs/runtime-YYYYMMDD-HHMMSS.log。
+  --no-latest             不更新 logs/latest.log。
+  -h, --help              显示帮助。
+
+示例:
+  scripts/capture-runtime-log --last 10m
+  scripts/capture-runtime-log --stream
+  scripts/capture-runtime-log --last 30m --category ai-provider
+  scripts/capture-runtime-log --macos --last 15m
+
+隐私边界:
+  本脚本只采集 OSLog / unified log。App 日志仍不得记录 API Key、Authorization header、
+  请求体、响应体、用户正文、照片、音频或转写全文。
+EOF
+}
+
+fail() {
+  echo "错误: $*" >&2
+  exit 1
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --last)
+      [[ $# -ge 2 ]] || fail "--last 需要 duration 参数"
+      mode="show"
+      last_duration="$2"
+      shift 2
+      ;;
+    --stream)
+      mode="stream"
+      shift
+      ;;
+    --device)
+      [[ $# -ge 2 ]] || fail "--device 需要 uuid 或 booted 参数"
+      device="$2"
+      shift 2
+      ;;
+    --macos)
+      use_macos=1
+      shift
+      ;;
+    --category)
+      [[ $# -ge 2 ]] || fail "--category 需要分类名称"
+      category="$2"
+      shift 2
+      ;;
+    --output)
+      [[ $# -ge 2 ]] || fail "--output 需要路径参数"
+      output_path="$2"
+      shift 2
+      ;;
+    --no-latest)
+      update_latest=0
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      fail "未知参数: $1"
+      ;;
+  esac
+done
+
+case "$category" in
+  all|ai-provider)
+    ;;
+  *)
+    fail "不支持的 category: $category。当前支持 all、ai-provider"
+    ;;
+esac
+
+mkdir -p logs
+
+timestamp="$(date +%Y%m%d-%H%M%S)"
+if [[ -z "$output_path" ]]; then
+  if [[ "$category" == "all" ]]; then
+    output_path="logs/runtime-${timestamp}.log"
+  else
+    output_path="logs/runtime-${category}-${timestamp}.log"
+  fi
+fi
+
+mkdir -p "$(dirname "$output_path")"
+
+predicate='process == "LangoTrace" OR subsystem == "com.zibuyu.LangoTrace"'
+if [[ "$category" == "ai-provider" ]]; then
+  predicate="(${predicate}) OR eventMessage CONTAINS[c] \"AIProvider\" OR eventMessage CONTAINS[c] \"aiProvider\" OR eventMessage CONTAINS[c] \"configurationProbe\""
+fi
+
+echo "采集模式: ${mode}"
+if [[ "$use_macos" -eq 1 ]]; then
+  echo "来源: macOS unified log"
+else
+  echo "来源: iOS Simulator (${device})"
+fi
+echo "分类: ${category}"
+echo "输出: ${output_path}"
+
+if [[ "$mode" == "stream" ]]; then
+  echo "开始实时采集，按 Ctrl+C 停止。"
+  if [[ "$use_macos" -eq 1 ]]; then
+    log stream --style compact --predicate "$predicate" | tee "$output_path"
+  else
+    xcrun simctl spawn "$device" log stream --style compact --predicate "$predicate" | tee "$output_path"
+  fi
+else
+  if [[ "$use_macos" -eq 1 ]]; then
+    log show --last "$last_duration" --style compact --predicate "$predicate" > "$output_path"
+  else
+    xcrun simctl spawn "$device" log show --last "$last_duration" --style compact --predicate "$predicate" > "$output_path"
+  fi
+fi
+
+if [[ "$update_latest" -eq 1 ]]; then
+  cp "$output_path" logs/latest.log
+  echo "已更新: logs/latest.log"
+fi
+
+echo "完成: ${output_path}"

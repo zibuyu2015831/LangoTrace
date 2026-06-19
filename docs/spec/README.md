@@ -1,0 +1,146 @@
+# 规范文档总入口
+
+本目录用于记录语迹 LangoTrace 的开发规范、模块规范和实现地图规则。它面向后续 AI 辅助编程和人工开发，目标是让不同会话、不同功能和不同阶段的代码保持一致的产品心智、架构边界和交互风格。
+
+规范不是一成不变的教条。开发过程中如果发现更优设计，可以更新规范；但必须记录变更原因、影响范围和是否需要 ADR。
+
+## 1. 规范分层
+
+语迹的 spec 分为三层：
+
+1. 强制规则：后续实现必须遵守，除非先更新 ADR 或主参考文档。
+2. 默认推荐：当前阶段推荐做法，允许在具体实现中根据证据调整。
+3. 可演进部分：需要通过实际工程、原型和测试验证后逐步收紧。
+
+强制规则通常涉及：
+
+- 产品核心模型。
+- 数据和隐私边界。
+- AI 请求边界。
+- 密钥和同步边界。
+- 模块依赖方向。
+- 付费 App 的基本质量门槛。
+
+默认推荐通常涉及：
+
+- UI 组件命名。
+- SwiftUI 状态管理方式。
+- 文件拆分粒度。
+- 设计 token 命名。
+- 平台适配方式。
+
+## 2. 当前核心规范
+
+第一批规范：
+
+- [001：开发规范治理](001-guideline-governance.md)
+- [002：导航与路由规范](002-navigation-and-routing.md)
+- [003：UI 设计系统规范](003-ui-design-system.md)
+- [004：SwiftUI 架构规范](004-swiftui-architecture.md)
+- [005：AI Provider、Prompt 与隐私规范](005-ai-provider-prompt-and-privacy.md)
+- [006：界面国际化与语言边界规范](006-interface-localization-and-language-boundaries.md)
+- [007：数据存储、迁移、导出与附件规范](007-data-storage-migration-export-and-attachments.md)
+- [008：权限、本地隐私与诊断日志规范](008-permissions-local-privacy-and-diagnostics.md)
+- [009：测试与验证入口规范](009-testing-and-verification.md)
+- [010：Apple 三端交互与可访问性规范](010-apple-platform-interaction-and-accessibility.md)
+- [011：TTS Provider 配置、测试与播放前置规范](011-tts-provider-configuration-and-playback.md)
+- [012：阅读学习域规范](012-reading-learning-domain.md)
+- [013：练习学习域规范](013-practice-learning-domain.md)
+
+当前模块实现地图：
+
+- [interface-localization 实现地图](interface-localization/impl.md)
+- [navigation 实现地图](navigation/impl.md)
+- [learning-content 实现地图](learning-content/impl.md)
+- [media-artifacts 实现地图](media-artifacts/impl.md)
+
+## 3. 模块化 spec 与实现地图
+
+当前目录先保留平铺规范文件。随着功能稳定，可以逐步为高风险模块建立同目录结构：
+
+```text
+docs/spec/<module>/
+  spec.md
+  impl.md
+  decisions/
+```
+
+- `spec.md`：定义模块规范、边界、不变量、状态流、反例和验证要求。
+- `impl.md`：描述当前实现地图，包括代码文件、核心类型、关键流程、测试覆盖和已知偏差。
+- `decisions/`：记录模块内低于 ADR 级别、但会影响后续实现的局部选择；若决策影响产品核心模型、数据、隐私、同步或付费，必须提升到 `docs/decisions/`。
+
+`impl.md` 只描述当前实现，不定义新规范、不替代 ADR、不承载产品决策。如果实现地图暴露规范缺口，应更新对应 `spec.md`、平铺 spec 或 ADR。
+
+实现地图模板见 [impl-template.md](examples/impl-template.md)。
+
+后续高风险模块优先采用该结构：
+
+- AI Provider。
+- TTS Provider 与逐句播放。
+- Storage、migration、attachments、export、backup。
+- Sync Engine 和 Adapter。
+- Permissions、diagnostics、runtime logs。
+- Prompt execution。
+- StoreKit、release 和隐私标签。
+
+当前顶层 spec 不要求一次性迁移。只有当模块继续扩展、实现地图变长、故障恢复路径增多或需要模块级局部决策时，才通过任务方案逐步拆分。
+
+## 4. 故障与恢复路径矩阵
+
+参考 VMark `dev-docs/error-recovery.md` 的经验，高风险模块的 `spec.md` 或 `impl.md` 应在能力稳定后补充故障与恢复路径矩阵。
+
+建议字段：
+
+| 故障模式 | 恢复路径 | 自动化覆盖 | 测试文件或手动验证 | 剩余风险 |
+| --- | --- | --- | --- | --- |
+
+适用模块：
+
+- 数据迁移、Repository、导出、备份和附件。
+- AI Provider、Prompt、结构化输出、请求预览和请求日志。
+- TTS Provider、音频缓存、播放 coordinator。
+- 权限、诊断日志、runtime log capture。
+- 同步冲突、对象存储和 Keychain 缺失恢复。
+
+故障矩阵不替代测试。若某项恢复路径无法自动化，应在任务方案、testing 文档或 review 记录中说明手动验证方式和剩余风险。
+
+后续建议补充：
+
+- 领域模型规范。
+- 错误、空状态和加载状态规范。
+- 错误状态与恢复路径的模块化实现地图。
+
+## 5. AI 开发使用方式
+
+后续 AI 会话如果涉及具体开发，应先阅读：
+
+1. 根目录 `AI_ENTRY_POINT.md`、`CLAUDE.md`、`AGENTS.md` 或 `docs/README.md`
+2. 与任务相关的主参考文档或 ADR
+3. 本目录中对应的 spec
+
+例如：
+
+- 做 App Shell 或页面跳转：读导航与路由规范。
+- 做 SwiftUI 页面或组件：读 UI 设计系统规范和 SwiftUI 架构规范；新增或重构页面时同时对照 `prototypes/index.html` 的目标设计基准，约束以 spec 为准。
+- 做 Apple 三端页面、控制、菜单、键盘、指针、Dynamic Type 或 VoiceOver：读 Apple 三端交互与可访问性规范。
+- 做 AI 请求、Prompt、TTS、OCR、写作检查：读 AI Provider、Prompt 与隐私规范。
+- 发现现有代码和规范冲突：先报告冲突，再提出修正规范或修代码的方案。
+
+AI 不应在没有读取相关规范的情况下自行发明新的导航模式、组件风格、Provider 调用路径或数据边界。
+
+## 6. 变更规则
+
+规范允许演进，但需要遵守以下规则：
+
+- 小型样式或命名调整：更新对应 spec 的变更记录。
+- 影响多个模块的开发约定：更新 spec，并在相关开发文档中说明。
+- 影响产品核心模型、技术路线、数据边界、隐私边界或商业模式：必须新增或更新 ADR。
+- 如果规范与实际代码不一致，应明确是“代码需要修正”还是“规范需要更新”。
+
+## 7. 当前状态
+
+状态：Accepted
+
+适用阶段：工程初始化前、SwiftUI App Shell、MVP 早期开发。
+
+本目录当前定义 MVP 早期高优先级规范，已覆盖导航、UI、SwiftUI 架构、AI / 隐私、国际化、数据、权限诊断、测试验证、Apple 三端交互 / 可访问性和 TTS Provider 配置 / 播放前置边界。随着工程创建、真实代码出现和 MVP 推进，应继续补充发布、StoreKit、同步冲突、真实 AI 学习请求和模块级实现地图。当前项目仍处于起步阶段，spec 会随着功能开发持续总结和完善；如果发现更优设计，或功能开发需要补充模块级不变量、实现地图和验证规则，可以更新对应 spec。

@@ -3,17 +3,86 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-xcodegen generate
-xcodebuild -list -project LangoTrace.xcodeproj
-swift test --package-path Packages/LangoTraceCore
-swift test --package-path Packages/LangoTraceUI
-xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
-xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
-xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
-swiftlint --no-cache
-swiftformat --lint . --cache ignore
-if rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'; then
-  echo "Documentation placeholder scan found entries." >&2
-  exit 1
-fi
-git status --short
+run() {
+  echo
+  echo "==> $*"
+  "$@"
+}
+
+# Ensure all required tools are present
+for tool in git python3 rg swift xcodebuild xcodegen swiftlint swiftformat; do
+  command -v "$tool" >/dev/null 2>&1 || {
+    echo "Missing required tool: $tool" >&2
+    exit 127
+  }
+done
+
+run xcodegen generate
+run xcodebuild -list -project LangoTrace.xcodeproj
+
+# Run tests sequentially to ensure steady output
+run swift test --package-path Packages/LangoTraceCore
+run swift test --package-path Packages/LangoTraceData
+run swift test --package-path Packages/LangoTraceAI
+run swift test --package-path Packages/LangoTraceSpeech
+run swift test --package-path Packages/LangoTraceSync
+run swift test --package-path Packages/LangoTraceUI
+
+run python3 -m unittest discover -s Tests/Tooling -p 'test_*.py'
+
+# Progress reporter to prevent timeouts
+heartbeat() {
+  while true; do
+    sleep 30
+    echo "... still working ($1) ..."
+  done
+}
+
+HEARTBEAT_PID=""
+cleanup_heartbeat() {
+  if [[ -n "$HEARTBEAT_PID" ]]; then
+    kill "$HEARTBEAT_PID" 2>/dev/null || true
+    HEARTBEAT_PID=""
+  fi
+}
+trap cleanup_heartbeat EXIT INT TERM
+
+run_with_heartbeat() {
+  local name="$1"
+  shift
+  echo "==> Running $name"
+  heartbeat "$name" &
+  HEARTBEAT_PID=$!
+  # Filter output to keep the log manageable, but never let the filter mask
+  # the build/test command's own exit status (grep returning 1 on no match
+  # must be tolerated; the xcodebuild status must be propagated).
+  "$@" | { grep --line-buffered -iE "error:|warning:|built|failed|linking|passed|suite" || true; }
+  local status=${PIPESTATUS[0]}
+  cleanup_heartbeat
+  if [[ "$status" -ne 0 ]]; then
+    echo "==> $name failed with exit status $status" >&2
+    exit "$status"
+  fi
+}
+
+run_with_heartbeat "LangoTrace-iOS (iPhone 17) build" \
+  xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
+
+run_with_heartbeat "LangoTrace-iOS (iPad Pro 13-inch (M5)) build" \
+  xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
+
+run_with_heartbeat "LangoTrace-macOS build" \
+  xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
+
+run_with_heartbeat "LangoTrace-macOS AppTests" \
+  xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests
+
+run swiftlint --no-cache
+run swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore
+
+run scripts/check-docs.sh
+run git diff --check
+run git status --short
+
+echo
+echo "==> Verification Successful!"

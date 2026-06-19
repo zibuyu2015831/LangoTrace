@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>macOS · 阅读 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  /* macOS 桌面密度覆盖 */
+  .sidebar { width: 240px; padding: 12px 10px; }
+  .side-section { font-size: 11px; font-weight: 720; letter-spacing: 0.06em; color: var(--faint); padding: 2px 10px 4px; }
+  .side-item { min-height: 34px; padding: 6px 10px; gap: 9px; font-size: 13.5px; border-radius: 9px; }
+  .side-item .count { font-size: 11px; }
+  .side-footer { padding-top: 9px; }
+  .side-footer .space-name { font-size: 12.5px; }
+  .side-footer .space-dir { font-size: 11px; }
+  .side-footer .footer-icons .icon-btn { width: 32px; height: 32px; }
+  .window-title { font-size: 13px; font-weight: 650; white-space: nowrap; }
+  .mac-toolbar .spacer { flex: 1; }
+  .mac-toolbar .search-field { flex: 1; max-width: 260px; min-height: 32px; padding: 5px 12px; font-size: 13px; border-radius: 9px; }
+  .mac-toolbar .search-field .kbd { margin-left: auto; }
+  .mac-toolbar .icon-btn { width: 34px; height: 34px; border-radius: 9px; }
+  .mac-toolbar .btn-sm { min-height: 30px; padding: 4px 12px; font-size: 12.5px; border-radius: 9px; }
+
+  /* 阅读三栏：main-pane 内部分两列 */
+  .reading-split { flex: 1; display: flex; min-height: 0; }
+  .library { width: 260px; flex: none; display: flex; flex-direction: column; gap: 10px; padding: 14px 12px; border-right: 1px solid var(--hairline); overflow: auto; }
+  .library .search-field { min-height: 32px; padding: 5px 12px; font-size: 13px; border-radius: 9px; }
+  .library-actions { display: flex; gap: 6px; }
+  .library-actions .btn-sm { flex: 1; min-height: 28px; padding: 3px 8px; font-size: 12px; border-radius: 8px; }
+  .doc-rows { display: flex; flex-direction: column; gap: 2px; }
+  .doc-row { padding: 8px 11px; border-radius: var(--r-sm); cursor: pointer; }
+  .doc-row:hover { background: rgba(23, 32, 30, 0.05); }
+  .doc-row.active { background: var(--accent-tint); }
+  .doc-row.active .doc-title { color: var(--accent-deep); }
+  .doc-title { font-size: 13px; font-weight: 640; line-height: 1.35; }
+  .doc-meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+  .canvas { flex: 1; min-width: 0; overflow: auto; padding: 36px 32px 48px; }
+  .article { max-width: 640px; margin: 0 auto; position: relative; }
+  .article h2 { font-size: 23px; font-weight: 740; letter-spacing: -0.01em; line-height: 1.3; }
+  .article .doc-info { margin-top: 5px; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .article p.para { margin-top: 18px; font-size: 16px; line-height: 1.75; color: var(--ink); }
+  .highlight { background: var(--highlight); border-radius: 4px; padding: 0 2px; position: relative; }
+
+  /* macOS 右键菜单 mock：锚定在高亮短语下方 */
+  .ctx-menu {
+    position: absolute; top: calc(100% + 8px); left: -4px;
+    display: block; width: 184px; padding: 5px; z-index: 6;
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: var(--r-sm); box-shadow: var(--shadow-float);
+    font-size: 13px; font-weight: 500; line-height: 1.4; white-space: nowrap;
+  }
+  .ctx-item { display: flex; align-items: center; gap: 8px; padding: 6px 9px; border-radius: 8px; cursor: pointer; color: var(--ink); }
+  .ctx-item:hover { background: var(--surface-2); }
+  .ctx-item.accent { background: var(--accent-tint); color: var(--accent-deep); font-weight: 650; }
+  .ctx-sep { display: block; height: 1px; background: var(--hairline); margin: 4px 6px; }
+
+  /* Inspector */
+  .inspector { gap: 10px; overflow: auto; }
+  .inspector h3 { margin-top: 6px; }
+  .inspector h3:first-child { margin-top: 0; }
+  .quote-card { background: var(--surface); border: 1px solid var(--hairline); border-left: 3px solid var(--accent); border-radius: var(--r-sm); padding: 10px 12px; font-size: 14px; font-weight: 620; color: var(--target-lang); line-height: 1.5; }
+  .explain-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: 12px; }
+  .explain-card .body { font-size: 13px; line-height: 1.7; color: var(--ink-2); }
+  .explain-card .ops { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .explain-card .op-btn { min-height: 30px; min-width: 0; padding: 3px 12px; font-size: 12.5px; }
+  .explain-card .btn-sm { min-height: 28px; padding: 3px 10px; font-size: 12.5px; border-radius: 8px; }
+  .mem-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: 10px 12px; display: flex; flex-direction: column; gap: 9px; }
+  .ml-item { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .ml-en { font-size: 13px; font-weight: 640; color: var(--target-lang); font-family: var(--font-serif); }
+  .ml-zh { font-size: 11.5px; color: var(--muted); flex: none; }
+  .inspector-footnote { margin-top: auto; padding-top: 10px; font-size: 11.5px; color: var(--muted); line-height: 1.55; }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · macOS</div>
+  <div class="proto-header">
+    <h1>阅读 · 三栏画布</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">macOS 阅读形态（已实现路径）：左侧资料库、中央阅读画布、右侧解释 Inspector。选中文本后通过系统右键菜单显式触发「用语迹解释」，解释结果常驻 Inspector 而不是底部面板。</p>
+
+  <div class="proto-stage">
+    <div class="device-mac">
+      <div class="screen">
+
+        <div class="mac-titlebar">
+          <div class="traffic-lights"><span class="tl-close"></span><span class="tl-min"></span><span class="tl-max"></span></div>
+          <div class="mac-toolbar">
+            <button class="icon-btn" aria-label="切换侧栏">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg>
+            </button>
+            <span class="window-title">语迹 — 英语空间</span>
+            <span class="spacer"></span>
+            <div class="search-field">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8L21 21"/></svg>
+              搜索
+              <span class="kbd">⌘K</span>
+            </div>
+            <button class="btn btn-primary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+              新建记录
+            </button>
+            <button class="icon-btn" aria-label="切换 Inspector">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M14.5 4.5v15"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="workbench">
+          <aside class="sidebar">
+            <div class="side-section">工作台</div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/><circle cx="12" cy="14.8" r="1.4" fill="currentColor" stroke="none"/></svg>
+              今日 <span class="count">2</span>
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M9 8.5h6M9 12.5h6M9 16.5h4"/></svg>
+              全部记录 <span class="count">24</span>
+            </div>
+            <div class="side-item active">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>
+              阅读 <span class="count">4</span>
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>
+              练习
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/></svg>
+              记忆 <span class="count">5</span>
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v9M8.5 9l3.5 3.5L15.5 9"/><path d="M4 14.5v3A2.5 2.5 0 0 0 6.5 20h11a2.5 2.5 0 0 0 2.5-2.5v-3"/></svg>
+              导入导出
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+              设置
+            </div>
+            <div class="sidebar-spacer"></div>
+            <div class="side-footer">
+              <div>
+                <div class="space-name">英语空间</div>
+                <div class="space-dir">中文 → English</div>
+              </div>
+              <div class="footer-icons">
+                <button class="icon-btn" aria-label="AI Provider 状态">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l1.6 4.1 4.1 1.6-4.1 1.6L12 15.4l-1.6-4.1L6.3 9.7l4.1-1.6L12 4z"/><path d="M18.5 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="同步状态">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a8 8 0 0 0-14.3-3.8"/><path d="M5.5 3.5v4.3h4.3"/><path d="M4 12.5a8 8 0 0 0 14.3 3.8"/><path d="M18.5 20.5v-4.3h-4.3"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="设置">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          <div class="main-pane">
+            <div class="reading-split">
+
+              <div class="library">
+                <div class="search-field">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8L21 21"/></svg>
+                  搜索资料库
+                </div>
+                <div class="library-actions">
+                  <button class="btn btn-secondary btn-sm">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="11" height="13" rx="2.5"/><path d="M5 8.5v10A2.5 2.5 0 0 0 7.5 21H15"/></svg>
+                    粘贴文本
+                  </button>
+                  <button class="btn btn-secondary btn-sm">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13.5v-9M8.5 8L12 4.5 15.5 8"/><path d="M4 14.5v3A2.5 2.5 0 0 0 6.5 20h11a2.5 2.5 0 0 0 2.5-2.5v-3"/></svg>
+                    导入文件
+                  </button>
+                </div>
+                <div class="doc-rows">
+                  <div class="doc-row active">
+                    <div class="doc-title">Why Street Coffee Carts Survive</div>
+                    <div class="doc-meta">英文文章 · 982 词 · 读到 36%</div>
+                  </div>
+                  <div class="doc-row">
+                    <div class="doc-title">Night Running for Beginners</div>
+                    <div class="doc-meta">英文文章 · 1,540 词</div>
+                  </div>
+                  <div class="doc-row">
+                    <div class="doc-title">A Letter from My Pen Pal</div>
+                    <div class="doc-meta">粘贴文本 · 412 词</div>
+                  </div>
+                  <div class="doc-row">
+                    <div class="doc-title">The Quiet Power of Morning Rain</div>
+                    <div class="doc-meta">英文文章 · 760 词</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="canvas">
+                <div class="article">
+                  <h2>Why Street Coffee Carts Survive</h2>
+                  <div class="doc-info">导入于 6月10日 · 982 词 · 读到 36%</div>
+                  <p class="para">The first time I noticed the coffee cart outside our office, I assumed it would be gone within a month. Street vendors come and go in this part of the city, and a cart that sells nothing but espresso seemed like a fragile business.</p>
+                  <p class="para">I was wrong. Three months later the cart is still there, and the line in front of it is often longer than the one inside the chain café across the street. The owner roasts his own beans, remembers people's orders, and leaves at exactly eleven o'clock every morning.</p>
+                  <p class="para">Part of the appeal is scarcity. Because the cart only stays for three hours a day, regulars have <span class="highlight">carved out a small ritual<span class="ctx-menu" role="menu" aria-label="右键菜单">
+                    <span class="ctx-item accent" role="menuitem">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l1.6 4.1 4.1 1.6-4.1 1.6L12 15.4l-1.6-4.1L6.3 9.7l4.1-1.6L12 4z"/><path d="M18.5 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/></svg>
+                      用语迹解释
+                    </span>
+                    <span class="ctx-sep"></span>
+                    <span class="ctx-item" role="menuitem">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="11" height="13" rx="2.5"/><path d="M5 8.5v10A2.5 2.5 0 0 0 7.5 21H15"/></svg>
+                      拷贝
+                    </span>
+                    <span class="ctx-item" role="menuitem">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>
+                      查询系统词典
+                    </span>
+                  </span></span> around it: arrive before the morning meeting, exchange a few words with the owner, and carry the cup upstairs while it is still warm.</p>
+                  <p class="para">There is a lesson here that has little to do with coffee. A small business does not need to win every hour of the day. It needs a moment that belongs to it, and the patience to show up for that moment again and again.</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <aside class="inspector">
+            <h3>选中内容</h3>
+            <div class="quote-card">carved out a small ritual</div>
+
+            <h3>解释</h3>
+            <div class="explain-card">
+              <p class="body">carve out 原义是「凿出、切出」，引申为花心思「开辟、经营出」一块属于自己的东西。carved out a small ritual 指常客们围绕这辆咖啡车，慢慢养成了一套属于自己的小小固定仪式。ritual 在这里不是宗教仪式，而是日常里有仪式感的固定习惯。</p>
+              <div class="ops">
+                <button class="op-btn" aria-label="听选中内容">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+                  听
+                </button>
+                <button class="btn btn-quiet btn-sm">加入记忆</button>
+              </div>
+            </div>
+
+            <h3>本文已加入记忆</h3>
+            <div class="mem-card">
+              <div class="ml-item"><span class="ml-en">a fragile business</span><span class="ml-zh">不稳的生意</span></div>
+              <div class="ml-item"><span class="ml-en">show up again</span><span class="ml-zh">再次出现</span></div>
+            </div>
+
+            <p class="inspector-footnote">解释只在你显式选择「用语迹解释」后请求，阅读和滚动不会发送任何内容。</p>
+          </aside>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>桌面端 persistent Inspector</strong>：解释结果常驻右侧 Inspector，不复用 iPhone 的底部面板；选中内容、解释正文与「听 / 加入记忆」操作在同一栏内完成。</li>
+      <li><strong>右键菜单注入「用语迹解释」</strong>：选中文本后系统右键菜单首项为 accent 高亮的「用语迹解释」，其后是系统的「拷贝」「查询系统词典」；解释请求只由该显式动作触发。</li>
+      <li><strong>资料库栏</strong>：粘贴文本与导入文件是两个并列入口；文档行展示来源类型、词数与阅读进度，选中态用 accent-tint 而非仅颜色变化。</li>
+      <li><strong>编辑走受控 sheet</strong>：文档标题与正文在画布内只读，修改文档元信息或重新分段通过受控 sheet 进行，避免画布内出现可编辑态与阅读态混排。</li>
+      <li>长文渲染性能与键盘 fragment selection（Shift + 方向键扩选后右键解释）需在真机人工验收，不在静态原型中模拟。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

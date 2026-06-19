@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 跟读练习 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .target-line {
+    font-size: 22px;
+    font-weight: 640;
+    line-height: 1.45;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    padding: 6px 2px 2px;
+  }
+  .aux-row {
+    display: flex;
+    gap: 4px;
+    margin-top: 10px;
+  }
+  .gloss {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline);
+    font-size: var(--fs-body);
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+  .op-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 2px 0;
+  }
+  .rec-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+  }
+  .rec-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: var(--shadow-float);
+  }
+  .rec-btn:hover { background: var(--accent-deep); }
+  .rec-hint {
+    font-size: var(--fs-caption);
+    font-weight: 620;
+    color: var(--muted);
+  }
+  .op-meta {
+    margin-top: 14px;
+    text-align: center;
+    font-size: var(--fs-footnote);
+    color: var(--faint);
+  }
+  .sent-nav {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px 8px;
+  }
+  .sent-nav .pos {
+    font-size: var(--fs-sub);
+    font-weight: 620;
+    color: var(--muted);
+  }
+  .nav-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--accent);
+    font-size: var(--fs-sub);
+    font-weight: 640;
+  }
+  .nav-step:hover { background: var(--accent-tint); }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>单句跟读练习</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">单句跟读页：目标句大字常驻，释义与讲解为低权重可展开入口（图中为释义展开态）；操作卡只有听示范、录音、回放三个控件；句间导航贴底，不包卡片。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <button class="nav-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+            句子列表
+          </button>
+          <div class="nav-title">跟读练习</div>
+          <span style="width:84px"></span>
+        </div>
+
+        <div class="app-main">
+          <div class="app-scroll" style="padding-top:10px; gap:16px">
+
+            <div class="card">
+              <p class="target-line">The owner says he only stays for three hours a day.</p>
+              <div class="aux-row">
+                <button class="btn btn-quiet btn-sm">
+                  收起释义
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 14.5L12 8l6.5 6.5"/></svg>
+                </button>
+                <button class="btn btn-quiet btn-sm">
+                  查看讲解
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 9.5L12 16l6.5-6.5"/></svg>
+                </button>
+              </div>
+              <p class="gloss">老板说每天只来三个小时。</p>
+            </div>
+
+            <div class="card">
+              <div class="op-row">
+                <button class="btn btn-secondary btn-sm">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+                  听示范
+                </button>
+                <div class="rec-main">
+                  <button class="rec-btn" aria-label="开始录音">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>
+                  </button>
+                  <span class="rec-hint">再录一次</span>
+                </div>
+                <button class="btn btn-secondary btn-sm">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.8c0-1 1.1-1.7 2-1.1l10.4 6.2c.9.5.9 1.7 0 2.2L9 18.3c-.9.6-2-.1-2-1.1V4.8z"/></svg>
+                  回放录音
+                </button>
+              </div>
+              <p class="op-meta">上次录音 · 8 秒 · 保存在本机</p>
+            </div>
+
+          </div>
+
+          <div class="sent-nav">
+            <button class="nav-step">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+              上一句
+            </button>
+            <span class="pos">第 2 / 5 句</span>
+            <button class="nav-step">
+              下一句
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>页面克制</strong>：无重复 header、无阶段 pill、无常驻指导文案、无 step 卡片；目标句是唯一常驻主体，释义 / 讲解收在低权重入口里，展开态不重复「中文释义」标题，按钮文字变为「收起释义」。</li>
+      <li><strong>已练过由录音派生</strong>：录音主按钮下方「再录一次」表示该句已有 ready 录音，完成态不需要手动标记；元信息行披露「保存在本机」。</li>
+      <li><strong>录音中禁用句间切换</strong>：录音进行时「上一句 / 下一句」与返回均不可用，避免半成品录音悬挂在错误的句子上。</li>
+      <li><strong>播放互斥</strong>：示范播放中切换句子或再次触发播放，先经播放 coordinator 停止旧播放，不出现两段音频叠播。</li>
+      <li><strong>隐私边界</strong>：练习录音默认只保存在本机，不发送 AI Provider、不默认导出、不参与同步。</li>
+      <li>三个操作控件触控目标 ≥ 44pt，中央录音按钮直径 72pt，单手拇指可达。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

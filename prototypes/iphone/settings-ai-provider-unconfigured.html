@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · AI Provider 未配置 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .stage-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .stage-cap {
+    font-size: 13px;
+    font-weight: 650;
+    color: var(--muted);
+  }
+  .action-pad {
+    padding: 0 16px;
+  }
+  .cap-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    min-height: 52px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .cap-row:last-child { border-bottom: 0; }
+  .cap-name { flex: 1; font-size: var(--fs-body); font-weight: 560; }
+  .page-footnote {
+    margin-top: 4px;
+    font-size: var(--fs-footnote);
+    color: var(--muted);
+    line-height: 1.55;
+    padding: 0 8px;
+  }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>AI Provider 未配置</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">系统级 AI Provider 配置页的「尚未配置」引导态：用户还没有添加任何 Provider。这是中性引导态而非错误态——引导用户自带一个 Provider，并说明配置后才会解锁的各项能力。密钥只进本机 Keychain，不上传。</p>
+
+  <div class="proto-stage">
+    <div class="stage-col">
+      <span class="stage-cap">尚未配置（引导态）</span>
+      <div class="device-iphone">
+        <div class="screen">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="dynamic-island"></div>
+            <div class="status-icons">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+            </div>
+          </div>
+
+          <div class="nav-bar">
+            <button class="nav-back">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+              设置
+            </button>
+            <div class="nav-title">AI Provider</div>
+            <span style="width:56px"></span>
+          </div>
+
+          <div class="app-main">
+            <div class="app-scroll" style="padding-top:6px; gap:12px">
+
+              <div class="empty-state">
+                <div class="empty-icon">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.7L18.6 9.6 13.9 11.5 12 16.2 10.1 11.5 5.4 9.6 10.1 7.7 12 3z"/><path d="M18.5 15.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/></svg>
+                </div>
+                <h3>尚未配置 AI Provider</h3>
+                <p>配置一个你自己的 AI Provider（如 OpenAI），语迹才能生成学习材料、逐句朗读和解释。密钥只存本机 Keychain，不上传。</p>
+              </div>
+
+              <div class="action-pad">
+                <button class="btn btn-primary btn-block">添加 Provider</button>
+              </div>
+
+              <div class="section-label">配置后可用的能力</div>
+              <div class="list">
+                <div class="cap-row">
+                  <span class="cap-name">生成学习材料</span>
+                  <span class="pill pill-neutral">需要 Provider</span>
+                </div>
+                <div class="cap-row">
+                  <span class="cap-name">逐句朗读（TTS）</span>
+                  <span class="pill pill-neutral">需要 Provider</span>
+                </div>
+                <div class="cap-row">
+                  <span class="cap-name">选中解释</span>
+                  <span class="pill pill-neutral">需要 Provider</span>
+                </div>
+                <div class="cap-row">
+                  <span class="cap-name">记忆向量检索</span>
+                  <span class="pill pill-neutral">需要 Provider</span>
+                </div>
+              </div>
+
+              <p class="page-footnote">语迹本地优先：不内置账号、不收集数据，AI 能力由你自带的 Provider 提供。</p>
+
+            </div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>引导态而非错误态</strong>：尚未配置是首次使用的正常起点，采用中性 tone（neutral pill、accent 主操作），不使用红色失败语义；空状态文案是邀请配置，不是报错。</li>
+      <li><strong>能力为何被 gated</strong>：生成学习材料 / 逐句朗读 / 选中解释 / 记忆向量检索都依赖用户自带 Provider 的文本、语音或向量模型；没有 Provider 时这些能力没有可调用的后端，因此统一以「需要 Provider」中性 pill 标注为待解锁，而不是隐藏或佯装可用。</li>
+      <li><strong>本地优先 + Keychain 隐私边界</strong>：语迹不内置账号、不收集数据；添加 Provider 后 API Key 只写入本机 Keychain，非敏感配置进本地 SQLite，二者分离，默认不同步、不上传。</li>
+      <li><strong>系统级页面</strong>：Provider 配置对所有语言空间生效，因此不显示当前语言空间 capsule header；nav-bar 仅保留「设置」返回与「AI Provider」标题。</li>
+      <li><strong>主操作单一聚焦</strong>：引导态只给一个主 CTA「添加 Provider」，进入后即为已配置态的表单页，形成「未配置 → 添加 → 配置 → 测试请求」的连续路径。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

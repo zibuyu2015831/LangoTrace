@@ -11,7 +11,7 @@
 - 准确性：当前实现事实必须与代码、工程配置、脚本和测试一致。
 - 完整性：关键用户路径、数据路径、权限路径、错误路径和验证方式不能缺席。
 - 可执行性：新会话读取入口和相关文档后，应能知道读什么、改什么、验证什么。
-- 决策一致性：产品主参考、技术路线、ADR、guidelines 和实际实现不能互相冲突。
+- 决策一致性：产品主参考、技术路线、ADR、spec 和实际实现不能互相冲突。
 
 ## 2. 文档分级
 
@@ -19,10 +19,10 @@
 
 | 类型 | 代表文档 | 审查重点 |
 | --- | --- | --- |
-| 当前事实源 | `docs/README.md`、`docs/development-environment.md`、`docs/project-initialization.md`、`docs/architecture/` | 必须与当前代码、脚本和工程结构匹配 |
+| 当前事实源 | `docs/README.md`、`docs/development/environment.md`、`docs/development/project-initialization.md`、`docs/architecture/` | 必须与当前代码、脚本和工程结构匹配 |
 | 决策源 | `docs/decisions/`、`docs/product-main-reference.md`、`docs/technical-framework-roadmap.md` | 必须与核心产品、架构、隐私、付费和同步决策一致 |
-| 执行规则源 | `docs/guidelines/`、`docs/testing/`、`docs/release/` | 必须能指导后续实现和验证，允许包含尚未完全实现的规则 |
-| 过程记录 | `docs/worklogs/`、`docs/research/`、`docs/superpowers/` | 保留历史过程，不要求持续改写为最新事实 |
+| 执行规则源 | `docs/spec/`、`docs/testing/`、`docs/release/` | 必须能指导后续实现和验证，允许包含尚未完全实现的规则 |
+| 过程记录 | `docs/plans/`、`docs/reference/research/`、历史 `docs/archive/worklogs/`、历史 `docs/archive/superpowers/` | 保留任务过程，不要求持续改写为最新事实 |
 | 审查记录 | `docs/review/rounds/` | 记录某次审查的代码快照、范围、结论和剩余风险 |
 
 过程记录和审查记录不能被当作当前实现事实反复改写。若历史记录与当前代码不同，应在新的事实源文档或新的审查记录中说明演进结果。
@@ -35,9 +35,9 @@
 | --- | --- | --- |
 | 当前实现事实 | 当前代码、`project.yml`、脚本、测试 | 文档必须向实际实现对齐 |
 | 产品核心决策 | 产品主参考文档、ADR、用户明确确认 | 代码若冲突，不能直接改文档迁就代码，应触发复审 |
-| 架构和隐私决策 | ADR、技术路线、guidelines | 代码若偏离，需要记录为架构债、bug 或 ADR 复审 |
-| 未来计划 | roadmap、worklog、规格或计划文档 | 必须明确写成计划、候选、后续，不得伪装成已实现 |
-| 历史过程 | worklog、research、review round | 保留当时上下文，不强制改写为最新事实 |
+| 架构和隐私决策 | ADR、技术路线、spec | 代码若偏离，需要记录为架构债、bug 或 ADR 复审 |
+| 未来计划 | roadmap、任务方案、规格或计划文档 | 必须明确写成计划、候选、后续，不得伪装成已实现 |
+| 历史过程 | 历史 worklog、reference research、review round | 保留当时上下文，不强制改写为最新事实 |
 | 无法从代码判断的设计意图 | 用户澄清或新增决策记录 | 先记录问题，不凭空补入长期文档 |
 
 审查不是为了让所有文档都服从当前代码，而是为了让不同来源的权威关系清晰。
@@ -53,8 +53,8 @@
 
 要求：
 
-- 写在对应 worklog 的“文档影响检查”章节中。
-- 明确本次变更是否影响 `docs/README.md`、主参考文档、架构文档、guidelines、testing 或 release 文档。
+- 写在对应任务方案的“文档影响检查”章节中。
+- 明确本次变更是否影响 `docs/README.md`、主参考文档、架构文档、spec、testing 或 release 文档。
 - 若不更新文档，应写清理由。
 - 不创建 `docs/review/rounds/`，除非命中专项审查触发条件。
 
@@ -69,7 +69,7 @@
 - StoreKit、发布验证、App Store 隐私标签。
 - ADR 冲突或核心产品决策冲突。
 
-以下情况默认触发专项审查；若跳过，必须在 worklog 中说明原因：
+以下情况默认触发专项审查；若跳过，必须在任务方案中说明原因：
 
 - 首次启动闭环。
 - 语言空间闭环。
@@ -84,6 +84,14 @@
 docs/review/rounds/YYYY-MM-DD-<topic>/README.md
 ```
 
+专项审查发现 ID：
+
+- 发现 ID 用于从 review round 追踪到 remediation active plan 的 work item，不替代 P0 / P1 / P2 / P3 严重度。
+- 推荐按领域使用稳定前缀，例如数据 / 存储 `DATA-1`、AI / Prompt / Provider `AI-1`、权限 / 隐私 / 诊断 `PRIV-1`、同步 `SYNC-1`、UI / 可访问性 `UI-1`、文档治理 `DOC-1`。
+- ID 只要求在单个 review round 内稳定；跨 round 引用时必须带上 round id，例如 `2026-06-01-ai-provider/AI-1`。
+- 来源于 review round 的 remediation plan，应在“证据与决策依据”或专门对照表中写明 `round id -> finding id -> work item`，避免审查结论和实施计划脱节。
+- 若发现来自 health ledger、用户报告或运行期诊断，而不是正式 review round，可以使用 trigger id；进入专项审查后再分配 round 内 finding id。
+
 ### 4.3 里程碑轻量全审
 
 适用场景：
@@ -94,9 +102,124 @@ docs/review/rounds/YYYY-MM-DD-<topic>/README.md
 
 要求：
 
-- 检查入口文档、主参考文档、架构文档、guidelines、testing、release 是否仍然匹配实际实现。
+- 检查入口文档、主参考文档、架构文档、spec、testing、release 是否仍然匹配实际实现。
 - 抽样追踪关键能力从代码到文档的闭环。
 - 记录剩余风险，不追求一次性覆盖所有细节。
+
+### 4.3.1 Release-tail Closeout
+
+Release-tail closeout 是阶段性功能落地后的尾部收口，不是每个小任务的强制流程。
+
+适用场景：
+
+- 数据层、AI 层、同步层、StoreKit、权限层等高风险阶段收尾。
+- 跨 package 大功能、跨三端共享能力或 TestFlight / 发布前收口。
+- 主功能已进入可验证状态，但仍需要集中处理 focused review、focused tests、CI repair、stale-test alignment、文档影响检查或剩余风险降权。
+
+边界：
+
+- 没有清晰 feature batch 边界时，不启用 release-tail closeout。
+- release-tail 不能把新需求、scope-down、deferred 或 aborted 项包装成已完成内容；这些内容必须回到 active plan、done plan 收口记录或后续事实源。
+- 如果 release-tail 发现新的 P0 / P1 风险，应新建或更新 active plan，而不是在审查记录中顺手修复。
+
+### 4.4 保守文档自进化
+
+保守文档自进化用于处理“文档体系自身需要演进”的情况。它不是自动清理机制，也不是让 AI 绕过用户确认改写长期规则；它要求 AI 主动发现、主动汇报、证据化分析，并按文档权威关系分流。
+
+触发器：
+
+- 模板不完整，导致后续任务反复漏写关键字段。
+- 规范过期，已有代码、决策、验证方式或模块边界超出现有规则。
+- 历史记录误用，review、done plan、archive 或 reference 被当作当前事实源。
+- 文档谬误，例如把计划写成事实、把 mock 写成真实能力、把局部实现写成完整实现。
+- review 生命周期不清，例如问题已修复但索引未降权，或旧结论已被推翻却仍可被误用。
+- 历史数据清理候选，例如误生成文件、重复草稿、临时扫描输出或空目录。
+- 新实现引入现有文档体系无法表达的新边界，例如 Provider 请求审计、同步冲突、派生数据重建或购买恢复状态。
+
+主动汇报必须包含：
+
+```text
+问题：
+证据：
+影响范围：
+严重度：P0 / P1 / P2 / P3
+必要性：
+可行性：
+风险：
+推荐方案：
+需要用户确认的点：
+建议落点：
+```
+
+严重度分级：
+
+| 等级 | 触发条件 | 默认处理 |
+| --- | --- | --- |
+| P0 | 误导当前实现、隐私边界、数据持久化、同步、付费、发布、核心产品或 ADR 决策 | 必须主动汇报，并建议创建或更新治理任务；未经用户确认不得改核心规则 |
+| P1 | 影响后续开发执行路径、验证命令、模块边界、任务模板、review 生命周期或新会话入口 | 应主动汇报，并给出修复方案和验证方式 |
+| P2 | 重复文档、历史索引不清、术语轻微不一致、已修复 review 未降权 | 可汇总汇报，优先追加到已有治理任务 |
+| P3 | 风格、排版、轻微措辞、非误导性表达 | 默认不触发治理任务，除非用户要求或它反复造成误判 |
+
+分流矩阵：
+
+| 问题类型 | 示例 | 推荐落点 |
+| --- | --- | --- |
+| 当前事实错误 | 文档写真实 AI 已接入，但代码仍是 mock 或 disabled | 修正当前事实源，必要时补 review 记录 |
+| 规范过期 | spec 未覆盖已落地的验证方式或模块边界 | 更新对应 `docs/spec/`，若影响核心取舍则触发 ADR 复审 |
+| 实现偏离决策 | 代码绕过请求预览、权限说明或本地优先边界 | 新建 bug、refactor 或 review 任务，不直接改文档迁就代码 |
+| ADR 或产品决策冲突 | 新方案改变语言空间、买断制、Provider 或同步路线 | 新增或更新 ADR，并记录用户确认 |
+| 历史记录过时 | 旧 review 中的问题已被后续 plan 和 commit 修复 | 保留旧记录，在索引或收口段标注当前事实源和覆盖记录 |
+| 历史判断失效 | 旧 review 结论基于错误前提，后续确认不成立 | 保留原始记录，但标注结论失效，不再作为依据 |
+| 模板缺陷 | plan 或 review 模板缺关键字段，导致反复漏写 | 更新模板或规则文档，并在 active plan 中记录原因 |
+| 缺少新规则 | 新实现引入现有体系无法表达的边界 | 新增或扩展 spec、architecture、testing 或 release 文档 |
+| 临时或重复文件 | 误生成扫描输出、重复草稿、空目录 | 先确认无引用和无审计价值，再请求用户确认删除 |
+
+执行边界：
+
+- AI 可以主动汇报问题、提出方案、创建或更新经用户确认的 `docs` 类型任务方案。
+- 修改 ADR、产品主参考、核心 spec、文档权威关系或历史记录删除，必须等待用户确认。
+- 删除只适用于误生成、重复、临时、无引用且无审计价值的文件；删除历史 review、done plan、archive 或 reference 文档必须另行确认。
+- 新建治理任务前必须搜索 `docs/plans/active/`、`docs/plans/done/` 和 `docs/review/INDEX.md`；已有 active plan 时优先追加，已完成任务复发时新建任务并引用旧记录。
+- 后续如增加自动扫描工具，只能先作为报告器使用，不能自动删除或自动改写长期文档。
+
+### 4.5 周期性文档健康检查
+
+参考 VMark `dev-docs/house-cleaning/` 的经验，LangoTrace 可以采用轻量周期性检查，但必须保持与现有 review 和 plan 生命周期一致。
+
+推荐分层：
+
+| 层级 | 触发 | 输出 |
+| --- | --- | --- |
+| T1 结构检查 | 每次文档体系变更或收尾前 | `scripts/check-docs.sh`、占位符扫描、`git diff --check` |
+| T2 专项抽查 | 高风险功能完成、连续出现同类文档问题或用户要求 | 对应任务方案的文档影响检查，必要时创建专项 review round |
+| T3 里程碑轻量全审 | MVP、数据层、AI 层、同步层、付费发布层阶段结束 | `docs/review/rounds/YYYY-MM-DD-<topic>/README.md` 和 `docs/review/INDEX.md` |
+
+边界：
+
+- 周期性检查不新增 `docs/audit/` 或 `docs/house-cleaning/` 目录。
+- 结构脚本只能报告低争议问题，不能自动删除、自动重写 ADR、自动改写历史记录或把语义判断伪装成机器结论。
+- `docs/review/health-ledger.md` 是轻量趋势记录，只保存日期、commit、trigger、metrics、verdict 和 notes；它不替代 review round、active plan 或文档影响检查。
+- health ledger 指标必须可机械采集、方向明确、能指导行动，避免 raw LOC、总提交数等 vanity metrics。
+- 同一问题连续三次在 health ledger、T2 或 T3 中出现且没有改善时，应分流为 `docs/plans/active/` 下的 bug、chore、docs、refactor 任务、专项 review round，或显式接受风险，而不是长期留在趋势记录中。
+- 每条发现必须有 verdict，例如已修、转为 active plan、明确接受、延后原因或由某个 review round 承接。
+- 如果 health ledger 或 T2 / T3 触发 remediation plan，应在 plan 中使用稳定 finding id 或 trigger id，并写明 trigger -> work item 的对照。
+
+### 4.6 Guardrail 生命周期
+
+Guardrail 指脚本、CI、TDD、coverage、AI audit、文档结构检查、release gate 或人工门禁等约束。新增或调整 guardrail 时，必须记录它解决的问题和 enforcement level：
+
+- `advisory`：只作为建议或人工提醒。
+- `manual`：需要人工按 checklist 执行。
+- `script`：本地脚本可机械检查。
+- `CI`：持续集成自动检查。
+- `hook-blocking`：提交或推送前阻断。
+- `release-blocking`：发布或 TestFlight 前阻断。
+
+生命周期记录要求：
+
+- 在对应 active plan、review round 或 health ledger 中记录 introduced、strengthened、weakened、manualized、removed 或 replacement。
+- 弱化、手动化、移除或替换 guardrail 时，应记录原因，例如误报、维护成本、外部依赖不稳定、信号质量不足或已有替代检查。
+- 不把外部模型或 cross-model audit 当作自动真理；AI 审查只能作为盲点探测器，结论必须经主线程复核，并回写到 plan、测试、代码或 review 记录。
 
 ## 5. 审查产物
 
@@ -117,7 +240,10 @@ docs/review/rounds/YYYY-MM-DD-<topic>/
 审查类型：专项审查 / 里程碑全审
 日期：YYYY-MM-DD
 代码快照：<git commit hash>
-状态：Draft / In Progress / Verified / Deferred
+状态：Draft / In Progress / Verified / Deferred / Superseded / Invalidated
+当前事实源：<path or none>
+后续覆盖记录：<plan/review/commit or none>
+可作为依据：Yes / Historical Only / No
 
 ## 1. 触发原因
 ## 2. 审查范围
@@ -130,6 +256,15 @@ docs/review/rounds/YYYY-MM-DD-<topic>/
 ## 9. 验证命令与结果
 ## 10. 剩余风险
 ```
+
+状态含义：
+
+- `Verified`：该轮审查在当时快照下已完成并验证；保留为审计记录，不自动成为当前事实源。
+- `Deferred`：该轮仍有明确延后项；读取时必须查看延后项和当前事实源。
+- `Superseded`：该轮发现的问题或建议已被后续 plan、review、commit 或长期文档覆盖；仍可作为历史证据。
+- `Invalidated`：该轮结论基于错误前提或已被后续确认推翻；仅保留为历史过程记录，不应继续作为依据。
+
+`当前事实源`、`后续覆盖记录` 和 `可作为依据` 可以写在单轮 README，也可以由 `docs/review/INDEX.md` 统一维护。若两处同时存在，以最新索引为后续检索入口，单轮正文保留当时上下文。
 
 ### 5.2 复杂 Round
 
@@ -167,16 +302,19 @@ docs/review/rounds/YYYY-MM-DD-<topic>/
 | 文档完整性问题 | 代码已有关键状态流转，但文档没有说明 | 补全文档 |
 | 跨文档一致性问题 | README 与架构文档对同一模块状态描述不同 | 统一主入口和相关文档 |
 | ADR 冲突 | 代码实现改变核心决策 | 新增或更新 ADR，不能只改普通文档 |
-| 明显代码 bug | 审查时发现状态流转错误、数据丢失风险或崩溃路径 | 新建 `bug` worklog，不在审查中顺手修代码 |
-| 架构债 | 代码能运行但边界与长期架构不匹配 | 新建 `refactor` 或 `chore` worklog，必要时关联 ADR |
+| 文档治理问题 | 模板缺陷、规范过期、历史记录误用、review 状态失效 | 按保守文档自进化机制汇报和分流 |
+| 明显代码 bug | 审查时发现状态流转错误、数据丢失风险或崩溃路径 | 新建 `bug` 任务方案，不在审查中顺手修代码 |
+| 架构债 | 代码能运行但边界与长期架构不匹配 | 新建 `refactor` 或 `chore` 任务方案，必要时关联 ADR |
 | 测试缺口 | 文档要求某能力有验证，但测试或手动流程缺失 | 更新 `docs/testing/` 或创建测试补充任务 |
 | 未确认设计意图 | 代码看不出为什么这样设计 | 记录为用户澄清项，不凭空写入长期文档 |
+| 删除候选 | 误生成文件、重复草稿、临时扫描输出、空目录 | 先确认无引用、无审计价值和用户确认，再删除 |
 
 ## 7. 写入权限
 
 | 文件或目录 | 谁可以写 | 何时写 |
 | --- | --- | --- |
-| `docs/worklogs/` | 当前任务执行者 | 日常文档影响检查或新问题分流 |
+| `docs/plans/active/` | 当前任务执行者 | 日常文档影响检查或新问题分流 |
+| `docs/plans/done/` | 当前任务执行者 | 任务完成并验证后从 active 移入 |
 | `docs/review/INDEX.md` | 主会话或人工维护者 | 创建或完成审查轮次时 |
 | `docs/review/rounds/<round>/README.md` | 主会话或人工维护者 | 专项审查和里程碑全审 |
 | `docs/review/rounds/<round>/_meta.md` | 主会话或人工维护者 | 复杂审查状态维护 |
@@ -214,11 +352,13 @@ docs/review/rounds/YYYY-MM-DD-<topic>/
 Draft -> In Progress -> Waiting for Clarification -> Waiting for Approval -> Updating Docs -> Consistency Check -> Verified / Deferred
 ```
 
+若复杂 round 后续被新的 plan、review、commit 或长期文档覆盖，可在 `docs/review/INDEX.md` 中标注为 `Superseded`；若结论基于错误前提或已被确认推翻，应标注为 `Invalidated`，并把 `可作为依据` 改为 `No`。
+
 ## 10. 验收方式
 
 文档审查的最终验收不是文件都写完，而是新会话可用。
 
-- 对日常影响检查：后续执行者能从 worklog 看出本次是否影响文档，影响了哪些文档。
+- 对日常影响检查：后续执行者能从任务方案看出本次是否影响文档，影响了哪些文档。
 - 对专项审查：新会话读取入口文档和相关目标文档后，能说清当前实现状态、下一步边界和验证方式。
 - 对里程碑全审：随机抽取一个核心能力，新会话能仅凭文档找到代码入口和验证路径。
 
@@ -230,7 +370,7 @@ Draft -> In Progress -> Waiting for Clarification -> Waiting for Approval -> Upd
 
 ```bash
 find docs -maxdepth 3 -type f | sort
-rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!worklogs/TEMPLATE.md'
+rg "TO[D]O|TB[D]|待补[充]|稍后完[善]|以后再[写]|待[定]" docs --glob '!plans/examples/*' --glob '!spec/examples/*'
 git diff --check
 git status --short
 ```

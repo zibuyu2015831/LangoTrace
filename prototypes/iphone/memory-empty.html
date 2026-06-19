@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 记忆 Tab 空态 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  /* 空态居中：让 empty-state 在滚动区垂直居中，而非贴顶 */
+  .mem-empty-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    padding: 0 20px 24px;
+  }
+  .mem-empty-hint {
+    margin-top: 16px;
+    max-width: 250px;
+    text-align: center;
+    font-size: var(--fs-footnote);
+    color: var(--faint);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>记忆 Tab 空态 · 还没有沉淀 <span class="tag-target-design">目标设计</span></h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note"><span class="tag-target-design">目标设计</span> 记忆库的空态：用户尚未在阅读或逐句学习中点过「加入记忆」，记忆库为空。空状态被设计为引导入口，把用户带回真实学习行为，而不是裸文本或鼓励凭空背单词。记忆系统尚未实现。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="context-header">
+          <button class="capsule">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14.5 14.5 0 0 1 0 18M12 3a14.5 14.5 0 0 0 0 18"/></svg>
+            英语空间 <span class="dir">中文 → English</span>
+          </button>
+          <button class="icon-btn" aria-label="设置">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+          </button>
+        </div>
+
+        <div class="page-title-large">记忆</div>
+
+        <div class="app-main">
+          <div class="mem-empty-wrap">
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/><path d="M9.5 9.5h5M12 7v5"/></svg>
+              </div>
+              <h3>记忆库还是空的</h3>
+              <p>在阅读或逐句学习时点「加入记忆」，沉淀下来的词句会出现在这里，供你低压力复习。</p>
+            </div>
+            <p class="mem-empty-hint">从你自己的生活记录里长出来的词句，比背单词更容易记住。</p>
+          </div>
+        </div>
+
+        <div class="tab-bar">
+          <div class="tab-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+            记录
+          </div>
+          <div class="tab-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>
+            阅读
+          </div>
+          <div class="tab-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>
+            练习
+          </div>
+          <div class="tab-item active">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/></svg>
+            记忆
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>空态是被设计的，不是裸文本</strong>：用 .empty-state 给出图标、标题与一句行动引导，而不是一行「暂无数据」；空记忆库本身承担引导职责。</li>
+      <li><strong>从真实学习行为长出来</strong>：引导用户在「阅读 / 逐句学习」时点「加入记忆」来沉淀词句，而非凭空背单词——契合「用生活记录学习语言」与「本地优先的个人语言记忆系统」定位。</li>
+      <li><strong>低压力语气</strong>：文案强调「供你低压力复习」，并以一句安静脚注重申生活记录沉淀的记忆更易记住，不施加打卡或欠债压力。</li>
+      <li><strong>空态垂直居中</strong>：空状态在滚动区竖直居中呈现，视觉上更像一处邀请，而不是页面顶部的占位提示。</li>
+      <li><strong>标「目标设计」的原因</strong>：记忆系统（沉淀、复习、检索）尚未实现，本页与 memory.html 同属目标体验描述，不构成实现授权；实现事实以 docs/platform-page-inventory.md 为准。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

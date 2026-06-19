@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+#
+# pre-push 钩子：拦截向受保护分支 main 的直接推送。
+# main 的任何变更必须经 PR + Build & Test 绿勾合并，不允许本地直接
+# `git merge` / `git push` 到 main。标准流程见
+# docs/development/002-ci-and-branch-workflow.md §3.1。
+#
+# 仅对本仓库生效（通过 repo 级 git config core.hooksPath 安装，不影响全局或其他仓库）。
+# 紧急情况确需绕过：git push --no-verify
+#
+# git 在 push 前把待推送的 ref 更新逐行喂给 stdin：
+#   <local ref> <local sha> <remote ref> <remote sha>
+
+set -euo pipefail
+
+protected_ref="refs/heads/main"
+blocked=0
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+    if [ "$remote_ref" = "$protected_ref" ]; then
+        blocked=1
+    fi
+done
+
+if [ "$blocked" -eq 1 ]; then
+    {
+        echo ""
+        echo "✘ 已阻止直接 push 到 main。"
+        echo "  main 的变更必须经 PR + Build & Test（见 docs/development/002 §3.1）："
+        echo "    1) 把仓库临时设为 public（Settings → Danger Zone → Change visibility）"
+        echo "    2) gh pr create --base main --head dev"
+        echo "    3) gh pr checks <PR号> --watch     # 等 Build & Test 绿"
+        echo "    4) gh pr merge <PR号> --merge"
+        echo ""
+        echo "  确需紧急绕过（不推荐）：git push --no-verify"
+        echo ""
+    } >&2
+    exit 1
+fi
+
+exit 0

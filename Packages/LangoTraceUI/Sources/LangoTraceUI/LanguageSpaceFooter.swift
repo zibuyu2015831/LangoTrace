@@ -6,13 +6,19 @@ struct LanguageSpaceFooter: View {
     let aiStatus: AIProviderStatus
     let syncStatus: SyncProviderStatus
     let isCompact: Bool
+    var onLanguageSpace: (() -> Void)?
+    var onAIStatus: (() -> Void)?
+    var onSyncStatus: (() -> Void)?
+    var onSettings: (() -> Void)?
 
     @State private var activePopover: PrivacyStatusPopover?
 
     var body: some View {
         VStack(alignment: .leading, spacing: isCompact ? 8 : 10) {
             HStack(alignment: .center, spacing: 8) {
-                Button {} label: {
+                Button {
+                    onLanguageSpace?()
+                } label: {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(languageSpace.name)
                             .font(isCompact ? .callout.weight(.semibold) : .headline)
@@ -27,33 +33,45 @@ struct LanguageSpaceFooter: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("当前语言空间，\(languageSpace.displayContext)")
+                .accessibilityLabel(
+                    localizedString("languageSpace.current.accessibilityLabel", languageSpace.displayContext)
+                )
 
                 HStack(spacing: isCompact ? 4 : 6) {
                     PrivacyStatusIconButton(
-                        title: aiStatus.title,
-                        value: aiStatus.value,
-                        summary: aiStatus.summary,
+                        title: localizedString(aiStatus.localizedTitleKey),
+                        value: localizedString(aiStatus.localizedValueKey),
+                        summary: localizedString(aiStatus.localizedSummaryKey),
                         systemImage: aiStatus.systemImage,
                         severity: aiStatus.severity,
                         isCompact: isCompact
                     ) {
-                        activePopover = .ai(aiStatus)
+                        if let onAIStatus {
+                            onAIStatus()
+                        } else {
+                            activePopover = .ai(aiStatus)
+                        }
                     }
 
                     PrivacyStatusIconButton(
-                        title: syncStatus.title,
-                        value: syncStatus.value,
-                        summary: syncStatus.summary,
+                        title: localizedString(syncStatus.localizedTitleKey),
+                        value: localizedString(syncStatus.localizedValueKey),
+                        summary: localizedString(syncStatus.localizedSummaryKey),
                         systemImage: syncStatus.systemImage,
                         severity: syncStatus.severity,
                         isCompact: isCompact
                     ) {
-                        activePopover = .sync(syncStatus)
+                        if let onSyncStatus {
+                            onSyncStatus()
+                        } else {
+                            activePopover = .sync(syncStatus)
+                        }
                     }
                 }
 
-                Button {} label: {
+                Button {
+                    onSettings?()
+                } label: {
                     Image(systemName: "gearshape")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
@@ -62,7 +80,7 @@ struct LanguageSpaceFooter: View {
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("设置")
+                .accessibilityLabel(localizedText("tab.settings"))
             }
         }
         .padding(.top, isCompact ? 10 : 12)
@@ -100,27 +118,27 @@ private enum PrivacyStatusPopover: Identifiable {
     var title: String {
         switch self {
         case let .ai(status):
-            status.title
+            localizedString(status.localizedTitleKey)
         case let .sync(status):
-            status.title
+            localizedString(status.localizedTitleKey)
         }
     }
 
     var value: String {
         switch self {
         case let .ai(status):
-            status.value
+            localizedString(status.localizedValueKey)
         case let .sync(status):
-            status.value
+            localizedString(status.localizedValueKey)
         }
     }
 
     var summary: String {
         switch self {
         case let .ai(status):
-            status.summary
+            localizedString(status.localizedSummaryKey)
         case let .sync(status):
-            status.summary
+            localizedString(status.localizedSummaryKey)
         }
     }
 }
@@ -150,7 +168,7 @@ private struct PrivacyStatusIconButton: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help("\(title)：\(value)。\(summary)")
+        .help(localizedString("privacyStatus.help.format", title, value, summary))
         .accessibilityLabel(title)
         .accessibilityValue(value)
         .accessibilityHint(summary)
@@ -173,7 +191,7 @@ private struct PrivacyStatusIconButton: View {
         case .warning:
             LangoTraceDesign.ColorToken.gold
         case .error:
-            Color(red: 0.670, green: 0.180, blue: 0.125)
+            LangoTraceDesign.ColorToken.stateError
         }
     }
 
@@ -186,7 +204,7 @@ private struct PrivacyStatusIconButton: View {
         case .warning:
             LangoTraceDesign.ColorToken.paleGold
         case .error:
-            Color(red: 0.985, green: 0.900, blue: 0.860)
+            LangoTraceDesign.ColorToken.dangerMuted
         }
     }
 
@@ -199,7 +217,7 @@ private struct PrivacyStatusIconButton: View {
         case .warning:
             LangoTraceDesign.ColorToken.gold.opacity(0.36)
         case .error:
-            Color(red: 0.670, green: 0.180, blue: 0.125).opacity(0.30)
+            LangoTraceDesign.ColorToken.stateError.opacity(0.30)
         }
     }
 }
@@ -223,7 +241,7 @@ private struct PrivacyStatusTipView: View {
                         .frame(width: 24, height: 24)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("关闭状态说明")
+                .accessibilityLabel(localizedText("privacyStatus.close"))
             }
             Text(popover.value)
                 .font(.subheadline.weight(.semibold))

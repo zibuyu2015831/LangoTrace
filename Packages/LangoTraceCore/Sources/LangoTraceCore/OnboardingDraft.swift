@@ -50,10 +50,20 @@ public struct OnboardingDraft: Equatable, Sendable {
 
         return LanguageSpacePreview(
             id: targetLanguage.code,
-            name: targetLanguage.spaceNameForChineseUI,
+            name: targetLanguage.defaultSpaceName,
             nativeLanguage: nativeLanguage.zhHansName,
             targetLanguage: targetLanguage.zhHansName,
             level: normalizedDraft.level
+        )
+    }
+
+    public func makeLanguageSpaceInput() throws -> CreateLanguageSpaceInput {
+        let normalizedDraft = normalized()
+        return CreateLanguageSpaceInput(
+            nativeLanguageCode: normalizedDraft.nativeLanguageCode,
+            targetLanguageCode: normalizedDraft.targetLanguageCode,
+            level: normalizedDraft.level,
+            displayName: normalizedDraft.resolvedTargetLanguage.defaultSpaceName
         )
     }
 }

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 句子练习列表 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .seg-wrap { padding: 8px 20px 4px; }
+  .sent-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 13px 16px;
+    min-height: 64px;
+    border: 0;
+    border-bottom: 1px solid var(--hairline);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+  }
+  .sent-row:last-child { border-bottom: 0; }
+  .sent-row:hover { background: var(--surface-2); }
+  .sent-index {
+    width: 20px;
+    flex: none;
+    font-size: var(--fs-caption);
+    font-weight: 700;
+    color: var(--faint);
+    letter-spacing: 0.04em;
+  }
+  .sent-body { flex: 1; min-width: 0; }
+  .sent-target {
+    font-size: var(--fs-body);
+    font-weight: 580;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .sent-native {
+    margin-top: 2px;
+    font-size: var(--fs-footnote);
+    color: var(--muted);
+  }
+  .sent-state {
+    flex: none;
+    width: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .state-done {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-tint);
+    color: var(--accent-deep);
+  }
+  .state-todo {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.6px solid var(--hairline-strong);
+  }
+  .state-label {
+    font-size: var(--fs-caption);
+    font-weight: 650;
+    color: var(--accent-deep);
+  }
+  .footer-cta {
+    flex: none;
+    padding: 10px 20px 8px;
+  }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>句子练习列表</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">从练习 Tab 进入某条记录后的句子列表，逐句进入跟读。顶部分段控制切换练习方式 <span class="tag-target-design">目标设计</span>：当前实现只有跟读，听写与回译作为同一句子列表上的练习方式扩展，不另设首层入口。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <button class="nav-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+            练习
+          </button>
+          <div class="nav-title">公司楼下的咖啡车</div>
+          <span style="width:56px"></span>
+        </div>
+
+        <div class="seg-wrap">
+          <div class="seg" role="tablist" aria-label="练习方式">
+            <button class="active">跟读</button>
+            <button>听写</button>
+            <button>回译</button>
+          </div>
+        </div>
+
+        <div class="app-main">
+          <div class="app-scroll" style="padding-top:10px">
+
+            <div class="list">
+              <button class="sent-row">
+                <span class="sent-index">01</span>
+                <span class="sent-body">
+                  <span class="sent-target">A new coffee cart showed up outside our office.</span>
+                  <span class="sent-native" style="display:block">楼下新来了一辆咖啡车。</span>
+                </span>
+                <span class="sent-state">
+                  <span class="state-done">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+                  </span>
+                  <span class="state-label">已练</span>
+                </span>
+              </button>
+
+              <button class="sent-row">
+                <span class="sent-index">02</span>
+                <span class="sent-body">
+                  <span class="sent-target">The owner says he only stays for three hours a day.</span>
+                  <span class="sent-native" style="display:block">老板说每天只来三个小时。</span>
+                </span>
+                <span class="sent-state">
+                  <span class="state-done">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+                  </span>
+                  <span class="state-label">已练</span>
+                </span>
+              </button>
+
+              <button class="sent-row">
+                <span class="sent-index">03</span>
+                <span class="sent-body">
+                  <span class="sent-target">While I was waiting in line, I could smell freshly ground beans.</span>
+                  <span class="sent-native" style="display:block">排队的时候闻到现磨豆子的味道。</span>
+                </span>
+                <span class="sent-state">
+                  <span class="state-done">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+                  </span>
+                  <span class="state-label">已练</span>
+                </span>
+              </button>
+
+              <button class="sent-row">
+                <span class="sent-index">04</span>
+                <span class="sent-body">
+                  <span class="sent-target">It suddenly made Thursday feel a lot easier.</span>
+                  <span class="sent-native" style="display:block">突然觉得周四也没那么难熬。</span>
+                </span>
+                <span class="sent-state">
+                  <span class="state-todo" role="img" aria-label="未练"></span>
+                </span>
+              </button>
+
+              <button class="sent-row">
+                <span class="sent-index">05</span>
+                <span class="sent-body">
+                  <span class="sent-target">Maybe I should head down a little earlier tomorrow.</span>
+                  <span class="sent-native" style="display:block">也许明天该早点下去。</span>
+                </span>
+                <span class="sent-state">
+                  <span class="state-todo" role="img" aria-label="未练"></span>
+                </span>
+              </button>
+            </div>
+
+          </div>
+
+          <div class="footer-cta">
+            <button class="btn btn-primary btn-block">从第 4 句继续</button>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>练习方式在句子列表层级切换</strong>：跟读 / 听写 / 回译共用同一份句子列表，分段控制只换练习方式不换内容来源；练习 Tab 首层仍只有记录卡片，不违反页面清单红线。</li>
+      <li><strong>目标设计边界</strong>：当前实现只有跟读已落地；听写与回译是该分段控制上的扩展位，落地前分段控制不出现。</li>
+      <li><strong>代码改进方向</strong>：<code>PracticeSessionRouteSeed</code> 需要增加 practice mode 字段，使三端从同一 seed 进入不同练习方式，避免为听写 / 回译另造路由。</li>
+      <li><strong>已练状态由录音派生</strong>：行尾「对勾 + 已练」由该句存在 ready 状态练习录音派生，未练显示空圆圈；文字与形状共同表达，不只靠颜色。</li>
+      <li>底部「从第 4 句继续」定位到第一个未练句；整行可点，触控高度 ≥ 44pt。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

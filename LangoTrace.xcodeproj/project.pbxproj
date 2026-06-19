@@ -7,41 +7,90 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04897DD001BED08F27A1482D /* AppEnvironmentPracticeBootstrapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3CDBBF9C9D844DFD19999 /* AppEnvironmentPracticeBootstrapTests.swift */; };
 		0548E052E158D42FC7E67126 /* LangoTraceSpeech in Frameworks */ = {isa = PBXBuildFile; productRef = 09143DC8CECD45543B21548B /* LangoTraceSpeech */; };
+		080D97F735D35EF48B738AD2 /* PracticeActionsAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8038E79EE475FE855F47BB /* PracticeActionsAssembly.swift */; };
+		0D1B986E71942D918731541D /* SentenceAudioPlaybackAssemblyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B826F72799A4E311DF21F745 /* SentenceAudioPlaybackAssemblyTests.swift */; };
 		0D3503C2DD79BED572680AF6 /* LangoTraceData in Frameworks */ = {isa = PBXBuildFile; productRef = AFC9862224C1E0FF7AD0437F /* LangoTraceData */; };
+		0DA80A96D7758DF196E8C0F5 /* LangoTraceAI in Frameworks */ = {isa = PBXBuildFile; productRef = 0F735F1908AC3576467661A3 /* LangoTraceAI */; };
+		0E36CDEBF2C5B840607FAF88 /* AIRequestLogRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D04BCA454AD443B30F3411 /* AIRequestLogRecorder.swift */; };
 		12452CFC72AFD551AF7F6DF1 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55AB1C12E4A7F5AD1D8D6EF5 /* AppEnvironment.swift */; };
+		16626351E683C6D5CFE68143 /* LangoTraceLearnerModel in Frameworks */ = {isa = PBXBuildFile; productRef = B5E53D28FAB7E3E9B5224EE4 /* LangoTraceLearnerModel */; };
 		17BAC31EBE1F532A93D2969F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8AFCBB8E848E5F670A1593D /* Assets.xcassets */; };
 		19941825A76E03AF7F9C7703 /* LangoTraceAI in Frameworks */ = {isa = PBXBuildFile; productRef = 09AA8FC7CF739D141BB84A80 /* LangoTraceAI */; };
+		1F5988C0050D2559755DAE63 /* AppPracticeRecordingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F19A29B7D222BA6646A30A0 /* AppPracticeRecordingEngine.swift */; };
 		22F9EC06C5D1B79894717CD9 /* LangoTraceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865760D55CBEA4D850C601D4 /* LangoTraceApp.swift */; };
+		2FFB7B176984789ED51A1BE7 /* LangoTraceSync in Frameworks */ = {isa = PBXBuildFile; productRef = A3F88B2413CB76E9B66F5766 /* LangoTraceSync */; };
 		418045BF438605B96C0F20DF /* LangoTraceUI in Frameworks */ = {isa = PBXBuildFile; productRef = 67B74CA14B0E2B331EF7DCDC /* LangoTraceUI */; };
+		45169793983FE29CA6D7725E /* ReadingExplanationOperationRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E289BBE941AEC4CA5DF56F1B /* ReadingExplanationOperationRecorder.swift */; };
+		486847A6A7815277C4644E6C /* SentenceAudioPlaybackAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF7128ACAC79E547C09DA083 /* SentenceAudioPlaybackAssembly.swift */; };
+		4F4FE86E837611AFAA10A6CC /* LangoTraceCore in Frameworks */ = {isa = PBXBuildFile; productRef = 04393DCF63F44DA582FBA228 /* LangoTraceCore */; };
 		4F5E6250AA0827151E7828B4 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55AB1C12E4A7F5AD1D8D6EF5 /* AppEnvironment.swift */; };
+		539A4C482415D5E5CBC3C3AE /* LangoTraceData in Frameworks */ = {isa = PBXBuildFile; productRef = BBEFD883BC5BFAF740560C08 /* LangoTraceData */; };
 		71888A1CF8C87DABA8BCA1C1 /* LangoTraceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865760D55CBEA4D850C601D4 /* LangoTraceApp.swift */; };
 		7473ADE6BABCB40DC47865E6 /* LangoTraceCore in Frameworks */ = {isa = PBXBuildFile; productRef = E285E3F46B719B9083A5A4D7 /* LangoTraceCore */; };
 		779E2CB4ED20A3EC5D8C26A8 /* LangoTraceData in Frameworks */ = {isa = PBXBuildFile; productRef = F966AE715CF1A24F8BED2712 /* LangoTraceData */; };
+		7C4102E29E31529135563ED0 /* PracticeActionsAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8038E79EE475FE855F47BB /* PracticeActionsAssembly.swift */; };
 		7F23FD5F12487CD0E8CCC1DC /* LangoTraceSync in Frameworks */ = {isa = PBXBuildFile; productRef = 6A92F5CC68F9FD853A10B295 /* LangoTraceSync */; };
+		8226EDF34EF1E204399E6705 /* SharedAppDatabaseFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45EAEA2F143BB809B64623D /* SharedAppDatabaseFactory.swift */; };
+		8344B208A01F2D16111E6340 /* LangoTraceUI in Frameworks */ = {isa = PBXBuildFile; productRef = 21B649020088C2342C0F48EC /* LangoTraceUI */; };
+		98B78634BCD319D36E6DFE20 /* AppEnvironmentBootstrapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A2E07C01D4B9943496D86F /* AppEnvironmentBootstrapTests.swift */; };
 		9D2EF9D0EDA8A1F0A943EE3D /* LangoTraceAI in Frameworks */ = {isa = PBXBuildFile; productRef = 210415632B487DCC91FBBFFF /* LangoTraceAI */; };
+		A7D8E9EC89F53F421D0B7B18 /* ReadingExplanationOperationRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E289BBE941AEC4CA5DF56F1B /* ReadingExplanationOperationRecorder.swift */; };
+		A918819173BE70E0F57159C2 /* AppSessionStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01AD3F5994EB52C700AB07C2 /* AppSessionStateTests.swift */; };
 		AA1CB673BA6891C34FA32E27 /* LangoTraceSync in Frameworks */ = {isa = PBXBuildFile; productRef = 378EDEB396E0A2055B2870EA /* LangoTraceSync */; };
+		ACA9C14A553464399AA9577D /* SentenceAudioPlaybackAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF7128ACAC79E547C09DA083 /* SentenceAudioPlaybackAssembly.swift */; };
 		B19F2252EC5BA90A1D260033 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8AFCBB8E848E5F670A1593D /* Assets.xcassets */; };
+		B36980C8A5098C6AFC0092BD /* PracticeRecordingConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E42F4F01BD70695C084801DD /* PracticeRecordingConfigurationTests.swift */; };
+		BE177C204CD9CCFD1A1FB5A8 /* LangoTraceSpeech in Frameworks */ = {isa = PBXBuildFile; productRef = CFCD42B55743E48455E13B06 /* LangoTraceSpeech */; };
 		C1DE991E87E423CA1071F883 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D8441E632488B62B53C28B85 /* LaunchScreen.storyboard */; };
+		C20DEC7A30AE6044C9F3D445 /* AIRequestLogRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D04BCA454AD443B30F3411 /* AIRequestLogRecorder.swift */; };
+		CD6082C6909B413ABEE7D571 /* AppPracticeRecordingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F19A29B7D222BA6646A30A0 /* AppPracticeRecordingEngine.swift */; };
+		D4D1F7427C377C2FF249D2D1 /* SharedAppDatabaseFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45EAEA2F143BB809B64623D /* SharedAppDatabaseFactory.swift */; };
+		E45E3C35A262EAD5C56E28AA /* LangoTraceLearnerModel in Frameworks */ = {isa = PBXBuildFile; productRef = 1B1D79A9A50FF374FD1E3044 /* LangoTraceLearnerModel */; };
 		EB02E286E1BE8E66F8F87B52 /* LangoTraceUI in Frameworks */ = {isa = PBXBuildFile; productRef = CC1B4AA214F35F5CE1410E53 /* LangoTraceUI */; };
 		F5FDC6FC683BA9C03E64CDC7 /* LangoTraceCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6EFB5DE61879E201E9275D3E /* LangoTraceCore */; };
 		FE4794B5CBCE114478CCE549 /* LangoTraceSpeech in Frameworks */ = {isa = PBXBuildFile; productRef = 07CDBF13A625DCDE0818512C /* LangoTraceSpeech */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		7506B518218E323E12D792A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F16494C70F3C8A2D53DFB797 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 87D1F32FD2148585A74E1982;
+			remoteInfo = "LangoTrace-macOS";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		00D04BCA454AD443B30F3411 /* AIRequestLogRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIRequestLogRecorder.swift; sourceTree = "<group>"; };
+		01AD3F5994EB52C700AB07C2 /* AppSessionStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSessionStateTests.swift; sourceTree = "<group>"; };
 		0BD74C1C1EDA24BFA2EB4389 /* Info-macOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Info-macOS.plist"; sourceTree = "<group>"; };
 		15333DB5BBFBBE7F424C2E04 /* LangoTraceUI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceUI; path = Packages/LangoTraceUI; sourceTree = SOURCE_ROOT; };
 		15672F8764491AF8A4DF489E /* LangoTraceCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceCore; path = Packages/LangoTraceCore; sourceTree = SOURCE_ROOT; };
+		1CFCD686A28DF5178EDAE9C1 /* LangoTraceLearnerModel */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceLearnerModel; path = Packages/LangoTraceLearnerModel; sourceTree = SOURCE_ROOT; };
+		34A2E07C01D4B9943496D86F /* AppEnvironmentBootstrapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironmentBootstrapTests.swift; sourceTree = "<group>"; };
 		439399545C2315CD0BE79530 /* LangoTrace-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "LangoTrace-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5379E4455B97A67E96A20D30 /* LangoTraceAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LangoTraceAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		55AB1C12E4A7F5AD1D8D6EF5 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		5C4F0F5DE1EBB7150585288B /* Info-iOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Info-iOS.plist"; sourceTree = "<group>"; };
+		5F19A29B7D222BA6646A30A0 /* AppPracticeRecordingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPracticeRecordingEngine.swift; sourceTree = "<group>"; };
 		77EAA1253FDC53E34D323960 /* LangoTrace-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "LangoTrace-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		865760D55CBEA4D850C601D4 /* LangoTraceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LangoTraceApp.swift; sourceTree = "<group>"; };
 		8F21F6C7B2D8AFDEA037D72A /* LangoTraceAI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceAI; path = Packages/LangoTraceAI; sourceTree = SOURCE_ROOT; };
+		9AA3CDBBF9C9D844DFD19999 /* AppEnvironmentPracticeBootstrapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironmentPracticeBootstrapTests.swift; sourceTree = "<group>"; };
 		9E26B8428DFC59071FEA5779 /* LangoTraceData */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceData; path = Packages/LangoTraceData; sourceTree = SOURCE_ROOT; };
+		A2B0A94E40CCE94CE5CE0659 /* LangoTrace-macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "LangoTrace-macOS.entitlements"; sourceTree = "<group>"; };
+		B826F72799A4E311DF21F745 /* SentenceAudioPlaybackAssemblyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentenceAudioPlaybackAssemblyTests.swift; sourceTree = "<group>"; };
+		CF7128ACAC79E547C09DA083 /* SentenceAudioPlaybackAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentenceAudioPlaybackAssembly.swift; sourceTree = "<group>"; };
+		D45EAEA2F143BB809B64623D /* SharedAppDatabaseFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedAppDatabaseFactory.swift; sourceTree = "<group>"; };
 		D8441E632488B62B53C28B85 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D8AFCBB8E848E5F670A1593D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E289BBE941AEC4CA5DF56F1B /* ReadingExplanationOperationRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingExplanationOperationRecorder.swift; sourceTree = "<group>"; };
+		E42F4F01BD70695C084801DD /* PracticeRecordingConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeRecordingConfigurationTests.swift; sourceTree = "<group>"; };
 		E49E708AF58B9623000A4245 /* LangoTraceSpeech */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceSpeech; path = Packages/LangoTraceSpeech; sourceTree = SOURCE_ROOT; };
+		EF8038E79EE475FE855F47BB /* PracticeActionsAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeActionsAssembly.swift; sourceTree = "<group>"; };
 		FEB330D2E3E7B7586B6D3694 /* LangoTraceSync */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LangoTraceSync; path = Packages/LangoTraceSync; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -56,6 +105,7 @@
 				19941825A76E03AF7F9C7703 /* LangoTraceAI in Frameworks */,
 				0548E052E158D42FC7E67126 /* LangoTraceSpeech in Frameworks */,
 				7F23FD5F12487CD0E8CCC1DC /* LangoTraceSync in Frameworks */,
+				E45E3C35A262EAD5C56E28AA /* LangoTraceLearnerModel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -69,6 +119,20 @@
 				9D2EF9D0EDA8A1F0A943EE3D /* LangoTraceAI in Frameworks */,
 				FE4794B5CBCE114478CCE549 /* LangoTraceSpeech in Frameworks */,
 				AA1CB673BA6891C34FA32E27 /* LangoTraceSync in Frameworks */,
+				16626351E683C6D5CFE68143 /* LangoTraceLearnerModel in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		84CB4A0691DC51179CDB7AFB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4F4FE86E837611AFAA10A6CC /* LangoTraceCore in Frameworks */,
+				8344B208A01F2D16111E6340 /* LangoTraceUI in Frameworks */,
+				539A4C482415D5E5CBC3C3AE /* LangoTraceData in Frameworks */,
+				0DA80A96D7758DF196E8C0F5 /* LangoTraceAI in Frameworks */,
+				BE177C204CD9CCFD1A1FB5A8 /* LangoTraceSpeech in Frameworks */,
+				2FFB7B176984789ED51A1BE7 /* LangoTraceSync in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,8 +144,14 @@
 			children = (
 				ADD75FBD92D1274B62C7A43B /* Resources */,
 				B0ADB75EB0AE508DBE84045F /* Supporting */,
+				00D04BCA454AD443B30F3411 /* AIRequestLogRecorder.swift */,
 				55AB1C12E4A7F5AD1D8D6EF5 /* AppEnvironment.swift */,
+				5F19A29B7D222BA6646A30A0 /* AppPracticeRecordingEngine.swift */,
 				865760D55CBEA4D850C601D4 /* LangoTraceApp.swift */,
+				EF8038E79EE475FE855F47BB /* PracticeActionsAssembly.swift */,
+				E289BBE941AEC4CA5DF56F1B /* ReadingExplanationOperationRecorder.swift */,
+				CF7128ACAC79E547C09DA083 /* SentenceAudioPlaybackAssembly.swift */,
+				D45EAEA2F143BB809B64623D /* SharedAppDatabaseFactory.swift */,
 			);
 			path = LangoTraceApp;
 			sourceTree = "<group>";
@@ -92,6 +162,7 @@
 				8F21F6C7B2D8AFDEA037D72A /* LangoTraceAI */,
 				15672F8764491AF8A4DF489E /* LangoTraceCore */,
 				9E26B8428DFC59071FEA5779 /* LangoTraceData */,
+				1CFCD686A28DF5178EDAE9C1 /* LangoTraceLearnerModel */,
 				E49E708AF58B9623000A4245 /* LangoTraceSpeech */,
 				FEB330D2E3E7B7586B6D3694 /* LangoTraceSync */,
 				15333DB5BBFBBE7F424C2E04 /* LangoTraceUI */,
@@ -104,8 +175,21 @@
 			children = (
 				77EAA1253FDC53E34D323960 /* LangoTrace-iOS.app */,
 				439399545C2315CD0BE79530 /* LangoTrace-macOS.app */,
+				5379E4455B97A67E96A20D30 /* LangoTraceAppTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9A6F3E3006E92032A32CE27E /* LangoTraceAppTests */ = {
+			isa = PBXGroup;
+			children = (
+				34A2E07C01D4B9943496D86F /* AppEnvironmentBootstrapTests.swift */,
+				9AA3CDBBF9C9D844DFD19999 /* AppEnvironmentPracticeBootstrapTests.swift */,
+				01AD3F5994EB52C700AB07C2 /* AppSessionStateTests.swift */,
+				E42F4F01BD70695C084801DD /* PracticeRecordingConfigurationTests.swift */,
+				B826F72799A4E311DF21F745 /* SentenceAudioPlaybackAssemblyTests.swift */,
+			);
+			path = LangoTraceAppTests;
 			sourceTree = "<group>";
 		};
 		ADD75FBD92D1274B62C7A43B /* Resources */ = {
@@ -122,6 +206,7 @@
 			children = (
 				5C4F0F5DE1EBB7150585288B /* Info-iOS.plist */,
 				0BD74C1C1EDA24BFA2EB4389 /* Info-macOS.plist */,
+				A2B0A94E40CCE94CE5CE0659 /* LangoTrace-macOS.entitlements */,
 			);
 			path = Supporting;
 			sourceTree = "<group>";
@@ -130,6 +215,7 @@
 			isa = PBXGroup;
 			children = (
 				3C6A4E055E2E9009B7FF06BF /* LangoTraceApp */,
+				9A6F3E3006E92032A32CE27E /* LangoTraceAppTests */,
 				7CE7D70585163186C5BCBEAC /* Packages */,
 				9794419ACE4C6E6D1AA01540 /* Products */,
 			);
@@ -158,10 +244,36 @@
 				210415632B487DCC91FBBFFF /* LangoTraceAI */,
 				07CDBF13A625DCDE0818512C /* LangoTraceSpeech */,
 				378EDEB396E0A2055B2870EA /* LangoTraceSync */,
+				B5E53D28FAB7E3E9B5224EE4 /* LangoTraceLearnerModel */,
 			);
 			productName = "LangoTrace-iOS";
 			productReference = 77EAA1253FDC53E34D323960 /* LangoTrace-iOS.app */;
 			productType = "com.apple.product-type.application";
+		};
+		6BC5ED5F7762A7150372EFA8 /* LangoTraceAppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 01637179E1BEC5113EFE5699 /* Build configuration list for PBXNativeTarget "LangoTraceAppTests" */;
+			buildPhases = (
+				6D9E365582CA3381F69BADA1 /* Sources */,
+				84CB4A0691DC51179CDB7AFB /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B9B5998215B4B02E065DE49E /* PBXTargetDependency */,
+			);
+			name = LangoTraceAppTests;
+			packageProductDependencies = (
+				04393DCF63F44DA582FBA228 /* LangoTraceCore */,
+				21B649020088C2342C0F48EC /* LangoTraceUI */,
+				BBEFD883BC5BFAF740560C08 /* LangoTraceData */,
+				0F735F1908AC3576467661A3 /* LangoTraceAI */,
+				CFCD42B55743E48455E13B06 /* LangoTraceSpeech */,
+				A3F88B2413CB76E9B66F5766 /* LangoTraceSync */,
+			);
+			productName = LangoTraceAppTests;
+			productReference = 5379E4455B97A67E96A20D30 /* LangoTraceAppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		87D1F32FD2148585A74E1982 /* LangoTrace-macOS */ = {
 			isa = PBXNativeTarget;
@@ -183,6 +295,7 @@
 				09AA8FC7CF739D141BB84A80 /* LangoTraceAI */,
 				09143DC8CECD45543B21548B /* LangoTraceSpeech */,
 				6A92F5CC68F9FD853A10B295 /* LangoTraceSync */,
+				1B1D79A9A50FF374FD1E3044 /* LangoTraceLearnerModel */,
 			);
 			productName = "LangoTrace-macOS";
 			productReference = 439399545C2315CD0BE79530 /* LangoTrace-macOS.app */;
@@ -200,17 +313,20 @@
 					55C3E28365F84636073D649E = {
 						DevelopmentTeam = "";
 					};
+					6BC5ED5F7762A7150372EFA8 = {
+						DevelopmentTeam = "";
+					};
 					87D1F32FD2148585A74E1982 = {
 						DevelopmentTeam = "";
 					};
 				};
 			};
 			buildConfigurationList = CE63A75F5385E202FFE8CA12 /* Build configuration list for PBXProject "LangoTrace" */;
-			developmentRegion = "zh-Hans";
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
-				"zh-Hans",
+				en,
 			);
 			mainGroup = CEB5CFF2CBC36987F2D7BCA1;
 			minimizedProjectReferenceProxies = 1;
@@ -218,6 +334,7 @@
 				F68CD9C00F38B492E98A4E16 /* XCLocalSwiftPackageReference "Packages/LangoTraceAI" */,
 				18147B338523B267217713DB /* XCLocalSwiftPackageReference "Packages/LangoTraceCore" */,
 				B84DB0548C65BE2A858C85F5 /* XCLocalSwiftPackageReference "Packages/LangoTraceData" */,
+				714DE9A62F2E90A5E8B92F0D /* XCLocalSwiftPackageReference "Packages/LangoTraceLearnerModel" */,
 				DF34B06BCEBA076F711760B4 /* XCLocalSwiftPackageReference "Packages/LangoTraceSpeech" */,
 				5524C78E28E371D39AD73514 /* XCLocalSwiftPackageReference "Packages/LangoTraceSync" */,
 				85DFD02F24331B5BD88F5243 /* XCLocalSwiftPackageReference "Packages/LangoTraceUI" */,
@@ -229,6 +346,7 @@
 			targets = (
 				55C3E28365F84636073D649E /* LangoTrace-iOS */,
 				87D1F32FD2148585A74E1982 /* LangoTrace-macOS */,
+				6BC5ED5F7762A7150372EFA8 /* LangoTraceAppTests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,8 +376,26 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C20DEC7A30AE6044C9F3D445 /* AIRequestLogRecorder.swift in Sources */,
 				4F5E6250AA0827151E7828B4 /* AppEnvironment.swift in Sources */,
+				CD6082C6909B413ABEE7D571 /* AppPracticeRecordingEngine.swift in Sources */,
 				22F9EC06C5D1B79894717CD9 /* LangoTraceApp.swift in Sources */,
+				080D97F735D35EF48B738AD2 /* PracticeActionsAssembly.swift in Sources */,
+				45169793983FE29CA6D7725E /* ReadingExplanationOperationRecorder.swift in Sources */,
+				ACA9C14A553464399AA9577D /* SentenceAudioPlaybackAssembly.swift in Sources */,
+				8226EDF34EF1E204399E6705 /* SharedAppDatabaseFactory.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6D9E365582CA3381F69BADA1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				98B78634BCD319D36E6DFE20 /* AppEnvironmentBootstrapTests.swift in Sources */,
+				04897DD001BED08F27A1482D /* AppEnvironmentPracticeBootstrapTests.swift in Sources */,
+				A918819173BE70E0F57159C2 /* AppSessionStateTests.swift in Sources */,
+				B36980C8A5098C6AFC0092BD /* PracticeRecordingConfigurationTests.swift in Sources */,
+				0D1B986E71942D918731541D /* SentenceAudioPlaybackAssemblyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,14 +403,64 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0E36CDEBF2C5B840607FAF88 /* AIRequestLogRecorder.swift in Sources */,
 				12452CFC72AFD551AF7F6DF1 /* AppEnvironment.swift in Sources */,
+				1F5988C0050D2559755DAE63 /* AppPracticeRecordingEngine.swift in Sources */,
 				71888A1CF8C87DABA8BCA1C1 /* LangoTraceApp.swift in Sources */,
+				7C4102E29E31529135563ED0 /* PracticeActionsAssembly.swift in Sources */,
+				A7D8E9EC89F53F421D0B7B18 /* ReadingExplanationOperationRecorder.swift in Sources */,
+				486847A6A7815277C4644E6C /* SentenceAudioPlaybackAssembly.swift in Sources */,
+				D4D1F7427C377C2FF249D2D1 /* SharedAppDatabaseFactory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		B9B5998215B4B02E065DE49E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 87D1F32FD2148585A74E1982 /* LangoTrace-macOS */;
+			targetProxy = 7506B518218E323E12D792A4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		0929C456DCBB8D75B95726FA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zibuyu.LangoTraceAppTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LangoTrace.app/Contents/MacOS/LangoTrace";
+			};
+			name = Release;
+		};
+		2A853534AB2C095A0A3438E3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zibuyu.LangoTraceAppTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LangoTrace.app/Contents/MacOS/LangoTrace";
+			};
+			name = Debug;
+		};
 		40D5BBCDD0272D37F6E0FC15 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -309,7 +495,6 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGNING_ALLOWED = NO;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -348,6 +533,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "LangoTraceApp/Supporting/LangoTrace-macOS.entitlements";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = "LangoTraceApp/Supporting/Info-macOS.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -366,6 +552,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "LangoTraceApp/Supporting/LangoTrace-macOS.entitlements";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = "LangoTraceApp/Supporting/Info-macOS.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -433,7 +620,6 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGNING_ALLOWED = NO;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -483,6 +669,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		01637179E1BEC5113EFE5699 /* Build configuration list for PBXNativeTarget "LangoTraceAppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2A853534AB2C095A0A3438E3 /* Debug */,
+				0929C456DCBB8D75B95726FA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		91263C0F59D7D287F2343527 /* Build configuration list for PBXNativeTarget "LangoTrace-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -521,6 +716,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/LangoTraceSync;
 		};
+		714DE9A62F2E90A5E8B92F0D /* XCLocalSwiftPackageReference "Packages/LangoTraceLearnerModel" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/LangoTraceLearnerModel;
+		};
 		85DFD02F24331B5BD88F5243 /* XCLocalSwiftPackageReference "Packages/LangoTraceUI" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/LangoTraceUI;
@@ -540,6 +739,10 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		04393DCF63F44DA582FBA228 /* LangoTraceCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LangoTraceCore;
+		};
 		07CDBF13A625DCDE0818512C /* LangoTraceSpeech */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LangoTraceSpeech;
@@ -552,9 +755,21 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = LangoTraceAI;
 		};
+		0F735F1908AC3576467661A3 /* LangoTraceAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LangoTraceAI;
+		};
+		1B1D79A9A50FF374FD1E3044 /* LangoTraceLearnerModel */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LangoTraceLearnerModel;
+		};
 		210415632B487DCC91FBBFFF /* LangoTraceAI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LangoTraceAI;
+		};
+		21B649020088C2342C0F48EC /* LangoTraceUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LangoTraceUI;
 		};
 		378EDEB396E0A2055B2870EA /* LangoTraceSync */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -572,13 +787,29 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = LangoTraceCore;
 		};
+		A3F88B2413CB76E9B66F5766 /* LangoTraceSync */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LangoTraceSync;
+		};
 		AFC9862224C1E0FF7AD0437F /* LangoTraceData */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LangoTraceData;
+		};
+		B5E53D28FAB7E3E9B5224EE4 /* LangoTraceLearnerModel */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LangoTraceLearnerModel;
+		};
+		BBEFD883BC5BFAF740560C08 /* LangoTraceData */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LangoTraceData;
 		};
 		CC1B4AA214F35F5CE1410E53 /* LangoTraceUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LangoTraceUI;
+		};
+		CFCD42B55743E48455E13B06 /* LangoTraceSpeech */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LangoTraceSpeech;
 		};
 		E285E3F46B719B9083A5A4D7 /* LangoTraceCore */ = {
 			isa = XCSwiftPackageProductDependency;

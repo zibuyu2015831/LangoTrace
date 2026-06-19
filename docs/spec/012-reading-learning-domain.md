@@ -1,0 +1,121 @@
+# 012: Reading Learning Domain
+
+适用阶段：阅读资料库、阅读导入、Markdown 阅读、阅读选区 AI 解释、reading sentence TTS、词典 lookup 和后续阅读 MVP。
+
+## 1. Domain Position
+
+Reading is a first-class learning scene in LangoTrace, alongside entries, practice and memory. It keeps the product north star `用生活记录学习语言 / Learn languages from your life` unchanged while allowing user-supplied reading materials to become local-first learning inputs.
+
+The first implementation slice supports pasted text, `.txt` and `.md` documents. EPUB, PDF, HTML clip, web article import, dictionary import UI, sync, export, full-document AI summary, full-document translation and batch TTS are future capabilities.
+
+Current implementation entry points are `ReadingLibraryStore`, `ReadingDocumentStore`, `ReadingLibraryView`, `GRDBReadingLibraryRepository`, `ReadingSelectionExplanationService` and `SentenceAudioPlaybackActions` mapping to `readingDocumentSentence`. The current slice supports paste import, `.txt` / `.md` file import, collection / tag assignment and local filtering, title/body editing through a controlled editor sheet, soft delete / restore, explicit selection explanation and explicit reading sentence TTS.
+
+## 2. Reading Documents
+
+`ReadingDocument` is primary local data scoped by `language_space_id`. It must have a stable document id, title, source format, source kind, adapter id/version, body storage kind, body hash, content revision, structure version, target language code, timestamps, import status and soft-delete state.
+
+Document body and library organization are separate concerns. Library summaries may expose title, source format, import status, active/deleted state, tags, collections and last opened time, but must not carry full document text.
+
+`ReadingDocument` is user-owned primary data under the lifecycle rules in `007-data-storage-migration-export-and-attachments.md`. That means pasted text and imported files must not stop at import-only or read-only flows. The feature and page design must default to:
+
+- create or import
+- list, search, filter, open and inspect
+- update body or metadata through an explicit editing path, or record why that path is deferred
+- delete semantics with confirmation, soft delete or restore, and documented downstream effects
+
+The current slice already supports import, library read paths, collection / tag assignment, title/body editing and soft delete / restore. Soft-deleted documents must be restored before editing. If broader batch management is not implemented in a given phase, the active plan must state that explicitly rather than treating the imported document as maintenance-free content.
+
+## 3. Import Boundary
+
+Reading import is adapter-based. The active vertical slice enables only:
+
+- pasted text via `pasted-text.v1`
+- plain text file via `plain-text-file.v1`
+- Markdown file via `markdown-file.v1`
+
+Future descriptors may exist for EPUB, PDF and HTML clip, but disabled descriptors must not create ready documents. File import must evaluate file type and byte metadata before reading the full body. The app must not persist external absolute paths, security-scoped URLs or user directory structure.
+
+## 4. Markdown Rendering
+
+Markdown import produces LangoTrace-owned structure: blocks, inline runs, source ranges and plain text. The initial renderer contract covers headings, paragraphs, block quotes, ordered and unordered lists, code blocks, horizontal rules, links, emphasis, strong and inline code.
+
+Markdown presentation is controlled by `ReadingAppearanceProfile`. Style is a presentation preference and must not affect body hash, content revision, structure version, source anchor inputs or TTS source keys.
+
+## 5. Selection And Source Anchor
+
+Text selection uses native platform text selection: `UITextView` (iOS/iPadOS) and `NSTextView` (macOS) per Markdown block. Each block is rendered as a continuous, selectable text view — not as a list of sentence buttons. System-native gestures (double-tap = word, long-press + drag = arbitrary fragment, triple-tap = sentence) drive selection.
+
+Sentence data produced by `ReadingTextSegmenter.segmentSentences()` is **retained** as a data-layer and AI-context resource. It is no longer a visual rendering unit. `makeFragmentSelectionContext()` uses pre-computed sentences to identify the `containingSentence`, `previousSentence`, and `nextSentence` for any arbitrary character-range selection.
+
+The supported reading-learning selection scopes are:
+
+- `selection_scope = sentence`
+- `selection_scope = text_fragment`
+
+Both scopes produce a fully-populated `ReadingSelectionContext` with `characterOffset`, `characterLength`, `blockID`, `sentenceID` (the containing sentence), and context fields. `makeFragmentSelectionContext(precomputedSentences:)` accepts a pre-computed sentence array to avoid re-running the NLTokenizer on every selection change.
+
+Manual selection records selected text, limited context, character offset and character length, and must not depend on English whitespace tokenization. CJK, Japanese, accented Latin text and RTL snippets are valid inputs. A minimum of 2 non-whitespace characters is required to trigger the learning panel.
+
+`ReadingSourceAnchor` must include document id, content revision, structure version, block id, selected text hash and character range. If content revision, structure version, block id, selected text hash or range no longer matches the current document structure, the anchor is stale and must not silently point at another text.
+
+When sentence selection is used as the default UI path, the sentence identity must still be document-version-bound. A stable selection identity must include document id, content revision, structure version, block id, sentence id or sentence index, selected text hash, character offset and character length. Editing save, document switch, language space switch or structure change must stale the prior anchor and invalidate old explanation or TTS completions.
+
+## 6. AI Explanation
+
+Reading AI explanation is a user-explicit action. The request may contain:
+
+- `selected_text`
+- `selection_scope`
+- `source_anchor_id`
+- `containing_sentence`
+- `previous_sentence`
+- `next_sentence`
+- `containing_paragraph`
+- `context_mode`
+- `context_text`
+- native language, target language, proficiency level code, prompt id/version and provider/model metadata
+- `explanation_language_mode` — derived from `proficiency_level_code` at store construction: A1/A2 → `sourceLanguage`; B1/B2 → `bilingualBridge`; C1/C2 → `targetImmersion`; empty/unknown → `bilingualBridge`. The store holds this as `currentExplanationMode` which may be overridden (future escape hatch) without affecting `LanguageSpace.level`. The mode is not a privacy-sensitive field.
+
+The current Prompt is v4 (`builtin.reading.selection_explanation.v4`, schema `reading_selection_explanation.v3`). It carries field-level language directives and the result includes `exampleSentenceTranslation` (nullable) and `explanationLanguageMode` (the mode echoed by the model, or falling back to the requested mode). Language non-compliance (model language drift) is not a parse error and does not block the user.
+
+It must not automatically send a full document on import, open, scroll or TTS playback. Selection alone is not enough reason to send a request.
+
+Note: `proficiencyLevelCode` is snapshotted at `ReadingDocumentStore` construction time; changing the language space level while a document is already open takes effect on the next document open, not in-session.
+
+Dynamic context strategy:
+
+- short reading text may use `context_mode = full_document`
+- longer reading text may use `context_mode = adjacent_paragraphs`
+- if the surrounding window grows too large, fall back to `context_mode = current_paragraph` while still carrying sentence-level context fields
+
+On iPhone / compact, explanation result is no longer carried by a blocking modal sheet. The current implementation uses a non-modal bottom learning panel with explicit `Explain / Listen / More` actions; the compact panel must distinguish `hidden / collapsed / loading / content / failed` so a fresh sentence selection does not immediately expand stale result content. iPad and macOS keep a persistent side inspector while reusing the same selection and request contract.
+
+The UI may show the sending scope near the action or progress state. It must not require a second preview-confirm step for this slice.
+
+## 7. TTS Source
+
+Reading sentence TTS uses `TTSSentenceSource.readingDocumentSentence(documentID:sentenceID:)`. Its canonical key must not collide with entry, learning material or temporary sentence sources. Opening a reading document must not trigger TTS; only an explicit sentence play action may call the playback coordinator.
+
+## 8. Dictionary Extension Boundary
+
+This slice may include an in-memory exact lookup index for synthetic fixtures. Future production dictionary import should use `DictionaryImportAdapter`, dictionary import batches, normalized lookup index, language-specific normalization strategy and lexeme state scoped to learning workflows. LangoTrace must not become a standalone dictionary product and must not ship copyrighted dictionary data without a separate plan.
+
+## 9. Async State Boundary
+
+Reading library and document stores must guard asynchronous import, load, update, AI and TTS operations with request tokens or an equivalent generation counter. Space switch, document switch, selection change, detail close, content revision change after edit save, soft delete of the current document or repeated action must cancel or invalidate in-flight work. Stale completions must not write into current library, document, selection, explanation or audio state.
+
+## Change Log
+
+- 2026-06-17: (R1) Reading experience completion (R1 Phases 1–4, plan `docs/plans/done/2026-06-11-05-feature-reading-experience-completion.md`). Phase 1 DATA-08: `rebuildStructure` now uses `ReadingTextSegmentation.segmentSentences` to write real sentence-level rows (`character_offset`, `character_length` in Swift Character units); `importInlineDocument` calls `rebuildStructure` in the same transaction so imported documents have structure immediately; `reading_structure_blocks` / `reading_sentences` gain a `content_revision INTEGER NOT NULL DEFAULT 1` column (v21 migration) enabling stale-anchor detection; legacy placeholder structure is rebuilt on migration. Phase 2: `reading_documents` gains `is_favorite`, `reading_progress_percent`, `last_read_block_index`, `last_read_character_offset`, `last_read_structure_version`, `last_read_content_revision`, `read_completed_at`, and `body_word_count` columns (v22 migration); `GRDBReadingLibraryRepository` exposes `setFavorite` and `updateReadingProgress`; `ReadingLibraryStore` holds `selectedLibraryFilter` (.all/.favoritesOnly) and an optimistic `setFavorite` method; document library rows display `字数·导入日期·进度` three-part metadata and a bookmark favorite toggle; `ReadingWordCounter` (Core pure function) implements word count (CJK = non-whitespace chars, others = whitespace split). Phase 3: `ReadingLayoutModel.canFoldInspector` returns true only for `.pad` + `showsPersistentInspector`; `ReadingLibraryView.desktopLibraryAndReader` adds fold/expand buttons; folded inspector degrades to a bottom `ReadingCompactLearningPanel` via `.safeAreaInset`; fold/expand never triggers AI or TTS. Phase 4: `ReadingDocumentStore` publishes `currentExplanationMode` and exposes `switchExplanationMode(_:)`; switching with an active selection re-issues an explanation request; switching back to a previously fetched mode is a cache hit; `replaceDocument` resets the mode to the CEFR-derived default; `ExplanationLanguageModePicker` (three-segment control) is embedded in both `ReadingInspectorPane` and `ReadingCompactLearningPanel`; localization keys added for three mode names (Native / Bilingual / Immersion).
+- 2026-06-07: (6) Reading explanation cache and explained sentence indicators. Added `reading_explanation_cache` table (v14 migration) with 3-part unique index on `(document_id, source_anchor_id, explanation_language_mode)`. `ReadingDocumentStore` checks in-memory cache keyed by `sourceAnchorID:mode` before AI requests; cache hits deliver results synchronously with `.cache` source. `ReadingExplanationCacheRepositoryProtocol` (Core) + `GRDBReadingExplanationCacheRepository` (Data) implement persistent lookup, prune-stale-on-open, and delete-for-regenerate. Panels show "Cached" badge and "Regenerate" button when `explanationSource == .cache`. `explainedSentenceIDs` tracks explained sentences; `overlappingExplainedSentenceID` hints when a fragment's containing sentence has a prior explanation.
+- 2026-06-06: (5) Icon button audit across LangoTraceUI: fixed `ReadingDocumentHeader` using `rawValue` instead of `displayName` for source format tag; corrected two occurrences of misused `settings.languageSpace.management.edit` accessibility key in reading edit buttons — replaced with new `reading.document.edit` key; extracted `AIProviderSpeechPreviewButton` with 44pt touch target (was 32pt) and §4.19-adapted transient triggered state (`speaker.wave.2` → `speaker.wave.3`, 2s, accent color, re-trigger guard, accessibilityLabel state toggle).
+- 2026-06-06: (5) Explanation language mode self-adaptation. Added `ExplanationLanguageMode` enum (`sourceLanguage`/`bilingualBridge`/`targetImmersion`) derived from CEFR level at store construction. Prompt upgraded to v3: field-level language directives per mode, new nullable `example_sentence_translation` field, model echoes `explanation_language_mode`. `ReadingDocumentStore.currentExplanationMode` introduced as an overridable store property. `ReadingExplanationRequest` and `ReadingSelectionExplanationInput` carry the mode. Spec §6 updated.
+- 2026-06-06: (4) Suppressed system edit menu flash: switched from `editMenuForTextIn` delegate (fires after animation starts) to a private `ReadingNonMenuTextView: UITextView` subclass overriding `canPerformAction` to return false (queried before any animation). Added icon-only copy button (`doc.on.doc`) in compact learning panel header to restore clipboard copy access; uses `copyToPasteboard` cross-platform helper in `ReadingViewComponents.swift`.
+- 2026-06-06: (3) Reading UI bug fixes. iOS system edit menu suppressed via `UITextViewDelegate.textView(_:editMenuForTextIn:suggestedActions:)` returning `nil` (deployment target iOS 18); learning panel is now the sole interaction surface for text selection. Blue iOS selection handles cleared after committing the teal highlight (`selectedRange` reset inside `updateUIView`, guarded by `isApplyingCommittedHighlight`). Bottom-text coverage fixed: `ReadingDocumentDetailView` uses `ScrollViewReader` + `onChange(of: selectedSelection?.blockID)` to scroll the containing block into view above the panel. `ReadingSourceFormat.displayName` extension added to `LangoTraceUI`; `ReadingLibraryDocumentRow` now shows localized format names instead of rawValues. Compact learning panel: AI explanation section header added; button hierarchy corrected (both import buttons use `.bordered`); drag-to-dismiss gesture on handle capsule.
+- 2026-06-06: (2) Learning panel redesigned. "More" menu with disabled "翻译"/"语法分析" removed. `ReadingSelectionExplanationResult` extended with optional `grammaticalNote` field; schema version bumped to v2. Panel now displays all structured fields (explanation, translation, grammar, usage, example) via shared `ReadingExplanationResultView`. `playSelectionSentence` changed: `.textFragment` scope plays `selectedText` (word/phrase pronunciation); `.sentence` scope plays `containingSentence`. Markdown rendering fixed: `ReadingSelectableTextView` now uses `NSAttributedString` with block-kind typography (heading levels, body, blockquote italic, code monospace) and inline styling (bold, italic, code spans). Bug fixed: `ReadingMarkdownBlockRenderer` was mapping `.plain` inline run kind to `.emphasis` role — now correctly maps to `.plain`. `ReadingInlineRole.plain` added to Core.
+- 2026-06-06: Rewrote §5 Selection And Source Anchor. Text selection is now UITextView (iOS/iPadOS) / NSTextView (macOS) per Markdown block; sentence-button rendering is retired. `makeFragmentSelectionContext(precomputedSentences:)` added; pre-computed sentences remain a data-layer resource for AI context. 150 ms debounce in coordinator; ≥2 non-whitespace character minimum to trigger the learning panel. Persistent yellow highlight written back to UITextView/NSTextView after selection triggers the panel. Panel slide-in/out animation added to compact learning panel.
+- 2026-06-03: Clarified that `ReadingDocument` is user-owned primary data and must default to a full lifecycle design rather than import-only behavior.
+- 2026-06-03: Updated the current slice facts after landing ReadingDocument title/body editing, controlled editor entry and revision-based stale invalidation.
+- 2026-06-03: Updated the selection and presentation contract to sentence-first reading actions, dynamic context modes and non-modal compact learning panel delivery.
+- 2026-06-01: Created Reading learning domain spec for the reading AI/TTS vertical slice.
+- 2026-06-01: Updated implementation facts after landing the vertical slice. Reading is now a top-level route on iPhone / iPad / macOS with GRDB library actions, paste and file import, collection / tag filters, selection explanation operation summaries and reading sentence TTS wired through AppEnvironment.

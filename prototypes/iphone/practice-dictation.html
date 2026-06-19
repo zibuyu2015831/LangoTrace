@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 听写练习 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .listen-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 4px 2px;
+  }
+  .play-btn {
+    width: 54px;
+    height: 54px;
+    flex: none;
+    border-radius: 50%;
+    border: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: var(--shadow-card);
+  }
+  .play-btn:hover { background: var(--accent-deep); }
+  .listen-row .waveform { flex: 1; }
+  .listen-meta {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+  }
+  .listen-meta .count {
+    margin-left: auto;
+    font-size: var(--fs-footnote);
+    color: var(--faint);
+  }
+  .write-area {
+    min-height: 96px;
+    padding: 12px 14px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .ref-text {
+    font-size: var(--fs-title3);
+    font-weight: 580;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .diff {
+    color: var(--warn);
+    font-weight: 680;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  .diff-meta {
+    margin-top: 10px;
+    font-size: var(--fs-footnote);
+    color: var(--muted);
+  }
+  .sent-nav {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px 8px;
+  }
+  .sent-nav .pos {
+    font-size: var(--fs-sub);
+    font-weight: 620;
+    color: var(--muted);
+  }
+  .nav-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--accent);
+    font-size: var(--fs-sub);
+    font-weight: 640;
+  }
+  .nav-step:hover { background: var(--accent-tint); }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>听写练习</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note"><span class="tag-target-design">目标设计</span> 听写是句子列表上的练习方式扩展：听该句已有的 TTS 音频，写下听到的句子，本机对照参考句标出差异。图中为已提交对照后的状态。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <button class="nav-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+            句子列表
+          </button>
+          <div class="nav-title">听写练习</div>
+          <span style="width:84px"></span>
+        </div>
+
+        <div class="app-main">
+          <div class="app-scroll" style="padding-top:10px; gap:14px">
+
+            <div class="card">
+              <div class="listen-row">
+                <button class="play-btn" aria-label="播放句子音频">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.8c0-1 1.1-1.7 2-1.1l10.4 6.2c.9.5.9 1.7 0 2.2L9 18.3c-.9.6-2-.1-2-1.1V4.8z"/></svg>
+                </button>
+                <div class="waveform" role="img" aria-label="句子音频波形">
+                  <i style="height:10px"></i><i style="height:18px"></i><i style="height:26px"></i><i style="height:14px"></i><i style="height:30px"></i><i style="height:22px"></i><i style="height:34px"></i><i style="height:16px"></i><i style="height:28px"></i><i style="height:12px"></i><i style="height:24px"></i><i style="height:32px"></i><i style="height:18px"></i><i style="height:10px"></i>
+                </div>
+              </div>
+              <div class="listen-meta">
+                <button class="btn btn-quiet btn-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 3v4.5h-4.5"/></svg>
+                  重听
+                </button>
+                <span class="count">已听 2 次</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-kicker">你的听写</span>
+              </div>
+              <div class="write-area">The owner says he only stay for three hours a day.</div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-kicker accent">参考句</span>
+              </div>
+              <p class="ref-text">The owner says he only <span class="diff">stays</span> for three hours a day.</p>
+              <p class="diff-meta">1 处差异 · 本机对照，不发送 AI</p>
+            </div>
+
+          </div>
+
+          <div class="sent-nav">
+            <button class="nav-step">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+              上一句
+            </button>
+            <span class="pos">第 2 / 5 句</span>
+            <button class="nav-step">
+              下一句
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>音频复用</strong>：听写播放复用该句已有 TTS artifact（local cache 命中），不为听写新增 TTS 请求；句子无音频时先经显式生成路径。</li>
+      <li><strong>对照不调用 AI</strong>：参考句对照是本机字符串 diff；差异用下划线 + warn 色 + 「1 处差异」计数文字共同表达，不只靠颜色。</li>
+      <li><strong>代码改进方向</strong>：与跟读共享句子快照与 <code>PracticeSessionRouteSeed</code>，以 practice mode 字段区分方式，听写不另造句子数据源。</li>
+      <li><strong>重听不设限</strong>：「已听 2 次」只是本机统计的低权重信息，不构成评分或惩罚。</li>
+      <li>对照结果出现前参考句保持隐藏，避免边听边看答案；句间导航与跟读页结构一致。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

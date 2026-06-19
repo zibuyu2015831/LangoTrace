@@ -1,7 +1,7 @@
 @testable import LangoTraceCore
 import Testing
 
-@Test("Learning language exposes separate display names for Chinese UI and prompts")
+@Test("Learning language exposes stable model names without UI projection helpers")
 func learningLanguageExposesSeparateDisplayNames() {
     let english = LearningLanguage.english
     let japanese = LearningLanguage.japanese
@@ -11,17 +11,13 @@ func learningLanguageExposesSeparateDisplayNames() {
     #expect(english.nativeName == "English")
     #expect(english.zhHansName == "英语")
     #expect(english.englishName == "English")
-    #expect(english.pickerMenuTitleForChineseUI == "English（英语）")
-    #expect(english.selectedTitleForChineseUI == "English")
-    #expect(english.spaceNameForChineseUI == "英语空间")
+    #expect(english.defaultSpaceName == "英语空间")
     #expect(english.promptLanguageName == "English")
 
-    #expect(japanese.pickerMenuTitleForChineseUI == "日本語（日语）")
-    #expect(japanese.selectedTitleForChineseUI == "日本語")
+    #expect(japanese.defaultSpaceName == "日语空间")
     #expect(japanese.promptLanguageName == "Japanese")
 
-    #expect(chinese.pickerMenuTitleForChineseUI == "中文")
-    #expect(chinese.selectedTitleForChineseUI == "中文")
+    #expect(chinese.defaultSpaceName == "中文空间")
     #expect(chinese.promptLanguageName == "Chinese")
 }
 
@@ -30,6 +26,16 @@ func learningLanguageLookupUsesStableCodes() {
     #expect(LearningLanguage.find(code: "zh-Hans") == .zhHans)
     #expect(LearningLanguage.find(code: "en") == .english)
     #expect(LearningLanguage.find(code: "missing") == nil)
+}
+
+@Test("Learning language lookup resolves native and target language codes")
+func learningLanguageLookupResolvesNativeAndTargetLanguageCodes() {
+    for language in LearningLanguage.supportedNativeLanguages {
+        #expect(LearningLanguage.find(code: language.code) == language)
+    }
+    for language in LearningLanguage.supportedTargetLanguages {
+        #expect(LearningLanguage.find(code: language.code) == language)
+    }
 }
 
 @Test("Target language options exclude the selected native language")

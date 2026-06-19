@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 记录详情 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .text-card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-card);
+    padding: 12px 16px 16px;
+  }
+  .text-card .tools {
+    display: flex; align-items: center; gap: 4px; margin-bottom: 6px;
+  }
+  .text-card .tools .card-kicker { flex: 1; }
+  .text-card .tools .icon-btn { width: 40px; height: 40px; color: var(--muted); }
+  .text-card .body {
+    font-size: var(--fs-body); line-height: 1.65; color: var(--ink);
+  }
+  .text-card .body.target { font-size: 16px; }
+  .stale-strip {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 10px; padding: 9px 12px;
+    border-radius: var(--r-sm);
+    background: var(--warn-tint); color: var(--warn);
+    font-size: var(--fs-footnote); font-weight: 620;
+  }
+  .stale-strip .btn-sm { margin-left: auto; background: var(--surface); color: var(--warn); border: 1px solid rgba(160,106,31,0.35); }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>记录详情</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">导航栏承载记录标题（单行截断），正文不重复标题、不显示 metadata badge。母语原文与目标语言学习文本使用同构的动态文本卡片；逐句操作在独立顶部操作区，正文全宽。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <button class="nav-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+            记录
+          </button>
+          <div class="nav-title">公司楼下的咖啡车</div>
+          <span style="width:56px"></span>
+        </div>
+
+        <div class="app-main">
+          <div class="app-scroll" style="padding-top:6px">
+
+            <div class="text-card">
+              <div class="tools">
+                <span class="card-kicker">中文记录</span>
+                <button class="icon-btn" aria-label="编辑原文">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+                </button>
+              </div>
+              <p class="body">楼下新来了一辆咖啡车，老板说每天只来三个小时。排队的时候闻到现磨豆子的味道，突然觉得周四也没那么难熬。</p>
+            </div>
+
+            <div class="text-card">
+              <div class="tools">
+                <span class="card-kicker accent">English 表达</span>
+                <button class="icon-btn" aria-label="编辑学习文本">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="重新分析">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 3v4.5h-4.5"/></svg>
+                </button>
+              </div>
+              <p class="body target">A new coffee cart showed up outside our office, and the owner says he only stays for three hours a day. While I was waiting in line, the smell of freshly ground beans suddenly made Thursday feel a lot easier.</p>
+              <div class="stale-strip">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor"/></svg>
+                基于旧记录 · 原文已修改
+                <button class="btn btn-sm">重新生成</button>
+              </div>
+            </div>
+
+            <div class="section-label">逐句学习</div>
+
+            <div class="sentence-card">
+              <div class="sentence-ops">
+                <span class="sentence-index">01</span>
+                <span class="spacer"></span>
+                <button class="op-btn playing" aria-label="暂停播放">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>
+                  播放中
+                </button>
+                <button class="op-btn" aria-label="进入练习">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/></svg>
+                  练
+                </button>
+              </div>
+              <p class="sentence-target">A new coffee cart showed up outside our office.</p>
+              <p class="sentence-native">楼下新来了一辆咖啡车。</p>
+            </div>
+
+            <div class="sentence-card">
+              <div class="sentence-ops">
+                <span class="sentence-index">02</span>
+                <span class="spacer"></span>
+                <button class="op-btn" aria-label="听这一句">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+                  听
+                </button>
+                <button class="op-btn" aria-label="进入练习">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/></svg>
+                  练
+                </button>
+              </div>
+              <p class="sentence-target">The owner says he only stays for three hours a day.</p>
+              <p class="sentence-native">老板说每天只来三个小时。</p>
+              <div class="sentence-note">「stays for three hours」中的 stay 表示短暂停留营业；用 only 前置强调时间之短，比 just three hours 语气更口语化。</div>
+            </div>
+
+            <div class="sentence-card">
+              <div class="sentence-ops">
+                <span class="sentence-index">03</span>
+                <span class="spacer"></span>
+                <button class="op-btn" aria-label="听这一句">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+                  听
+                </button>
+                <button class="op-btn" aria-label="进入练习">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/></svg>
+                  练
+                </button>
+              </div>
+              <p class="sentence-target">The smell of freshly ground beans suddenly made Thursday feel a lot easier.</p>
+              <p class="sentence-native">现磨豆子的味道，突然觉得周四也没那么难熬。</p>
+            </div>
+
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>标题策略</strong>：compact 详情页以系统 navigation title 承载记录标题，单行截断；正文不重复标题，无来源 / 语言 / 场景 metadata、无能力状态 badge。</li>
+      <li><strong>动态文本卡片</strong>：顶部工具区左侧为「{母语显示名}记录 / {目标语言显示名}表达」（来自语言空间显示名，不硬编码），右侧为 44pt 编辑 / 重新分析按钮；正文全宽，不被悬浮按钮挤压。</li>
+      <li><strong>「基于旧记录」状态</strong>：原文编辑后材料显示低权重 warning 条 + 显式「重新生成」；不自动重新请求 AI。</li>
+      <li><strong>逐句操作区</strong>：序号与「听 / 练」位于独立顶部行，按钮 ≥ 44pt 触控；「听」原位切换 播放中 / 暂停，不打开任何解释型 sheet；页面展示与滚动不自动触发 TTS。</li>
+      <li><strong>无 material 状态（未画出）</strong>：正文卡下方只有一个核心动作「生成学习材料」（btn-primary），按钮下方一行 footnote 披露「将把这段文字发送给你配置的 AI Provider」。</li>
+      <li>句子讲解（sentence-note）仅在有内容时出现，浅色次级 surface，不与正文卡同级争夺层级。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

@@ -8,15 +8,7 @@ public struct LearningLanguage: Equatable, Sendable, Identifiable {
         code
     }
 
-    public var pickerMenuTitleForChineseUI: String {
-        nativeName == zhHansName ? nativeName : "\(nativeName)（\(zhHansName)）"
-    }
-
-    public var selectedTitleForChineseUI: String {
-        nativeName
-    }
-
-    public var spaceNameForChineseUI: String {
+    public var defaultSpaceName: String {
         "\(zhHansName)空间"
     }
 
@@ -99,7 +91,10 @@ public extension LearningLanguage {
     static let defaultTarget = LearningLanguage.english
 
     static func find(code: String) -> LearningLanguage? {
+        // Resolve over the union of native and target language lists so target-only codes
+        // keep resolving even if the two lists diverge.
         supportedNativeLanguages.first { $0.code == code }
+            ?? supportedTargetLanguages.first { $0.code == code }
     }
 
     static func targetLanguages(excludingNativeCode nativeLanguageCode: String) -> [LearningLanguage] {

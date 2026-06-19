@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPad · 设置焦点态 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  /* iPad 状态行 */
+  .ipad-status {
+    flex: none;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 24px 0;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .ipad-status .status-left { display: flex; gap: 10px; }
+
+  /* iPad 触控目标 */
+  .workbench .side-item { min-height: 44px; }
+
+  .pane-toolbar .pane-title { font-size: 16px; font-weight: 680; }
+  .pane-toolbar .spacer { flex: 1; }
+
+  /* 中央：设置详情阅读栏 */
+  .pane-scroll { flex: 1; overflow-y: auto; padding: 28px; }
+  .settings-col {
+    max-width: 560px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .settings-col > .section-label { padding-top: 14px; }
+  .settings-col > .section-label:first-child { padding-top: 0; }
+  .settings-heading h2 { font-size: 24px; font-weight: 740; letter-spacing: -0.01em; }
+  .settings-heading .sh-sub { margin-top: 3px; font-size: var(--fs-sub); color: var(--muted); }
+
+  .row .row-title { flex: 1; }
+  .row .key-mask { font-family: var(--font-mono); font-size: 13px; color: var(--muted); letter-spacing: 0.04em; }
+  .row .icon-btn { width: 44px; height: 44px; color: var(--muted); }
+  .row-static { cursor: default; }
+  .row-static:hover { background: transparent; }
+
+  .form-foot { font-size: var(--fs-footnote); color: var(--faint); line-height: 1.55; padding: 0 6px; }
+
+  .form-actions { display: flex; gap: 12px; margin-top: 12px; }
+  .form-actions .btn { flex: 1; }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPad</div>
+  <div class="proto-header">
+    <h1>设置焦点态 · AI Provider</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">iPad 设置页（已实现）。常规宽度下进入设置焦点：右侧学习面板收起，左侧切换为设置项侧栏，中央以约 560px 阅读栏复刻 iPhone 的 AI Provider 表单分组，不为 iPad 单独分叉组件。</p>
+
+  <div class="proto-stage">
+    <div class="device-ipad">
+      <div class="screen">
+        <div class="ipad-status">
+          <div class="status-left"><span>9:41</span><span>6月11日 周四</span></div>
+          <div class="status-icons">
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="pane-toolbar">
+          <button class="icon-btn" aria-label="收起设置侧栏">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg>
+          </button>
+          <span class="pane-title">设置</span>
+          <span class="spacer"></span>
+          <button class="btn btn-quiet btn-sm">完成</button>
+        </div>
+
+        <div class="workbench">
+          <div class="sidebar">
+            <div class="side-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14.5 14.5 0 0 1 0 18M12 3a14.5 14.5 0 0 0 0 18"/></svg>
+              语言空间
+            </div>
+            <div class="side-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5.5h8M7.5 3.5v2M10 5.5c-.8 3.6-3 6.6-6 8.5M5.5 9.5c1.2 2.2 3.3 4 5.5 4.9"/><path d="M12.5 20.5l4-9.5 4 9.5M13.8 17.5h5.4"/></svg>
+              界面语言
+            </div>
+            <div class="side-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg>
+              外观
+            </div>
+            <div class="side-item active">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg>
+              AI Provider
+            </div>
+            <div class="side-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 12a7.8 7.8 0 0 1 13.2-5.6"/><path d="M17.6 2.6v4.4h-4.4"/><path d="M19.8 12a7.8 7.8 0 0 1-13.2 5.6"/><path d="M6.4 21.4V17h4.4"/></svg>
+              同步
+            </div>
+            <div class="side-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7" ry="2.7"/><path d="M5 5.5v6.5c0 1.5 3.1 2.7 7 2.7s7-1.2 7-2.7V5.5"/><path d="M5 12v6.5c0 1.5 3.1 2.7 7 2.7s7-1.2 7-2.7V12"/></svg>
+              本地数据
+            </div>
+            <div class="side-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14V3M7.5 7.5L12 3l4.5 4.5"/><path d="M4.5 14.5v4A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5v-4"/></svg>
+              导入导出
+            </div>
+            <div class="side-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.8v5.4c0 4.4-2.9 7.6-7 9.3-4.1-1.7-7-4.9-7-9.3V5.8z"/><path d="M9 11.8l2.2 2.2 3.8-4"/></svg>
+              隐私
+            </div>
+
+            <div class="sidebar-spacer"></div>
+            <div class="side-footer">
+              <div>
+                <div class="space-name">英语空间</div>
+                <div class="space-dir">中文 → English</div>
+              </div>
+              <div class="footer-icons">
+                <button class="icon-btn" aria-label="AI 状态">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="同步状态">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 12a7.8 7.8 0 0 1 13.2-5.6"/><path d="M17.6 2.6v4.4h-4.4"/><path d="M19.8 12a7.8 7.8 0 0 1-13.2 5.6"/><path d="M6.4 21.4V17h4.4"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="设置">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="main-pane">
+            <div class="pane-scroll">
+              <div class="settings-col">
+                <div class="settings-heading">
+                  <h2>AI Provider</h2>
+                  <p class="sh-sub">凭证保存在 Keychain，不参与同步；非敏感配置保存在本地配置表。</p>
+                </div>
+
+                <div class="section-label">文本模型</div>
+                <div class="list">
+                  <div class="row">
+                    <span class="row-title">Provider</span>
+                    <span class="row-value">OpenAI</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                  </div>
+                  <div class="row">
+                    <span class="row-title">模型</span>
+                    <span class="row-value">gpt-4o-mini</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                  </div>
+                  <div class="row row-static">
+                    <span class="row-title">API Key</span>
+                    <span class="key-mask">sk-••••••••••3f8a</span>
+                    <button class="icon-btn" aria-label="临时显示 API Key">
+                      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="section-label">语音生成模型</div>
+                <div class="list">
+                  <div class="row">
+                    <span class="row-title">Provider</span>
+                    <span class="row-value">OpenAI</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                  </div>
+                  <div class="row">
+                    <span class="row-title">模型</span>
+                    <span class="row-value">tts-1</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                  </div>
+                </div>
+
+                <div class="section-label">语音细节 · English</div>
+                <div class="list">
+                  <div class="row">
+                    <span class="row-title">音色</span>
+                    <span class="row-value">alloy</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                  </div>
+                  <div class="row">
+                    <span class="row-title">输出格式</span>
+                    <span class="row-value">mp3</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                  </div>
+                  <div class="row">
+                    <span class="row-title">语速</span>
+                    <span class="row-value">1.0×</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                  </div>
+                  <div class="row">
+                    <span class="row-title">朗读风格</span>
+                    <span class="row-value">自然叙述</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                  </div>
+                </div>
+
+                <div class="section-label">向量模型</div>
+                <div class="list">
+                  <div class="row">
+                    <span class="row-title">模型</span>
+                    <span class="row-value">text-embedding-3-small</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                  </div>
+                </div>
+                <p class="form-foot">向量索引是本地可重建的派生数据，不参与同步。</p>
+
+                <div class="form-actions">
+                  <button class="btn btn-secondary">测试请求</button>
+                  <button class="btn btn-primary">保存配置</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>设置焦点态</strong>：iPad 常规宽度进入设置时收起右侧学习面板，左侧切换为设置项侧栏，main-pane 直接到屏幕边缘，避免设置与学习内容争夺注意力。</li>
+      <li><strong>共享同一表单组件</strong>：文本模型 / 语音生成模型 / 语音细节 / 向量模型的分组与 iPhone AI Provider 表单完全同构，只调整阅读栏宽度（约 560px），不为 iPad 分叉第二套表单。</li>
+      <li><strong>系统级配置不显示语言空间 header</strong>：设置属于系统级上下文，顶部不出现语言空间胶囊；当前空间仅保留在 side-footer 低权重位置。</li>
+      <li><strong>凭证边界</strong>：API Key 默认掩码显示，眼睛按钮临时显示；Key 保存在 Keychain、不参与同步，与非敏感配置（模型、音色、语速）分离存储。</li>
+      <li><strong>显式测试请求</strong>：「测试请求」是用户显式触发的固定低敏 probe，保存配置本身不发起任何网络请求。</li>
+      <li>窄宽度（分屏 / Stage Manager）下设置回退为单列导航推入结构，与 iPhone 路径一致。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

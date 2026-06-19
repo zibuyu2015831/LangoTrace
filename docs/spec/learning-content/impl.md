@@ -1,0 +1,81 @@
+# learning-content 实现地图
+
+状态：Current Implementation Map
+
+最后更新：2026-06-17
+
+## 1. 对应规范
+
+- `docs/spec/ui-design/mvp-ui-flow-and-design-system.md`
+- `docs/spec/007-data-storage-migration-export-and-attachments.md`
+- `docs/spec/005-ai-provider-prompt-and-privacy.md`
+
+## 2. 当前实现
+
+- 内存学习内容模型和 repository：`Packages/LangoTraceData/Sources/LangoTraceData/LearningContent.swift`
+- GRDB 学习内容 repository：`Packages/LangoTraceData/Sources/LangoTraceData/GRDBLearningContentRepository.swift`
+- Bridge 诊断事件与 protocol 抽象：`Packages/LangoTraceData/Sources/LangoTraceData/GRDBLearningContentRepositoryBridge.swift`
+- 统一枚举解码辅助：`Packages/LangoTraceData/Sources/LangoTraceData/StoredEnumDecoding.swift`
+- Data 边界协议：`Packages/LangoTraceData/Sources/LangoTraceData/DataBoundary.swift`
+- 学习材料生成 Core 契约：`Packages/LangoTraceCore/Sources/LangoTraceCore/LearningMaterialGenerationModels.swift`
+- 学习材料 AI service 与 Prompt Registry：`Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialGenerationService.swift`、`Packages/LangoTraceAI/Sources/LangoTraceAI/LearningMaterialPromptRegistry.swift`
+- iPhone 记录创建和详情：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainView.swift`
+- iPad 记录详情承载：`Packages/LangoTraceUI/Sources/LangoTraceUI/PadMainSections.swift`
+- macOS 记录详情承载：`Packages/LangoTraceUI/Sources/LangoTraceUI/MacWorkspaceContentView.swift`
+- Entry editor、detail 和 supporting views：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhoneMainSupportingViews.swift`
+- 照片写作入口与流程：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoWritingView.swift`
+- 照片写作 action contract：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoWritingActions.swift`
+- 照片写作草稿状态与引导 chip：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoWritingDraftState.swift`
+- 照片展示 environment key：`Packages/LangoTraceUI/Sources/LangoTraceUI/PhotoDisplayActions.swift`
+- 照片导入流水线：`Packages/LangoTraceData/Sources/LangoTraceData/PhotoImportPipeline.swift`
+- 照片附件 repository：`Packages/LangoTraceData/Sources/LangoTraceData/GRDBEntryPhotoAttachmentRepository.swift`
+- App Shell 装配：`LangoTraceApp/AppEnvironment.swift`
+
+当前已经实现：
+
+- `InMemoryLearningContentRepository` 仍可作为测试替身和开发期 seed preview。
+- `GRDBLearningContentRepository` 已提供真实 Entry、LearningMaterial、句子分析、修改说明、memory candidate、practice candidate 和 learning material operation 摘要的本地持久化路径。
+- `GRDBLearningContentRepositoryBridge` 内部协议 `GRDBLearningContentRepositoryProtocol` 支持测试替身注入；读路径失败通过 `DiagnosticLogging` 发射结构化诊断事件（`learningContentRepositoryReadFailed`），不再静默吞错。
+- `StoredEnumDecoding.decode()` 统一处理 GRDB 存储枚举解码，未知 rawValue 时发射 `storedEnumDecodeFallback` 诊断事件并回退到默认值；8 个 GRDB 仓库共 44 处已替换。
+- `LearningEntry.updatedAt` 已加入模型（默认 `createdAt`），对应 DB 列 `entries.updated_at`（v4 migration 起已存在）。
+- v16 migration 补充 `reading_explanation_cache.space_id → language_spaces` FK 约束和 `reading_import_operations.status` CHECK 约束。
+- App Shell 已将真实 learning content repository 装配为 `GRDBLearningContentRepositoryBridge`，不再把用户创建的真实 Entry 和生成结果落入内存 repository。
+- iPhone 可通过记录创建 sheet 保存到 GRDB repository，并进入详情。
+- `LearningContentRepository` 已提供 Entry body 更新能力；iPhone / iPad / macOS 复用的 `EntryDetailView` 可以从详情页编辑母语原文。保存原文只更新本地 `entries.body` / `updated_at`，不自动触发 AI Provider 请求。
+- iPhone / iPad / macOS 记录详情在无学习材料时显示一个核心动作 `生成学习材料`；点击后经 `LearningMaterialGenerationActions` 进入 App Shell 编排，读取默认文本 Provider、解析 Keychain secret、调用 `LearningMaterialGenerationService`，再保存到 GRDB。
+- `learning_materials.source_entry_body_hash` 记录当前 material 生成时对应的 Entry body hash；Store 通过当前 Entry body hash 与 rendering/material hash 比较推导 `sourceEntryIsStale`。原文编辑后已有学习材料显示“基于旧记录”，用户显式点击重新生成后才会发送当前原文给 Provider。
+- 学习文本可编辑；编辑后 analysis 进入 stale 状态；用户可点击 `重新分析`，仅重建当前学习文本的 analysis，不改原始 Entry 或重新生成 learning text。
+- 记录详情中的母语原文和目标语言学习文本使用 `EntryDetailTextCard` 顶部工具区；动态标题来自当前语言空间显示名，不硬编码具体语种，正文全宽展示，不再使用右上角悬浮按钮挤压文本列。
+- 长文本在 UI / Store 层按 `LearningMaterialLengthEstimator` 阻断，避免直接发送给 Provider。
+- iPad `workspaceOverview` / route detail 和 macOS Today / Entries detail 均复用共享 `EntryDetailView` helper，注入与 iPhone 一致的生成、取消、learning text 保存、重新分析、原文更新和练习入口。iPad / macOS 仍需后续人工验收大屏布局、AI Provider 披露和创建入口保存失败恢复。
+
+## 3. 已知偏差
+
+- `LanguageSpaceRepository` 仍是空协议。
+- Settings capability 仍通过 learning content repository 过渡提供；长期应拆为独立 provider，避免内容 repository 承担设置能力来源职责。
+- `GRDBLearningContentRepositoryBridge` 是旧同步 UI 协议到真实 GRDB repository 的过渡层；它已经不再返回 `unsaved-*` 内存 Entry，持久化失败会向上抛出。Bridge 读路径现在通过诊断事件报告失败而非静默吞错。后续 iPad / macOS 接入和更完整错误恢复时，应继续演进为 async facade。
+- `LearningContentRepository` 协议已标注文档注释说明主线程使用意图，完整 `@MainActor` 隔离推迟到 E0b。
+- `StoredEnumDecoding` 集中管理所有 GRDB 存储枚举的解码与回退诊断，消除了散落在各仓库的 `rawValue ?? fallback` 模式。
+- iPhone 生成中状态已有取消入口；取消会把当前 operation 标记为 cancelled，并让 Store 丢弃 late result。第一版取消不承诺底层 HTTP task 一定被立即终止。
+- 成功生成和重新分析使用 `GRDBLearningContentRepository` 的组合写入 API，保证 material / analysis / operation succeeded summary 在同一个 `DatabaseQueue.write` 事务内完成。
+- Store 层 `contentEmpty` / `contentTooLong` / `operationInProgress` preflight 阻断会通过 App Shell action 写入本地 failed operation summary，不发送 Provider。
+- App Shell 创建 GRDB bridge 失败时使用显式 unavailable repository，不再 fallback 到 `InMemoryLearningContentRepository(seedEntries: [])`。
+- 当前真实学习材料请求支持 OpenAI Responses / OpenAI-compatible Chat；Anthropic / Gemini 学习材料请求体尚未接入，会按 unsupported provider / model 边界处理。
+- `GRDBLearningContentRepository` 已实现 `learningPracticeReadiness(for:) -> [String: Bool]` 聚合查询：通过 LEFT JOIN `practice_sessions` / `practice_recordings` / `media_artifacts` 链，推导每个 Entry 是否有对应学习材料（absent = noMaterial），有材料但无 completed recording（false = needsPractice），有材料且有 completed recording（true = practiceReady）；结果投影到 `LearningContentStore.practiceReadiness`，供 iPhone / iPad / macOS 筛选和状态 pill 使用。
+- `EntryTimeline.swift`（LangoTraceUI package）定义共享时间线类型：`EntryTimelineFilter`（all / photo / needsPractice / settled，settled 至 E7 前被 UI guard 屏蔽）、`EntryDayGroup`、`groupEntriesByDay()`、`EntryTimelineCounts`、`timelineCounts(entries:practiceReadiness:today:)`、`EntryMaterialStatus`（noMaterial / stale / fresh）、`materialStatus(entry:rendering:)` 和 `EntryMaterialStatusPill`；iPhone / iPad / macOS 三端共享这些类型，不重复维护平台专属筛选 enum。
+- 练习候选仍是候选入口；TTS、录音、真实练习评分、OCR 和同步尚未接入。
+- 导出、可恢复备份、FTS、向量索引和对象级同步尚未实现。
+- TTS、录音、Speech、OCR 和同步尚未接入。
+- 照片写作入口已落地：iPhone 记录 Hero「用照片开始」进入 `PhotoWritingView`，保存时通过 `PhotoWritingSaveCoordinator` 串联创建 `source = .photoWriting` 的 Entry 与 `PhotoWritingActions.importPhoto`；导入闭环调用 `PhotoImportPipeline`（EXIF GPS strip → hash → 缩略图 → staging → 原子 move → `GRDBEntryPhotoAttachmentRepository` 元数据事务）。照片导入失败是保存失败，会保留照片写作页、显示错误并回滚已创建 Entry，避免产生可见无附件 `photoWriting` 记录；只有 Entry 与照片附件都成功后才导航到记录详情。`EntryCard` 对 `photoWriting` 类型在右侧展示 44×44 缩略图；`EntryDetailView` 在原文卡片上方展示带背景、圆角、描边和高度上限的照片卡片，成功态使用缩放适配而不是裁切填充。两处展示通过 `PhotoDisplayActions` 环境值异步加载，不直接持有文件路径；详情页对加载中、附件缺失和解码失败显示同一外层 chrome 的可见降级态，不再静默隐藏照片区域。照片字节不发送 AI Provider。
+
+## 4. 复查方法
+
+```bash
+swift test --package-path Packages/LangoTraceData
+swift test --package-path Packages/LangoTraceAI
+swift test --package-path Packages/LangoTraceUI
+rg "GRDBLearningContentRepository|LearningMaterialGenerationActions|LearningMaterialGenerationService|EntryDetailView|PracticeSession" Packages/LangoTraceData Packages/LangoTraceAI Packages/LangoTraceUI LangoTraceApp
+scripts/verify.sh
+```
+
+如果 Data package 在某个阶段没有测试目标或没有测试用例，应在任务方案中记录实际 package 状态，并至少运行相关 UI / Core 测试和文档检查。

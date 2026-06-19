@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPad · 练习 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  /* iPad 状态行 */
+  .ipad-status {
+    flex: none;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 24px 0;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .ipad-status .status-left { display: flex; gap: 10px; }
+
+  /* 右侧 inspector 外侧留白（iPad 硬性规范） */
+  .inspector { margin: 12px 12px 12px 0; border: 1px solid var(--hairline); border-radius: var(--r-md); overflow-y: auto; }
+
+  /* iPad 触控目标 */
+  .workbench .side-item { min-height: 44px; }
+  .op-btn { min-height: 44px; }
+
+  .pane-toolbar .pane-title { font-size: 16px; font-weight: 680; }
+  .pane-toolbar .spacer { flex: 1; }
+
+  /* 左栏：可练习记录 */
+  .practice-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 11px 13px;
+    min-height: 48px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+    text-align: left;
+    cursor: pointer;
+    margin: 0 2px 8px;
+  }
+  .practice-row:hover { background: var(--surface-2); }
+  .practice-row.active { background: var(--accent-tint); border-color: var(--accent-tint-2); }
+  .practice-row .pr-title { font-size: 14px; font-weight: 640; color: var(--ink); }
+  .practice-row .pr-sub { font-size: 12px; color: var(--muted); }
+  .practice-row.active .pr-sub { color: var(--accent-deep); }
+
+  /* 中央：单句跟读会话 */
+  .pane-scroll { flex: 1; overflow-y: auto; padding: 28px; }
+  .session-col {
+    max-width: 560px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .target-card .tc-head { display: flex; align-items: flex-start; gap: 8px; }
+  .target-card .tc-sentence {
+    flex: 1;
+    font-size: 20px;
+    font-weight: 620;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .target-card .tc-actions { display: flex; gap: 2px; flex: none; }
+  .target-card .tc-notes { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .target-card .tc-notes .sentence-note { margin-top: 0; }
+
+  .record-card .rc-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 6px 4px 2px;
+  }
+  .record-btn-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .record-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--accent);
+    color: var(--on-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-card);
+  }
+  .record-btn:hover { background: var(--accent-deep); }
+  .record-btn-wrap .rb-caption { font-size: var(--fs-caption); color: var(--muted); font-weight: 620; }
+  .record-card .rc-foot {
+    margin-top: 10px;
+    text-align: center;
+    font-size: var(--fs-footnote);
+    color: var(--faint);
+  }
+
+  .sentence-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 2px 0 8px;
+  }
+  .sentence-nav .nav-pos { font-size: var(--fs-sub); font-weight: 650; color: var(--muted); }
+
+  /* 右栏卡片 */
+  .inspector .card { padding: 12px 14px; box-shadow: none; }
+  .progress-card .pg-label { font-size: 12px; color: var(--muted); font-weight: 620; }
+  .progress-card .pg-value { margin-top: 2px; font-size: 18px; font-weight: 720; }
+  .progress-card .pg-value small { font-size: 12px; font-weight: 620; color: var(--faint); }
+  .foot-card { font-size: 12px; color: var(--ink-2); line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPad</div>
+  <div class="proto-header">
+    <h1>练习 · 单句跟读会话</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">iPad 练习页（已实现）。左侧列出可练习的记录，中央是单句跟读会话：目标句 + 可展开讲解、录音操作卡与句间导航；练习录音默认只保存在本机。</p>
+
+  <div class="proto-stage">
+    <div class="device-ipad">
+      <div class="screen">
+        <div class="ipad-status">
+          <div class="status-left"><span>9:41</span><span>6月11日 周四</span></div>
+          <div class="status-icons">
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="pane-toolbar">
+          <button class="icon-btn" aria-label="收起侧栏">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg>
+          </button>
+          <span class="pane-title">练习</span>
+          <span class="spacer"></span>
+          <button class="icon-btn" aria-label="收起练习面板">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M14.5 4.5v15"/></svg>
+          </button>
+        </div>
+
+        <div class="workbench">
+          <div class="sidebar">
+            <div class="section-label">可练习的记录</div>
+            <button class="practice-row active">
+              <span class="pr-title">公司楼下的咖啡车</span>
+              <span class="pr-sub">5 句 · 已练 2</span>
+            </button>
+            <button class="practice-row">
+              <span class="pr-title">夜跑路线换了</span>
+              <span class="pr-sub">5 句 · 已练 5</span>
+            </button>
+            <button class="practice-row">
+              <span class="pr-title">午餐时的争论</span>
+              <span class="pr-sub">4 句 · 已练 1</span>
+            </button>
+            <button class="practice-row">
+              <span class="pr-title">清晨的雨</span>
+              <span class="pr-sub">2 句 · 未开始</span>
+            </button>
+
+            <div class="sidebar-spacer"></div>
+            <div class="side-footer">
+              <div>
+                <div class="space-name">英语空间</div>
+                <div class="space-dir">中文 → English</div>
+              </div>
+              <div class="footer-icons">
+                <button class="icon-btn" aria-label="AI 状态">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="同步状态">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 12a7.8 7.8 0 0 1 13.2-5.6"/><path d="M17.6 2.6v4.4h-4.4"/><path d="M19.8 12a7.8 7.8 0 0 1-13.2 5.6"/><path d="M6.4 21.4V17h4.4"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="设置">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="main-pane">
+            <div class="pane-scroll">
+              <div class="session-col">
+
+                <div class="card target-card">
+                  <div class="tc-head">
+                    <p class="tc-sentence">The owner says he only stays for three hours a day.</p>
+                    <span class="tc-actions">
+                      <button class="btn btn-quiet btn-sm">查看释义</button>
+                      <button class="btn btn-quiet btn-sm">收起讲解</button>
+                    </span>
+                  </div>
+                  <div class="tc-notes">
+                    <div class="sentence-note">「stays for three hours」中的 stay 表示短暂停留营业；用 only 前置强调时间之短，比 just three hours 更口语化。跟读时注意 only 要轻微重读。</div>
+                    <div class="sentence-note">「three hours a day」是「每天三小时」的常用频率表达；a day 读得轻而快，整句重音落在 three 上，结尾语调自然下降。</div>
+                  </div>
+                </div>
+
+                <div class="card record-card">
+                  <div class="rc-row">
+                    <button class="btn btn-secondary">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+                      听示范
+                    </button>
+                    <div class="record-btn-wrap">
+                      <button class="record-btn" aria-label="开始录音">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>
+                      </button>
+                      <span class="rb-caption">再录一次</span>
+                    </div>
+                    <button class="btn btn-secondary">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5v13l10-6.5z"/></svg>
+                      回放录音
+                    </button>
+                  </div>
+                  <div class="rc-foot">上次录音 · 8 秒 · 保存在本机</div>
+                </div>
+
+                <div class="sentence-nav">
+                  <button class="btn btn-quiet btn-sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+                    上一句
+                  </button>
+                  <span class="nav-pos">第 2 / 5 句</span>
+                  <button class="btn btn-quiet btn-sm">
+                    下一句
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="inspector">
+            <h3>练习上下文</h3>
+            <div class="card card-plain progress-card">
+              <div class="pg-label">本记录</div>
+              <div class="pg-value">已练 2 / 5 <small>句</small></div>
+            </div>
+
+            <h3>录音</h3>
+            <div class="card card-plain foot-card">录音保存在本机，不会自动发送、同步或导出。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>三端共享同一 route seed / action seam</strong>：会话由 <code>PracticeSessionRouteSeed</code> 进入，听示范 / 录音 / 回放走共享 <code>PracticeActions</code>，iPad 只决定三栏承载方式。</li>
+      <li><strong>讲解 disclosure 是 route-local UI state</strong>：「查看释义 / 收起讲解」的展开状态只属于当前会话路由，不写入持久化数据，切句即回到默认折叠。</li>
+      <li><strong>录音中禁用句间切换</strong>：录音进行时「上一句 / 下一句」置灰，避免半成品音频归属到错误句子。</li>
+      <li><strong>录音隐私边界</strong>：练习录音默认只保存在本机，不自动发送 AI Provider、不默认导出、不同步；状态以文字「保存在本机」表达。</li>
+      <li><strong>触控优先</strong>：72px 圆形录音主按钮居中，听示范 / 回放为次级动作分列两侧；全部触控目标不小于 44pt。</li>
+      <li>Stage Manager 与窄宽度下的两栏 / 单栏回退布局需在真机人工验收，不在静态原型中穷举。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · 语言空间 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .current-space-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .current-space-card .cs-body { flex: 1; min-width: 0; }
+  .current-space-card .cs-name { font-size: var(--fs-body); font-weight: 700; }
+  .current-space-card .cs-sub { font-size: var(--fs-footnote); color: var(--muted); margin-top: 1px; }
+  .sheet-manage {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+  }
+  .spaces-footnote {
+    text-align: center;
+    font-size: var(--fs-footnote);
+    color: var(--muted);
+    padding: 0 12px;
+  }
+  .dim-title { font-size: var(--fs-body); font-weight: 680; }
+  .dim-excerpt {
+    font-size: var(--fs-sub); color: var(--muted); line-height: 1.55;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .dim-card {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 14px 16px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>语言空间 · 快速切换与管理</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">左：点击顶部语言空间胶囊弹出的快速切换 sheet；右：设置内的完整管理页，支持新增、重命名与删除。一个语言空间对应一门目标语言。</p>
+
+  <div class="proto-stage">
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="context-header">
+          <button class="capsule">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14.5 14.5 0 0 1 0 18M12 3a14.5 14.5 0 0 0 0 18"/></svg>
+            英语空间 <span class="dir">中文 → English</span>
+          </button>
+          <button class="icon-btn" aria-label="设置">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+          </button>
+        </div>
+
+        <div class="page-title-large">记录</div>
+
+        <div class="app-main">
+          <div class="app-scroll">
+            <div class="dim-card">
+              <div class="dim-title">公司楼下的咖啡车</div>
+              <p class="dim-excerpt">楼下新来了一辆咖啡车，老板说每天只来三个小时。排队的时候闻到现磨豆子的味道。</p>
+            </div>
+            <div class="dim-card">
+              <div class="dim-title">清晨的雨</div>
+              <p class="dim-excerpt">出门前下了一阵小雨，地铁口的台阶湿漉漉的，大家都把伞收得很慢。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-bar">
+          <div class="tab-item active">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+            记录
+          </div>
+          <div class="tab-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>
+            阅读
+          </div>
+          <div class="tab-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>
+            练习
+          </div>
+          <div class="tab-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/></svg>
+            记忆
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+
+        <div class="sheet-overlay">
+          <div class="sheet">
+            <div class="grabber"></div>
+            <div class="sheet-bar">
+              <span class="sheet-title">语言空间</span>
+              <button class="icon-btn" aria-label="关闭">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              </button>
+            </div>
+
+            <div class="card current-space-card">
+              <div class="cs-body">
+                <div class="cs-name">英语空间</div>
+                <div class="cs-sub">中文 → English · 进阶</div>
+              </div>
+              <span class="pill pill-ready">当前</span>
+            </div>
+
+            <div class="list">
+              <button class="row">
+                <div class="row-body">
+                  <div class="row-title">日语空间</div>
+                  <div class="row-sub">中文 → 日本語 · 初学</div>
+                </div>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+              </button>
+              <button class="row">
+                <span class="row-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+                <div class="row-body">
+                  <div class="row-title">添加学习语言</div>
+                </div>
+              </button>
+            </div>
+
+            <div class="sheet-manage">
+              <button class="btn btn-quiet">管理语言空间</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="device-iphone">
+      <div class="screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <button class="nav-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+            设置
+          </button>
+          <div class="nav-title">语言空间</div>
+          <span style="width:56px"></span>
+        </div>
+
+        <div class="app-main">
+          <div class="app-scroll" style="padding-top:6px">
+
+            <div class="list">
+              <div class="row">
+                <div class="row-body">
+                  <div class="row-title">英语空间</div>
+                  <div class="row-sub">中文 → English · 进阶</div>
+                </div>
+                <span class="pill pill-ready">当前</span>
+                <button class="icon-btn" aria-label="编辑英语空间">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+                </button>
+              </div>
+              <div class="row">
+                <div class="row-body">
+                  <div class="row-title">日语空间</div>
+                  <div class="row-sub">中文 → 日本語 · 初学</div>
+                </div>
+                <button class="icon-btn" aria-label="编辑日语空间">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <button class="btn btn-secondary btn-block">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              添加学习语言
+            </button>
+            <p class="spaces-footnote">删除最后一个语言空间后将回到首次设置流程</p>
+
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>一空间一目标语言</strong>：语言空间只按目标语言划分（英语空间、日语空间）；工作、旅行、会议是标签或场景，绝不建模为空间。</li>
+      <li><strong>快速切换 vs 完整管理</strong>：胶囊弹出的 sheet 只做切换 + 新增入口，保持轻量；重命名、删除等破坏性操作收在设置内的管理页，避免误触。</li>
+      <li><strong>当前空间语义</strong>：pill-ready「当前」+ 卡片置顶 / 行内标注双重表达，不只靠颜色；切换空间即切换记录、阅读、练习、记忆的全部上下文。</li>
+      <li><strong>删除 fallback</strong>：删除当前空间会自动切换到剩余空间；删除最后一个空间时回到首次设置流程，App 不存在「无空间」的悬空状态。</li>
+      <li><strong>新增复用 onboarding 结构</strong>：「添加学习语言」走与首次设置相同的目标语言 + 水平自评表单，母语沿用全局设置。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

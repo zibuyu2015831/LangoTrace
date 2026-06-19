@@ -1,0 +1,168 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
+
+# Opt every JavaScript action onto Node.js 24 ahead of GitHub forcing it on
+# 2026-06-16, so checkout/cache (and any other JS action) stop emitting the
+# Node 20 deprecation warning and are exercised on Node 24 early. Harmless
+# once Node 24 becomes the default.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  verify:
+    name: Build & Test
+    runs-on: macos-15
+    # Hard backstop so a hung test/build fails fast instead of burning the
+    # macOS runner's default 360-minute budget.
+    timeout-minutes: 40
+    # Direct pushes run only when the commit message contains "[ci]";
+    # pull requests and manual workflow_dispatch always run (so branch
+    # protection can require this check on PRs).
+    if: >-
+      github.event_name != 'push' ||
+      contains(github.event.head_commit.message, '[ci]')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install tools
+        run: brew install xcodegen swiftlint swiftformat ripgrep
+
+      - name: Cache Swift package builds
+        uses: actions/cache@v4
+        with:
+          path: Packages/**/.build
+          key: ${{ runner.os }}-swift-${{ hashFiles('Packages/**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-
+
+      # ── Swift Package Tests ────────────────────────────────────────────────
+      - name: Test LangoTraceCore
+        run: swift test --package-path Packages/LangoTraceCore
+
+      - name: Test LangoTraceData
+        run: swift test --package-path Packages/LangoTraceData
+
+      - name: Test LangoTraceAI
+        run: swift test --package-path Packages/LangoTraceAI
+
+      - name: Test LangoTraceSpeech
+        run: swift test --package-path Packages/LangoTraceSpeech
+
+      - name: Test LangoTraceSync
+        run: swift test --package-path Packages/LangoTraceSync
+
+      - name: Test LangoTraceUI
+        run: swift test --package-path Packages/LangoTraceUI
+
+      # ── Xcode Project ─────────────────────────────────────────────────────
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: List schemes
+        run: xcodebuild -list -project LangoTrace.xcodeproj
+
+      # ── Resolve simulator destinations ────────────────────────────────────
+      # Runner images rotate available simulators, so a hard-coded device name
+      # can fail to resolve. Prefer the local baseline (iPhone 17 / iPad Pro
+      # 13-inch (M5)); if absent, auto-pick the newest available same-class
+      # simulator; if still none, fall back to a generic SDK build.
+      - name: Resolve iOS Simulator destinations
+        id: sims
+        run: |
+          set -uo pipefail
+          avail="$(xcrun simctl list devices available)"
+
+          pick() {
+            # $1 = preferred exact device name, $2 = fallback name pattern (ERE)
+            local preferred="$1" pattern="$2" found=""
+            if printf '%s\n' "$avail" | grep -qF "$preferred ("; then
+              found="$preferred"
+            else
+              found="$(printf '%s\n' "$avail" \
+                | sed -E 's/ \([0-9A-Fa-f-]{36}\) \([^)]*\)$//' \
+                | sed -E 's/^[[:space:]]+//' \
+                | grep -E "$pattern" \
+                | sort -V \
+                | tail -1)"
+            fi
+            if [ -n "$found" ]; then
+              printf 'platform=iOS Simulator,OS=latest,name=%s' "$found"
+            else
+              printf 'generic/platform=iOS Simulator'
+            fi
+          }
+
+          iphone="$(pick 'iPhone 17' '^iPhone [0-9]+$')"
+          ipad="$(pick 'iPad Pro 13-inch (M5)' '^iPad Pro 13-inch')"
+
+          echo "iphone=$iphone" >> "$GITHUB_OUTPUT"
+          echo "ipad=$ipad" >> "$GITHUB_OUTPUT"
+          echo "Resolved iPhone destination: $iphone"
+          echo "Resolved iPad destination:   $ipad"
+
+      # ── Xcode Builds ──────────────────────────────────────────────────────
+      - name: Build iOS — iPhone
+        run: |
+          xcodebuild \
+            -scheme LangoTrace-iOS \
+            -destination '${{ steps.sims.outputs.iphone }}' \
+            build
+
+      - name: Build iOS — iPad
+        run: |
+          xcodebuild \
+            -scheme LangoTrace-iOS \
+            -destination '${{ steps.sims.outputs.ipad }}' \
+            build
+
+      - name: Build macOS
+        run: |
+          xcodebuild \
+            -scheme LangoTrace-macOS \
+            -destination 'platform=macOS,arch=arm64' \
+            build
+
+      - name: Test macOS app
+        run: |
+          xcodebuild test \
+            -scheme LangoTrace-macOS \
+            -destination 'platform=macOS,arch=arm64' \
+            -only-testing:LangoTraceAppTests
+
+      # ── Python Tooling Tests ───────────────────────────────────────────────
+      # Requires OPENAI_COMPATIBLE_API_KEY secret configured in repo settings.
+      # Skipped automatically when secret is absent (e.g. fork PRs).
+      - name: Python tooling tests
+        if: ${{ env.OPENAI_COMPATIBLE_API_KEY != '' }}
+        env:
+          OPENAI_COMPATIBLE_API_KEY: ${{ secrets.OPENAI_COMPATIBLE_API_KEY }}
+        run: python3 -m unittest discover -s Tests/Tooling -p 'test_*.py'
+
+      # ── Lint ──────────────────────────────────────────────────────────────
+      - name: SwiftLint
+        run: swiftlint --no-cache
+
+      - name: SwiftFormat
+        run: |
+          swiftformat --lint . \
+            --exclude .build,build,DerivedData,LangoTrace.xcodeproj \
+            --cache ignore
+
+      # ── Docs & Sanity Checks ──────────────────────────────────────────────
+      - name: Check docs
+        run: scripts/check-docs.sh
+
+      - name: Check whitespace
+        run: git diff --check

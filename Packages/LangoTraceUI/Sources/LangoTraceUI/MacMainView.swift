@@ -1,12 +1,33 @@
 import LangoTraceCore
+import LangoTraceData
 import SwiftUI
 
 struct MacMainView: View {
     let languageSpace: LanguageSpacePreview
+    let languageSpaces: [LanguageSpace]
+    @ObservedObject var contentStore: LearningContentStore
+    @ObservedObject var readingLibraryStore: ReadingLibraryStore
+    let readingExplanationAction: ReadingExplanationAction
+    let readingTTSAction: ReadingTTSAction
+    let readingCacheStorage: (any ExplanationCacheStorage)?
+    let practiceActions: PracticeActions
+    let interfaceLanguagePreference: InterfaceLanguagePreference
+    let appearancePreference: AppearancePreference
+    let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
+    let onSelectLanguageSpace: (String) -> Void
+    let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
+    let onDeleteLanguageSpace: (String) -> Void
+    let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
+    let onAppearancePreferenceChange: (AppearancePreference) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isSidebarVisible = true
     @State private var isInspectorVisible = true
+    @State private var selectedSection: MacWorkspaceSection = .today
+    @State private var selectedEntryID: String?
+    @State private var route: MacWorkspaceRoute = .overview
+    @State private var isEntryEditorPresented = false
+    @State private var isSearchPresented = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -24,113 +45,418 @@ struct MacMainView: View {
         }
         .frame(minWidth: minimumWindowWidth, minHeight: 720)
         .langoPageBackground()
+        .toolbar {
+            ToolbarItemGroup(placement: .navigation) {
+                Button {
+                    isSidebarVisible.toggle()
+                } label: {
+                    Label {
+                        localizedText(isSidebarVisible ? "mac.sidebar.hide" : "mac.sidebar.show")
+                    } icon: {
+                        Image(systemName: "sidebar.left")
+                    }
+                }
+                Button {
+                    isInspectorVisible.toggle()
+                } label: {
+                    Label {
+                        localizedText(isInspectorVisible ? "mac.inspector.hide" : "mac.inspector.show")
+                    } icon: {
+                        Image(systemName: "sidebar.right")
+                    }
+                }
+            }
+            ToolbarItemGroup(placement: .primaryAction) {
+                Button {
+                    isSearchPresented = true
+                } label: {
+                    Label {
+                        localizedText("common.search")
+                    } icon: {
+                        Image(systemName: "magnifyingglass")
+                    }
+                }
+                Button {
+                    isEntryEditorPresented = true
+                } label: {
+                    Label {
+                        localizedText("common.newEntry")
+                    } icon: {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+        }
         .animation(panelAnimation, value: isSidebarVisible)
         .animation(panelAnimation, value: isInspectorVisible)
-    }
-
-    private var minimumWindowWidth: CGFloat {
-        switch (isSidebarVisible, isInspectorVisible) {
-        case (true, true):
-            1160
-        case (true, false), (false, true):
-            900
-        case (false, false):
-            680
+        .overlay {
+            if isEntryEditorPresented {
+                MacEntryEditorOverlay(
+                    languageSpace: languageSpace,
+                    onCancel: closeEntryEditor,
+                    onSave: saveEntry
+                )
+                .transition(reduceMotion ? .identity : .opacity)
+            }
+        }
+        .overlay {
+            if isSearchPresented {
+                searchOverlay
+                    .transition(reduceMotion ? .identity : .opacity)
+            }
+        }
+        .animation(panelAnimation, value: isEntryEditorPresented)
+        .animation(panelAnimation, value: isSearchPresented)
+        .onAppear {
+            contentStore.ensureSeeded()
+            selectedEntryID = selectedEntryID ?? contentStore.selectedEntry?.id
+        }
+        .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.newEntry)) { _ in
+            isEntryEditorPresented = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.search)) { _ in
+            isSearchPresented = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.toggleSidebar)) { _ in
+            isSidebarVisible.toggle()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.toggleInspector)) { _ in
+            isInspectorVisible.toggle()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: LangoTraceAppCommand.showSettings)) { _ in
+            selectedSection = .settings
+            route = .overview
         }
     }
 
-    private var panelAnimation: Animation? {
-        reduceMotion ? nil : .easeInOut(duration: 0.18)
+    private var entries: [LearningEntry] {
+        contentStore.entries
     }
 
-    private func panelTransition(edge: Edge) -> AnyTransition {
-        reduceMotion ? .identity : .move(edge: edge).combined(with: .opacity)
+    private var memoryItems: [MemoryItem] {
+        contentStore.memoryItems
+    }
+
+    private var counts: EntryTimelineCounts {
+        timelineCounts(
+            entries: entries,
+            practiceReadiness: contentStore.practiceReadiness,
+            today: Date()
+        )
+    }
+
+    private var selectedEntry: LearningEntry? {
+        if let selectedEntryID, let entry = entries.first(where: { $0.id == selectedEntryID }) {
+            return entry
+        }
+
+        return contentStore.selectedEntry
+    }
+
+    private var selectedRendering: LearningRendering? {
+        guard let selectedEntry else {
+            return nil
+        }
+
+        return contentStore.rendering(for: selectedEntry)
+    }
+
+    private var settingsCapabilities: [SettingsCapability] {
+        contentStore.settingsCapabilities
+    }
+
+    private var minimumWindowWidth: CGFloat {
+        MacWindowLayout.minimumWidth(
+            sidebarVisible: isSidebarVisible,
+            inspectorVisible: isInspectorVisible
+        )
+    }
+
+    private func selectSection(_ section: MacWorkspaceSection) {
+        selectedSection = section
+        route = .overview
+    }
+
+    private func showEntry(_ entry: LearningEntry) {
+        selectedEntryID = entry.id
+        contentStore.selectEntry(entry)
+        route = .entryDetail(entry.id)
+    }
+
+    private var searchOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.18)
+                .ignoresSafeArea()
+                .onTapGesture { isSearchPresented = false }
+            SearchPaletteView(
+                spaceID: languageSpace.id,
+                onSelect: handleSearchSelection,
+                onClose: { isSearchPresented = false }
+            )
+            .frame(maxWidth: 640)
+            .padding(.top, 80)
+            .frame(maxHeight: .infinity, alignment: .top)
+        }
+    }
+
+    private func handleSearchSelection(_ hit: SearchHit) {
+        isSearchPresented = false
+        switch hit.kind {
+        case .entry:
+            selectedSection = .entries
+            selectedEntryID = hit.objectID
+            route = .entryDetail(hit.objectID)
+        case .readingDocument:
+            selectedSection = .reading
+            route = .overview
+        case .memoryItem:
+            break
+        }
+    }
+
+    private func routeFooterAction(_ action: MacFooterAction) {
+        selectedSection = action.section
+        route = action.route
     }
 
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text(ProductIdentity.displayName)
                 .font(.title2.weight(.semibold))
-            SideItem(title: "今日", subtitle: "继续雨天咖啡馆", active: true)
-            SideItem(title: "记录库", subtitle: "128 条生活片段", active: false)
-            SideItem(title: "词句记忆", subtitle: "本地向量索引可重建", active: false)
+
+            VStack(spacing: 8) {
+                ForEach(MacWorkspaceSection.allCases, id: \.self) { section in
+                    MacSidebarItem(
+                        title: localizedString(section.titleKey),
+                        subtitle: section.subtitle(
+                            counts: counts,
+                            memoryCount: memoryItems.count
+                        ),
+                        active: selectedSection == section,
+                        action: {
+                            selectSection(section)
+                        }
+                    )
+                }
+            }
+
             Spacer()
             LanguageSpaceFooter(
                 languageSpace: languageSpace,
-                aiStatus: .notConfigured,
-                syncStatus: .off,
-                isCompact: true
+                aiStatus: contentStore.settingsStatus.aiProvider.footerStatus,
+                syncStatus: contentStore.settingsStatus.sync.footerStatus,
+                isCompact: true,
+                onLanguageSpace: { routeFooterAction(.languageSpace) },
+                onAIStatus: { routeFooterAction(.aiProvider) },
+                onSyncStatus: { routeFooterAction(.sync) },
+                onSettings: { routeFooterAction(.settings) }
             )
         }
+        .task { await contentStore.refreshSettingsStatus() }
         .padding(24)
-        .frame(width: 300, alignment: .topLeading)
+        .frame(width: LangoTraceDesign.Density.macSidebarWidth, alignment: .topLeading)
+        .frame(maxHeight: .infinity, alignment: .topLeading)
+        .background(LangoTraceDesign.ColorToken.surfaceSidebar.opacity(0.72))
     }
+}
 
-    private var main: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                HStack {
-                    HStack(spacing: 8) {
-                        LangoPanelToggleButton(
-                            systemImage: "sidebar.left",
-                            isActive: isSidebarVisible,
-                            accessibilityLabel: isSidebarVisible ? "隐藏侧边栏" : "显示侧边栏",
-                            action: { isSidebarVisible.toggle() }
-                        )
-                        LangoPanelToggleButton(
-                            systemImage: "sidebar.right",
-                            isActive: isInspectorVisible,
-                            accessibilityLabel: isInspectorVisible ? "隐藏检查器" : "显示检查器",
-                            action: { isInspectorVisible.toggle() }
-                        )
-                    }
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("语言资料库工作台")
-                            .font(.largeTitle.weight(.semibold))
-                        Text("Mac 端用于批量整理、搜索、导入导出和高级配置。当前为 Mock 骨架。")
-                            .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-                    }
-                    Spacer()
-                    Button {} label: {
-                        Label("新建记录", systemImage: "plus")
-                    }
-                    .buttonStyle(.borderedProminent)
+private extension MacMainView {
+    var main: some View {
+        Group {
+            if route.usesDedicatedMainScrolling {
+                mainContent
+                    .padding(26)
+            } else {
+                ScrollView {
+                    mainContent
+                        .padding(26)
                 }
-
-                HStack(alignment: .top, spacing: 14) {
-                    TextPanel(title: "搜索与筛选", text: "搜索当前记录、词句、相似生活片段。后续接 SQLite FTS5 与本地向量索引。")
-                    TextPanel(title: "批量导入", text: "拖入 Markdown、图片或音频，生成可学习的语言材料。")
-                }
-
-                TextPanel(
-                    title: "当前记录",
-                    text: """
-                    雨天咖啡馆
-
-                    I spent a long time at the cafe today. It kept drizzling outside, \
-                    and I was in no hurry to go home.
-                    """
-                )
-                AudioPanel()
             }
-            .padding(26)
         }
         .frame(minWidth: 500, maxWidth: .infinity)
         .layoutPriority(1)
     }
 
-    private var inspector: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("INSPECTOR")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-            TextPanel(title: "请求预览", text: "即将发送：目标语言文本、用户选中的照片摘要、相似记忆 3 条。")
-            TextPanel(title: "不会发送", text: "本地数据库、完整照片库、API Key、未选中的历史记录。")
-            TextPanel(title: "快捷键", text: "Cmd+N 新建 · Cmd+K 命令面板 · Space 播放/暂停")
+    var mainContent: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            header
+            MacWorkspaceContentView(
+                selectedSection: selectedSection,
+                route: route,
+                languageSpace: languageSpace,
+                entries: entries,
+                selectedEntryID: selectedEntryID,
+                selectedEntry: selectedEntry,
+                selectedRendering: selectedRendering,
+                memoryItems: memoryItems,
+                languageSpaces: languageSpaces,
+                settingsCapabilities: settingsCapabilities,
+                contentStore: contentStore,
+                readingLibraryStore: readingLibraryStore,
+                readingExplanationAction: readingExplanationAction,
+                readingTTSAction: readingTTSAction,
+                readingCacheStorage: readingCacheStorage,
+                practiceActions: practiceActions,
+                interfaceLanguagePreference: interfaceLanguagePreference,
+                appearancePreference: appearancePreference,
+                onAddLanguageSpace: onAddLanguageSpace,
+                onSelectLanguageSpace: onSelectLanguageSpace,
+                onUpdateLanguageSpace: onUpdateLanguageSpace,
+                onDeleteLanguageSpace: onDeleteLanguageSpace,
+                onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
+                onAppearancePreferenceChange: onAppearancePreferenceChange,
+                onShowEntry: showEntry,
+                onRoute: { route = $0 }
+            )
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    var header: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                localizedText(selectedSection.titleKey)
+                    .font(.largeTitle.weight(.semibold))
+                localizedText(selectedSection.descriptionKey)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+            }
             Spacer()
         }
-        .padding(24)
-        .frame(width: 340, alignment: .topLeading)
+    }
+
+    var inspector: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                localizedText("mac.inspector.title")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+                MacInspectorContent(
+                    route: route,
+                    selectedSection: selectedSection,
+                    entries: entries,
+                    settingsCapabilities: settingsCapabilities,
+                    contentStore: contentStore
+                )
+                Spacer()
+            }
+            .padding(24)
+        }
+        .frame(width: LangoTraceDesign.Density.macInspectorWidth, alignment: .topLeading)
+        .frame(maxHeight: .infinity, alignment: .topLeading)
+        .background(LangoTraceDesign.ColorToken.surfaceInspector.opacity(0.58))
+    }
+
+    var panelAnimation: Animation? {
+        reduceMotion ? nil : .easeInOut(duration: LangoTraceDesign.Motion.panelTransitionDuration)
+    }
+
+    func panelTransition(edge: Edge) -> AnyTransition {
+        reduceMotion ? .identity : .move(edge: edge).combined(with: .opacity)
+    }
+
+    func closeEntryEditor() {
+        isEntryEditorPresented = false
+    }
+
+    func saveEntry(title: String, body: String) throws {
+        let entry = try contentStore.createEntry(
+            title: title,
+            body: body,
+            source: .typedText
+        )
+        selectedEntryID = entry.id
+        selectedSection = .entries
+        route = .entryDetail(entry.id)
+        isEntryEditorPresented = false
+    }
+}
+
+private struct MacEntryEditorOverlay: View {
+    let languageSpace: LanguageSpacePreview
+    let onCancel: () -> Void
+    let onSave: (String, String) throws -> Void
+
+    @State private var hasDraftContent = false
+
+    var body: some View {
+        ZStack {
+            LangoTraceDesign.ColorToken.ink.opacity(0.20)
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    // Ignore background taps while the editor holds unsaved input
+                    // so an accidental tap cannot discard a non-empty draft.
+                    guard !hasDraftContent else { return }
+                    onCancel()
+                }
+
+            MacEntryEditorSheet(
+                languageSpace: languageSpace,
+                hasDraftContent: $hasDraftContent,
+                onCancel: onCancel,
+                onSave: onSave
+            )
+            .padding(28)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .contain)
+    }
+}
+
+private struct MacSidebarItem: View {
+    let title: String
+    let subtitle: String
+    let active: Bool
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+            .background(itemBackground)
+            .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.control, style: .continuous)
+                    .stroke(itemStroke, lineWidth: 1)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .focusable()
+        .focusEffectDisabled()
+        .onHover { isHovered = $0 }
+        .contextMenu {
+            Button(action: action) {
+                Text(title)
+            }
+        }
+        .help(title)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(title))
+        .accessibilityValue(localizedText(active ? "accessibility.selected" : "accessibility.unselected"))
+        .accessibilityAddTraits(active ? .isSelected : [])
+    }
+
+    private var itemBackground: Color {
+        if active { return LangoTraceDesign.ColorToken.surfaceRaised }
+        return isHovered ? LangoTraceDesign.ColorToken.elevatedPaper : .clear
+    }
+
+    private var itemStroke: Color {
+        if active {
+            return LangoTraceDesign.ColorToken.accent.opacity(0.25)
+        }
+
+        return isHovered ? LangoTraceDesign.ColorToken.hairline : .clear
     }
 }

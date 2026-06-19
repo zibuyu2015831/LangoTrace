@@ -1,0 +1,109 @@
+# Prompt Registry
+
+本目录用于记录 LangoTrace 后续 AI / Prompt 功能中实际使用或计划使用的 Prompt。代码中出现真实发送给 Provider 的 Prompt 后，必须在本目录登记完整文案、输出契约和隐私边界。
+
+## 1. 使用原则
+
+- 代码中实际使用的内置 Prompt 以英文版本为准，便于获得更稳定的模型效果和跨模型兼容性。
+- 文档中必须同时保存英文版本和中文版本。
+- 中文版本用于客户阅读、业务校对、隐私审查和产品讨论。
+- 英文版本和中文版本语义必须一致；如果为了模型效果存在非逐字翻译，应说明差异原因。
+- Prompt 文档不得只写摘要。关键 Prompt 文案应保存完整文本，或明确说明文案从哪个代码位置生成。
+
+## 2. 目录建议
+
+具体 Prompt 落地后，按功能或模块建文档：
+
+```text
+docs/prompts/
+  README.md
+  <feature-or-module>/<prompt-id>.md
+```
+
+只有当代码中出现真实 Prompt、Prompt Preset、模板渲染或请求预览需求时，才新增对应文档。固定合成测试 Prompt 也属于真实 Provider 请求内容，必须登记。
+
+## 3. 单个 Prompt 文档必填字段
+
+每个具体 Prompt 文档至少包含：
+
+- Prompt id。
+- Prompt version。
+- 所属功能。
+- 状态：draft / active / superseded / retired。
+- 调用模块。
+- 代码位置。
+- 输入变量。
+- 输出契约。
+- Schema version。
+- 是否包含用户原文。
+- 是否包含照片、音频、OCR、历史记忆或附件摘要。
+- 是否包含语言空间上下文、目标语言 code、母语或学习等级。
+- 隐私等级。
+- 用户触发条件。
+- 请求预览要求。
+- 日志与 operation metadata 允许字段。
+- 评测方式。
+- 自动化测试文件。
+- 版本记录。
+- 英文版本 Prompt。
+- 中文版本 Prompt。
+
+## 4. 模板渲染规则
+
+如果代码中的 Prompt 由模板拼接生成，文档必须记录：
+
+- 模板源文件路径。
+- 变量列表和变量含义。
+- 完整渲染后的英文样例。
+- 对应中文版本。
+- 哪些变量可能包含敏感内容。
+- 请求预览中必须展示或脱敏的字段。
+
+## 5. 隐私规则
+
+Prompt 文档必须明确该 Prompt 是否会包含：
+
+- 用户原始生活记录。
+- 目标学习语言内容。
+- 母语解释。
+- 图片或 OCR 文本。
+- 音频转写。
+- 历史记忆摘要。
+- 附件摘要。
+
+如果包含敏感内容，必须说明用户触发条件、请求预览要求和日志记录边界。
+
+## 6. 评测和变更规则
+
+新增或修改真实 Prompt 时，必须同时检查：
+
+- Prompt id、version、schema version 是否需要变化。
+- AI service、Data 映射和 UI 展示是否仍兼容旧结果。
+- 结构化输出 parser 是否拒绝自然语言前后缀、缺字段、非法枚举、额外字段和数组超限。
+- 请求日志、diagnostic event、validation event 和 operation 摘要是否只保存非敏感字段。
+- 中文审阅版本是否保留与英文 canonical 相同的隐私边界。
+
+Prompt 文档不是单独产品决策源。如果 Prompt 引入新的产品能力、数据发送范围、隐私默认值或用户确认方式，必须同步更新对应 spec、architecture 或 ADR。
+
+## 7. 当前状态
+
+状态：Accepted
+
+适用阶段：Prompt Preset、AI Provider、请求预览和真实 AI 功能接入前。
+
+当前已登记：
+
+- [AI Provider Configuration Probe Prompts](ai-provider/provider-configuration-probe.md)：AI Provider 配置页文本、JSON、语言支持和内置图片合成测试请求。
+- [One-Tap Learning Material Prompts](learning-material/one-tap-learning-material.md)：一键生成学习材料和重新分析当前学习文本的完整 Prompt、JSON schema、隐私边界和评测方式。
+- [Reading Selection Explanation Prompt](reading/selection-explanation.md)：阅读资料选区解释的完整 Prompt、JSON schema、显式触发条件和 selection-only 隐私边界。
+- [Practice Back-Translation Review Prompt](practice/backtranslation-review.md)：回译练习可选 AI 点评的完整 Prompt、无判定字段的 JSON schema、显式「请 AI 点评」触发条件、五字段发送范围和分隔符注入防御（E5 Slice 2）。
+
+## 8. 版本记录
+
+- 2026-05-21：更新目录当前事实。原因：AI Provider 配置测试请求已经接入固定合成 Prompt，Prompt Registry 不再是空目录；后续真实 Provider 请求内容必须在本目录登记。影响范围：AI Provider 配置测试请求、Prompt 审查、请求预览和隐私复查。是否需要 ADR：否。
+- 2026-05-21：补充图片理解合成测试 Prompt 当前事实。原因：AI Provider 配置测试请求新增可选内置图片 probe，仍属于真实发送给 Provider 的固定 Prompt，需要纳入 Prompt Registry。影响范围：AI Provider 配置测试请求、图片输入边界和隐私复查。是否需要 ADR：否。
+- 2026-05-22：补充语言支持合成测试 Prompt 当前事实。原因：AI Provider 配置测试请求新增当前语言空间上下文下的 `语言支持` probe，仍属于真实发送给 Provider 的固定 Prompt，需要登记完整文案、输出契约和隐私边界。影响范围：AI Provider 配置测试请求、语言边界和隐私复查。是否需要 ADR：否。
+- 2026-05-23：登记一键生成学习材料 Prompt 设计。原因：用户确认完整 GRDB 持久化路径后，真实学习内容请求需要提前明确 Prompt 正文、结构化输出契约和隐私边界。影响范围：LangoTraceAI、LangoTraceData、LangoTraceUI、Prompt Registry 和学习材料任务方案。是否需要 ADR：否，沿用 ADR-005。
+- 2026-05-25：补充 Prompt 文档必填字段、评测和变更规则。原因：参考 OpenWriter Prompt Registry 和 VMark 故障恢复矩阵后，真实 Prompt 需要更明确记录 id / version / schema、代码锚点、隐私等级、日志允许字段和测试文件。影响范围：Prompt Registry、AI service 测试、Data 映射测试和请求预览审查。是否需要 ADR：否。
+- 2026-06-01：登记阅读选区解释 Prompt。原因：Reading vertical slice 新增真实 Provider 请求，Prompt Registry 必须记录完整文案、结构化输出契约和 selection-only 隐私边界。影响范围：LangoTraceAI、Reading UI、AI Provider 隐私规范和 Reading spec。是否需要 ADR：否。
+- 2026-06-18：登记回译可选 AI 点评 Prompt（E5 Slice 2）。原因：回译练习新增显式触发的可选 AI 点评，真实发送用户作答给 Provider，需登记完整文案、无判定字段输出契约、五字段发送范围、分隔符注入防御和 E6 预览 / 日志边界。影响范围：LangoTraceAI、LangoTraceCore、LangoTraceUI、App Shell、Prompt Registry、spec 013、AI Provider 隐私规范。是否需要 ADR：否，沿用 ADR-005 与核心决策 10。

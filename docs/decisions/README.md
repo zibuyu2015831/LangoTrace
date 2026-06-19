@@ -2,6 +2,8 @@
 
 本目录用于保存 ADR（Architecture Decision Record）。
 
+ADR 只记录不可轻易反转的重要取舍，不维护 implementation 文档、阶段 runbook 或单项任务方案。若需要记录当前实现地图，应写入 `docs/spec/<module>/impl.md` 或 `docs/architecture/`；若需要记录执行步骤，应写入 `docs/development/` 或 `docs/plans/active/`。
+
 每个重要技术或产品结构决策都应记录：
 
 - 背景。
@@ -18,3 +20,5 @@
 - [ADR-003：使用 XcodeGen 管理 Xcode 工程生成](003-use-xcodegen-for-project-generation.md)
 - [ADR-004：采用语言空间作为核心信息模型](004-use-language-space-as-primary-model.md)
 - [ADR-005：坚持本地优先和用户自带 Provider](005-local-first-and-user-owned-providers.md)
+- [ADR-006：采用系统级三层学习者模型（Learner Model）](006-system-level-three-layer-learner-model.md)
+- [ADR-007：同步引擎架构（Sync Engine + Adapter + 修订/冲突模型）](007-sync-engine-architecture.md)

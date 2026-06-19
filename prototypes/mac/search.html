@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>macOS · 全局搜索 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  /* macOS 桌面密度覆盖 */
+  .device-mac .screen { position: relative; }
+  .sidebar { width: 240px; padding: 12px 10px; }
+  .side-section { font-size: 11px; font-weight: 720; letter-spacing: 0.06em; color: var(--faint); padding: 2px 10px 4px; }
+  .side-item { min-height: 34px; padding: 6px 10px; gap: 9px; font-size: 13.5px; border-radius: 9px; }
+  .side-item .count { font-size: 11px; }
+  .side-footer { padding-top: 9px; }
+  .side-footer .space-name { font-size: 12.5px; }
+  .side-footer .space-dir { font-size: 11px; }
+  .side-footer .footer-icons .icon-btn { width: 32px; height: 32px; }
+  .window-title { font-size: 13px; font-weight: 650; white-space: nowrap; }
+  .mac-toolbar .spacer { flex: 1; }
+  .mac-toolbar .search-field { flex: 1; max-width: 260px; min-height: 32px; padding: 5px 12px; font-size: 13px; border-radius: 9px; }
+  .mac-toolbar .search-field .kbd { margin-left: auto; }
+  .mac-toolbar .icon-btn { width: 34px; height: 34px; border-radius: 9px; }
+  .mac-toolbar .btn-sm { min-height: 30px; padding: 4px 12px; font-size: 12.5px; border-radius: 9px; }
+  .pane-toolbar { min-height: 48px; padding: 10px 20px; }
+  .pane-title { font-size: 14px; font-weight: 680; }
+
+  /* 遮罩 + Command Palette */
+  .dim { position: absolute; inset: 0; background: rgba(23, 32, 30, 0.35); z-index: 20; }
+  .palette {
+    position: absolute; top: 110px; left: 50%; transform: translateX(-50%);
+    width: 560px; z-index: 21; overflow: hidden;
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-float);
+  }
+  .pal-input { display: flex; align-items: center; gap: 10px; padding: 15px 18px; border-bottom: 1px solid var(--hairline); color: var(--muted); }
+  .pal-input .query { font-size: 17px; font-weight: 600; color: var(--ink); }
+  .pal-input .caret { width: 2px; height: 20px; border-radius: 1px; background: var(--accent); }
+  .pal-input .spacer { flex: 1; }
+
+  .pal-groups { max-height: 420px; overflow: auto; padding: 6px 8px 8px; }
+  .pal-label { font-size: 11px; font-weight: 720; letter-spacing: 0.05em; color: var(--faint); padding: 8px 10px 3px; }
+  .pal-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: var(--r-sm); cursor: pointer; }
+  .pal-item:hover { background: var(--surface-2); }
+  .pal-item.selected { background: var(--accent-tint); }
+  .pal-item .pal-icon { width: 26px; height: 26px; flex: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--surface-3); color: var(--ink-2); margin-top: 1px; }
+  .pal-item.selected .pal-icon { background: var(--surface); color: var(--accent-deep); }
+  .pal-item .pal-body { flex: 1; min-width: 0; }
+  .pal-title { font-size: 13.5px; font-weight: 650; }
+  .pal-item.selected .pal-title { color: var(--accent-deep); }
+  .pal-sub { font-size: 12px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .highlight { background: var(--highlight); border-radius: 3px; padding: 0 1px; }
+
+  .pal-foot { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-top: 1px solid var(--hairline); background: var(--surface-2); }
+  .pal-foot .hint { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted); }
+  .pal-foot .spacer { flex: 1; }
+  .pal-foot .scope { font-size: 11.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · macOS</div>
+  <div class="proto-header">
+    <h1>全局搜索 · Command Palette</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">⌘K 唤起的全局搜索浮层 <span class="tag-target-design">目标设计</span>。结果按记录 / 阅读 / 记忆分组，范围限定当前语言空间，依赖本地 FTS 索引，不发出任何网络请求。</p>
+
+  <div class="proto-stage">
+    <div class="device-mac">
+      <div class="screen">
+
+        <div class="mac-titlebar">
+          <div class="traffic-lights"><span class="tl-close"></span><span class="tl-min"></span><span class="tl-max"></span></div>
+          <div class="mac-toolbar">
+            <button class="icon-btn" aria-label="切换侧栏">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg>
+            </button>
+            <span class="window-title">语迹 — 英语空间</span>
+            <span class="spacer"></span>
+            <div class="search-field">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8L21 21"/></svg>
+              搜索
+              <span class="kbd">⌘K</span>
+            </div>
+            <button class="btn btn-primary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+              新建记录
+            </button>
+            <button class="icon-btn" aria-label="切换 Inspector">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M14.5 4.5v15"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="workbench">
+          <aside class="sidebar">
+            <div class="side-section">工作台</div>
+            <div class="side-item active">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/><circle cx="12" cy="14.8" r="1.4" fill="currentColor" stroke="none"/></svg>
+              今日 <span class="count">2</span>
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M9 8.5h6M9 12.5h6M9 16.5h4"/></svg>
+              全部记录 <span class="count">24</span>
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>
+              阅读
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>
+              练习
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/></svg>
+              记忆 <span class="count">5</span>
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v9M8.5 9l3.5 3.5L15.5 9"/><path d="M4 14.5v3A2.5 2.5 0 0 0 6.5 20h11a2.5 2.5 0 0 0 2.5-2.5v-3"/></svg>
+              导入导出
+            </div>
+            <div class="side-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+              设置
+            </div>
+            <div class="sidebar-spacer"></div>
+            <div class="side-footer">
+              <div>
+                <div class="space-name">英语空间</div>
+                <div class="space-dir">中文 → English</div>
+              </div>
+              <div class="footer-icons">
+                <button class="icon-btn" aria-label="AI Provider 状态">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l1.6 4.1 4.1 1.6-4.1 1.6L12 15.4l-1.6-4.1L6.3 9.7l4.1-1.6L12 4z"/><path d="M18.5 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="同步状态">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a8 8 0 0 0-14.3-3.8"/><path d="M5.5 3.5v4.3h4.3"/><path d="M4 12.5a8 8 0 0 0 14.3 3.8"/><path d="M18.5 20.5v-4.3h-4.3"/></svg>
+                </button>
+                <button class="icon-btn" aria-label="设置">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          <div class="main-pane">
+            <div class="pane-toolbar">
+              <span class="pane-title">今天 · 6月11日 周四</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dim"></div>
+
+        <div class="palette" role="dialog" aria-label="全局搜索">
+          <div class="pal-input">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8L21 21"/></svg>
+            <span class="query">coffee</span>
+            <span class="caret"></span>
+            <span class="spacer"></span>
+            <span class="kbd">esc</span>
+          </div>
+
+          <div class="pal-groups">
+            <div class="pal-label">记录</div>
+            <div class="pal-item selected">
+              <span class="pal-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+              </span>
+              <div class="pal-body">
+                <div class="pal-title">公司楼下的咖啡车</div>
+                <div class="pal-sub">A new <span class="highlight">coffee</span> cart showed up outside our office, and the owner says he only stays…</div>
+              </div>
+            </div>
+            <div class="pal-item">
+              <span class="pal-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>
+              </span>
+              <div class="pal-body">
+                <div class="pal-title">周末试了手冲</div>
+                <div class="pal-sub">I finally made pour-over <span class="highlight">coffee</span> at home without burning the beans.</div>
+              </div>
+            </div>
+
+            <div class="pal-label">阅读</div>
+            <div class="pal-item">
+              <span class="pal-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>
+              </span>
+              <div class="pal-body">
+                <div class="pal-title">Why Street <span class="highlight">Coffee</span> Carts Survive</div>
+                <div class="pal-sub">…because the <span class="highlight">coffee</span> cart only stays for three hours a day, regulars have carved out…</div>
+              </div>
+            </div>
+
+            <div class="pal-label">记忆</div>
+            <div class="pal-item">
+              <span class="pal-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/></svg>
+              </span>
+              <div class="pal-body">
+                <div class="pal-title"><span class="highlight">coffee</span> cart</div>
+                <div class="pal-sub">咖啡车（流动咖啡摊） · 来自 公司楼下的咖啡车</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pal-foot">
+            <span class="hint"><span class="kbd">↑↓</span> 选择</span>
+            <span class="hint"><span class="kbd">↵</span> 打开</span>
+            <span class="hint"><span class="kbd">esc</span> 关闭</span>
+            <span class="spacer"></span>
+            <span class="scope">范围：当前语言空间</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>搜索范围限定当前语言空间</strong>：palette 底部常驻「范围：当前语言空间」披露；跨空间搜索的语义与隐私边界需另行定义，不在本设计内默认开启。</li>
+      <li><strong>依赖本地 FTS 索引</strong>：结果来自本地全文索引（记录原文、学习材料、阅读文档、记忆词句），落地以路线中「附件主数据 / FTS」基础设施为前置，全程不发出网络请求。</li>
+      <li><strong>结果分组与键盘路径</strong>：记录 / 阅读 / 记忆三组按相关度排序，↑↓ 在分组间连续移动，↵ 打开并定位到命中位置，esc 关闭回到原上下文。</li>
+      <li><strong>命中高亮</strong>：关键词在标题与摘要中用浅黄 highlight 标出；选中行用 accent-tint，与高亮色板分离，避免两种语义混色。</li>
+      <li>iPad 顶部搜索复用同一结果模型与分组语义，只更换呈现容器，不另建第二套搜索结果结构。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

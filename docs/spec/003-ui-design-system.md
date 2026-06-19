@@ -1,0 +1,599 @@
+# 003：UI 设计系统规范
+
+状态：Accepted
+
+适用阶段：静态原型、SwiftUI App Shell、MVP 早期开发。
+
+## 1. 适用范围
+
+本文档规定语迹 LangoTrace 的视觉基调、布局原则、组件风格和三端 UI 一致性要求。
+
+## 2. 当前结论
+
+语迹的 UI 应体现高级、现代、简洁和长期使用的安静质感。它不是营销页、课程闯关游戏、后台管理系统或聊天工具。
+
+界面应让用户感到：
+
+- 我的生活内容正在变成学习材料。
+- 当前语言空间清晰可见。
+- 记录、学习、练习和记忆之间有自然连接。
+- 本地优先和隐私边界可理解，但不打扰主流程。
+
+## 3. 强制规则
+
+- 不做营销式首页作为 App 第一屏，App 首屏应进入可用体验。
+- 不把设置、同步、Provider 配置作为首次体验主画面。
+- 不使用“我的”作为一级菜单。
+- 不把“单词”作为一级导航名称。
+- 不做卡片套卡片。
+- 不使用大面积单一色相堆叠，避免产品读成单调主题。
+- 不使用强烈装饰性渐变、光球、背景噪点来替代真实产品结构。
+- 文本、按钮和状态标记在移动端不能溢出或互相遮挡。
+- AI 请求、同步和隐私状态必须有可理解的 UI 表达。
+- 错误、空状态、加载状态不能临时用裸文本堆在页面上。
+- 可点击区域在触控设备上必须满足基本可触达尺寸，不为视觉紧凑牺牲可用性。
+- 重要操作必须有明确视觉层级，危险操作必须有确认或可恢复路径。
+- UI 文案不能混淆 App 界面语言和用户学习的目标语言。
+- 后续设计、改进或实现页面时，必须同时读取 [006：界面国际化与语言边界规范](006-interface-localization-and-language-boundaries.md)，并检查布局是否能容纳英文、简体中文和更长本地化文案。
+
+## 4. 默认推荐
+
+### 4.1 视觉气质
+
+推荐关键词：
+
+- 安静。
+- 清晰。
+- 温和。
+- 现代。
+- 长期可读。
+- 学习工具感。
+- 个人资料库感。
+
+避免关键词：
+
+- 游戏化闯关。
+- 社区 feed。
+- 后台管理。
+- AI 聊天室。
+- 营销海报。
+
+### 4.2 信息密度
+
+iPhone：
+
+- 单列。
+- 大入口。
+- 快速操作。
+- 一次聚焦一个任务。
+
+iPad：
+
+- 三栏或响应式多栏。
+- 中间内容为主。
+- 右侧学习面板承载当前 route 的上下文；记录和练习 route 可展示解释、词句、练习入口和请求预览，设置等非学习 route 应展示低干扰设置或边界说明。
+- 右侧学习面板的内容块不能贴近设备边缘或滚动区域；除面板内部 trailing 留白外，右侧面板容器本身还应保留外侧 gutter，形成 inspector 的呼吸感。
+- 左侧时间线和右侧学习面板应可手动收起，支持专注写作和小窗口使用。
+
+macOS：
+
+- Sidebar、Toolbar、Inspector、Command Palette。
+- 更高信息密度。
+- 支持批量管理和高级配置。
+- Sidebar 和 Inspector 应可手动显示或隐藏，不能固定挤压主编辑区。
+- Sidebar 和 Inspector 应使用独立 surface token 与主内容区拉开层级；浅色 / 深色下不能只依赖整页背景表达三栏结构。
+
+### 4.3 组件方向
+
+建议逐步沉淀以下组件：
+
+- `LanguageSpaceSwitcher`
+- `AIProviderStatusIcon`
+- `SyncStatusIcon`
+- `PrivacyStatusPopover`
+- `RequestPreviewCard`
+- `SentencePairView`
+- `PracticeControlBar`
+- `PracticeSentenceNavigationBar`
+- `PromptPresetPicker`
+- `MemoryItemRow`
+- `EntryTimelineRow`
+- `AttachmentPreview`
+- `LanguageSpaceFooter`
+
+组件应优先表达产品对象，而不是抽象 UI 样式。
+
+#### 4.3.1 SentencePairView 句子卡片
+
+- `SentencePairView` 在 iPhone 窄屏中必须优先保障逐句内容的阅读宽度和纵向信息密度。
+- 序号和“听 / 练”等句子操作应放在独立顶部操作区，操作按钮保持不小于 44pt 的触控目标。
+- 母语对照、目标语言句子和讲解正文不得与多个操作按钮共享同一横向行，避免正文被挤压成过窄的阅读列。
+- 短句场景下卡片 padding、序号尺寸和讲解字号应保持克制，避免一个句子占据过多首屏高度。
+- 逐句“听”按钮不得打开解释型 sheet；在真实 TTS 接入前，只允许原位轻量反馈，真实直播放能力必须等待 TTS 配置、测试和播放服务边界完成后再接入。
+
+#### 4.3.2 单句练习页
+
+内容层级：
+
+- 单句练习页应把视觉权重留给句子内容和真实可执行动作。
+- 页面不应重复显示与导航标题或正文卡片等价的 section header，不应把只读状态做成类似 segmented control 的大块胶囊按钮，也不应在操作区下方追加解释型 step card。
+- 顶部内容卡应优先展示目标语言句子；中文释义属于低权重理解辅助，默认只显示 `查看释义` 入口，用户点击后必须能完整查看释义正文，再次点击可收起，展开后不再重复显示 `中文释义` 标题。
+- 语法讲解或词句说明属于更深层学习信息，默认收起并通过独立入口查看，多段讲解之间应保留 6-8pt 视觉停顿。
+- `查看释义` 与 `查看讲解` 优先同行显示以节省默认态高度，但 Dynamic Type 或窄屏下可以回退为上下排列，不能压缩文字或缩小触控目标。
+- 句间切换时，释义和讲解的展开状态默认重置，避免不同句子长度导致练习控制区持续跳动；默认态高度应由真实可见内容自然决定，不得用固定大高度为隐藏的释义或讲解正文预留空白。
+- 用户主动展开释义或讲解时，内容卡可以自然增高，以保证完整阅读。
+
+操作与完成态：
+
+- `PracticeControlBar` 只承载 `听`、`回放录音` 和录音主按钮。
+- 录音成功后由最近一次 ready recording 派生“已练过”状态，主按钮从 `开始录音` 变为 `再录一次`，不得把手动 `标记完成` 或 `保持完成状态` 做成当前单句页主流程。
+- 常驻指导文案、缺少录音提示卡和只用于解释 disabled 状态的说明不应占据主流程空间。
+
+句间导航：
+
+- `PracticeSentenceNavigationBar` 属于同一篇记录内的内容导航，应放在操作卡之后，左侧为 `上一句`，中间为居中低权重句序 `第 n / m 句`，右侧为 `下一句`。
+- 上一句 / 下一句使用 SF Symbols chevron 的低权重 plain/chip 按钮，触控区域不少于 44pt；句序不再额外拼接 `这是第一句` / `这是最后一句`。
+- 句间导航不得使用 filled primary CTA、三等分状态块或 `.langoPanel()` 包一层新卡片；Dynamic Type 或窄屏下可以换行，但按钮、句序和操作卡不得互相遮挡。
+
+#### 4.3.3 记录详情文本卡片与编辑 sheet
+
+标题与 metadata：
+
+- iPhone 记录详情中的母语原文和目标语言学习文本应优先服务阅读和练习，不应表现成带字段标题的表单。
+- iPhone compact 详情页导航栏使用当前记录标题，不再在正文顶部重复显示记录标题；长记录标题遵循系统 navigation title 单行截断，不使用自定义多行标题或 principal toolbar，空白标题 fallback 到 `记录详情`。
+- 记录详情不展示 `可用` / `本地预览` 等能力状态 badge，也不在标题下方常驻来源、目标语言和场景 metadata；这些信息会与正文卡片和逐句操作重复，并削弱首屏内容层级。
+- iPad / macOS 共享详情内容可继续使用嵌入式记录标题来服务分栏和工作台语义，但必须由调用入口显式选择标题呈现策略，不能让 iPhone 标题优化隐式扩散到大屏。
+
+动态文本卡片：
+
+- 详情页使用一致的动态文本卡片：顶部工具区左侧显示 `{母语显示名}记录` / `{目标语言显示名}表达`，右侧放编辑、重新分析或重新生成等 44pt 操作按钮；正文在工具区下方全宽展示，不得再通过右上角悬浮按钮和正文右侧 padding 挤压阅读列。
+- 母语原文可以进入专用 sheet 编辑并只保存到本地 Entry；目标语言学习文本继续进入专用 sheet 编辑，编辑后走“待重新分析”状态；若原文变更导致现有学习材料基于旧记录，目标语言卡显示“基于旧记录”并只在用户显式触发时重新生成。
+- 所有卡片标题必须来自当前语言空间显示名和本地化格式化 key，不能硬编码“中文记录”或“英文表达”。
+
+编辑 sheet：
+
+- Sheet 内使用大面积 `TextEditor` 和顶部取消 / 保存操作，不重复显示正文标题；短文本默认使用较低初始高度，长文本默认全高，始终允许用户展开到全高，且输入过程中不得随文本变化实时跳动高度。
+- 详情页本身不承载编辑态输入框。
+
+### 4.4 状态设计
+
+必须为以下状态设计清晰表现：
+
+- 没有语言空间。
+- 没有记录。
+- AI Provider 未配置。
+- 请求即将发送。
+- 请求失败。
+- 权限被拒绝。
+- 本地保存完成。
+- 同步未启用。
+- 同步冲突。
+- 向量索引未建立或可重建。
+
+第一轮能力状态矩阵采用以下语义，不把颜色作为唯一信息：
+
+| 状态 | 使用场景 | 必须表达 |
+| --- | --- | --- |
+| `ready` | 已可在本地或已配置能力中继续操作 | 标题、可执行动作和下一步 |
+| `localPreview` | 本地示例、Mock Rendering、预览数据 | 本地生成、不会外发、可替换为真实流程 |
+| `unavailable` | 功能尚未接入 | 当前边界、后续接入条件、不会发生的副作用 |
+| `warning` | 配置不完整或需要用户注意 | 影响范围和可恢复动作 |
+| `error` | 操作失败 | 原因、重试或退出路径、不丢失本地内容 |
+| `permissionDenied` | 权限被拒绝 | 权限用途、系统设置入口或替代路径 |
+| `syncConflict` | 同步冲突 | 冲突对象、用户选择和可恢复策略 |
+| `loading` | 正在处理 | 正在做什么、是否可取消、完成后状态 |
+
+`CapabilityStatusBadge` / `CapabilityStatusRow` 等状态组件必须同时使用文案、图标、tone 和布局表达状态。`warning`、`error`、`permissionDenied`、`syncConflict` 不能只换成红色或黄色；`localPreview` 不能写成“已生成”或“已连接”这类真实能力文案。
+
+### 4.4.1 设置主列表状态标记
+
+设置主列表不是开发进度看板。早期设计阶段用于标注“已完成 / 本地预览 / 待开发”的角标不得直接作为面向用户的信息层级长期保留。
+
+设置主列表应遵守：
+
+- Row 标题只表达设置对象，例如 `语言空间`、`界面语言`、`AI Provider`、`同步`。
+- 正常状态不显示 badge。`可用`、`本地优先`、`Ready`、`Local-first` 这类文案只适合开发审查或能力详情语境，不应在设置主列表标题旁反复出现。
+- 产品原则不作为角标。`本地优先` 是语迹的产品和隐私边界，应进入摘要、隐私说明或详情页，不作为某个设置项的临时状态。
+- 只有会影响用户下一步行动的状态才可在设置主列表中显示，并且应使用当前值或低干扰状态文案，例如 `未配置`、`未启用`、`需重测`、`部分可用`、`失败`。这些状态必须来自真实用户可感知的配置、权限、同步或 Provider 投影，不得来自开发阶段 completion marker。
+- iPhone 设置主列表优先简洁，默认只显示图标、标题、摘要和进入详情 chevron。iPad / macOS 可以在空间允许时显示当前值，但仍不得把正常状态做成高权重 capsule badge。
+- `CapabilityStatusBadge` 可继续用于能力详情、结果面板和开发期审查组件；设置主列表和记录详情标题区必须显式选择隐藏或使用独立的用户可感知状态 presentation，不能无条件复用通用 badge。
+
+### 4.5 可访问性底线
+
+MVP 早期也应遵守：
+
+- 关键文字不依赖极低对比度。
+- 图标按钮需要可理解的辅助标签。
+- 表单输入、播放、录音、生成、删除等关键动作支持 VoiceOver 可识别名称。
+- 不用颜色作为唯一状态区分方式。
+- 动效不应影响阅读、输入和跟读。
+- 可收起面板的图标按钮必须有动态辅助标签和状态值，例如“隐藏时间线 / 显示时间线”“当前已显示 / 当前已隐藏”。
+- 面板展开 / 收起动效必须尊重 Reduce Motion。
+
+### 4.6 辅助面板与专注模式
+
+iPad 和 macOS 的辅助面板是可召回上下文，不是永久占位内容。
+
+设计要求：
+
+- 中间写作、双语正文和逐句练习是主视觉焦点。
+- 左右面板展开时提供上下文，收起时不应留下空白占位。
+- 左右都收起时，页面应进入更安静的专注写作 / 学习状态，保持合理行长和内边距。
+- 面板切换按钮应使用系统图标或统一图标语言，不新增大段说明文字。
+- 按钮状态不能只靠颜色表达；布局变化、动态辅助标签和状态值应共同表达当前状态。
+- iPad 触控目标不得小于 44pt。
+- macOS 可以使用更紧凑的视觉密度，但可点击目标和无障碍标签仍必须清晰。
+
+### 4.7 语言空间底部工具区
+
+iPad 和 macOS 上，语言空间和设置入口默认属于 Sidebar 底部工具区。
+
+设计要求：
+
+- 语言空间底部工具区应表达当前语言空间、母语到目标语言方向、水平等级、设置入口和必要的本地 / AI 状态。
+- AI Provider 与同步必须拆成两个状态图标，不合并成一个笼统的“本地优先”状态。
+- 该区域应轻量、低高度、低对比度，不做成大型卡片，不与记录列表争夺视觉焦点。
+- AI Provider、同步和设置图标应优先处于语言空间标题行右侧，同组表达当前空间的低频配置上下文，避免增加额外一行。
+- 设置入口优先使用齿轮图标按钮，触控设备点击区域不少于 44pt。
+- AI Provider 图标首选 `sparkles`，同步图标首选 `arrow.triangle.2.circlepath`；未配置和未启用不是错误，不使用感叹号作为默认图标。
+- 状态图标表达“能力或配置状态”，不表达“会自动发送或自动同步”。已配置状态仍必须通过请求预览、同步范围和用户触发流程约束真实行为。
+- 每个状态图标必须支持点击或键盘触发说明；macOS 可补充 hover tooltip，iPad 不能只依赖 hover。
+- 每个状态图标必须提供可访问 label、value 和 hint，颜色不能成为唯一状态信息。
+- 语言空间区域可以看起来可点击，但 Mock 阶段不得产生真实数据写入。
+- Sidebar 收起时，该区域可以跟随隐藏，不需要在顶部复制一份语言空间或设置入口。
+- 顶部全局条不常驻显示本地优先 / 未配置 AI 状态，也不重复放置设置齿轮；顶部应优先服务搜索、面板切换和当前任务操作。
+- iPad 版本可以更强调触控舒适度；macOS 版本可以更紧凑，但不能牺牲可读性和可访问性。
+
+### 4.8 国际化与语言显示
+
+语迹涉及界面语言、母语和目标语言三类文本，UI 必须避免混淆：
+
+- App UI 文案使用当前界面语言。
+- 用户母语记录按原文显示。
+- 目标语言文本按学习语言显示。
+- 语言空间名称和学习等级可作为上下文显示，例如 `英语空间 · B1`。
+- 不要为了展示英语学习示例，把所有 UI 文案强行改成英语。
+- 语言选择控件不能把展示文案当作数据模型；Core 层应使用稳定 code，例如 `zh-Hans`、`en`、`ja`。
+- 语言选择菜单项在中文 UI 下优先使用自称名加中文辅助名，例如 `English（英语）`、`日本語（日语）`；折叠后的当前值优先使用较短自称名，例如 `English`。
+- 母语、目标语言、界面语言、Prompt / TTS 使用名和语言空间显示名需要分层，不得用同一个字符串承担全部语义。
+- 首次启动阶段不允许创建母语和目标语言相同的语言空间；UI 应优先通过过滤和自动调整减少错误路径。
+
+详细规则以 [006：界面国际化与语言边界规范](006-interface-localization-and-language-boundaries.md) 为准。本文档只保留 UI 设计侧的基本约束。
+
+### 4.9 Design Token 初始边界
+
+在真实 SwiftUI 工程中，颜色、字体、间距和圆角应逐步进入设计 token。早期如果尚未建立 token，也应避免在大量 View 中散落魔法数。
+
+建议 token 维度：
+
+- 语义颜色：背景、文本、弱文本、边框、强调、警告、危险、隐私状态。
+- 字体层级：标题、正文、辅助、标签、按钮。
+- 间距：页面边距、组件间距、列表间距、控件内边距。
+- 形状：按钮、输入框、卡片、badge、sheet。
+
+当前 token 映射的最低边界：
+
+- 页面背景、面板、弱面板和边框使用 surface / border token，不在页面中直接散落 RGB。
+- 状态色通过 semantic token 进入组件，例如 warning、danger、info、success / local；页面只选择状态 kind，不直接决定具体颜色。
+- 危险色、错误色和弱危险背景必须放在 token 定义或经说明的状态组件中。
+- 浅色 / 深色外观基础设施已接入 `LangoTraceDesign` 语义 token，当前基准色号来自 `docs/plans/active/2026-05-22-feature-appearance-light-dark-foundation.md` 第 10.1 节；发布级视觉仍需要 iPhone、iPad 和 macOS 截图或人工验收确认。
+- 深色模式中，`accent` 可以用于小面积文字、图标、状态、普通 bordered 按钮和译文高亮；所有 `.borderedProminent` filled primary CTA 必须使用 `primaryActionFill` / `primaryActionForeground` 等主操作专用 token，开关开启态必须使用 `switchOnFill`，避免高亮色块压过内容层级或造成白字对比不足。
+- 高对比、reduce transparency 和未来多品牌主题仍是后续能力，不能因为当前 light / dark token 已接入就写成已完成。
+
+### 4.9.1 页面背景一致性强制规则
+
+语迹的视觉基调依赖 **warm paper**（暖纸底色）与 iOS/macOS 系统 `systemBackground`（纯白）的明确区分。iOS 的 `ScrollView`、`NavigationStack`、`Form` 等容器在未设置背景时默认渲染系统白色，与语迹 `paper`（`#F6F1E8` 浅色 / `#101A18` 深色）产生明显色差。
+
+以下是强制规则：
+
+**新增 iPhone 级页面视图时**（作为 `TabView` 直接子项或 `NavigationStack` 的 destination），必须在 ScrollView 或根容器上调用 `.langoPageBackground()`；不能依赖系统默认背景或父视图背景向下继承。已有的 `PhonePage` 模板已内置该调用，直接使用 `PhonePage` 即满足要求。独立构建的 ScrollView 页（不通过 `PhonePage`）必须在 ScrollView 本体上显式调用 `.langoPageBackground()`。
+
+**新增 iPad / macOS 级页面视图时**，参照已有的 `PadMainView`、`MacMainView` 用 `.langoPageBackground()` 的方式；局部 pane（如 sidebar、inspector）使用对应的 surface token（`surfaceSidebar`、`surfaceInspector`），不使用系统默认背景。
+
+**Group、条件分支、ProgressView 等中间层容器**不会自动继承 `.langoPageBackground()`；若页面的 body 是 `Group { if ... { ScrollView } else { ProgressView } }` 结构，必须在 Group 的修饰链上（而非内部 ScrollView 上）调用 `.langoPageBackground()`，确保所有分支状态下背景一致。
+
+**设计一致性验证**：新增页面实现后，应在 iOS Simulator 中分别验证浅色模式和深色模式下的背景颜色与相邻 tab 是否一致，不能仅凭"代码看起来应该对"通过。
+
+**违规示例（已修复）**：`ReadingPhoneLibraryHomeView` 和 `ReadingPhoneDocumentView` 在 2026-06-06 因遗漏 `.langoPageBackground()` 导致阅读 tab 背景呈 iOS 系统白色，与其他 tab 的 warm paper 产生明显断层。根因是独立构建的 ScrollView 没有复用 `PhonePage` 模板，也没有显式检查背景一致性。
+
+Action hierarchy：
+
+- Primary action：创建 Entry、生成学习材料、继续练习等主路径动作；每个主区域同时只保留少量主动作。本地预览只能作为开发期 seed / mock 状态，不应在真实记录详情中替代 `生成学习材料` 主动作。
+- Welcome、Onboarding、iPhone 主学习页、AI Provider 保存、同步关闭、练习继续、新建记录等 filled primary CTA 默认使用更沉稳的主操作填充色；深色下不得直接用 `#72D2BF` 或继承全局高亮 tint 作为 filled primary CTA 底色。
+- Secondary action：筛选、查看详情、打开设置说明、切换面板。
+- Switch：能力启用、同步 scope 和连接选项等二元开关使用系统 switch 形态，但开启态 tint 走 `switchOnFill`；不要直接继承全局 `accent`，避免在深色面板中出现过亮的浅薄荷色块。
+- Tertiary / icon action：播放、收藏、更多、设置 gear、AI / Sync 状态图标；必须有 accessibility label / value / hint 或 tooltip。
+- Destructive action：删除语言空间、删除 Entry、清空本地数据等必须有确认、可恢复或导出前置方案；本轮不实现真实语言空间删除。
+
+Empty / unavailable / loading / error 模式：
+
+- Empty state 应提供与当前页面匹配的下一步动作，例如创建第一条记录或清除筛选。
+- Unavailable state 应说明未接入能力和不会发生的副作用，不用长篇营销说明替代反馈。
+- Loading state 应说明正在处理的对象，避免裸 `ProgressView`。
+- Error state 应保留用户输入或本地记录，并提供重试、返回或查看详情路径。
+- Local preview state 应明确是本地示例，不触发真实 AI、TTS、同步或外部请求。
+
+### 4.9.2 字号层级与 Dynamic Type 映射基准
+
+原型 `prototypes/shared/tokens.css` 定义了完整字号 scale。它是 393pt 固定画布上的**视觉层级基准**，不是实现像素值；SwiftUI 实现必须使用语义 `Font.TextStyle`（自动支持 Dynamic Type），不得把原型 px 硬编码为 `Font.system(size:)`。
+
+层级映射基准（括号内为 HIG 默认 Large 档字号，仅用于理解层级关系）：
+
+| 原型 token | 原型 px | 角色 | SwiftUI 语义样式 |
+| --- | --- | --- | --- |
+| `--fs-large` | 30 | 页面大标题 | `.largeTitle`（34） |
+| `--fs-title1` | 24 | 区块主标题 | `.title2`（22）或 `.title`（28） |
+| `--fs-title2` | 20 | 卡片 / 面板标题 | `.title3`（20） |
+| `--fs-title3` | 17 | 导航标题、强调正文 | `.headline`（17） |
+| `--fs-body` | 15 | 正文、目标语言句子 | `.body`（17）或 `.callout`（16） |
+| `--fs-sub` | 13 | 次级文本、菜单值 | `.subheadline`（15） |
+| `--fs-footnote` | 12 | 辅助说明、披露文案 | `.footnote`（13） |
+| `--fs-caption` | 11 | 标签、状态 pill | `.caption`（12）或 `.caption2`（11） |
+
+使用规则：
+
+- 原型字号整体比 HIG 默认档紧约 1-2pt，属于固定画布上的密度表达；实现以语义样式为准，不追求与原型像素一致。
+- 同一语义层级在三端使用同一 text style；macOS 的更高信息密度通过布局和间距实现，不通过缩小字号实现。
+- 自定义字号只允许出现在 `LangoTraceDesign` token 层并说明原因；启用时必须用 `@ScaledMetric` 或等价机制保持 Dynamic Type 缩放。
+- 官方依据：[HIG · Typography](https://developer.apple.com/design/human-interface-guidelines/typography)（含 Dynamic Type 全部字号表）、[SwiftUI · Font.TextStyle](https://developer.apple.com/documentation/swiftui/font/textstyle)。
+
+### 4.10 Welcome 与首次解释体验
+
+Welcome 是首次打开 App 的产品解释入口，不是营销 landing page，也不是真实学习闭环已经完成的证明。它应在短时间内说明“生活记录如何变成表达和练习”，并保持三端同一语义、不同平台承载。
+
+设计要求：
+
+- Welcome 首屏应优先展示产品闭环，而不是功能清单。示例卡片应表达 source note、rewrite、voiceover cue、shadowing cue 的学习路径，避免退回单词表、表达列表和练习入口堆叠。
+- Welcome 静态示例必须标记为本地解释用内容，不触发真实 AI、TTS、录音、语音转文本、同步、持久化或权限请求。
+- iPhone、iPad、macOS 可以使用不同布局、尺寸和 CTA 位置，但副标题、能力承诺和示例语义应共享；只有明确平台体验理由时才新增平台专用文案。
+- Welcome 示例可以为了说明语言学习关系使用双语 demo，但不得让用户误以为界面语言就是目标学习语言，或默认已经创建某个语言空间。
+- Page indicator 属于示例 carousel，应贴近卡片或对应内容，不应漂到页面中下部变成独立装饰。
+- Mac 和 iPad 宽屏应充分利用空间，让标题、CTA 和示例卡片形成同等级主视觉；iPhone 应优先保证主标题、说明、示例和底部 CTA 在动态字体下仍可读可点。
+- Welcome 文案不得过早承诺未接入的输入能力，例如录音输入、语音转文本、真实 TTS 播放或照片 OCR；若只是在示例中说明未来学习输出或练习方向，应使用不误导的 cue。
+
+### 4.11 Onboarding 当前水平选择
+
+首次创建语言空间时，当前水平是必要输入，但不应表现为考试或测验。字段标题使用“当前水平”，说明文案保持短句，避免在高密度区域重复提问。
+
+设计要求：
+
+- iPhone、iPad、macOS 都应保留 A1-C2 代码，同时展示自然名称和一句话说明。
+- 不使用裸 `A1 / A2 / B1 / B2 / C1 / C2` segmented control 作为唯一选择方式。
+- 列表默认高度应受控，允许内部滚动；在动态字体下优先保证可读、可点和可滚动，不通过缩小字体解决空间问题。
+- 选中态应清晰但低调，不能比创建语言空间主按钮更抢眼。
+- 每个选项的可点击区域不低于 44pt，并提供等级代码、自然名称、说明和 selected trait 等无障碍语义。
+- 该控件属于 `LangoTraceUI` 表现层；`LanguageLevel`、`OnboardingDraft` 和语言空间数据模型仍只保存 A1-C2 等级值。
+
+### 4.12 Onboarding 本地保存轻提示
+
+首次创建语言空间时，“数据默认保存在本机”属于本地优先信任提示，不是需要用户选择或配置的表单项。它不应使用与语言选择、当前水平选择同等级的卡片样式，也不应占据页面中段的主要垂直空间。
+
+设计要求：
+
+- 将本地保存说明放在“创建语言空间”主按钮下方，以 footnote / caption 样式展示。
+- 文案保持短句，推荐语义为“数据默认保存在本机，可在设置中查看与调整。”；不要在 onboarding 中提前展开 AI Provider、备份、同步、目录选择或对象存储配置。
+- 可保留小锁图标表达隐私和本地优先，但图标与文字都应是低权重提示，不能比主按钮、语言选择和当前水平更抢眼。
+- 提示文本可以居中或与主按钮中心轴对齐；与按钮保持约 `10-12pt` 间距，并避开底部 safe area。
+- 颜色可以使用弱文本色，但必须满足可读性和深浅模式对比要求，不能成为装饰性浅灰字。
+- Dynamic Type 下允许换成两行，但不得遮挡底部按钮或导致按钮离开可点击区域。
+- VoiceOver 应将锁图标和说明合并为一条静态提示，不应暴露为可交互控件。
+
+### 4.13 Onboarding iPad 专属承载
+
+iPad onboarding 不应只是放大的 iPhone 单列页面。regular-width iPad 需要按方向使用更适合大画布的承载，同时保持首次创建语言空间的输入边界不变。
+
+设计要求：
+
+- iPad 横屏应优先使用左右分栏：左侧解释语言空间语义和轻量价值摘要，右侧承载母语、目标语言、当前水平、语言方向摘要、创建按钮和本地保存 footnote。
+- iPad 横屏左右分栏应通过栏间留白、宽度比例和对齐关系形成视觉分区，不使用中间竖向分割线；内容起始位置应适度下移，避免大画布顶部拥挤。
+- iPad 横屏右侧表单和创建按钮应形成明确主操作区，不能因沿用 iPhone / Mac 的底部按钮宽度而显得偏小；横屏专用按钮宽度可以大于其他 wide inline 场景，但不得改变 iPhone、iPad 竖屏和 macOS 的按钮约束。
+- iPad 横屏左侧标题区和价值摘要应形成同一视觉轴线；标题区和价值摘要可以相对左栏外边界整体右移，价值摘要可额外下移形成独立内容组。该偏移只作用于横屏左栏，不改变竖屏价值摘要布局。
+- iPad 竖屏应使用居中纵向布局：标题、副标题、三项轻量价值摘要、表单、语言方向摘要、创建按钮和 footnote 形成完整页面节奏。
+- iPad 横屏和竖屏的价值摘要应共享同一组语义与本地化 key：记录生活、练习表达、留下语迹；不能在旋转设备后出现不同命名。
+- 当前水平列表在 iPad 横屏和竖屏可显示约 4 个等级选项，C1/C2 仍通过内部滚动访问；iPhone 和其他 compact 场景继续保持更紧凑的可见行数。
+- 横屏分栏只在足够宽、高且 `width > height` 的 iOS 几何条件下启用；竖屏布局只在足够宽、高且 `height > width` 的 iOS 几何条件下启用。Split View、Stage Manager 窄窗口和 iPhone landscape 不应强行进入 iPad 专属布局。
+- iPad 专属价值摘要是静态解释，不进入 `LanguageLevel`、`OnboardingDraft` 或语言空间数据模型，也不新增 AI、同步、目录选择或权限入口。
+
+### 4.14 可执行设计系统边界
+
+从 MVP UI 闭环开始，设计系统不能只停留在视觉关键词，应逐步变成 SwiftUI 可复用入口。
+
+第一阶段最低要求：
+
+- `LangoTraceDesign` 中的 token 应按语义命名，避免页面直接依赖临时颜色或魔法数。
+- 核心组件应表达产品对象，例如 `EntryTimelineRow`、`SentencePairView`、`RequestPreviewCard`、`PracticeControlBar`、`MemoryItemRow`。
+- 每个核心组件至少考虑普通、选中、禁用、不可用、加载或错误中的相关状态。
+- 未配置 AI Provider、同步未启用和本地 mock 生成必须有清楚状态，不能让用户误以为已经发起真实外部请求。
+- 设置、练习和请求预览应复用统一的能力状态表达，例如 ready、Local Mock 和未接入。不可用状态必须有标题、解释和下一步边界，不能只禁用按钮。
+- 练习会话如果存在真实可执行的录音 / 播放闭环，优先用操作按钮和按钮可用性表达当前状态，不再把准备、跟读、录音、完成做成不可点击的高权重阶段控件；若后续重新引入多步练习向导，stepper 必须有真实可交互语义或清楚标注为只读进度，不能暗示未接入的评分、ASR 或上传能力。
+- 浅色 / 深色外观基础设施可以作为已接入能力描述；但在完成截图或人工验收前，深色视觉质量只能写成“基础设施已完成，发布级视觉待验收”，不能写成已完成发布级体验。
+- 视觉升级必须服务记录、学习和记忆路径，不用装饰性背景、重复卡片或营销式 hero 掩盖交互缺口。
+- `langoPanel` 或等价面板不能作为所有 section 的默认外壳。卡片只用于重复 item、modal / sheet 内容、工具面板或确实需要框定的局部；页面 section 优先使用无框布局、分组标题、列表和平台原生容器。
+- Memory UI 至少区分内容记忆、语言记忆和学习记忆三层：内容记忆回到原始生活记录，语言记忆沉淀词句表达，学习记忆记录练习进度和错误模式。三层可以先是本地预览，但不能混成单一“单词列表”。
+
+设计系统规格入口：
+
+- `docs/spec/ui-design/mvp-ui-flow-and-design-system.md`
+
+### 4.15 iPhone 管理类 Sheet 与轻量编辑面板
+
+iPhone 上的管理类 sheet 常用于创建、编辑、重命名、配置少量字段或确认低频设置。此类界面应保持轻量、紧凑和品牌一致，不应因为字段少就直接暴露默认系统 `Form` 的大块灰底、过度留白和临时感。
+
+设计要求：
+
+- 少量字段的编辑 sheet 优先使用中等高度并保留可展开高度；默认视图应让用户一眼看到完整编辑对象和主要字段。
+- 当 sheet 承载的是语迹产品对象，例如语言空间、记录、Provider 草稿或同步草稿，内部应使用语义化 panel、字段行、状态提示和 design token，而不是无差别套用系统 `Form`。
+- 原生输入行为仍优先保留：文本输入使用 `TextField`，枚举选择使用 `Picker`，少量选项可使用 `.menu`，不要为了视觉统一自绘不可访问的选择控件。
+- 字段行高度不得低于 44pt；推荐约 56pt，以兼顾触控、动态字体和中文 / 英文标签长度。
+- 编辑对象的状态或归属可以用低调强调元素表达，例如左侧 teal 轨道、轻量 badge 或弱背景；不要再添加一个看起来可点击但实际只是状态的图标按钮。
+- Warning、duplicate、same target language 等提醒应在相关输入附近以轻量 chip / row 呈现；长期说明文本和删除风险说明不应常驻占据管理页首屏，除非它们是当前动作的确认上下文。
+- 破坏性操作仍使用系统 destructive 语义和确认路径；编辑 sheet 内的保存、取消和删除不能只靠颜色区分。
+- 此类 sheet 的视觉必须跟随 `LangoTraceDesign` token，例如 paper、surfaceRaised、borderSubtle、accent、warning、dangerMuted；不直接散落临时 RGB。
+- 如果默认 `Form` 的系统分组视觉与当前产品主题冲突，应优先构建可复用编辑 panel，而不是通过零散 padding、背景色和 opacity 补丁修补。
+- iPhone 顶部语言空间入口使用快速切换 sheet，而不是只读说明 sheet。该 sheet 的首屏应优先展示当前空间、active 空间列表、添加学习语言和完整管理入口；长期说明、删除风险和复杂生命周期操作留给完整管理页或当前动作确认上下文。
+- 快速切换 sheet 不应默认叠第二层 modal 承载新增流程；优先在同一 sheet 的导航层或阶段状态中复用语言空间编辑面板。若必须嵌套 sheet，应人工验证取消、保存、拖拽关闭和 VoiceOver 逃逸路径。
+- iPad 和 macOS 不必照搬 iPhone sheet。iPad 可转为 popover、split detail 或 inspector；macOS 可使用 Settings scene、panel 或 overlay，但语义、字段顺序和状态提示应保持一致。
+
+### 4.16 iPhone 状态反馈 Sheet
+
+状态反馈 sheet 用于呈现一次操作的运行中、成功、部分成功、失败、取消或可重试结果，例如 Provider 配置测试、保存结果、导出结果和同步运行结果。它不是编辑页面，也不是对象详情页，因此不应无条件套用管理类 sheet 的 `NavigationStack + navigationTitle` 模式。
+
+设计要求：
+
+- 顶部使用状态 chrome，而不是页面标题。推荐结构是小 handle、居中运行状态或中性面板标题、右上关闭按钮；不要同时出现系统导航标题、面板内大标题和大号状态图标。
+- running / testing 状态使用 `ProgressView`、状态标题和分能力行状态表达；不要显示禁用的大号主按钮来占据底部空间。
+- 成功、失败、部分成功和取消状态应通过分项图标、文案和 tone 共同表达，不能只靠颜色；完成态不要把 `测试成功`、`部分可用` 或 `测试失败` 这类 overall status 当作 sheet 顶部标题。
+- 分项结果优先使用 grouped card 或平台原生分组列表，行间用细分隔；不要使用整行高亮表达当前测试项，除非该行真的可选中或可操作。
+- 底部操作只保留当前状态下真实可用的恢复路径，例如“重新测试”“重试保存”“查看详情”；不可用操作应隐藏或降级为说明，不应作为 disabled primary CTA 常驻。成功态通常不应显示 prominent 重试按钮，除非重试本身是该任务完成后的主路径。
+- 需要用户继续编辑、选择或保存的任务应回到任务型 sheet 或原页面，不要把表单输入塞进状态反馈 sheet。
+- AI Provider 测试结果面板属于状态反馈 sheet：compact iPhone 使用 bottom sheet detents 和隐藏系统 drag indicator，面板内测试中使用居中 `ProgressView` 状态 chrome，完成后使用中性 `测试请求` 顶部标题、grouped capability card 和成功 TTS 试听按钮。测试成功态不显示底部 prominent `重新测试` 按钮；失败、部分可用、取消或不支持状态可以保留重试作为恢复操作。
+
+### 4.17 页面闭环先于整体视觉升级
+
+三端页面补全阶段应先确保用户路径完整、平台外壳正确、状态清楚，再进入整体视觉优化。这个阶段不追求最终高级视觉，但必须避免产生新的设计债务。
+
+设计要求：
+
+- iPhone、iPad、macOS 的所有明显入口必须有可见反馈；空按钮比 unavailable 页面风险更高。
+- Local Mock、未配置、未接入和不可用状态必须使用一致的能力状态表达，不能混用“已连接”“已生成”“可同步”等真实能力文案。
+- unavailable 页面应包含当前边界、后续接入条件和不会发生的副作用；文案要简洁，避免把说明页做成营销介绍。
+- iPad 筛选 pill、macOS Sidebar item、设置能力 row 和导入导出入口必须是可访问的交互控件，选中态不能只靠颜色表达。
+- 系统级设置详情不应在内容区重复导航标题，也不应把当前语言空间方向和等级显示成页面归属。AI Provider 这类跨语言空间配置页应直接进入表单主内容；当前语言空间如果只用于测试、预览或语音 profile 上下文，应留在服务输入或结果语义中，而不是作为页面 header。
+- iPad regular width 可以保持较高信息密度；compact width、Split View、Slide Over 和 Stage Manager 窄窗口必须优先保障主内容可读。
+- macOS 可以更紧凑，但仍要支持窗口缩放、键盘焦点、指针反馈和上下文 Inspector；未实现的快捷键或菜单命令不能以已完成形式出现。
+- 视觉优化必须等完整页面地图和截图清单形成后统一处理，避免某一个端或某一个页面先行美化造成风格分裂。
+
+### 4.18 关键操作反馈
+
+保存、验证、测试请求、导出、删除、同步和 AI 生成等关键操作必须有独立、可恢复、可诊断的状态表达，不能只依赖按钮点击后页面无变化或复用不准确文案。
+
+设计要求：
+
+- 主操作至少区分 idle、saving / running、succeeded、failed 和 input invalid；如果用户可以取消，还应有 cancelling / cancelled 或等价状态。
+- 保存类按钮在执行中应禁用重复点击，并在按钮内部使用 `ProgressView`、状态标题或等价可访问反馈表达正在处理；完成后由附近状态面板保留结果，不依赖瞬时 toast。
+- 输入缺失、配置不完整和真实保存失败是不同状态。输入缺失应提示用户补齐字段；真实保存失败应说明操作没有完成，并保留用户草稿。
+- 成功反馈应确认本地保存或本机安全存储结果，不得暗示已经发起真实 AI 请求、云同步或远程验证。
+- 失败反馈应使用独立错误 tone、图标和文案，不能复用“缺少必填项”或 unavailable 文案。
+- 关键操作的视觉反馈不能人为延长业务提交、阻塞主线程或制造假成功；如果保存很快完成，可以通过持久的 saved / failed 状态面板保持可见结果。
+- 操作反馈必须支持辅助功能：按钮执行中状态、结果标题、错误说明和可恢复路径应被 VoiceOver 识别，不能只靠颜色或转圈动画。
+
+### 4.19 图标按钮瞬态确认反馈
+
+图标按钮执行即时、不可逆但 UI 中**无可见结果变化**的动作（如复制、分享、导出到剪贴板）时，用户无法判断操作是否已完成。此类按钮必须使用瞬态确认反馈，在短暂成功状态后自动复位。
+
+**适用场景**：
+
+- 动作成功执行，但页面内容本身不会因此变化（复制文本、分享链接、导出到剪贴板）。
+- 按钮为图标按钮（无文字标签），结果歧义性更高。
+- 不适用：动作结果在 UI 中已明确可见（如折叠面板、删除行、切换 toggle），这些有内在反馈，无需图标切换。
+
+**规则**：
+
+1. **成功图标**：统一使用 `checkmark`，不为不同操作类型自定义不同成功图标。
+2. **成功状态颜色**：图标前景色切换为 `LangoTraceDesign.ColorToken.accent`，背景切换为 `surfaceAccentMuted`；默认状态使用 `textSecondary` 前景和 `surfaceMuted` 背景。
+3. **持续时长**：1.5 秒。足够用户感知，不阻断连续操作。
+4. **动画**：使用 `.snappy` 曲线驱动状态切换；图标符号使用 `.contentTransition(.symbolEffect(.replace))` 做替换动画（iOS 17+ / macOS 14+，符合当前部署目标）。
+5. **防重触发**：成功状态持续期间忽略重复点击（`guard !isSuccess else { return }`）。
+6. **可访问性**：`accessibilityLabel` 随状态切换，默认态使用"复制"，成功态使用"已复制"（各 locale 使用对应本地化 key `common.copy` / `common.copied`）。
+7. **提取为私有 View**：此模式应提取为独立私有 View 持有 `@State`，不内联在父 View 中，以免父 View 重绘导致 `@State` 被意外重置。
+
+**参考实现**：`ReadingViewComponents.swift` 中的 `ReadingCopyButton`（`ReadingCompactLearningPanel` 使用）。
+
+**扩展**：未来复制词条、导出句子、分享学习记录等同类图标按钮，均应复用此模式或提取为通用 `TransientConfirmButton` 组件。
+
+### 4.20 静态原型设计基准
+
+`prototypes/index.html` 是 2026-06-11 重建的三端静态原型总览，覆盖已实现页面和路线中待开发页面的目标设计，视觉基准沿用 2026-05-23 用户审核通过的外观色板方向。新增或重构页面前，应先查看对应平台的原型页面，避免脱离已确认的视觉基调和页面结构重新发明布局。
+
+权威关系与使用边界：
+
+- 本规范和 [010：Apple 三端交互与可访问性规范](010-apple-platform-interaction-and-accessibility.md) 是约束权威；原型是设计基准，不是实现事实源，当前实现事实以 `docs/platform-page-inventory.md` 为准。
+- 原型中标注「目标设计」的页面或区块表示尚未实现，不构成实现授权；落地前仍需独立 active plan 和用户确认，对应架构提醒见 `docs/architecture/notes/2026-06-11-prototype-target-design-extension-notes.md`。
+- SwiftUI 实现与原型出现有意偏差时，以实现与 spec 为准，并在相关任务方案中记录原因；不回改原型冒充历史。
+- 原型与本规范冲突时，以本规范为准，并按变更规则评估是修正原型还是更新规范。
+
+## 5. 可演进部分
+
+- 多品牌或完整主题注册表。
+- 字体层级。
+- 圆角数值。
+- 阴影强度。
+- 高对比和 reduce transparency 的专门适配。
+- 动效节奏。
+- SwiftUI 组件命名。
+- 深色模式发布级截图验收优先级。
+- 多语言 UI 文案策略。
+
+这些内容可在真实 SwiftUI 实现和原型验证后更新，但更新时需要保持整体视觉一致性。
+
+## 6. 反例
+
+不应这样做：
+
+- 首页做大 Hero 文案，却没有记录入口。
+- 用一堆装饰卡片展示功能介绍，而不是可操作界面。
+- 在学习界面里堆太多按钮和标签，削弱阅读与跟读。
+- 把隐私配置做成复杂后台表格。
+- 每个页面临时定义自己的按钮、badge、卡片和颜色。
+
+## 7. AI 开发提示
+
+AI 在创建或修改 UI 前应先确认：
+
+- 当前设备是 iPhone、iPad 还是 macOS。
+- 页面属于记录、练习、记忆、设置还是高级工作台。
+- 是否需要显示当前语言空间。
+- 是否涉及 AI 请求、权限、同步或隐私状态。
+- 是否可以复用已有组件或 token。
+- 是否满足基本可访问性和触控尺寸。
+- 是否混淆了 UI 语言、母语内容和目标语言内容。
+
+如果没有明确设计 token，先使用局部可替换的命名，不要把颜色、字体和尺寸散落在大量 View 中。
+
+## 8. 官方参考
+
+以下 Apple 官方文档是本规范视觉与组件约束的依据来源（链接于 2026-06-11 验证可达；若失效，以 HIG 站内检索对应主题为准）：
+
+- [HIG · Layout](https://developer.apple.com/design/human-interface-guidelines/layout)：留白、对齐、safe area 与多尺寸适配。
+- [HIG · Typography](https://developer.apple.com/design/human-interface-guidelines/typography)：文本样式层级与 Dynamic Type 字号表；对应 4.9.2 节。
+- [HIG · Color](https://developer.apple.com/design/human-interface-guidelines/color)与[HIG · Dark Mode](https://developer.apple.com/design/human-interface-guidelines/dark-mode)：语义颜色、对比度与深色适配；对应 4.9 节 token 边界。
+- [HIG · Buttons](https://developer.apple.com/design/human-interface-guidelines/buttons)：按钮层级、尺寸与角色；对应 Action hierarchy 规则。
+- [HIG · SF Symbols](https://developer.apple.com/design/human-interface-guidelines/sf-symbols)与[SF Symbols App](https://developer.apple.com/sf-symbols/)：图标语言基准；原型中的描边 SVG 图标在实现层应映射到 SF Symbols。
+- [HIG · Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility)：44pt 触控目标、对比度与状态语义；详细验收规则见 [010：Apple 三端交互与可访问性规范](010-apple-platform-interaction-and-accessibility.md)。
+
+## 9. 变更记录
+
+- 2026-05-17：创建第一版 UI 设计系统规范。
+- 2026-05-17：补充可访问性、国际化和 design token 初始边界。原因：付费 App 需要从早期避免视觉一致性和可用性债务。影响范围：UI 设计和 SwiftUI 组件。是否需要 ADR：否。
+- 2026-05-17：补充 iPad / macOS 可收起辅助面板与专注模式规范。原因：已落地面板展开 / 收起交互，需要把触控尺寸、动态辅助标签、Reduce Motion 和主内容优先级沉淀为 UI 规则。影响范围：iPad、macOS 布局和组件设计。是否需要 ADR：否。
+- 2026-05-19：补充 iPad 右侧学习面板内部 trailing 留白、容器外侧 gutter 和顶部工具栏去重规则。原因：右侧内容块贴边和顶部重复设置齿轮会削弱工作台高级感与当前任务清晰度。影响范围：iPad 右侧面板、顶部工具栏。是否需要 ADR：否。
+- 2026-05-17：补充语言空间底部工具区规范。原因：语言空间和设置入口从顶部下沉到 Sidebar 底部后，需要统一视觉重量、可访问性和隐私状态展示边界。影响范围：iPad、macOS Sidebar 和跨平台 UI 一致性。是否需要 ADR：否。
+- 2026-05-17：细化 AI Provider / 同步双状态图标规范。原因：AI 配置和云端同步是两个独立风险边界，顶部常驻状态文案会削弱工具栏简洁度。影响范围：iPad、macOS Sidebar 底部状态区和状态说明 Popover。是否需要 ADR：否。
+- 2026-05-17：补充底部工具区紧凑布局规则。原因：AI Provider、同步和设置属于同一低频配置组，应放在语言空间标题行右侧以减少纵向占高。影响范围：iPad、macOS Sidebar 底部工具区。是否需要 ADR：否。
+- 2026-05-17：补充可执行设计系统边界。原因：页面完整性与设计系统审查确认当前规范仍偏原则，需要明确 token、组件状态、mock 能力和深色模式边界。影响范围：MVP UI 闭环、核心 SwiftUI 组件和视觉验证。是否需要 ADR：否。
+- 2026-05-17：补充能力状态和 mock 练习步骤规范。原因：设置与练习状态闭环新增 `CapabilityStatusRow` 和 `PracticeControlBar`，需要把 ready、Local Mock、未接入和本地练习步骤沉淀为可复用 UI 约束。影响范围：设置、练习、请求预览和后续不可用状态设计。是否需要 ADR：否。
+- 2026-05-17：补充页面闭环先于整体视觉升级规则。原因：新增三端页面补全计划把 iPad 和 macOS 页面完整性置于视觉升级之前，需要明确 mock/unavailable、一致状态、窄窗口和 Mac 桌面交互底线。影响范围：三端页面闭环、设计优化准备和截图验证。是否需要 ADR：否。
+- 2026-05-18：同步第一轮 UI 收敛的状态矩阵和设计系统底座。原因：实现已新增 ready、local preview、unavailable、warning、error、permission denied、sync conflict、loading 等状态 kind，并把 Memory 首轮拆为内容记忆、语言记忆、学习记忆三层；规范需要明确 token、action hierarchy、empty / unavailable / loading / error 和卡片使用边界。影响范围：`LangoTraceDesign`、能力状态组件、三端主路径和后续视觉验证。是否需要 ADR：否。
+- 2026-05-19：补充 Welcome 与首次解释体验规则。原因：最近多轮 Welcome 优化已形成三端共享语义、静态双语示例、无真实 AI / TTS / 录音承诺和平台化布局承载的稳定约束，需要沉淀到 UI 设计系统。影响范围：Welcome、首次启动、静态示例卡片、三端响应式布局和后续首屏文案。是否需要 ADR：否。
+- 2026-05-20：补充 Onboarding 当前水平选择规则。原因：三端首次引导已采用 A1-C2 解释性列表，替代裸 segmented control；该规则属于表现层和无障碍规范，不改变语言空间数据模型。影响范围：Onboarding、语言空间创建、等级文案、本地化和无障碍。是否需要 ADR：否。
+- 2026-05-20：补充 Onboarding 本地保存轻提示规则。原因：人工查看发现“数据默认保存在本机”卡片视觉权重过高，抢占首次创建页面垂直空间；该信息应作为信任提示放在主按钮下方。影响范围：Onboarding、隐私提示、本地优先文案和无障碍朗读。是否需要 ADR：否，未改变本地优先核心决策。
+- 2026-05-20：补充 Onboarding iPad 横屏与竖屏专属承载规则。原因：iPad 首次创建语言空间页面需要利用 regular-width 画布，横屏采用左右分栏，竖屏采用标题、价值摘要、表单和 CTA 的居中纵向节奏；该规则只改变表现层，不改变首次启动输入边界。影响范围：iPad Onboarding 布局、价值摘要本地化、当前水平列表高度和响应式分支。是否需要 ADR：否。
+- 2026-05-20：补充 iPhone 管理类 sheet 与轻量编辑面板规则。原因：语言空间编辑 sheet 从默认 `Form` 改为语迹主题化紧凑 panel 后形成可复用经验：少量字段的产品对象编辑应保持原生输入行为，但避免系统 `Form` 灰底和过度留白破坏品牌一致性。影响范围：iPhone 管理类 sheet、语言空间编辑、Provider / 同步草稿类配置、后续轻量编辑面板。是否需要 ADR：否。
+- 2026-05-20：补充关键操作反馈规则。原因：AI Provider 保存配置已进入真实 Keychain + SQLite 写入链路，需要把 saving、saved、failed 和 input invalid 的独立反馈沉淀为通用 UI 约束。影响范围：Provider 设置、同步、导出、删除、AI 生成和后续保存类操作。是否需要 ADR：否。
+- 2026-05-21：补充 iPhone 语言空间快速切换 sheet 规则。原因：顶部语言空间 pill 已从只读 summary 调整为快速切换入口，需要明确快速切换、添加学习语言和完整管理页之间的职责分工，并避免新增流程默认叠双层 modal。影响范围：iPhone 顶部语言空间入口、管理类 sheet、语言空间编辑承载。是否需要 ADR：否。
+- 2026-05-23：更新浅色 / 深色外观基础设施事实。原因：App 已新增设备级外观偏好、`preferredColorScheme` 注入和 light / dark 语义 color token；真实发布级深色视觉仍需截图或人工验收。影响范围：`LangoTraceDesign`、`SettingsCapabilityDetailView`、`LangoTraceApp`、三端设置入口和外观验证清单。是否需要 ADR：否，当前只实现系统浅深色外观，不改变未来主题策略。
+- 2026-05-23：补充深色主操作 CTA 色彩边界。原因：模拟器截图显示 `accent` 作为大面积 filled button 时视觉过亮，且浅薄荷底配白字对比不足；filled primary CTA 已统一改用主操作专用 token。影响范围：`LangoTraceDesign`、Welcome / Onboarding、iPhone 主学习页、AI Provider、同步、练习、iPad 工作台和 macOS 编辑保存主 CTA。是否需要 ADR：否，属于设计 token 语义细分。
+- 2026-05-23：补充深色开关开启态色彩边界。原因：AI Provider 能力开关在深色面板中使用 `accent` 时会形成与主 CTA 类似的浅薄荷色块；开关开启态已拆为 `switchOnFill`。影响范围：`LangoTraceDesign`、AI Provider 能力开关、Sync scope 开关和 S3 draft 连接开关。是否需要 ADR：否，属于设计 token 语义细分。
+- 2026-05-23：补充 macOS 三栏 surface token 边界。原因：iPhone 端视觉验收后继续开发 iPad / macOS 外观时发现 Mac sidebar / inspector 不应只依赖整页背景；三栏工作台需要在浅色 / 深色下保留清晰层级。影响范围：`MacMainView`、`surfaceSidebar`、`surfaceInspector` 和外观自动化测试。是否需要 ADR：否，属于平台 UI token 落地细化。
+- 2026-05-23：补充 iPhone 记录详情空间利用规则。原因：人工查看发现目标语言编辑区固定高度过大，且“听 / 练”两个按钮与正文同排时会挤压目标句和讲解宽度，影响短句卡片的阅读质感和首屏信息密度；目标语言学习文本进入 sheet 编辑，详情页正文块不再常驻显示“母语记录 / 目标语言”字段标题；`SentencePairView` 已调整为顶部操作区加全宽正文，逐句“听”按钮不再打开解释型 sheet。影响范围：iPhone 记录详情目标语言编辑区、逐句分析卡片、后续句子级操作按钮。是否需要 ADR：否，属于组件视觉和可用性约束。
+- 2026-05-23：更新记录详情双文本卡片规则。原因：人工测试继续发现右上角悬浮编辑按钮会让长目标文本阅读列变窄；实现已改为 `EntryDetailTextCard` 顶部工具区，母语原文和目标语言学习文本共享动态标题、全宽正文和 sheet 编辑，原文变更后的目标文本通过“基于旧记录”提示和显式重新生成入口处理。影响范围：`EntryDetailView`、`LearningMaterialEditorView`、原文编辑 sheet、动态语言标题和可访问性标签。是否需要 ADR：否，属于页面交互和数据派生状态展示约束。
+- 2026-05-23：补充记录详情文本编辑 sheet 高度规则。原因：短文本编辑 sheet 默认全高会造成过度留白，正文标题在进入编辑后也重复抢占视觉层级；规范明确 sheet 不重复显示正文标题，并按初始文本长度选择 compact / large 初始高度，同时允许展开到全高。影响范围：`SourceEntryEditorSheet`、`LearningMaterialEditorSheet` 和后续 iPhone 轻量文本编辑 sheet。是否需要 ADR：否，属于组件交互细化。
+- 2026-05-23：补充 iPhone 状态反馈 sheet 规则。原因：AI Provider 测试结果面板曾误套任务型 sheet 的标题结构，造成顶部拥挤、调试表格感和禁用主按钮噪声；规范明确反馈型 sheet 用状态 chrome、grouped result card 和状态可用操作。影响范围：AI Provider 测试结果、保存 / 导出 / 同步结果反馈和后续状态面板。是否需要 ADR：否。
+- 2026-05-24：补充 AI Provider 测试结果完成态标题规则。原因：人工截图复查发现测试完成后把 `测试成功` 作为 sheet 顶部标题会显得局促且层级不稳；完成态应回到中性面板标题，具体可用性由 grouped capability rows 表达。影响范围：`AIProviderProbeResultPanelContent`、AI Provider 测试结果 sheet 和后续状态反馈面板。是否需要 ADR：否。
+- 2026-05-24：补充状态反馈 sheet 成功态操作权重规则。原因：AI Provider 测试成功后底部 prominent `重新测试` 按钮不是主路径，却增加高度并挤压顶部 chrome；成功态隐藏该按钮，非成功态保留重试恢复操作。影响范围：AI Provider 测试结果 sheet、保存 / 导出 / 同步反馈和后续状态反馈面板。是否需要 ADR：否。
+- 2026-06-06：新增 §4.19 图标按钮瞬态确认反馈规范。原因：阅读面板「复制」图标按钮实现暴露了图标按钮无可见结果时的反馈缺口；将 `checkmark` 切换 + 1.5s 自动复位 + `.symbolEffect(.replace)` + `guard !isSuccess` 防重触发 + 可访问 label 状态切换的组合沉淀为通用规则，以便后续复制词条、导出句子和分享场景复用。影响范围：`ReadingCopyButton`、后续图标操作按钮、未来 `TransientConfirmButton` 通用组件。是否需要 ADR：否，属于 UI 交互模式约束。
+- 2026-05-24：补充系统级设置详情标题规则。原因：AI Provider 配置属于跨语言空间系统级设置，内容区重复 `AI Provider` 和当前语言空间方向会误导归属并浪费首屏空间；导航标题保留，内容区直接进入表单。影响范围：`SettingsCapabilityDetailView`、AI Provider 设置页和后续系统级配置页。是否需要 ADR：否。
+- 2026-06-11：新增 §4.20 静态原型设计基准。原因：`prototypes/` 已重建为覆盖三端全部页面的目标设计原型集，spec 侧需要指回该设计基准并明确权威关系，避免后续 UI 开发只读 spec 而脱离已确认的页面结构，或反向把原型目标设计当作当前实现事实。影响范围：后续页面新增 / 重构的设计输入流程。是否需要 ADR：否，属于文档间权威关系标注。
+- 2026-06-11：将 §4.3 中 SentencePairView、单句练习页、记录详情文本卡三段整段约束重构为 4.3.1-4.3.3 子小节与条目列表。原因：单段超长文本检索和遵循成本高；本次为纯结构调整，逐句保留原约束语义，不新增、不删除、不放宽任何规则。影响范围：规范可读性，无约束语义变化。是否需要 ADR：否。
+- 2026-06-11：新增 §4.9.2 字号层级与 Dynamic Type 映射基准。原因：原型已形成完整字号 scale，需要明确「原型 px 是视觉层级基准、实现必须用语义 Font.TextStyle」的映射规则，防止把原型像素硬编码进 SwiftUI 并破坏 Dynamic Type。影响范围：`LangoTraceDesign` 字体 token、后续页面实现和 Dynamic Type 验收。是否需要 ADR：否。
+- 2026-06-11：新增官方参考小节。原因：视觉、组件和可访问性约束需要可直接对照的 Apple 官方文档入口；全部链接经可达性验证。影响范围：规范使用方式，不改变任何既有约束。是否需要 ADR：否。

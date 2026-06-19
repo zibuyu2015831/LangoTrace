@@ -4,7 +4,7 @@ options:
   deploymentTarget:
     iOS: "18.0"
     macOS: "15.0"
-  developmentLanguage: zh-Hans
+  developmentLanguage: en
   createIntermediateGroups: true
   groupSortPosition: top
 
@@ -21,6 +21,8 @@ packages:
     path: Packages/LangoTraceSpeech
   LangoTraceSync:
     path: Packages/LangoTraceSync
+  LangoTraceLearnerModel:
+    path: Packages/LangoTraceLearnerModel
 
 settings:
   base:
@@ -28,7 +30,6 @@ settings:
     MARKETING_VERSION: 0.1.0
     SWIFT_VERSION: 6.0
     DEVELOPMENT_TEAM: ""
-    CODE_SIGNING_ALLOWED: NO
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED: YES
 
@@ -44,6 +45,18 @@ targets:
     info:
       path: LangoTraceApp/Supporting/Info-iOS.plist
       properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleLocalizations:
+          - en
+          - zh-Hans
+          - es
+          - ja
+          - fr
+          - de
+          - ko
+          - ru
+        NSMicrophoneUsageDescription: Record your voice for local shadowing practice. Recordings stay on this device and are not sent to AI automatically.
         UILaunchStoryboardName: LaunchScreen
     settings:
       base:
@@ -65,6 +78,8 @@ targets:
         product: LangoTraceSpeech
       - package: LangoTraceSync
         product: LangoTraceSync
+      - package: LangoTraceLearnerModel
+        product: LangoTraceLearnerModel
 
   LangoTrace-macOS:
     type: application
@@ -77,13 +92,55 @@ targets:
           - Resources/LaunchScreen.storyboard
     info:
       path: LangoTraceApp/Supporting/Info-macOS.plist
+      properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleLocalizations:
+          - en
+          - zh-Hans
+          - es
+          - ja
+          - fr
+          - de
+          - ko
+          - ru
+        NSMicrophoneUsageDescription: Record your voice for local shadowing practice. Recordings stay on this Mac and are not sent to AI automatically.
     settings:
       base:
+        CODE_SIGN_ENTITLEMENTS: LangoTraceApp/Supporting/LangoTrace-macOS.entitlements
         PRODUCT_BUNDLE_IDENTIFIER: com.zibuyu.LangoTrace.mac
         PRODUCT_NAME: LangoTrace
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SUPPORTED_PLATFORMS: macosx
     dependencies:
+      - package: LangoTraceCore
+        product: LangoTraceCore
+      - package: LangoTraceUI
+        product: LangoTraceUI
+      - package: LangoTraceData
+        product: LangoTraceData
+      - package: LangoTraceAI
+        product: LangoTraceAI
+      - package: LangoTraceSpeech
+        product: LangoTraceSpeech
+      - package: LangoTraceSync
+        product: LangoTraceSync
+      - package: LangoTraceLearnerModel
+        product: LangoTraceLearnerModel
+
+  LangoTraceAppTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: LangoTraceAppTests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/LangoTrace.app/Contents/MacOS/LangoTrace"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+    dependencies:
+      - target: LangoTrace-macOS
       - package: LangoTraceCore
         product: LangoTraceCore
       - package: LangoTraceUI
@@ -104,9 +161,6 @@ schemes:
         LangoTrace-iOS: all
     run:
       config: Debug
-    test:
-      config: Debug
-      gatherCoverageData: true
 
   LangoTrace-macOS:
     build:
@@ -117,3 +171,5 @@ schemes:
     test:
       config: Debug
       gatherCoverageData: true
+      targets:
+        - LangoTraceAppTests

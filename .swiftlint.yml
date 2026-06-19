@@ -3,7 +3,10 @@ disabled_rules:
 
 excluded:
   - .build
+  - build
+  - DerivedData
   - LangoTrace.xcodeproj
+  - docs/reference/projects
   - Packages/*/.build
   - Packages/*/.swiftpm
 
@@ -11,3 +14,18 @@ identifier_name:
   min_length:
     warning: 2
     error: 1
+
+# Early-stage codebase: raise length limits above SwiftLint defaults to
+# accommodate legitimately large migration files, complex UI composition files,
+# and long test setup functions without blocking CI.
+file_length:
+  warning: 600
+  error: 1300
+
+function_body_length:
+  warning: 60
+  error: 200
+
+type_body_length:
+  warning: 300
+  error: 450

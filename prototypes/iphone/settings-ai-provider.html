@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone · AI Provider 设置 — 语迹原型</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<style>
+  .stage-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .stage-cap {
+    font-size: 13px;
+    font-weight: 650;
+    color: var(--muted);
+  }
+  .key-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 12px 16px 14px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .key-row:last-child { border-bottom: 0; }
+  .key-row .field { flex: 1; min-width: 0; }
+  .key-box {
+    min-height: 42px;
+    padding: 10px 12px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    font-size: var(--fs-sub);
+    color: var(--faint);
+  }
+  .key-row .icon-btn { color: var(--muted); }
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .step-btn {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--accent-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step-btn:hover { background: var(--accent-tint); }
+  .step-val {
+    min-width: 44px;
+    text-align: center;
+    font-size: var(--fs-sub);
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 6px;
+  }
+  .probe-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    min-height: 52px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .probe-row:last-child { border-bottom: 0; }
+  .probe-name { flex: 1; font-size: var(--fs-body); font-weight: 560; }
+  .sheet-footnote {
+    margin-top: 12px;
+    font-size: var(--fs-footnote);
+    color: var(--muted);
+    line-height: 1.55;
+    padding: 0 4px;
+  }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone</div>
+  <div class="proto-header">
+    <h1>AI Provider 设置</h1>
+    <span class="crumb"><a href="../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">系统级 AI Provider 配置页：文本 / 语音生成 / 向量三类模型共用一份 Provider 凭证配置，API Key 进 Keychain。右侧为「测试请求」分能力合成测试结果 sheet。</p>
+
+  <div class="proto-stage">
+    <div class="stage-col">
+      <span class="stage-cap">配置表单</span>
+      <div class="device-iphone">
+        <div class="screen">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="dynamic-island"></div>
+            <div class="status-icons">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+            </div>
+          </div>
+
+          <div class="nav-bar">
+            <button class="nav-back">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+              设置
+            </button>
+            <div class="nav-title">AI Provider</div>
+            <span style="width:56px"></span>
+          </div>
+
+          <div class="app-main">
+            <div class="app-scroll" style="padding-top:6px; gap:8px">
+
+              <div class="section-label">文本模型</div>
+              <div class="list">
+                <div class="row">
+                  <div class="row-body"><div class="row-title">Provider</div></div>
+                  <span class="row-value">OpenAI</span>
+                  <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                </div>
+                <div class="row">
+                  <div class="row-body"><div class="row-title">模型</div></div>
+                  <span class="row-value">gpt-4.1-mini</span>
+                  <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                </div>
+                <div class="key-row">
+                  <div class="field">
+                    <span class="field-label">API Key</span>
+                    <div class="key-box">已保存到本机 Keychain</div>
+                  </div>
+                  <button class="icon-btn" aria-label="显示 API Key">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="section-label">语音生成模型</div>
+              <div class="list">
+                <div class="row" style="cursor:default">
+                  <div class="row-body"><div class="row-title">复用文本模型 API Key</div></div>
+                  <span class="toggle on" role="switch" aria-checked="true" aria-label="复用文本模型 API Key"></span>
+                </div>
+                <div class="row">
+                  <div class="row-body"><div class="row-title">模型</div></div>
+                  <span class="row-value">tts-1</span>
+                  <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                </div>
+              </div>
+
+              <div class="section-label">语音细节</div>
+              <div class="list">
+                <div class="row">
+                  <div class="row-body">
+                    <div class="row-title">音色</div>
+                    <div class="row-sub">适合叙述语气的中性音色</div>
+                  </div>
+                  <span class="row-value">Alloy</span>
+                  <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                </div>
+                <div class="row">
+                  <div class="row-body"><div class="row-title">输出格式</div></div>
+                  <span class="row-value">MP3</span>
+                  <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                </div>
+                <div class="row" style="cursor:default">
+                  <div class="row-body"><div class="row-title">语速</div></div>
+                  <div class="stepper">
+                    <button class="step-btn" aria-label="减慢语速">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5.5 12h13"/></svg>
+                    </button>
+                    <span class="step-val">1.0x</span>
+                    <button class="step-btn" aria-label="加快语速">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5.5 12h13M12 5.5v13"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="row-body"><div class="row-title">朗读风格</div></div>
+                  <span class="row-value">自然、平稳</span>
+                  <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                </div>
+              </div>
+
+              <div class="section-label">向量模型</div>
+              <div class="list">
+                <div class="row">
+                  <div class="row-body"><div class="row-title">模型</div></div>
+                  <span class="row-value">text-embedding-3-small</span>
+                  <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                </div>
+                <div class="row" style="cursor:default">
+                  <div class="row-body"><div class="row-title">复用文本模型 API Key</div></div>
+                  <span class="toggle on" role="switch" aria-checked="true" aria-label="复用文本模型 API Key"></span>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-secondary btn-block">测试请求</button>
+                <button class="btn btn-primary btn-block">保存配置</button>
+              </div>
+
+            </div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage-col">
+      <span class="stage-cap">测试请求结果</span>
+      <div class="device-iphone">
+        <div class="screen">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="dynamic-island"></div>
+            <div class="status-icons">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 13 0"/><path d="M3.8 6.8a6.6 6.6 0 0 1 8.4 0"/><path d="M6.2 9.4a3.2 3.2 0 0 1 3.6 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+            </div>
+          </div>
+
+          <div class="nav-bar">
+            <button class="nav-back">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+              设置
+            </button>
+            <div class="nav-title">AI Provider</div>
+            <span style="width:56px"></span>
+          </div>
+
+          <div class="app-main">
+            <div class="app-scroll" style="padding-top:6px; gap:8px">
+              <div class="section-label">文本模型</div>
+              <div class="list">
+                <div class="row">
+                  <div class="row-body"><div class="row-title">Provider</div></div>
+                  <span class="row-value">OpenAI</span>
+                  <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                </div>
+                <div class="row">
+                  <div class="row-body"><div class="row-title">模型</div></div>
+                  <span class="row-value">gpt-4.1-mini</span>
+                  <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                </div>
+                <div class="key-row">
+                  <div class="field">
+                    <span class="field-label">API Key</span>
+                    <div class="key-box">已保存到本机 Keychain</div>
+                  </div>
+                  <button class="icon-btn" aria-label="显示 API Key">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="section-label">语音生成模型</div>
+              <div class="list">
+                <div class="row" style="cursor:default">
+                  <div class="row-body"><div class="row-title">复用文本模型 API Key</div></div>
+                  <span class="toggle on" role="switch" aria-checked="true" aria-label="复用文本模型 API Key"></span>
+                </div>
+                <div class="row">
+                  <div class="row-body"><div class="row-title">模型</div></div>
+                  <span class="row-value">tts-1</span>
+                  <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sheet-overlay">
+            <div class="sheet">
+              <div class="grabber"></div>
+              <div class="sheet-bar">
+                <span class="sheet-title">测试请求</span>
+                <button class="icon-btn" aria-label="关闭" style="width:36px;height:36px">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                </button>
+              </div>
+
+              <div class="list">
+                <div class="probe-row">
+                  <span class="probe-name">文本回复</span>
+                  <span class="pill pill-ready">通过</span>
+                </div>
+                <div class="probe-row">
+                  <span class="probe-name">JSON 输出</span>
+                  <span class="pill pill-ready">通过</span>
+                </div>
+                <div class="probe-row">
+                  <span class="probe-name">语言支持 · English</span>
+                  <span class="pill pill-ready">通过</span>
+                </div>
+                <div class="probe-row">
+                  <span class="probe-name">图片理解</span>
+                  <span class="pill pill-neutral">未启用</span>
+                </div>
+                <div class="probe-row">
+                  <span class="probe-name">语音生成</span>
+                  <span class="pill pill-ready">通过</span>
+                  <button class="btn btn-quiet btn-sm">试听</button>
+                </div>
+                <div class="probe-row">
+                  <span class="probe-name">向量化</span>
+                  <span class="pill pill-ready">通过</span>
+                </div>
+              </div>
+
+              <p class="sheet-footnote">测试不会发送你的生活记录、照片或学习内容。</p>
+            </div>
+          </div>
+
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-annotations">
+    <h2>设计说明</h2>
+    <ul>
+      <li><strong>Keychain 边界</strong>：API Key 保存到本机 Keychain，默认不回显，输入框只显示「已保存到本机 Keychain」占位态；点小眼睛才解析显示真实 Key。非敏感配置进 SQLite，与密钥分离。</li>
+      <li><strong>系统级配置页</strong>：不显示当前语言空间 capsule header；Provider 配置对所有语言空间生效。</li>
+      <li><strong>语言支持 probe 跟随当前空间</strong>：测试中的「语言支持 · English」使用当前语言空间的 target language code，切到日语空间会变为「语言支持 · 日本語」。</li>
+      <li><strong>图片理解按需 probe</strong>：仅在用户显式启用图片理解后才发起内置图片 probe；未启用时显示中性态「未启用」，不是失败。</li>
+      <li><strong>TTS 试听短生命周期</strong>：语音生成 probe 通过后提供「试听」，播放固定低敏样例音频，不持久化为正式 TTS artifact。</li>
+      <li>测试结果按能力逐项展示，文案 + tone 共同表达状态；sheet 底部披露测试不发送生活记录、照片或学习内容。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

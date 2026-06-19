@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LangoTrace 外观主题轻量原型</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="review-shell">
+    <header class="review-header">
+      <div>
+        <p class="eyebrow">Appearance palette review</p>
+        <h1>语迹 iPhone 浅色 / 深色候选原型</h1>
+        <p class="intro">本页只用于视觉审核。色号是评审候选，不是正式 design token；确认后再写入方案和 SwiftUI 实现。</p>
+      </div>
+      <div class="review-note">
+        <strong>设计目标</strong>
+        <span>安静、长期可读、本地优先、学习工具感；深色不是浅色机械反转。</span>
+      </div>
+    </header>
+
+    <section class="theme-board" aria-label="设置页外观对照">
+      <div class="section-heading">
+        <p class="eyebrow">Settings detail</p>
+        <h2>设置页：外观选择</h2>
+        <p>验证全局设备偏好、三行选择、选中态和说明文案在浅色与深色下是否成立。</p>
+      </div>
+
+      <div class="device-grid">
+        <article class="phone theme-light" aria-label="浅色设置页">
+          <div class="phone-bezel">
+            <div class="phone-screen">
+              <header class="status-bar">
+                <span>9:41</span>
+                <span class="status-dots"><i></i><i></i><i></i></span>
+              </header>
+              <section class="app-header">
+                <button class="nav-button" aria-label="返回设置"></button>
+                <div>
+                  <p>设置</p>
+                  <h3>外观</h3>
+                </div>
+              </section>
+
+              <section class="settings-card primary-card">
+                <div class="row-icon split"></div>
+                <div>
+                  <h4>选择语迹的显示方式</h4>
+                  <p>外观只影响这台设备上的界面显示，不改变语言空间、学习内容或同步范围。</p>
+                </div>
+              </section>
+
+              <section class="option-list">
+                <button class="option-row">
+                  <span>
+                    <strong>跟随系统</strong>
+                    <small>随 iOS 外观自动切换</small>
+                  </span>
+                </button>
+                <button class="option-row selected" aria-pressed="true">
+                  <span>
+                    <strong>浅色</strong>
+                    <small>适合白天阅读和输入</small>
+                  </span>
+                  <b class="checkmark"></b>
+                </button>
+                <button class="option-row">
+                  <span>
+                    <strong>深色</strong>
+                    <small>适合夜间或低光环境</small>
+                  </span>
+                </button>
+              </section>
+
+              <section class="capability-list">
+                <div class="capability-row">
+                  <span class="mini-icon globe"></span>
+                  <span><strong>界面语言</strong><small>System</small></span>
+                </div>
+                <div class="capability-row">
+                  <span class="mini-icon spark"></span>
+                  <span><strong>AI Provider</strong><small>Local settings</small></span>
+                </div>
+              </section>
+            </div>
+          </div>
+          <footer class="palette-strip">
+            <span style="--swatch:#F6F1E8">paper</span>
+            <span style="--swatch:#FEFCF7">panel</span>
+            <span style="--swatch:#192220">ink</span>
+            <span style="--swatch:#126B5D">accent</span>
+          </footer>
+        </article>
+
+        <article class="phone theme-dark" aria-label="深色设置页">
+          <div class="phone-bezel">
+            <div class="phone-screen">
+              <header class="status-bar">
+                <span>9:41</span>
+                <span class="status-dots"><i></i><i></i><i></i></span>
+              </header>
+              <section class="app-header">
+                <button class="nav-button" aria-label="返回设置"></button>
+                <div>
+                  <p>设置</p>
+                  <h3>外观</h3>
+                </div>
+              </section>
+
+              <section class="settings-card primary-card">
+                <div class="row-icon split"></div>
+                <div>
+                  <h4>选择语迹的显示方式</h4>
+                  <p>外观只影响这台设备上的界面显示，不改变语言空间、学习内容或同步范围。</p>
+                </div>
+              </section>
+
+              <section class="option-list">
+                <button class="option-row">
+                  <span>
+                    <strong>跟随系统</strong>
+                    <small>随 iOS 外观自动切换</small>
+                  </span>
+                </button>
+                <button class="option-row">
+                  <span>
+                    <strong>浅色</strong>
+                    <small>适合白天阅读和输入</small>
+                  </span>
+                </button>
+                <button class="option-row selected" aria-pressed="true">
+                  <span>
+                    <strong>深色</strong>
+                    <small>适合夜间或低光环境</small>
+                  </span>
+                  <b class="checkmark"></b>
+                </button>
+              </section>
+
+              <section class="capability-list">
+                <div class="capability-row">
+                  <span class="mini-icon globe"></span>
+                  <span><strong>界面语言</strong><small>System</small></span>
+                </div>
+                <div class="capability-row">
+                  <span class="mini-icon spark"></span>
+                  <span><strong>AI Provider</strong><small>Local settings</small></span>
+                </div>
+              </section>
+            </div>
+          </div>
+          <footer class="palette-strip">
+            <span style="--swatch:#101A18">paper</span>
+            <span style="--swatch:#172522">panel</span>
+            <span style="--swatch:#E8F0EA">ink</span>
+            <span style="--swatch:#72D2BF">accent</span>
+          </footer>
+        </article>
+      </div>
+    </section>
+
+    <section class="theme-board" aria-label="主学习页外观对照">
+      <div class="section-heading">
+        <p class="eyebrow">Learning home</p>
+        <h2>主学习页：记录、句子、练习状态</h2>
+        <p>验证真实主路径的背景层次、双语正文、状态语义、底部 Tab 和主操作在两种外观下是否稳定。</p>
+      </div>
+
+      <div class="device-grid">
+        <article class="phone theme-light" aria-label="浅色主学习页">
+          <div class="phone-bezel">
+            <div class="phone-screen">
+              <header class="status-bar">
+                <span>9:41</span>
+                <span class="status-dots"><i></i><i></i><i></i></span>
+              </header>
+              <section class="learning-hero">
+                <div class="space-pill">
+                  <span class="dot"></span>
+                  <strong>英语空间</strong>
+                  <small>B1</small>
+                </div>
+                <button class="gear-button" aria-label="设置"></button>
+                <h3>今天想把哪一刻变成英语？</h3>
+                <p>本地保存 · AI 不会自动发送 · 继续 3 句待跟读</p>
+              </section>
+
+              <section class="action-grid">
+                <button><strong>写一句</strong><small>键盘输入</small></button>
+                <button><strong>照片写作</strong><small>本地预览</small></button>
+              </section>
+
+              <article class="entry-card">
+                <div class="entry-meta">
+                  <span>09:42</span>
+                  <b class="badge local">Local Mock</b>
+                </div>
+                <p class="native-text">今天在咖啡馆坐了很久，窗边有一点雨声。我想把这种安静的感觉用英语说出来。</p>
+                <p class="target-text">I spent a long time sitting by the window, listening to the rain and watching people pass by.</p>
+              </article>
+
+              <article class="practice-card">
+                <div>
+                  <h4>继续练习</h4>
+                  <p>跟读 · 听写 · 回译</p>
+                </div>
+                <div class="waveform"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </article>
+
+              <nav class="tab-bar">
+                <a class="active">记录</a>
+                <a>练习</a>
+                <a>记忆</a>
+              </nav>
+            </div>
+          </div>
+          <footer class="palette-strip">
+            <span style="--swatch:#5A6963">muted</span>
+            <span style="--swatch:#D7CEC0">line</span>
+            <span style="--swatch:#E2F1EC">selected</span>
+            <span style="--swatch:#835B1F">warning</span>
+          </footer>
+        </article>
+
+        <article class="phone theme-dark" aria-label="深色主学习页">
+          <div class="phone-bezel">
+            <div class="phone-screen">
+              <header class="status-bar">
+                <span>9:41</span>
+                <span class="status-dots"><i></i><i></i><i></i></span>
+              </header>
+              <section class="learning-hero">
+                <div class="space-pill">
+                  <span class="dot"></span>
+                  <strong>英语空间</strong>
+                  <small>B1</small>
+                </div>
+                <button class="gear-button" aria-label="设置"></button>
+                <h3>今天想把哪一刻变成英语？</h3>
+                <p>本地保存 · AI 不会自动发送 · 继续 3 句待跟读</p>
+              </section>
+
+              <section class="action-grid">
+                <button><strong>写一句</strong><small>键盘输入</small></button>
+                <button><strong>照片写作</strong><small>本地预览</small></button>
+              </section>
+
+              <article class="entry-card">
+                <div class="entry-meta">
+                  <span>09:42</span>
+                  <b class="badge local">Local Mock</b>
+                </div>
+                <p class="native-text">今天在咖啡馆坐了很久，窗边有一点雨声。我想把这种安静的感觉用英语说出来。</p>
+                <p class="target-text">I spent a long time sitting by the window, listening to the rain and watching people pass by.</p>
+              </article>
+
+              <article class="practice-card">
+                <div>
+                  <h4>继续练习</h4>
+                  <p>跟读 · 听写 · 回译</p>
+                </div>
+                <div class="waveform"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </article>
+
+              <nav class="tab-bar">
+                <a class="active">记录</a>
+                <a>练习</a>
+                <a>记忆</a>
+              </nav>
+            </div>
+          </div>
+          <footer class="palette-strip">
+            <span style="--swatch:#9AA8A1">muted</span>
+            <span style="--swatch:#2D3C38">line</span>
+            <span style="--swatch:#203A35">selected</span>
+            <span style="--swatch:#D8AE64">warning</span>
+          </footer>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

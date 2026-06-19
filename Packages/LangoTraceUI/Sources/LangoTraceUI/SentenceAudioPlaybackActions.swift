@@ -1,0 +1,63 @@
+import Foundation
+import LangoTraceCore
+
+public struct SentenceAudioPlaybackActions: Sendable {
+    public var handleTap: @Sendable (SentenceAudioRequest) async -> SentenceAudioPresentationState
+    public var presentationState: @Sendable (SentenceAudioRequest) async -> SentenceAudioPresentationState
+    public var stateUpdates: @Sendable (SentenceAudioRequest) async
+        -> AsyncStream<SentenceAudioPresentationState>
+    public var stopActivePlayback: @Sendable () async -> Void
+
+    public init(
+        handleTap: @escaping @Sendable (SentenceAudioRequest) async -> SentenceAudioPresentationState,
+        presentationState: @escaping @Sendable (SentenceAudioRequest) async -> SentenceAudioPresentationState,
+        stateUpdates: @escaping @Sendable (SentenceAudioRequest) async
+            -> AsyncStream<SentenceAudioPresentationState> = { _ in
+                AsyncStream { continuation in
+                    continuation.finish()
+                }
+            },
+        stopActivePlayback: @escaping @Sendable () async -> Void = {}
+    ) {
+        self.handleTap = handleTap
+        self.presentationState = presentationState
+        self.stateUpdates = stateUpdates
+        self.stopActivePlayback = stopActivePlayback
+    }
+
+    public static let disabled = SentenceAudioPlaybackActions(
+        handleTap: { _ in .requiresConfiguration(.notConfigured) },
+        presentationState: { _ in .idle },
+        stateUpdates: { _ in
+            AsyncStream { continuation in
+                continuation.yield(.idle)
+                continuation.finish()
+            }
+        },
+        stopActivePlayback: {}
+    )
+
+    public static func coordinator(_ coordinator: SentenceAudioPlaybackCoordinator) -> SentenceAudioPlaybackActions {
+        SentenceAudioPlaybackActions(
+            handleTap: { request in
+                do {
+                    try await coordinator.handleTap(request)
+                    return await coordinator.presentationState(for: request)
+                } catch let failure as SentenceAudioPlaybackFailure {
+                    return .failed(failure)
+                } catch {
+                    return .failed(.playbackFailed)
+                }
+            },
+            presentationState: { request in
+                await coordinator.presentationState(for: request)
+            },
+            stateUpdates: { request in
+                await coordinator.stateUpdates(for: request)
+            },
+            stopActivePlayback: {
+                await coordinator.stopActivePlayback()
+            }
+        )
+    }
+}

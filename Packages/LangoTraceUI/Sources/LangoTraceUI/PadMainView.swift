@@ -1,12 +1,37 @@
 import LangoTraceCore
+import LangoTraceData
 import SwiftUI
 
 struct PadMainView: View {
     let languageSpace: LanguageSpacePreview
+    let languageSpaces: [LanguageSpace]
+    @ObservedObject var contentStore: LearningContentStore
+    @ObservedObject var readingLibraryStore: ReadingLibraryStore
+    let readingExplanationAction: ReadingExplanationAction
+    let readingTTSAction: ReadingTTSAction
+    let readingCacheStorage: (any ExplanationCacheStorage)?
+    let practiceActions: PracticeActions
+    let interfaceLanguagePreference: InterfaceLanguagePreference
+    let appearancePreference: AppearancePreference
+    let onAddLanguageSpace: (CreateLanguageSpaceInput) -> Void
+    let onSelectLanguageSpace: (String) -> Void
+    let onUpdateLanguageSpace: (String, UpdateLanguageSpaceInput) -> Void
+    let onDeleteLanguageSpace: (String) -> Void
+    let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
+    let onAppearancePreferenceChange: (AppearancePreference) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var isTimelineVisible = true
     @State private var isLearningPanelVisible = true
+    @State private var selectedEntryID: String?
+    @State private var route: PadWorkspaceRoute = .workspace
+    @State private var presentedSheet: PadSheet?
+    @State private var activeFilter: EntryTimelineFilter = .all
+    @Environment(\.memoryDepositActions) private var memoryDepositActions
+    @State private var depositedEntryIDs: Set<String> = []
+
+    private let learningPanelTrailingInset: CGFloat = 24
 
     var body: some View {
         VStack(spacing: 0) {
@@ -14,7 +39,9 @@ struct PadMainView: View {
                 isTimelineVisible: isTimelineVisible,
                 isLearningPanelVisible: isLearningPanelVisible,
                 onToggleTimeline: { isTimelineVisible.toggle() },
-                onToggleLearningPanel: { isLearningPanelVisible.toggle() }
+                onToggleLearningPanel: { isLearningPanelVisible.toggle() },
+                onSearch: { presentedSheet = .search },
+                onNewEntry: { presentedSheet = .entryEditor }
             )
             Divider()
             GeometryReader { proxy in
@@ -29,14 +56,21 @@ struct PadMainView: View {
                     if isLearningPanelVisible {
                         Divider()
                         learningPanel
+                            .padding(.trailing, learningPanelTrailingInset)
                             .transition(panelTransition(edge: .trailing))
                             .simultaneousGesture(
                                 panelGesture(
                                     workspaceWidth: proxy.size.width,
-                                    startXOffset: max(0, proxy.size.width - 360)
+                                    startXOffset: learningPanelGestureStartX(workspaceWidth: proxy.size.width)
                                 )
                             )
                     }
+                }
+                .onAppear {
+                    applyAdaptivePanelVisibility(workspaceWidth: proxy.size.width)
+                }
+                .onChange(of: proxy.size.width) { _, width in
+                    applyAdaptivePanelVisibility(workspaceWidth: width)
                 }
                 .overlay(alignment: .leading) {
                     if !isTimelineVisible {
@@ -56,10 +90,89 @@ struct PadMainView: View {
         .langoPageBackground()
         .animation(panelAnimation, value: isTimelineVisible)
         .animation(panelAnimation, value: isLearningPanelVisible)
+        .sheet(item: $presentedSheet) { sheet in
+            switch sheet {
+            case .entryEditor:
+                EntryEditorView(languageSpace: languageSpace) { title, body in
+                    let entry = try contentStore.createEntry(
+                        title: title,
+                        body: body,
+                        source: .typedText
+                    )
+                    selectedEntryID = entry.id
+                    setRoute(.entryDetail(entry.id))
+                    presentedSheet = nil
+                }
+            case .search:
+                SearchPaletteView(
+                    spaceID: languageSpace.id,
+                    onSelect: { hit in
+                        presentedSheet = nil
+                        if hit.kind == .entry {
+                            selectedEntryID = hit.objectID
+                            setRoute(.entryDetail(hit.objectID))
+                        }
+                    },
+                    onClose: { presentedSheet = nil }
+                )
+            }
+        }
+        .onAppear {
+            contentStore.ensureSeeded()
+            selectedEntryID = selectedEntryID ?? contentStore.selectedEntry?.id
+            applyAdaptivePanelVisibility()
+        }
+        .task(id: languageSpace.id) {
+            depositedEntryIDs = await memoryDepositActions.depositedEntryIDs(languageSpace.id)
+        }
+        .onChange(of: horizontalSizeClass) {
+            applyAdaptivePanelVisibility()
+        }
+    }
+
+    private var entries: [LearningEntry] {
+        contentStore.entries
+    }
+
+    private var memoryItems: [MemoryItem] {
+        contentStore.memoryItems
+    }
+
+    private var filteredEntries: [LearningEntry] {
+        entries.filter { entry in
+            activeFilter.includes(
+                entry: entry,
+                hasMaterialWithoutRecording: contentStore.practiceReadiness[entry.id] == false,
+                hasPhotoAttachment: false,
+                hasDepositedMemory: depositedEntryIDs.contains(entry.id)
+            )
+        }
+    }
+
+    private var selectedEntry: LearningEntry? {
+        if let selectedEntryID {
+            if let entry = entries.first(where: { $0.id == selectedEntryID }) {
+                return entry
+            }
+        }
+
+        return contentStore.selectedEntry
+    }
+
+    private var selectedRendering: LearningRendering? {
+        guard let selectedEntry else {
+            return nil
+        }
+
+        return contentStore.rendering(for: selectedEntry)
+    }
+
+    private var settingsCapabilities: [SettingsCapability] {
+        contentStore.settingsCapabilities
     }
 
     private var panelAnimation: Animation? {
-        reduceMotion ? nil : .easeInOut(duration: 0.18)
+        reduceMotion ? nil : .easeInOut(duration: LangoTraceDesign.Motion.panelTransitionDuration)
     }
 
     private func panelTransition(edge: Edge) -> AnyTransition {
@@ -71,6 +184,10 @@ struct PadMainView: View {
             .contentShape(Rectangle())
             .frame(width: 32)
             .gesture(panelGesture(workspaceWidth: workspaceWidth, startXOffset: startXOffset))
+    }
+
+    private func learningPanelGestureStartX(workspaceWidth: CGFloat) -> CGFloat {
+        max(0, workspaceWidth - 360 - learningPanelTrailingInset)
     }
 
     private func panelGesture(workspaceWidth: CGFloat, startXOffset: CGFloat = 0) -> some Gesture {
@@ -106,283 +223,93 @@ struct PadMainView: View {
         }
     }
 
+    private func applyAdaptivePanelVisibility(workspaceWidth: CGFloat? = nil) {
+        let preferred = PadSettingsFocusPolicy.visibilityAfterResize(
+            route: route,
+            workspaceWidth: workspaceWidth,
+            horizontalSizeClass: horizontalSizeClass,
+            current: PadPanelVisibility(timeline: isTimelineVisible, learningPanel: isLearningPanelVisible)
+        )
+
+        isTimelineVisible = preferred.timeline
+        isLearningPanelVisible = preferred.learningPanel
+    }
+
     private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            SidebarSectionTitle("时间线")
-            VStack(spacing: 10) {
-                SideItem(title: "雨天咖啡馆", subtitle: "照片写作 · \(languageSpace.targetLanguage) · 今天", active: true)
-                SideItem(title: "写给朋友的感谢", subtitle: "正式表达 · 昨天", active: false)
-                SideItem(title: "会议复盘", subtitle: "职场表达 · 本周", active: false)
-            }
-
-            SidebarSectionTitle("筛选")
-                .padding(.top, 4)
-            VStack(alignment: .leading, spacing: 8) {
-                FilterPill(title: "全部记录", count: "128", active: true)
-                FilterPill(title: "照片写作", count: "16", active: false)
-                FilterPill(title: "待练习", count: "7", active: false)
-                FilterPill(title: "已入记忆", count: "42", active: false)
-            }
-
-            Spacer()
-
-            LanguageSpaceFooter(
-                languageSpace: languageSpace,
-                aiStatus: .notConfigured,
-                syncStatus: .off,
-                isCompact: false
-            )
-        }
-        .padding(22)
-        .frame(minWidth: 240, idealWidth: 270, maxWidth: 300, alignment: .topLeading)
-        .background(LangoTraceDesign.ColorToken.paper.opacity(0.72))
+        PadSidebarView(
+            languageSpace: languageSpace,
+            entries: entries,
+            depositedEntryIDs: depositedEntryIDs,
+            filteredEntries: filteredEntries,
+            practiceReadiness: contentStore.practiceReadiness,
+            renderingForEntry: { contentStore.rendering(for: $0) },
+            selectedEntry: selectedEntry,
+            activeFilter: activeFilter,
+            route: route,
+            aiStatus: contentStore.settingsStatus.aiProvider.footerStatus,
+            syncStatus: contentStore.settingsStatus.sync.footerStatus,
+            onSelectEntry: selectEntry,
+            onSelectFilter: selectFilter,
+            onRoute: setRoute
+        )
+        .task { await contentStore.refreshSettingsStatus() }
     }
 
     private var writingDesk: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("雨天咖啡馆")
-                        .font(.system(.largeTitle, design: .default, weight: .semibold))
-                    Text("把中文生活记录转换为 \(languageSpace.targetLanguage) 学习材料，支持逐句朗读、解释、跟读、听写和回译。")
-                        .font(.body)
-                        .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                HStack(alignment: .top, spacing: 14) {
-                    TextPanel(
-                        title: "母语记录",
-                        text: "今天在咖啡馆坐了很久。外面一直下小雨，我没有急着回家，只是听着雨声，看窗外的人来来往往。"
-                    )
-                    TextPanel(
-                        title: "目标语言",
-                        text: """
-                        I spent a long time at the cafe today. It kept drizzling outside, \
-                        and I was in no hurry to go home. I just listened to the rain and \
-                        watched people passing by outside the window.
-                        """
-                    )
-                }
-
-                AudioPanel()
-
-                VStack(alignment: .leading, spacing: 10) {
-                    SectionCaption(title: "逐句练习", subtitle: "从真实记录进入听、读、跟读和回译")
-                    SentenceRow(
-                        index: 1,
-                        text: "I spent a long time at the cafe today.",
-                        translation: "今天在咖啡馆坐了很久。"
-                    )
-                    SentenceRow(
-                        index: 2,
-                        text: "I just listened to the rain and watched people passing by outside the window.",
-                        translation: "我只是听着雨声，看窗外的人来来往往。"
-                    )
-                }
-            }
-            .padding(26)
-            .frame(maxWidth: 820, alignment: .leading)
-        }
-        .frame(maxWidth: .infinity)
-        .layoutPriority(1)
+        PadWorkspaceContentView(
+            route: route,
+            languageSpace: languageSpace,
+            entries: entries,
+            selectedEntry: selectedEntry,
+            selectedRendering: selectedRendering,
+            memoryItems: memoryItems,
+            languageSpaces: languageSpaces,
+            settingsCapabilities: settingsCapabilities,
+            contentStore: contentStore,
+            readingLibraryStore: readingLibraryStore,
+            readingExplanationAction: readingExplanationAction,
+            readingTTSAction: readingTTSAction,
+            readingCacheStorage: readingCacheStorage,
+            practiceActions: practiceActions,
+            interfaceLanguagePreference: interfaceLanguagePreference,
+            appearancePreference: appearancePreference,
+            onAddLanguageSpace: onAddLanguageSpace,
+            onSelectLanguageSpace: onSelectLanguageSpace,
+            onUpdateLanguageSpace: onUpdateLanguageSpace,
+            onDeleteLanguageSpace: onDeleteLanguageSpace,
+            onInterfaceLanguagePreferenceChange: onInterfaceLanguagePreferenceChange,
+            onAppearancePreferenceChange: onAppearancePreferenceChange,
+            onRoute: setRoute
+        )
     }
 
     private var learningPanel: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                SectionCaption(title: "学习面板", subtitle: "围绕当前记录生成")
-                TextPanel(title: "当前句讲解", text: "spent a long time 比 stayed for a long time 更自然地表达“度过一段时间”。")
-                TextPanel(
-                    title: "词句提取",
-                    text: "drizzling, in no hurry, listened to the rain, watched people passing by."
-                )
-                TextPanel(title: "练习入口", text: "听写 3 句 · 回译 3 句 · 跟读录音 2 轮。")
-                TextPanel(title: "相似生活片段", text: "去年写过“在车站等雨停”，可复用 listening to the rain。")
-                RequestPreviewPanel()
-            }
-            .padding(22)
-        }
-        .frame(minWidth: 300, idealWidth: 330, maxWidth: 360, alignment: .topLeading)
-        .background(LangoTraceDesign.ColorToken.paper.opacity(0.58))
-    }
-}
-
-private struct SidebarSectionTitle: View {
-    let title: String
-
-    init(_ title: String) {
-        self.title = title
+        PadLearningPanelView(
+            route: route,
+            selectedEntry: selectedEntry,
+            selectedRendering: selectedRendering,
+            memoryItems: memoryItems,
+            contentStore: contentStore,
+            onRoute: setRoute
+        )
     }
 
-    var body: some View {
-        Text(title)
-            .font(.caption.weight(.bold))
-            .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
+    private func selectEntry(_ entry: LearningEntry) {
+        selectedEntryID = entry.id
+        contentStore.selectEntry(entry)
+        setRoute(.entryDetail(entry.id))
     }
-}
 
-struct SideItem: View {
-    let title: String
-    let subtitle: String
-    let active: Bool
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Circle()
-                .fill(active ? LangoTraceDesign.ColorToken.teal : LangoTraceDesign.ColorToken.hairline)
-                .frame(width: 8, height: 8)
-                .padding(.top, 7)
-            VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(.headline)
-                Text(subtitle)
-                    .font(.footnote)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(active ? LangoTraceDesign.ColorToken.elevatedPaper : .clear)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(active ? LangoTraceDesign.ColorToken.teal.opacity(0.35) : .clear, lineWidth: 1)
-        }
+    private func selectFilter(_ filter: EntryTimelineFilter) {
+        activeFilter = filter
+        setRoute(.workspace)
     }
-}
 
-private struct FilterPill: View {
-    let title: String
-    let count: String
-    let active: Bool
-
-    var body: some View {
-        HStack {
-            Text(title)
-            Spacer()
-            Text(count)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(active ? LangoTraceDesign.ColorToken.whiteInk : LangoTraceDesign.ColorToken.mutedInk)
-        }
-        .font(.callout.weight(.medium))
-        .foregroundStyle(active ? LangoTraceDesign.ColorToken.whiteInk : LangoTraceDesign.ColorToken.ink)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
-        .background(active ? LangoTraceDesign.ColorToken.deepTeal : LangoTraceDesign.ColorToken.elevatedPaper)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-    }
-}
-
-struct TextPanel: View {
-    let title: String
-    let text: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-            Text(text)
-                .font(.body)
-                .lineSpacing(4)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-        .langoPanel()
-    }
-}
-
-struct AudioPanel: View {
-    private static let waveformHeights = [24, 38, 28, 46, 40, 32, 26, 38, 46, 20]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("朗读音频", systemImage: "waveform")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-                Spacer()
-                Text("0.85x")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-            }
-            HStack(alignment: .center, spacing: 5) {
-                ForEach(Self.waveformHeights.indices, id: \.self) { index in
-                    RoundedRectangle(cornerRadius: 5)
-                        .fill(LangoTraceDesign.ColorToken.teal.opacity(0.45))
-                        .frame(width: 8, height: CGFloat(Self.waveformHeights[index]))
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(14)
-            .background(LangoTraceDesign.ColorToken.paleTeal)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
-        .langoPanel()
-    }
-}
-
-private struct SectionCaption: View {
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.headline)
-            Text(subtitle)
-                .font(.footnote)
-                .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-        }
-    }
-}
-
-private struct SentenceRow: View {
-    let index: Int
-    let text: String
-    let translation: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            Text("\(index)")
-                .font(.headline)
-                .frame(width: 34, height: 34)
-                .background(LangoTraceDesign.ColorToken.paleTeal)
-                .clipShape(Circle())
-            VStack(alignment: .leading, spacing: 6) {
-                Text(translation)
-                    .font(.callout)
-                    .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-                Text(text)
-                    .font(.headline)
-            }
-            Spacer()
-            HStack(spacing: 8) {
-                Button("听") {}
-                    .buttonStyle(.bordered)
-                Button("练") {}
-                    .buttonStyle(.bordered)
-            }
-        }
-        .langoPanel()
-    }
-}
-
-private struct RequestPreviewPanel: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("请求预览", systemImage: "eye")
-                .font(.headline)
-            Text("即将发送：目标语言文本、用户选中的照片摘要、相似记忆 3 条。")
-                .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-            Divider()
-            Text("不会发送：本地数据库、完整照片库、API Key、未选中的历史记录。")
-                .font(.callout)
-                .foregroundStyle(LangoTraceDesign.ColorToken.mutedInk)
-        }
-        .langoPanel()
+    private func setRoute(_ newRoute: PadWorkspaceRoute) {
+        let currentVisibility = PadPanelVisibility(timeline: isTimelineVisible, learningPanel: isLearningPanelVisible)
+        route = newRoute
+        let focusedVisibility = PadSettingsFocusPolicy.visibility(whenEntering: newRoute, current: currentVisibility)
+        isTimelineVisible = focusedVisibility.timeline
+        isLearningPanelVisible = focusedVisibility.learningPanel
     }
 }

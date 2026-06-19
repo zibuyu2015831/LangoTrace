@@ -1,9 +1,8 @@
-public enum PhoneRootTab: String, CaseIterable, Hashable, Identifiable {
-    case today
+public enum PhoneRootTab: String, CaseIterable, Hashable, Identifiable, Sendable {
     case entries
+    case reading
     case practice
     case memory
-    case settings
 
     public enum Direction {
         case previous
@@ -12,21 +11,6 @@ public enum PhoneRootTab: String, CaseIterable, Hashable, Identifiable {
 
     public var id: Self {
         self
-    }
-
-    public var title: String {
-        switch self {
-        case .today:
-            "今日"
-        case .entries:
-            "记录"
-        case .practice:
-            "练习"
-        case .memory:
-            "记忆"
-        case .settings:
-            "设置"
-        }
     }
 
     public func tab(after direction: Direction) -> Self {
