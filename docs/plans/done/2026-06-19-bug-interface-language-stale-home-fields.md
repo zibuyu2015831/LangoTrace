@@ -1,6 +1,6 @@
 # 任务方案：界面语言切换后首页部分字段不刷新
 
-状态：Implemented
+状态：Verified
 自审核状态：Reviewed
 类型：bug
 创建日期：2026-06-19
@@ -349,7 +349,9 @@ swiftlint --no-cache
 后续事实源或复审入口：本 plan 第 20 节；如做无障碍本地化专项再统一收敛。
 ```
 
-提交：尚未提交（等用户确认是否提交 / 是否走 CI 全量与合并）。
+提交：`5e6ba0a`（推送到 `dev`，未开 PR，commit message 含 `[ci]` 触发全量 CI）。
+
+**全量 CI 绿**：GitHub Actions Run 27836525954（Build & Test，macos-15）conclusion=success —— xcodegen、7 个 Swift 包测试、iPhone/iPad/macOS 三端构建、macOS `LangoTraceAppTests`、swiftlint、swiftformat、check-docs 全部通过。本机轻量验证（UI 单包 549 测试 + lint + iOS build + 模拟器双向实时切换截图）与 CI 全量结果一致。
 
 ## 19. 完成标准
 
