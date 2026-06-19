@@ -7,14 +7,14 @@ struct PhoneMainChromeTests {
     @Test("Home chrome keeps settings reachable and demo copy out of the main path")
     func homeChromeKeepsSettingsReachableAndDemoCopyOutOfMainPath() throws {
         let phoneSections = try String(contentsOf: sourceFileURL(named: "PhoneMainSections.swift"), encoding: .utf8)
-        let phoneContextHeader = try String(
-            contentsOf: sourceFileURL(named: "PhoneContextHeader.swift"),
+        let contextToolbar = try String(
+            contentsOf: sourceFileURL(named: "PhoneRootContextToolbar.swift"),
             encoding: .utf8
         )
 
-        #expect(phoneContextHeader.contains("Button(action: onSettingsAction)"))
-        #expect(phoneContextHeader.contains(#"accessibilityLabel(localizedText("tab.settings"))"#))
-        #expect(phoneContextHeader.contains("Button(action: onLanguageSpaceAction)"))
+        #expect(contextToolbar.contains("Button(action: onSettingsAction)"))
+        #expect(contextToolbar.contains(#"accessibilityLabel(localizedText("tab.settings"))"#))
+        #expect(contextToolbar.contains("Button(action: onLanguageSpaceAction)"))
         #expect(!phoneSections.contains("statusTextKey"))
         #expect(!phoneSections.contains("statusArgument"))
 

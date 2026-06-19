@@ -9,6 +9,8 @@ struct ReadingLibraryView: View {
     let ttsAction: ReadingTTSAction
     let cacheStorage: (any ExplanationCacheStorage)?
     var onOpenPhoneDocument: ((String) -> Void)?
+    var onLanguageSpaceAction: (() -> Void)?
+    var onSettingsAction: (() -> Void)?
     @StateObject private var documentStore: ReadingDocumentStore
     @State private var importTitle = ""
     @State private var importBody = ""
@@ -24,7 +26,9 @@ struct ReadingLibraryView: View {
         explanationAction: @escaping ReadingExplanationAction,
         ttsAction: @escaping ReadingTTSAction,
         cacheStorage: (any ExplanationCacheStorage)? = nil,
-        onOpenPhoneDocument: ((String) -> Void)? = nil
+        onOpenPhoneDocument: ((String) -> Void)? = nil,
+        onLanguageSpaceAction: (() -> Void)? = nil,
+        onSettingsAction: (() -> Void)? = nil
     ) {
         self.platform = platform
         self.store = store
@@ -32,6 +36,8 @@ struct ReadingLibraryView: View {
         self.ttsAction = ttsAction
         self.cacheStorage = cacheStorage
         self.onOpenPhoneDocument = onOpenPhoneDocument
+        self.onLanguageSpaceAction = onLanguageSpaceAction
+        self.onSettingsAction = onSettingsAction
         _documentStore = StateObject(wrappedValue: ReadingDocumentStore(
             documentID: store.selectedDocument?.id ?? "",
             spaceID: store.languageSpace.id,
@@ -111,6 +117,8 @@ struct ReadingLibraryView: View {
             store: store,
             isImportSheetPresented: $isImportSheetPresented,
             isFileImporterPresented: $isFileImporterPresented,
+            onLanguageSpaceAction: onLanguageSpaceAction,
+            onSettingsAction: onSettingsAction,
             onOpenDocument: { documentID in
                 Task {
                     await store.openDocument(documentID, platform: .phone)
@@ -635,6 +643,8 @@ private struct ReadingPhoneLibraryHomeView: View {
     @ObservedObject var store: ReadingLibraryStore
     @Binding var isImportSheetPresented: Bool
     @Binding var isFileImporterPresented: Bool
+    let onLanguageSpaceAction: (() -> Void)?
+    let onSettingsAction: (() -> Void)?
     let onOpenDocument: (String) -> Void
 
     var body: some View {
@@ -658,15 +668,20 @@ private struct ReadingPhoneLibraryHomeView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 16)
+            .padding(.top, 20)
             .padding(.bottom, 28)
         }
-        .navigationTitle(localizedString("tab.reading"))
         .langoPageBackground()
+        .phoneRootContextToolbar(
+            titleKey: "tab.reading",
+            languageSpace: store.languageSpace,
+            onLanguageSpaceAction: onLanguageSpaceAction ?? {},
+            onSettingsAction: onSettingsAction
+        )
     }
 
     private var header: some View {
-        // The large title comes from navigationTitle; only the subtitle lives here.
+        // Inline title carries the page identity; this subtitle introduces the library.
         Text(localizedString("reading.library.subtitle"))
             .font(.body)
             .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)

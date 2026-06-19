@@ -60,7 +60,9 @@ struct PhoneMainView: View {
                     cacheStorage: readingCacheStorage,
                     onOpenPhoneDocument: { documentID in
                         navModel.push(.readingDocument(documentID), on: .reading)
-                    }
+                    },
+                    onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
+                    onSettingsAction: { navModel.push(.settingsList, on: .reading) }
                 )
                 .phoneNavigationDestinations(for: .reading, context: self)
             }

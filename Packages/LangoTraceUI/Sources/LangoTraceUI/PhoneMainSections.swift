@@ -389,21 +389,29 @@ struct PhonePage<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        ScrollView {
+        let page = ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if showsContextHeader {
-                    PhoneContextHeader(
-                        languageSpace: languageSpace,
-                        onLanguageSpaceAction: onLanguageSpaceAction,
-                        onSettingsAction: onSettingsAction
-                    )
-                }
                 content
             }
-            .padding(20)
+            // Reclaim the large-title band but keep 20pt breathing room below the
+            // navigation bar (design review: 0pt feels oppressive).
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
             .padding(.bottom, 92)
         }
-        .navigationTitle(localizedText(titleKey))
         .langoPageBackground()
+
+        if showsContextHeader {
+            page.phoneRootContextToolbar(
+                titleKey: titleKey,
+                languageSpace: languageSpace,
+                onLanguageSpaceAction: onLanguageSpaceAction,
+                onSettingsAction: onSettingsAction
+            )
+        } else {
+            // SettingsView and other non-root consumers keep a plain inline title
+            // with no language capsule / gear injected.
+            page.navigationTitle(localizedText(titleKey))
+        }
     }
 }
