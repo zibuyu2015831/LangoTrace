@@ -67,6 +67,10 @@ struct PhoneLanguageSpaceChip: View {
             Text(displayContext)
                 .font(.subheadline.weight(.semibold))
                 .lineLimit(1)
+                // Keep intrinsic width: a leading toolbar item is otherwise
+                // compressed by the centered inline title and truncates to a
+                // single glyph.
+                .fixedSize(horizontal: true, vertical: false)
                 .foregroundStyle(LangoTraceDesign.ColorToken.ink)
                 .padding(.horizontal, 12)
                 .phoneRootControlSurface()

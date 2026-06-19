@@ -216,7 +216,11 @@ swiftlint --no-cache
 - `swiftlint --no-cache` → `Found 420 violations, 0 serious`；新增文件 `PhoneRootContextToolbar.swift` / `PhoneRootContextChromeTests.swift` 无违规（420 均为既有告警）。
 - 未运行 `scripts/verify.sh`（CLAUDE.md §1.4 #7：轻量验证优先，全量留 CI）。
 
-待办：四 tab 模拟器人工验收（顶部留白回收、四 tab 头部一致、胶囊点击切换 sheet、齿轮进设置、push 详情页返回标签）尚未执行；`docs/platform-page-inventory.md` 已更新（见文档影响检查）。
+模拟器验收（iPhone 17 / iOS 26.5，2026-06-20）：本地 `xcodebuild -scheme LangoTrace-iOS` 构建成功并安装到模拟器，截图确认记录 tab 头部为「语言胶囊 + 居中标题 记录 + 设置齿轮」、四 tab chrome 一致、顶部留白回收、方向 B 描边控件成对呈现。**回归发现并修复**：首版语言胶囊在 inline 导航栏 leading 位被居中标题挤压、截断成单字（截图证据 `logs/sim-after-reinstall.png`，git-ignored），命中本方案「剩余风险」预判的截断项；修复为对胶囊文本加 `.fixedSize(horizontal: true, vertical: false)` 保持本征宽度，重装后胶囊完整显示 `中文 -> 英语 · B1`、与居中标题无重叠（`logs/sim-fixed2.png`）。胶囊点击切换 sheet、齿轮进设置、push 返回标签仍待逐项点按验收。
+
+CI：commit `5f96601` 经 `gh workflow run ci.yml --ref dev`（workflow_dispatch，仓库临时 public 跑完转回 private）→ `Build & Test` 全绿（run 27841912873）。`.fixedSize` 截断修复为后续 commit，rendering-only、不影响单测（556 仍绿）/ lint，已本地构建 + 模拟器复验。
+
+`docs/platform-page-inventory.md` 已更新（见文档影响检查）。
 
 ## 完成标准
 
@@ -229,6 +233,6 @@ swiftlint --no-cache
 ## 剩余风险
 
 - inline 居中标题（如「记录」）与 leading 宽胶囊在 iPhone 窄屏可能视觉拥挤；评审原型已验证：胶囊用紧凑形式 `中文 → 英语 · B1`（而非「英语空间 中文 → English」）+ 标题绝对居中即可避免重叠。实现时仍须模拟器确认真机 toolbar item 自动布局下的间距；若仍挤压，备选：标题留空只靠 toolbar item（牺牲返回标签）或胶囊进一步缩短为 `英语 · B1`。
-- 宽语言胶囊在 toolbar leading 的截断行为需模拟器确认（长母语显示名场景）；必要时对胶囊加 `lineLimit(1)` 与最大宽度。
+- 宽语言胶囊在 toolbar leading 的截断行为已在 iPhone 17 模拟器复现（首版截断成单字）并修复（`.fixedSize(horizontal:true, vertical:false)` 保本征宽度）；当前 `中文 -> 英语 · B1` 完整显示无重叠。**剩余隐患**：英文界面下长母语显示名（如 `Simplified Chinese -> English · B1`）配 `.fixedSize` 可能反向挤压居中标题，需在英文 locale 模拟器复验；若挤压，按 spec/002 §54「英语 · B1」收敛为目标语言 + 等级紧凑形式。
 - `PhoneRootContextChrome` 单元测试覆盖 presentation 模型，不覆盖 SwiftUI toolbar 真实渲染与挤压判断，靠人工验收补充（已在 TDD 章节声明）。
 - `SettingsView` 与三个根 tab 共用 `PhonePage`，门控逻辑必须随未来新增 `PhonePage` 调用点复查，避免再次出现「共享容器行为外溢」。
