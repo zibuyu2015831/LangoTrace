@@ -20,8 +20,18 @@
 - **重测试一律放 GitHub Actions**：全量验证（`scripts/verify.sh` 等价流程）、三端 `xcodebuild` 构建、跨多个 Swift Package 的测试、长时间运行的套件，都在 macOS runner 上跑，不在本机跑。
 - **本机只做轻量动作**：单个改动包的 `swift test --package-path Packages/<X>`、`swiftformat .` / `swiftlint --no-cache` 自查、文档检查。不要在 MacBook Air 上跑全量 `verify.sh` 或三端构建。
 - **仓库可见性与免费额度**：**public 仓库的 Actions 在标准 runner（含 macOS）上免费、分钟数无上限**；**private 仓库**免费额度 2000 分钟/月，且 **macOS 计费倍率 10×（约合 200 macOS 分钟/月）**。因此约定：仓库平时可保持 private，**需要跑 CI 前临时设为 public**，跑完可再设回 private。
-  - 切换位置：`Settings → 页面底部 Danger Zone → Change repository visibility`。public→private、private→public 均可随时反复切换。
-- **AI 协作约定**：当某次改动需要 CI 验证（重测试 / 三端构建 / 合并前）时，AI 在触发 CI 前应**主动提醒用户先把仓库临时设为 public**；验证通过后提示可设回 private。
+  - 网页切换位置：`Settings → 页面底部 Danger Zone → Change repository visibility`。public→private、private→public 均可随时反复切换。
+  - 命令行切换（AI 优先使用）：
+    ```bash
+    gh repo edit <owner>/<repo> --visibility public  --accept-visibility-change-consequences   # 跑 CI 前
+    gh repo edit <owner>/<repo> --visibility private --accept-visibility-change-consequences   # 跑完后
+    gh repo view <owner>/<repo> --json visibility -q .visibility                               # 确认
+    ```
+    需要 token 具备 `repo` scope 且对该仓库为 ADMIN（`gh auth status` 看 scope、`gh repo view --json viewerPermission` 看权限）。
+- **AI 协作约定（可见性切换）**：当某次改动需要 CI 验证（重测试 / 三端构建 / 合并前）时：
+  - 若 AI 当前 `gh` 凭证具备 `repo` scope + 仓库 ADMIN 权限，**AI 可直接用上面的 `gh repo edit` 命令切换可见性**，无需用户手动到网页操作——但必须**先报告"将把仓库临时设为 public 跑 CI、跑完设回 private"并取得用户许可**，再执行；跑完主动设回 private 并报告结果。目的是减少用户手动操作。
+  - 若 AI 无该能力（scope 不足或非 ADMIN），退回原方式：提醒用户手动把仓库临时设为 public，跑完设回 private。
+  - 无论哪种方式，可见性变更属对外可见性调整，**默认每次先取得用户许可**，不在未告知的情况下静默切换。
 
 ## 2. 触发策略
 
@@ -77,7 +87,7 @@ gh workflow run ci.yml --ref dev         # 手动触发
 当你准备把 `dev`（或功能分支）合并到 `main` 时，按以下顺序：
 
 1. 确认改动已 push 到 `dev`/功能分支，本地轻量验证已过。
-2. **临时把仓库设为 public**：`Settings → 页面底部 Danger Zone → Change repository visibility → Make public`。理由：Free 私有仓库 ruleset 不生效（§4.1），且 public 时 macOS CI 免费。
+2. **临时把仓库设为 public**（经用户许可后）：AI 优先用 `gh repo edit <owner>/<repo> --visibility public --accept-visibility-change-consequences`（具备 `repo` scope + ADMIN 时，见 §1.1）；否则提示用户网页 `Settings → Danger Zone → Change repository visibility → Make public`。理由：Free 私有仓库 ruleset 不生效（§4.1），且 public 时 macOS CI 免费。
 3. 开 PR：`gh pr create --base main --head dev --title "…" --body "…"`（或网页）。PR 事件**总是触发 CI**。
 4. **用 `gh` 跟踪 CI 状态直到 `Build & Test` 通过**，不要凭感觉合并：
    ```bash
@@ -86,7 +96,7 @@ gh workflow run ci.yml --ref dev         # 手动触发
    gh run watch <run-id> --exit-status
    ```
 5. CI 绿后再合并 PR：`gh pr merge <PR号> --merge`（或网页 Merge）。保护生效时，检查未过无法合并。
-6. （可选）合并完成后把仓库设回 private。
+6. 合并完成后把仓库设回 private：AI 优先用 `gh repo edit <owner>/<repo> --visibility private --accept-visibility-change-consequences` 并报告结果；否则提示用户网页操作。
 
 **本地钩子（每个克隆安装一次，repo 级，不影响全局）**：
 
@@ -101,7 +111,7 @@ chmod +x scripts/git-hooks/*
 
 紧急绕过（不推荐）：`git commit --no-verify` / `git push --no-verify`。
 
-**AI 协作约定（必须遵守）**：当用户表达要把分支合并到 `main`，或出现"本地直接 merge / push `main`"的意图时，AI 应主动：① 提醒不要本地直接合并；② 提醒先把仓库临时设为 public；③ 用 `gh` 核对 `Build & Test` 已通过；④ 引导走 PR 合并。
+**AI 协作约定（必须遵守）**：当用户表达要把分支合并到 `main`，或出现"本地直接 merge / push `main`"的意图时，AI 应主动：① 提醒不要本地直接合并；② 取得许可后直接用 `gh repo edit … --visibility public` 把仓库临时设为 public（无该能力时提醒用户手动切，见 §1.1）；③ 开 PR 并用 `gh` 核对 `Build & Test` 已通过；④ 走 PR 合并；⑤ 合并后用 `gh repo edit … --visibility private` 设回 private 并报告。
 
 ## 4. main 分支保护配置（GitHub 网页端）
 
