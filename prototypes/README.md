@@ -44,3 +44,4 @@ prototypes/
 2. 新增页面后同步更新 `index.html` 总览和本 README。
 3. 原型表达目标设计；当 SwiftUI 实现与原型出现有意偏差时，以实现与 spec 为准，并在相关任务方案中记录，不回改原型冒充历史。
 4. 涉及视觉与交互约束时，以 `docs/spec/003-ui-design-system.md` 和 `docs/spec/010-apple-platform-interaction-and-accessibility.md` 为权威。
+5. 原型与评审 mockup 必须落在本目录内，禁止生成到仓库之外（如 `~/Desktop`、`~/Downloads`、`/tmp`）；一次性设计评审原型归 `archive/<topic>/`，复用 `shared/` token、纯 HTML/CSS、不引入框架或 CDN。详见入口文档 `docs/README.md` §1.5「工作产物必须落在仓库内原则」。
