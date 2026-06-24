@@ -14,64 +14,79 @@ struct EntryEditorView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
+            VStack(alignment: .leading, spacing: 12) {
+                localizedText("entryEditor.section.content")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+
+                // Title + body share one panel; the body editor fills the remaining
+                // height so it grows as the user pulls the sheet from medium to large.
+                VStack(alignment: .leading, spacing: 0) {
                     TextField(
                         text: $title,
                         prompt: localizedText("entryEditor.titleField")
                     ) {
                         localizedText("entryEditor.titleField")
                     }
+                    .textFieldStyle(.plain)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+
+                    Divider()
+                        .overlay(LangoTraceDesign.ColorToken.hairline)
+
                     TextEditor(text: $bodyText)
-                        .frame(minHeight: 180)
+                        .scrollContentBackground(.hidden)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .accessibilityLabel(localizedText("entryEditor.bodyField.accessibilityLabel"))
                         .accessibilityHint(localizedText("entryEditor.bodyField.accessibilityHint"))
-                } header: {
-                    localizedText("entryEditor.section.content")
-                } footer: {
-                    if let saveErrorKey {
-                        localizedText(saveErrorKey)
-                            .font(.footnote)
-                            .foregroundStyle(LangoTraceDesign.ColorToken.stateError)
-                    }
                 }
-                Section {
-                    Label {
-                        localizedText("entryEditor.privacy.localOnly")
-                    } icon: {
-                        Image(systemName: "lock")
-                    }
-                } header: {
-                    localizedText("entryEditor.section.privacy")
+                .background(LangoTraceDesign.ColorToken.elevatedPaper)
+                .clipShape(RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.panel, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: LangoTraceDesign.Radius.panel, style: .continuous)
+                        .stroke(LangoTraceDesign.ColorToken.hairline, lineWidth: 1)
+                }
+
+                if let saveErrorKey {
+                    localizedText(saveErrorKey)
+                        .font(.footnote)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.stateError)
                 }
             }
-            .scrollContentBackground(.hidden)
+            .padding(20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .langoPageBackground()
             .navigationTitle(localizedText("entryEditor.title"))
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        localizedText("common.cancel")
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        do {
-                            try onSave(title, bodyText)
-                            saveErrorKey = nil
+            #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+            #endif
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button {
                             dismiss()
-                        } catch {
-                            // Keep the draft on screen and surface the failure instead of dismissing.
-                            saveErrorKey = "entryEditor.saveFailed"
+                        } label: {
+                            localizedText("common.cancel")
                         }
-                    } label: {
-                        localizedText("common.save")
                     }
-                    .disabled(!canSave)
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button {
+                            do {
+                                try onSave(title, bodyText)
+                                saveErrorKey = nil
+                                dismiss()
+                            } catch {
+                                // Keep the draft on screen and surface the failure instead of dismissing.
+                                saveErrorKey = "entryEditor.saveFailed"
+                            }
+                        } label: {
+                            localizedText("common.save")
+                        }
+                        .disabled(!canSave)
+                    }
                 }
-            }
         }
     }
 

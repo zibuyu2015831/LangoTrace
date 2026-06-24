@@ -127,6 +127,7 @@ struct PhoneMainView: View {
                     presentedSheet = nil
                     navModel.push(.entryDetail(entry.id), on: .entries)
                 }
+                .presentationDetents([.medium, .large])
             case .photoWriting:
                 PhotoWritingView(languageSpace: languageSpace, actions: photoWritingActions) { body, imageData in
                     let coordinator = PhotoWritingSaveCoordinator(
