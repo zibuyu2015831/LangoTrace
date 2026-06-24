@@ -145,3 +145,14 @@ public enum PhotoWritingAssistFailureCategory: String, Codable, CaseIterable, Eq
     case imageTooLarge
     case cancelled
 }
+
+/// UI-facing failure for the photo-writing assist action seam (mirrors
+/// `PracticeBacktranslationReviewFailure`). App Shell maps the AI service /
+/// sanitizer errors onto this so the UI layer depends only on Core.
+public struct PhotoWritingAssistRequestFailure: Error, Equatable, Sendable {
+    public var category: PhotoWritingAssistFailureCategory
+
+    public init(category: PhotoWritingAssistFailureCategory) {
+        self.category = category
+    }
+}
