@@ -114,4 +114,72 @@ struct AIRequestPreviewProjectionTests {
         #expect(entry.failureBucket == nil)
         #expect(entry.capability == .readingSelectionExplanation)
     }
+
+    // MARK: - Photo-writing assist (the only capability that includes photos)
+
+    private func backtranslationRequest() -> PracticeBacktranslationReviewServiceRequest {
+        PracticeBacktranslationReviewServiceRequest(
+            endpoint: endpoint(adapterKind: .openAICompatibleChat),
+            plaintextSecret: "secret",
+            input: PracticeBacktranslationReviewInput(
+                nativeSentence: "今天下雨。",
+                userAttempt: "It rain today.",
+                referenceSentence: "It is raining today.",
+                targetLanguageCode: "en",
+                proficiencyLevelCode: "b1"
+            )
+        )
+    }
+
+    @Test("photo-writing assist projection includes photo attachments and excludes the other sensitive categories")
+    func photoWritingAssistProjectionIncludesPhotoExcludesOtherSensitive() {
+        let projection = AIRequestPreviewProjection.photoWritingAssist(
+            endpoint: endpoint(adapterKind: .openAICompatibleChat),
+            lengthBucket: .short
+        )
+        #expect(projection.capability == .photoWritingAssist)
+        #expect(projection.promptID == PhotoWritingAssistPromptRegistry.promptID)
+        #expect(projection.promptVersion == PhotoWritingAssistPromptRegistry.promptVersion)
+        // The one capability whose preview admits the photo.
+        #expect(projection.includedContent.contains(.photoAttachments))
+        #expect(projection.includedContent.contains(.currentEntryBody))
+        #expect(projection.includedContent.contains(.nativeLanguageProfile))
+        #expect(projection.includedContent.contains(.targetLanguageProfile))
+        #expect(projection.includedContent.contains(.proficiencyLevel))
+        // Photos are no longer excluded for this capability...
+        #expect(!projection.excludedContent.contains(.photoAttachments))
+        // ...but every other privacy guarantee still holds.
+        #expect(projection.excludedContent.contains(.historicalEntries))
+        #expect(projection.excludedContent.contains(.audioRecordings))
+        #expect(projection.excludedContent.contains(.longTermMemory))
+        #expect(projection.excludedContent.contains(.apiCredential))
+        #expect(projection.excludedContent.contains(.otherLanguageSpaces))
+    }
+
+    @Test("every existing capability still excludes photo attachments")
+    func existingCapabilitiesStillExcludePhotoAttachments() {
+        // All four live projections that predate photo-writing assist must keep
+        // photos out of the outbound request (the privacy floor).
+        let generation = generationRequest().previewProjection()
+        let analysis = LearningMaterialServiceAnalysisRequest(
+            endpoint: endpoint(adapterKind: .openAICompatibleChat),
+            plaintextSecret: "secret",
+            input: LearningMaterialAnalysisInput(
+                materialID: "material-1",
+                learningText: "Some learning text.",
+                nativeLanguageCode: "zh-Hans",
+                targetLanguageCode: "en",
+                proficiencyLevelCode: "b1"
+            ),
+            operationID: DiagnosticOperationID(rawValue: "op-analysis"),
+            lengthBucket: .short
+        ).previewProjection()
+        let reading = readingRequest().previewProjection()
+        let backtranslation = backtranslationRequest().previewProjection()
+
+        for projection in [generation, analysis, reading, backtranslation] {
+            #expect(projection.excludedContent.contains(.photoAttachments))
+            #expect(!projection.includedContent.contains(.photoAttachments))
+        }
+    }
 }

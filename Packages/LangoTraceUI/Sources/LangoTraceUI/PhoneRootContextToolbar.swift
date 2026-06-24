@@ -1,17 +1,22 @@
 import LangoTraceCore
 import SwiftUI
 
-/// Presentation model for the iPhone root context toolbar (language space capsule
+/// Presentation model for the iPhone root context toolbar (language space chip
 /// + settings gear). Pure and `Equatable` so the chrome decision is unit-testable
 /// without rendering SwiftUI.
 struct PhoneRootContextChrome: Equatable {
+    /// Full native -> target · level string, exposed to VoiceOver as the chip value.
     let displayContext: String
+    /// Compact target-language + level shown in the chip (spec/002 §54 / §157:
+    /// the top lightweight context is target + level, not the native side).
+    let compactContext: String
     let showsLanguageSwitcher: Bool
     let showsSettings: Bool
 
     static func make(languageSpace: LanguageSpacePreview, hasSettings: Bool) -> PhoneRootContextChrome {
         PhoneRootContextChrome(
             displayContext: languageSpace.displayContext,
+            compactContext: "\(languageSpace.targetLanguage) · \(languageSpace.level.rawValue)",
             showsLanguageSwitcher: true,
             showsSettings: hasSettings
         )
@@ -29,84 +34,66 @@ extension PhoneRootTab {
     }
 }
 
-/// Direction B "unified outlined controls": the language space capsule and the
-/// settings gear share one visual family — same height, same 1px hairline, no
-/// shadow, same pill shape — flanking a centered inline title. Touch targets stay
-/// ≥44pt even though the painted control is smaller.
+/// Borderless, restrained controls (design review round 2): the language chip and
+/// the settings gear carry no outline or fill — strokes are reserved for the
+/// content cards below. Balance comes from shared low contrast, not matched width.
+/// Touch targets stay ≥44pt even though the painted glyphs are small.
 private enum PhoneRootControlMetrics {
-    static let controlHeight: CGFloat = 34
     static let touchTarget: CGFloat = LangoTraceDesign.Density.minimumTouchTarget
 }
 
-private struct PhoneRootControlSurface: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .frame(height: PhoneRootControlMetrics.controlHeight)
-            .background(LangoTraceDesign.ColorToken.surfacePanel, in: Capsule())
-            .overlay {
-                Capsule().stroke(LangoTraceDesign.ColorToken.borderSubtle, lineWidth: 1)
-            }
-    }
-}
-
-private extension View {
-    func phoneRootControlSurface() -> some View {
-        modifier(PhoneRootControlSurface())
-    }
-}
-
-/// Language space context as a tappable outlined capsule (text only — the
-/// displayContext string (e.g. "ZH -> EN · B1") already carries the language
-/// meaning, so no leading SF Symbol). Opens the language space quick switcher.
+/// Language space context as a quiet, tappable label: compact target + level with
+/// a small chevron to signal the switcher. No border, no fill.
 struct PhoneLanguageSpaceChip: View {
-    let displayContext: String
+    let label: String
+    let accessibilityContext: String
     let onLanguageSpaceAction: () -> Void
 
     var body: some View {
         Button(action: onLanguageSpaceAction) {
-            Text(displayContext)
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(1)
-                // Keep intrinsic width: a leading toolbar item is otherwise
-                // compressed by the centered inline title and truncates to a
-                // single glyph.
-                .fixedSize(horizontal: true, vertical: false)
-                .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-                .padding(.horizontal, 12)
-                .phoneRootControlSurface()
+            HStack(spacing: 4) {
+                Text(label)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                    // Keep intrinsic width so the centered inline title cannot
+                    // compress the leading item into a single glyph.
+                    .fixedSize(horizontal: true, vertical: false)
+                Image(systemName: "chevron.down")
+                    .font(.caption2.weight(.bold))
+            }
+            .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            .padding(.vertical, 6)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .frame(minHeight: PhoneRootControlMetrics.touchTarget)
-        .contentShape(Capsule())
         .accessibilityLabel(localizedText("languageSpace.switcher.label"))
-        .accessibilityValue(Text(displayContext))
+        .accessibilityValue(Text(accessibilityContext))
         .accessibilityHint(localizedText("languageSpace.switcher.hint"))
     }
 }
 
-/// Settings gear as the matching outlined control (same hairline family as the
-/// chip). Visually compact; hit area kept at ≥44pt.
+/// Settings gear as a bare icon — no outline or fill, matching the chip's
+/// restraint. Hit area kept at ≥44pt.
 struct PhoneSettingsGearButton: View {
     let onSettingsAction: () -> Void
 
     var body: some View {
         Button(action: onSettingsAction) {
             Image(systemName: "gearshape")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(LangoTraceDesign.ColorToken.ink)
-                .frame(width: PhoneRootControlMetrics.controlHeight)
-                .phoneRootControlSurface()
+                .font(.body.weight(.semibold))
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                .frame(width: PhoneRootControlMetrics.touchTarget, height: PhoneRootControlMetrics.touchTarget)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .frame(minWidth: PhoneRootControlMetrics.touchTarget, minHeight: PhoneRootControlMetrics.touchTarget)
-        .contentShape(Capsule())
         .accessibilityLabel(localizedText("tab.settings"))
     }
 }
 
 extension View {
     /// Shared iPhone root chrome: inline centered title (page identity + push-back
-    /// label) with the language space capsule as a leading toolbar item and the
+    /// label) with the language space chip as a leading toolbar item and the
     /// settings gear as a trailing toolbar item. Applying this from one modifier is
     /// what keeps all four root tabs (including Reading) structurally consistent.
     @ViewBuilder
@@ -117,12 +104,17 @@ extension View {
         onSettingsAction: (() -> Void)?
     ) -> some View {
         #if os(iOS)
+            let chrome = PhoneRootContextChrome.make(
+                languageSpace: languageSpace,
+                hasSettings: onSettingsAction != nil
+            )
             navigationTitle(localizedText(titleKey))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         PhoneLanguageSpaceChip(
-                            displayContext: languageSpace.displayContext,
+                            label: chrome.compactContext,
+                            accessibilityContext: chrome.displayContext,
                             onLanguageSpaceAction: onLanguageSpaceAction
                         )
                     }

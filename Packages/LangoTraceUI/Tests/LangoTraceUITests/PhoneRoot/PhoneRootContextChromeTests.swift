@@ -24,6 +24,17 @@ struct PhoneRootContextChromeTests {
         #expect(chrome.displayContext == space.displayContext)
     }
 
+    @Test("Chrome compact context is target language plus level (spec/002 §54)")
+    func chromeCompactContextIsTargetPlusLevel() {
+        let space = makeSpace()
+        let chrome = PhoneRootContextChrome.make(languageSpace: space, hasSettings: true)
+
+        #expect(chrome.compactContext == "\(space.targetLanguage) · \(space.level.rawValue)")
+        #expect(chrome.compactContext == "英语 · B1")
+        // The full native -> target context is still available for VoiceOver.
+        #expect(chrome.displayContext == space.displayContext)
+    }
+
     @Test("Chrome shows language switcher and settings when a settings action is provided")
     func chromeShowsLanguageSwitcherAndSettingsWhenSettingsProvided() {
         let chrome = PhoneRootContextChrome.make(languageSpace: makeSpace(), hasSettings: true)

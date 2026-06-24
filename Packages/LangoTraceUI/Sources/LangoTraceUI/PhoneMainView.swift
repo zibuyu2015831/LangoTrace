@@ -128,7 +128,7 @@ struct PhoneMainView: View {
                     navModel.push(.entryDetail(entry.id), on: .entries)
                 }
             case .photoWriting:
-                PhotoWritingView(languageSpace: languageSpace) { body, imageData in
+                PhotoWritingView(languageSpace: languageSpace, actions: photoWritingActions) { body, imageData in
                     let coordinator = PhotoWritingSaveCoordinator(
                         createEntry: { title, body, source in
                             try contentStore.createEntry(title: title, body: body, source: source)

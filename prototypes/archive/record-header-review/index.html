@@ -130,6 +130,22 @@
   /* C 文字态语言入口：三者全部减负（最大呼吸） */
   .cap-text { display: inline-flex; align-items: center; gap: 4px; padding: 6px 2px; min-height: 0; border: 0; background: transparent; box-shadow: none; font-size: var(--fs-sub); font-weight: 650; color: var(--accent); }
   .gear-plain { width: 40px; height: 40px; border: 0; background: transparent; box-shadow: none; color: var(--muted); }
+
+  /* —— 第二轮：去双边框 + 左右平衡（克制化） —— */
+  .cap-bare { display: inline-flex; align-items: center; gap: 5px; padding: 6px 4px; min-height: 0; border: 0; background: transparent; box-shadow: none; border-radius: var(--r-pill); font-size: var(--fs-sub); font-weight: 600; color: var(--ink-2); }
+  .cap-bare .chev { color: var(--faint); display: inline-flex; }
+  .cap-softfill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; min-height: 32px; border: 0; background: var(--surface-2); box-shadow: none; border-radius: var(--r-pill); font-size: var(--fs-footnote); font-weight: 600; color: var(--ink-2); }
+  .gear-bare { width: 40px; height: 40px; border: 0; background: transparent; box-shadow: none; color: var(--muted); }
+  .lang-mono { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 0; background: transparent; box-shadow: none; color: var(--ink-2); font-size: var(--fs-title3); font-weight: 700; }
+
+  /* —— 语言标签文案对比（自然语言 vs 代码） —— */
+  .chip-compare { display: flex; flex-wrap: wrap; gap: 16px; }
+  .chip-compare .cc { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 16px 16px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--hairline); box-shadow: var(--shadow-card); width: 178px; }
+  .chip-compare .cc.good { border-color: var(--accent); }
+  .chip-compare .cc.bad { border-color: var(--error); }
+  .chip-compare .cc .chiptext { font-size: var(--fs-title3); font-weight: 650; color: var(--ink); letter-spacing: 0.01em; }
+  .chip-compare .cc .cc-label { font-size: 12px; font-weight: 700; color: var(--ink-2); text-align: center; }
+  .chip-compare .cc .cc-note { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.45; }
 </style>
 </head>
 <body>
@@ -386,6 +402,115 @@
 
   </div>
 
+  <h2 class="harmony-h">第二轮 · 双边框克制化与左右平衡</h2>
+  <p class="proto-note">
+    第二轮反馈：方向 B 的「胶囊描边 + 齿轮描边」双容器，叠在下方 Hero 卡 / 写一句 / 用照片开始 / 筛选 chip / 空状态卡一连串描边之上，顶部显得繁杂，不够克制；且宽胶囊与小齿轮左右失衡。<strong>关键事实</strong>：spec/002 §54 / §157 规定顶部轻量上下文就是 <code>英语 · B1</code>（目标语言 + 等级），并非「中文 -> 英语 · B1」——当前实现其实多显示了母语侧。下面三个方向都<strong>去掉导航栏描边</strong>回到克制，差异在「语言上下文保留多少 / 左右如何平衡」（触控目标仍 ≥44pt）。
+  </p>
+  <div class="proto-stage harmony-stage">
+
+    <!-- R1 去边框紧凑 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>R1 · 去边框 · 紧凑目标语（推荐）<span class="sub">无描边 · 保留信息</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-bare">英语 · B1 <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
+          <span class="vtitle anchor">记录</span>
+          <button class="icon-btn gear-bare" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">两侧都去描边：语言为浅色文字 + 下拉小箭头（可点切换），齿轮为裸图标；标题加重为唯一锚点。导航栏零描边，把"卡片描边"语汇还给下方内容，最克制；语言按 spec 收敛为「英语 · B1」，仍一眼可知学什么。</div>
+      </div>
+    </div>
+
+    <!-- R2 对称单字 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot bad"></span>R2 · 对称单字（你的提案）<span class="sub">最平衡 · 但信息最少</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="lang-mono" aria-label="语言空间">英</button>
+          <span class="vtitle anchor">记录</span>
+          <button class="icon-btn gear-bare" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">单字「英」与齿轮等大，左右完全对称、最克制。代价：丢失等级 B1 与「学什么」的完整意义，且「英」有歧义（英语 / 英国）；与 spec §54「英语 · B1」相比信息缩水，语言空间是产品核心概念（ADR-004），一眼可辨价值被牺牲。</div>
+      </div>
+    </div>
+
+    <!-- R3 轻底胶囊 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>R3 · 轻底胶囊<span class="sub">单一软底 · 无描边</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-softfill">英语 · B1</button>
+          <span class="vtitle center">记录</span>
+          <button class="icon-btn gear-bare" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">只保留语言一个软底胶囊（无描边、无阴影），齿轮转裸图标。语言作为产品核心上下文用一处低对比 fill 微微凸显，齿轮退为次要图标——既消掉双描边，又保留语言的可点存在感；左右仍不等宽，但只剩一个容器，繁杂感大幅下降。</div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="harmony-h">语言标签文案 · 自然语言 vs 语种代码</h2>
+  <p class="proto-note">
+    第三轮提问：用 <code>cn</code> / <code>en</code> 这类代码如何？<strong>关键事实</strong>：<code>cn</code> 是国家代码（ISO 3166），中文的语种代码是 <code>zh</code>（ISO 639）；<code>cn → en</code> 把国家码与语种码混用，技术上不一致。代码更紧凑，但偏技术气质、与产品暖调冲突，且对中文用户「英语」并不比「EN」长多少却更易读（spec/002 §54 也规定为「英语 · B1」）。下面并排对比文案形态：
+  </p>
+  <div class="chip-compare">
+    <div class="cc good">
+      <span class="chiptext cap-bare">英语 · B1</span>
+      <span class="cc-label">目标语 + 等级（推荐）</span>
+      <span class="cc-note">spec §54 写法；中文秒读、暖、含等级</span>
+    </div>
+    <div class="cc">
+      <span class="chiptext cap-bare">中 → 英 · B1</span>
+      <span class="cc-label">中文单字 + 方向</span>
+      <span class="cc-note">紧凑、暖、正确、有方向感；次选</span>
+    </div>
+    <div class="cc">
+      <span class="chiptext cap-bare">EN · B1</span>
+      <span class="cc-label">目标语种码 + 等级</span>
+      <span class="cc-note">紧凑，但大写码偏技术感、丢暖度</span>
+    </div>
+    <div class="cc">
+      <span class="chiptext cap-bare">ZH → EN</span>
+      <span class="cc-label">语种码（正确写法）</span>
+      <span class="cc-note">zh 才是中文语种码；多数用户不认识 zh</span>
+    </div>
+    <div class="cc bad">
+      <span class="chiptext cap-bare">CN → EN</span>
+      <span class="cc-label">国家码（你的写法 · 不准确）</span>
+      <span class="cc-note">cn 是国家码不是语种码，与 en 语种码混用不一致</span>
+    </div>
+  </div>
+
   <div class="proto-annotations">
     <h2>评审结论与修订</h2>
     <ul>
@@ -394,6 +519,7 @@
       <li><strong>保留 inline 标题</strong>：导航栏中央保留「记录 / 阅读 / 练习 / 记忆」，既给页面身份，又给 push 详情页的返回标签；标题绝对居中、加重为锚点（weight 700），不被左侧胶囊带偏。</li>
       <li><strong>三元素协调（采纳方向 B · 统一描边控件）</strong>：语言胶囊与设置齿轮统一为同一描边控件家族——同高、同 1px hairline、无阴影、同 pill 圆角，成对称双控件夹住居中标题；去掉胶囊的地球图标（「中文 → 英语」已表达语言含义，图标冗余）并压缩胶囊宽度，让标题真正居中。解决原先「主次压反 / 形与重不统一 / 居中被带偏」三处不协调。备选 A（降权胶囊）会让胶囊过淡、削弱语言切换入口可发现性；C（accent 绿文字入口）占用 accent 绿，违反「accent 只表示可操作 / 主动作」语义，均不采纳。</li>
       <li><strong>一致性</strong>：四 tab（含阅读）共用同一套导航栏修饰符，结构上不可能再漏齿轮；设置详情页用 <code>showsContextHeader: false</code> 门控，不注入胶囊/齿轮。</li>
+      <li><strong>最终采纳（第二/三轮 → 方向 A · 去边框 + 紧凑目标语）</strong>：双描边过繁杂、不够克制，且左右失衡。最终改为<strong>两侧均去描边</strong>（描边语汇留给内容卡），语言显示 spec/002 §54 / §157 的 <code>英语 · B1</code>（目标语 + 等级）+ 下拉指示，齿轮为裸图标；左右平衡靠「同样低对比」而非等宽。否决语种代码：<code>cn</code> 是国家码（语种码应为 <code>zh</code>）、混用不一致，且代码冷感与产品暖调 / spec 冲突。完整 <code>中文 -> 英语 · B1</code> 仅作 VoiceOver value。</li>
       <li><strong>权威边界</strong>：本原型是设计基准与评审证据，不是实现事实源；落地以 active plan 与 spec/002 §54-55、spec/003 §143 为准。</li>
     </ul>
   </div>

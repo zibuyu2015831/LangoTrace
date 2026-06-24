@@ -222,6 +222,13 @@ CI：commit `5f96601` 经 `gh workflow run ci.yml --ref dev`（workflow_dispatch
 
 `docs/platform-page-inventory.md` 已更新（见文档影响检查）。
 
+2026-06-20 第二/三轮设计迭代（去边框 + 紧凑文案，采纳方向 A）：用户反馈方向 B 的「胶囊描边 + 齿轮描边」双容器叠在下方一连串卡片描边上显得繁杂、不够克制，且宽胶囊与小齿轮左右失衡；并提问可否用语种代码（cn/en）。设计评审结论（证据见 `prototypes/archive/record-header-review/` 的「双边框克制化」与「语言标签文案」两节）：
+
+- **采纳方向 A（去边框 + 紧凑目标语）**：语言 chip 与设置齿轮均**去掉描边 / 填充**（裸控件），平衡靠「同样低对比」而非等宽；语言显示 spec/002 §54 / §157 规定的 `英语 · B1`（目标语 + 等级），完整 `中文 -> 英语 · B1` 仅作 VoiceOver value。
+- **否决语种代码**：`cn` 是国家码（语种码应为 `zh`），`cn → en` 混用不一致；`zh` 对普通用户陌生；代码偏技术冷感、与产品暖调及 spec §54 冲突。
+- 代码改动：`PhoneRootContextChrome` 新增 `compactContext`（目标语 + 等级纯函数投影，单测覆盖）；`PhoneLanguageSpaceChip` 改为 `label + accessibilityContext`（紧凑文字 + `chevron.down` 指示，`textSecondary` 低对比，`fixedSize` 防截断）；`PhoneSettingsGearButton` 改为裸 `gearshape` 图标；移除 `PhoneRootControlSurface` 描边修饰符。
+- 验证：`swift test --package-path Packages/LangoTraceUI` 557 passed（新增 compactContext 用例）；`swiftformat --lint` 0；本地 `xcodebuild` 构建成功并装入模拟器。**待办**：记录 tab 实机深色截图未取——重装后模拟器回到首启 onboarding（数据被清），本机无 headless 点按工具（cliclick/idb 缺失）无法自动走完引导；设计形态已在原型 R1 验证，实机活动截图待人工走完 onboarding 后补。
+
 ## 完成标准
 
 - 上述五个先失败用例转绿。

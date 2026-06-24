@@ -45,6 +45,39 @@ public extension AIRequestPreviewProjection {
             excludedContent: alwaysExcludedContent
         )
     }
+
+    /// Single-source factory for the photo-writing assist projection. This is the
+    /// *only* projection whose `includedContent` carries `.photoAttachments`: a
+    /// photo enters an outbound AI request solely through this explicit,
+    /// user-triggered capability. Every other always-excluded category stays
+    /// excluded — the exclusion set is derived from `alwaysExcludedContent` with
+    /// photos removed, so it cannot silently drift from the shared list.
+    ///
+    /// The projection is mode-independent on purpose: both writing-suggestions
+    /// and native-draft modes send the same content categories (the photo, the
+    /// optional user note, and the language-space profile), so the preview the
+    /// user confirms is honest regardless of mode.
+    static func photoWritingAssist(
+        endpoint: AIProviderEndpointInput,
+        lengthBucket: AIRequestLengthBucket
+    ) -> AIRequestPreviewProjection {
+        AIRequestPreviewProjection(
+            capability: .photoWritingAssist,
+            providerPresetID: endpoint.providerPresetID,
+            modelName: endpoint.modelName,
+            promptID: PhotoWritingAssistPromptRegistry.promptID,
+            promptVersion: PhotoWritingAssistPromptRegistry.promptVersion,
+            lengthBucket: lengthBucket,
+            includedContent: [
+                .photoAttachments,
+                .currentEntryBody,
+                .nativeLanguageProfile,
+                .targetLanguageProfile,
+                .proficiencyLevel,
+            ],
+            excludedContent: alwaysExcludedContent.filter { $0 != .photoAttachments }
+        )
+    }
 }
 
 public extension LearningMaterialServiceGenerationRequest {
@@ -174,6 +207,35 @@ public extension PracticeBacktranslationReviewServiceRequest {
 
     private var reviewCharacterCount: Int {
         input.nativeSentence.count + input.userAttempt.count + input.referenceSentence.count
+    }
+}
+
+public extension PhotoWritingAssistServiceRequest {
+    /// Projection for a photo-writing assist request — the only capability whose
+    /// preview admits the photo (see `AIRequestPreviewProjection.photoWritingAssist`).
+    func previewProjection() -> AIRequestPreviewProjection {
+        .photoWritingAssist(
+            endpoint: endpoint,
+            lengthBucket: AIRequestLengthBucket(characterCount: input.userNote.count)
+        )
+    }
+
+    func makeLogEntry(id: String, outcome: AIRequestLogOutcome, createdAt: Date) -> AIRequestLogEntry {
+        AIRequestLogEntry(
+            id: id,
+            operationID: DiagnosticOperationID(rawValue: id),
+            capability: .photoWritingAssist,
+            providerPresetID: endpoint.providerPresetID,
+            endpointPurpose: endpoint.purpose,
+            adapterKind: endpoint.adapterKind,
+            modelName: endpoint.modelName,
+            promptID: PhotoWritingAssistPromptRegistry.promptID,
+            promptVersion: PhotoWritingAssistPromptRegistry.promptVersion,
+            inputLengthBucket: AIRequestLengthBucket(characterCount: input.userNote.count),
+            status: outcome.status,
+            failureBucket: outcome.failureBucket,
+            createdAt: createdAt
+        )
     }
 }
 

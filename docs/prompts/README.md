@@ -97,6 +97,7 @@ Prompt 文档不是单独产品决策源。如果 Prompt 引入新的产品能�
 - [One-Tap Learning Material Prompts](learning-material/one-tap-learning-material.md)：一键生成学习材料和重新分析当前学习文本的完整 Prompt、JSON schema、隐私边界和评测方式。
 - [Reading Selection Explanation Prompt](reading/selection-explanation.md)：阅读资料选区解释的完整 Prompt、JSON schema、显式触发条件和 selection-only 隐私边界。
 - [Practice Back-Translation Review Prompt](practice/backtranslation-review.md)：回译练习可选 AI 点评的完整 Prompt、无判定字段的 JSON schema、显式「请 AI 点评」触发条件、五字段发送范围和分隔符注入防御（E5 Slice 2）。
+- [Photo Writing Assist Prompt](photo-writing/photo-writing-assist.md)：照片写作 AI 看图辅助写作的完整 Prompt、写作提示 / 母语草稿两模式严格输出契约、显式「让 AI 看图帮我写」触发条件、脱敏图片 + 备注发送范围、图片适配 allowlist 和请求预览 / 日志边界。
 
 ## 8. 版本记录
 
@@ -107,3 +108,4 @@ Prompt 文档不是单独产品决策源。如果 Prompt 引入新的产品能�
 - 2026-05-25：补充 Prompt 文档必填字段、评测和变更规则。原因：参考 OpenWriter Prompt Registry 和 VMark 故障恢复矩阵后，真实 Prompt 需要更明确记录 id / version / schema、代码锚点、隐私等级、日志允许字段和测试文件。影响范围：Prompt Registry、AI service 测试、Data 映射测试和请求预览审查。是否需要 ADR：否。
 - 2026-06-01：登记阅读选区解释 Prompt。原因：Reading vertical slice 新增真实 Provider 请求，Prompt Registry 必须记录完整文案、结构化输出契约和 selection-only 隐私边界。影响范围：LangoTraceAI、Reading UI、AI Provider 隐私规范和 Reading spec。是否需要 ADR：否。
 - 2026-06-18：登记回译可选 AI 点评 Prompt（E5 Slice 2）。原因：回译练习新增显式触发的可选 AI 点评，真实发送用户作答给 Provider，需登记完整文案、无判定字段输出契约、五字段发送范围、分隔符注入防御和 E6 预览 / 日志边界。影响范围：LangoTraceAI、LangoTraceCore、LangoTraceUI、App Shell、Prompt Registry、spec 013、AI Provider 隐私规范。是否需要 ADR：否，沿用 ADR-005 与核心决策 10。
+- 2026-06-24：登记照片写作 AI 看图辅助写作 Prompt。原因：照片写作新增显式触发的看图辅助能力，是当前实现中第一个把照片内容发送给 Provider 的能力，需登记完整文案、写作提示 / 母语草稿两模式严格输出契约、脱敏图片 + 备注发送范围、分隔符注入防御、图片适配 allowlist 和请求预览 / 日志边界。影响范围：LangoTraceAI、LangoTraceCore、LangoTraceData、LangoTraceUI、App Shell、Prompt Registry、spec/005、platform-page-inventory、architecture/002-system-map。是否需要 ADR：否，沿用 ADR-005 与核心决策 10。

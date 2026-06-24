@@ -138,6 +138,70 @@ struct AIProviderTextRequestAdapterTests {
         #expect(responses["max_tokens"] == nil)
     }
 
+    @Test("chat structured-image body carries both an image part and a json_schema response_format")
+    func chatStructuredImageBodyShape() throws {
+        let adapter = OpenAICompatibleChatTextAdapter()
+        let body = try #require(adapter.structuredImagePromptBody(
+            model: "gpt-test",
+            system: "sys",
+            user: "usr",
+            temperature: 0.4,
+            structuredOutputName: "photo_writing_assist",
+            schema: ["type": "object"],
+            imageDataURL: "data:image/jpeg;base64,AAAA",
+            maximumOutputTokens: 700
+        ))
+        // Structured output is present (the gap P0-1 found in imagePromptBody).
+        let responseFormat = try #require(body["response_format"] as? [String: Any])
+        #expect(responseFormat["type"] as? String == "json_schema")
+        #expect((responseFormat["json_schema"] as? [String: Any])?["strict"] as? Bool == true)
+        // The image rides in the user message content parts.
+        let messages = try #require(body["messages"] as? [[String: Any]])
+        #expect(messages.first?["role"] as? String == "system")
+        let userContent = try #require(messages.last?["content"] as? [[String: Any]])
+        #expect(userContent.contains { $0["type"] as? String == "text" })
+        #expect(userContent.contains { $0["type"] as? String == "image_url" })
+        // A real-output token budget, not the probe's tiny ceiling.
+        #expect(body["max_tokens"] as? Int == 700)
+    }
+
+    @Test("responses structured-image body carries both an input_image and a text.format json_schema")
+    func responsesStructuredImageBodyShape() throws {
+        let adapter = OpenAIResponsesTextAdapter()
+        let body = try #require(adapter.structuredImagePromptBody(
+            model: "gpt-test",
+            system: "sys",
+            user: "usr",
+            temperature: 0.4,
+            structuredOutputName: "photo_writing_assist",
+            schema: ["type": "object"],
+            imageDataURL: "data:image/jpeg;base64,AAAA",
+            maximumOutputTokens: 700
+        ))
+        let format = try #require((body["text"] as? [String: Any])?["format"] as? [String: Any])
+        #expect(format["type"] as? String == "json_schema")
+        let input = try #require(body["input"] as? [[String: Any]])
+        let userContent = try #require(input.last?["content"] as? [[String: Any]])
+        #expect(userContent.contains { $0["type"] as? String == "input_text" })
+        #expect(userContent.contains { $0["type"] as? String == "input_image" })
+        #expect(body["max_output_tokens"] as? Int == 700)
+    }
+
+    @Test("mimo adapter has no structured-image body (excluded from v1 image matrix)")
+    func mimoHasNoStructuredImageBody() {
+        let body = MimoCompatibleChatTextAdapter().structuredImagePromptBody(
+            model: "m",
+            system: "s",
+            user: "u",
+            temperature: 0.2,
+            structuredOutputName: "x",
+            schema: ["type": "object"],
+            imageDataURL: "data:image/jpeg;base64,AAAA",
+            maximumOutputTokens: 700
+        )
+        #expect(body == nil)
+    }
+
     @Test("chat extractText reads choices[].message.content")
     func chatExtractText() throws {
         let adapter = OpenAICompatibleChatTextAdapter()

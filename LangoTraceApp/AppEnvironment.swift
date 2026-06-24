@@ -107,10 +107,12 @@ struct AppEnvironment {
             let database = try databaseFactory.database()
             let mediaRoot = try SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot()
             let fileStore = try LocalMediaArtifactFileStore(rootDirectory: mediaRoot)
-            let pipeline = PhotoImportPipeline(fileStore: fileStore, database: database)
-            photoWritingActions = PhotoWritingActions { data, entryID, spaceID in
-                _ = try pipeline.importPhoto(data: data, entryID: entryID, spaceID: spaceID)
-            }
+            photoWritingActions = PhotoWritingActionsAssembly.makeActions(
+                database: database,
+                fileStore: fileStore,
+                credentialStore: credentialStore,
+                aiRequestLogRecorder: aiRequestLogRecorder
+            )
         } catch {
             photoWritingActions = .disabled
             recordBootstrapComponentFailure(

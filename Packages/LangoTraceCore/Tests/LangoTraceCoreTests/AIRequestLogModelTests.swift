@@ -9,12 +9,13 @@ import Testing
 /// free-text content field.
 @Suite("AI request log + preview projection models")
 struct AIRequestLogModelTests {
-    @Test("capability vocabulary includes the two live paths and the reserved backtranslation seam")
+    @Test("capability vocabulary includes every live path including photo-writing assist")
     func capabilityVocabulary() {
         let all = Set(AIRequestCapability.allCases)
         #expect(all.contains(.learningMaterialGeneration))
         #expect(all.contains(.readingSelectionExplanation))
         #expect(all.contains(.practiceBacktranslationReview))
+        #expect(all.contains(.photoWritingAssist))
     }
 
     @Test("learning-material failure categories map onto the standing log buckets")

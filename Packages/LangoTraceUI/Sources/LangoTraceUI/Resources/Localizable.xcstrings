@@ -9409,18 +9409,18 @@
       }
     },
     "photoWriting.privacy.notice": {
-      "comment": "Privacy footer on the photo writing page — photo bytes stay local.",
+      "comment": "Privacy footer on the photo writing page — photo stays local by default and is only sent on the explicit AI assist action.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your photo stays on this device and is never sent to AI providers."
+            "value": "Your photo stays on this device by default. It is only sent to your AI provider when you tap to ask AI about this photo, and you will see what gets sent first."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "照片仅保存在本设备，不会发送给 AI Provider。"
+            "value": "照片默认仅保存在本设备；只有在你点按「让 AI 看图帮我写」时，这张照片才会发送给你的 AI Provider，发送前你会看到将发送的内容。"
           }
         }
       }
@@ -22453,6 +22453,311 @@
           "stringUnit": {
             "state": "translated",
             "value": "计算中…"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.button": {
+      "comment": "Button: explicitly ask AI to look at the photo and help write.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask AI about this photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让 AI 看图帮我写"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.mode.suggestions": {
+      "comment": "Assist mode: writing tips/suggestions.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Writing tips"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写作提示"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.mode.draft": {
+      "comment": "Assist mode: native-language draft to translate.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "母语草稿"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.confirm.title": {
+      "comment": "Confirmation title before sending the photo to the AI provider.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send this photo to your AI provider?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把这张照片发送给 AI Provider？"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.confirm.message": {
+      "comment": "Confirmation body: what will be sent.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your photo and your note will be sent to your AI provider to generate writing help. Nothing else is sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的照片和这段备注将发送给 AI Provider 以生成写作帮助，不会发送其它内容。"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.confirm.send": {
+      "comment": "Confirmation primary action: send.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.sending": {
+      "comment": "Status while the assist request is in flight.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asking AI…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在请求 AI……"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.adopt": {
+      "comment": "Button: adopt the native draft into the writing area.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "采用这段草稿"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.dismiss": {
+      "comment": "Button: dismiss the assist result panel.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.scene": {
+      "comment": "Result section: what the photo shows.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What's in the photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片内容"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.angles": {
+      "comment": "Result section: writing angles.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Writing angles"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写作角度"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.expressions": {
+      "comment": "Result section: useful target-language expressions.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Useful expressions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用表达"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.questions": {
+      "comment": "Result section: guiding questions.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guiding questions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引导问题"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.draft": {
+      "comment": "Result section: native-language draft to translate.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft to translate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待翻译草稿"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.vocab": {
+      "comment": "Result section: target-language vocabulary hints.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vocabulary hints"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "词汇提示"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.guidance.imageInputDisabled": {
+      "comment": "Guidance when the provider can take images but image input is not enabled.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on image input for this AI provider in Settings to use photo writing help."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先在设置中为该 AI Provider 开启图片输入，才能使用照片写作帮助。"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.error.generic": {
+      "comment": "Generic assist failure message.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't get writing help. Check your AI provider and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能获取写作帮助，请检查 AI Provider 后重试。"
+          }
+        }
+      }
+    },
+    "aiRequestLog.capability.photoWritingAssist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo writing assist"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片写作辅助"
           }
         }
       }

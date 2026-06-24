@@ -103,6 +103,25 @@ struct AIRequestLogRepositoryTests {
         #expect(scoped.isEmpty)
     }
 
+    @Test("photo-writing assist rows round-trip the new capability")
+    func photoWritingAssistRoundTrips() async throws {
+        let database = try AppDatabase.inMemory()
+        let repository = GRDBAIRequestLogRepository(database: database)
+        let entry = makeEntry(
+            id: "pw-1",
+            capability: .photoWritingAssist,
+            status: .failed,
+            failureBucket: .unsupported,
+            createdAt: Date(timeIntervalSince1970: 7)
+        )
+        try await repository.append(entry)
+
+        let scoped = try await repository.recent(capability: .photoWritingAssist, limit: 10)
+        #expect(scoped.count == 1)
+        #expect(scoped.first?.capability == .photoWritingAssist)
+        #expect(scoped.first == entry)
+    }
+
     @Test("a failed row persists its failure bucket")
     func failedRowPersistsBucket() async throws {
         let database = try AppDatabase.inMemory()

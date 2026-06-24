@@ -70,12 +70,47 @@ protocol AIProviderTextRequestAdapter: Sendable {
         maximumOutputTokens: Int
     ) -> [String: Any]
 
+    /// Body for a **structured-output (JSON schema) request that also carries one
+    /// inline image** — the contract the photo-writing assist capability needs.
+    ///
+    /// This is deliberately separate from `imagePromptBody` (which is plain-text,
+    /// schema-less, and capped at a tiny probe token budget) and from
+    /// `structuredCompletionBody` (which carries no image). Returns `nil` for
+    /// adapter kinds that do not support combining an image with structured
+    /// output; the photo-writing assist service treats `nil` as
+    /// "unsupported adapter" so support stays structural rather than implicit.
+    func structuredImagePromptBody(
+        model: String,
+        system: String,
+        user: String,
+        temperature: Double,
+        structuredOutputName: String,
+        schema: [String: Any],
+        imageDataURL: String,
+        maximumOutputTokens: Int
+    ) -> [String: Any]?
+
     /// Extracts model output text from a decoded response object, or `nil` when
     /// the payload carries no recognizable output text.
     func outputText(fromResponseObject object: [String: Any]) -> String?
 }
 
 extension AIProviderTextRequestAdapter {
+    /// Default: no structured-image support. Kinds that support it (OpenAI Chat /
+    /// Responses) override this; mimo and the reserved kinds inherit `nil`.
+    func structuredImagePromptBody(
+        model _: String,
+        system _: String,
+        user _: String,
+        temperature _: Double,
+        structuredOutputName _: String,
+        schema _: [String: Any],
+        imageDataURL _: String,
+        maximumOutputTokens _: Int
+    ) -> [String: Any]? {
+        nil
+    }
+
     /// Builds a finalized POST `URLRequest`: resolves the URL via the shared
     /// URL builder, sets JSON content type, injects the Bearer credential when
     /// present, serializes `body`, and applies the optional timeout.
@@ -179,6 +214,41 @@ struct OpenAICompatibleChatTextAdapter: AIProviderTextRequestAdapter {
         ]
     }
 
+    func structuredImagePromptBody(
+        model: String,
+        system: String,
+        user: String,
+        temperature: Double,
+        structuredOutputName: String,
+        schema: [String: Any],
+        imageDataURL: String,
+        maximumOutputTokens: Int
+    ) -> [String: Any]? {
+        [
+            "model": model,
+            "temperature": temperature,
+            "response_format": [
+                "type": "json_schema",
+                "json_schema": [
+                    "name": structuredOutputName,
+                    "strict": true,
+                    "schema": schema,
+                ],
+            ],
+            "messages": [
+                ["role": "system", "content": system],
+                [
+                    "role": "user",
+                    "content": [
+                        ["type": "text", "text": user],
+                        ["type": "image_url", "image_url": ["url": imageDataURL]],
+                    ],
+                ],
+            ],
+            "max_tokens": maximumOutputTokens,
+        ]
+    }
+
     func outputText(fromResponseObject object: [String: Any]) -> String? {
         OpenAICompatibleResponseTextParser.chatCompletionsText(fromResponseObject: object)
     }
@@ -237,6 +307,41 @@ struct OpenAIResponsesTextAdapter: AIProviderTextRequestAdapter {
                     "content": [
                         ["type": "input_text", "text": prompt],
                         ["type": "input_image", "image_url": imageDataURL, "detail": "low"],
+                    ],
+                ],
+            ],
+            "max_output_tokens": maximumOutputTokens,
+        ]
+    }
+
+    func structuredImagePromptBody(
+        model: String,
+        system: String,
+        user: String,
+        temperature: Double,
+        structuredOutputName: String,
+        schema: [String: Any],
+        imageDataURL: String,
+        maximumOutputTokens: Int
+    ) -> [String: Any]? {
+        [
+            "model": model,
+            "temperature": temperature,
+            "text": [
+                "format": [
+                    "type": "json_schema",
+                    "name": structuredOutputName,
+                    "strict": true,
+                    "schema": schema,
+                ],
+            ],
+            "input": [
+                ["role": "system", "content": system],
+                [
+                    "role": "user",
+                    "content": [
+                        ["type": "input_text", "text": user],
+                        ["type": "input_image", "image_url": imageDataURL],
                     ],
                 ],
             ],
