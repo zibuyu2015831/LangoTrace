@@ -210,6 +210,35 @@ public extension PracticeBacktranslationReviewServiceRequest {
     }
 }
 
+public extension PhotoWritingAssistServiceRequest {
+    /// Projection for a photo-writing assist request — the only capability whose
+    /// preview admits the photo (see `AIRequestPreviewProjection.photoWritingAssist`).
+    func previewProjection() -> AIRequestPreviewProjection {
+        .photoWritingAssist(
+            endpoint: endpoint,
+            lengthBucket: AIRequestLengthBucket(characterCount: input.userNote.count)
+        )
+    }
+
+    func makeLogEntry(id: String, outcome: AIRequestLogOutcome, createdAt: Date) -> AIRequestLogEntry {
+        AIRequestLogEntry(
+            id: id,
+            operationID: DiagnosticOperationID(rawValue: id),
+            capability: .photoWritingAssist,
+            providerPresetID: endpoint.providerPresetID,
+            endpointPurpose: endpoint.purpose,
+            adapterKind: endpoint.adapterKind,
+            modelName: endpoint.modelName,
+            promptID: PhotoWritingAssistPromptRegistry.promptID,
+            promptVersion: PhotoWritingAssistPromptRegistry.promptVersion,
+            inputLengthBucket: AIRequestLengthBucket(characterCount: input.userNote.count),
+            status: outcome.status,
+            failureBucket: outcome.failureBucket,
+            createdAt: createdAt
+        )
+    }
+}
+
 /// Shared learning-material metadata for building a log row from either the
 /// generation or analysis request without a long parameter list.
 private struct LearningMaterialLogContext {
