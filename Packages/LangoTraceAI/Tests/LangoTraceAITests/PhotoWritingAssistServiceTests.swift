@@ -109,14 +109,14 @@ struct PhotoWritingAssistServiceTests {
 
     @Test("chat request carries the image and structured schema and parses writing suggestions")
     func chatRequestCarriesImageAndParsesSuggestions() async throws {
-        let httpClient = CapturingPhotoAssistHTTPClient(responses: [
-            .success(AIProviderHTTPResponse(statusCode: 200, body: try chatResponse(suggestionsJSON()))),
+        let httpClient = try CapturingPhotoAssistHTTPClient(responses: [
+            .success(AIProviderHTTPResponse(statusCode: 200, body: chatResponse(suggestionsJSON()))),
         ])
         let service = PhotoWritingAssistService(httpClient: httpClient)
         let result = try await service.assist(request(adapterKind: .openAICompatibleChat, mode: .writingSuggestions))
 
         // The outbound body combines an image part with a json_schema response_format.
-        let body = try #require(decodedObject(await httpClient.lastBodyData()))
+        let body = try #require(await decodedObject(httpClient.lastBodyData()))
         let messages = try #require(body["messages"] as? [[String: Any]])
         let userContent = try #require(messages.last?["content"] as? [[String: Any]])
         #expect(userContent.contains { $0["type"] as? String == "image_url" })
@@ -133,13 +133,13 @@ struct PhotoWritingAssistServiceTests {
 
     @Test("responses request parses a native-language draft")
     func responsesRequestParsesDraft() async throws {
-        let httpClient = CapturingPhotoAssistHTTPClient(responses: [
-            .success(AIProviderHTTPResponse(statusCode: 200, body: try responsesResponse(draftJSON()))),
+        let httpClient = try CapturingPhotoAssistHTTPClient(responses: [
+            .success(AIProviderHTTPResponse(statusCode: 200, body: responsesResponse(draftJSON()))),
         ])
         let service = PhotoWritingAssistService(httpClient: httpClient)
         let result = try await service.assist(request(adapterKind: .openAIResponses, mode: .sourceLanguageDraft))
 
-        let body = try #require(decodedObject(await httpClient.lastBodyData()))
+        let body = try #require(await decodedObject(httpClient.lastBodyData()))
         let input = try #require(body["input"] as? [[String: Any]])
         let userContent = try #require(input.last?["content"] as? [[String: Any]])
         #expect(userContent.contains { $0["type"] as? String == "input_image" })
