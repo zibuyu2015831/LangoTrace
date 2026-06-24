@@ -4,15 +4,20 @@ import Foundation
 /// preview projection and request log this module models (系列 E6).
 ///
 /// Closed set: extending it requires a deliberate new case plus a projection
-/// function in the owning service (see `LangoTraceAI`). The reserved
-/// `practiceBacktranslationReview` case has no projection function yet — it is
-/// the seam E5 Slice 2 (回译 AI 点评) plugs into without reshaping this contract.
+/// function in the owning service (see `LangoTraceAI`). Every case below has a
+/// live projection function.
 public enum AIRequestCapability: String, Codable, CaseIterable, Equatable, Sendable {
     case learningMaterialGeneration
     case readingSelectionExplanation
-    /// Reserved for E5 Slice 2; plugs into the existing
+    /// Back-translation critique; plugs into the existing
     /// `PracticeMode.backtranslation` practice seam.
     case practiceBacktranslationReview
+    /// Photo-writing AI assist (看图辅助写作). The *only* capability whose
+    /// projection includes `photoAttachments`: a photo enters an outbound AI
+    /// request solely through this explicit, user-triggered action. All other
+    /// capabilities keep excluding photos (see `LangoTraceAI`
+    /// `alwaysExcludedContent`).
+    case photoWritingAssist
 }
 
 /// Closed vocabulary describing *categories* of content a request includes or
