@@ -138,6 +138,11 @@
   .gear-bare { width: 40px; height: 40px; border: 0; background: transparent; box-shadow: none; color: var(--muted); }
   .lang-mono { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 0; background: transparent; box-shadow: none; color: var(--ink-2); font-size: var(--fs-title3); font-weight: 700; }
 
+  /* —— 第四轮：只保留语种 + 描边紧凑 tag —— */
+  .cap-tag { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 0 12px; height: 34px; border: 1px solid var(--hairline); background: transparent; box-shadow: none; border-radius: var(--r-pill); font-size: var(--fs-sub); font-weight: 620; color: var(--ink-2); }
+  .cap-tag .chev { color: var(--faint); display: inline-flex; }
+  .gear-tag { width: 34px; height: 34px; min-width: 34px; border: 1px solid var(--hairline); background: transparent; box-shadow: none; color: var(--ink-2); border-radius: 50%; }
+
   /* —— 语言标签文案对比（自然语言 vs 代码） —— */
   .chip-compare { display: flex; flex-wrap: wrap; gap: 16px; }
   .chip-compare .cc { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 16px 16px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--hairline); box-shadow: var(--shadow-card); width: 178px; }
@@ -511,6 +516,83 @@
     </div>
   </div>
 
+  <h2 class="harmony-h">第四轮 · 只保留语种「英语」+ 紧凑对称</h2>
+  <p class="proto-note">
+    第四轮提案：语言只保留语种「英语」、去掉「· B1」，文本居中、加一圈描边 + 左右内边距，让它收成一枚和齿轮差不多大的小 tag，左右更协调。<strong>关键事实</strong>：spec/002 §54 / §157 写的是「<strong>例如</strong> <code>英语 · B1</code>」——「例如」是举例不是强制，去掉等级在 spec 允许范围内（落地时同步把示例文案改成「英语」）。一门空间只对应一门语言（核心决策 #4），所以「英语」已能唯一标识当前空间，「B1」是少变的水平自评、对切换帮助有限。真正要权衡的是「描边」：第二轮你嫌双描边繁杂的根因是<strong>宽胶囊</strong>叠在卡片描边上；缩短为「英语」后描边的繁杂感大幅下降，但若只给 chip 描边、齿轮裸露，又会回到第一轮「形与重不统一」。下面把你的写法和它的两个邻居并排：
+  </p>
+  <div class="proto-stage harmony-stage">
+
+    <!-- V1 你的提案：描边 tag + 裸齿轮 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot bad"></span>V1 · 描边 tag + 裸齿轮（你的写法）<span class="sub">语汇不一致</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-tag">英语 <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
+          <span class="vtitle center">记录</span>
+          <button class="icon-btn gear-bare" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">「英语」收成描边 tag、与齿轮宽度接近，左侧确实更紧凑。但 chip 有描边、齿轮裸露 → 两个控件语汇不一致（第一轮「形与重不统一」原样回来）；且这唯一一圈描边孤零零叠在下方卡片描边上，显得是个"被忘了删的边框"。</div>
+      </div>
+    </div>
+
+    <!-- V2 一致：双描边 tag（对称） -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>V2 · 双描边 tag · 对称<span class="sub">语汇一致 · 真正平衡</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-tag">英语 <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
+          <span class="vtitle center">记录</span>
+          <button class="icon-btn gear-tag" aria-label="设置"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">把你的「描边 tag」诉求贯彻到底：齿轮也收进同款描边圆，两侧成对、同高、同 hairline，对称夹住居中标题——这才是「描边 + 协调」的一致解。代价：导航栏又出现两圈描边（比第二轮的宽胶囊轻得多，但仍非零描边）；这正是第二轮想避开的方向。</div>
+      </div>
+    </div>
+
+    <!-- V3 反建议：去描边 + 只保留语种 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>V3 · 去描边「英语」（反建议 · 推荐）<span class="sub">零描边 · 自然变短</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-bare">英语 <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
+          <span class="vtitle anchor">记录</span>
+          <button class="icon-btn gear-bare" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">采纳你「去 B1」的判断，但不加描边：仅「英语 ⌄」三字本身就比「英语 · B1」短一截，已自然靠近齿轮的视觉体量；两侧仍是同款裸控件、零描边，把描边语汇完整留给下方卡片。既满足你「更协调」的诉求，又延续第二轮「最克制」的共识——同时改动最小（当前实现只删 ` · B1` 即可）。</div>
+      </div>
+    </div>
+
+  </div>
+
   <div class="proto-annotations">
     <h2>评审结论与修订</h2>
     <ul>
@@ -519,7 +601,8 @@
       <li><strong>保留 inline 标题</strong>：导航栏中央保留「记录 / 阅读 / 练习 / 记忆」，既给页面身份，又给 push 详情页的返回标签；标题绝对居中、加重为锚点（weight 700），不被左侧胶囊带偏。</li>
       <li><strong>三元素协调（采纳方向 B · 统一描边控件）</strong>：语言胶囊与设置齿轮统一为同一描边控件家族——同高、同 1px hairline、无阴影、同 pill 圆角，成对称双控件夹住居中标题；去掉胶囊的地球图标（「中文 → 英语」已表达语言含义，图标冗余）并压缩胶囊宽度，让标题真正居中。解决原先「主次压反 / 形与重不统一 / 居中被带偏」三处不协调。备选 A（降权胶囊）会让胶囊过淡、削弱语言切换入口可发现性；C（accent 绿文字入口）占用 accent 绿，违反「accent 只表示可操作 / 主动作」语义，均不采纳。</li>
       <li><strong>一致性</strong>：四 tab（含阅读）共用同一套导航栏修饰符，结构上不可能再漏齿轮；设置详情页用 <code>showsContextHeader: false</code> 门控，不注入胶囊/齿轮。</li>
-      <li><strong>最终采纳（第二/三轮 → 方向 A · 去边框 + 紧凑目标语）</strong>：双描边过繁杂、不够克制，且左右失衡。最终改为<strong>两侧均去描边</strong>（描边语汇留给内容卡），语言显示 spec/002 §54 / §157 的 <code>英语 · B1</code>（目标语 + 等级）+ 下拉指示，齿轮为裸图标；左右平衡靠「同样低对比」而非等宽。否决语种代码：<code>cn</code> 是国家码（语种码应为 <code>zh</code>）、混用不一致，且代码冷感与产品暖调 / spec 冲突。完整 <code>中文 -> 英语 · B1</code> 仅作 VoiceOver value。</li>
+      <li><strong>第二/三轮 → 方向 A · 去边框</strong>：双描边过繁杂、不够克制，且左右失衡。改为<strong>两侧均去描边</strong>（描边语汇留给内容卡），齿轮为裸图标；左右平衡靠「同样低对比」而非等宽。否决语种代码：<code>cn</code> 是国家码（语种码应为 <code>zh</code>）、混用不一致，且代码冷感与产品暖调 / spec 冲突。</li>
+      <li><strong>最终采纳（第四轮 → V3 · 仅目标语言 + 不加描边）</strong>：用户提出去 B1 + 加描边收成小 tag。采纳「去 B1 不加描边」：语言收敛为 <code>英语</code>（仅目标语言），缩短后左侧体量自然靠近齿轮、协调感无需描边即可达成，延续第二轮零描边共识。否决加描边：V1（chip 描边 + 齿轮裸露）语汇不一致，V2（两边都描边）重现双描边。去 B1 依据：spec §54 / §157 写「例如 英语 · B1」为举例，且一门空间一门语言（核心决策 #4），目标语言已唯一标识当前空间。完整 <code>中文 -> 英语 · B1</code> 仅作 VoiceOver value。</li>
       <li><strong>权威边界</strong>：本原型是设计基准与评审证据，不是实现事实源；落地以 active plan 与 spec/002 §54-55、spec/003 §143 为准。</li>
     </ul>
   </div>

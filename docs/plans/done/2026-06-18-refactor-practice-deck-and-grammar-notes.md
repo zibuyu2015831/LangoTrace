@@ -1,10 +1,10 @@
 # 跟读页两处优化：底部控制台去冗余边框 + 修复讲解笔记生成链路
 
-状态：Implemented
+状态：Verified
 自审核状态：Reviewed
 类型：refactor（UI + AI/Prompt）
 创建日期：2026-06-18
-最后更新日期：2026-06-18
+最后更新日期：2026-06-24（CI `Build & Test` run 27771443586 全绿、PR #2 合并 dev 60e0454、用户验收后归档 done/）
 代码快照（创建时）：`0469c98373d1a0a673b2e027b7d6e809cccdd7d6`
 关联分支：`refactor/practice-deck-and-grammar-notes`（PR 合并到 `dev`）
 
@@ -74,3 +74,4 @@ iPhone 17 模拟器验收跟读单句页后，用户提出两点：
 - CI：PR #2 `Build & Test` run `27771443586` 成功（三端 build + UI 单包 + 全量测试 + lint 全绿）。
 - 合并：PR #2 经绿勾合并到 `dev`，merge commit `60e0454`，feature 分支已删。
 - 视觉验收：iPhone 17 模拟器已重建 + 重装，交由用户人工验收（控制台无内描边、间距正常；对已重新生成含讲解的材料出现「查看讲解」）。验收通过后将本方案移入 `docs/plans/done/`。
+- 收口（2026-06-24）：用户指示归档开发完整的 active 方案，作为验收 / 收口信号；状态 → `Verified`，方案移入 `docs/plans/done/`。

@@ -1,10 +1,10 @@
 # 记录详情页信息架构重构 + 双语沉浸阅读页 + 手动重生成
 
-状态：Implemented
+状态：Verified
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-19
-最后更新日期：2026-06-19
+最后更新日期：2026-06-24（PR #3 合并 dev bfe2a88、CI 全绿、平台页面清单双语阅读页条目已落、用户验收后归档 done/）
 
 ## 用户确认记录
 
@@ -309,3 +309,10 @@ scope 取舍：未单独建 `EntryReadingRouteSeed` 结构——路由只带 `en
 - Phase 3 连续播放的并发正确性已用 Core 纯状态机 + store fake-actions 单测覆盖（自动续播、tap 取消、stop 失活），但**真机/模拟器逐句 TTS 连播体验、跨页停止、duration-fallback 时序**仍需人工验收；本机不跑重测试，三端构建与 `verify.sh` 待 CI。
 - `LearningContentStore.swift` 因新增续播编排超过 swiftlint file_length(600)/type_body_length(300) 阈值（非阻断警告）；后续可拆 `LearningContentStore+SentenceAudio.swift`（需将相关 private 成员放宽到 internal）。
 - 待办：更新 `docs/platform-page-inventory.md` 增加 entry 双语阅读页条目与详情页结构变化（文档影响检查项，随收口完成）。
+
+## 收口记录（2026-06-24）
+
+- 正文 Phase 1/2/3 中「全量 verify.sh / 三端构建待 CI」均已由 **PR #3（merge commit `bfe2a88`）的 `Build & Test` 绿勾承载**并合并入 `dev`（三端 build + 全量单包测试 + lint）。
+- 文档影响检查待办已完成：`docs/platform-page-inventory.md` 已新增「双语沉浸阅读页」条目（L51）并更新「记录详情」行结构与变更日志（L50 / L256）。
+- 用户于 2026-06-24 指示「逐一检查 active 方案，开发完整的归档」，作为视觉验收 / 收口信号；状态推进至 `Verified`，方案移入 `docs/plans/done/`。
+- 剩余风险中「真机逐句连播体验、duration-fallback 时序、三端大屏布局人工验收」为非阻断的后续观察项，不阻挡归档。

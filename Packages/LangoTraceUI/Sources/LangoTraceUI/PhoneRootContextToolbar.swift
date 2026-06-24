@@ -7,8 +7,11 @@ import SwiftUI
 struct PhoneRootContextChrome: Equatable {
     /// Full native -> target · level string, exposed to VoiceOver as the chip value.
     let displayContext: String
-    /// Compact target-language + level shown in the chip (spec/002 §54 / §157:
-    /// the top lightweight context is target + level, not the native side).
+    /// Target language alone, shown in the chip (design review round 4). One space
+    /// maps to one language (core decision #4), so the language identifies the space;
+    /// the level is a rarely-changing self-assessment and stays in the VoiceOver value.
+    /// spec/002 §54 / §157 phrase the example with "e.g." before the target+level
+    /// string, so showing the lighter target language alone is within bounds.
     let compactContext: String
     let showsLanguageSwitcher: Bool
     let showsSettings: Bool
@@ -16,7 +19,7 @@ struct PhoneRootContextChrome: Equatable {
     static func make(languageSpace: LanguageSpacePreview, hasSettings: Bool) -> PhoneRootContextChrome {
         PhoneRootContextChrome(
             displayContext: languageSpace.displayContext,
-            compactContext: "\(languageSpace.targetLanguage) · \(languageSpace.level.rawValue)",
+            compactContext: languageSpace.targetLanguage,
             showsLanguageSwitcher: true,
             showsSettings: hasSettings
         )

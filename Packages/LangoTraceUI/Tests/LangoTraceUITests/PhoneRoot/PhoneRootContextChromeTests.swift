@@ -24,14 +24,19 @@ struct PhoneRootContextChromeTests {
         #expect(chrome.displayContext == space.displayContext)
     }
 
-    @Test("Chrome compact context is target language plus level (spec/002 §54)")
-    func chromeCompactContextIsTargetPlusLevel() {
+    @Test("Chrome compact context is the target language alone (round 4: level dropped from the chip)")
+    func chromeCompactContextIsTargetLanguageOnly() {
         let space = makeSpace()
         let chrome = PhoneRootContextChrome.make(languageSpace: space, hasSettings: true)
 
-        #expect(chrome.compactContext == "\(space.targetLanguage) · \(space.level.rawValue)")
-        #expect(chrome.compactContext == "英语 · B1")
-        // The full native -> target context is still available for VoiceOver.
+        // The nav-bar chip shows only the target language — one space maps to one
+        // language (core decision #4), so the language alone identifies the space.
+        // The level (B1) is a rarely-changing self-assessment and is intentionally
+        // omitted here; spec/002 §54 / §157 phrase the example as "例如 英语 · B1".
+        #expect(chrome.compactContext == space.targetLanguage)
+        #expect(chrome.compactContext == "英语")
+        #expect(!chrome.compactContext.contains(space.level.rawValue))
+        // The full native -> target · level context is still available for VoiceOver.
         #expect(chrome.displayContext == space.displayContext)
     }
 

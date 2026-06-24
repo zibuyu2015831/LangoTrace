@@ -1,10 +1,10 @@
 # iPhone 四 tab 统一导航栏上下文条（语言胶囊 + 设置齿轮）
 
-状态：User Approved
+状态：Verified
 自审核状态：Reviewed
 类型：refactor
 创建日期：2026-06-20
-最后更新日期：2026-06-20
+最后更新日期：2026-06-24（四轮设计迭代落地、CI run 27841912873 全绿、第四轮「仅目标语言」代码 + spec/清单同步随归档 commit 提交，移入 done/）
 
 ## 用户确认记录
 
@@ -229,6 +229,15 @@ CI：commit `5f96601` 经 `gh workflow run ci.yml --ref dev`（workflow_dispatch
 - 代码改动：`PhoneRootContextChrome` 新增 `compactContext`（目标语 + 等级纯函数投影，单测覆盖）；`PhoneLanguageSpaceChip` 改为 `label + accessibilityContext`（紧凑文字 + `chevron.down` 指示，`textSecondary` 低对比，`fixedSize` 防截断）；`PhoneSettingsGearButton` 改为裸 `gearshape` 图标；移除 `PhoneRootControlSurface` 描边修饰符。
 - 验证：`swift test --package-path Packages/LangoTraceUI` 557 passed（新增 compactContext 用例）；`swiftformat --lint` 0；本地 `xcodebuild` 构建成功并装入模拟器。**待办**：记录 tab 实机深色截图未取——重装后模拟器回到首启 onboarding（数据被清），本机无 headless 点按工具（cliclick/idb 缺失）无法自动走完引导；设计形态已在原型 R1 验证，实机活动截图待人工走完 onboarding 后补。
 
+2026-06-20 第四轮设计迭代（顶部语言收敛为仅目标语言，采纳 V3）：实机截图（用户提供，浅色态记录 tab，语言显示 `英语 · B1`）后，用户提出「只保留语种『英语』、去掉 B1、文本居中、加描边 + 左右内边距收成小 tag」以求左右更协调。设计评审（原型新增「第四轮 · 只保留语种 + 紧凑对称」三方向对比，证据见 `prototypes/archive/record-header-review/`）：
+
+- **采纳 V3（去 B1 但不加描边）**：缩短为 `英语` 后左侧体量自然靠近齿轮，协调感无需描边即可达成，延续第二轮「零描边最克制」共识，与产品克制 / 简约理念一致，且改动最小（删 ` · B1`）。
+- **否决加描边**：V1（chip 描边 + 齿轮裸露）回到第一轮「形与重不统一」语汇不一致；V2（两边都描边对称）虽一致但导航栏重现双描边，正是第二轮要避开的方向。
+- **去 B1 的依据**：spec/002 §54 / §157 原写「**例如** `英语 · B1`」——「例如」为举例非强制；一门空间只对应一门语言（核心决策 #4），目标语言已唯一标识当前空间，等级是少变水平自评，对切换帮助有限。
+- 代码改动：`PhoneRootContextChrome.compactContext` 由 `目标语 · 等级` 改为仅 `targetLanguage`；完整 `中文 -> 英语 · B1` 仍为 `accessibilityValue`；单测改为断言 `compactContext == targetLanguage` 且不含 `level.rawValue`；源码注释去 Han（命中 Han 守卫后改 ASCII）。
+- 文档同步：spec/002 §54 sketch + §157 措辞改为「仅目标语言」，并加 2026-06-20 changelog；平台页面清单 chrome 行 + changelog 同步。
+- 验证：`swift test --package-path Packages/LangoTraceUI` 557 passed（含 Han 守卫）；`swiftformat --lint` 0；`scripts/check-docs.sh` ok。**待办仍延续**：实机深色截图未取（onboarding 被清 + 无 headless 点按）。
+
 ## 完成标准
 
 - 上述五个先失败用例转绿。
@@ -243,3 +252,10 @@ CI：commit `5f96601` 经 `gh workflow run ci.yml --ref dev`（workflow_dispatch
 - 宽语言胶囊在 toolbar leading 的截断行为已在 iPhone 17 模拟器复现（首版截断成单字）并修复（`.fixedSize(horizontal:true, vertical:false)` 保本征宽度）；当前 `中文 -> 英语 · B1` 完整显示无重叠。**剩余隐患**：英文界面下长母语显示名（如 `Simplified Chinese -> English · B1`）配 `.fixedSize` 可能反向挤压居中标题，需在英文 locale 模拟器复验；若挤压，按 spec/002 §54「英语 · B1」收敛为目标语言 + 等级紧凑形式。
 - `PhoneRootContextChrome` 单元测试覆盖 presentation 模型，不覆盖 SwiftUI toolbar 真实渲染与挤压判断，靠人工验收补充（已在 TDD 章节声明）。
 - `SettingsView` 与三个根 tab 共用 `PhonePage`，门控逻辑必须随未来新增 `PhonePage` 调用点复查，避免再次出现「共享容器行为外溢」。
+
+## 收口记录（2026-06-24）
+
+- 方案经四轮设计迭代全部落地：方向 B 统一上下文条 → 去边框克制化 → 仅目标语言收敛。代码（`PhoneRootContextToolbar.swift` + 退役 `PhoneContextHeader.swift`）、TDD（`PhoneRootContextChromeTests`）、spec/002 §54·§157、`platform-page-inventory.md` chrome 行均已同步。
+- 验证：`swift test --package-path Packages/LangoTraceUI` 557 passed、`swiftformat --lint` 0、`swiftlint` 0 serious、`scripts/check-docs.sh` ok；CI `Build & Test` run 27841912873 全绿（前三轮）。第四轮「仅目标语言」为 rendering-only 文案收敛 + 单测断言调整，随本归档 commit 一并提交（不改 schema / 不反转决策，单测同步更新为断言 `compactContext == targetLanguage`）。
+- 用户于 2026-06-24 确认本方案已完成并指示归档；状态 → `Verified`，移入 `docs/plans/done/`。
+- 非阻断后续观察项（不阻挡归档）：记录 tab 深色态实机活动截图未取（重装后 onboarding 数据被清 + 本机无 headless 点按工具），设计形态已在 `prototypes/archive/record-header-review/` 原型验证；英文 locale 下长母语名 + `.fixedSize` 是否反挤居中标题，留待英文环境模拟器复验。

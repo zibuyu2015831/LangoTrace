@@ -1,10 +1,10 @@
 # 任务方案：练习跟读单句页改为「句子舞台 + 底部控制台」布局
 
-状态：Implemented
+状态：Verified
 自审核状态：Reviewed
 类型：refactor
 创建日期：2026-06-18
-最后更新日期：2026-06-18
+最后更新日期：2026-06-24（CI `Build & Test` run 27767341820 全绿、PR #1 合并 dev 692039c、用户验收后归档 done/）
 
 ## 用户确认记录
 
@@ -300,3 +300,9 @@ swift test --package-path Packages/LangoTraceUI
 - VoiceOver 线性顺序因 deck 重排为 stage → control → nav，需人工验收盲用流程。
 - layout 决策模型锁定意图，不保证像素级居中；视觉回归依赖截图。
 - convergence / copy / appearance 测试为源码字符串断言，结构调整后需人工确保断言反映真实新结构而非被机械放宽。
+
+## 收口记录（2026-06-24）
+
+- 重测试已由 **PR #1（merge commit `692039c`）的 `Build & Test` 绿勾**（run `27767341820`）承载并合并入 `dev`；本机轻量自查（swiftformat / swiftlint / check-docs）已过。
+- 文档影响检查已完成：`docs/platform-page-inventory.md` L54 跟读单句页结构已更新（句子舞台 + 底部停靠控制台）。
+- 用户于 2026-06-24 指示归档开发完整的 active 方案，作为视觉验收 / 收口信号；状态 → `Verified`，方案移入 `docs/plans/done/`。iPad / macOS 大屏布局人工验收为非阻断后续观察项。
