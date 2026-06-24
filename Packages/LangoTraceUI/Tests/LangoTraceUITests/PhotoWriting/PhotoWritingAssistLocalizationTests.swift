@@ -3,8 +3,9 @@ import Foundation
 import Testing
 
 /// Guards the photo-writing assist localization keys and — critically — that the
-/// privacy notice no longer makes an unconditional "never sent" promise now that
-/// the explicit assist action does send the photo (self-review P1-2 atomicity).
+/// privacy disclosure now lives in the pre-send confirmation dialog. The always-on
+/// in-page banner was removed for a cleaner page, so the confirmation message is the
+/// single place the send scope is disclosed before the photo leaves the device.
 @Suite("Photo-writing assist localization")
 struct PhotoWritingAssistLocalizationTests {
     private let requiredAssistKeys = [
@@ -37,22 +38,25 @@ struct PhotoWritingAssistLocalizationTests {
         }
     }
 
-    @Test("the privacy notice no longer promises the photo is never sent")
-    func privacyNoticeNoLongerUnconditional() throws {
+    @Test("the always-on in-page privacy banner key is gone")
+    func standalonePrivacyNoticeRemoved() throws {
         let strings = try catalogStrings()
-        let values = try localizedValues(localizations(for: "photoWriting.privacy.notice", in: strings))
+        #expect(strings["photoWriting.privacy.notice"] == nil)
+    }
+
+    @Test("the pre-send confirmation discloses the photo send scope")
+    func confirmationMessageDisclosesSendScope() throws {
+        let strings = try catalogStrings()
+        let values = try localizedValues(localizations(for: "photoWriting.assist.confirm.message", in: strings))
         let byLocale = Dictionary(uniqueKeysWithValues: values)
 
         let zh = try #require(byLocale["zh-Hans"])
-        // The old unconditional promise must be gone...
-        #expect(!zh.contains("不会发送给 AI Provider。"))
-        // ...replaced by per-action accurate copy.
-        #expect(zh.contains("默认"))
-        #expect(zh.contains("看图") || zh.contains("发送给"))
+        #expect(zh.contains("照片"))
+        #expect(zh.contains("发送"))
 
         let en = try #require(byLocale["en"])
-        #expect(!en.localizedCaseInsensitiveContains("never sent to AI"))
-        #expect(en.localizedCaseInsensitiveContains("only sent"))
+        #expect(en.localizedCaseInsensitiveContains("photo"))
+        #expect(en.localizedCaseInsensitiveContains("sent"))
     }
 
     // MARK: - Helpers

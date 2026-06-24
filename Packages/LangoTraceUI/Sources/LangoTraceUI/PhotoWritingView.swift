@@ -43,7 +43,6 @@ struct PhotoWritingView: View {
                     }
                     writingArea
                     assistSection
-                    privacyNotice
                 }
                 .padding(20)
             }
@@ -187,17 +186,6 @@ struct PhotoWritingView: View {
             }
         }
         .langoPanel(padding: 10)
-    }
-
-    private var privacyNotice: some View {
-        Label {
-            localizedText("photoWriting.privacy.notice")
-        } icon: {
-            Image(systemName: "lock")
-        }
-        .font(.footnote.weight(.medium))
-        .foregroundStyle(LangoTraceDesign.ColorToken.privacyLocal)
-        .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: - AI assist

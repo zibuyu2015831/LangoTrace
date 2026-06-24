@@ -9408,23 +9408,6 @@
         }
       }
     },
-    "photoWriting.privacy.notice": {
-      "comment": "Privacy footer on the photo writing page — photo stays local by default and is only sent on the explicit AI assist action.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your photo stays on this device by default. It is only sent to your AI provider when you tap to ask AI about this photo, and you will see what gets sent first."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "照片默认仅保存在本设备；只有在你点按「让 AI 看图帮我写」时，这张照片才会发送给你的 AI Provider，发送前你会看到将发送的内容。"
-          }
-        }
-      }
-    },
     "photoWriting.startWithPhoto": {
       "comment": "Hero secondary action for starting a photo-writing mock flow.",
       "localizations": {
