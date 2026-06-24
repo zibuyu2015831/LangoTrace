@@ -283,7 +283,11 @@ scripts/check-docs.sh
 
 - **Phase 0（commit b5df95c）**：Core 新增 `AIRequestCapability.photoWritingAssist` + `AIRequestPreviewProjection.photoWritingAssist(endpoint:lengthBucket:)`（唯一 included 含 `.photoAttachments`，excluded 由 `alwaysExcludedContent` 去掉照片派生）；更正过期注释；回归测试锁定四条现存投影仍排除照片。验证：`swift test` Core 238、AI 165 全绿。
 - **Phase 1（commit c04c5bb）**：adapter 新增 `structuredImagePromptBody`（Chat/Responses 图片 + json_schema；协议默认 nil 使 mimo/未来 kind 结构性不支持）；新增 `PhotoWritingAssistService`（单 prompt + mode 两份 strict schema、门控顺序、结构化解析）；`SanitizedAIImage` 为 AI 边界唯一图片形态；`AIProviderImageSupport` 单一 allowlist 供 probe/assist 共用；Core 失败桶映射。验证：Core 238、AI 180 全绿。
-- **Phase 2（本提交）**：Data 新增 `AIImageSanitizer.sanitizeForAI`（降采样 maxEdge 1024 + JPEG 质量回退至字节预算；ImageIO 缩略图重渲染天然剥离 EXIF/GPS），单一脱敏入口（P1-1）；`ai_request_logs` 经 rawValue 自动支持新 capability（新增 round-trip 测试，无需 schema 变更）。验证：Data 241 全绿。
+- **Phase 2（commit ec2e26f）**：Data 新增 `AIImageSanitizer.sanitizeForAI`（降采样 maxEdge 1024 + JPEG 质量回退至字节预算；ImageIO 缩略图重渲染天然剥离 EXIF/GPS），单一脱敏入口（P1-1）；`ai_request_logs` 经 rawValue 自动支持新 capability（新增 round-trip 测试，无需 schema 变更）。验证：Data 241 全绿。
+- **Phase 3（commit 05ce771）**：照片写作页新增显式「让 AI 看图帮我写」动作（模式切换 + 发送前确认 + 非破坏性结果面板 + 未启用图片输入引导态）；`PhotoWritingAssistViewModel` 状态机带 generation 令牌防陈旧任务回写（P1-7），脱敏单一入口经 `actions.sanitizeImage`、View 不直发原始字节（P1-2，seam 测试断言）；隐私文案改为分动作准确表述；App Shell `PhotoWritingActionsAssembly` 接 `AIImageSanitizer` + `PhotoWritingAssistService` + 端点解析 + `ai_request_logs`。验证：Core 238、AI 180、Data 241、UI 566 全绿；改动文件 `swiftformat --lint` 0、`swiftlint` 仅 warning（与既有 adapter 同类，CI 无 `--strict`）、Han 守卫通过。
+- **Phase 4（本提交）**：文档写回——spec/005（§3 强制规则 + §4.8 新边界 + 变更记录）、platform-page-inventory（L46 行 + 变更记录）、新建 `docs/prompts/photo-writing/photo-writing-assist.md` + README 索引、ADR-005 复审记录（不反转）、architecture/002-system-map §4.8「照片 → AI」数据流。`scripts/check-docs.sh` 通过。全量验证（三端构建 + LangoTraceAppTests + verify.sh）走 GitHub Actions（PR + Build & Test 绿勾）。
+
+> 说明：App-Shell（`PhotoWritingActionsAssembly`、`AppEnvironment` 接线）按 CLAUDE.md §1.4 不在本机做重 xcodebuild，由 CI 的三端构建 + `LangoTraceAppTests` 验证；其代码严格镜像现有 `makeReviewBacktranslation` 的端点解析 / secret / 日志范式。
 
 ### Deferred（v1 不实现，已记录入口，非静默裁剪）
 

@@ -228,6 +228,18 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 
 这些能力不得在当前文档、UI 或计划中写成已完成。
 
+### 4.8 照片写作 AI 看图辅助写作（首个照片 → AI 请求边界）
+
+这是当前实现中第一个把**照片内容**纳入 AI 请求边界的数据流，且是该边界的唯一入口：
+
+1. 用户在照片写作页选好照片后，显式点击「让 AI 看图帮我写」并经发送前确认（核心决策 #10；选取 / 滚动 / 写正文 / 保存 / 进入详情都不触发）。
+2. `PhotoWritingAssistViewModel` 先调用 `PhotoWritingActions.sanitizeImage`（App Shell 接 `LangoTraceData` 的 `AIImageSanitizer`）把原始 PhotosPicker 字节降采样到 max edge 1024 + 再次剥离 EXIF/GPS，产出 `SanitizedAIImage`；View 不得把原始字节直接交给请求层（脱敏单一入口）。
+3. App Shell `PhotoWritingActionsAssembly` 解析默认 text endpoint + Keychain secret，构造 `PhotoWritingAssistService`（`LangoTraceAI`）请求：经 `structuredImagePromptBody`（图片 + json_schema，仅 OpenAI 兼容 Chat / Responses；门控顺序 `supportsImageInput → imageInputEnabled → AIProviderImageSupport allowlist`）发送，按 `mode` 解析两份严格 schema。
+4. 请求经 `ai_request_logs`（capability=`photoWritingAssist`）写非敏感日志；照片、备注、产出正文不入日志、不持久化。
+5. 请求预览投影（`AIRequestPreviewProjection.photoWritingAssist`）是唯一在 `includedContent` 含 `photoAttachments` 的能力；`alwaysExcludedContent` 不变，其余所有能力仍排除照片（Core 回归测试锁定）。
+
+安全边界要点：照片默认仅本地（保存路径不上传 / 不同步）；唯一外发是上述显式动作的脱敏图片。`photo_writing_assist_operations` 专用摘要表 v1 延后。
+
 ## 5. 模块依赖方向
 
 当前依赖方向：

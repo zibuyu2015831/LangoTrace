@@ -23,6 +23,7 @@ AI 是语迹的重要能力，但不是产品的唯一中心。AI 应服务于�
 - API Key 必须保存到 Keychain，不能保存到普通数据库、日志或同步目录。
 - 照片、日记、音频、历史记忆和目标语言写作内容只有在用户明确触发相关能力时才发送给 Provider。
 - 阅读选区解释只有在用户显式点击阅读页中的解释动作时才发送给 Provider；导入、打开、滚动、选中正文、删除 / 恢复资料或播放 TTS 都不得自动触发 AI。
+- 照片写作 AI 看图辅助写作只有在用户显式点击「让 AI 看图帮我写」并经发送前确认时才发送照片给 Provider；选取照片、滚动、写正文、保存记录或进入详情都不得自动触发。发送的图片必须是经脱敏降采样（剥离 EXIF/GPS）的产物，不得发送原图或原始相册字节。`photoAttachments` 不再是全局 always-excluded：它**仅**对 `photoWritingAssist` 能力 included，对其余所有 AI 能力仍保持排除。
 - AI 输出不能直接覆盖用户原文。
 - AI 请求日志不能默认记录完整日记、完整照片识别文本、API Key 或密钥。
 - 长期记忆上下文不能默认无限量发送给 Provider。
@@ -194,6 +195,19 @@ Provider 配置保存链路必须记录可诊断但非敏感的阶段状态：
 - SQLite 写入失败后必须尝试清理本次新建 Keychain item；清理也失败时，业务错误仍以原始数据库写入失败为主，清理失败只进入非敏感诊断。
 - 诊断日志默认不开启产品期持久写入。开发期开启控制必须位于 App Shell 或等价装配层，Core、Data、AI 和 UI package 不直接读取环境变量。
 
+### 4.8 照片写作 AI 看图辅助写作边界
+
+照片写作页的「让 AI 看图帮我写」是当前实现中**第一个**把照片内容发送给 Provider 的能力，遵循以下边界：
+
+- **显式触发**：仅在用户选好照片后点击该动作并经发送前确认时才发送（核心决策 #10）；选取、滚动、写正文、保存、进入详情都不触发。
+- **脱敏图片**：发送的图片经 `AIImageSanitizer` 降采样到受控边长（max edge 1024）+ 再次剥离 EXIF/GPS 后再 base64；不发原图、不复用 256px 列表缩略图、不发原始相册字节。脱敏是单一执行入口，UI 不得把原始 PhotosPicker 字节直接交给请求层。
+- **能力专属投影**：新增 `AIRequestCapability.photoWritingAssist`，其请求预览投影是唯一在 `includedContent` 中含 `photoAttachments` 的能力。`photoAttachments` 不再是全局 always-excluded——对其余所有 AI 能力（学习材料生成 / 分析、阅读解释、回译点评）仍保持排除；该不变量由 Core 回归测试锁定。
+- **适配范围**：仅 OpenAI 兼容 Chat / Responses，需用户已为该 endpoint 启用图片输入（`imageInputEnabled`）。门控顺序 `supportsImageInput → imageInputEnabled → adapter allowlist`，与配置图片 probe 共用同一 allowlist 防漂移。mimo / Anthropic / Gemini 返回明确 `unsupportedProvider`。
+- **两种产出模式**：写作提示 / 母语草稿，单 Prompt + `mode` 切换，各对应一份严格 JSON schema（见 Prompt Registry）。产出非破坏性，显式「采用」才追加到写作框。
+- **日志**：经 `ai_request_logs`（capability=`photoWritingAssist`）记非敏感字段；照片、备注、产出正文均不入日志、不持久化。专用 `photo_writing_assist_operations` 摘要表 v1 延后。
+
+详见 [Photo Writing Assist Prompt](../prompts/photo-writing/photo-writing-assist.md) 与 `docs/plans/active/2026-06-24-feature-photo-writing-ai-assist.md`。
+
 ## 5. 可演进部分
 
 - 是否提供官方托管 AI。
@@ -239,6 +253,7 @@ AI 在实现任何 AI 能力前应先确认：
 - 2026-05-23：补充 TTS 配置测试边界。原因：语音模型配置与测试方案进入 OpenAI + OpenRouter 第一阶段，需要把旧的“语音生成不得发真实网络测试请求”修订为受 `011` 约束的固定低敏 TTS probe，并明确结果面板、endpoint metadata 和 profile 全局验证摘要隔离。影响范围：AI Provider 设置、LangoTraceAI、LangoTraceData、LangoTraceSpeech、诊断日志和逐句播放前置状态。是否需要 ADR：否，沿用 ADR-005。
 - 2026-05-23：补充一键学习材料生成真实请求边界。原因：iOS / iPhone 记录详情已接入当前文本 Entry 的真实 Provider 请求、结构化 Prompt、GRDB 结果保存和非阻断 AI 披露，需要把“真实学习内容请求未接入”的旧边界更新为当前实现事实。影响范围：LangoTraceAI、LangoTraceData、LangoTraceUI、AppEnvironment、Prompt Registry 和页面清单。是否需要 ADR：否，沿用 ADR-005；照片、音频、历史记忆和多 Entry 上下文仍需单独方案。
 - 2026-05-24：修正一键学习材料生成三端入口事实。原因：iPad / macOS 记录详情已通过共享 `EntryDetailView` 接入同一 `LearningMaterialGenerationActions` / `LearningContentStore` action seam，AI 请求、Keychain 解析和 GRDB 写入路径不再是 iPhone-only；隐私边界仍限制为当前 Entry 文本或当前 learning text。影响范围：AI Provider 请求边界、三端记录详情和页面清单。是否需要 ADR：否，沿用 ADR-005。
+- 2026-06-24：新增 §4.8 照片写作 AI 看图辅助写作边界 + §3 强制规则照片显式触发条目。原因：照片写作新增显式触发的看图辅助写作，是当前实现中第一个把照片发送给 Provider 的能力，需把「照片永不发送」从无条件承诺收敛为「仅 `photoWritingAssist` 能力 included、其余能力仍 always-excluded」，并固化脱敏单一入口、图片适配 allowlist、两模式严格输出与日志边界。影响范围：spec/005、Prompt Registry、platform-page-inventory、architecture/002-system-map、LangoTraceCore/Data/AI/UI、App Shell。是否需要 ADR：否，符合核心决策 #10，沿用 ADR-005；详见 `docs/plans/active/2026-06-24-feature-photo-writing-ai-assist.md`。
 - 2026-05-17：创建第一版 AI Provider、Prompt 与隐私规范。
 - 2026-05-17：补充同意级别、结构化输出校验、输出保存边界和失败处理分类。原因：降低 AI 请求隐私、可靠性和数据覆盖风险。影响范围：AI Provider、Prompt、UI 请求预览、数据保存。是否需要 ADR：否。
 - 2026-05-19：补充 Provider 配置页边界。原因：AI Provider 设置页开始从静态说明改为真实级 mock 配置页，需要把安全配置草稿、保存配置、测试请求、能力矩阵和聚合 provider 提示沉淀为长期约束。影响范围：AI Provider 设置、隐私文案、后续 Keychain 和真实请求测试。是否需要 ADR：否。
