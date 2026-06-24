@@ -279,7 +279,15 @@ scripts/check-docs.sh
 
 ## 实施记录
 
-（待用户确认范围后填写：分阶段提交哈希、验证命令与结果、deferred/aborted 项及后续入口。）
+实施分支：`feat/photo-writing-ai-assist`（从 `dev` 切出）。代码快照 HEAD = a484b64。
+
+- **Phase 0（commit b5df95c）**：Core 新增 `AIRequestCapability.photoWritingAssist` + `AIRequestPreviewProjection.photoWritingAssist(endpoint:lengthBucket:)`（唯一 included 含 `.photoAttachments`，excluded 由 `alwaysExcludedContent` 去掉照片派生）；更正过期注释；回归测试锁定四条现存投影仍排除照片。验证：`swift test` Core 238、AI 165 全绿。
+- **Phase 1（commit c04c5bb）**：adapter 新增 `structuredImagePromptBody`（Chat/Responses 图片 + json_schema；协议默认 nil 使 mimo/未来 kind 结构性不支持）；新增 `PhotoWritingAssistService`（单 prompt + mode 两份 strict schema、门控顺序、结构化解析）；`SanitizedAIImage` 为 AI 边界唯一图片形态；`AIProviderImageSupport` 单一 allowlist 供 probe/assist 共用；Core 失败桶映射。验证：Core 238、AI 180 全绿。
+- **Phase 2（本提交）**：Data 新增 `AIImageSanitizer.sanitizeForAI`（降采样 maxEdge 1024 + JPEG 质量回退至字节预算；ImageIO 缩略图重渲染天然剥离 EXIF/GPS），单一脱敏入口（P1-1）；`ai_request_logs` 经 rawValue 自动支持新 capability（新增 round-trip 测试，无需 schema 变更）。验证：Data 241 全绿。
+
+### Deferred（v1 不实现，已记录入口，非静默裁剪）
+
+- **`photo_writing_assist_operations` 专用摘要表**：v1 暂不实现。理由：`ai_request_logs` 已提供按 capability 的非敏感逐请求透明度（capability/status/prompt/model/分桶/三态），隐私底线由「投影 + 日志列级 allowlist」保证（均已落地），CLAUDE.md §1.1/§1.2 允许 v1 限定功能范围而保留边界。专用表相对 `ai_request_logs` 仅多出 `mode` 维度与独立保留策略，非用户可见、非隐私必需。后续如需 `mode` 级摘要或独立保留策略，按 `docs/workflows/add-storage-migration.md` 新开 slice，仿 `reading_ai_explanation_operations`。本次 spec/005 写回会标注该边界与延后入口。
 
 ## 完成标准
 
