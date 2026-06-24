@@ -1,6 +1,6 @@
 # 照片写作 AI 看图辅助写作
 
-状态：User Approved
+状态：Done（已合并入 dev，CI Build & Test 绿；merge commit 4e6970f）
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-24
