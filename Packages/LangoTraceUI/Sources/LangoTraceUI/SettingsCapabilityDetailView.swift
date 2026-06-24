@@ -173,6 +173,9 @@ struct SettingsCapabilityDetailView: View {
     private var appearanceSettingsContent: some View {
         let preferences = AppearancePreference.allCases
 
+        // Appearance is purely cosmetic (light/dark/system); no clarifying
+        // footnote is needed. The macOS inspector still surfaces the
+        // settings.appearance.selectionFootnote copy as its descriptive panel.
         return VStack(alignment: .leading, spacing: 12) {
             VStack(spacing: 0) {
                 ForEach(Array(preferences.enumerated()), id: \.element.id) { index, preference in
@@ -183,12 +186,6 @@ struct SettingsCapabilityDetailView: View {
                 }
             }
             .langoPanel(padding: 0)
-
-            localizedText("settings.appearance.selectionFootnote")
-                .font(.footnote)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 2)
         }
     }
 

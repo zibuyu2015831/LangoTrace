@@ -989,15 +989,14 @@ private struct ReadingEmptyLibraryCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Image(systemName: "book.closed")
-                .font(.title2)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .frame(width: 52, height: 52)
-                .background(LangoTraceDesign.ColorToken.surfacePanel)
-                .clipShape(.circle)
             VStack(alignment: .leading, spacing: 8) {
-                Text(localizedString("reading.library.empty.title"))
-                    .font(.title3.weight(.semibold))
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Image(systemName: "book.closed")
+                        .font(.title3)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    Text(localizedString("reading.library.empty.title"))
+                        .font(.title3.weight(.semibold))
+                }
                 Text(localizedString("reading.library.empty.body"))
                     .font(.body)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
@@ -1008,6 +1007,7 @@ private struct ReadingEmptyLibraryCard: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(LangoTraceDesign.ColorToken.primaryActionFill)
                 .controlSize(.large)
 
                 Button(action: onImportFile) {
@@ -1032,16 +1032,15 @@ private struct ReadingEmptyLibraryCard: View {
 private struct ReadingReaderEmptyState: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Image(systemName: "text.book.closed")
-                .font(.title2)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .frame(width: 52, height: 52)
-                .background(LangoTraceDesign.ColorToken.surfacePanel)
-                .clipShape(.circle)
             VStack(alignment: .leading, spacing: 8) {
-                Text(localizedString("reading.library.empty.title"))
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Image(systemName: "text.book.closed")
+                        .font(.title3)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    Text(localizedString("reading.library.empty.title"))
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                }
                 Text(localizedString("reading.inspector.body"))
                     .font(.body)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
