@@ -77,6 +77,7 @@ struct LanguageSpaceManagementView: View {
         } message: {
             Text(deleteMessage)
         }
+        .scrollContentBackground(.hidden)
         .langoPageBackground()
     }
 

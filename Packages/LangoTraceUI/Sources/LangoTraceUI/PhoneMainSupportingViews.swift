@@ -45,6 +45,8 @@ struct EntryEditorView: View {
                     localizedText("entryEditor.section.privacy")
                 }
             }
+            .scrollContentBackground(.hidden)
+            .langoPageBackground()
             .navigationTitle(localizedText("entryEditor.title"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
