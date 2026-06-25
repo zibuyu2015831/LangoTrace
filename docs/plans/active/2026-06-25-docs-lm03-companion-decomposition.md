@@ -29,7 +29,9 @@
 ## 子片拆解（完整引擎，按依赖排序）
 
 ### LM03-S1：MVP 单线程文本对话引擎
-- **范围**：设置开关（默认关闭，ADR-008）+ 练习 Tab 二级入口 + 记录详情「围绕这条记录对话」入口；单一会话（不支持多会话）纯文本多轮；始终目标语言回复；会话 GRDB schema（`CompanionThread/Message`，per-space、local-only、不同步、可按条及后续 / 整段删除）；多轮编排 + 上下文窗口管理；人设 = Prompt Registry 固定模板 + 枚举选项（语气 / 正式度 / 纠错倾向，防注入）；模糊输入拟真确认；语种识别本地 `NaturalLanguage` + AI 路由回退；难度三层自适应基线 v1 = 静态 `LanguageLevel`（§3.9）；语伴朗读复用既有逐句 TTS（ADR-008 / §3.7 初版必需）；话题来源仅方案 A（用户显式带入单条记录）；失败态（Provider 不可用 / 离线，不丢输入，不伪装）。
+> **→ 已拆 active plan**：[`2026-06-25-feature-lm03-s1-companion-mvp.md`](2026-06-25-feature-lm03-s1-companion-mvp.md)（Draft / 自审 **Reviewed**，双轮 + 两路隔离子代理对照 HEAD 再审）。用户决策：入口英文名 = **Language Companion**。隔离再审收口 3 P0（难度基线取值错误：`abilityCoverage()` 无 level → 改读 `LanguageSpace.level`；开关持久化未指定 → 复用 Core 偏好 store 范式新增 `UserDefaultsCompanionFeatureStore`；导出策略列未明确 → companion 表显式 included-in-export/backup 作可恢复主数据第三类）+ 4 P1（始终目标语改 typed directive 结构化验证 / 拟真确认 directive + page-inventory 手工验证 / 三端 exhaustive switch 清单 / 朗读权限边界）。语音输入预留架构备忘录已落 `docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`。**待用户实现授权**。详见该 plan §12–§13 / §20。
+
+- **范围**：设置开关（默认关闭，ADR-008）+ 练习 Tab 二级入口 + 记录详情「围绕这条记录对话」入口；单一会话（不支持多会话）纯文本多轮；始终目标语言回复；会话 GRDB schema（`CompanionThread/Message`，per-space、local-only、不同步、可按条及后续 / 整段删除）；多轮编排 + 上下文窗口管理；人设 = Prompt Registry 固定模板 + 枚举选项（语气 / 正式度 / 纠错倾向，防注入）；模糊输入拟真确认；语种识别本地 `NaturalLanguage` + AI 路由回退；难度三层自适应基线 v1 = 静态 `LanguageLevel`（§3.9）；语伴朗读复用既有逐句 TTS（ADR-008 / §3.7 初版必需）；话题来源仅方案 A（用户显式带入单条记录）；失败态（Provider 不可用 / 离线，不丢输入，不伪装）。**注（S1 实现细化）**：长按翻译 / 解析 / 提示 refine 出 S1（后续片）；流式 UX 后置 S3（S1 缓冲 enabler 流）；难度基线读 `LanguageSpace.level` 而非 `abilityCoverage()`；S1 零系统自动注入（不注入 Memory / 不 FTS）。
 - **硬前置**：ADR-008 + Provider 多轮（流式可后置到 S3）+ 2026-05-25 命名。
 - **触碰**：新 Speech/AI 编排 seam、新会话 GRDB schema（migration）、三端聊天 UI（工作量大头）、新 Prompt Registry 人设条目、设置开关、语种识别。
 - **风险**：高（三端聊天 UI + 多轮编排 + 上下文预算 + 失败态）；但不依赖 LM02 后续切片（难度退静态 level）。
@@ -83,7 +85,7 @@
 | 场景 / 主题模式 | **远期**，Prompt 模式非新空间 | 远期 |
 | 关系记忆可见 / 编辑 / 删除粒度 | 归 Learner Model 统一治理（LM02-S1 总览页） | S2 |
 
-**仍须用户定的少数项**（其余采纳上表默认）：① Style v2 接入时机（S4）；② Memory salience top-5 评分机制（S2）；③ 模糊输入拟真 / 夹码体验的具体阈值（S1 实现时细化）；④ 语伴入口英文名（§9）。
+**仍须用户定的少数项**（其余采纳上表默认）：① Style v2 接入时机（S4，留待 S4 拆解）；② Memory salience top-5 评分机制（S2，留待 S2 拆解）；③ 模糊输入拟真 / 夹码体验的具体阈值（S1 实现时细化，已收口为 `.ambiguityRealisticConfirm` directive + 模拟器人工验证）；④ ~~语伴入口英文名~~ → **已定（2026-06-25）：Language Companion**（入口 = 练习 Tab 二级 + 记录详情，ADR-008 §3）。
 
 ## 推荐排序与门控
 
