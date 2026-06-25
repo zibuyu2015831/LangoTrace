@@ -18,17 +18,8 @@ public enum CompanionReplyOutcome: Equatable, Sendable {
     /// plus the locally detected language of the user input (routing hint only).
     case reply(text: String, detectedLanguage: String?)
     /// An honest failure — the store keeps the user's input and does not fake a
-    /// reply (ADR-008 §7).
+    /// reply (ADR-008 §7). `CompanionReplyFailure` lives in Core.
     case failure(CompanionReplyFailure)
-}
-
-/// Honest companion failure categories (ADR-008 §7 / idea-03 §6.7).
-public enum CompanionReplyFailure: Equatable, Sendable {
-    case providerUnavailable
-    case rejected
-    case cancelled
-    case empty
-    case other
 }
 
 /// Assembles a multi-turn companion request and produces the assistant reply.
@@ -123,7 +114,7 @@ public struct CompanionConversationEngine: Sendable {
         }
         let trimmed = buffer.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
-            return .failure(.empty)
+            return .failure(CompanionReplyFailure.empty)
         }
         return .reply(text: buffer, detectedLanguage: detected)
     }
