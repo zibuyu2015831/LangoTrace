@@ -95,7 +95,7 @@
 | CLAUDE.md 决策 #10 / ADR-005 | 敏感内容仅用户明示触发才外发 | D2 显式触发；提取走请求预览；无系统自动注入（Memory 注入留 S2b） |
 | ADR-008 §4 | 语伴会话 = 可恢复用户数据；删该条及后续 | 候选随 thread CASCADE；message_id SET NULL（删消息不连带删候选历史，仅断弱引用） |
 | ADR-006 §4 红线 | level→generation→difficulty→band 闭环禁止；band 不读 AI 难度 / 不覆盖 level | D3 不改 band；产出接缝只读 userAuthored 用户消息，不含 AI 文本 / 难度 |
-| ADR-006 §9 | 分析账本 + 高水位 cursor 作演进信号入口 | 登记 `companionProduction` source_type 前向常量；不写 derive() |
+| ADR-006 §9 | 分析账本 + 高水位 cursor 作演进信号入口 | **S2a 不登记** `companionProduction` source_type 常量 / 不写 ledger / 不写 derive()（D3 round-1 收窄，避免无消费者死代码）；仅留前向读接缝 + 架构备忘录，待未来 band 产出消费片引入 |
 | spec/005 AI-17 | Prompt 加固 / 选项化防注入 | 提取 prompt 为固定模板；对话内容经分隔与既有分析一致处理 |
 | spec/007 | 派生数据 vs 主数据存储策略分层 | 候选 = 可复算派生（local-only，无策略列，对齐现 memory_candidates） |
 | CLAUDE.md 1.2 | 基础设施首落地长期可扩展 | 候选表预留 message_id 弱引用；引擎 transport 注入式可测 |
@@ -142,7 +142,7 @@
 **Phase 2（Data）**：v31 迁移 `companion_memory_candidates`（迁移头当前 = v30，已核对 `AppDatabase.swift`，v31 为正确下一头）+ repository 三方法。**确定签名（round-2 P1-1/P1-3）**：
 - `func appendCompanionCandidates(threadID: String, messageID: String?, candidates: [CompanionMemoryCandidate]) throws`
 - `func companionCandidates(spaceID: String) throws -> [CompanionMemoryCandidate]`（created_at DESC）
-- `func productionUtterances(spaceID: String, after: Date?) throws -> [CompanionMessage]`（返回 `role='user' AND detected_language == language_spaces.target_language_code` 的消息，`created_at` ASC，`after=nil` 全量、否则仅返回其后，**无 limit（窗口由调用方决策）**）
+- `func productionUtterances(spaceID: String, after: Date?) throws -> [CompanionMessage]`（返回 `space_id == ? AND role='user' AND detected_language == target_language_code` 的消息，`created_at` ASC，`after=nil` 全量、否则仅返回其后，**无 limit（窗口由调用方决策）**）。**目标语判定行内自洽**（round-2 复查修正）：`companion_messages` 已逐行存 `target_language_code`（v30，发送时刻快照），故用**行内 `detected_language == target_language_code` 比较**，不 join `language_spaces`——更简单且使用发送时历史目标语（虽决策 #4 一空间一语言使二者等价，行内比较仍更稳健、零耦合）
 
 先失败用例（具名）：`companionMemoryCandidatesTableExistsAfterV31()`、`deletingThreadCascadeDeletesCandidates()`、`deletingMessageSetsCandidateMessageIdNullButRetainsCandidate()`（删消息→候选 message_id 置 NULL、count 不减，round-1 P2-2）、`productionUtterancesExcludeAssistantAndNonTargetMessages()`、`productionUtterancesCursorReturnsOnlyAfter()`、跨空间隔离。
 **Phase 3（AI）**：新增 `AIRequestCapability.companionExtraction` 枚举项（Core，闭集新 case，round-2 P0-1）+ `CompanionExtractionPromptRegistry`（结构化输出契约 + 隐私边界 directive）+ `CompanionExtractionEngine.extract(window:targetLanguageCode:...) -> Result<[CompanionMemoryCandidate], CompanionExtractionError>`（注入 transport）。**错误契约（round-2 P0-2，对齐 `LearningMaterialGenerationService` 同族）**：无效 JSON → `.invalidStructuredOutput`；缺必填字段（text/kind）→ `.invalidStructuredOutput`；`candidates: []` → **成功、count=0**（非失败，UI 展示「未找到词汇」）；Provider 不可用 / 取消 → 复用 `CompanionReplyFailure` 同族映射。先失败：capability 投影为 `.companionExtraction` 且披露对话内容描述符（round-1 D2）；结构化解析 + 上述四错误分支；从用户 + AI 双方提取目标语项。
@@ -191,7 +191,7 @@
 
 ## TDD / 测试落点
 
-- `Packages/LangoTraceCoreTests/...`：`CompanionMemoryCandidateTests`、`CompanionProductionEvidenceTests`。
+- `Packages/LangoTraceCoreTests/...`：`CompanionMemoryCandidateTests`。（**无** `CompanionProductionEvidenceTests`——D3 round-1 收窄已删除 `CompanionProductionEvidence` 值类型，产出读接缝直接复用既有 `CompanionMessage`，其窗口过滤测试落在 DataTests。）
 - `Packages/LangoTraceDataTests/...`：`CompanionRefluxMigrationAndRepositoryTests`（建表 / FK / 插入读取 / 产出窗口过滤）。先失败用例：`func companionCandidatesTableExistsAfterV31()`（迁移未加前 `tableExists` 假）。另含：`func deletingMessageOrphansItsCandidatesNotDeletes()`（message_id SET NULL，round-1 P2-2）；`func productionUtterancesExcludeAssistantAndNonTargetMessages()`（只返回 user + 目标语）。
 - `Packages/LangoTraceLearnerModelTests/...`：`func bandProviderSourceUnchangedNoCompanionJoin()` 负向守卫——band 计算不读 `companion_*` 表 / 不受聊天候选影响（round-1 P1-2，红线回归保护）。
 - `Packages/LangoTraceAITests/...`：`CompanionExtractionEngineTests`（注入 stub transport → 结构化候选；失败映射）、`CompanionExtractionPromptRegistryTests`（directive / id / 结构化契约）。
