@@ -45,7 +45,7 @@
         （S2/S3 均 read-only，不依赖 S1 的 writer，但 S3 展示依赖 S1 总览页先落地）
 
 第 2 批（band，最高风险，须第 1 批 S3 信号成熟 + 回归充分）— 2026-06-25 已拆 S4a/S4b 各自 active plan + 双轮 + 隔离再审
-  S4a（查词捕获 + 分析账本/cursor，v28+ migration，低风险）  ← 不动 derive()；双轮+再审过：查词 = 不可重算行为信号新类别(显式 local-only)；source_content_origin 降前向接缝(v1 无 AI 阅读源)；埋点宿主 = AI 解释 seam
+  ✅ S4a（查词捕获 + 分析账本/cursor，v28/v29 migration）  ← 2026-06-25 已 Done（不动 derive()；查词 local-only 新类别 + ADR-006 §9 账本+cursor + AI 解释 seam 埋点 + CI 绿，已移 done/）
      ↓
   S4b（band 服务 + derive() 迟滞 + 总览呈现，最高风险）       ← 唯一碰 derive()；双轮+再审过；门控：S4a+S3 信号回归 + ADR-006 §10 修订存在；迟滞=连续 3 次 document-open 越阈 + ≥5 次停留；band 经 :96 影响外发档位(诚实论证=不增新外发字段)
 
@@ -73,7 +73,7 @@
 | LM02-S2 | ~~`2026-06-25-feature-lm02-s2-style-surface-imprint`~~ → `done/` | Style 表层印记（seam-only 不展示） | ✅ **Done（2026-06-25）**：compute-on-read 源语言写作印记 seam-only（NL 注入 detector + 按母语分组 + 红线 entries-only）；CI Build & Test 全绿（run 28161953442）；§17 回写（含 ADR-006 §8 持久化分层细化 + 新 architecture note + idea-01 §13.9 收口）；已移 `done/` |
 | LM02-S3 | ~~`2026-06-25-feature-lm02-s3-blind-spots`~~ → `done/` | 盲点（dictation diff 派生） | ✅ **Done（2026-06-25）**：compute-on-read dictation diff 盲点 + 填充 S1 总览页盲点分区（红线源级 grep + 行为断言双守；`LIMIT 200`）；CI Build & Test 全绿（run 28160963826）；§17 文档回写（含 idea-02 §7.1 源替换纠正）；已移 `done/` |
 | LM02-S4 | `2026-06-25-feature-lm02-s4-band-reestimation` | band 动态重估（拆解边界） | ⚪ **拆解边界 / 自审 N/A**（2026-06-25 完整双轮后转拆解边界，已 spawn S4a/S4b；4 P0+4 P1 分配进子片为实现前必决项）；不再作单一可实现方案 |
-| LM02-S4a | `2026-06-25-feature-lm02-s4a-lookup-capture-and-ledger` | 查词捕获 + 分析账本（地基，低风险） | 🟡 **Draft / Reviewed**（双轮 + 拆分后隔离再审三关过；再审收口 P0-A source_origin 降前向接缝 / P1-B 持久化新类别显式声明 / P2-C 埋点改 AI 解释 seam）；硬前置 S1；**待实现授权** |
+| LM02-S4a | ~~`2026-06-25-feature-lm02-s4a-lookup-capture-and-ledger`~~ → `done/` | 查词捕获 + 分析账本（地基，低风险） | ✅ **Done（2026-06-25）**：v28 查词事件（显式 local-only）+ v29 ADR-006 §9 账本+高水位 cursor + 阅读 AI 解释 seam 埋点；CI Build & Test 全绿（run 28163829316）；§17 回写（ADR-006 §9 / spec/007 / architecture/002 / persistence note）；已移 `done/`。**S4b 信号地基已就绪** |
 | LM02-S4b | `2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis` | band 服务 + derive 迟滞 + 总览（最高风险） | 🟡 **Draft / Reviewed**（双轮 + 隔离再审三关过；再审收口 P0-1 band 经 :96 影响外发档位措辞 / P1-1 迟滞 dwell 改 document-open 次数 / P2-1 计数器状态）；门控 S4a+S3 信号回归 + ADR-006 §10 修订存在；**待实现授权** |
 | 独立 infra | ~~`2026-06-25-feature-ai-provider-multi-turn-and-streaming`~~ → `done/` | AI Provider 多轮 + 文本流式（LM03 消费） | ✅ **Done（2026-06-25）**：Phase 0 spike gate 过 → 生产实现；CI Build & Test 全绿（run 28156767558）；§17 文档回写完成（spec/005 + system-map §4.9/§7 + 新 architecture note + ADR-008 + add-ai-provider workflow）；已移 `done/`。mimo 流式 / Anthropic / 对话级 log 写入按记录 defer 至 LM03 / 后续 run |
 | 导航 | `2026-06-25-docs-lm02-remaining-slices-decomposition` | LM02 后续切片拆解 + 排序 | 🔵 **In Progress**（S2/S3 已拆 active plan；S4 已转拆解边界拆 S4a/S4b；改写 + onboarding 措辞两孤儿已补登；AI 校准留登记未拆） |
