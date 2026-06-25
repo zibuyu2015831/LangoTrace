@@ -160,6 +160,9 @@ struct PracticeView: View {
     let onLanguageSpaceAction: () -> Void
     var onSettingsAction: (() -> Void)?
     let onPractice: (LearningEntry) -> Void
+    var onCompanion: (() -> Void)?
+
+    @Environment(\.companionFeatureEnabled) private var companionFeatureEnabled
 
     var body: some View {
         PhonePage(
@@ -168,6 +171,9 @@ struct PracticeView: View {
             onLanguageSpaceAction: onLanguageSpaceAction,
             onSettingsAction: onSettingsAction
         ) {
+            if companionFeatureEnabled, let onCompanion {
+                CompanionEntryCard(action: onCompanion)
+            }
             if entries.isEmpty {
                 LocalizedCompactPanel(
                     titleKey: "phone.practice.empty.title",
@@ -362,6 +368,7 @@ struct SettingsView: View {
         ) {
             if let onSelectLearnerProfile {
                 LearnerProfileSettingsRow(action: onSelectLearnerProfile)
+                CompanionSettingsToggleRow()
             }
             ForEach(capabilities) { capability in
                 CapabilityStatusRow(

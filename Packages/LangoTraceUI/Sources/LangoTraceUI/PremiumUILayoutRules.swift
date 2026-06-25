@@ -194,7 +194,7 @@ private extension PadWorkspaceRoute {
         case .settings, .learnerProfile:
             true
         case .workspace, .entryDetail, .bilingualReading, .practiceSentenceList, .practiceSentence, .reading,
-             .settingsList, .memory, .importExport, .languageSpaceManagement:
+             .settingsList, .memory, .importExport, .languageSpaceManagement, .companionChat:
             false
         }
     }

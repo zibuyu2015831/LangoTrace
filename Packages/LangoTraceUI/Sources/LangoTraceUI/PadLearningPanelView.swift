@@ -53,6 +53,14 @@ struct PadLearningPanelView: View {
             )
         case .settingsList, .settings, .learnerProfile:
             settingsContextContent
+        case .companionChat:
+            routeContextContent(
+                titleKey: "companion.entry.title",
+                subtitleKey: "companion.settings.toggle.description",
+                panelTitleKey: "companion.entry.title",
+                panelTextKey: "companion.greeting.coldStart",
+                systemImage: "bubble.left.and.bubble.right"
+            )
         case .memory:
             routeContextContent(
                 titleKey: "pad.learningPanel.memory.title",

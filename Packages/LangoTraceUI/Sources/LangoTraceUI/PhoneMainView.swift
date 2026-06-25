@@ -83,7 +83,8 @@ struct PhoneMainView: View {
                     renderingForEntry: rendering(for:),
                     onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
                     onSettingsAction: { navModel.push(.settingsList, on: .practice) },
-                    onPractice: { entry in navModel.push(.practiceSentenceList(entry.id), on: .practice) }
+                    onPractice: { entry in navModel.push(.practiceSentenceList(entry.id), on: .practice) },
+                    onCompanion: { navModel.push(.companionChat(CompanionChatRouteSeed()), on: .practice) }
                 )
                 .phoneNavigationDestinations(for: .practice, context: self)
             }
@@ -215,7 +216,10 @@ struct PhoneMainView: View {
                     contentStore: contentStore,
                     titlePresentation: .objectNavigationTitle,
                     onPracticeSentence: { seed in navModel.push(.practiceSentence(seed), on: tab) },
-                    onOpenReading: { entryID in navModel.push(.bilingualReading(entryID), on: tab) }
+                    onOpenReading: { entryID in navModel.push(.bilingualReading(entryID), on: tab) },
+                    onCompanion: { entryID in
+                        navModel.push(.companionChat(CompanionChatRouteSeed(sourceEntryID: entryID)), on: tab)
+                    }
                 )
             }
         case let .bilingualReading(entryID):
@@ -306,6 +310,8 @@ struct PhoneMainView: View {
             )
         case .learnerProfile:
             LearnerProfileView(languageSpace: languageSpace)
+        case let .companionChat(seed):
+            CompanionChatView(languageSpace: languageSpace, seed: seed)
         }
     }
 }

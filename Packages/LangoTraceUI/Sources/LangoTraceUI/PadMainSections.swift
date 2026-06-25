@@ -193,6 +193,8 @@ struct PadWorkspaceContentView: View {
                 settingsList
             case .learnerProfile:
                 LearnerProfileView(languageSpace: languageSpace)
+            case let .companionChat(seed):
+                CompanionChatView(languageSpace: languageSpace, seed: seed)
             case .memory:
                 memoryPage
             case .importExport:
@@ -273,7 +275,8 @@ struct PadWorkspaceContentView: View {
             contentStore: contentStore,
             titlePresentation: .embeddedHeader,
             onPracticeSentence: { onRoute(.practiceSentence($0)) },
-            onOpenReading: { onRoute(.bilingualReading($0)) }
+            onOpenReading: { onRoute(.bilingualReading($0)) },
+            onCompanion: { onRoute(.companionChat(CompanionChatRouteSeed(sourceEntryID: $0))) }
         )
         .padding(26)
         .frame(maxWidth: 820, alignment: .leading)
@@ -344,6 +347,7 @@ struct PadWorkspaceContentView: View {
             VStack(alignment: .leading, spacing: 14) {
                 SectionCaption(titleKey: "pad.settings.section.title", subtitleKey: "pad.settings.section.subtitle")
                 LearnerProfileSettingsRow(action: { onRoute(.learnerProfile) })
+                CompanionSettingsToggleRow()
                 ForEach(settingsCapabilities) { capability in
                     CapabilityStatusRow(
                         localizedTitleKey: capability.kind.localizedTitleKey,

@@ -69,6 +69,8 @@ struct MacInspectorContent: View {
             }
         case .learnerProfile:
             LocalizedTextPanel(titleKey: "learnerProfile.title", textKey: "learnerProfile.memory.subtitle")
+        case .companionChat:
+            LocalizedTextPanel(titleKey: "companion.entry.title", textKey: "companion.settings.toggle.description")
         case .unavailable:
             LocalizedTextPanel(
                 titleKey: "capabilityStatus.unavailable",

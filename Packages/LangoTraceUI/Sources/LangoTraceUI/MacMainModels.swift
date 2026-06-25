@@ -77,13 +77,14 @@ enum MacWorkspaceRoute: Equatable {
     case practiceSentence(PracticeSessionRouteSeed)
     case settings(SettingsCapability.Kind)
     case learnerProfile
+    case companionChat(CompanionChatRouteSeed)
     case languageSpaceManagement
     case unavailable(String)
 
     var usesDedicatedMainScrolling: Bool {
         switch self {
         case .practiceSentenceList, .practiceSentence, .languageSpaceManagement,
-             .entryDetail, .bilingualReading, .reading:
+             .entryDetail, .bilingualReading, .reading, .companionChat:
             true
         case .overview, .settings, .learnerProfile, .unavailable:
             false

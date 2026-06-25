@@ -125,8 +125,10 @@ struct EntryDetailView: View {
     let onGenerateLocalPreview: () -> Void
     let onPracticeSentence: (LearningRendering, RenderingSentence, Int) -> Void
     var onOpenReading: (() -> Void)?
+    var onCompanion: (() -> Void)?
 
     @Environment(\.photoDisplayActions) private var photoDisplayActions
+    @Environment(\.companionFeatureEnabled) private var companionFeatureEnabled
     @State private var photoImage: Image?
     @State private var photoPresentation: EntryDetailPhotoPresentation = .notApplicable
 
@@ -148,6 +150,9 @@ struct EntryDetailView: View {
                     nativeLanguageName: languageSpace.nativeLanguage,
                     onSave: onUpdateEntryBody
                 )
+                if companionFeatureEnabled, let onCompanion {
+                    CompanionEntryDetailButton(action: onCompanion)
+                }
                 if let rendering {
                     if let onUpdateLearningText, let onAnalyzeCurrentLearningText {
                         LearningMaterialEditorView(
@@ -400,6 +405,7 @@ struct EntryDetailStoreView: View {
     let titlePresentation: EntryDetailTitlePresentation
     let onPracticeSentence: (PracticeSessionRouteSeed) -> Void
     var onOpenReading: ((String) -> Void)?
+    var onCompanion: ((String) -> Void)?
 
     var body: some View {
         if let entry = contentStore.entry(id: entryID) {
@@ -467,7 +473,8 @@ struct EntryDetailStoreView: View {
                         )
                     )
                 },
-                onOpenReading: onOpenReading.map { handler in { handler(entry.id) } }
+                onOpenReading: onOpenReading.map { handler in { handler(entry.id) } },
+                onCompanion: onCompanion.map { handler in { handler(entry.id) } }
             )
         }
     }
