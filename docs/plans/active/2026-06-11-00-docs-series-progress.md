@@ -23,6 +23,12 @@
 - **01–15 实施系列 + LM01 + 原型/infra 修复：全部 Implemented/Verified + CI 绿，已移入 `done/`**（记录详情见各 done 方案 + 上述主控文档附录 A）。其中 LM01 落地了独立包 `LangoTraceLearnerModel`（Ability 知识覆盖 compute-on-read，无 migration），是 LM02/LM03 的地基。
 - **E10（导入导出）/ E11（同步引擎）：Slice 1 / 引擎切片已落地 + CI 绿，因依赖不存在的基础设施（加密 KDF/安全存储；iCloud container/付费 capability/真实账号/多设备）诚实 defer，已于 2026-06-25 整体移入 `docs/archive/plans/`**（active/ 收敛为学习者模型系列），恢复入口见 `docs/archive/plans/README.md` 与各方案自审核记录。**硬接缝（不随归档失效）**：E10 实现可恢复备份时**必须**纳入 LM02-S1 的 `learner_memory_facts`（否则删库=永久失忆），事实源为 `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`。
 
+## ✅ 第 1+2 批 + enabler 全部完成（2026-06-25）
+
+**LM02 本地优先系列 + enabler 六片已全部落地、CI 绿、移入 `done/`**：enabler（AI Provider 多轮+流式）、LM02-S1（Memory 层 + 总览页 v27）、S2（Style seam-only）、S3（盲点 dictation diff）、S4a（查词捕获 + 账本 v28/v29）、S4b（band 重估 + derive 迟滞）。ADR-006 §10.1 band 契约修订 artifact 已写入。各片 §17 文档影响已回写（ADR-006 / spec/007 / architecture 001+002 / page-inventory / idea-01+02 / 架构备忘录）。`active/` 现仅余导航/拆解/边界文档 + 未授权的 LM03 系列。
+
+**下一次授权候选**：LM03 语伴（子片 active plan 待各批次开工前再拆，须各自双轮自审 + 隔离再审）；四个登记孤儿（S3 deposit 子增量 / 改写消费者 / onboarding 措辞 / AI 校准 v2）。
+
 ## 当前实施重点：学习者模型系列（LM02 + LM03）
 
 > 来源 idea：`docs/idea/01-learner-model.md`（总纲，已固化为 ADR-006）/ `02-dynamic-proficiency-assessment.md` / `03-conversation-partner.md`（已固化定位 ADR-008）。三份 idea 内容已全部拆解为下列方案（AI 校准 v2 刻意不预拆，留外发增量后置）。
@@ -47,7 +53,7 @@
 第 2 批（band，最高风险，须第 1 批 S3 信号成熟 + 回归充分）— 2026-06-25 已拆 S4a/S4b 各自 active plan + 双轮 + 隔离再审
   ✅ S4a（查词捕获 + 分析账本/cursor，v28/v29 migration）  ← 2026-06-25 已 Done（不动 derive()；查词 local-only 新类别 + ADR-006 §9 账本+cursor + AI 解释 seam 埋点 + CI 绿，已移 done/）
      ↓
-  S4b（band 服务 + derive() 迟滞 + 总览呈现，最高风险）       ← 唯一碰 derive()；双轮+再审过；门控：S4a+S3 信号回归 + ADR-006 §10 修订存在；迟滞=连续 3 次 document-open 越阈 + ≥5 次停留；band 经 :96 影响外发档位(诚实论证=不增新外发字段)
+  ✅ S4b（band 服务 + derive() 迟滞 + 总览呈现，最高风险）       ← 2026-06-25 已 Done（唯一碰 derive()；BandHysteresis 迟滞 + band 仅喂 derive 不增外发字段 + 不展示降级 + CI 绿，已移 done/）
 
 第 3 批（语伴 = 完整聊天引擎；消费上方已退险的 Provider 多轮/流式 infra）
   LM03-S1（MVP 单线程文本对话引擎）          ← 各子片需先按 LM03 拆解文档各自拆出 active plan + 双轮自审
@@ -74,7 +80,7 @@
 | LM02-S3 | ~~`2026-06-25-feature-lm02-s3-blind-spots`~~ → `done/` | 盲点（dictation diff 派生） | ✅ **Done（2026-06-25）**：compute-on-read dictation diff 盲点 + 填充 S1 总览页盲点分区（红线源级 grep + 行为断言双守；`LIMIT 200`）；CI Build & Test 全绿（run 28160963826）；§17 文档回写（含 idea-02 §7.1 源替换纠正）；已移 `done/` |
 | LM02-S4 | `2026-06-25-feature-lm02-s4-band-reestimation` | band 动态重估（拆解边界） | ⚪ **拆解边界 / 自审 N/A**（2026-06-25 完整双轮后转拆解边界，已 spawn S4a/S4b；4 P0+4 P1 分配进子片为实现前必决项）；不再作单一可实现方案 |
 | LM02-S4a | ~~`2026-06-25-feature-lm02-s4a-lookup-capture-and-ledger`~~ → `done/` | 查词捕获 + 分析账本（地基，低风险） | ✅ **Done（2026-06-25）**：v28 查词事件（显式 local-only）+ v29 ADR-006 §9 账本+高水位 cursor + 阅读 AI 解释 seam 埋点；CI Build & Test 全绿（run 28163829316）；§17 回写（ADR-006 §9 / spec/007 / architecture/002 / persistence note）；已移 `done/`。**S4b 信号地基已就绪** |
-| LM02-S4b | `2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis` | band 服务 + derive 迟滞 + 总览（最高风险） | 🟡 **Draft / Reviewed**（双轮 + 隔离再审三关过；再审收口 P0-1 band 经 :96 影响外发档位措辞 / P1-1 迟滞 dwell 改 document-open 次数 / P2-1 计数器状态）；门控 S4a+S3 信号回归 + ADR-006 §10 修订存在；**待实现授权** |
+| LM02-S4b | ~~`2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis`~~ → `done/` | band 服务 + derive 迟滞 + 总览（最高风险） | ✅ **Done（2026-06-25）**：三门控满足后实现——BandHysteresis 迟滞（连续 3 次越阈 + ≥5 次停留）+ GRDBLearnerBandProvider（独立信号、红线、不覆盖标签）+ derive() 接 band（仅新内容、用户覆盖优先、:95 静态 :96 随 band）+ 总览不展示降级；CI Build & Test 全绿（run 28167168073）；§17 回写（ADR-006 §10.1 实施进展 / architecture/002 / idea-02 §14）；已移 `done/`。**LM02 本地优先系列 + enabler 六片全部完成** |
 | 独立 infra | ~~`2026-06-25-feature-ai-provider-multi-turn-and-streaming`~~ → `done/` | AI Provider 多轮 + 文本流式（LM03 消费） | ✅ **Done（2026-06-25）**：Phase 0 spike gate 过 → 生产实现；CI Build & Test 全绿（run 28156767558）；§17 文档回写完成（spec/005 + system-map §4.9/§7 + 新 architecture note + ADR-008 + add-ai-provider workflow）；已移 `done/`。mimo 流式 / Anthropic / 对话级 log 写入按记录 defer 至 LM03 / 后续 run |
 | 导航 | `2026-06-25-docs-lm02-remaining-slices-decomposition` | LM02 后续切片拆解 + 排序 | 🔵 **In Progress**（S2/S3 已拆 active plan；S4 已转拆解边界拆 S4a/S4b；改写 + onboarding 措辞两孤儿已补登；AI 校准留登记未拆） |
 | 导航 | `2026-06-25-docs-lm03-companion-decomposition` | 语伴完整引擎切片 + 决策收口 | 🔵 **In Progress**（S1–S4 切片边界 + §9/§10.6 决策收口；**LM03-S1…S4 子片 active plan 待各批次开工前再拆**） |
