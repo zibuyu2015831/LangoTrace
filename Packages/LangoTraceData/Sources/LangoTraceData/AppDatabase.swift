@@ -148,6 +148,9 @@ private extension AppDatabase {
         migrator.registerMigration("v30_create_companion_infrastructure") { db in
             try createCompanionInfrastructure(db)
         }
+        migrator.registerMigration("v31_create_companion_reflux_infrastructure") { db in
+            try createCompanionRefluxInfrastructure(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 

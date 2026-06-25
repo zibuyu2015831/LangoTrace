@@ -233,6 +233,100 @@ public struct GRDBCompanionRepository: Sendable {
         }
     }
 
+    // MARK: - Memory candidates (LM03-S2a chat reflux)
+
+    /// Persists the candidates extracted from a conversation window, anchored to a
+    /// single source message (`messageID`, the same anchor for the whole batch — a
+    /// weak link that is nulled if that message is later deleted). The owning
+    /// `space_id` is resolved from the thread, so candidates stay space-scoped. The
+    /// candidate's own `createdAt` is authoritative (deterministic ordering); the
+    /// `messageID` argument — not any value on the candidate — is the persisted
+    /// anchor. No-op for an empty batch or an unknown thread.
+    public func appendCompanionCandidates(
+        threadID: String,
+        messageID: String?,
+        candidates: [CompanionMemoryCandidate]
+    ) throws {
+        guard !candidates.isEmpty else { return }
+        try writer.write { db in
+            guard let spaceID = try String.fetchOne(
+                db,
+                sql: "SELECT space_id FROM companion_threads WHERE id = ?",
+                arguments: [threadID]
+            ) else { return }
+            for candidate in candidates {
+                let timestamp = candidate.createdAt.timeIntervalSince1970
+                try db.execute(
+                    sql: """
+                    INSERT INTO companion_memory_candidates
+                    (id, space_id, thread_id, message_id, kind, text, explanation_native,
+                     example_target, example_native, status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'candidate', ?, ?)
+                    """,
+                    arguments: [
+                        candidate.id, spaceID, threadID, messageID,
+                        candidate.kind.rawValue, candidate.text, candidate.explanationNative,
+                        candidate.exampleTarget, candidate.exampleNative,
+                        timestamp, timestamp,
+                    ]
+                )
+            }
+        }
+    }
+
+    /// All chat-reflux candidates for a space, newest first (review-queue order).
+    public func companionCandidates(spaceID: String) throws -> [CompanionMemoryCandidate] {
+        try writer.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT id, message_id, kind, text, explanation_native,
+                       example_target, example_native, created_at
+                FROM companion_memory_candidates
+                WHERE space_id = ?
+                ORDER BY created_at DESC, id DESC
+                """,
+                arguments: [spaceID]
+            )
+            return rows.compactMap(Self.candidate(from:))
+        }
+    }
+
+    /// Forward read seam (LM03-S2a 交付物 B): the user's target-language utterances
+    /// in a space, oldest-first, for a future Ability *production* (fluency) signal
+    /// consumer to read. A "target-language" utterance is decided **row-locally** —
+    /// `detected_language == target_language_code` on the message itself (the v30
+    /// send-time snapshot) — so it never joins `language_spaces` and uses the
+    /// historical target language of each message (plan §Phase 2 round-2 fix).
+    ///
+    /// This is **read-only**: it does not register a `LearnerSourceType`, write the
+    /// analysis ledger, or touch `band()` (plan §D3 round-1 narrowing — no
+    /// consumer-less dead code; band keeps modelling only the struggling signal).
+    /// `after == nil` returns the full history; otherwise only messages strictly
+    /// after it. No limit — the window is the caller's decision.
+    public func productionUtterances(spaceID: String, after: Date?) throws -> [CompanionMessage] {
+        try writer.read { db in
+            var sql = """
+            SELECT m.id, m.thread_id, m.sequence, m.role, m.content, m.detected_language,
+                   m.target_language_code, m.input_modality, m.audio_artifact_id, m.created_at
+            FROM companion_messages m
+            JOIN companion_threads t ON t.id = m.thread_id
+            WHERE t.space_id = ?
+              AND m.role = 'user'
+              AND m.detected_language IS NOT NULL
+              AND m.detected_language = m.target_language_code
+            """
+            var arguments: [DatabaseValueConvertible] = [spaceID]
+            if let after {
+                sql += "\n  AND m.created_at > ?"
+                arguments.append(after.timeIntervalSince1970)
+            }
+            sql += "\nORDER BY m.created_at ASC, m.sequence ASC"
+            let rows = try Row.fetchAll(db, sql: sql, arguments: StatementArguments(arguments))
+            return rows.compactMap(Self.message(from:))
+        }
+    }
+
     // MARK: - Row decoding
 
     private static func thread(from row: Row?) -> CompanionThread? {
@@ -260,6 +354,20 @@ public struct GRDBCompanionRepository: Sendable {
             targetLanguageCode: row["target_language_code"],
             inputModality: modality,
             audioArtifactID: row["audio_artifact_id"],
+            createdAt: Date(timeIntervalSince1970: row["created_at"])
+        )
+    }
+
+    private static func candidate(from row: Row) -> CompanionMemoryCandidate? {
+        guard let kind = LearningMemoryCandidate.Kind(rawValue: row["kind"]) else { return nil }
+        return CompanionMemoryCandidate(
+            id: row["id"],
+            messageID: row["message_id"],
+            kind: kind,
+            text: row["text"],
+            explanationNative: row["explanation_native"],
+            exampleTarget: row["example_target"],
+            exampleNative: row["example_native"],
             createdAt: Date(timeIntervalSince1970: row["created_at"])
         )
     }
