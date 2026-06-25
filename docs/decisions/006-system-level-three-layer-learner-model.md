@@ -108,7 +108,9 @@
 
 5. **永不覆盖用户可见 `LanguageLevel` 标签 / 永不降级**（重申 §10 红线）：band 是内部信号、只「建议 / 并存」，**绝不**静默改写用户可见标签；总览页只展示覆盖 / 已纠正 / 趋势 / 成长，**绝不**展示「你从 B1 降 A2」。
 
-> 本修订仅为 S4b 清线门控的契约 artifact；band 服务、derive() 迟滞接线、总览呈现的实际实现见 [LM02-S4b 方案](../plans/active/2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis.md)，实施后回写实施进展。AI 校准 band（外发增量）仍属 v2 opt-in、须过 §6 隐私闸，不在 S4b。
+> 本修订仅为 S4b 清线门控的契约 artifact；band 服务、derive() 迟滞接线、总览呈现的实际实现见 [LM02-S4b 方案](../plans/done/2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis.md)，实施后回写实施进展。AI 校准 band（外发增量）仍属 v2 opt-in、须过 §6 隐私闸，不在 S4b。
+
+> **实施进展（2026-06-25，LM02 Slice 4b 落地，CI 绿）**：本系列最高风险末片（全系列唯一触碰 `derive()`）已实现并合入 `dev`，三门控（S4a merge + S3 信号回归 + 本 §10.1 artifact 存在）满足后进入实现。落地形态：① **`BandHysteresis` 迟滞状态机**（Core）= 连续 3 次 document-open 越阈方切档 + 切档后 ≥5 次停留方再切（防体验在脚下漂移）；计数器 per-language、in-memory、重启清零可接受。② **`GRDBLearnerBandProvider`**（LearnerModel）compute-on-read 吃**独立行为信号**（userAuthored 查词 + S3 错误），**红线 SQL 仅 `dictionary_lookup_events` + `language_spaces`**（排除 aiGenerated、绝不读 AI 难度 / learning_text，源 grep + 行为断言双守），保守 v1 强 struggling 信号下沉一档（更多支撑），confidence 恒 `.low`；**不写 `language_spaces.level`**。③ **derive() 迟滞接线**（`ReadingDocumentStore`，唯一碰 derive()）：解释档位来源从静态 seed 改吃 band（经迟滞、document-open 评估、仅新内容不回改已渲染解释）；`switchExplanationMode` 用户覆盖**始终优先**（per-document）。④ **band 仅喂 derive() 不增新外发字段**：`:95 proficiencyLevelCode` 仍静态、band 不流入材料生成 / 照片写作 / 回译点评；**诚实承认** `:96 explanationLanguageMode` 随 band 变化——外发的仍是**三档枚举**（早已外发、隐私量级不变），非 band 数值。⑤ **总览页 bandTrend / confidence 呈现，永不展示降级**：`levelDisplay` 恒为 onboarding level（即使内部 band 估计更低）。装配为 `readingBandLevelSource`（环境注入）+ snapshot builder `bandProvider`。详见 [LM02-S4b 方案](../plans/done/2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis.md)。
 
 ## 备选方案
 

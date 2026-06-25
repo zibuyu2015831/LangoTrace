@@ -222,7 +222,19 @@ scripts/check-docs.sh
 
 ## 18–19. 实施记录 / 完成标准
 
-- 待实现。
+2026-06-25 落地（dev 分支；三门控满足后实现：S4a merge ✅ + S3 信号回归 ✅ + ADR-006 §10.1 artifact 存在 ✅）：
+
+- **Core**：`BandHysteresis` 迟滞状态机（seed + stableThreshold=3 + dwellWindow=5；连续越阈 + 切档后停留方再切；非连续越阈 reset）+ `LearnerBand`/`BandConfidence`/`BandTrend`。
+- **LearnerModel**：`LearnerBandProvider` 协议 + `GRDBLearnerBandProvider` compute-on-read（SQL 仅 `dictionary_lookup_events` JOIN `language_spaces`，仅 userAuthored、排除 aiGenerated；blindSpotProvider 取 S3 错误；strugglingScore ≥ threshold 则下沉一档；confidence=.low；不写 level）。
+- **UI**：`ReadingDocumentStore` 加 `bandLevelSource`（环境注入 + `reconnectBandSource`）+ `BandHysteresis` 状态 + `userDidOverrideMode`；`evaluateBandForDocumentOpen`（迟滞评估 + 仅新内容改 mode）；`switchExplanationMode` 设 override；replaceDocument 清 override。`LearnerProfilePresentation` 加 bandTrend/confidence（不展示降级，levelDisplay 恒 onboarding level）。reading view `.task` reconnect + evaluate。
+- **装配**：`makeReadingBandLevelSource`（`GRDBLearnerBandProvider` → estimatedLevel）+ `AppEnvironment.readingBandLevelSource` + 两处环境注入；snapshot builder 加 `bandProvider`，`loadSnapshot` 加 seedLevel。
+- **红线 + 外发诚实**：band SQL 不读 AI 字段（行为断言 `bandComputationNeverReadsAIDifficulty`）；`bandOnlyFeedsDeriveNotAIRequests` 显式覆盖 :95 静态 / :96 随 band（接受为预期，防误绿）。
+- **TDD**：BandHysteresisTests(4) + GRDBLearnerBandProviderTests(5) + DeriveBandSourceTests(3) + BandPresentationTests(2) 先失败后实现。
+- **验证**：轻量本机 Core 246 + LearnerModel 46 + UI 587 全绿（含 Han guard），format/lint 0 error，AppEnvironment 1300；含 derive() 行为变化 + 三端 UI 的全量 Build & Test 经 GitHub Actions CI 绿。
+- **scope-out 全兑现**：无 AI 校准 band、无 migration（compute-on-read）、band 不喂 derive() 以外消费者、不覆盖标签 / 不降级、不吃 AI 难度、aiGenerated 排除。
+- **§17 文档影响已回写**：ADR-006 §10.1 实施进展、architecture/002-system-map §4.10 band 数据流 + 测试入口、idea-02 §14 band 落地回指。
+
+完成标准（达成）：①S4a + S3 已 merge 信号回归充分；②ADR-006 §10.1 artifact 存在；band 不覆盖标签 / 不降级 / 红线无 AI 字段 / 排除 aiGenerated / 仅喂 derive()；迟滞防漂移测试全绿；用户覆盖优先；CI 绿；ADR / architecture 同步。
 - 完成标准：①S4a + S3 已 merge 且信号回归充分；②ADR-006 §10 修订 artifact 存在；band 不覆盖标签 / 不降级 / 红线无 AI 字段 / 排除 aiGenerated 查词 / 仅喂 derive()；derive 迟滞防漂移测试全绿；用户覆盖优先；三端构建 CI 绿；ADR / architecture 同步。
 
 ## 20. 剩余风险（系列最高）
