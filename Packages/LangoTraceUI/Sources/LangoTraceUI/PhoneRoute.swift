@@ -8,6 +8,9 @@ enum PhoneRoute: Hashable {
     case practiceSentence(PracticeSessionRouteSeed)
     case settings(SettingsCapability.Kind)
     case settingsList
+    /// Learner profile overview (LM02) — an independent settings navigation item,
+    /// not a `SettingsCapability`.
+    case learnerProfile
 }
 
 enum PhoneSheet: Identifiable {

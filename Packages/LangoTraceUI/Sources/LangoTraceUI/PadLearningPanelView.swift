@@ -51,7 +51,7 @@ struct PadLearningPanelView: View {
                 panelTextKey: "reading.inspector.body",
                 systemImage: "book.pages"
             )
-        case .settingsList, .settings:
+        case .settingsList, .settings, .learnerProfile:
             settingsContextContent
         case .memory:
             routeContextContent(

@@ -67,6 +67,8 @@ struct MacInspectorContent: View {
                     )
                 }
             }
+        case .learnerProfile:
+            LocalizedTextPanel(titleKey: "learnerProfile.title", textKey: "learnerProfile.memory.subtitle")
         case .unavailable:
             LocalizedTextPanel(
                 titleKey: "capabilityStatus.unavailable",

@@ -76,6 +76,7 @@ enum MacWorkspaceRoute: Equatable {
     case practiceSentenceList(String)
     case practiceSentence(PracticeSessionRouteSeed)
     case settings(SettingsCapability.Kind)
+    case learnerProfile
     case languageSpaceManagement
     case unavailable(String)
 
@@ -84,7 +85,7 @@ enum MacWorkspaceRoute: Equatable {
         case .practiceSentenceList, .practiceSentence, .languageSpaceManagement,
              .entryDetail, .bilingualReading, .reading:
             true
-        case .overview, .settings, .unavailable:
+        case .overview, .settings, .learnerProfile, .unavailable:
             false
         }
     }

@@ -70,6 +70,7 @@ struct LangoTraceApp: App {
                 .environment(\.localSearchActions, environment.localSearchActions)
                 .environment(\.memoryDepositActions, environment.memoryDepositActions)
                 .environment(\.memoryReviewActions, environment.memoryReviewActions)
+                .environment(\.learnerProfileActions, environment.learnerProfileActions)
                 .preferredColorScheme(appearancePreference.preferredColorScheme)
                 .task { settingsSceneStatus = await environment.loadSettingsStatus() }
             }
@@ -137,6 +138,7 @@ struct LangoTraceApp: App {
         .environment(\.localSearchActions, environment.localSearchActions)
         .environment(\.memoryDepositActions, environment.memoryDepositActions)
         .environment(\.memoryReviewActions, environment.memoryReviewActions)
+        .environment(\.learnerProfileActions, environment.learnerProfileActions)
         .preferredColorScheme(appearancePreference.preferredColorScheme)
         .task {
             session.restoreLanguageSpace()

@@ -349,6 +349,7 @@ struct SettingsView: View {
     let onLanguageSpaceAction: () -> Void
     let onSettingsAction: (() -> Void)?
     let onSelectCapability: (SettingsCapability.Kind) -> Void
+    var onSelectLearnerProfile: (() -> Void)?
     var onAppearRefresh: () -> Void = {}
 
     var body: some View {
@@ -359,6 +360,9 @@ struct SettingsView: View {
             onSettingsAction: onSettingsAction,
             showsContextHeader: false
         ) {
+            if let onSelectLearnerProfile {
+                LearnerProfileSettingsRow(action: onSelectLearnerProfile)
+            }
             ForEach(capabilities) { capability in
                 CapabilityStatusRow(
                     localizedTitleKey: capability.kind.localizedTitleKey,
@@ -377,6 +381,36 @@ struct SettingsView: View {
             }
         }
         .onAppear(perform: onAppearRefresh)
+    }
+}
+
+/// Settings entry row for the learner profile overview (LM02). An independent
+/// navigation item — deliberately not a `SettingsCapability` (the profile is not
+/// a status-bearing configuration capability).
+struct LearnerProfileSettingsRow: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: "person.text.rectangle")
+                    .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                    .frame(width: 28)
+                VStack(alignment: .leading, spacing: 2) {
+                    localizedText("learnerProfile.title")
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                    localizedText("settings.learnerProfile.summary")
+                        .font(.caption)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 

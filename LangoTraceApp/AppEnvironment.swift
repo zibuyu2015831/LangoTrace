@@ -29,6 +29,8 @@ struct AppEnvironment {
     let localSearchActions: LocalSearchActions
     let memoryDepositActions: MemoryDepositActions
     let memoryReviewActions: MemoryReviewActions
+    // LM02 Slice 1: learner profile overview seam (snapshot load + Memory governance).
+    let learnerProfileActions: LearnerProfileActions
     let syncService: any SyncService
     // LM01: the Learner Model seam is assembled here so LM02's overview UI can consume
     // Ability knowledge coverage without re-wiring. No UI reads it yet (compute-on-read,
@@ -261,6 +263,34 @@ struct AppEnvironment {
             }
         )
 
+        // LM02 Slice 1: system-level Memory layer + learner profile overview.
+        let learnerMemoryRepository: GRDBLearnerMemoryRepository? =
+            (try? databaseFactory.database()).map { GRDBLearnerMemoryRepository(writer: $0.writer) }
+        let learnerProfileActions = LearnerProfileActions(
+            loadSnapshot: { spaceID, languageCode in
+                guard let learnerContextProvider, let memoryItemRepository else { return nil }
+                let builder = LearnerProfileSnapshotBuilder(
+                    provider: learnerContextProvider,
+                    memoryItemRepository: memoryItemRepository
+                )
+                return try? await builder.snapshot(spaceID: spaceID, languageCode: languageCode, now: Date())
+            },
+            addFact: { kind, text in
+                guard let learnerMemoryRepository else { return }
+                try? learnerMemoryRepository.save(
+                    MemoryFact(id: UUID().uuidString, kind: kind, text: text, createdAt: Date())
+                )
+            },
+            deleteFact: { id in
+                guard let learnerMemoryRepository else { return }
+                try? learnerMemoryRepository.softDelete(id: id)
+            },
+            resetAllFacts: {
+                guard let learnerMemoryRepository else { return }
+                try? learnerMemoryRepository.resetAll()
+            }
+        )
+
         return AppEnvironment(
             makeLanguageSpaceRepository: {
                 try GRDBLanguageSpaceRepository(
@@ -381,6 +411,7 @@ struct AppEnvironment {
             localSearchActions: localSearchActions,
             memoryDepositActions: memoryDepositActions,
             memoryReviewActions: memoryReviewActions,
+            learnerProfileActions: learnerProfileActions,
             syncService: DisabledSyncService(),
             learnerContextProvider: learnerContextProvider,
             loadSettingsStatus: loadSettingsStatus

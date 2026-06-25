@@ -74,6 +74,8 @@ struct MacWorkspaceContentView: View {
             .id(seed.practiceRouteIdentity)
         case let .settings(kind):
             settingDetail(kind: kind)
+        case .learnerProfile:
+            LearnerProfileView(languageSpace: languageSpace)
         case .languageSpaceManagement:
             languageSpaceManagement
         case let .unavailable(kind):
@@ -215,6 +217,7 @@ struct MacWorkspaceContentView: View {
     private var settingsContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader(titleKey: "mac.settings.section.title", subtitleKey: "mac.settings.section.subtitle")
+            LearnerProfileSettingsRow(action: { onRoute(.learnerProfile) })
             ForEach(settingsCapabilities) { capability in
                 CapabilityStatusRow(
                     localizedTitleKey: capability.kind.localizedTitleKey,

@@ -10,6 +10,7 @@ enum PadWorkspaceRoute: Equatable {
     case reading
     case settingsList
     case settings(SettingsCapability.Kind)
+    case learnerProfile
     case memory
     case importExport
     case languageSpaceManagement
@@ -28,6 +29,8 @@ enum PadWorkspaceRoute: Equatable {
             "tab.reading"
         case .settingsList, .settings:
             "tab.settings"
+        case .learnerProfile:
+            "learnerProfile.title"
         case .memory:
             "tab.memory"
         case .importExport:

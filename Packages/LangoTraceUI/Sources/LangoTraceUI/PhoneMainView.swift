@@ -301,8 +301,11 @@ struct PhoneMainView: View {
                 onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
                 onSettingsAction: nil,
                 onSelectCapability: { kind in navModel.push(.settings(kind), on: tab) },
+                onSelectLearnerProfile: { navModel.push(.learnerProfile, on: tab) },
                 onAppearRefresh: { Task { await contentStore.refreshSettingsStatus() } }
             )
+        case .learnerProfile:
+            LearnerProfileView(languageSpace: languageSpace)
         }
     }
 }

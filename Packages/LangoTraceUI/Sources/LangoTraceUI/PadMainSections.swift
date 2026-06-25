@@ -191,6 +191,8 @@ struct PadWorkspaceContentView: View {
                 settingDetail(kind: kind)
             case .settingsList:
                 settingsList
+            case .learnerProfile:
+                LearnerProfileView(languageSpace: languageSpace)
             case .memory:
                 memoryPage
             case .importExport:
@@ -341,6 +343,7 @@ struct PadWorkspaceContentView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 SectionCaption(titleKey: "pad.settings.section.title", subtitleKey: "pad.settings.section.subtitle")
+                LearnerProfileSettingsRow(action: { onRoute(.learnerProfile) })
                 ForEach(settingsCapabilities) { capability in
                     CapabilityStatusRow(
                         localizedTitleKey: capability.kind.localizedTitleKey,
