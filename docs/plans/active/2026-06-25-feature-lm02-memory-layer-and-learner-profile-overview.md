@@ -328,7 +328,16 @@ scripts/check-docs.sh
 
 ## 18. 实施记录
 
-待实现。
+2026-06-25 落地（dev 分支，三 Phase）：
+
+- **Phase 1（Memory 地基）**：`MemoryFact`/`MemoryFactKind`/`MemoryFactVisibility`（默认 global）域模型 + `LearnerSourceType.manualMemory`；`AppDatabase.writer` seam；v27 migration `learner_memory_facts`（系统级无 space FK、source_entry_id ON DELETE SET NULL、准原始策略真实字面值、CHECK、soft_deleted_at）；`GRDBLearnerMemoryRepository`（save/list/softDelete/resetAll，单条软删 + 系统级物理删）。
+- **Phase 2（provider + 聚合）**：`LearnerContextProvider.memoryFacts(visibility:)`（reader 读，排除软删）；`LearnerMemoryFactRow` 共享解码；`LearnerProfileSnapshot` + `LearnerProfileSnapshotBuilder`（spaceID+languageCode 显式入参、async、Learner-owned vs 借用复习统计标注；系统级重置不改复习统计已断言）。
+- **Phase 3（三端 UI + 装配）**：`LearnerProfilePresentation`（不展示降级、空态、盲点占位）+ `LearnerProfileActions`/`LearnerProfileStore`；`LearnerProfileView`（三端共享 List + Memory 增删 + 系统级重置确认）+ `LearnerProfileSettingsRow`（独立导航行非 SettingsCapability）；三端入口（PhoneRoute/PadWorkspaceRoute/MacWorkspaceRoute + inspector/panel/layout 穷尽 switch）；`AppEnvironment` 装配 + 两处环境注入；UI 包新增 LearnerModel 依赖；28 条本地化 key；UI 源全英文过 Han guard。
+- **TDD**：MemoryFactModelTests(4)/AppDatabaseLearnerMemoryMigrationTests(3)/GRDBLearnerMemoryRepositoryTests(6)/LearnerProfileSnapshotTests(2)/LearnerContextProviderMemoryFactsTests(2)/LearnerProfilePresentationTests(6)/LearnerProfileStoreTests(5) 先失败后实现。
+- **验证**：轻量本机 LearnerModel 24 + Data 244 + UI 578 全绿，format/lint 自查通过；含 v27 + 三端 UI 的全量 Build & Test 经 GitHub Actions CI run `28158971678` 绿。
+- **第 5 节 scope-down 全兑现**：无自动抽取/无账本、无盲点管线、无 Style、不碰 derive()/LanguageLevel、不走 SettingsCapability、无字段级加密（记 architecture note）、E10 备份接线 defer（硬接缝已托管）。
+- **§12.2 visibility=global / §12.3 二段式删除**收口默认进入实现（用户已授权接受）。
+- **§17 文档影响已回写**：ADR-006 影响节（LM02-S1 进展）、architecture/001 §2.8、architecture/002-system-map（§4.10 子系统 + §5 依赖方向 UI→LearnerModel + §7 故障行）、spec/007（v27 supplement）、platform-page-inventory（三端学习画像行）。
 
 ## 19. 完成标准
 

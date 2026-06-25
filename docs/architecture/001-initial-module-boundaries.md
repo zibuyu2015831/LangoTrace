@@ -121,7 +121,7 @@
 - Ability / Memory / Style 三层域模型与 provenance。
 - `LearnerContextProvider` 对外唯一供给 seam（消费者经此取用户上下文，不自建 store）。
 
-依赖 Core + Data + GRDB；不被 Core / Data 反向依赖（无环）。LM01 仅落地 Ability 知识覆盖（compute-on-read，无新表）；Memory / Style 与账本/band 留 LM02/LM03。
+依赖 Core + Data + GRDB；不被 Core / Data 反向依赖（无环）。LM01 落地 Ability 知识覆盖（compute-on-read，无新表）。**LM02 Slice 1（2026-06-25）新增 Memory 层**：`MemoryFact` 域模型 + 系统级 GRDB 表 `learner_memory_facts`（v27）+ `GRDBLearnerMemoryRepository`（系统级读写）+ `LearnerProfileSnapshot` 聚合；`LearnerContextProvider` 扩 `memoryFacts(visibility:)`。配套 **`AppDatabase` 新增 `writer` seam**（LM01 §20 预告，供 LearnerModel 拥有写入）。Style 层与账本/band 仍留后续 LM02/LM03。`LangoTraceUI` 自此依赖 `LangoTraceLearnerModel`（消费学习画像总览页类型；无环）。
 
 ## 3. 依赖方向
 

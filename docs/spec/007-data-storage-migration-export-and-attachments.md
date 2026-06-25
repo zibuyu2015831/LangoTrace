@@ -211,3 +211,14 @@ E10 Slice 1 落地本地非敏感导出/导入引擎（无新 migration，导出
 - Data `GRDBLocalExportService`：`exportPackage(spaceID:)`/`exportPackageData` 导出 entries + deposited memory_items（用户主数据）；`preview`/`importPackage` verify-before-write（先校验 formatVersion ≤ 当前 + checksum，再同 id skip 合并）。明文开放格式，**无加密**——secrets 是排除而非保护（核心决策 9）；manifest schemaVersion 记 `v26`（informational）。
 - 排除保证（有测试断言导出 JSON 不含 keychain/secret/api_key）：凭证/Keychain 列、provider/TTS 配置、ai_request_logs 与 operation 摘要、search_index/向量/cache/tts artifacts 派生、app_state 设备本地。
 - **deferred**（见 `docs/architecture/notes/2026-06-18-export-backup-deferred-slices.md`）：Slice 2（macOS `fileExporter`/`fileImporter` + entitlement + 附件文件打包，需 macOS runner 验证）、加密/口令备份包（依赖不存在的 KDF/安全存储）、其余主数据表（learning materials/reading/practice）导出。引擎格式已证明，扩展为机械工作。
+
+## 变更记录补充：学习者模型 Memory 层落地（LM02 Slice 1，2026-06-25）
+
+LM02 Slice 1 落地 Learner Model 的 **Memory 层**——用户**显式记住**的生活事实 / 目标，系统级横切语言空间（ADR-006 §3）：
+
+- migration `v27_create_learner_memory_facts`：**仓库首张系统级表**，刻意**无 `space_id`/无 space FK**（事实全局共享，切换空间可见、删空间不级联删，ADR-006 §7.1）；`source_entry_id TEXT REFERENCES entries(id) ON DELETE SET NULL`（弱引用，事实比来源记录长寿，沿用 `memory_items.entry_id` 先例）；`kind`/`visibility`/`source`/三策略列均带 CHECK 约束；`soft_deleted_at REAL`。索引 `idx_learner_memory_facts_active_created(soft_deleted_at, created_at)`。
+- **准原始持久化策略（ADR-006 §8，与 TTS 派生资产相反）**：策略列复用 Core `MediaArtifact*Policy` 词汇但取 `sync_policy=localOnly` / `backup_policy=includedInSystemBackup` / `export_policy=includedInRecoverableBackup`（**真实枚举字面值**，不存在 `included`）。
+- **删除语义（二段式）**：单条删 = `soft_deleted_at` 置位（可查看已删除 / 撤销）；系统级「重置 App 对我的了解」= `resetAll()` **物理 DELETE**（使「重置」名实相符，并消除最浓缩 PII 软删明文残留）。v2 自动抽取的 tombstone 暂不建（v1 无抽取）。
+- **写 seam**：`AppDatabase` 新增 `public var writer: DatabaseWriter`（LM01 §20 预告），`GRDBLearnerMemoryRepository` 经此拥有系统级读写。Ability 覆盖仍 compute-on-read 不持久（E7/LM01 不受影响）。
+- **静态安全**：v1 复用整库 `FileProtection.completeUntilFirstUserAuthentication`（iOS）；**字段级加密 / SQLCipher 未决**（ADR-006 §5.2），记入 `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`。
+- **E10 硬接缝**：可恢复备份**必须**纳入 `learner_memory_facts`（`export_policy=includedInRecoverableBackup`），否则删库 = 永久失忆；实际打包随 E10 后续切片（当前 Slice 2 deferred），接缝由上述 architecture note 托管。

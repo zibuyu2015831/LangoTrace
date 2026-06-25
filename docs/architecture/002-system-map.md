@@ -265,20 +265,40 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 
 架构备忘录：`docs/architecture/notes/2026-06-25-chat-streaming-provider-seam-notes.md`
 
+### 4.10 学习者模型（Ability 覆盖 + Memory 层 + 学习画像总览页）
+
+系统级、横切语言空间的 Learner Model 子系统（ADR-006），独立包 `LangoTraceLearnerModel`：
+
+1. **Ability 知识覆盖（LM01）**：`GRDBLearnerContextProvider` 经 `AppDatabase.reader` 以 compute-on-read 从 active 沉淀 `memory_items`（JOIN `language_spaces.target_language_code`）聚合 `AbilityCoverage`，**不持久不备份、无 migration**，删除经 active-only 读天然级联（ADR-006 §8/§7）；红线：不读 `memory_candidates`、无 band/level/difficulty。
+2. **Memory 层（LM02-S1）**：用户**显式记住**的生活事实 / 目标写入**系统级表 `learner_memory_facts`（v27，无 space FK）**经 `AppDatabase.writer` → `GRDBLearnerMemoryRepository`；准原始策略 `localOnly`/`includedInSystemBackup`/`includedInRecoverableBackup`（ADR-006 §8）。单条删=软删可撤销；系统级「重置 App 对我的了解」=物理 DELETE（不触 `memory_items`/学习记录）。
+3. **学习画像总览页（LM02-S1）**：`LearnerProfileSnapshotBuilder` compute-on-read 聚合 Ability 覆盖 + Memory 事实（Learner-owned）+ per-space 复习统计（借用 `memory_items`，系统级重置不改它）；三端 `LearnerProfileView`（独立设置导航项 / iPad·macOS 侧栏 peer，非 SettingsCapability）经 `LearnerProfileActions` 取数与治理；温和水平**不展示降级**（ADR-006 §10），盲点占位待后续切片。
+
+关键文件：
+
+- `Packages/LangoTraceLearnerModel/Sources/LangoTraceLearnerModel/`（`MemoryFact` / `GRDBLearnerMemoryRepository` / `LearnerProfileSnapshot` / `GRDBLearnerContextProvider` / `LearnerContextProvider`）
+- `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabaseLearnerMemoryMigration.swift`（v27）+ `AppDatabase.writer`
+- `Packages/LangoTraceUI/Sources/LangoTraceUI/LearnerProfileView.swift` / `LearnerProfilePresentation.swift` / `LearnerProfileStore.swift` / `LearnerProfileActions.swift`
+
+测试入口：`GRDBLearnerMemoryRepositoryTests` / `LearnerProfileSnapshotTests` / `LearnerContextProviderMemoryFactsTests`（LearnerModel）、`AppDatabaseLearnerMemoryMigrationTests`（Data）、`LearnerProfilePresentationTests` / `LearnerProfileStoreTests`（UI）。
+
+硬接缝：E10 可恢复备份必须纳入 `learner_memory_facts`（否则删库=永久失忆），事实源 `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`。
+
 ## 5. 模块依赖方向
 
 当前依赖方向：
 
 ```text
 App Shell -> UI -> Core
-App Shell -> Data / AI / Speech / Sync
+App Shell -> Data / AI / Speech / Sync / LearnerModel
+UI -> Core / Data / LearnerModel
 Data -> Core
 AI -> Core
 Speech -> Core
 Sync -> Core
+LearnerModel -> Core / Data
 ```
 
-当前 App target 通过 `project.yml` 依赖所有本地 package；package 之间仍应保持 Core 向下无依赖、具体实现由 App 组装。
+当前 App target 通过 `project.yml` 依赖所有本地 package；package 之间仍应保持 Core 向下无依赖、具体实现由 App 组装。UI 自 LM02-S1 起依赖 LearnerModel（消费学习画像总览页类型；LearnerModel 不反向依赖 UI，无环）。
 
 ## 6. 禁止反向依赖
 
@@ -311,6 +331,7 @@ Sync -> Core
 | 麦克风权限拒绝或不可用 | 用户拒绝、受限、设备不可用或 sandbox entitlement 缺失 | 录音 service 返回稳定 failure，不创建 ready recording，不标记完成 | 单句页显示可恢复失败；其他学习功能可继续使用 | permission status / failure category，不记录音频 | Partial | `PracticeRecordingServiceTests.swift`、`PracticeRecordingConfigurationTests.swift`；真实设备需人工验收 | `docs/spec/008-permissions-local-privacy-and-diagnostics.md` |
 | 练习录音提交失败 | recording stop 失败、文件缺失、文件过大、hash mismatch、metadata ready 标记失败 | 清理 staging 或保持 pending 待 recovery；不把失败 attempt 暴露为 ready；完成操作只接受 ready recording | 用户可重新录音，不显示完成成功 | duration / byte size bucket 和 failure category；无绝对路径 | Partial | `GRDBPracticeRepositoryTests.swift`、`MediaArtifactRepositoryTests.swift`、`PracticeRecordingServiceTests.swift` | `docs/spec/media-artifacts/impl.md` |
 | 完成态录音缺失或被清理误选 | completed recording 文件缺失、hash mismatch 或普通 cleanup 候选误包含 | session 保持 completed；playback source 标为 unavailable；completed recording 不进入普通 TTS / capacity cleanup | 用户看到完成记录存在但录音不可播放或需重新录制 | artifact state / failure category；不记录路径 | Partial | `MediaArtifactRepositoryTests.swift`、`GRDBPracticeRepositoryTests.swift`、`PracticeSessionViewModelTests.swift`；真实设备回放需人工验收 | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
+| 学习画像总览 / Memory 治理（LM02-S1） | DB 不可用、空 Memory、删除/重置 | snapshot loader 返回 nil → 页面 `unavailable` 态；空 Memory 返回空列表 + 「继续记录以解锁画像」空态；单条删=软删可撤销，系统级重置=物理 DELETE 且不触 `memory_items`；写入经串行 `DatabaseQueue` | 用户看到画像不可用 / 空态 / 重置确认流；不展示水平降级 | 纯本地零外发；不记录事实正文 | Yes | `GRDBLearnerMemoryRepositoryTests`、`LearnerProfileSnapshotTests`、`LearnerProfileStoreTests`、`AppDatabaseLearnerMemoryMigrationTests` | `docs/decisions/006-system-level-three-layer-learner-model.md`；`docs/spec/007-...md` |
 | 多轮 / 流式聊天传输（enabler，无 UI） | 流中途网络失败、取消、超时、4xx 配额、非 2xx、响应超体积上限、不支持的 Provider kind | `AIChatStreamingService` 将错误映射到既有分类后令 `AsyncThrowingStream` 安全终止；已 yield 的 delta 已交付（流式本义，非泄漏）；超 `maximumResponseBytes` 以 `responseTooLarge` 终止 | 传输层语义正确；半截回复的 UI 表达属 LM03（当前无 UI） | 不记录消息正文 / persona / 密钥；对话级 log 写入归 LM03 | Yes | `AIChatStreamingServiceTests.swift`、`ServerSentEventParserTests.swift`；真实 URLSession 流式行为经 CI Build & Test | `docs/architecture/notes/2026-06-25-chat-streaming-provider-seam-notes.md`；`docs/spec/005-ai-provider-prompt-and-privacy.md` |
 | 未来 Sync | sync engine / adapter / conflict 未实现 | 保持 disabled / unavailable，不承诺同步 | 设置页显示未启用或不可用 | 无真实同步日志 | No | `SyncBoundaryTests.swift` 只覆盖 disabled boundary | `docs/technical-framework-roadmap.md` |
 | 未来权限 | Photos / Camera / Speech Recognition / OCR 未接入 | 保持未实现说明，真实权限任务另建 plan | 不弹出真实权限或误导为已授权 | 无真实权限日志 | No | 当前无完整权限测试 | `docs/spec/008-permissions-local-privacy-and-diagnostics.md` |
