@@ -36,6 +36,10 @@ struct AppEnvironment {
     // Ability knowledge coverage without re-wiring. No UI reads it yet (compute-on-read,
     // pure local; nil when the database is unavailable).
     let learnerContextProvider: (any LearnerContextProvider)?
+    // LM02-S2: Style surface-imprint seam assembled as forward infrastructure
+    // (seam-only, user decision 2026-06-25). No consumer reads it yet — the
+    // companion v2 / rewrite slices will. Compute-on-read, pure local.
+    let learnerStyleProvider: (any LearnerStyleProvider)?
     // E12: recomputes settings row values (AI provider / sync / local data) off the main
     // thread from non-sensitive snapshots only — never Keychain plaintext, never a probe.
     let loadSettingsStatus: @Sendable () async -> SettingsStatusProjection
@@ -195,6 +199,10 @@ struct AppEnvironment {
         let learnerContextProvider: (any LearnerContextProvider)? =
             (try? databaseFactory.database()).map { GRDBLearnerContextProvider(reader: $0.reader) }
 
+        // LM02-S2: Style surface-imprint provider (seam-only, no consumer yet).
+        let learnerStyleProvider: (any LearnerStyleProvider)? =
+            (try? databaseFactory.database()).map { GRDBLearnerStyleProvider(reader: $0.reader) }
+
         // E12: settings status projection. Reads only the non-sensitive config snapshot and
         // the on-disk footprint; the sync value comes from the (disabled) sync service.
         let settingsConfigRepository: GRDBAIProviderConfigurationRepository? =
@@ -244,24 +252,7 @@ struct AppEnvironment {
         )
 
         // E8: local memory review queue (fixed-interval scheduler over E7 columns).
-        let memoryReviewActions = MemoryReviewActions(
-            loadDueBatch: { spaceID, limit in
-                guard let memoryItemRepository else { return [] }
-                return await (try? memoryItemRepository.dueItems(spaceID: spaceID, limit: limit, now: Date())) ?? []
-            },
-            recordOutcome: { id, outcome in
-                guard let memoryItemRepository else { return }
-                _ = try? await memoryItemRepository.recordReviewOutcome(id: id, outcome: outcome, now: Date())
-            },
-            markMastered: { id in
-                guard let memoryItemRepository else { return }
-                try? await memoryItemRepository.markMastered(id: id, now: Date())
-            },
-            statistics: { spaceID in
-                guard let memoryItemRepository else { return .zero }
-                return await (try? memoryItemRepository.memoryStatistics(spaceID: spaceID, now: Date())) ?? .zero
-            }
-        )
+        let memoryReviewActions = makeMemoryReviewActions(memoryItemRepository: memoryItemRepository)
 
         let learnerProfileActions = makeLearnerProfileActions(
             databaseFactory: databaseFactory,
@@ -391,6 +382,7 @@ struct AppEnvironment {
             learnerProfileActions: learnerProfileActions,
             syncService: DisabledSyncService(),
             learnerContextProvider: learnerContextProvider,
+            learnerStyleProvider: learnerStyleProvider,
             loadSettingsStatus: loadSettingsStatus
         )
     }

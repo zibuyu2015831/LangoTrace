@@ -12,6 +12,8 @@ public enum LearnerSourceType: String, Sendable, Equatable {
     /// `LearnerEvidenceRef` is in-memory only (never persisted), so adding a case
     /// carries no raw-value persistence compatibility burden.
     case practiceTextAttempt
+    /// An `entries.body` source-language entry backing a Style imprint (LM02-S2).
+    case entryBody
 }
 
 /// Provenance reference for a covered knowledge point (ADR-006 §9). Single-row FK
