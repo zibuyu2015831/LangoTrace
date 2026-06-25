@@ -69,8 +69,81 @@ func makeCompanionChatActions(
         clear: { threadID in
             guard let database = try? databaseFactory.database() else { return }
             try? GRDBCompanionRepository(writer: database.writer).clearThread(threadID: threadID)
+        },
+        extract: { threadID in
+            await companionExtract(
+                threadID: threadID,
+                databaseFactory: databaseFactory,
+                credentialStore: credentialStore
+            )
         }
     )
+}
+
+/// One explicit chat-reflux extraction (LM03-S2a): resolve space + endpoint, run
+/// the extraction engine over the persisted conversation, persist the candidates
+/// anchored to the latest user message, and return the space's full candidate list
+/// (newest first, carrying the source-deleted state). Reuses the S1 streaming
+/// transport — same provider path, no system-auto-injection.
+private func companionExtract(
+    threadID: String,
+    databaseFactory: SharedAppDatabaseFactory,
+    credentialStore: any AIProviderCredentialStore
+) async -> CompanionExtractionOutcome {
+    guard let database = try? databaseFactory.database() else {
+        return .failed(.other)
+    }
+    let repository = GRDBCompanionRepository(writer: database.writer)
+    guard
+        let thread = try? repository.thread(id: threadID),
+        let space = try? repository.languageContext(spaceID: thread.languageSpaceID)
+    else {
+        return .failed(.other)
+    }
+    let history = (try? repository.messages(threadID: threadID)) ?? []
+    // Nothing to mine — an empty success, not an outbound request.
+    guard !history.isEmpty else { return .extracted([]) }
+
+    // Resolve the provider endpoint + secret (honest failure when not configured).
+    let configurationRepository = GRDBAIProviderConfigurationRepository(database: database)
+    guard
+        let profile = try? await configurationRepository.loadDefaultProfile(),
+        let endpoint = profile.textGenerationEndpointInput
+    else {
+        return .failed(.providerUnavailable)
+    }
+    let plaintextSecret = try? await resolveLearningMaterialSecret(
+        endpoint: endpoint,
+        profile: profile,
+        credentialStore: credentialStore
+    )
+
+    let engine = CompanionExtractionEngine(
+        transport: CompanionStreamingTransport(
+            service: AIChatStreamingService(httpClient: URLSessionAIProviderHTTPClient()),
+            endpoint: endpoint,
+            plaintextSecret: plaintextSecret
+        )
+    )
+    let result = await engine.extract(
+        window: history,
+        targetLanguageCode: space.targetLanguageCode,
+        nativeLanguageCode: space.nativeLanguageCode
+    )
+    switch result {
+    case let .success(extracted):
+        // Anchor the batch to the latest user message (weak link, nulled if deleted).
+        let anchorMessageID = history.last(where: { $0.role == .user })?.id
+        try? repository.appendCompanionCandidates(
+            threadID: threadID,
+            messageID: anchorMessageID,
+            candidates: extracted
+        )
+        let all = (try? repository.companionCandidates(spaceID: thread.languageSpaceID)) ?? []
+        return .extracted(all)
+    case let .failure(error):
+        return .failed(error)
+    }
 }
 
 /// One companion turn: resolve space + persona + endpoint, run the engine, and
