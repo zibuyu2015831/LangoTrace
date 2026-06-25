@@ -56,7 +56,11 @@
 
 ### LM02-S4：band 重估（CEFR 动态评估，v2 高风险）
 
-> **→ 已转拆解边界（2026-06-25 完整双轮自审 + 用户决策：拆 S4a/S4b）**：[`2026-06-25-feature-lm02-s4-band-reestimation.md`](2026-06-25-feature-lm02-s4-band-reestimation.md) 已由单一 feature 方案转为**拆解边界**（类型 docs、自审 N/A）。双轮纠偏：① **blast radius 原「derive() 仅 2 处 → 风险小」不成立**——`derive()` 确 2 处，但 `proficiencyLevelCode` 作水平真值还流向 **AI Provider 请求**(`ReadingDocumentStore:95`)、材料生成(`LearningContentStore:194/:286`)、照片写作、回译点评 + 用户覆盖路径 `switchExplanationMode:112`（proficiency 真值 = 5+ 消费者跨外发边界）；② **「S4 首张持久表」错误**——S1 `learner_memory_facts`=v27 才是首张，S4 = v28+ 建在 S1 writer seam 上；③ **ADR 已决 = ADR-006 §10 修订**（非新 ADR），作 S4b 门控。**拆法**：**S4a**=查词捕获+账本（低风险，须先定查词 backup_policy + 闭环传递污染审查）；**S4b**=band 服务+derive 迟滞+总览呈现（最高风险，须 S4a+S3 信号回归 + §10 修订存在 + 可测迟滞数值）。S4a/S4b 各自 active plan + 双轮，待第 2 批开工前拆。详见该 plan §12.0/§13。
+> **→ 已转拆解边界 + S4a/S4b 已拆出并双轮自审（2026-06-25「先收口再实施」完成）**：[`2026-06-25-feature-lm02-s4-band-reestimation.md`](2026-06-25-feature-lm02-s4-band-reestimation.md) 已转**拆解边界**（类型 docs、自审 N/A）。双轮纠偏：① blast radius 原「derive() 仅 2 处 → 风险小」不成立（proficiency 真值 = 5+ 消费者跨外发边界）；② 「S4 首张持久表」错误（S1 `learner_memory_facts`=v27 才是首张，S4=v28+ 建在 S1 writer seam 上）；③ ADR 已决 = ADR-006 §10 修订（非新 ADR），作 S4b 门控。
+> **拆出的两份 active plan（各自双轮 + 拆分后隔离再审三关过）**：
+> - **S4a** [`...s4a-lookup-capture-and-ledger`](2026-06-25-feature-lm02-s4a-lookup-capture-and-ledger.md)（查词捕获+账本，低风险）。再审收口：source_content_origin **不可捕获**（reading_documents 恒用户导入、无 AI 生成阅读源）→ 降**前向 schema 接缝**（v1 恒 userAuthored，二阶闭环 v1 不成立）；practice_text_attempts **非排除导出伪先例**（无策略列、归档导出方案列其为主数据）→ 查词事件改「不可重算行为信号」新类别、**显式声明** local-only + spec/007 新增登记；埋点宿主改 **AI 解释 seam**（ReadingDictionaryLookupIndex 未接线）。
+> - **S4b** [`...s4b-band-service-and-derive-hysteresis`](2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis.md)（band 服务+derive 迟滞+总览，最高风险）。再审收口：「band 不跨外发」被 `:96`（请求携 `explanationLanguageMode`=derive 输出）**证伪** → 改诚实措辞「band 不增新外发字段、外发的是三档枚举」；迟滞 dwell 单位「内容条目」与 S4a 高水位 cursor 错配 → 改 **document-open 评估次数**（稳定阈值=连续 3 次越阈、停留=≥5 次）；迟滞计数器状态 = per-language / local-only / 重启清零可接受。门控：S4a+S3 信号回归 + ADR-006 §10 修订 artifact 存在。
+> 两片现 Draft/Reviewed、**待实现授权**。详见各 plan §12/§13。
 
 - **范围**：把目标语水平从静态自评升为**持续重估的内部 band 信号**；驱动材料生成难度 / 解释模式 / 练习选材 / 复习排序 / 语伴基线。
 - **硬前置**：LM02-S1；**S3 的独立产出信号 + 查词行为信号成熟**（band 须建在不被 level 污染的独立信号上，否则闭环自证焊死水平，idea-02 §13.1）。

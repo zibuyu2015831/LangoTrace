@@ -40,15 +40,14 @@
 第 1 批（本地优先，零外发，可门控为一批）
   LM02-S1（Memory 层 + 学习画像总览页）   ← 先做：建 writer seam + v27 migration + 总览页（S2/S3 的展示归宿）
      ↓
-  LM02-S3（盲点：dictation diff 派生）       ← 填 S1 总览页盲点分区；compute-on-read 无 migration（第二轮发现 2 P1：红线测试机制 + 规模上限，须先收口）
+  LM02-S3（盲点：dictation diff 派生）       ← 填 S1 总览页盲点分区；compute-on-read 无 migration（双轮过：2 P1 已收口=红线 grep+行为断言 / LIMIT 200）
   LM02-S2（Style：seam-only 不展示）         ← 与 S3 并行；compute-on-read 无 migration
         （S2/S3 均 read-only，不依赖 S1 的 writer，但 S3 展示依赖 S1 总览页先落地）
 
-第 2 批（band，最高风险，须第 1 批 S3 信号成熟 + 回归充分）— 2026-06-25 已决拆 S4a/S4b
-  S4a（查词捕获 + 分析账本/cursor，v28+ migration，低风险）  ← 不动 derive()；须先定查词 backup_policy + 闭环传递污染审查
+第 2 批（band，最高风险，须第 1 批 S3 信号成熟 + 回归充分）— 2026-06-25 已拆 S4a/S4b 各自 active plan + 双轮 + 隔离再审
+  S4a（查词捕获 + 分析账本/cursor，v28+ migration，低风险）  ← 不动 derive()；双轮+再审过：查词 = 不可重算行为信号新类别(显式 local-only)；source_content_origin 降前向接缝(v1 无 AI 阅读源)；埋点宿主 = AI 解释 seam
      ↓
-  S4b（band 服务 + derive() 迟滞 + 总览呈现，最高风险）       ← 唯一碰 derive()；门控：S4a+S3 信号回归 + ADR-006 §10 修订存在 + 可测迟滞数值
-        （S4 原文件已转拆解边界；S4a/S4b 各自 active plan + 双轮，待本批开工前拆）
+  S4b（band 服务 + derive() 迟滞 + 总览呈现，最高风险）       ← 唯一碰 derive()；双轮+再审过；门控：S4a+S3 信号回归 + ADR-006 §10 修订存在；迟滞=连续 3 次 document-open 越阈 + ≥5 次停留；band 经 :96 影响外发档位(诚实论证=不增新外发字段)
 
 第 3 批（语伴 = 完整聊天引擎；消费上方已退险的 Provider 多轮/流式 infra）
   LM03-S1（MVP 单线程文本对话引擎）          ← 各子片需先按 LM03 拆解文档各自拆出 active plan + 双轮自审
@@ -72,8 +71,10 @@
 |---|---|---|---|
 | LM02-S1 | `2026-06-25-feature-lm02-memory-layer-and-learner-profile-overview` | Memory 层 + 学习画像总览页 | 🟡 **Draft / Reviewed**（双轮过；visibility=global + 二段式删除已收口；含 v27 migration + writer seam + 三端总览页）；**待实现授权** |
 | LM02-S2 | `2026-06-25-feature-lm02-s2-style-surface-imprint` | Style 表层印记（seam-only 不展示） | 🟡 **Draft / Reviewed**（双轮过；compute-on-read 源语言写作印记，零外发/零迁移）；**用户定 do-now/seam-only**；待实现授权 |
-| LM02-S3 | `2026-06-25-feature-lm02-s3-blind-spots` | 盲点（dictation diff 派生） | 🟡 **Draft / 第一轮 Reviewed；第二轮已执行**（2026-06-25）——**2 P1 阻塞未清**（红线守卫测试机制未指定；compute-on-read 规模上限未定值/无先失败测试）；修订 §7/§12.2/§15 后方可标 Reviewed |
-| LM02-S4 | `2026-06-25-feature-lm02-s4-band-reestimation` | band 动态重估 + derive 迟滞 | 🔴 **Draft / Not Reviewed；完整双轮已执行**（2026-06-25）——结论：**本文件应拆 S4a/S4b 并改为拆解边界**（4 P0+4 P1：blast radius 低估[derive=2 处但 proficiency 真值 5+ 消费者跨 AI 外发]、「首张持久表」事实错误[S1 v27 才是首张]、迟滞无数值无法 TDD、闭环传递污染未审、ADR 须现在定）；**须用户决策拆分** |
+| LM02-S3 | `2026-06-25-feature-lm02-s3-blind-spots` | 盲点（dictation diff 派生） | 🟡 **Draft / Reviewed**（双轮过；2026-06-25 收口 2 P1：红线 = 源级 grep + 行为断言 sentinel；规模上限 = `ORDER BY created_at DESC LIMIT 200`；P2/P3 同次并入）；**待实现授权** |
+| LM02-S4 | `2026-06-25-feature-lm02-s4-band-reestimation` | band 动态重估（拆解边界） | ⚪ **拆解边界 / 自审 N/A**（2026-06-25 完整双轮后转拆解边界，已 spawn S4a/S4b；4 P0+4 P1 分配进子片为实现前必决项）；不再作单一可实现方案 |
+| LM02-S4a | `2026-06-25-feature-lm02-s4a-lookup-capture-and-ledger` | 查词捕获 + 分析账本（地基，低风险） | 🟡 **Draft / Reviewed**（双轮 + 拆分后隔离再审三关过；再审收口 P0-A source_origin 降前向接缝 / P1-B 持久化新类别显式声明 / P2-C 埋点改 AI 解释 seam）；硬前置 S1；**待实现授权** |
+| LM02-S4b | `2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis` | band 服务 + derive 迟滞 + 总览（最高风险） | 🟡 **Draft / Reviewed**（双轮 + 隔离再审三关过；再审收口 P0-1 band 经 :96 影响外发档位措辞 / P1-1 迟滞 dwell 改 document-open 次数 / P2-1 计数器状态）；门控 S4a+S3 信号回归 + ADR-006 §10 修订存在；**待实现授权** |
 | 独立 infra | `2026-06-25-feature-ai-provider-multi-turn-and-streaming` | AI Provider 多轮 + 文本流式（LM03 消费） | 🟡 **Draft / Reviewed**（双轮过；OpenAI 兼容族，Anthropic 后置）；**2026-06-25 改标独立基础设施**，可与第 1/2 批并行先行退 spike 险；**待实现授权** |
 | 导航 | `2026-06-25-docs-lm02-remaining-slices-decomposition` | LM02 后续切片拆解 + 排序 | 🔵 **In Progress**（S2/S3 已拆 active plan；S4 已转拆解边界拆 S4a/S4b；改写 + onboarding 措辞两孤儿已补登；AI 校准留登记未拆） |
 | 导航 | `2026-06-25-docs-lm03-companion-decomposition` | 语伴完整引擎切片 + 决策收口 | 🔵 **In Progress**（S1–S4 切片边界 + §9/§10.6 决策收口；**LM03-S1…S4 子片 active plan 待各批次开工前再拆**） |
@@ -90,7 +91,7 @@
 
 补完 S3 第二轮 + S4 双轮自审 + 三 idea 拆分完整性审查后，**四件架构级缺口已由用户拍板**（详见各方案 §13 + 拆解文档）：
 
-4. **✅ 已决：S4 拆 S4a/S4b，S4 文件转拆解边界**（自审 N/A）。S4a=信号捕获+账本（低风险、可回归）、S4b=band 服务+derive 迟滞（最高风险、门控 S3 信号成熟 + ADR-006 §10 修订 + 可测迟滞数值）。S4a/S4b 各自 active plan + 双轮，待第 2 批开工前拆。**双轮 4 P0+4 P1 已作 S4a/S4b 实现前必决项写入 S4 §13。未拆前 S4 不可实现。**
+4. **✅ 已决并已落地：S4 拆 S4a/S4b，S4 文件转拆解边界**（自审 N/A）。**2026-06-25「先收口再实施」已完成拆分**：S4a（`...s4a-lookup-capture-and-ledger`，信号捕获+账本，低风险）+ S4b（`...s4b-band-service-and-derive-hysteresis`，band 服务+derive 迟滞，最高风险）**各自 active plan 已建 + 各自双轮自审 + 拆分后隔离子代理再审三关过**。再审捕获并收口了拆分引入的实质错误：S4a 的 source_content_origin 不可捕获（降前向接缝）、practice 伪先例（改新类别显式声明）、埋点落点（改 AI 解释 seam）；S4b 的「band 不跨外发」被 `:96` 证伪（改诚实措辞）、迟滞 dwell 单位错配（改 document-open 次数）。两片现 Draft/Reviewed，**待实现授权**（S4b 另门控 S4a+S3 信号回归 + ADR-006 §10 修订 artifact 存在）。
 5. **✅ 已决：两处孤儿能力均登记为未来切片**（LM02 拆解文档「未来切片登记」节）：① 改写/写作修改（Style→Ability i+1 下投影第二消费者，兑现 S2 立项前提）；② onboarding 自评措辞软化微切片（idea-02 §7.2 / ADR-006 §10，纯展示、不改 `LanguageLevel` 枚举）。仅占位、不立即拆 active plan。
 6. **✅ 已决：AI Provider 多轮+流式 enabler 改标独立基础设施**（原「语伴前置」）：可与第 1/2 批并行先行退 spike 险（首个 `AsyncThrowingStream` / `bytes(for:)` OS 差异 / mimo SSE 未验），LM03 仅消费。方案范围不变、仅排序定位调整。
 7. **✅ 已决：S4 ADR = ADR-006 §10 修订**（非新独立 ADR）：band 重估 + derive() 吃演进信号 + 迟滞契约作 §10 扩展修订，作为 **S4b 清线门控**（修订 artifact 须先存在）。

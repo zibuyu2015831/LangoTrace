@@ -1,7 +1,7 @@
 # 任务方案（拆解边界）：band 动态重估拆为 S4a（信号捕获+账本）/ S4b（band 服务+derive 迟滞）（LM02 Slice 4）
 
 状态：In Progress（拆解边界 / 导航文档，非单一实现方案）
-自审核状态：N/A（拆解边界）。**2026-06-25 完整双轮自审结论 + 用户决策**：S4 拆 **S4a**（信号捕获+账本，低风险）/ **S4b**（band 服务+derive 迟滞，最高风险），本文件转拆解边界；双轮发现的 **4 P0 + 4 P1**（blast radius 严重低估、「首张持久表」事实错误[S1 v27 才是首张]、迟滞状态机无数值无法 TDD、闭环红线传递污染未审、ADR 须现在定）作为 S4a/S4b 的**实现前必决项**写入第 13 节；S4a/S4b 各自 active plan + 各自完整双轮自审，待第 2 批开工前拆。
+自审核状态：N/A（拆解边界）。**2026-06-25 完整双轮自审结论 + 用户决策**：S4 拆 **S4a**（信号捕获+账本，低风险）/ **S4b**（band 服务+derive 迟滞，最高风险），本文件转拆解边界；双轮发现的 **4 P0 + 4 P1** 作为 S4a/S4b 的实现前必决项。**S4a/S4b 已于 2026-06-25「先收口再实施」拆出 + 各自双轮 + 拆分后隔离再审三关过**（见 §12.0 末），两片 Draft/Reviewed、待实现授权。
 类型：docs（拆解边界；S4a/S4b 各自 feature active plan 待第 2 批开工前拆）
 创建日期：2026-06-25
 最后更新日期：2026-06-25
@@ -110,7 +110,7 @@
 S4 体量远大于 S1/S2/S3（净新增查词捕获 + 账本 + band 服务 + derive 迟滞 + 总览呈现，含多张 migration + 唯一 derive 触碰），且捆了 4 类风险。**2026-06-25 用户决策：拆两子片**，本文件转拆解边界：
 - **S4a = 信号捕获 + 账本地基**：查词 / 索取解释行为事件表（v28+）+ 分析账本 / cursor + repository（持久化 + migration，**不动 derive()、不产 band 呈现**，建在 S1 v27 + writer seam 之上）。低风险、可先回归。S4a 清线前须收口：查词事件 backup_policy（不可重算用户行为，对照 practice_text_attempts 先例 + S1 架构备忘录 FileProtection 接缝，§13 P1-2/P1-4）；闭环红线**传递污染**审查（查词建在 AI 生成阅读材料上的二阶闭环，§13 P0-4）——该项决定 S4a 捕获什么，须在 S4a 实现前定。
 - **S4b = band 服务 + derive() 迟滞 + 总览呈现**：band 重估服务 + derive 迟滞接线 + 总览 band 呈现（**唯一动 derive()、最高风险**，须 S4a + S3 信号回归充分后再做）。S4b 清线前须收口：可测迟滞状态机数值（§13 P0-3）；proficiency 真值 5+ 消费者 blast radius + `switchExplanationMode` 用户覆盖 reconcile（§13 P0-2）；ADR-006 §10 修订存在（下条）。
-- **本文件不再被推进为单一可实现方案**；S4a/S4b 各自 active plan + 各自完整双轮自审，待第 2 批开工前拆（与 LM03-S1…S4 子片同一延后授权模式）。
+- **本文件不再被推进为单一可实现方案**；**S4a/S4b 已拆出并各自双轮自审 + 拆分后隔离再审三关过（2026-06-25「先收口再实施」完成）**：[`...s4a-lookup-capture-and-ledger`](2026-06-25-feature-lm02-s4a-lookup-capture-and-ledger.md) / [`...s4b-band-service-and-derive-hysteresis`](2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis.md)，两片现 Draft/Reviewed、待实现授权。本文件保留为拆解边界 + 双轮证据档。
 
 ### 12.1 关键待决（实现授权前须收口）
 1. **derive() 迟滞参数**：稳定阈值、最小停留窗口大小、「仅新内容」边界（已渲染解释不回改）——idea-02 §13.3 给方向未给数值，须定具体策略 + 测试。

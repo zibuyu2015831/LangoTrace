@@ -1,7 +1,7 @@
 # 任务方案：盲点（常犯错误清单，源自练习机械 diff）（LM02 Slice 3）
 
 状态：Draft
-自审核状态：第一轮 Reviewed；**第二轮已执行（2026-06-25 隔离子代理）——发现 2 项 P1 阻塞未清**（[P1-1] §4 红线守卫测试 `sqlReadsOnlyPracticeAttemptAllowlist` 机制未指定、按 LM01 先例应为行为断言或 `Database.trace`；[P1-2] compute-on-read 规模上限（全历史 dictation 每次进页全量重跑 O(n²) compare）未定值、§15 无对应先失败测试）。修订写回 §7/§12.2/§15 后方可标 Reviewed，见第 13 节
+自审核状态：**Reviewed（双轮过；2026-06-25 收口第二轮 2 P1）**——[P1-1] 红线守卫测试机制已定稿 = **行为断言（sentinel）+ §14 既有源级 grep 守卫**（弃不可实现的 SQL 文本断言）；[P1-2] compute-on-read 规模上限已定稿 = **`ORDER BY created_at DESC LIMIT 200`**（约束 5 升 blocker + 先失败测试）。P2-1/P2-2/P3-1/P3-2 同次并入。详见第 13 节第三个自审块。**仍待用户实现授权**。
 类型：feature
 创建日期：2026-06-25
 最后更新日期：2026-06-25
@@ -33,7 +33,7 @@ ADR-006 影响节把「盲点 / 常犯错误」归 Ability 层（按语言）；
 
 ## 3. 目标
 
-1. **盲点域模型**（`LangoTraceLearnerModel` 包）：`BlindSpot`（错误模式：kind + 代表样例 + 出现频次 + 证据集 + 语言码）、`BlindSpotKind` = **直接映射 `PracticeDictationDiff.SegmentKind` 的 `{missing, changed, extra}`**（P1-1：代码已有确定机械分型，不另造命名、不做语言学分类）；provenance 用 `[LearnerEvidenceRef]` 表达**证据集分布**（每条支撑 attempt 一个 ref，weight 沿用 reserved；ADR-006 §9：Ability/Style 证据是分布非单 FK，不退化为单 FK）；`LearnerSourceType` 加 `.practiceTextAttempt`。
+1. **盲点域模型**（`LangoTraceLearnerModel` 包）：`BlindSpot`（错误模式：kind + 代表样例 + 出现频次 + 证据集 + 语言码）、`BlindSpotKind` = **直接映射 `PracticeDictationDiff.SegmentKind` 的 `{missing, changed, extra}`**（P1-1：代码已有确定机械分型，不另造命名、不做语言学分类）；provenance 用 `[LearnerEvidenceRef]` 表达**证据集分布**（每条支撑 attempt 一个 ref，weight 沿用 reserved；ADR-006 §9：Ability/Style 证据是分布非单 FK，不退化为单 FK）；`LearnerSourceType` 加 `.practiceTextAttempt`（**P3-2：`LearnerEvidenceRef` 纯内存、不落库，加 case 无 raw-value 持久化兼容负担**）。
 2. **`LearnerBlindSpotProvider` 读 seam**（新协议）：`func blindSpots(languageCode:) throws -> [BlindSpot]`（按语言、compute-on-read、纯本地读）。与 Ability/Memory/Style provider **并列分方法暴露**，不做 union（idea-01 §12.2）。
 3. **`GRDBLearnerBlindSpotProvider`**（compute-on-read，镜像 LM01）：`reader.read{}` 读 `practice_text_attempts` JOIN `language_spaces`，`WHERE exercise_type = 'dictation' AND diff_summary_json IS NOT NULL AND soft_deleted_at IS NULL AND ls.deleted_at IS NULL AND ls.target_language_code = ?`，**读 `attempt_text` + `reference_text_snapshot` 在读路径重跑 `PracticeDictationDiff.compare()` 取词文本**（P0-2：持久 `diff_summary_json` 只存 kind + offset、无词文本，须重算才能做频次聚合 + 代表样例；`diff_summary_json` 仅作存在性过滤 / 校验）。**只读用户产出 + 机械 diff，SQL 仅 SELECT `practice_text_attempts` 白名单列 + JOIN `language_spaces`，绝不 JOIN `memory_candidates` / 不读 `learning_text`（§4 红线）。无 writer、无 migration、无外发。**
 4. **总览页盲点分区填充（v1 = 纯展示 + 跳既有复习入口）**：S1 落地后填充其盲点分区，呈现「重复练习错误模式（来自听写练习）」（用户自己的错误、诚实标注练习来源，**非水平判决**）。**「加入记忆库」deposit 砍出 v1**（P0-1：`memory_items` 当前 `CHECK source_kind IN ('candidate')` + `difficulty NOT NULL` + 幂等键建在 `source_candidate_id`，盲点 deposit 需独立 migration + Core 模型扩展，超出本切片零迁移边界）→ 留 §12.2② 后续子增量。v1 仅链到既有复习页（若有现成入口）。
@@ -114,13 +114,13 @@ ADR-006 影响节把「盲点 / 常犯错误」归 Ability 层（按语言）；
 - 执行或验证方式：presentation 测试 + 人工审查
 - 验证提示：dictation diff 含听力辨音误差 + 拼写滑误，**非纯语法 / 用法盲点**（idea-02 §4.1 把听写归「产出 / 理解」练习信号，与「写作盲点」并列但不等同）→ v1 分区文案定性为「**重复练习错误模式（来自听写练习）**」，**不**用无限定的「盲点 / blind spot」裸标签冒充完整语法诊断；**绝不**呈现「你水平 X / 从 B1 降 A2」。presentation 测试断言：① 无 level/downgrade 文案键；② 分区标题键含练习来源限定。真正语法盲点须自由产出信号（§12.2③ 子增量），dictation 是其代理 / 占位信号。
 
-### 约束 5（性能）：compute-on-read 读路径全量重算的规模边界
+### 约束 5（性能）：compute-on-read 读路径全量重算的规模边界（v1 已定上限）
 
 - 来源：P0-2 重算形态、`PracticeDictationDiff.compare()`（O(n²) LCS、`maxInputLength=2000`）
 - 适用范围：`GRDBLearnerBlindSpotProvider` 读路径
-- 严重度：warn
-- 执行或验证方式：代码审查 + 规模断言
-- 验证提示：盲点跨全部历史 dictation attempts 重跑 `compare()`，每次进总览页全量重算；attempts 多时有成本。v1 须有规模上限策略（如限近 N 次 / 按 session 去重 / 缓存最近一次），并在 §20 记规模风险。
+- 严重度：**blocker**（第二轮 P1-2 收口：由 warn 升 blocker——这是本切片唯一新增工程风险，不可只文档化不测）
+- 执行或验证方式：单元测试（先失败规模断言）+ 代码审查
+- 验证提示：**v1 上限定稿 = `ORDER BY created_at DESC LIMIT 200`**（按 `target_language_code`、读路径内 SQL 截断、**无缓存 / 无新表 / 无迁移**，与白名单 SQL 兼容）。仅对最近 200 条 dictation attempts 重跑 `compare()`。选 LIMIT 而非缓存：缓存需生命周期 / 失效或持久化（近迁移），破坏本切片零迁移边界；LIMIT 是无状态、可 TDD 的硬上限。N=200 依据：dictation 文本通常 ≤300 字符，200×300² ≈ 18M ops（进页可接受）；极端 maxInputLength=2000 仅作硬天花板、罕触。先失败测试见 §15 `recomputeBoundedToRecentNAttempts`。若未来 profiling 显示进页延迟超标，再引入「缓存最近一次（键 = max(created_at)+count）」作后续优化（§20）。
 
 ### 约束 6：模块依赖方向清晰
 
@@ -180,11 +180,12 @@ ADR-006 影响节把「盲点 / 常犯错误」归 Ability 层（按语言）；
 
 1. LearnerModel 域模型：`BlindSpot`（languageCode + kind + 代表样例文本 + occurrenceCount + 证据集 `[LearnerEvidenceRef]`，证据集采样上限同 S2）；`BlindSpotKind`（v1 来自 diff 的结构化类别，见 §12.2）；`LearnerSourceType` 加 `.practiceTextAttempt`。先写值类型测试红绿。
 2. `LearnerBlindSpotProvider` 协议：`func blindSpots(languageCode:) throws -> [BlindSpot]`。
-3. `GRDBLearnerBlindSpotProvider(reader:)`（镜像 `GRDBLearnerContextProvider`）：`reader.read{}` 读 `practice_text_attempts` JOIN `language_spaces`，`WHERE exercise_type='dictation' AND diff_summary_json IS NOT NULL AND soft_deleted_at IS NULL AND ls.deleted_at IS NULL AND ls.target_language_code = ?`；**对每行 `attempt_text` + `reference_text_snapshot` 重跑 `PracticeDictationDiff.compare()`**（P0-2：持久 summary 无词文本，须重算取 `Segment.attemptText` / `referenceText`），按 `SegmentKind` + 词文本做频次聚合（见 §12.2）。**只读用户产出 + 机械 diff，SQL 仅 SELECT `practice_text_attempts` 白名单列 + JOIN `language_spaces`（不 JOIN `memory_candidates`、不读 `learning_text`，§4 红线）。** 先失败测试 → 实现。注意 `compare()` O(n²) LCS + `maxInputLength=2000`，须规模上限（约束 5）。
+3. `GRDBLearnerBlindSpotProvider(reader:)`（镜像 `GRDBLearnerContextProvider`）：`reader.read{}` 读 `practice_text_attempts` JOIN `language_spaces`，`WHERE exercise_type='dictation' AND diff_summary_json IS NOT NULL AND soft_deleted_at IS NULL AND ls.deleted_at IS NULL AND ls.target_language_code = ? ORDER BY created_at DESC LIMIT 200`（**P1-2 收口：SQL 内截断最近 200 条，约束 5**）；**对每行 `attempt_text` + `reference_text_snapshot` 重跑 `PracticeDictationDiff.compare()`**（P0-2：持久 summary 无词文本，须重算取 `Segment.attemptText` / `referenceText`），按 `SegmentKind` + 词文本做频次聚合（见 §12.2）。**只读用户产出 + 机械 diff，SQL 仅 SELECT `practice_text_attempts` 白名单列 + JOIN `language_spaces`（不 JOIN `memory_candidates`、不读 `learning_text`，§4 红线）。** 先失败测试 → 实现。注意 `compare()` O(n²) LCS + `maxInputLength=2000`，LIMIT 200 即规模硬上限（约束 5）。
 
 ### 12.2 错误模式抽取形态 + 行动闭环（待决收口）
 
 - **① diff → 结构化盲点的形态**：`BlindSpotKind` v1 **定稿 = `{missing, changed, extra}`，直接映射 `PracticeDictationDiff.SegmentKind`**（P1-1，不另造命名、不做语言学分类——语言学分类近 AI 判定）；聚合用**轻量频次聚合**（重跑 compare 后按「kind + 词文本」重复计数 + 代表样例）。聚合策略（按词 vs 按参考片段）仍可自审微调，但 kind 枚举不再待决。
+- **①' 规模上限（第二轮 P1-2 收口，定稿）**：重算输入集 = `ORDER BY created_at DESC LIMIT 200` 截断的最近 200 条 dictation attempts（约束 5）。选 LIMIT 而非缓存 / session 去重：无状态、零迁移、可先失败测试。先失败测试 `recomputeBoundedToRecentNAttempts`（§15）。
 - **② 行动闭环 v1 形态（已据 P0-1 收口）**：**v1 = 纯展示 + 跳既有复习入口；「加入记忆库」deposit 砍出 v1**（`memory_items` schema 仅接 candidate 来源 + difficulty NOT NULL，盲点 deposit 需独立 migration + Core 扩展，§5）→ 留后续子增量，届时单拆方案、命中 add-storage-migration、用户确认。「针对性练习生成」依赖 AI = 外发，更后置。
 - **③ 自由产出语种检测是否进 v1（待决）**：**取舍 = 否**，留子增量（idea-02 §13.4 信号稀疏 + 净新增语种检测）。v1 仅 dictation diff——这是 v1 盲点覆盖面受限的根因（§20）。
 
@@ -235,9 +236,27 @@ ADR-006 影响节把「盲点 / 常犯错误」归 Ability 层（按语言）；
 是否允许进入实现：否。第二轮发现 2 P1 阻塞清线项（红线测试机制 + 规模上限值/测试）须修订写回后，自审核状态方可由「第一轮 Reviewed」推进为「Reviewed」。本轮仍仅授权拆 plan，未授权实现。
 ```
 
+```text
+收口日期：2026-06-25（第二轮 2 P1 + P2/P3 收口，状态推进为 Reviewed）
+收口方式：主会话据第二轮发现逐项定稿决策并写回，无需新增用户决策（按「先收口再实施」授权由 AI 给定合理默认）
+P1-1（红线守卫测试机制）已定稿：
+  弃「SQL 文本断言」（reader.read{} 内私有字面值无 seam，不可实现）。
+  机制 = 源级 grep 守卫（§14：rg 对 provider 源无命中，直接证明源不引用 memory_candidates/learning_materials/learning_text）+ 行为断言 redLineExcludesAICandidateAndLearningText（§15：seed errorPattern 候选 + learning_text 各带唯一 sentinel，断言盲点输出不含 sentinel）。两者并用——grep 守源、行为断言守运行期非泄漏。observations 不落库故只由行为断言间接覆盖。
+  写回：§14（双守描述）、§15（测试改名 + 机制写死）、§4/约束2 不变（仍 blocker）。
+P1-2（规模上限）已定稿：
+  v1 上限 = ORDER BY created_at DESC LIMIT 200（按语言、读路径内 SQL 截断、无缓存 / 无新表 / 无迁移）。选 LIMIT 而非缓存：无状态、零迁移、可 TDD。N=200 依据：dictation 文本通常 ≤300 字符，200×300²≈18M ops 进页可接受；maxInputLength=2000 仅硬天花板。
+  约束 5 由 warn 升 blocker；§12.1.3 SQL 加 LIMIT；§12.2①' 记决策；§15 加先失败测试 recomputeBoundedToRecentNAttempts；§20 记剩余风险 + 缓存后置。
+P2/P3（同次并入）：
+  [P2-1] §15 加 softDeletedLanguageSpaceContributesNoBlindSpots（空间软删，镜像 LM01 softDeletedSpaceExcluded）。
+  [P2-2] §17 idea-02 §7.1 改「源替换 + 加注」（errorPattern AI 候选 → dictation diff 用户产出 + 加注 AI errorPattern 不作信号源），非单纯落地回指。
+  [P3-1] §17 architecture/002 回写须接在 S1 LM01/Memory 基线之后（002 当前零 Learner 条目）。
+  [P3-2] §3 目标1 注明 .practiceTextAttempt 纯内存 source type、无 raw-value 持久化兼容负担。
+是否允许进入实现：否——状态已推进为 Reviewed（双轮过），但仍待用户逐批实现授权。预置确认点（§13 第一块「预置确认点」）①②③④ 中：①聚合策略（按词 vs 按片段）= 实现期微调、不阻塞；②自由产出语种检测默认否（已定）；③deposit 子增量另立方案；④效度文案口径已定（约束 4「重复练习错误模式（来自听写练习）」）。
+```
+
 ## 14. 复查方法
 
-- 代码：LearnerModel 值类型 / provider 测试全绿；红线 grep `rg "memory_candidates|learning_materials|learning_text|urlsession|LangoTraceAI" Packages/LangoTraceLearnerModel/Sources` 无命中（observations 不落库故不在 grep 内，改以「SQL 列白名单」行为断言守红线）；依赖断言不 import LangoTraceAI；`git diff` 无 migration / 无新表。
+- 代码：LearnerModel 值类型 / provider 测试全绿；**红线守卫 = 源级 grep + 行为断言双守**（第二轮 P1-1 定稿）：① 源级 grep `rg "memory_candidates|learning_materials|learning_text|urlsession|LangoTraceAI" Packages/LangoTraceLearnerModel/Sources` 无命中（直接证明 provider 源不引用禁表）；② 行为断言 `redLineExcludesAICandidateAndLearningText`（sentinel 不泄漏，§15）；observations 不落库故不在 grep 内、改由行为断言间接覆盖；依赖断言不 import LangoTraceAI；`git diff` 无 migration / 无新表。
 - 数据：盲点按语言聚合（跨同语言多空间共享）；仅 dictation 信号；源删除天然级联；空练习返回空盲点不崩溃；attempts 多时读路径重算规模受上限约束（约束 5）。
 - UI：盲点分区不下判决 / 不降级、诚实标注练习来源；v1 仅展示 + 跳复习（无 deposit）；空态引导；三端可达。
 
@@ -253,8 +272,10 @@ fixture 构造：复用 LM01 路径（DatabaseQueue + AppDatabase + raw SQL seed
   BlindSpotModelTests.kindMapsToSegmentKind —— 断言 BlindSpotKind = {missing,changed,extra} 映射 PracticeDictationDiff.SegmentKind；预期失败：类型尚不存在。
   GRDBLearnerBlindSpotProviderTests.aggregatesByLanguageReRunningCompare —— 断言重跑 compare 后按词文本频次聚合；预期失败：provider 尚不存在。
   GRDBLearnerBlindSpotProviderTests.backtranslationAttemptsExcluded —— 约束 3：回译 diff_summary_json 为 nil 应被 WHERE 排除。
-  GRDBLearnerBlindSpotProviderTests.sqlReadsOnlyPracticeAttemptAllowlist —— 红线（改自 seed observations，因 observations 不落库无法 seed）：断言读路径 SQL 只 FROM/JOIN practice_text_attempts + language_spaces 白名单列，不触 memory_candidates / learning_materials。
+  GRDBLearnerBlindSpotProviderTests.redLineExcludesAICandidateAndLearningText —— 红线机制定稿（第二轮 P1-1，弃不可实现的 SQL 文本断言）= **行为断言 sentinel**：seed 一条 dictation attempt（产出已知盲点 token）+ 一条 memory_candidates(kind='errorPattern') 含唯一 sentinel-A + 一条 learning_materials.learning_text 含唯一 sentinel-B，断言 blindSpots 输出含 attempt token 但**不含 sentinel-A / sentinel-B**（证运行期不跨 AI 判定表）。**配合 §14 源级 grep 守卫**（`rg memory_candidates|learning_materials|learning_text` 对 provider 源无命中）= 静态直接证明源不引用禁表。两者并用：grep 守源、行为断言守运行期非泄漏。observations 不落库（PracticeBacktranslationReview.swift:50）故不 seed。
+  GRDBLearnerBlindSpotProviderTests.recomputeBoundedToRecentNAttempts —— 规模上限定稿（第二轮 P1-2，约束 5 blocker）：seed 200+k 条同语言 dictation attempts（created_at 递增），断言仅最近 200 条参与聚合（ORDER BY created_at DESC LIMIT 200）；预期失败：截断尚未实现。
   GRDBLearnerBlindSpotProviderTests.softDeletedAttemptDropsFromBlindSpots —— 源 attempt 软删后该模式重算消失（天然级联，约束 1）。
+  GRDBLearnerBlindSpotProviderTests.softDeletedLanguageSpaceContributesNoBlindSpots —— 第二轮 P2-1 补：空间软删（ls.deleted_at NOT NULL）后其 attempts 不进盲点（约束 1，镜像 LM01 softDeletedSpaceExcluded）。
   BlindSpotPresentationTests.neverShowsLevelDowngradeAndLabelsPracticeSource —— 无 level/downgrade 键 + 标题含练习来源限定；预期失败：presentation 尚不存在（约束 4）。
 聚焦验证命令：
   swift test --package-path Packages/LangoTraceLearnerModel
@@ -276,9 +297,9 @@ scripts/check-docs.sh
 
 - [ADR-006](../../decisions/006-system-level-three-layer-learner-model.md)：回写「LM02 盲点 v1（dictation diff 派生、compute-on-read、零外发）已落地；自由产出 / AI 校准盲点留后续」（实施后）。
 - `docs/architecture/001-initial-module-boundaries.md`：包获得盲点 read（命中包边界变化触发）。
-- `docs/architecture/002-system-map.md`：盲点子系统 compute-on-read 数据流（读 practice_text_attempts dictation diff → 聚合 → BlindSpot）。
+- `docs/architecture/002-system-map.md`：盲点子系统 compute-on-read 数据流（读 practice_text_attempts dictation diff → 聚合 → BlindSpot）。**P3-1：002 当前零 Learner 条目，盲点数据流回写须接在 S1 的 LM01/Memory 子系统基线之后**（不可先于 S1 基线落条目）。
 - `docs/platform-page-inventory.md`：总览页盲点分区填充 + 行动闭环（命中平台页面变化触发）。
-- `docs/idea/02-dynamic-proficiency-assessment.md` §7.1：盲点页落地回指收口。
+- `docs/idea/02-dynamic-proficiency-assessment.md` §7.1：**P2-2：非单纯「落地回指」——§7.1 原述盲点源 = `memory_candidates kind=errorPattern`（已核实 errorPattern 是 AI 候选 kind，AppDatabase.swift:493，ADR-006 §4 红线禁读），S3 须将其改为「dictation diff 用户产出」并加注「AI errorPattern 候选不作盲点信号源」**（源替换 + 加注，非仅回指）。
 - review：新子系统 read + 页面分区命中专项审查触发。
 - 是否需要新 ADR：否——ADR-006 盲点归 Ability 层的实施，沿用其决策；§12.2 待决作方案内决策 + 用户确认。
 
@@ -297,7 +318,7 @@ scripts/check-docs.sh
 
 - **盲点效度（信号性质，最重要，P1-2）**：dictation diff 反映「转写差异」，含听错 / 拼写滑误，**不全是语法 / 用法盲点**（idea-02 §4.1 把听写归练习信号、非「写作盲点」强信号）——v1 须诚实标注「重复练习错误模式（来自听写练习）」、不用裸「盲点」标签冒充完整语法诊断。覆盖有限（仅做过听写者有）；真正语法盲点须自由产出语种检测信号（§12.2③ 子增量、idea-02 §13.4 母语记录稀疏致产出信号稀疏，是 v1 覆盖受限根因）。
 - **deposit 砍出 v1（§12.2②，P0-1）**：`memory_items` schema 仅接 candidate 来源 + difficulty NOT NULL，盲点 deposit 需独立 migration + Core 扩展（命中 add-storage-migration）→ 后续子增量、用户单独确认；v1 仅展示 + 跳复习。
-- **读路径重算规模（P0-2 / 约束 5）**：盲点须重跑 `PracticeDictationDiff.compare()`（O(n²) LCS、maxInputLength=2000），跨全部历史 dictation attempts、每次进总览页全量重算，attempts 多时有成本——v1 须规模上限（限近 N 次 / 缓存）。
+- **读路径重算规模（P0-2 / 约束 5，第二轮 P1-2 已收口为 blocker + 上限定值）**：盲点须重跑 `PracticeDictationDiff.compare()`（O(n²) LCS、maxInputLength=2000）。**v1 上限定稿 = `ORDER BY created_at DESC LIMIT 200`**（无状态、零迁移、可先失败测试 `recomputeBoundedToRecentNAttempts`）。剩余风险：N=200 在极端长文本（接近 maxInputLength）下进页延迟仍可能偏高（罕见）；若未来 profiling 超标，再引入「缓存最近一次（键 = max(created_at)+count）」作后续优化，不进 v1（缓存需生命周期 / 失效，破坏零迁移边界）。
 - **错误模式抽取形态（§12.2 ①）**：kind 已定稿 {missing,changed,extra} 映射 SegmentKind；聚合策略（按词 vs 按片段）仍可自审微调，避免引入语言学分类（近 AI 判定）。
 - **provenance 分布证据（P2-1）**：盲点 provenance 是「证据集分布」（多 attempts 支撑一模式），用 `[LearnerEvidenceRef]` 表达、weight 沿用 reserved；未来加权重须保持证据集语义、不退化为单 FK（ADR-006 §9）。
 - **依赖 S1 盲点分区（P1-3）**：S1 的 `LearnerProfileView`/`Presentation` **尚不存在于磁盘**（S1 仅 Draft/Reviewed）；S3 Phase 2 硬阻塞于 S1 落地。
