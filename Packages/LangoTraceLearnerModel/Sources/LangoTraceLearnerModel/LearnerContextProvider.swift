@@ -5,6 +5,9 @@ import Foundation
 /// v1 only sources from explicit memory deposits.
 public enum LearnerSourceType: String, Sendable, Equatable {
     case memoryItem
+    /// A Memory-layer fact the user explicitly saved (LM02). No source row in
+    /// any table — provenance is the user's own action.
+    case manualMemory
 }
 
 /// Provenance reference for a covered knowledge point (ADR-006 §9). Single-row FK

@@ -12,6 +12,15 @@ public struct AppDatabase: @unchecked Sendable {
         databaseQueue
     }
 
+    /// Write seam for cross-package repositories that own their own writes (e.g.
+    /// the Learner Model's system-level Memory facts). Exposes the queue as a
+    /// `DatabaseWriter` (the same `DatabaseQueue` already serialises all writes),
+    /// so a caller can run write transactions without reaching the concrete queue.
+    /// (LM01 §20 预告的一次性增量。)
+    public var writer: DatabaseWriter {
+        databaseQueue
+    }
+
     public init(databaseQueue: DatabaseQueue) throws {
         self.databaseQueue = databaseQueue
         // `PRAGMA foreign_keys` is a no-op inside a transaction, so it must run
@@ -126,6 +135,9 @@ private extension AppDatabase {
         }
         migrator.registerMigration("v26_create_memory_item_infrastructure") { db in
             try createMemoryItemInfrastructure(db)
+        }
+        migrator.registerMigration("v27_create_learner_memory_facts") { db in
+            try createLearnerMemoryFactsInfrastructure(db)
         }
         try migrator.migrate(databaseQueue)
     }
