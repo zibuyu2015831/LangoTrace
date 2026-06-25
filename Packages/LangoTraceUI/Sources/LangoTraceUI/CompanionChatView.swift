@@ -31,6 +31,14 @@ struct CompanionChatView: View {
         }
         .navigationTitle(localizedString(CompanionChatCopy.entryTitleKey))
         .toolbar {
+            ToolbarItem(placement: .secondaryAction) {
+                Button {
+                    Task { await store.extractCandidates() }
+                } label: {
+                    localizedText(CompanionChatCopy.extractActionKey)
+                }
+                .disabled(!store.canExtract)
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button(role: .destructive) {
                     isPresentingClearConfirm = true
@@ -70,9 +78,47 @@ struct CompanionChatView: View {
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
+                extractionResults
             }
             .padding()
         }
+    }
+
+    @ViewBuilder private var extractionResults: some View {
+        if store.isExtracting {
+            Text(localizedString(CompanionChatCopy.extractLoadingKey))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        } else if let error = store.extractionFailure {
+            Text(localizedString(CompanionChatCopy.extractionFailureKey(error)))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        } else if let count = store.lastExtractionCount {
+            if count == 0 {
+                Text(localizedString(CompanionChatCopy.extractEmptyKey))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text(String(format: localizedString(CompanionChatCopy.extractSuccessCountKey), count))
+                    .font(.footnote.weight(.semibold))
+                ForEach(store.candidates) { candidate in
+                    candidateRow(candidate)
+                }
+            }
+        }
+    }
+
+    private func candidateRow(_ candidate: CompanionCandidatePresentation) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(candidate.text).font(.subheadline.weight(.medium))
+            Text(candidate.explanationNative).font(.caption).foregroundStyle(.secondary)
+            if candidate.isSourceMessageDeleted {
+                Text(localizedString(CompanionChatCopy.extractSourceDeletedKey))
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func bubble(text: String, isUser: Bool) -> some View {

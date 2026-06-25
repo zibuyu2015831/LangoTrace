@@ -20,6 +20,49 @@ public struct CompanionMessagePresentation: Equatable, Sendable, Identifiable {
     }
 }
 
+/// A single extracted vocabulary / expression candidate for display (LM03-S2a).
+/// Pure value type — no SwiftUI, fully testable. `isSourceMessageDeleted` is true
+/// once the source companion message was deleted (its weak link was nulled): the
+/// candidate survives and the view shows a "source message deleted" note
+/// (round-1 P2-2).
+public struct CompanionCandidatePresentation: Equatable, Sendable, Identifiable {
+    public let id: String
+    public let kind: LearningMemoryCandidate.Kind
+    public let text: String
+    public let explanationNative: String
+    public let exampleTarget: String
+    public let exampleNative: String
+    public let isSourceMessageDeleted: Bool
+
+    public init(
+        id: String,
+        kind: LearningMemoryCandidate.Kind,
+        text: String,
+        explanationNative: String,
+        exampleTarget: String,
+        exampleNative: String,
+        isSourceMessageDeleted: Bool
+    ) {
+        self.id = id
+        self.kind = kind
+        self.text = text
+        self.explanationNative = explanationNative
+        self.exampleTarget = exampleTarget
+        self.exampleNative = exampleNative
+        self.isSourceMessageDeleted = isSourceMessageDeleted
+    }
+
+    init(_ candidate: CompanionMemoryCandidate) {
+        id = candidate.id
+        kind = candidate.kind
+        text = candidate.text
+        explanationNative = candidate.explanationNative
+        exampleTarget = candidate.exampleTarget
+        exampleNative = candidate.exampleNative
+        isSourceMessageDeleted = candidate.messageID == nil
+    }
+}
+
 /// Localized-string keys + entry gating for the Language Companion UI. Centralized
 /// so the three-platform views and the tests reference one source of truth.
 public enum CompanionChatCopy {
@@ -32,6 +75,14 @@ public enum CompanionChatCopy {
     public static let inputPlaceholderKey = "companion.input.placeholder"
     public static let clearKey = "companion.action.clear"
 
+    // LM03-S2a chat-reflux extraction copy.
+    public static let extractActionKey = "companion.extraction.action"
+    public static let extractLoadingKey = "companion.extraction.loading"
+    public static let extractSuccessCountKey = "companion.extraction.successCount"
+    public static let extractEmptyKey = "companion.extraction.empty"
+    public static let extractFailureKey = "companion.extraction.failure"
+    public static let extractSourceDeletedKey = "companion.extraction.sourceDeleted"
+
     /// Honest failure copy (ADR-008 §7): "the companion can't be reached" — never a
     /// faked reply. All non-rejection failures collapse to the unavailable copy.
     public static func failureKey(_ failure: CompanionReplyFailure) -> String {
@@ -42,6 +93,16 @@ public enum CompanionChatCopy {
             "companion.failure.cancelled"
         case .providerUnavailable, .empty, .other:
             "companion.failure.unavailable"
+        }
+    }
+
+    /// Honest extraction-failure copy: every category collapses to one "extraction
+    /// failed, your conversation is kept" message — the conversation is never lost
+    /// and no candidates are faked (plan §D2 honest-failure rule).
+    public static func extractionFailureKey(_ error: CompanionExtractionError) -> String {
+        switch error {
+        case .invalidStructuredOutput, .providerUnavailable, .rejected, .cancelled, .other:
+            extractFailureKey
         }
     }
 }

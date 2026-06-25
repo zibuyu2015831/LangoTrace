@@ -20,6 +20,15 @@ public enum CompanionSendOutcome: Equatable, Sendable {
     case failed(CompanionReplyFailure)
 }
 
+/// Result of one explicit "extract vocabulary / expressions" action (LM03-S2a).
+/// On success it carries the space's current candidate list (empty = the model
+/// found nothing this run — a success, not a failure); on failure the conversation
+/// is untouched and the error is reported honestly.
+public enum CompanionExtractionOutcome: Equatable, Sendable {
+    case extracted([CompanionMemoryCandidate])
+    case failed(CompanionExtractionError)
+}
+
 /// Companion conversation seam, injected from App Shell and backed by
 /// `GRDBCompanionRepository` + `CompanionConversationEngine`. The `send` closure
 /// runs the engine against the persisted history and persists the user + assistant
@@ -29,24 +38,32 @@ public struct CompanionChatActions: Sendable {
     public var send: @Sendable (_ threadID: String, _ userInput: String) async -> CompanionSendOutcome
     public var deleteFrom: @Sendable (_ messageID: String) async -> Void
     public var clear: @Sendable (_ threadID: String) async -> Void
+    /// Explicit chat reflux: extract vocabulary / expressions from the thread's
+    /// conversation and persist them as review candidates (LM03-S2a deliverable A).
+    /// A user-triggered action — same shape as generate / re-analyse learning
+    /// material (re-send already-stored user content), not a system auto-injection.
+    public var extract: @Sendable (_ threadID: String) async -> CompanionExtractionOutcome
 
     public init(
         loadThread: @escaping @Sendable (String, String?) async -> CompanionLoadedThread?,
         send: @escaping @Sendable (String, String) async -> CompanionSendOutcome,
         deleteFrom: @escaping @Sendable (String) async -> Void,
-        clear: @escaping @Sendable (String) async -> Void
+        clear: @escaping @Sendable (String) async -> Void,
+        extract: @escaping @Sendable (String) async -> CompanionExtractionOutcome
     ) {
         self.loadThread = loadThread
         self.send = send
         self.deleteFrom = deleteFrom
         self.clear = clear
+        self.extract = extract
     }
 
     public static let disabled = CompanionChatActions(
         loadThread: { _, _ in nil },
         send: { _, _ in .failed(.providerUnavailable) },
         deleteFrom: { _ in },
-        clear: { _ in }
+        clear: { _ in },
+        extract: { _ in .failed(.providerUnavailable) }
     )
 }
 

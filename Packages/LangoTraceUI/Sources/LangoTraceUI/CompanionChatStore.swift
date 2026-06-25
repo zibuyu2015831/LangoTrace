@@ -24,6 +24,17 @@ final class CompanionChatStore: ObservableObject {
     /// greeting (idea-03 §3.10), produced without any outbound request.
     @Published private(set) var showsColdStartGreeting = false
 
+    // MARK: - Chat reflux extraction (LM03-S2a)
+
+    @Published private(set) var isExtracting = false
+    /// Candidates surfaced after extraction, newest first. Carries the
+    /// "source message deleted" display state per candidate (round-1 P2-2).
+    @Published private(set) var candidates: [CompanionCandidatePresentation] = []
+    /// Count of the last successful extraction read-back (nil before any run; 0 =
+    /// the model found nothing — the view shows the "no vocabulary" copy).
+    @Published private(set) var lastExtractionCount: Int?
+    @Published private(set) var extractionFailure: CompanionExtractionError?
+
     private let spaceID: String
     private let sourceEntryID: String?
     private var actions: CompanionChatActions
@@ -76,6 +87,31 @@ final class CompanionChatStore: ObservableObject {
             failure = reason
         }
         isSending = false
+    }
+
+    /// True when extraction can run: the thread has at least one message and no
+    /// extraction is in flight.
+    var canExtract: Bool {
+        threadID != nil && !messages.isEmpty && !isExtracting
+    }
+
+    /// Explicitly extracts vocabulary / expressions from the current conversation
+    /// (LM03-S2a). Three outcomes: a count (>0), empty (count 0), or an honest
+    /// failure that keeps the conversation. Mirrors `send()` — uses the internal
+    /// thread id, never injects Memory / profile content.
+    func extractCandidates() async {
+        guard let threadID, !isExtracting else { return }
+        isExtracting = true
+        extractionFailure = nil
+        let outcome = await actions.extract(threadID)
+        switch outcome {
+        case let .extracted(extracted):
+            candidates = extracted.map(CompanionCandidatePresentation.init)
+            lastExtractionCount = extracted.count
+        case let .failed(error):
+            extractionFailure = error
+        }
+        isExtracting = false
     }
 
     func deleteFrom(id: String) async {

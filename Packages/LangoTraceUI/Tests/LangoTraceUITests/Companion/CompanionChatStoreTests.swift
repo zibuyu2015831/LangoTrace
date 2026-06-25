@@ -23,7 +23,8 @@ struct CompanionChatStoreTests {
             loadThread: { _, _ in CompanionLoadedThread(threadID: "t1", messages: []) },
             send: { _, _ in box.sendCalled = true; return .failed(.other) },
             deleteFrom: { _ in },
-            clear: { _ in }
+            clear: { _ in },
+            extract: { _ in .extracted([]) }
         )
         let store = CompanionChatStore(spaceID: "s1", sourceEntryID: nil, actions: actions)
         await store.load()
@@ -41,7 +42,8 @@ struct CompanionChatStoreTests {
             loadThread: { _, _ in CompanionLoadedThread(threadID: "t1", messages: []) },
             send: { _, _ in .appended(user: user, assistant: assistant) },
             deleteFrom: { _ in },
-            clear: { _ in }
+            clear: { _ in },
+            extract: { _ in .extracted([]) }
         )
         let store = CompanionChatStore(spaceID: "s1", sourceEntryID: nil, actions: actions)
         await store.load()
@@ -60,7 +62,8 @@ struct CompanionChatStoreTests {
             loadThread: { _, _ in CompanionLoadedThread(threadID: "t1", messages: []) },
             send: { _, _ in .failed(.providerUnavailable) },
             deleteFrom: { _ in },
-            clear: { _ in }
+            clear: { _ in },
+            extract: { _ in .extracted([]) }
         )
         let store = CompanionChatStore(spaceID: "s1", sourceEntryID: nil, actions: actions)
         await store.load()
