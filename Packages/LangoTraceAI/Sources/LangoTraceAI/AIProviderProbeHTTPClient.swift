@@ -47,7 +47,7 @@ public struct URLSessionAIProviderProbeHTTPClient: AIProviderProbeHTTPClient {
                 throw AIProviderProbeHTTPClientError.cancelled
             case .timedOut:
                 throw AIProviderProbeHTTPClientError.timedOut
-            case .networkUnavailable, .invalidHTTPResponse, .responseTooLarge:
+            case .networkUnavailable, .invalidHTTPResponse, .responseTooLarge, .unacceptableStatusCode:
                 throw AIProviderProbeHTTPClientError.transportUnavailable
             }
         }

@@ -93,6 +93,25 @@ protocol AIProviderTextRequestAdapter: Sendable {
     /// Extracts model output text from a decoded response object, or `nil` when
     /// the payload carries no recognizable output text.
     func outputText(fromResponseObject object: [String: Any]) -> String?
+
+    /// Body for a **multi-turn, streaming** chat request (the language-companion
+    /// transport seam). Carries an ordered `[ConversationMessage]` plus an
+    /// optional leading system segment, with `stream: true` baked in.
+    ///
+    /// Returns `nil` for adapter kinds with no streaming chat implementation
+    /// (`anthropicMessages` / `geminiGenerateContent` — already rejected by the
+    /// factory; the default inherits `nil`). The streaming service treats `nil`
+    /// as "unsupported provider" so support stays structural.
+    func streamingChatBody(
+        model: String,
+        system: String?,
+        messages: [ConversationMessage]
+    ) -> [String: Any]?
+
+    /// Extracts the incremental text delta from a single SSE `data:` payload for
+    /// this adapter's stream shape (chat/completions vs Responses events), or
+    /// `nil` for chunks that carry no text.
+    func streamContentDelta(fromDataPayload payload: String) -> String?
 }
 
 extension AIProviderTextRequestAdapter {
@@ -109,6 +128,35 @@ extension AIProviderTextRequestAdapter {
         maximumOutputTokens _: Int
     ) -> [String: Any]? {
         nil
+    }
+
+    /// Default: no streaming chat support. OpenAI Chat / Responses / mimo
+    /// override; the reserved kinds inherit `nil`.
+    func streamingChatBody(
+        model _: String,
+        system _: String?,
+        messages _: [ConversationMessage]
+    ) -> [String: Any]? {
+        nil
+    }
+
+    /// Default: no stream delta shape. Overridden per kind.
+    func streamContentDelta(fromDataPayload _: String) -> String? {
+        nil
+    }
+
+    /// Shared `messages`/`input` wire array builder: optional leading system
+    /// segment, then the ordered turns mapped to `{role, content}` dictionaries.
+    func conversationWireMessages(
+        system: String?,
+        messages: [ConversationMessage]
+    ) -> [[String: String]] {
+        var wire: [[String: String]] = []
+        if let system, !system.isEmpty {
+            wire.append(["role": ConversationRole.system.rawValue, "content": system])
+        }
+        wire.append(contentsOf: messages.map { ["role": $0.role.rawValue, "content": $0.content] })
+        return wire
     }
 
     /// Builds a finalized POST `URLRequest`: resolves the URL via the shared
@@ -252,6 +300,22 @@ struct OpenAICompatibleChatTextAdapter: AIProviderTextRequestAdapter {
     func outputText(fromResponseObject object: [String: Any]) -> String? {
         OpenAICompatibleResponseTextParser.chatCompletionsText(fromResponseObject: object)
     }
+
+    func streamingChatBody(
+        model: String,
+        system: String?,
+        messages: [ConversationMessage]
+    ) -> [String: Any]? {
+        [
+            "model": model,
+            "messages": conversationWireMessages(system: system, messages: messages),
+            "stream": true,
+        ]
+    }
+
+    func streamContentDelta(fromDataPayload payload: String) -> String? {
+        OpenAIStreamDeltaExtractor.chatCompletionsContentDelta(fromDataPayload: payload)
+    }
 }
 
 /// OpenAI Responses API adapter (`responses`).
@@ -351,6 +415,22 @@ struct OpenAIResponsesTextAdapter: AIProviderTextRequestAdapter {
 
     func outputText(fromResponseObject object: [String: Any]) -> String? {
         OpenAICompatibleResponseTextParser.responsesText(fromResponseObject: object)
+    }
+
+    func streamingChatBody(
+        model: String,
+        system: String?,
+        messages: [ConversationMessage]
+    ) -> [String: Any]? {
+        [
+            "model": model,
+            "input": conversationWireMessages(system: system, messages: messages),
+            "stream": true,
+        ]
+    }
+
+    func streamContentDelta(fromDataPayload payload: String) -> String? {
+        OpenAIStreamDeltaExtractor.responsesContentDelta(fromDataPayload: payload)
     }
 }
 

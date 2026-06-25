@@ -328,7 +328,7 @@ private extension PracticeBacktranslationReviewService {
             PracticeBacktranslationReviewServiceError(category: .cancelled)
         case .timedOut:
             PracticeBacktranslationReviewServiceError(category: .timeout)
-        case .networkUnavailable, .invalidHTTPResponse, .responseTooLarge:
+        case .networkUnavailable, .invalidHTTPResponse, .responseTooLarge, .unacceptableStatusCode:
             PracticeBacktranslationReviewServiceError(category: .networkUnavailable)
         }
     }

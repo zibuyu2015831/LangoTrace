@@ -339,7 +339,7 @@ private extension ReadingSelectionExplanationService {
             ReadingSelectionExplanationServiceError(category: .cancelled)
         case .timedOut:
             ReadingSelectionExplanationServiceError(category: .timeout)
-        case .networkUnavailable, .invalidHTTPResponse, .responseTooLarge:
+        case .networkUnavailable, .invalidHTTPResponse, .responseTooLarge, .unacceptableStatusCode:
             ReadingSelectionExplanationServiceError(category: .networkUnavailable)
         }
     }

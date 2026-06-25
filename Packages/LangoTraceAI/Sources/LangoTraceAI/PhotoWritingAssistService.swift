@@ -253,7 +253,7 @@ private extension PhotoWritingAssistService {
             PhotoWritingAssistServiceError(category: .cancelled)
         case .timedOut:
             PhotoWritingAssistServiceError(category: .timeout)
-        case .networkUnavailable, .invalidHTTPResponse, .responseTooLarge:
+        case .networkUnavailable, .invalidHTTPResponse, .responseTooLarge, .unacceptableStatusCode:
             PhotoWritingAssistServiceError(category: .networkUnavailable)
         }
     }
