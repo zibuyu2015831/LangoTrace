@@ -1,6 +1,6 @@
 # 任务方案：AI Provider 多轮对话 + 文本流式扩容（独立基础设施，LM03 消费）
 
-状态：Implemented（2026-06-25 落地，Phase 0 spike gate 通过后进入生产实现；轻量本地测试全绿，待 CI Build & Test 绿后移入 done/）
+状态：Done（2026-06-25 落地，Phase 0 spike gate 通过后进入生产实现；轻量本地测试全绿 + GitHub Actions Build & Test 全绿（run 28156767558：六包测试 + 三端构建 + macOS app test + lint/format/check-docs 全 success），已移入 done/）
 自审核状态：Reviewed（2026-06-25 隔离子代理双轮审查，3 项 P1 已修订写回，见第 13 节）
 类型：feature
 创建日期：2026-06-25

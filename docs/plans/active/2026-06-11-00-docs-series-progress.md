@@ -35,7 +35,7 @@
 
 ```text
 独立基础设施（可与第 1/2 批并行先行，退 spike 险，不压在语伴关键路径）
-  AI Provider 多轮 + 文本流式（OpenAI 兼容族；Anthropic 后置）  ← 2026-06-25 改标独立 infra（原「语伴前置」）；含 Phase 0 spike gate，提前退险后 LM03 仅消费
+  ✅ AI Provider 多轮 + 文本流式（OpenAI 兼容族；Anthropic 后置）  ← 2026-06-25 已 Done（Phase 0 spike gate 过 + CI 全绿，已移 done/）；LM03 仅消费
 
 第 1 批（本地优先，零外发，可门控为一批）
   LM02-S1（Memory 层 + 学习画像总览页）   ← 先做：建 writer seam + v27 migration + 总览页（S2/S3 的展示归宿）
@@ -75,7 +75,7 @@
 | LM02-S4 | `2026-06-25-feature-lm02-s4-band-reestimation` | band 动态重估（拆解边界） | ⚪ **拆解边界 / 自审 N/A**（2026-06-25 完整双轮后转拆解边界，已 spawn S4a/S4b；4 P0+4 P1 分配进子片为实现前必决项）；不再作单一可实现方案 |
 | LM02-S4a | `2026-06-25-feature-lm02-s4a-lookup-capture-and-ledger` | 查词捕获 + 分析账本（地基，低风险） | 🟡 **Draft / Reviewed**（双轮 + 拆分后隔离再审三关过；再审收口 P0-A source_origin 降前向接缝 / P1-B 持久化新类别显式声明 / P2-C 埋点改 AI 解释 seam）；硬前置 S1；**待实现授权** |
 | LM02-S4b | `2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis` | band 服务 + derive 迟滞 + 总览（最高风险） | 🟡 **Draft / Reviewed**（双轮 + 隔离再审三关过；再审收口 P0-1 band 经 :96 影响外发档位措辞 / P1-1 迟滞 dwell 改 document-open 次数 / P2-1 计数器状态）；门控 S4a+S3 信号回归 + ADR-006 §10 修订存在；**待实现授权** |
-| 独立 infra | `2026-06-25-feature-ai-provider-multi-turn-and-streaming` | AI Provider 多轮 + 文本流式（LM03 消费） | 🟡 **Draft / Reviewed**（双轮过；OpenAI 兼容族，Anthropic 后置）；**2026-06-25 改标独立基础设施**，可与第 1/2 批并行先行退 spike 险；**待实现授权** |
+| 独立 infra | ~~`2026-06-25-feature-ai-provider-multi-turn-and-streaming`~~ → `done/` | AI Provider 多轮 + 文本流式（LM03 消费） | ✅ **Done（2026-06-25）**：Phase 0 spike gate 过 → 生产实现；CI Build & Test 全绿（run 28156767558）；§17 文档回写完成（spec/005 + system-map §4.9/§7 + 新 architecture note + ADR-008 + add-ai-provider workflow）；已移 `done/`。mimo 流式 / Anthropic / 对话级 log 写入按记录 defer 至 LM03 / 后续 run |
 | 导航 | `2026-06-25-docs-lm02-remaining-slices-decomposition` | LM02 后续切片拆解 + 排序 | 🔵 **In Progress**（S2/S3 已拆 active plan；S4 已转拆解边界拆 S4a/S4b；改写 + onboarding 措辞两孤儿已补登；AI 校准留登记未拆） |
 | 导航 | `2026-06-25-docs-lm03-companion-decomposition` | 语伴完整引擎切片 + 决策收口 | 🔵 **In Progress**（S1–S4 切片边界 + §9/§10.6 决策收口；**LM03-S1…S4 子片 active plan 待各批次开工前再拆**） |
 
