@@ -63,6 +63,13 @@ public struct LearnerProfilePresentation: Equatable, Sendable {
     /// `true` when there are no blind spots yet — the section shows guidance to do
     /// dictation practice (the signal source), not a "coming soon" feature stub.
     public let blindSpotsPlaceholder: Bool
+    /// Gentle band trend (LM02-S4b), or nil when no band is wired. **Only** trend /
+    /// confidence is surfaced — never the internal band level as a "downgrade"
+    /// verdict, and the `levelDisplay` always stays the onboarding level (ADR-006
+    /// §10): the band may estimate lower (more support in derive()), but the page
+    /// never tells the user they dropped.
+    public let bandTrend: BandTrend?
+    public let bandConfidence: BandConfidence?
     /// Drives the "keep recording to unlock your profile" empty state: no coverage,
     /// no facts, no review activity at all.
     public let isEmpty: Bool
@@ -85,6 +92,8 @@ public struct LearnerProfilePresentation: Equatable, Sendable {
             )
         }
         blindSpotsPlaceholder = snapshot.blindSpots.isEmpty
+        bandTrend = snapshot.band?.trend
+        bandConfidence = snapshot.band?.confidence
         isEmpty = snapshot.abilityCoverage.entries.isEmpty
             && snapshot.memoryFacts.isEmpty
             && snapshot.reviewStatistics == .zero

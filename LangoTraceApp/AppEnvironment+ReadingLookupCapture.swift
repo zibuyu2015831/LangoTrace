@@ -22,3 +22,21 @@ func makeReadingLookupCaptureAction(
         ))
     }
 }
+
+/// Assembles the LM02-S4b band-level source for derive(): re-estimates the internal
+/// band from independent behaviour signals (S4a lookups + S3 errors) and returns
+/// its level. Pure local — never outbound, never reads AI difficulty.
+func makeReadingBandLevelSource(
+    databaseFactory: SharedAppDatabaseFactory
+) -> ReadingBandLevelSource {
+    let provider: GRDBLearnerBandProvider? = (try? databaseFactory.database()).map {
+        GRDBLearnerBandProvider(
+            reader: $0.reader,
+            blindSpotProvider: GRDBLearnerBlindSpotProvider(reader: $0.reader)
+        )
+    }
+    return { languageCode, seedLevel in
+        guard let provider else { return nil }
+        return (try? provider.band(languageCode: languageCode, seedLevel: seedLevel))?.estimatedLevel
+    }
+}

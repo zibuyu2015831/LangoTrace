@@ -1,3 +1,4 @@
+import LangoTraceCore
 import LangoTraceLearnerModel
 import SwiftUI
 
@@ -5,9 +6,9 @@ import SwiftUI
 /// by `GRDBLearnerContextProvider` + `GRDBLearnerMemoryRepository` +
 /// `LearnerProfileSnapshotBuilder`. Fully local — no external requests, no AI.
 public struct LearnerProfileActions: Sendable {
-    /// Builds the compute-on-read snapshot for the active space + language.
-    /// Returns `nil` when the App has no database (e.g. recovery state).
-    public var loadSnapshot: @Sendable (_ spaceID: String, _ languageCode: String) async -> LearnerProfileSnapshot?
+    /// Builds the compute-on-read snapshot for the active space + language + seed
+    /// (onboarding) level. Returns `nil` when the App has no database (e.g. recovery state).
+    public var loadSnapshot: @Sendable (_ spaceID: String, _ languageCode: String, _ seedLevel: LanguageLevel) async -> LearnerProfileSnapshot?
     /// Explicitly saves a Memory fact (the user actively remembers something). No
     /// auto-extraction.
     public var addFact: @Sendable (_ kind: MemoryFactKind, _ text: String) async -> Void
@@ -18,7 +19,7 @@ public struct LearnerProfileActions: Sendable {
     public var resetAllFacts: @Sendable () async -> Void
 
     public init(
-        loadSnapshot: @escaping @Sendable (String, String) async -> LearnerProfileSnapshot?,
+        loadSnapshot: @escaping @Sendable (String, String, LanguageLevel) async -> LearnerProfileSnapshot?,
         addFact: @escaping @Sendable (MemoryFactKind, String) async -> Void,
         deleteFact: @escaping @Sendable (String) async -> Void,
         resetAllFacts: @escaping @Sendable () async -> Void
@@ -30,7 +31,7 @@ public struct LearnerProfileActions: Sendable {
     }
 
     public static let disabled = LearnerProfileActions(
-        loadSnapshot: { _, _ in nil },
+        loadSnapshot: { _, _, _ in nil },
         addFact: { _, _ in },
         deleteFact: { _ in },
         resetAllFacts: {}

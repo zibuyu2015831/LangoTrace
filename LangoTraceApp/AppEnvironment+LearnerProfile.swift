@@ -18,15 +18,28 @@ func makeLearnerProfileActions(
     // LM02-S3: compute-on-read blind spots from dictation attempts.
     let blindSpotProvider: GRDBLearnerBlindSpotProvider? =
         (try? databaseFactory.database()).map { GRDBLearnerBlindSpotProvider(reader: $0.reader) }
+    // LM02-S4b: internal band re-estimation from independent behaviour signals.
+    let bandProvider: GRDBLearnerBandProvider? = (try? databaseFactory.database()).map {
+        GRDBLearnerBandProvider(
+            reader: $0.reader,
+            blindSpotProvider: GRDBLearnerBlindSpotProvider(reader: $0.reader)
+        )
+    }
     return LearnerProfileActions(
-        loadSnapshot: { spaceID, languageCode in
+        loadSnapshot: { spaceID, languageCode, seedLevel in
             guard let learnerContextProvider, let memoryItemRepository else { return nil }
             let builder = LearnerProfileSnapshotBuilder(
                 provider: learnerContextProvider,
                 memoryItemRepository: memoryItemRepository,
-                blindSpotProvider: blindSpotProvider
+                blindSpotProvider: blindSpotProvider,
+                bandProvider: bandProvider
             )
-            return try? await builder.snapshot(spaceID: spaceID, languageCode: languageCode, now: Date())
+            return try? await builder.snapshot(
+                spaceID: spaceID,
+                languageCode: languageCode,
+                seedLevel: seedLevel,
+                now: Date()
+            )
         },
         addFact: { kind, text in
             guard let learnerMemoryRepository else { return }

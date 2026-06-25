@@ -20,6 +20,7 @@ struct ReadingLibraryView: View {
     @State private var tagDrafts: [String: String] = [:]
     @State private var isInspectorFolded = false
     @Environment(\.readingLookupCaptureAction) private var readingLookupCaptureAction
+    @Environment(\.readingBandLevelSource) private var readingBandLevelSource
 
     init(
         platform: ReadingPlatformRole,
@@ -61,7 +62,11 @@ struct ReadingLibraryView: View {
                 desktopLibraryAndReader
             }
         }
-        .task { documentStore.reconnectLookupCapture(readingLookupCaptureAction) }
+        .task {
+            documentStore.reconnectLookupCapture(readingLookupCaptureAction)
+            documentStore.reconnectBandSource(readingBandLevelSource)
+            await documentStore.evaluateBandForDocumentOpen()
+        }
         .sheet(isPresented: $isImportSheetPresented) {
             ReadingImportSheetView(
                 importTitle: $importTitle,
@@ -428,6 +433,7 @@ struct ReadingDocumentDetailView: View {
     @StateObject private var documentStore: ReadingDocumentStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.readingLookupCaptureAction) private var readingLookupCaptureAction
+    @Environment(\.readingBandLevelSource) private var readingBandLevelSource
 
     init(
         platform: ReadingPlatformRole,
@@ -512,7 +518,11 @@ struct ReadingDocumentDetailView: View {
                 await store.openDocument(documentID, platform: platform)
             }
         }
-        .task { documentStore.reconnectLookupCapture(readingLookupCaptureAction) }
+        .task {
+            documentStore.reconnectLookupCapture(readingLookupCaptureAction)
+            documentStore.reconnectBandSource(readingBandLevelSource)
+            await documentStore.evaluateBandForDocumentOpen()
+        }
         .task(id: detailDocumentSyncKey) {
             syncDetailDocumentStore()
         }

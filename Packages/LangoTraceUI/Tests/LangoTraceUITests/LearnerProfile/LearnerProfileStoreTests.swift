@@ -33,7 +33,7 @@ struct LearnerProfileStoreTests {
 
     private func makeStore(_ backing: Backing) -> LearnerProfileStore {
         let actions = LearnerProfileActions(
-            loadSnapshot: { _, _ in backing.snapshot() },
+            loadSnapshot: { _, _, _ in backing.snapshot() },
             addFact: { kind, text in
                 backing.facts.append(MemoryFact(id: "f\(backing.facts.count)", kind: kind, text: text))
             },
@@ -102,7 +102,7 @@ struct LearnerProfileStoreTests {
     @Test("nil snapshot drives the unavailable phase")
     func unavailableWhenNoDatabase() async {
         let actions = LearnerProfileActions(
-            loadSnapshot: { _, _ in nil },
+            loadSnapshot: { _, _, _ in nil },
             addFact: { _, _ in },
             deleteFact: { _ in },
             resetAllFacts: {}

@@ -54,7 +54,7 @@ final class LearnerProfileStore: ObservableObject {
 
     func load() async {
         phase = .loading
-        guard let snapshot = await actions.loadSnapshot(spaceID, languageCode) else {
+        guard let snapshot = await actions.loadSnapshot(spaceID, languageCode, level) else {
             presentation = nil
             phase = .unavailable
             return

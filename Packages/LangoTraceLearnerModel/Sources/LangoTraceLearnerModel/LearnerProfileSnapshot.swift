@@ -30,6 +30,10 @@ public struct LearnerProfileSnapshot: Sendable, Equatable {
     /// Recurring practice error patterns (LM02-S3), compute-on-read from dictation
     /// attempts. Empty until the learner has done dictation practice.
     public let blindSpots: [BlindSpot]
+    /// Internal re-estimated band (LM02-S4b); `nil` when no band provider is wired.
+    /// Presented only as gentle trend / confidence — never as a downgrade verdict
+    /// and never overwriting the user-visible level (ADR-006 §10).
+    public let band: LearnerBand?
     /// Borrowed for display (per-space memory_items review queue).
     public let reviewStatistics: MemoryStatistics
     /// Derived.
@@ -39,12 +43,14 @@ public struct LearnerProfileSnapshot: Sendable, Equatable {
         abilityCoverage: AbilityCoverage,
         memoryFacts: [MemoryFact],
         blindSpots: [BlindSpot] = [],
+        band: LearnerBand? = nil,
         reviewStatistics: MemoryStatistics,
         trend: LearnerProfileTrend
     ) {
         self.abilityCoverage = abilityCoverage
         self.memoryFacts = memoryFacts
         self.blindSpots = blindSpots
+        self.band = band
         self.reviewStatistics = reviewStatistics
         self.trend = trend
     }
@@ -61,22 +67,28 @@ public struct LearnerProfileSnapshotBuilder: Sendable {
     private let memoryItemRepository: any MemoryItemRepository
     /// Optional blind-spot read (LM02-S3); `nil` leaves blind spots empty.
     private let blindSpotProvider: (any LearnerBlindSpotProvider)?
+    /// Optional band read (LM02-S4b); `nil` leaves the band absent.
+    private let bandProvider: (any LearnerBandProvider)?
 
     public init(
         provider: any LearnerContextProvider,
         memoryItemRepository: any MemoryItemRepository,
-        blindSpotProvider: (any LearnerBlindSpotProvider)? = nil
+        blindSpotProvider: (any LearnerBlindSpotProvider)? = nil,
+        bandProvider: (any LearnerBandProvider)? = nil
     ) {
         self.provider = provider
         self.memoryItemRepository = memoryItemRepository
         self.blindSpotProvider = blindSpotProvider
+        self.bandProvider = bandProvider
     }
 
-    /// Snapshot for the given space + language. The caller (UI store) supplies both
-    /// partition keys from the active space; the snapshot does not guess them.
+    /// Snapshot for the given space + language. The caller (UI store) supplies the
+    /// partition keys + the seed (onboarding) level from the active space; the
+    /// snapshot does not guess them.
     public func snapshot(
         spaceID: String,
         languageCode: String,
+        seedLevel: LanguageLevel,
         now: Date
     ) async throws -> LearnerProfileSnapshot {
         let abilityCoverage = try provider.abilityCoverage(languageCode: languageCode)
@@ -84,6 +96,10 @@ public struct LearnerProfileSnapshotBuilder: Sendable {
         var blindSpots: [BlindSpot] = []
         if let blindSpotProvider {
             blindSpots = (try? blindSpotProvider.blindSpots(languageCode: languageCode)) ?? []
+        }
+        var band: LearnerBand?
+        if let bandProvider {
+            band = try? bandProvider.band(languageCode: languageCode, seedLevel: seedLevel)
         }
         let reviewStatistics = try await memoryItemRepository.memoryStatistics(spaceID: spaceID, now: now)
         let trend = LearnerProfileTrend(
@@ -94,6 +110,7 @@ public struct LearnerProfileSnapshotBuilder: Sendable {
             abilityCoverage: abilityCoverage,
             memoryFacts: memoryFacts,
             blindSpots: blindSpots,
+            band: band,
             reviewStatistics: reviewStatistics,
             trend: trend
         )

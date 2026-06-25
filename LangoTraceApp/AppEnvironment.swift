@@ -36,12 +36,12 @@ struct AppEnvironment {
     // Ability knowledge coverage without re-wiring. No UI reads it yet (compute-on-read,
     // pure local; nil when the database is unavailable).
     let learnerContextProvider: (any LearnerContextProvider)?
-    // LM02-S2: Style surface-imprint seam assembled as forward infrastructure
-    // (seam-only, user decision 2026-06-25). No consumer reads it yet — the
-    // companion v2 / rewrite slices will. Compute-on-read, pure local.
+    // LM02-S2: Style surface-imprint seam (seam-only forward infra, no consumer yet).
     let learnerStyleProvider: (any LearnerStyleProvider)?
     // LM02-S4a: reading lookup-capture action persisting behaviour-signal events.
     let readingLookupCaptureAction: ReadingLookupCaptureAction
+    // LM02-S4b: band-level source driving derive() (via hysteresis in the store).
+    let readingBandLevelSource: ReadingBandLevelSource
     // E12: recomputes settings row values (AI provider / sync / local data) off the main
     // thread from non-sensitive snapshots only — never Keychain plaintext, never a probe.
     let loadSettingsStatus: @Sendable () async -> SettingsStatusProjection
@@ -205,8 +205,9 @@ struct AppEnvironment {
         let learnerStyleProvider: (any LearnerStyleProvider)? =
             (try? databaseFactory.database()).map { GRDBLearnerStyleProvider(reader: $0.reader) }
 
-        // LM02-S4a: reading lookup-capture action (behaviour-signal persistence).
+        // LM02-S4a/S4b: reading lookup-capture action + band-level source.
         let readingLookupCaptureAction = makeReadingLookupCaptureAction(databaseFactory: databaseFactory)
+        let readingBandLevelSource = makeReadingBandLevelSource(databaseFactory: databaseFactory)
 
         // E12: settings status projection. Reads only the non-sensitive config snapshot and
         // the on-disk footprint; the sync value comes from the (disabled) sync service.
@@ -389,6 +390,7 @@ struct AppEnvironment {
             learnerContextProvider: learnerContextProvider,
             learnerStyleProvider: learnerStyleProvider,
             readingLookupCaptureAction: readingLookupCaptureAction,
+            readingBandLevelSource: readingBandLevelSource,
             loadSettingsStatus: loadSettingsStatus
         )
     }

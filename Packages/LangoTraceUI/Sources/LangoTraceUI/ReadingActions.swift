@@ -117,6 +117,15 @@ public extension EnvironmentValues {
     @Entry var readingLookupCaptureAction: ReadingLookupCaptureAction?
 }
 
+/// LM02-S4b band-level source for derive(): given the target language + seed level,
+/// returns the internal band level (or nil to leave the static seed). Pure local.
+public typealias ReadingBandLevelSource = @Sendable (String, LanguageLevel) async -> LanguageLevel?
+
+public extension EnvironmentValues {
+    /// LM02-S4b band source, injected from App Shell; nil leaves the static seed.
+    @Entry var readingBandLevelSource: ReadingBandLevelSource?
+}
+
 public struct ReadingLibraryActions: Sendable {
     public var listDocuments: @Sendable (String, Bool, ReadingLibrarySearchQuery?) async throws
         -> [ReadingLibraryDocumentSummary]

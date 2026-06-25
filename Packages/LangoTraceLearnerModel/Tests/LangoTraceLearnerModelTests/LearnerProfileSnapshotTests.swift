@@ -60,7 +60,7 @@ struct LearnerProfileSnapshotTests {
         try seedSpaceAndCoverage(queue)
         try memoryRepository.save(MemoryFact(id: "f1", kind: .goal, text: "考过 N2"))
 
-        let snapshot = try await builder.snapshot(spaceID: "space-1", languageCode: "ja", now: now)
+        let snapshot = try await builder.snapshot(spaceID: "space-1", languageCode: "ja", seedLevel: .b1, now: now)
         #expect(snapshot.abilityCoverage.entries.count == 1)
         #expect(snapshot.memoryFacts.map(\.id) == ["f1"])
         #expect(snapshot.reviewStatistics.depositedThisWeek == 1)
@@ -77,9 +77,9 @@ struct LearnerProfileSnapshotTests {
         try seedSpaceAndCoverage(queue)
         try memoryRepository.save(MemoryFact(id: "f1", kind: .goal, text: "考过 N2"))
 
-        let before = try await builder.snapshot(spaceID: "space-1", languageCode: "ja", now: now)
+        let before = try await builder.snapshot(spaceID: "space-1", languageCode: "ja", seedLevel: .b1, now: now)
         try memoryRepository.resetAll()
-        let after = try await builder.snapshot(spaceID: "space-1", languageCode: "ja", now: now)
+        let after = try await builder.snapshot(spaceID: "space-1", languageCode: "ja", seedLevel: .b1, now: now)
 
         // Memory facts gone...
         #expect(after.memoryFacts.isEmpty)
