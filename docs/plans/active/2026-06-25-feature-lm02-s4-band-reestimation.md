@@ -1,8 +1,8 @@
-# 任务方案：band 动态重估（CEFR 内部信号 + derive() 迟滞）（LM02 Slice 4）
+# 任务方案（拆解边界）：band 动态重估拆为 S4a（信号捕获+账本）/ S4b（band 服务+derive 迟滞）（LM02 Slice 4）
 
-状态：Draft
-自审核状态：Not Reviewed（**最高风险切片**；实现批次前必须按 plan-review-protocol 完成完整双轮自审，见第 13 节）
-类型：feature
+状态：In Progress（拆解边界 / 导航文档，非单一实现方案）
+自审核状态：N/A（拆解边界）。**2026-06-25 完整双轮自审结论 + 用户决策**：S4 拆 **S4a**（信号捕获+账本，低风险）/ **S4b**（band 服务+derive 迟滞，最高风险），本文件转拆解边界；双轮发现的 **4 P0 + 4 P1**（blast radius 严重低估、「首张持久表」事实错误[S1 v27 才是首张]、迟滞状态机无数值无法 TDD、闭环红线传递污染未审、ADR 须现在定）作为 S4a/S4b 的**实现前必决项**写入第 13 节；S4a/S4b 各自 active plan + 各自完整双轮自审，待第 2 批开工前拆。
+类型：docs（拆解边界；S4a/S4b 各自 feature active plan 待第 2 批开工前拆）
 创建日期：2026-06-25
 最后更新日期：2026-06-25
 
@@ -20,11 +20,11 @@
 
 ## 2. 现状描述（对照 2026-06-25 HEAD 核实）
 
-- **`ExplanationLanguageMode.derive(from levelCode:)`**（`ExplanationLanguageMode.swift:6`，Core）：纯函数，按 level code 返回解释档位。**消费者仅 2 处**（`ReadingDocumentStore.swift:58` / `:133`，均 `currentExplanationMode = ExplanationLanguageMode.derive(from: proficiencyLevelCode)`）——**blast radius 小**，符合 idea-02 §14.2 判断。`proficiencyLevelCode` 当前是静态来源（onboarding level）。
+- **`ExplanationLanguageMode.derive(from levelCode:)`**（`ExplanationLanguageMode.swift:6`，Core）：纯函数，按 level code 返回解释档位。`derive()` **消费者仅 2 处**（`ReadingDocumentStore.swift:58` / `:133`）。**但 blast radius 不止于此（P0-2 已核实）**：`proficiencyLevelCode` 作为「水平真值」流向远更广——送 AI Provider（`ReadingDocumentStore.swift:95` `ReadingExplanationRequest`）、材料生成（`LearningContentStore.swift:194/:286`）、照片写作（`PhotoWritingAssistViewModel.swift:74`）、回译点评（`PracticeBacktranslationReviewService`）；另有用户手动覆盖路径 `switchExplanationMode`（`ReadingDocumentStore.swift:112`）。故「derive()=2 处 → 风险小」的原框定不成立：proficiency-as-source-of-truth = 5+ 消费者且跨 AI 外发边界。`proficiencyLevelCode` 当前是静态来源（onboarding level）。
 - **查词 / 索取解释频率信号（idea-02 §4 主力信号）当前无持久化**：核实 `AppDatabase` 无 dictionary lookup / 查词事件表（`ReadingDictionaryLookup` Core 类型存在于阅读视图，但**未落库为行为事件**）→ S4 的主力 band 信号**净新增捕获**（须新增查词行为事件表）。
-- **分析账本 / cursor 当前不存在**（核实全仓无 `intake_ledger` / `IntakeLedger`）：ADR-006 §9 规划的账本「建了不读」推迟到 S4 band 重估时**首次建对**——S4 引入分析账本 + 高水位 cursor 增量重算（持久化 + migration）。
+- **分析账本 / cursor 当前不存在**（核实全仓无 `intake_ledger` / `IntakeLedger`，migration 头 = `v26`）：ADR-006 §9 规划的账本「建了不读」推迟到 S4 band 重估时**首次建对**——S4 引入分析账本 + 高水位 cursor 增量重算（持久化 + migration）。
 - **S3 盲点信号（目标语产出错误）**：S3（`2026-06-25-feature-lm02-s3-blind-spots`）从 dictation diff 产出独立产出信号；**S4 的产出维度信号依赖 S3 先成熟**（band 须建在不被 level 污染的独立信号上，idea-02 §13.1）。
-- **LM01/S2/S3 均 compute-on-read 无持久**；**S4 不同**——band 是「真派生但需账本 / cursor 增量重算」，引入仓库内 Learner Model 名下首张持久派生 + 账本表。Ability 仍 local-only 不备份（ADR-006 §8）。
+- **LM01/S2/S3 均 compute-on-read 无持久；S4 不同**——band 是「真派生但需账本 / cursor 增量重算」。**修正（P1-1）：S4 表并非 Learner Model 首张持久表**——S1 已建 `learner_memory_facts` = **v27**（仓库首张系统级表）+ writer seam；S4 的查词事件 + 账本表为 **v28+**，建在 S1 v27 schema 与 `writer: DatabaseWriter` 之上（**硬前置 S1**）。S4 是 Learner Model 首张 **Ability 派生 / 账本** 持久表。Ability 仍 local-only 不备份（ADR-006 §8），查词事件作「不可重算的用户行为」须单独定 backup_policy（P1-2）。
 - **`LanguageLevel`（用户可见标签）**：onboarding 设定、语言空间编辑可改。ADR-006 §10：评估**永不覆盖用户可见标签**，只演进**内部难度信号**。
 
 ## 3. 目标
@@ -45,7 +45,7 @@
 - **`Packages/LangoTraceCore`**：`ExplanationLanguageMode` 迟滞包装（或新增迟滞决策类型）；band 值类型若需共享。
 - **`Packages/LangoTraceUI`**：查词行为事件埋点（阅读视图）；`ReadingDocumentStore` 的 proficiencyLevelCode 来源接 band（经迟滞）；总览页 band 呈现（不展示降级）。
 - **`LangoTraceApp/AppEnvironment.swift`**：装配查词事件 repository + band 服务 + 账本。
-- 文档：**新增 / 更新 ADR-006 实施回写 + 可能新 ADR**（band 重估 + derive() 演进是核心行为变化，须评估是否升 ADR）、spec/007（账本 + 查词事件 + band 持久化分层）、architecture/002（band 子系统 + 账本数据流 + derive() 漂移防护）、idea-02 §14 band 落地回指。
+- 文档：**ADR-006 §10 修订（已决）+ 实施回写**（band 重估 + derive() 吃演进信号 + 迟滞契约，作 §10 扩展修订、S4b 门控）、spec/007（账本 + 查词事件 + band 持久化分层）、architecture/002（band 子系统 + 账本数据流 + derive() 漂移防护）、idea-02 §14 band 落地回指。
 
 ## 5. 不做什么
 
@@ -100,32 +100,52 @@
 
 - 涉及代码：`ExplanationLanguageMode.swift`（迟滞）、`ReadingDocumentStore.swift:58/:133`（derive 来源接 band）、`AppDatabase.swift`（查词事件 + 账本 migration）、LearnerModel 新增 band 服务 / cursor / provider 扩展、阅读视图查词埋点、总览页 band 呈现、`AppEnvironment`。
 - 参考代码：`GRDBLearnerContextProvider.swift`（Ability 读）、`GRDBMediaArtifactRepository.swift`（持久化策略列）、S1/S3 总览页。
-- 涉及文档：ADR-006、（评估）新 ADR、spec/007、architecture/002、idea-02 §14、decomposition、progress dashboard。
+- 涉及文档：ADR-006（§10 修订，已决）、spec/007、architecture/002、idea-02 §14、decomposition、progress dashboard。
 - 非 bug 任务。
 
 ## 12. 实施方案
 
-### 12.0 S4 自身分子片（待决，建议）
+### 12.0 S4 拆 S4a / S4b（已决，2026-06-25 用户决策）
 
-S4 体量远大于 S1/S2/S3（净新增查词捕获 + 账本 + band 服务 + derive 迟滞 + 总览呈现，含多张 migration + 唯一 derive 触碰）。**建议自身拆两子片**：
-- **S4a = 信号捕获 + 账本地基**：查词 / 索取解释行为事件表 + 分析账本 / cursor + repository（持久化 + migration，**不动 derive()、不产 band 呈现**）。低风险、可先回归。
-- **S4b = band 服务 + derive() 迟滞 + 总览呈现**：band 重估服务 + derive 迟滞接线 + 总览 band 呈现（**唯一动 derive()、最高风险**，须 S4a + S3 信号回归充分后再做）。
-- 用户可选不拆（一份实现），但鉴于风险，**推荐拆**。本方案统一记录边界，实现时各子片各自 active plan + 双轮自审。
+S4 体量远大于 S1/S2/S3（净新增查词捕获 + 账本 + band 服务 + derive 迟滞 + 总览呈现，含多张 migration + 唯一 derive 触碰），且捆了 4 类风险。**2026-06-25 用户决策：拆两子片**，本文件转拆解边界：
+- **S4a = 信号捕获 + 账本地基**：查词 / 索取解释行为事件表（v28+）+ 分析账本 / cursor + repository（持久化 + migration，**不动 derive()、不产 band 呈现**，建在 S1 v27 + writer seam 之上）。低风险、可先回归。S4a 清线前须收口：查词事件 backup_policy（不可重算用户行为，对照 practice_text_attempts 先例 + S1 架构备忘录 FileProtection 接缝，§13 P1-2/P1-4）；闭环红线**传递污染**审查（查词建在 AI 生成阅读材料上的二阶闭环，§13 P0-4）——该项决定 S4a 捕获什么，须在 S4a 实现前定。
+- **S4b = band 服务 + derive() 迟滞 + 总览呈现**：band 重估服务 + derive 迟滞接线 + 总览 band 呈现（**唯一动 derive()、最高风险**，须 S4a + S3 信号回归充分后再做）。S4b 清线前须收口：可测迟滞状态机数值（§13 P0-3）；proficiency 真值 5+ 消费者 blast radius + `switchExplanationMode` 用户覆盖 reconcile（§13 P0-2）；ADR-006 §10 修订存在（下条）。
+- **本文件不再被推进为单一可实现方案**；S4a/S4b 各自 active plan + 各自完整双轮自审，待第 2 批开工前拆（与 LM03-S1…S4 子片同一延后授权模式）。
 
 ### 12.1 关键待决（实现授权前须收口）
 1. **derive() 迟滞参数**：稳定阈值、最小停留窗口大小、「仅新内容」边界（已渲染解释不回改）——idea-02 §13.3 给方向未给数值，须定具体策略 + 测试。
 2. **分技能 v1 范围**：仅理解 + 覆盖（产出低置信占位）vs 理解 + 产出同期——建议仅理解（idea-02 §14.2）。
 3. **S4 是否分 S4a/S4b**（§12.0）。
 4. **band 持久化分层**：band / 账本 / 查词事件各自是否进备份（约束 5）。
-5. **是否新 ADR**：band 重估 + derive() 演进是核心行为变化，须评估升 ADR（§17）。
+5. **ADR（已决，2026-06-25 用户决策）= ADR-006 §10 修订**：band 重估 + derive() 吃演进 band + 迟滞契约作为 ADR-006 §10 的扩展修订（复用既有「自评=种子 / 评估=演进内部值 / 永不覆盖标签 / 永不降级」决策上下文），**作为 S4b 清线门控**（修订 artifact 须先存在），非新增独立 ADR。
 6. **查词信号捕获的隐私 / 埋点边界**：查词事件是本地行为信号（不外发），但须确认埋点不引入外发、不写诊断敏感内容。
 
 ## 13. 严格方案自审核记录
 
 ```text
-待执行：本切片为系列最高风险，实现授权前必须完整双轮自审（架构 + 测试 / 安全 / 落地）。本轮用户仅授权拆 plan，故标 Not Reviewed。
-实现批次前须核验：derive() 迟滞 blast radius（仅 ReadingDocumentStore 2 处）、闭环效度回归（band 不自证）、账本 / cursor schema、查词事件红线（用户行为非 AI）、band 不覆盖标签 / 不降级、持久化分层、是否升 ADR。
-预置确认点见 §12.1（6 项）。
+审核日期：2026-06-25
+审核方式：隔离子代理完整双轮（第一轮架构 + 第二轮测试 / 安全 / 落地）+ 主会话用当前 HEAD 代码逐条核验
+审核轮次：完整双轮
+核验过的事实（HEAD）：derive(from:) 纯函数、消费仅 ReadingDocumentStore.swift:58/:133；migration 头 = v26（v26_create_memory_item_infrastructure）；无 intake_ledger / 查词事件表；ReadingDictionaryLookup 是 Core 词条类型、未落库为行为事件；LangoTraceLearnerModel 现仅 AbilityCoverage + LearnerContextProvider + GRDBLearnerContextProvider，全 compute-on-read 无持久表。
+
+结论：本文件不应被推进为单一可实现方案标 Reviewed。应先据 §12.1③ 决定「拆 S4a/S4b」，本文件改为拆解边界（类型 docs、自审核 N/A，结构同 LM02 decomposition meta），各子片各自 active plan + 各自完整双轮。
+
+P0（阻塞，均核验成立）：
+- [P0-1] 拆解边界 vs 可实现方案错位：§12.0 建议拆 S4a/S4b、§13/§18/§19 又留多项 §12.1 待决，protocol §2「Not Reviewed→Reviewed」预设实现范围已固定——本文件不满足。修订：§12.1③ 现在定「拆」；本文件改拆解边界、自审核 N/A；spawn S4a（信号捕获+账本，低风险）+ S4b（band 服务+derive 迟滞，最高风险），各 Not Reviewed、各双轮。
+- [P0-2] blast radius 严重低估（已用 rg 核实）：derive() = 2 处，但 proficiencyLevelCode 作为水平真值流向远更广——送 AI Provider（ReadingDocumentStore.swift:95 ReadingExplanationRequest）、材料生成（LearningContentStore.swift:194/:286）、照片写作（PhotoWritingAssistViewModel.swift:74）、回译点评（PracticeBacktranslationReviewService）；且 currentExplanationMode 另有用户手动覆盖路径 switchExplanationMode（ReadingDocumentStore.swift:112）。修订：§2/§7约束3/§20 重述「derive()=2 处，proficiency-as-source-of-truth=5+ 消费者且跨 AI 外发边界」；S4b 须明确 band 喂哪些消费者、并 reconcile 用户覆盖路径；line 95 送 Provider 是隐私相关面（§12.1⑥ 须扩到 band→request 路径，非仅查词捕获）。
+- [P0-3] derive() 迟滞无数值 → 无法 TDD 红：idea-02 §13.3/§14.2 给方向未给数值，§15 的 `bandFluctuationDoesNotImmediatelyChangeExplanationMode` / `onlyNewContentReReevaluated` 无具体阈值无法写成可失败测试。修订：S4b 清线前须在 §12.1① 钉死可测迟滞状态机——停留窗口单位（事件/天/内容条目）、稳定阈值（连续跨档次数/置信下限）、「仅新内容」精确边界（document open time / contentRevision / per-anchor 缓存）。
+- [P0-4] 闭环红线测试可实现性未证 + 传递污染未审：§15 `bandComputationNeverReadsCandidateDifficulty` 须像 S3 一样改 SQL-source 白名单行为断言（seed 式对不落库字段无效）；且须审「二阶闭环」——查词频率建在 AI 生成阅读材料上（level→生成文本→哪些词难→查词频率→band），现仅守一阶 memory_candidates.difficulty。修订：§7约束1/§15 改可 seed 的源白名单断言 + 增传递独立性分析（查词信号是否须限非 AI 来源内容）；须在 S4a 捕获查词前定（影响捕获什么）。
+
+P1（高风险，须修订后 round-1 方可清）：
+- [P1-1] 「首次为 Learner Model 建持久表」事实错误（已核实）：S1 创建 learner_memory_facts = v27（仓库首张系统级表）+ writer seam；S4 表为 v28+、建在 S1 schema 与 writer 之上。修订 §2/§4/§6/§17：「S4 是 Learner Model 首张 Ability 派生/账本持久表，建在 S1 v27 + writer seam 之上，migration v28+」+ 显式硬前置 S1 writer。
+- [P1-2] 查词事件持久化分层可现在定：ADR-006 §8 已定 Ability 派生 local-only 不备份、账本/cursor 派生可重算；真正开放项 = 查词事件作「不可重算的用户行为」。对照 practice_text_attempts（最近似先例）= local-only / 排除备份 / 排除导出（spec/007:113）。但查词事件**不可重算**（阅读会话过后行为即逝），是不同于 Ability（可重算）与练习证据的新类别——须显式定 backup_policy + 触发 S1 架构备忘录的 FileProtection/加密接缝。
+- [P1-3] ADR 升级须现在定、非「评估」：derive() 从静态 level 改吃演进 band（影响材料/解释/练习/复习/语伴基线）是核心行为变化，CLAUDE.md §4#17 触发 ADR；ADR-006 §10 覆盖「标签 vs 内部值」但未 bless 「derive() 吃演进 band + 迟滞契约」。修订 §12.1⑤：定为 ADR-006 §10 修订或新 ADR，S4b 清线门控于该 artifact 存在。
+- [P1-4] 未引用既有学习者模型持久化/安全架构备忘录：docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md（CLAUDE.md §5.4 要求创建持久化方案前必查）；S4 加高频查词流 + 账本（行为 PII 更集中）却未引。加入 §6 证据 + §10 文档路径，并在该备忘录检查触发点登记查词事件。
+
+P2：[P2-1] band provenance 须像 S3 钉采样上限+分布摘要、勿无界 ref；[P2-2] cursor 增量重算缺并发/重入/取消设计（band 只在 document-open 边界读、不 mid-session 改，明确 MainActor hop 与「仅新内容」映射）；[P2-3] §16 缺 migration 回滚/结构化验证命名测试。
+P3：[P3-1] §2 ReadingDictionaryLookup 是 Core 类型非「阅读视图」；[P3-2] 测试落点拆后按 S4a/S4b 分区。
+
+是否允许进入实现：否。本文件保持 Not Reviewed；正确终态是「拆 S4a/S4b + 本文件转拆解边界」，须用户决策（见仪表盘待用户决策）。在拆分与上述 P0/P1 收口前，S4 系不可实现。
 ```
 
 ## 14. 复查方法（要点）
@@ -161,11 +181,11 @@ scripts/check-docs.sh
 ## 17. 文档影响检查
 
 - ADR-006：回写 band 重估 + 账本 + cursor + derive() 演进落地。
-- **是否新 ADR（高）**：band 动态重估 + derive() 从静态 level 改吃演进信号，是核心行为变化（影响材料难度 / 解释模式 / 练习 / 复习 / 语伴）——**须评估是否新增 ADR**（不只 ADR-006 实施）；§12.1 待决 5。
+- **ADR（已决）= ADR-006 §10 修订**：band 动态重估 + derive() 从静态 level 改吃演进信号 + 迟滞契约，作为 ADR-006 §10 扩展修订（非新增独立 ADR；影响材料难度 / 解释模式 / 练习 / 复习 / 语伴 baseline），**S4b 清线门控于该修订存在**；§12.1 第 5 项。
 - spec/007：查词事件 + 账本 / cursor + band 持久化分层登记（首次为 Learner Model 建持久表）。
 - architecture/002：band 子系统 + 账本数据流 + derive() 漂移防护 + 信号独立性。
 - idea-02 §14：band 落地回指。
-- review：migration + 新子系统 + derive() 行为变化 + 可能新 ADR——命中专项审查触发。
+- review：migration + 新子系统 + derive() 行为变化 + ADR-006 §10 修订——命中专项审查触发。
 
 ## 18–19. 实施记录 / 完成标准
 
@@ -180,6 +200,6 @@ scripts/check-docs.sh
 - **不打击信心**：永不展示降级（红线）。
 - **持久化首次落地**：S4 引入 Learner Model 首张持久表 + 账本 + migration；持久化分层须显式定（band local-only 可重算 vs 查词事件主数据）。
 - **体量大**：建议拆 S4a/S4b（§12.0）降风险。
-- **可能升 ADR**：核心行为变化，须评估（§17）。
+- **ADR 已决 = ADR-006 §10 修订**（非新独立 ADR），作 S4b 清线门控（§12.1 第 5 项 / §17）。
 - **本环境（若 Linux）**无 Swift 工具链；migration + derive 行为须 macOS / CI 验证。
 ```

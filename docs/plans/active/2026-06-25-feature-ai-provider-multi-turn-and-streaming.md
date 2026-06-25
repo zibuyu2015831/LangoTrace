@@ -1,4 +1,4 @@
-# 任务方案：AI Provider 多轮对话 + 文本流式扩容（语伴前置）
+# 任务方案：AI Provider 多轮对话 + 文本流式扩容（独立基础设施，LM03 消费）
 
 状态：Draft
 自审核状态：Reviewed（2026-06-25 隔离子代理双轮审查，3 项 P1 已修订写回，见第 13 节）
@@ -11,6 +11,8 @@
 本方案是语伴（LM03）落地的两份前置之一（另一份为 [ADR-008](../../decisions/008-language-companion-as-grounded-practice-modality.md)）。2026-06-25 会话中，用户就语伴三处前置定夺拍板，与本方案相关的一处为：
 
 - **Provider 扩容范围 = 多轮 + 文本流式（OpenAI 兼容族），Anthropic 后置**。即本方案做多轮 messages 形态 + 文本流式 `AsyncThrowingStream`，给足真人感；Anthropic Messages 适配作为后续独立 `add-ai-provider` workflow run，不阻塞语伴 v1。
+
+**定位修正（2026-06-25 用户决策）**：本方案**改标为独立基础设施**，不再框为「仅语伴前置」。理由：① 多轮 + 流式能力可被**任何**多轮 / 流式 AI 能力复用（§1 已述），非语伴专属；② 其 **Phase 0 spike 风险**（全仓首个 `AsyncThrowingStream`、`bytes(for:)` OS 差异、mimo SSE 未验，§2/§12）不应压在语伴关键路径上。故**允许在第 1/2 批先行落地退险**（早于 LM03 批次），LM03 仅**消费**已退险的传输 seam。实施顺序与门控见进度仪表盘（enabler 从「第 3 批语伴前置」上移为可独立先行的 infra）。本方案范围 / 边界 / 自审核结论不变，仅排序定位调整。
 
 状态仍为 `Draft`：**范围已锁定，但进入生产代码实现前仍需 (1) 按 `docs/plans/plan-review-protocol.md` 完成严格自审核并将状态推进到 `Reviewed`，(2) 用户对实现授权确认。** 本方案只扩 Provider 能力 seam，不建语伴 UI / 会话 store（属 LM03）。
 

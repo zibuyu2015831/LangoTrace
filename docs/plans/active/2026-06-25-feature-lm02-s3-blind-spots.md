@@ -1,7 +1,7 @@
 # 任务方案：盲点（常犯错误清单，源自练习机械 diff）（LM02 Slice 3）
 
 状态：Draft
-自审核状态：第一轮 Reviewed（2026-06-25 隔离子代理架构审查 2 P0/3 P1 已修订写回，已覆盖测试 / 红线 / schema / 落地；第二轮测试 / 安全细化留实现批次前执行，见第 13 节）
+自审核状态：第一轮 Reviewed；**第二轮已执行（2026-06-25 隔离子代理）——发现 2 项 P1 阻塞未清**（[P1-1] §4 红线守卫测试 `sqlReadsOnlyPracticeAttemptAllowlist` 机制未指定、按 LM01 先例应为行为断言或 `Database.trace`；[P1-2] compute-on-read 规模上限（全历史 dictation 每次进页全量重跑 O(n²) compare）未定值、§15 无对应先失败测试）。修订写回 §7/§12.2/§15 后方可标 Reviewed，见第 13 节
 类型：feature
 创建日期：2026-06-25
 最后更新日期：2026-06-25
@@ -216,6 +216,23 @@ ADR-006 影响节把「盲点 / 常犯错误」归 Ability 层（按语言）；
 写回修改：P0-1→§3/§4/§5/§6/§12.2②/§19/§20；P0-2→§3/§7约束5/§12.1/§12.2①/§15；P1-1→§3/§12.2①/§15；P1-2→§7约束4/§12.3/§20/§15；P1-3→§4/§9/§12.3/§19/§20；P2-1→§3/§20；红线断言→§12/§14/§15。
 预置确认点（实现授权前）：① §12.2① 聚合策略（按词 vs 按片段）；② §12.2③ 自由产出语种检测是否进 v1（默认否）；③ deposit 子增量是否在 v1 之后紧接（需 migration）；④ 盲点效度文案口径。
 是否允许进入实现：否——本轮仅拆 plan，未授权实现；第一轮 2 P0 + 3 P1 已修订写回，第二轮（测试 / 安全细化）留实现批次前执行。状态保持 Draft / 自审核 = 第一轮 Reviewed。
+```
+
+```text
+审核日期：2026-06-25（补执行）
+审核方式：隔离子代理第二轮（测试 / 安全 / 落地）+ 主会话用当前 HEAD 代码逐条核验
+审核轮次：第二轮（建立在第一轮修订后的方案上，不重复架构结论）
+发现摘要（子代理分级，主会话已用代码核验成立）：
+  P1（阻塞清线，须修订后才可标 Reviewed）：
+  - [P1-1] §4 红线守卫测试不可实现：`sqlReadsOnlyPracticeAttemptAllowlist` 拟「断言 SQL 只读白名单列」，但 SQL 是 `reader.read{}` 内私有字符串字面值，单测无 seam 读取；LM01 实际红线测试（GRDBLearnerContextProviderTests.swift:150-190 `undepositedCandidateExcluded`）是**行为断言**非 SQL 文本断言；`observations` 不落库（PracticeBacktranslationReview.swift:50，仅 Core）故无法 seed。修订方向（实现批次前定）——§15 改为二选一并写死机制：(a) 行为断言（首选，镜像 LM01）= seed 一条带唯一 token 的 `errorPattern` `memory_candidates` 候选，断言无 BlindSpot 含该 token；或 (b) `Database.trace`（已见用于 LocalDataUsageServiceTests）捕获 SQL 断言只触 practice_text_attempts / language_spaces。§12 红线守卫 + §14 同步。
+  - [P1-2] 规模上限（约束 5）未决且无先失败测试：§7 约束5 列三选项（限近 N / session 去重 / 缓存）未择一、无 N 值、无行为；§15 无规模测试。这是本切片唯一新增工程风险（全历史 dictation × 每次进页全量重跑 O(n²) compare，PracticeDictationDiff.swift:302-317）。修订方向——§12.2 决定 v1 cap 具体值（建议 `ORDER BY created_at DESC LIMIT N`，N≈200，须与白名单 SQL 兼容）；§15 加先失败测试 `recomputeBoundedToRecentNAttempts`（seed N+k 条，断言仅最近 N 参与聚合）；约束 5 由 warn 升 blocker 或在 §20 论证「文档化但 v1 暂不测」的剩余风险。
+  P2 / P3（非阻塞，同次修订一并并入）：
+  - [P2-1] §15 缺语言空间软删测试：当前仅 `softDeletedAttemptDropsFromBlindSpots`（attempt 软删），无 `ls.deleted_at IS NULL` 空间软删测试（SQL 已含该过滤、§7 约束1 已声明、LM01 有对应 `softDeletedSpaceExcluded`）。加 `softDeletedLanguageSpaceContributesNoBlindSpots`。
+  - [P2-2] §17 idea-02 §7.1 回写措辞：§7.1 原述盲点源 = `memory_candidates kind=errorPattern`（已核实 errorPattern 是 AI 候选 kind，AppDatabase.swift:493，ADR-006 §4 红线）；S3 纠正为 dictation diff 用户产出。§17 须改为「§7.1 源替换 + 加注」，非单纯「落地回指」。
+  - [P3-1] §17 architecture/002 回写前置于 S1 的 LM01/Memory 子系统基线（002 当前零 Learner 条目，grep 证实）；002 盲点数据流回写须接在 S1 基线之后。
+  - [P3-2] `.practiceTextAttempt` 是纯内存 source type（`LearnerEvidenceRef` 不落库），加 case 无 raw-value 持久化兼容负担——可在 §3/§5 一句注明。
+确认仍坚实（建立在第一轮之上）：TDD 红绿次序、fixture 构造（AppDatabase + DatabaseQueue + raw SQL seed，FK 链 practice_text_attempts.session_id → practice_sessions）、deposit scope-down、provenance 证据集语义、聚焦验证命令均成立。
+是否允许进入实现：否。第二轮发现 2 P1 阻塞清线项（红线测试机制 + 规模上限值/测试）须修订写回后，自审核状态方可由「第一轮 Reviewed」推进为「Reviewed」。本轮仍仅授权拆 plan，未授权实现。
 ```
 
 ## 14. 复查方法

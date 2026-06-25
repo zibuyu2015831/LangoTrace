@@ -56,7 +56,7 @@
 
 ### LM02-S4：band 重估（CEFR 动态评估，v2 高风险）
 
-> **→ 已拆 active plan**：[`2026-06-25-feature-lm02-s4-band-reestimation.md`](2026-06-25-feature-lm02-s4-band-reestimation.md)（Draft / **Not Reviewed**——系列最高风险，完整双轮自审留实现批次前）。关键代码核实：`derive()` 仅 2 处消费（`ReadingDocumentStore:58/:133`，blast radius 小，成立）；**查词信号当前无持久化表**（净新增捕获）；**分析账本 / cursor 当前不存在**（S4 首次引入，ADR-006 §9）。建议 S4 **自身拆 S4a（信号捕获+账本）/ S4b（band 服务+derive 迟滞）** 降风险（§12.0）。可能须升 ADR（核心行为变化，§17）。详见该 plan。
+> **→ 已转拆解边界（2026-06-25 完整双轮自审 + 用户决策：拆 S4a/S4b）**：[`2026-06-25-feature-lm02-s4-band-reestimation.md`](2026-06-25-feature-lm02-s4-band-reestimation.md) 已由单一 feature 方案转为**拆解边界**（类型 docs、自审 N/A）。双轮纠偏：① **blast radius 原「derive() 仅 2 处 → 风险小」不成立**——`derive()` 确 2 处，但 `proficiencyLevelCode` 作水平真值还流向 **AI Provider 请求**(`ReadingDocumentStore:95`)、材料生成(`LearningContentStore:194/:286`)、照片写作、回译点评 + 用户覆盖路径 `switchExplanationMode:112`（proficiency 真值 = 5+ 消费者跨外发边界）；② **「S4 首张持久表」错误**——S1 `learner_memory_facts`=v27 才是首张，S4 = v28+ 建在 S1 writer seam 上；③ **ADR 已决 = ADR-006 §10 修订**（非新 ADR），作 S4b 门控。**拆法**：**S4a**=查词捕获+账本（低风险，须先定查词 backup_policy + 闭环传递污染审查）；**S4b**=band 服务+derive 迟滞+总览呈现（最高风险，须 S4a+S3 信号回归 + §10 修订存在 + 可测迟滞数值）。S4a/S4b 各自 active plan + 双轮，待第 2 批开工前拆。详见该 plan §12.0/§13。
 
 - **范围**：把目标语水平从静态自评升为**持续重估的内部 band 信号**；驱动材料生成难度 / 解释模式 / 练习选材 / 复习排序 / 语伴基线。
 - **硬前置**：LM02-S1；**S3 的独立产出信号 + 查词行为信号成熟**（band 须建在不被 level 污染的独立信号上，否则闭环自证焊死水平，idea-02 §13.1）。
@@ -75,6 +75,13 @@
 - **形态**：opt-in + 默认关闭 + 开启动作即决策 #10 明示触发 + 只发增量 delta + 排除私密标签 / 照片原图 + plan 09 预览 / 日志 + 最小发送（ADR-006 §6 / idea-01 §14.4 / idea-02 §5 方案 B）。
 - **触碰**：AI 包（新增 `AIRequestCapability` case + content descriptor + 投影，见 LM02-S1 自审 P0-2 关联约定——capability 新 case 留到真正外发切片）；自动后台外发须先过隐私闸（已开）。
 - **风险**：外发隐私 + 成本；故全系列最后，且每项独立 opt-in。
+
+### 未来切片登记（2026-06-25 完整性审查补登孤儿能力，避免静默丢失）
+
+完整性审查发现两处 idea / ADR 已批准、但当前无任何 active plan 或拆解行承接的能力。**用户 2026-06-25 决策：两处都登记为未来切片**（仅占位、不立即拆 active plan；进入实现前各自创建 active plan + 双轮自审）。
+
+- **改写 / 写作修改切片（Style→Ability i+1 下投影的落地消费者）**：idea-01 §13.5「Style 应用到目标语改写按 Ability i+1 下投影」的**第二个落地消费者**。S2「seam-only」当前唯一就绪未来消费者只剩 **LM03-S4**（语伴 Style 注入）；**改写 / 写作修改消费者无任何 plan**，使 S2 立项前提（自审已标投机地基）更弱。登记为未来切片：目标语改写 / 写作修改读 S2 Style 印记 + 按 Ability i+1 下投影。硬前置：S2 + LM01 Ability。设计来源 idea-01 §13.5、idea-03 §10.2（会话式 affordance 已被「拆完整引擎」决策替代，改写作为独立写作修改工具消费者保留）。**风险**：低；价值是兑现 S2 的第二消费者、降低投机地基。
+- **onboarding 自评措辞软化微切片**：idea-02 §7.2 / ADR-006 §10 已批准的「轻量阶段化措辞（初学 / 能日常交流 / 较流利）」。S1 §5 明确不做、留「单独小切片」，但无 plan/拆解行承接。登记为未来切片：onboarding 水平自评文案从 CEFR 裸标签软化为阶段化措辞，**不改内部 `LanguageLevel` 枚举值**（仅展示层）。可独立做，或并入 S4b（用户可见标签 vs 内部 band 关系已在 S4b 范围）。设计来源 idea-02 §7.2、ADR-006 §10。**风险**：极低（纯展示文案）。
 
 ## 推荐排序与门控
 
