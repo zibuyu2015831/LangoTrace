@@ -222,3 +222,12 @@ LM02 Slice 1 落地 Learner Model 的 **Memory 层**——用户**显式记住**
 - **写 seam**：`AppDatabase` 新增 `public var writer: DatabaseWriter`（LM01 §20 预告），`GRDBLearnerMemoryRepository` 经此拥有系统级读写。Ability 覆盖仍 compute-on-read 不持久（E7/LM01 不受影响）。
 - **静态安全**：v1 复用整库 `FileProtection.completeUntilFirstUserAuthentication`（iOS）；**字段级加密 / SQLCipher 未决**（ADR-006 §5.2），记入 `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`。
 - **E10 硬接缝**：可恢复备份**必须**纳入 `learner_memory_facts`（`export_policy=includedInRecoverableBackup`），否则删库 = 永久失忆；实际打包随 E10 后续切片（当前 Slice 2 deferred），接缝由上述 architecture note 托管。
+
+## 变更记录补充：学习者模型 Style 表面印记（LM02 Slice 2，2026-06-25）
+
+LM02 Slice 2 落地 Learner Model 的 **Style 层 v1 表面写作印记**（seam-only，不展示）：
+
+- **compute-on-read 真派生、不持久、不进备份**：`GRDBLearnerStyleProvider` 从 `entries.body` 机械重算（`NaturalLanguage` 检测语种 + 机械分词指标 + 按母语分组），**无新表 / 无 writer / 无 migration**，与 LM01 Ability 同型；`entries` 本身已纳主数据备份，重算即得。
+- **ADR-006 §8 持久化分类分层细化**：§8 把整个 Style 层列「准原始 → 纳入备份」**未分 v1/v2**；本切片 reconcile——**v1 表面印记 = 真派生不持久**；§8「准原始 → 持久 + 备份」实质仅适用 **v2 自陈 / AI 认知风格**（不可从行为廉价重算）。事实源 `docs/architecture/notes/2026-06-25-style-surface-imprint-recompute-notes.md`。
+- **红线（ADR-006 §4）**：只读 `entries.body`，绝不读 `learning_materials` / `learning_text` / `input_kind` / `memory_candidates`（AI 生成物）。语言判定靠 `NLLanguageRecognizer`，`entries.source` 非语言键。
+- 与 LM01 Ability（compute-on-read 不持久）、S1 Memory（准原始 → `includedInRecoverableBackup`）、S3 盲点（compute-on-read 不持久）并列，构成 Learner Model 三层持久化分叉的完整图景：**能从已备份源数据廉价重算者不持久；不可廉价重算者（Memory 显式记住 / v2 认知风格）才准原始 + 备份**。

@@ -324,7 +324,17 @@ scripts/check-docs.sh
 
 ## 18. 实施记录
 
-待实现。
+2026-06-25 落地（dev 分支，seam-only / Phase 1 only，Phase 2 展示按用户决策不执行）：
+
+- **域模型**：`StyleImprint` / `StyleMetricKind`（surface v1；cognitive 保留位不产出）/ `StyleSignalConfidence`（high/low）/ `StyleSurfaceMetrics`（句长/TTR/正式度）/ `StyleNativeLanguageImprint`（按母语分组 + 证据集采样上限 evidenceSampleLimit=20）；`LearnerSourceType.entryBody`。
+- **注入 seam（P0-A）**：`LanguageDetector` 协议 + 默认 `NaturalLanguageDetector`（包 `NLLanguageRecognizer`）；测试注入确定性 `StubDetector`，核心分组/排除用例脱离真实 NL。
+- **provider**：`LearnerStyleProvider` 协议 + `GRDBLearnerStyleProvider`（镜像 LM01 reader-only，读 `entries` JOIN `language_spaces`，`deleted_at` 过滤天然级联；最小长度门 + 置信阈值；机械分词算指标确定性；CJK glyph/Latin word 分别计 token）。红线：SQL 仅 FROM/JOIN `entries` + `language_spaces`，源级 grep + 行为断言 `neverReadsAIGeneratedText`（sentinel 不入印记）。
+- **装配**：`AppEnvironment.learnerStyleProvider` 字段（seam-only 暴露，无消费者，镜像 LM01 `learnerContextProvider`）；抽出 `makeMemoryReviewActions` 控 file_length（AppEnvironment 1292 行 < 1300）。
+- **TDD**：StyleImprintModelTests(3) + GRDBLearnerStyleProviderTests(6，含红线/目标语排除/级联/短文本/真实 NL macOS 冒烟) 先失败后实现。
+- **验证**：轻量本机 LearnerModel 41 全绿，format/lint 0 error；含 AppEnvironment 改动的全量 Build & Test 经 GitHub Actions CI 绿。
+- **scope-down 全兑现**：无认知风格/AI 校准、无 Style→Ability 下投影消费、无持久化表/migration、无展示（seam-only）、不碰 derive()/LanguageLevel。
+- **§12.4 §8 持久化分层细化**已落 ADR-006 实施进展 + 新 architecture note（v1 表层真派生不持久；准原始/备份仅 v2）。
+- **§17 文档影响已回写**：ADR-006 影响节（S2 进展 + §8 reconcile）、新增 architecture note `2026-06-25-style-surface-imprint-recompute-notes.md`、architecture/001 §2.8、architecture/002-system-map §4.10、spec/007（Style v1 真派生不持久登记）、idea-01 §13.9（命名/持久化/展示默认收口）。
 
 ## 19. 完成标准
 

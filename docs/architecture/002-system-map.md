@@ -273,6 +273,7 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 2. **Memory 层（LM02-S1）**：用户**显式记住**的生活事实 / 目标写入**系统级表 `learner_memory_facts`（v27，无 space FK）**经 `AppDatabase.writer` → `GRDBLearnerMemoryRepository`；准原始策略 `localOnly`/`includedInSystemBackup`/`includedInRecoverableBackup`（ADR-006 §8）。单条删=软删可撤销；系统级「重置 App 对我的了解」=物理 DELETE（不触 `memory_items`/学习记录）。
 3. **学习画像总览页（LM02-S1）**：`LearnerProfileSnapshotBuilder` compute-on-read 聚合 Ability 覆盖 + Memory 事实（Learner-owned）+ per-space 复习统计（借用 `memory_items`，系统级重置不改它）；三端 `LearnerProfileView`（独立设置导航项 / iPad·macOS 侧栏 peer，非 SettingsCapability）经 `LearnerProfileActions` 取数与治理；温和水平**不展示降级**（ADR-006 §10）。
 4. **盲点（LM02-S3）**：`GRDBLearnerBlindSpotProvider` compute-on-read 读 `practice_text_attempts`（dictation diff）JOIN `language_spaces`，按 `target_language_code` 重跑 `PracticeDictationDiff.compare()` 频次聚合为 `BlindSpot`（{missing,changed,extra}），喂入 snapshot 的盲点分区；**红线只读用户产出 + 机械 diff，绝不读 AI 判定 / learning_text**；规模上限 `LIMIT 200`；总览页诚实标注「来自听写练习」、不下判决。无新表 / 无 writer。
+5. **Style 表面印记（LM02-S2，seam-only）**：`GRDBLearnerStyleProvider` compute-on-read 读 `entries.body` JOIN `language_spaces`，经注入的 `LanguageDetector`（默认 `NLLanguageRecognizer`）判语种=母语→高置信纳入、=目标语→排除，**按母语分组**机械算句长/TTR/正式度为 `StyleImprint`；**红线只读 `entries.body`，绝不读 `learning_materials`/`input_kind`/`memory_candidates`**；**装配为 seam-only（`AppEnvironment.learnerStyleProvider`，无消费者读，语伴 v2 / 改写下投影届时消费）**；v1 表面印记是真派生不持久（§8 分层细化见 architecture note `2026-06-25-style-surface-imprint-recompute-notes.md`）。无新表 / 无 writer。
 
 关键文件：
 
@@ -280,7 +281,7 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - `Packages/LangoTraceData/Sources/LangoTraceData/AppDatabaseLearnerMemoryMigration.swift`（v27）+ `AppDatabase.writer`
 - `Packages/LangoTraceUI/Sources/LangoTraceUI/LearnerProfileView.swift` / `LearnerProfilePresentation.swift` / `LearnerProfileStore.swift` / `LearnerProfileActions.swift`
 
-测试入口：`GRDBLearnerMemoryRepositoryTests` / `LearnerProfileSnapshotTests` / `LearnerContextProviderMemoryFactsTests` / `BlindSpotModelTests` / `GRDBLearnerBlindSpotProviderTests`（LearnerModel）、`AppDatabaseLearnerMemoryMigrationTests`（Data）、`LearnerProfilePresentationTests` / `LearnerProfileStoreTests` / `BlindSpotPresentationTests`（UI）。
+测试入口：`GRDBLearnerMemoryRepositoryTests` / `LearnerProfileSnapshotTests` / `LearnerContextProviderMemoryFactsTests` / `BlindSpotModelTests` / `GRDBLearnerBlindSpotProviderTests` / `StyleImprintModelTests` / `GRDBLearnerStyleProviderTests`（LearnerModel）、`AppDatabaseLearnerMemoryMigrationTests`（Data）、`LearnerProfilePresentationTests` / `LearnerProfileStoreTests` / `BlindSpotPresentationTests`（UI）。
 
 硬接缝：E10 可恢复备份必须纳入 `learner_memory_facts`（否则删库=永久失忆），事实源 `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`。
 
