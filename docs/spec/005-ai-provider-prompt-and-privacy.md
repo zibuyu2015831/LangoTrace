@@ -29,6 +29,7 @@ AI 是语迹的重要能力，但不是产品的唯一中心。AI 应服务于�
 - 长期记忆上下文不能默认无限量发送给 Provider。
 - 向量索引是可重建派生数据，默认不同步。
 - Provider 请求必须能表达失败、取消、超时和配额限制，不允许只返回裸字符串。
+- 多轮对话与文本流式请求必须经 Provider 流式 seam（`AIChatStreamingService` → `AsyncThrowingStream`），同样表达失败 / 取消 / 超时 / 配额，并在流式累积下保留响应体积上限拦截。多轮请求的投影元数据（preset / model / 体积分桶 / 消息条数）不得携带消息正文、system persona 或密钥；对话级日志的实际写入由调用方在请求终止后接线（沿用 §4.4 的 App-Shell recorder 依赖方向）。
 - 结构化输出必须经过解析和校验，不能默认信任模型返回格式。
 - 用户自定义 Prompt Preset 不能获得绕过隐私边界的特殊权限。
 
@@ -219,6 +220,8 @@ Provider 配置保存链路必须记录可诊断但非敏感的阶段状态：
 - 是否保存可重放的 AI 生成配置。
 - 是否为不同任务定义严格 JSON Schema。
 - 是否引入本地内容脱敏或敏感词提示。
+- 多轮对话与文本流式的传输能力已落地（见 §3、§8），但其上层消费（语伴会话 store / UI / Memory·Style 注入 / 对话级日志写入接线）仍属可演进，按 LM03 各切片推进。
+- Anthropic Messages / Gemini 多轮 + 流式适配仍为保留扩展点（当前 `unsupportedProvider`），后续走 `docs/workflows/add-ai-provider.md` 整体接入。
 
 这些变化如果影响隐私、商业模式或默认数据边界，应更新 ADR。
 
@@ -255,6 +258,7 @@ AI 在实现任何 AI 能力前应先确认：
 - 2026-05-24：修正一键学习材料生成三端入口事实。原因：iPad / macOS 记录详情已通过共享 `EntryDetailView` 接入同一 `LearningMaterialGenerationActions` / `LearningContentStore` action seam，AI 请求、Keychain 解析和 GRDB 写入路径不再是 iPhone-only；隐私边界仍限制为当前 Entry 文本或当前 learning text。影响范围：AI Provider 请求边界、三端记录详情和页面清单。是否需要 ADR：否，沿用 ADR-005。
 - 2026-06-24：新增 §4.8 照片写作 AI 看图辅助写作边界 + §3 强制规则照片显式触发条目。原因：照片写作新增显式触发的看图辅助写作，是当前实现中第一个把照片发送给 Provider 的能力，需把「照片永不发送」从无条件承诺收敛为「仅 `photoWritingAssist` 能力 included、其余能力仍 always-excluded」，并固化脱敏单一入口、图片适配 allowlist、两模式严格输出与日志边界。影响范围：spec/005、Prompt Registry、platform-page-inventory、architecture/002-system-map、LangoTraceCore/Data/AI/UI、App Shell。是否需要 ADR：否，符合核心决策 #10，沿用 ADR-005；详见 `docs/plans/active/2026-06-24-feature-photo-writing-ai-assist.md`。
 - 2026-06-24：§4.8 显式触发条目明确发送前确认弹窗为唯一披露界面。原因：照片写作页移除底部常驻隐私提示横幅以保持页面简洁，隐私披露不降级——发送前确认弹窗仍完整披露发送范围且与发送动作原子绑定。主要事实：删除 `photoWriting.privacy.notice` 文案 key 与页内 banner 视图，本地化守卫从「常驻 banner 文案」迁移到「发送前确认弹窗披露发送范围」并新增断言 banner key 已删除。影响范围：spec/005 §4.8、platform-page-inventory、`PhotoWritingView`、`Localizable.xcstrings`、`PhotoWritingAssistLocalizationTests`。是否需要 ADR：否，隐私底线不变，沿用核心决策 #10 与 ADR-005。
+- 2026-06-25：新增 §3 多轮对话 + 文本流式强制规则，并在 §5 登记其上层消费仍可演进。原因：落地独立基础设施 enabler——AI Provider 多轮 messages 请求形态 + 文本流式 `AsyncThrowingStream`（OpenAI 兼容族 chat/completions + responses；mimo 流式未验证暂 defer；Anthropic / Gemini 仍 `unsupportedProvider`），作为 LM03 语伴的传输前置。流式保留响应体积上限拦截，能表达失败 / 取消 / 超时 / 配额（复用既有错误分类）；多轮请求投影就绪（携带非敏感元数据，不含正文 / persona / 密钥），但对话级日志写入接线归 LM03（沿用 §4.4 App-Shell recorder 依赖方向）。影响范围：spec/005、LangoTraceCore（`ConversationMessage`）、LangoTraceAI（`ServerSentEventParser` / `AIChatStreamingService` / 流式 HTTP seam / adapter 流式 body）、architecture/002-system-map、architecture/notes、workflows/add-ai-provider、ADR-008。是否需要 ADR：否，属 ADR-005 Provider 抽象内的能力扩展，不改隐私 / 商业 / 默认数据边界（多轮 messages 属核心决策 #10 的用户主动发送）；详见 `docs/plans/done/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md`。
 - 2026-05-17：创建第一版 AI Provider、Prompt 与隐私规范。
 - 2026-05-17：补充同意级别、结构化输出校验、输出保存边界和失败处理分类。原因：降低 AI 请求隐私、可靠性和数据覆盖风险。影响范围：AI Provider、Prompt、UI 请求预览、数据保存。是否需要 ADR：否。
 - 2026-05-19：补充 Provider 配置页边界。原因：AI Provider 设置页开始从静态说明改为真实级 mock 配置页，需要把安全配置草稿、保存配置、测试请求、能力矩阵和聚合 provider 提示沉淀为长期约束。影响范围：AI Provider 设置、隐私文案、后续 Keychain 和真实请求测试。是否需要 ADR：否。

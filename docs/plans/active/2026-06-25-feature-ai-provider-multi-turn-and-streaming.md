@@ -1,6 +1,6 @@
 # 任务方案：AI Provider 多轮对话 + 文本流式扩容（独立基础设施，LM03 消费）
 
-状态：Draft
+状态：Implemented（2026-06-25 落地，Phase 0 spike gate 通过后进入生产实现；轻量本地测试全绿，待 CI Build & Test 绿后移入 done/）
 自审核状态：Reviewed（2026-06-25 隔离子代理双轮审查，3 项 P1 已修订写回，见第 13 节）
 类型：feature
 创建日期：2026-06-25
@@ -258,7 +258,16 @@ scripts/check-docs.sh
 
 ## 18. 实施记录
 
-待实现。
+2026-06-25 落地（dev 分支）：
+
+- **Phase 0 spike gate 通过**：`ServerSentEventParser` 字节级解析（仅按 `0x0A` 切分）在合成多 chunk SSE 流上正确产出有序 delta + `[DONE]` 终止 + 半行缓冲 + **多字节 UTF-8 跨 chunk** 重组；可注入 `ScriptedStreamingHTTPClient` 确定性驱动取消 → 流以 `.cancelled` 终止且已交付 delta 不丢。PASS，进入生产实现（未触发降级路径）。
+- **Core**：`ConversationMessage` / `ConversationRole`（system/user/assistant，Codable，stable raw values）。
+- **AI**：`ServerSentEventParser` + `OpenAIStreamDeltaExtractor`（chat/completions + responses delta）；`AIProviderStreamingHTTPClient`（`streamBytes → AsyncThrowingStream<UInt8,Error>`，与单发协议分离不动既有 conformer）+ `URLSessionAIProviderHTTPClient` 实现（复用 `bytes(for:)`、保留体积上限、非 2xx → `unacceptableStatusCode`、取消/超时映射）；`AIChatStreamingService` 暴露 `AsyncThrowingStream<AIChatStreamEvent>`（全仓首个 throwing 流），`mapError` 复用 `AIProviderHTTPStatusErrorMapper`；adapter 新增 `streamingChatBody`（chat/responses；mimo 流式未验证暂继承 `nil`=unsupported）+ `streamContentDelta`；`AIChatStreamingServiceRequest.projectionMetadata()` 投影就绪元数据（无正文/persona/密钥）。
+- **副作用**：`AIProviderHTTPClientError` 新增 `unacceptableStatusCode(Int)`，补齐 5 处单发服务 exhaustive switch（Probe / Reading / Photo / Backtranslation / SentenceTTS；流式专用，单发路径不可达）。
+- **TDD**：`ConversationMessageTests`(2) / `ServerSentEventParserTests`(6) / `AIChatStreamingServiceTests`(10) 先失败后实现。
+- **轻量验证**（本机 macOS）：`swift test` Core 240 全绿 + AI 196 全绿；swiftformat / swiftlint 自查通过（新文件 0 violation）。重量级真实 URLSession 流式行为 + 三端构建走 GitHub Actions CI。
+- **第 5 节有意 scope-down 全部兑现**：anthropic/gemini 仍 unsupportedProvider；mimo 流式 defer；无语伴 store/UI；不在 AI 包写 `ai_request_logs`；不引入语伴 capability case；不改单发契约 / `derive()` / `LanguageLevel`。
+- **§17 文档影响已回写**：spec/005（§3 强制规则 + §5 登记 + §8 变更记录）、architecture/002-system-map（§4.9 流式数据流 + §7 故障路径行）、新增 architecture note `2026-06-25-chat-streaming-provider-seam-notes.md`、ADR-008 前置依赖精确化、workflows/add-ai-provider 补「多轮/流式已铺 seam」。
 
 ## 19. 完成标准
 

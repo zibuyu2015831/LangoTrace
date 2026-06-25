@@ -240,6 +240,31 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 
 安全边界要点：照片默认仅本地（保存路径不上传 / 不同步）；唯一外发是上述显式动作的脱敏图片。`photo_writing_assist_operations` 专用摘要表 v1 延后。
 
+### 4.9 多轮对话 + 文本流式传输 seam（独立基础设施，LM03 消费）
+
+这是对话级 AI 请求的**传输能力**数据流，目前**只到 Provider seam，无 UI / 会话 store**（消费方语伴 LM03 后续接入）：
+
+1. 调用方构造 `AIChatStreamingServiceRequest`（endpoint + secret + 可选 system + 有序 `[ConversationMessage]`）。
+2. `AIChatStreamingService`（`LangoTraceAI`）经 adapter 的 `streamingChatBody`（chat/completions `messages` + `stream:true`；responses `input` + `stream`；mimo 流式未验证暂 `unsupportedProvider`；anthropic / gemini 仍 `unsupportedProvider`）构造请求。
+3. 经 `AIProviderStreamingHTTPClient.streamBytes` → `AsyncThrowingStream<UInt8, Error>` 增量读；`ServerSentEventParser` 字节级解析（仅按 `0x0A` 切分，跨 chunk 半行 + 多字节安全），`OpenAIStreamDeltaExtractor` 提取 delta。
+4. 服务以 `AsyncThrowingStream<AIChatStreamEvent>`（全仓首个 throwing 异步流）逐 token yield；流终止于 `[DONE]` 或映射后的错误。
+5. **投影就绪不写日志**：`request.projectionMetadata()` 携带 preset / model / lengthBucket / messageCount（无正文 / persona / 密钥）；对话级 `ai_request_logs` 写入由 LM03 在请求终止后经 App-Shell recorder 接线（E6 依赖方向）。
+
+关键文件：
+
+- `Packages/LangoTraceCore/Sources/LangoTraceCore/ConversationMessage.swift`
+- `Packages/LangoTraceAI/Sources/LangoTraceAI/AIChatStreamingService.swift`
+- `Packages/LangoTraceAI/Sources/LangoTraceAI/ServerSentEventParser.swift`
+- `Packages/LangoTraceAI/Sources/LangoTraceAI/AIProviderHTTPClient.swift`（`AIProviderStreamingHTTPClient`）
+
+测试入口：
+
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/AIChatStreamingServiceTests.swift`
+- `Packages/LangoTraceAI/Tests/LangoTraceAITests/ServerSentEventParserTests.swift`
+- `Packages/LangoTraceCore/Tests/LangoTraceCoreTests/ConversationMessageTests.swift`
+
+架构备忘录：`docs/architecture/notes/2026-06-25-chat-streaming-provider-seam-notes.md`
+
 ## 5. 模块依赖方向
 
 当前依赖方向：
@@ -286,6 +311,7 @@ Sync -> Core
 | 麦克风权限拒绝或不可用 | 用户拒绝、受限、设备不可用或 sandbox entitlement 缺失 | 录音 service 返回稳定 failure，不创建 ready recording，不标记完成 | 单句页显示可恢复失败；其他学习功能可继续使用 | permission status / failure category，不记录音频 | Partial | `PracticeRecordingServiceTests.swift`、`PracticeRecordingConfigurationTests.swift`；真实设备需人工验收 | `docs/spec/008-permissions-local-privacy-and-diagnostics.md` |
 | 练习录音提交失败 | recording stop 失败、文件缺失、文件过大、hash mismatch、metadata ready 标记失败 | 清理 staging 或保持 pending 待 recovery；不把失败 attempt 暴露为 ready；完成操作只接受 ready recording | 用户可重新录音，不显示完成成功 | duration / byte size bucket 和 failure category；无绝对路径 | Partial | `GRDBPracticeRepositoryTests.swift`、`MediaArtifactRepositoryTests.swift`、`PracticeRecordingServiceTests.swift` | `docs/spec/media-artifacts/impl.md` |
 | 完成态录音缺失或被清理误选 | completed recording 文件缺失、hash mismatch 或普通 cleanup 候选误包含 | session 保持 completed；playback source 标为 unavailable；completed recording 不进入普通 TTS / capacity cleanup | 用户看到完成记录存在但录音不可播放或需重新录制 | artifact state / failure category；不记录路径 | Partial | `MediaArtifactRepositoryTests.swift`、`GRDBPracticeRepositoryTests.swift`、`PracticeSessionViewModelTests.swift`；真实设备回放需人工验收 | `docs/spec/007-data-storage-migration-export-and-attachments.md` |
+| 多轮 / 流式聊天传输（enabler，无 UI） | 流中途网络失败、取消、超时、4xx 配额、非 2xx、响应超体积上限、不支持的 Provider kind | `AIChatStreamingService` 将错误映射到既有分类后令 `AsyncThrowingStream` 安全终止；已 yield 的 delta 已交付（流式本义，非泄漏）；超 `maximumResponseBytes` 以 `responseTooLarge` 终止 | 传输层语义正确；半截回复的 UI 表达属 LM03（当前无 UI） | 不记录消息正文 / persona / 密钥；对话级 log 写入归 LM03 | Yes | `AIChatStreamingServiceTests.swift`、`ServerSentEventParserTests.swift`；真实 URLSession 流式行为经 CI Build & Test | `docs/architecture/notes/2026-06-25-chat-streaming-provider-seam-notes.md`；`docs/spec/005-ai-provider-prompt-and-privacy.md` |
 | 未来 Sync | sync engine / adapter / conflict 未实现 | 保持 disabled / unavailable，不承诺同步 | 设置页显示未启用或不可用 | 无真实同步日志 | No | `SyncBoundaryTests.swift` 只覆盖 disabled boundary | `docs/technical-framework-roadmap.md` |
 | 未来权限 | Photos / Camera / Speech Recognition / OCR 未接入 | 保持未实现说明，真实权限任务另建 plan | 不弹出真实权限或误导为已授权 | 无真实权限日志 | No | 当前无完整权限测试 | `docs/spec/008-permissions-local-privacy-and-diagnostics.md` |
 | 未来导出 | 完整导出和可恢复备份未实现 | 保持 unavailable / future capability | 设置页不能写成已导出 | 无真实导出日志 | No | 当前无完整导出测试 | `docs/spec/007-data-storage-migration-export-and-attachments.md` |

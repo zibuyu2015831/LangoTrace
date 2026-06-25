@@ -96,7 +96,7 @@ CLAUDE.md / `docs/README.md` 第 3 节北极星明确「**产品不是 AI 聊天
 - **spec**：`spec/005`（语伴 Prompt 进 Registry、请求经 Provider、请求预览 / 日志、输出语言边界）、`spec/006`（主回复目标语、辅助面板界面语 / 母语边界）、`spec/008`（Memory 注入授权 UX）在 LM03 plan 落地时同步登记。
 - **Prompt Registry**：语伴 system prompt 必须进 `docs/prompts/` 与代码 Registry，选项→受控片段映射，不散落 UI / 服务代码。
 - **前置依赖**：
-  - **Provider 扩容**（本 ADR 的姊妹前置）：多轮 messages + 文本流式，见 `docs/plans/active/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md`；Anthropic Messages 适配后置为独立 `add-ai-provider` run。
+  - **Provider 扩容**（本 ADR 的姊妹前置）：多轮 messages + 文本流式。**2026-06-25 已落地传输能力 + preview 投影就绪**（OpenAI 兼容族 chat/completions + responses；`AIChatStreamingService` → `AsyncThrowingStream`；见 `docs/plans/done/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md` 与 `docs/architecture/notes/2026-06-25-chat-streaming-provider-seam-notes.md`）。**对话级 log 写入接线随 LM03**（流式 outcome 终止后由 App-Shell recorder 写入，本前置只到投影就绪，不自带写入）。Anthropic Messages / mimo 流式适配仍后置（独立 `add-ai-provider` run）。
   - **LM02**（学习画像总览 + Memory / Style 层 + `LearnerContextProvider` 扩展）：语伴 v2 的 Memory / Style 注入依赖之；v1 可退回静态 level + 仅 per-space 情景摘要。
 - **计划系列**：语伴 = ADR-006 影响节的 **LM03，排在最后**，依赖 LM02 + 本 Provider 扩容前置；本 ADR 不替 LM03 拆方案，仅定边界。
 - **既有备忘录对齐**：`2026-05-25-language-companion-extension-notes.md` 的 per-space 记忆假设与 ADR-006 系统级 Memory 的对齐在 LM03 plan 处理。

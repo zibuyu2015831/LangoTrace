@@ -34,6 +34,7 @@
 - App / UI package：设置页状态机、保存状态、测试入口、结果展示和三端共享 seam。
 - Prompt Registry：真实 Prompt、变量、输出契约和隐私边界。
 - Review：若涉及 AI Provider、Keychain、请求预览、请求日志或隐私边界，按 `docs/review/README.md` 判断是否触发专项审查。
+- 多轮 / 流式已铺 seam：新增 Anthropic / Gemini（或验证 mimo 流式）时，多轮 + 文本流式传输层已由 2026-06-25 enabler 落地（`AIChatStreamingService` / `ServerSentEventParser` / `AIProviderStreamingHTTPClient` / adapter 的 `streamingChatBody` + `streamContentDelta`，默认 `nil` = `unsupportedProvider`）。新 kind 只需实现这两个 adapter 方法（含其 SSE 事件 / 鉴权差异）并放行，不必重写行解析 / 流式服务。事实源见 `docs/architecture/notes/2026-06-25-chat-streaming-provider-seam-notes.md`。
 
 ## 4. 测试要求
 
