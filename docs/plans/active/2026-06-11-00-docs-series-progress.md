@@ -27,7 +27,7 @@
 
 **LM02 本地优先系列 + enabler 六片已全部落地、CI 绿、移入 `done/`**：enabler（AI Provider 多轮+流式）、LM02-S1（Memory 层 + 总览页 v27）、S2（Style seam-only）、S3（盲点 dictation diff）、S4a（查词捕获 + 账本 v28/v29）、S4b（band 重估 + derive 迟滞）。ADR-006 §10.1 band 契约修订 artifact 已写入。各片 §17 文档影响已回写（ADR-006 / spec/007 / architecture 001+002 / page-inventory / idea-01+02 / 架构备忘录）。`active/` 现仅余导航/拆解/边界文档 + 未授权的 LM03 系列。
 
-**下一次授权候选**：**LM03-S1（语伴 MVP 文本对话引擎）已于 2026-06-25 Done（全量 CI 绿，移 done/）**；下一候选 = **LM03-S2（找话题方案 B + Memory 注入 + 反哺记忆，额外门控：隐私两层控制 + PII scrubbing）** / S3（流式 + 对话记忆 + 小结）/ S4（Style + Anthropic）子片 active plan 待开工前再拆；五个登记孤儿（语伴逐句 TTS 朗读接线〔S1 偏差〕/ S3 deposit 子增量 / 改写消费者 / onboarding 措辞 / AI 校准 v2）。
+**下一次授权候选**：**LM03-S2 已于 2026-06-25 按风险拆 S2a/S2b**（用户决策，仿 S4a/S4b）。**LM03-S2a（聊天反哺：chat→候选提取 + 产出证据前向接缝，入站/低外发）已拆 active plan + 双轮自审 → `Reviewed`，待用户实现授权**（[`active/2026-06-25-feature-lm03-s2a-companion-reflux.md`](2026-06-25-feature-lm03-s2a-companion-reflux.md)）。S2b（Memory 注入 + 方案B找话题 + 两层隐私 + PII scrubbing，最高隐私门）= 边界登记 Draft、门控未开（[`...s2b-companion-memory-injection.md`](2026-06-25-feature-lm03-s2b-companion-memory-injection.md)）。Memory 注入 v1 排序已定 = **时近性 + 种类配额**。S3 / S4 子片待开工前再拆；五个登记孤儿（语伴逐句 TTS 朗读接线〔S1 偏差〕/ S3 deposit 子增量 / 改写消费者 / onboarding 措辞 / AI 校准 v2）。
 
 ## 当前实施重点：学习者模型系列（LM02 + LM03）
 
@@ -58,7 +58,10 @@
 第 3 批（语伴 = 完整聊天引擎；消费上方已退险的 Provider 多轮/流式 infra）
   ✅ LM03-S1（MVP 单线程文本对话引擎）       ← 2026-06-25 已 Done（五 Phase TDD + 全量 CI 绿 run 28178973216，已移 done/）；TTS 朗读暂缓（§18 偏差，加性后续）
      ↓
-  LM03-S2（方案B 找话题 + Memory 注入 + 反哺记忆）
+  LM03-S2 已拆 S2a/S2b（2026-06-25，仿 S4a/S4b）
+    🟡 S2a（聊天反哺：chat→候选 + 产出前向接缝，入站/低外发）  ← Reviewed，待用户授权
+       ↓
+    ⛔ S2b（Memory 注入 + 方案B找话题 + 两层隐私 + PII scrubbing，最高隐私门）  ← Draft 边界登记，门控未开
      ↓
   LM03-S3（文本流式 + 对话记忆 + 小结 + 复述）
      ↓
@@ -84,7 +87,9 @@
 | 独立 infra | ~~`2026-06-25-feature-ai-provider-multi-turn-and-streaming`~~ → `done/` | AI Provider 多轮 + 文本流式（LM03 消费） | ✅ **Done（2026-06-25）**：Phase 0 spike gate 过 → 生产实现；CI Build & Test 全绿（run 28156767558）；§17 文档回写完成（spec/005 + system-map §4.9/§7 + 新 architecture note + ADR-008 + add-ai-provider workflow）；已移 `done/`。mimo 流式 / Anthropic / 对话级 log 写入按记录 defer 至 LM03 / 后续 run |
 | 导航 | `2026-06-25-docs-lm02-remaining-slices-decomposition` | LM02 后续切片拆解 + 排序 | 🔵 **In Progress**（S2/S3 已拆 active plan；S4 已转拆解边界拆 S4a/S4b；改写 + onboarding 措辞两孤儿已补登；AI 校准留登记未拆） |
 | LM03-S1 | ~~`2026-06-25-feature-lm03-s1-companion-mvp`~~ → `done/` | 语伴 MVP 单线程文本对话引擎 | ✅ **Done（2026-06-25）**：五 Phase TDD（Core 域类型+开关 / v30 companion 迁移+repo / 引擎+Prompt Registry / 三端聊天 UI+路由+入口+开关 / App 装配）；**全量 Build & Test 全绿（run 28178973216：iPhone/iPad/macOS 构建 + v30 migration + macOS app test + 全包测试 + lint + check-docs）**；§17 回写（architecture/002 §4.11、page-inventory 三端、spec/005·006·007·008、ADR-008、idea-03）；已移 `done/`。入口英文名 = Language Companion。**偏差**：逐句 TTS 朗读暂缓（加性后续，§18）；Pad 通用入口经记录详情。**LM03-S2/S3/S4 未拆** |
-| 导航 | `2026-06-25-docs-lm03-companion-decomposition` | 语伴完整引擎切片 + 决策收口 | 🔵 **In Progress**（S1–S4 切片边界 + §9/§10.6 决策收口；**S1 已拆 active plan**；LM03-S2…S4 子片待各批次开工前再拆） |
+| LM03-S2a | `2026-06-25-feature-lm03-s2a-companion-reflux` | 语伴聊天反哺（入站 / 低外发） | 🟡 **Reviewed（待授权）**：聊天词汇提取→新表 `companion_memory_candidates`（v31，独立表，显式触发非每轮）+ 用户目标语发言→Ability 产出**最薄前向读接缝**（不改 band derive）。双轮隔离自审完成（两 P0 经核验降 P1；第二轮 5 项契约具体化全采纳）。**待用户实现授权** |
+| LM03-S2b | `2026-06-25-feature-lm03-s2b-companion-memory-injection` | 语伴外发注入（Memory + 方案B + 隐私两层） | ⛔ **Draft 边界登记 / 门控未开**：Memory top-5（时近性+种类配额）注入 + 方案B FTS 找话题 + 两层隐私控制 + PII scrubbing（最高隐私门，决策 #10）。进入实现前须补全实施方案 + 双轮自审 + 授权 |
+| 导航 | `2026-06-25-docs-lm03-companion-decomposition` | 语伴完整引擎切片 + 决策收口 | 🔵 **In Progress**（S1–S4 切片边界 + §9/§10.6 决策收口；**S1 已拆+Done；S2 已拆 S2a(Reviewed)/S2b(边界)**；S3…S4 子片待各批次开工前再拆） |
 
 > E10（导入导出）/ E11（同步引擎）已于 2026-06-25 移入 `docs/archive/plans/`（引擎切片落地 + 剩余诚实 defer），不再占用本表；恢复入口与 `learner_memory_facts` 硬接缝见上方「已完成基线」与 `docs/archive/plans/README.md`。
 
