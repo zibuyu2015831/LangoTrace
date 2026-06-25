@@ -1,6 +1,6 @@
 # 任务方案：语伴 MVP 单线程文本对话引擎（LM03 Slice 1）
 
-状态：In Progress（双轮自审 Reviewed + **用户 2026-06-25 实现授权**；按 §15 TDD 逐 Phase 落地中）
+状态：Done（2026-06-25 落地，五 Phase TDD；本机 Core 255 + Data 262 + AI 206 + UI 596 全绿 + macOS app 构建/测试绿；**全量 GitHub Actions Build & Test 全绿（run 28178973216：iPhone/iPad/macOS 构建 + v30 migration + macOS app test + 全包测试 + lint + check-docs 全 success）**；§17 文档已回写；已移入 done/。偏差：逐句 TTS 朗读暂缓（§18，加性后续）/ Pad 通用入口经记录详情）
 自审核状态：**Reviewed（双轮 + 两路隔离子代理对照 HEAD 再审；2026-06-25）**——两路隔离审查独立收敛 3 个 P0（Ability 基线取值错误 / 开关持久化未指定 / 导出策略列未明确）+ 4 个 P1，均已对照 HEAD 核验成立并收口写回（见 §13）。仍待用户实现授权。
 类型：feature
 创建日期：2026-06-25
