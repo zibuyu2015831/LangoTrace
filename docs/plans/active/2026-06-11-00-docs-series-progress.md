@@ -72,6 +72,9 @@
 | 14 | E11 | `2026-06-11-14-feature-sync-engine-icloud-foundation` | 同步引擎 + iCloud 首通道 | 🟡 **In Progress**（引擎切片：Sync Engine + Adapter 协议 + 冲突解决器 + 真实 SyncService 协议 + ADR-007，2026-06-18 CI run `27749378002` 全绿；CloudKit 真实通道 / entitlement / 变更跟踪 schema 写路径 / 双设备验证诚实 defer，方案保持 active） |
 | 15 | E12 | `2026-06-11-15-feature-settings-status-projection` | 设置真实状态投影 | ✅ **Implemented**（2026-06-18 CI run `27752466241` Build & Test 全绿，已移入 done/；设置行值投影 + UIV-08 硬编码清零；sync 行真实通道接线 deferred） |
 | — | LM01 | `2026-06-15-01-feature-learner-model-boundary-and-ability-coverage` | 学习者模型边界 + Ability 覆盖 | ✅ **Implemented**（2026-06-18 CI run `27749945215` Build & Test 全绿，已移入 done/；新独立包 LangoTraceLearnerModel + 知识覆盖 compute-on-read，无 migration） |
+| — | LM02 | `2026-06-25-feature-lm02-memory-layer-and-learner-profile-overview` | Memory 层地基 + 学习画像总览页（Slice 1） | 🟡 **Draft / Reviewed**（2026-06-25 隔离子代理双轮自审通过，4 项 P0 + P1 修订写回、visibility=global / 二段式删除收口；范围 = 系统级 Memory 显式记住 + 三端总览页（独立导航项）+ 统一治理；盲点/Style/band 重估/分技能后续切片；待用户实现授权） |
+| — | LM02 拆解 | `2026-06-25-docs-lm02-remaining-slices-decomposition` | LM02 后续切片拆解与排序（盲点/Style/band） | 🔵 **In Progress**（docs 导航；S2 Style→S3 盲点→S4 band→AI 校准排序与门控；各片实现前各自拆 active plan + 自审核） |
+| — | LM03 前置 | `2026-06-25-feature-ai-provider-multi-turn-and-streaming` | AI Provider 多轮 + 文本流式（语伴前置） | 🟡 **Draft / Reviewed**（2026-06-25 隔离子代理双轮自审通过；范围 = OpenAI 兼容族多轮 + 流式，Anthropic 后置；待用户实现授权） |
 | — | — | `2026-06-15-chore-prototype-large-screen-density-and-state-coverage` | 原型大屏密度 + 状态原型补全 | ✅ **Verified**（2026-06-16 截图验收通过，已移入 done/） |
 | — | infra | `2026-06-17-bug-build-errors-xcodegen-import-exhaustive-switch` | XcodeGen 注册 + import + exhaustive switch 构建修复 | ✅ **Verified**（2026-06-17 已修复，已移入 done/） |
 | — | infra | `2026-06-17-bug-generation-sqlite-unique-constraint` | 生成学习材料 SQLite 唯一约束冲突修复 | ✅ **Verified**（2026-06-17 已修复，已移入 done/） |

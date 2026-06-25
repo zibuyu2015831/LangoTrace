@@ -9,6 +9,8 @@
 
 > 说明：本文件是需求构想的**临时留存**，存放于 `docs/idea/`（待议构想孵化区），不作为新会话入口，也不替代任何 spec / ADR / active plan。正式实施前必须按 `docs/plans/README.md` 与 `docs/plans/plan-review-protocol.md` 拆成 active plan、新增/更新 ADR，并走用户确认链路。需求成熟后建议拆为 ADR + plan 后归档本文件。
 
+> **前置已形式化（2026-06-25）**：语伴（LM03）的两份前置已落为权威文档——① 定位 ADR：[ADR-008 采用「扎根记录的语言对话练习模态」语伴定位](../decisions/008-language-companion-as-grounded-practice-modality.md)（Accepted，固化 §6.1 要求的定位变更 + 六条硬边界 + 入口位置 = 练习 Tab 二级 + 记录详情，落实 §10.6 推荐）；② Provider 扩容：[多轮 + 文本流式扩容方案](../plans/active/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md)（Draft，范围 = OpenAI 兼容族多轮 + 流式，Anthropic 后置，落实 §10.3）。LM03 拆方案前应以这两份为准；本构想其余功能点（§3 各节）待 LM02 与上述前置落地后拆 LM03 active plan。
+
 ---
 
 ## 1. 一句话定位

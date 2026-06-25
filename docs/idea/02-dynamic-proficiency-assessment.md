@@ -9,6 +9,8 @@
 
 > 说明：本文件是需求构想的**临时留存**，存放于 `docs/idea/`（待议构想孵化区），不作为新会话入口，也不替代任何 spec / ADR / active plan。正式实施前必须按 `docs/plans/README.md` 与 `docs/plans/plan-review-protocol.md` 拆成 active plan、按需新增 / 更新 ADR，并走用户确认链路。需求成熟后建议拆为 ADR + plan 后归档本文件。
 
+> **落地进展（2026-06-25）**：本构想已升格为 [ADR-006](../decisions/006-system-level-three-layer-learner-model.md)（Ability 层折叠其中）。系列实施：**LM01**（边界 + Ability 知识覆盖）已落地 done/；**LM02 Slice 1** 已拆为 active plan [Memory 层地基 + 学习画像总览页](../plans/active/2026-06-25-feature-lm02-memory-layer-and-learner-profile-overview.md)（2026-06-25 用户定切片 = 总览页 + Memory 层；§14.2 的总览页 v1 模块据此落地）。**band 重估 / 盲点产出管线 / 分技能 / AI 校准（方案 B）均为后续 LM02 切片**，按本文件 §13.2 / §14.2 推迟、另拆 plan。
+
 > 架构归属：本能力对应「学习者模型 / Learner Model」模块的 **Ability 层**——见上位文档 [`01-learner-model.md`](01-learner-model.md)。该模型已于 2026-06-14 第 3 轮重构为 **Ability / Memory / Style 三层 + 系统级（跨语言空间）**（取代旧「能力画像 + 关系记忆两平级子域、按空间」，见 01 §13）；**Ability 按 language code 维护**（同语言多空间共享一份，内部 band 按语言 / 覆盖按标签，删除走 provenance 重算，见 01 §13.2 / §13.3）。实现时应建在该统一模块边界内、经 `LearnerContextProvider` 对外供给，而非自建独立 store。
 
 ---
