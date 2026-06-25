@@ -263,34 +263,11 @@ struct AppEnvironment {
             }
         )
 
-        // LM02 Slice 1: system-level Memory layer + learner profile overview.
-        let learnerMemoryRepository: GRDBLearnerMemoryRepository? =
-            (try? databaseFactory.database()).map { GRDBLearnerMemoryRepository(writer: $0.writer) }
-        let learnerProfileActions = LearnerProfileActions(
-            loadSnapshot: { spaceID, languageCode in
-                guard let learnerContextProvider, let memoryItemRepository else { return nil }
-                let builder = LearnerProfileSnapshotBuilder(
-                    provider: learnerContextProvider,
-                    memoryItemRepository: memoryItemRepository
-                )
-                return try? await builder.snapshot(spaceID: spaceID, languageCode: languageCode, now: Date())
-            },
-            addFact: { kind, text in
-                guard let learnerMemoryRepository else { return }
-                try? learnerMemoryRepository.save(
-                    MemoryFact(id: UUID().uuidString, kind: kind, text: text, createdAt: Date())
-                )
-            },
-            deleteFact: { id in
-                guard let learnerMemoryRepository else { return }
-                try? learnerMemoryRepository.softDelete(id: id)
-            },
-            resetAllFacts: {
-                guard let learnerMemoryRepository else { return }
-                try? learnerMemoryRepository.resetAll()
-            }
+        let learnerProfileActions = makeLearnerProfileActions(
+            databaseFactory: databaseFactory,
+            learnerContextProvider: learnerContextProvider,
+            memoryItemRepository: memoryItemRepository
         )
-
         return AppEnvironment(
             makeLanguageSpaceRepository: {
                 try GRDBLanguageSpaceRepository(
