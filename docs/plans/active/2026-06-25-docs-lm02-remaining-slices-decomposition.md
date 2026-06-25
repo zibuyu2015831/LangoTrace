@@ -29,6 +29,8 @@
 
 ### LM02-S2：Style 表层（写作风格本地启发式）
 
+> **→ 已拆 active plan**：[`2026-06-25-feature-lm02-s2-style-surface-imprint.md`](2026-06-25-feature-lm02-s2-style-surface-imprint.md)（Draft / 自审 Reviewed，双轮）。**用户决策（2026-06-25）：do-now / seam-only，纳入本地优先第一批**（覆盖自审「推迟」推荐——自审曾指出 seam-only 当前无就绪消费者构成投机地基，风险已被用户接受）；展示默认**不展示**（§13.4 / 本节③）。关键代码核实纠偏：`entries.source` **不是**语言区分键（`targetLanguageWriting` 无写入器）、`LearningMaterialInputKind` 是 AI 生成物（§4 禁用）→ 语言判定改以 `NLLanguageRecognizer`-on-body 为唯一权威（须注入 detector seam 才可测）。持久化：v1 表层判可重算真派生、compute-on-read 不持久（对 ADR-006 §8「Style 准原始」的分层细化，须回写）。详见该 plan §12–§13 / §20。
+
 - **范围**：Style 层 v1 = **表面写作风格**（句长 / 词汇丰富度 / 正式度等），本地启发式 / `NaturalLanguage`，系统级跨空间（ADR-006 §2/§3）。存入 LearnerModel Style 层；`LearnerContextProvider` 扩展 Style 受控片段读口（供总览页 + 语伴 v2）。
 - **硬前置**：LM02-S1（Memory 层地基 + 包内 Style 容纳边界）。
 - **依赖**：`NaturalLanguage`（仓库已可用，目前仅 `AIProviderLanguageSupportValidator` 用）；**源语言产出取信号**（ADR-006 §4 / idea-01 §13.4：目标语表达受能力限制，把「能力受限」误读成「风格选择」是同型闭环 → 目标语侧打低置信度）。
@@ -39,6 +41,8 @@
 - **认知风格（观察角度 / 思维方式）= AI 校准 = v2**，见跨切 AI 校准，不在 S2。
 
 ### LM02-S3：盲点（常犯错误清单）
+
+> **→ 已拆 active plan**：[`2026-06-25-feature-lm02-s3-blind-spots.md`](2026-06-25-feature-lm02-s3-blind-spots.md)（Draft / 第一轮自审 Reviewed）。**用户决策：纳入本地优先第一批**（与 S2 同期）。关键代码核实纠偏：① 行动闭环「加入记忆库」deposit **砍出 v1**（`memory_items` schema 仅接 candidate 来源 + difficulty NOT NULL，需独立 migration）→ v1 纯展示 + 跳复习；② 持久 `diff_summary_json` **无词文本**（仅 kind+offset）→ provider 须重跑 `PracticeDictationDiff.compare()` 取文本；③ `BlindSpotKind` 定稿 = `{missing,changed,extra}` 映射 SegmentKind；④ 效度诚实标注「重复练习错误模式（来自听写）」、信号仅 dictation。详见该 plan §12–§13 / §20。
 
 - **范围**：从**用户目标语产出**聚合「常犯错误 / 学习盲点」清单，呈现于总览页盲点分区（S1 已预留）+ 可链「加入记忆库 / 生成针对性练习」（行动闭环，接 memory_items 复习队列）。
 - **硬前置**：LM02-S1（盲点分区 + provider）。
@@ -52,6 +56,8 @@
 
 ### LM02-S4：band 重估（CEFR 动态评估，v2 高风险）
 
+> **→ 已拆 active plan**：[`2026-06-25-feature-lm02-s4-band-reestimation.md`](2026-06-25-feature-lm02-s4-band-reestimation.md)（Draft / **Not Reviewed**——系列最高风险，完整双轮自审留实现批次前）。关键代码核实：`derive()` 仅 2 处消费（`ReadingDocumentStore:58/:133`，blast radius 小，成立）；**查词信号当前无持久化表**（净新增捕获）；**分析账本 / cursor 当前不存在**（S4 首次引入，ADR-006 §9）。建议 S4 **自身拆 S4a（信号捕获+账本）/ S4b（band 服务+derive 迟滞）** 降风险（§12.0）。可能须升 ADR（核心行为变化，§17）。详见该 plan。
+
 - **范围**：把目标语水平从静态自评升为**持续重估的内部 band 信号**；驱动材料生成难度 / 解释模式 / 练习选材 / 复习排序 / 语伴基线。
 - **硬前置**：LM02-S1；**S3 的独立产出信号 + 查词行为信号成熟**（band 须建在不被 level 污染的独立信号上，否则闭环自证焊死水平，idea-02 §13.1）。
 - **依赖**：查词 / 索取解释频率信号（idea-02 §4 主力，**净新增**捕获）+ S3 目标语产出错误；**分析账本 / cursor 增量重算**（ADR-006 §9，此时才首次引入账本）。
@@ -61,6 +67,8 @@
 - **触碰**：LearnerModel（band 重估服务 + 分析账本 + cursor）；Data（账本 migration）；Core/UI（derive() 迟滞接线，**唯一**碰 derive() 的切片）。纯本地 v1；AI 校准 band = 跨切 v2。
 
 ### 跨切 v2：AI 校准（Style 认知风格 + band AI 估计，opt-in）
+
+> **拆分状态（2026-06-25）**：**刻意不在本轮拆成独立 active plan**。理由：AI 校准是叠加在 S2（认知风格）/ S4（band AI 估计）上的**外发增量**，是 opt-in / 隐私闸门后的 v2 能力——为尚未就绪能力预先建 active plan 会违反本文件「共同前置 §17」与 CLAUDE.md §9 克制（active/ 不堆积未就绪方案）。故它**保留为本文件登记的有界未来切片**，待 S2/S4 本地档落地 + ADR-006 §6 隐私闸确认后，再各自叠加为 S2-v2 / S4-v2 的外发增量 active plan。用户 2026-06-25 已认可此「本地优先先行、外发增量后置」分批门控。
 
 - **范围**：不是独立切片，而是叠加在 S2（认知风格：观察角度 / 思维方式）与 S4（band AI 估计）上的**外发增量**。
 - **硬前置**：对应本地切片（S2 / S4）先落地；**ADR-006 §6 隐私前置闸门**（已升格权威）。
@@ -84,7 +92,7 @@ LM02-S4（band 重估，v2 高风险，唯一碰 derive()）       ← 最后，
 
 排序理由：
 
-- **S2 先于 S3/S4**：零外发、低风险、且是 LM03 语伴「像你」的依赖——与 companion 协同（companion v1 退回静态 level + per-space 情景，v2 接 S2 Style）。
+- **S2 与 S3 同属本地优先第一批（用户 2026-06-25 决策）**：S2 立项自审曾建议推迟（seam-only 当前无消费者 = 投机地基），但**用户拍板 S2 do-now / seam-only**，与 S3 同期纳入本地优先第一批。S3（盲点，有既有 PracticeTextAttempt 信号 + 行动价值）独立高价值、可与 S2 并行；二者均零外发、不碰 derive()。band(S4) + 语伴(LM03) + AI 校准为后续批次。
 - **S3 提前可行**：原以为盲点需净新增练习评分，核实**既有 `PracticeTextAttempt` diff 即合规信号源**，前置成本大降；高价值（idea-02 §7.1 行动闭环）。
 - **S4 最后**：闭环效度 + derive() 漂移是头号风险，须建在 S3 独立信号之上。
 - **AI 校准全系列最后**：外发增量，逐项 opt-in。

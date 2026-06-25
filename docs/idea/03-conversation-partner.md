@@ -9,7 +9,9 @@
 
 > 说明：本文件是需求构想的**临时留存**，存放于 `docs/idea/`（待议构想孵化区），不作为新会话入口，也不替代任何 spec / ADR / active plan。正式实施前必须按 `docs/plans/README.md` 与 `docs/plans/plan-review-protocol.md` 拆成 active plan、新增/更新 ADR，并走用户确认链路。需求成熟后建议拆为 ADR + plan 后归档本文件。
 
-> **前置已形式化（2026-06-25）**：语伴（LM03）的两份前置已落为权威文档——① 定位 ADR：[ADR-008 采用「扎根记录的语言对话练习模态」语伴定位](../decisions/008-language-companion-as-grounded-practice-modality.md)（Accepted，固化 §6.1 要求的定位变更 + 六条硬边界 + 入口位置 = 练习 Tab 二级 + 记录详情，落实 §10.6 推荐）；② Provider 扩容：[多轮 + 文本流式扩容方案](../plans/active/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md)（Draft，范围 = OpenAI 兼容族多轮 + 流式，Anthropic 后置，落实 §10.3）。LM03 拆方案前应以这两份为准；本构想其余功能点（§3 各节）待 LM02 与上述前置落地后拆 LM03 active plan。
+> **前置已形式化 + 本体已拆解导航（2026-06-25）**：语伴（LM03）的两份前置已落为权威文档——① 定位 ADR：[ADR-008 采用「扎根记录的语言对话练习模态」语伴定位](../decisions/008-language-companion-as-grounded-practice-modality.md)（Accepted，固化 §6.1 要求的定位变更 + 六条硬边界 + 入口位置 = 练习 Tab 二级 + 记录详情，落实 §10.6 推荐）；② Provider 扩容：[多轮 + 文本流式扩容方案](../plans/active/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md)（Draft，范围 = OpenAI 兼容族多轮 + 流式，Anthropic 后置，落实 §10.3）。
+>
+> **本体功能点（§3 各节）已拆解 + 决策收口**：见 [语伴（LM03）切片拆解与决策收口](../plans/active/2026-06-25-docs-lm03-companion-decomposition.md)（用户 2026-06-25 决策 = **直接拆完整聊天引擎**；切片 S1 MVP 文本对话→S2 找话题/Memory 注入→S3 流式/小结→S4 v2 Style/Anthropic；已收口 §9/§10.6 约 22 项待决，仅余 4 项待用户定）。各子片进入实现前各自拆 active plan + 双轮自审 + 用户授权。
 
 ---
 
