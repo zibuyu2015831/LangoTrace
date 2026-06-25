@@ -46,7 +46,7 @@
 
 #### 3.1.2 派生数据
 
-派生数据来自主数据、模型推理、索引或缓存重建，例如 `LearningMaterial` 分析结果、memory / practice candidate、FTS / 向量索引、TTS artifact 和各类可重建摘要。
+派生数据来自主数据、模型推理、索引或缓存重建，例如 `LearningMaterial` 分析结果、memory / practice candidate（学习材料候选 `memory_candidates` 与语伴聊天反哺候选 `companion_memory_candidates`，二者均为升级为记忆条目前的评审暂存）、FTS / 向量索引、TTS artifact 和各类可重建摘要。
 
 默认生命周期不是通用 CRUD，而是：
 
@@ -251,5 +251,15 @@ LM03-S1 落地语伴单线程文本对话的 GRDB 存储（硬前置 S1 writer s
   - `companion_threads`（`space_id` FK CASCADE、`source_entry_id` FK **ON DELETE SET NULL**=方案 A 弱链、`created_at`）。
   - `companion_messages`（`thread_id` FK CASCADE、`UNIQUE(thread_id, sequence)` 线性序、`role` CHECK('user','assistant')、`content`、`detected_language`、`target_language_code`、**语音前向接缝** `input_modality` CHECK('text','voice') DEFAULT 'text' + `audio_artifact_id`（v1 恒 null，FK 待语音切片））。
 - **持久化策略第三类（区别于 S4a 行为信号）**：companion 三表 = **可恢复用户主数据**，显式 `sync_policy=localOnly` / `backup_policy=includedInSystemBackup` / `export_policy=includedByDefault`——与 entries / learning content 同备份+导出口径，仅不同步（对话历史的价值在跨会话持续存在；ADR-008 §4「可导出」）。这是 spec 三分法的明确补充：① 可重建派生（向量索引，不备份不导出）；② 不可重算行为信号（`dictionary_lookup_events`，excluded）；③ **可恢复用户主数据（companion，included）**。
-- **隐私边界**：S1 零系统自动注入（不读 Memory facts / 不 FTS）；外发仅用户消息 + 显式带入单条 Entry，经 Provider 抽象 + E6 投影。Memory 注入 + PII scrubbing = LM03-S2。
+- **隐私边界**：S1 零系统自动注入（不读 Memory facts / 不 FTS）；外发仅用户消息 + 显式带入单条 Entry，经 Provider 抽象 + E6 投影。Memory 注入 + PII scrubbing = LM03-S2b。
 - 语音接缝事实源：`docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`。
+
+## 变更记录补充：语伴聊天反哺候选（LM03 Slice 2a，2026-06-26）
+
+LM03-S2a 落地语伴聊天反哺的派生候选存储与产出证据前向接缝：
+
+- migration `v31_create_companion_reflux_infrastructure`，新表 `companion_memory_candidates`（**独立表，不改 `memory_candidates`**——后者 `entry_id`/`material_id` NOT NULL FK 物理排斥聊天来源行；改可空需 12 步整表重建，触碰学习内容主路径，故隔离，plan §D1）：
+  - 列 `id` PK、`space_id` FK CASCADE、`thread_id` FK `companion_threads` CASCADE、`message_id` FK `companion_messages` **ON DELETE SET NULL**（弱链：删来源消息→候选存活、`message_id` 置 NULL）、`kind`（复用学习材料候选 5 值 CHECK）、`text`、`explanation_native`、`example_target`、`example_native`、`status`（CHECK 'candidate'）、`created_at`/`updated_at`。
+  - **派生数据分类（plan §D4）**：与 `memory_candidates` 一致，**无 sync/backup/export 策略列**——评审暂存、可复算（删 thread CASCADE / 重算 = 显式重新提取），local-only。主数据边界在「升级为记忆条目」（`learner_memory_facts`，已进可恢复备份）。备份恢复一致性：恢复后 `companion_messages`（主数据）在、`companion_memory_candidates`（派生）不在，用户可对保留对话重新显式提取——与 `memory_candidates` 删材料后需重新分析一致，属可接受降级。
+- **产出证据前向读接缝（交付物 B）**：`GRDBCompanionRepository.productionUtterances(spaceID:after:)` 只读既有 v30 列（`role='user'` 且行内 `detected_language == target_language_code`），**无新表、无迁移、无 ledger 常量、不改 band**；band 消费 = 后续演进片（备忘录 `docs/architecture/notes/2026-06-26-companion-reflux-production-signal-and-candidate-unification-notes.md`）。
+- **隐私边界**：提取 = 用户显式触发重发已存对话（同「重新分析」），非系统自动注入；capability `companionExtraction` 仅含 `companionConversation` 类目，无新外发类目，请求预览显式披露。Memory 注入 = LM03-S2b。

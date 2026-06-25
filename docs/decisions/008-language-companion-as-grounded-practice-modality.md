@@ -60,6 +60,7 @@ CLAUDE.md / `docs/README.md` 第 3 节北极星明确「**产品不是 AI 聊天
   - **系统自动注入**（Memory 生活事实 / Style 受控片段进 system prompt）须明示授权或提供关闭选项，授权 UX 为「首次开启语伴的一次性预览披露」+ per-conversation 快捷开关，而非每次弹窗。
 - 结构化 PII（手机号、身份证号）在任何外发前做确定性 scrubbing，作为 defense-in-depth，不替代上述授权机制。
 - 主动「找话题」采用方案 A（显式带入单条）+ 方案 B（一次性范围授权 + 本地预筛最小发送），严格遵守核心决策 #10。
+- **聊天反哺提取（idea-03 §3.8，LM03-S2a 已落地）属「用户主动发起」类**：用户在语伴页显式点击「提取词汇 / 表达」时，把已存对话内容重发给同一 Provider 提取记忆候选——与「重新分析」同构，仅受全局 Provider 配置 + 请求预览约束，**不属系统自动注入、不需每次确认弹窗**。候选入独立派生表 `companion_memory_candidates`（v31），仅产出 + 展示，升级为记忆条目（主数据）属未来 deposit 管线。**系统自动注入（Memory 画像）仍为 LM03-S2b，门控未开**。详见 `docs/plans/done/2026-06-25-feature-lm03-s2a-companion-reflux.md`。
 
 ### 7. 安全与误用边界
 

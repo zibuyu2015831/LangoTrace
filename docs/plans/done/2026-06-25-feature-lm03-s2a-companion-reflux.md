@@ -1,10 +1,10 @@
 # 任务方案：LM03-S2a 语伴聊天反哺学习（入站 / 本地，低外发增量）
 
-状态：Draft（自审完成；待用户实现授权后转 User Approved）
+状态：Done（2026-06-26 用户授权实现；五 Phase TDD 全落地，轻量单包测试全绿 + 本地 macOS BUILD SUCCEEDED）
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-25
-最后更新日期：2026-06-25
+最后更新日期：2026-06-26
 
 ## 用户确认记录
 
@@ -218,3 +218,17 @@
 - 提取质量依赖 Provider 结构化输出能力（mimo 等弱 JSON 模型）——同既有学习材料分析既有风险，复用同族处理。
 - 候选统一评审面延后到 deposit 管线（plan 10/11）；当前两表分离需届时合并，已记为未来切片。
 - band 产出正向信号未消费——交付物 B 仅为前向接缝；若长期无消费者，需复审是否保留（已记备忘录）。
+
+## 实施落地记录（2026-06-26）
+
+2026-06-26 用户「方案审核通过，根据修订后的方案，立即进行实施」，授权后五 Phase TDD 落地：
+
+- **Phase 1（Core）**：`CompanionMemoryCandidate`（复用 `LearningMemoryCandidate.Kind`，`messageID` 弱引用支持 SET NULL 存活）。`CompanionMemoryCandidateTests` 4 用例绿。
+- **Phase 2（Data）**：`v31_create_companion_reflux_infrastructure` + `appendCompanionCandidates` / `companionCandidates`(created_at DESC) / `productionUtterances`(行内 `detected_language == target_language_code` 自洽、`after` cursor、无 limit)。`CompanionRefluxMigrationAndRepositoryTests` 10 用例 + LearnerModel `CompanionRefluxBandGuardTests` 2 守卫（band 源无 `companion` 引用 + 插入聊天数据后 band 不变）绿。
+- **Phase 3（AI）**：`AIRequestCapability.companionExtraction` + `AIRequestContentDescriptor.companionConversation` 闭集新 case；`CompanionExtractionError`（`invalidStructuredOutput` + 复用 reply 失败族，conforms `Error` 供 `Result`）；`CompanionExtractionPromptRegistry`（隐私边界 + 结构化契约 directives）；`CompanionExtractionEngine` 复用 `CompanionReplyTransport`，四错误分支（空 `[]` = 成功 count 0）；`companionExtraction` 投影仅含 `companionConversation` 无新外发类目；UI 两处闭集 switch 补 case + 预览披露文案。AI 12 用例绿。
+- **Phase 4（UI）**：`CompanionChatActions.extract` + `CompanionExtractionOutcome`；`CompanionChatStore.extractCandidates()`（触发→`isExtracting`→计数 / 空 / 失败三态，失败保留对话不伪造）；`CompanionCandidatePresentation`（含来源消息已删除态）+ 提取本地化 key + 诚实失败文案；`CompanionChatView` 工具栏提取按钮 + 结果区。UI 20 用例 + Han 源守卫绿。
+- **Phase 5（App）**：`companionExtract` 装配（resolve 空间 + endpoint + secret → `CompanionExtractionEngine` 复用 S1 streaming transport → `appendCompanionCandidates` 锚定最新用户消息弱引用 → 读回 `companionCandidates` 全量列表）；App 不直接 import GRDB；本地 macOS `BUILD SUCCEEDED`。
+
+**实现期对方案的两处一致性调整（均不改架构边界）**：① store 方法用参数无关的 `extractCandidates()`（读内部 `threadID`，与既有 `send()` / `clear()` 一致），而非方案 round-2 字面记法 `extractCompanionCandidates(threadID:)`；actions 闭包 `extract(threadID:)` 仍带 threadID。② `CompanionExtractionError` 命名沿用方案 `.invalidStructuredOutput`（新类型，与 `LearningMaterialGenerationService` 的 `.invalidStructuredResponse` 同义不同名，无需统一）。
+
+§17 文档回写完成：architecture/002 §4.12、spec/005 / 007 变更记录、ADR-008 §6、page-inventory 三端、prompts/companion/extraction.md（新）、架构备忘录（新）、拆解文档、仪表盘。完整验证（v31 迁移 + 三端构建 + 全包 + lint）走 GitHub Actions `Build & Test`。

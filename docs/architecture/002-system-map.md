@@ -294,7 +294,16 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - **隐私边界**：S1 **零系统自动注入**（不读 Memory 生活事实 / 不 FTS）→ 仅用户打字 + 显式带入单条记录的主动外发（决策 #10 trivially 满足）；外发经 Provider 抽象 + `projectionMetadata()`（E6）；人设纯枚举防注入（AI-17）；始终目标语（typed directive 契约）。
 - **故障恢复**：Provider 未配置 / 不可用 / 拒绝 → honest 失败态（`CompanionReplyFailure`）+ 可重试 + 不丢输入。
 - **测试入口**：`CompanionPersonaTests`/`CompanionDeletionSemanticsTests`/`CompanionFeatureStoreTests`（Core）、`GRDBCompanionRepositoryTests`（Data）、`CompanionConversationEngineTests`/`CompanionPromptRegistryTests`（AI）、`CompanionChatStoreTests`/`CompanionChatPresentationTests`（UI）。
-- **未实现接缝**：逐句 TTS 朗读（暂缓，加性后续）；语音输入（远期，schema `input_modality`/`audio_artifact_id` 已预留，见 `docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`）；Memory 注入 + PII scrubbing（LM03-S2）；文本流式 UX（LM03-S3）；Style 注入 + Anthropic（LM03-S4）。
+- **未实现接缝**：逐句 TTS 朗读（暂缓，加性后续）；语音输入（远期，schema `input_modality`/`audio_artifact_id` 已预留，见 `docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`）；Memory 注入 + 方案B找话题 + PII scrubbing（LM03-S2b，外发注入半片，门控未开）；文本流式 UX（LM03-S3）；Style 注入 + Anthropic（LM03-S4）。
+
+### 4.12 语伴聊天反哺（LM03-S2a，入站半环）
+
+- **入口**：语伴聊天页工具栏（secondary action）显式「提取词汇 / 表达」动作（`CompanionChatView`）；非静默每轮——成本 + 隐私分类双理由（plan §D2）。
+- **交付物 A 数据流（聊天 → 候选）**：`CompanionChatStore.extractCandidates()` → `CompanionChatActions.extract`（App 注入 `companionExtract`）→ 读 `companion_messages` 窗口 → `CompanionExtractionEngine`（`LangoTraceAI`，复用 S1 `CompanionStreamingTransport`→`AIChatStreamingService`，固定提取 Prompt `CompanionExtractionPromptRegistry`，结构化 JSON）→ `GRDBCompanionRepository.appendCompanionCandidates`（**v31 `companion_memory_candidates` 独立表**，锚定最新用户消息弱引用 `message_id`，删 thread CASCADE / 删消息 SET NULL）→ 读回 `companionCandidates(spaceID:)` 全量列表（含 source-deleted 态）。候选 = 可复算派生（无策略列），仅产出 + 展示计数。
+- **交付物 B 接缝（用户目标语发言 → Ability 产出证据）**：`GRDBCompanionRepository.productionUtterances(spaceID:after:)` 最薄前向读接缝（`role='user'` 且行内 `detected_language == target_language_code`，oldest-first，cursor 窗口），供未来 band 产出消费片读取；**不改 band derive()、不登记 ledger 常量**（plan §D3）。红线守卫 `CompanionRefluxBandGuardTests`：band 源无 `companion` 引用 + 插入聊天数据后 band 不变。
+- **隐私边界**：提取 = 用户显式触发重发已存对话，与「重新分析」同构，**不进系统自动注入门**（决策 #10）；capability `companionExtraction` 投影仅含 `companionConversation` 类目，**无新外发类目**，请求预览显式披露发送该段对话；失败诚实不丢对话。
+- **测试入口**：`CompanionMemoryCandidateTests`（Core）、`CompanionRefluxMigrationAndRepositoryTests`（Data）、`CompanionRefluxBandGuardTests`（LearnerModel 红线）、`CompanionExtractionEngineTests`/`CompanionExtractionPromptRegistryTests`（AI）、`CompanionExtractionStoreTests`/`CompanionCandidatePresentationTests`（UI）。
+- **后续接缝（备忘录）**：band 消费产出正向信号 + 两候选表统一评审面，见 `docs/architecture/notes/2026-06-26-companion-reflux-production-signal-and-candidate-unification-notes.md`。
 
 ## 5. 模块依赖方向
 
