@@ -112,13 +112,13 @@ struct AnalysisLedgerMigrationAndRepositoryTests {
         let key = AnalysisLedgerKey(sourceType: "dictionaryLookup", sourceID: "s1", analyzer: "bandSignal", analyzerVersion: 1)
         #expect(try ledger.cursorPosition(key) == 0)
         // Process the first batch, advance the cursor to the latest occurred_at.
-        let firstBatch = try lookups.events(spaceID: "s1", after: Date(timeIntervalSince1970: try ledger.cursorPosition(key)))
+        let firstBatch = try lookups.events(spaceID: "s1", after: Date(timeIntervalSince1970: ledger.cursorPosition(key)))
         #expect(firstBatch.map(\.id) == ["e1", "e2"])
         try ledger.advanceCursor(key, to: 20, now: Date(timeIntervalSince1970: 100))
 
         // A newer event; only it should be seen past the cursor.
         try lookups.record(event("e3", term: "c", at: 30))
-        let nextBatch = try lookups.events(spaceID: "s1", after: Date(timeIntervalSince1970: try ledger.cursorPosition(key)))
+        let nextBatch = try lookups.events(spaceID: "s1", after: Date(timeIntervalSince1970: ledger.cursorPosition(key)))
         #expect(nextBatch.map(\.id) == ["e3"])
     }
 
