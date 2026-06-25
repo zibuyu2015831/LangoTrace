@@ -2162,6 +2162,22 @@
         }
       }
     },
+    "aiRequestLog.capability.companionExtraction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion vocabulary extraction"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语伴词汇提取"
+          }
+        }
+      }
+    },
     "aiRequestLog.capability.learningMaterialGeneration": {
       "localizations": {
         "en": {
@@ -3296,6 +3312,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "语伴"
+          }
+        }
+      }
+    },
+    "companion.extraction.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extract vocabulary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提取词汇 / 表达"
+          }
+        }
+      }
+    },
+    "companion.extraction.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No vocabulary found in this conversation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本段对话未找到可提取的词汇"
+          }
+        }
+      }
+    },
+    "companion.extraction.failure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extraction failed. Your conversation is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提取失败，对话已保留"
+          }
+        }
+      }
+    },
+    "companion.extraction.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extracting…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在提取…"
+          }
+        }
+      }
+    },
+    "companion.extraction.sourceDeleted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source message deleted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源消息已删除"
+          }
+        }
+      }
+    },
+    "companion.extraction.successCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extracted %lld items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已提取 %lld 项"
           }
         }
       }
@@ -14983,6 +15095,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "参考表达"
+          }
+        }
+      }
+    },
+    "requestPreview.content.companionConversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This conversation (sent to extract vocabulary / expressions)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本段对话（发送以提取词汇 / 表达）"
           }
         }
       }

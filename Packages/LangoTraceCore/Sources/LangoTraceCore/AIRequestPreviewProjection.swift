@@ -18,6 +18,14 @@ public enum AIRequestCapability: String, Codable, CaseIterable, Equatable, Senda
     /// capabilities keep excluding photos (see `LangoTraceAI`
     /// `alwaysExcludedContent`).
     case photoWritingAssist
+    /// Companion chat vocabulary / expression extraction (LM03-S2a). Sends the
+    /// *conversation the user already shared turn-by-turn* back to the same
+    /// provider, on an explicit "extract" action, to mine review candidates — the
+    /// same shape as 生成学习材料 / 重新分析 (re-send already-stored user content on
+    /// an explicit trigger). It introduces **no new outbound content category**:
+    /// its only included descriptor is `companionConversation`. NOT a system
+    /// auto-injection (decision #10) — that gated path is Memory injection (S2b).
+    case companionExtraction
 }
 
 /// Closed vocabulary describing *categories* of content a request includes or
@@ -34,6 +42,10 @@ public enum AIRequestContentDescriptor: String, Codable, CaseIterable, Equatable
     case readingContextWindow
     case practiceAttempt
     case backtranslationReferenceSentence
+    /// The companion conversation the user already shared turn-by-turn, re-sent on
+    /// an explicit "extract" action (LM03-S2a). Names the conversation as a
+    /// category — never the message bodies.
+    case companionConversation
     case nativeLanguageProfile
     case targetLanguageProfile
     case proficiencyLevel

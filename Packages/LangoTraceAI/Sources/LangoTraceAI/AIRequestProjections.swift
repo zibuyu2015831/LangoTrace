@@ -78,6 +78,29 @@ public extension AIRequestPreviewProjection {
             excludedContent: alwaysExcludedContent.filter { $0 != .photoAttachments }
         )
     }
+
+    /// Single-source factory for the companion chat extraction projection
+    /// (LM03-S2a). Its only included category is `companionConversation` — the
+    /// conversation the user already shared turn-by-turn, re-sent on an explicit
+    /// "extract" action. It admits **no new outbound category** (no photo, no
+    /// long-term memory, no historical entries): every always-excluded guarantee
+    /// stays excluded, so the preview the user confirms honestly discloses that
+    /// only this conversation is sent.
+    static func companionExtraction(
+        endpoint: AIProviderEndpointInput,
+        lengthBucket: AIRequestLengthBucket
+    ) -> AIRequestPreviewProjection {
+        AIRequestPreviewProjection(
+            capability: .companionExtraction,
+            providerPresetID: endpoint.providerPresetID,
+            modelName: endpoint.modelName,
+            promptID: CompanionExtractionPromptRegistry.promptID,
+            promptVersion: CompanionExtractionPromptRegistry.promptVersion,
+            lengthBucket: lengthBucket,
+            includedContent: [.companionConversation],
+            excludedContent: alwaysExcludedContent
+        )
+    }
 }
 
 public extension LearningMaterialServiceGenerationRequest {

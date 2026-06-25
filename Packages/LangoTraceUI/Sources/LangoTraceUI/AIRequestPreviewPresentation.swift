@@ -79,6 +79,7 @@ struct RequestPreviewCardModel: Equatable {
         case .nativeLanguageProfile: localizedString("requestPreview.content.nativeLanguageProfile")
         case .targetLanguageProfile: localizedString("requestPreview.content.targetLanguageProfile")
         case .proficiencyLevel: localizedString("requestPreview.content.proficiencyLevel")
+        case .companionConversation: localizedString("requestPreview.content.companionConversation")
         case .historicalEntries, .photoAttachments, .audioRecordings,
              .longTermMemory, .apiCredential, .otherLanguageSpaces:
             // Excluded categories are never rendered as "included"; surfaced via

@@ -44,6 +44,7 @@ struct AIRequestLogRowModel: Equatable, Identifiable {
         case .readingSelectionExplanation: localizedString("aiRequestLog.capability.readingSelectionExplanation")
         case .practiceBacktranslationReview: localizedString("aiRequestLog.capability.practiceBacktranslationReview")
         case .photoWritingAssist: localizedString("aiRequestLog.capability.photoWritingAssist")
+        case .companionExtraction: localizedString("aiRequestLog.capability.companionExtraction")
         }
     }
 
