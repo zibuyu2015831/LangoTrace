@@ -54,6 +54,7 @@ public extension EnvironmentValues {
     @Entry var companionChatActions = CompanionChatActions.disabled
     /// App-level feature flag; gates whether the companion entries appear at all.
     @Entry var companionFeatureEnabled = false
-    /// Persists the feature flag (default OFF). Injected by App Shell.
-    @Entry var setCompanionFeatureEnabled: @Sendable (Bool) -> Void = { _ in }
+    /// Persists the feature flag (default OFF). Injected by App Shell. Main-actor
+    /// (EnvironmentValues is main-actor isolated), so it can update view state.
+    @Entry var setCompanionFeatureEnabled: (Bool) -> Void = { _ in }
 }

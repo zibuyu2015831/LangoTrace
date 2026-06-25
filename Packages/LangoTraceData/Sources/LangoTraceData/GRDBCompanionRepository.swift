@@ -49,6 +49,17 @@ public struct GRDBCompanionRepository: Sendable {
         }
     }
 
+    /// Looks up a thread by id (for resolving its space + plan-A seed at send time).
+    public func thread(id: String) throws -> CompanionThread? {
+        try writer.read { db in
+            try Self.thread(from: Row.fetchOne(
+                db,
+                sql: "SELECT id, space_id, source_entry_id, created_at FROM companion_threads WHERE id = ?",
+                arguments: [id]
+            ))
+        }
+    }
+
     // MARK: - Messages
 
     /// Appends a message to a thread, assigning the next linear sequence inside

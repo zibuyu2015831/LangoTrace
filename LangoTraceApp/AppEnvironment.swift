@@ -29,8 +29,11 @@ struct AppEnvironment {
     let localSearchActions: LocalSearchActions
     let memoryDepositActions: MemoryDepositActions
     let memoryReviewActions: MemoryReviewActions
-    // LM02 Slice 1: learner profile overview seam (snapshot load + Memory governance).
+    /// LM02 Slice 1: learner profile overview seam (snapshot load + Memory governance).
     let learnerProfileActions: LearnerProfileActions
+    // LM03-S1: Language Companion conversation seam + per-device feature switch (default OFF).
+    let companionChatActions: CompanionChatActions
+    let companionFeatureStore: any CompanionFeaturePreferenceStore
     let syncService: any SyncService
     // LM01: the Learner Model seam is assembled here so LM02's overview UI can consume
     // Ability knowledge coverage without re-wiring. No UI reads it yet (compute-on-read,
@@ -386,6 +389,11 @@ struct AppEnvironment {
             memoryDepositActions: memoryDepositActions,
             memoryReviewActions: memoryReviewActions,
             learnerProfileActions: learnerProfileActions,
+            companionChatActions: makeCompanionChatActions(
+                databaseFactory: databaseFactory,
+                credentialStore: credentialStore
+            ),
+            companionFeatureStore: makeCompanionFeatureStore(),
             syncService: DisabledSyncService(),
             learnerContextProvider: learnerContextProvider,
             learnerStyleProvider: learnerStyleProvider,
@@ -393,26 +401,6 @@ struct AppEnvironment {
             readingBandLevelSource: readingBandLevelSource,
             loadSettingsStatus: loadSettingsStatus
         )
-    }
-}
-
-/// Thread-safe holder for the cached default text-generation endpoint that backs
-/// the synchronous preview-card projection seam (mirrors the locked-box pattern
-/// E0a adopted over `nonisolated(unsafe) static var`).
-final class AIRequestPreviewEndpointCache: @unchecked Sendable {
-    private let lock = NSLock()
-    private var endpoint: AIProviderEndpointInput?
-
-    func set(_ endpoint: AIProviderEndpointInput?) {
-        lock.lock()
-        defer { lock.unlock() }
-        self.endpoint = endpoint
-    }
-
-    func current() -> AIProviderEndpointInput? {
-        lock.lock()
-        defer { lock.unlock() }
-        return endpoint
     }
 }
 
