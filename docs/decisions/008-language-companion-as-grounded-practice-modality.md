@@ -98,7 +98,7 @@ CLAUDE.md / `docs/README.md` 第 3 节北极星明确「**产品不是 AI 聊天
 - **前置依赖**：
   - **Provider 扩容**（本 ADR 的姊妹前置）：多轮 messages + 文本流式。**2026-06-25 已落地传输能力 + preview 投影就绪**（OpenAI 兼容族 chat/completions + responses；`AIChatStreamingService` → `AsyncThrowingStream`；见 `docs/plans/done/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md` 与 `docs/architecture/notes/2026-06-25-chat-streaming-provider-seam-notes.md`）。**对话级 log 写入接线随 LM03**（流式 outcome 终止后由 App-Shell recorder 写入，本前置只到投影就绪，不自带写入）。Anthropic Messages / mimo 流式适配仍后置（独立 `add-ai-provider` run）。
   - **LM02**（学习画像总览 + Memory / Style 层 + `LearnerContextProvider` 扩展）：语伴 v2 的 Memory / Style 注入依赖之；v1 可退回静态 level + 仅 per-space 情景摘要。
-- **计划系列**：语伴 = ADR-006 影响节的 **LM03，排在最后**，依赖 LM02 + 本 Provider 扩容前置；本 ADR 不替 LM03 拆方案，仅定边界。
+- **计划系列**：语伴 = ADR-006 影响节的 **LM03，排在最后**，依赖 LM02 + 本 Provider 扩容前置；本 ADR 不替 LM03 拆方案，仅定边界。**LM03-S1（MVP 单线程文本对话引擎）已于 2026-06-25 落地**（六硬边界全守：始终目标语 typed directive、话题源于记录方案 A、单线程 per-space、人设枚举防注入、不承接通用任务 directive、默认 OFF 开关；入口 = 练习 Tab 二级 + 记录详情，非第四 Tab；S1 零系统自动注入）；详见 `docs/plans/done/2026-06-25-feature-lm03-s1-companion-mvp.md`。S2（Memory 注入 + PII scrubbing）/ S3（流式 + 对话记忆）/ S4（Style + Anthropic）后续。
 - **既有备忘录对齐**：`2026-05-25-language-companion-extension-notes.md` 的 per-space 记忆假设与 ADR-006 系统级 Memory 的对齐在 LM03 plan 处理。
 
 ## 风险

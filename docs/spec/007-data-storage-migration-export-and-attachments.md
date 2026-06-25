@@ -241,3 +241,15 @@ LM02 Slice 4a 落地 S4b band 重估的**信号 + 增量重算地基**（硬前�
 - **持久化分层**：查词事件 = 不可重算用户行为信号（local-only 不备份不导出，设备迁移后丢失——S4b band 须能从剩余信号优雅降级重估）；账本 / cursor = 派生状态（可从事件重算）。**开放产品问题**：查词事件是否应像 practice 主数据可导出，v1 默认否。
 - **红线（ADR-006 §4）**：repository / 埋点写入字段仅用户行为（term + 时间 + 内容引用），绝不记 AI 判定难度 / AI 点评内容。FileProtection 接缝登记进 `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`。
 - **source_content_origin 前向接缝**：v1 阅读文档恒用户导入（`reading_documents.source_kind` 仅 pastedText/fileImport），故 v1 恒 `userAuthored`；`aiGenerated` 分支待未来「学习材料可作阅读源」基础设施落地再填 + S4b 启用二阶闭环过滤。
+
+## 变更记录补充：语伴会话存储（LM03 Slice 1，2026-06-25）
+
+LM03-S1 落地语伴单线程文本对话的 GRDB 存储（硬前置 S1 writer seam）：
+
+- migration `v30_create_companion_infrastructure`，三表均 per-space、显式策略列：
+  - `conversation_companions`（`space_id` PK/FK ON DELETE CASCADE、人设三枚举 `tone`/`formality`/`correction` 带 CHECK）。
+  - `companion_threads`（`space_id` FK CASCADE、`source_entry_id` FK **ON DELETE SET NULL**=方案 A 弱链、`created_at`）。
+  - `companion_messages`（`thread_id` FK CASCADE、`UNIQUE(thread_id, sequence)` 线性序、`role` CHECK('user','assistant')、`content`、`detected_language`、`target_language_code`、**语音前向接缝** `input_modality` CHECK('text','voice') DEFAULT 'text' + `audio_artifact_id`（v1 恒 null，FK 待语音切片））。
+- **持久化策略第三类（区别于 S4a 行为信号）**：companion 三表 = **可恢复用户主数据**，显式 `sync_policy=localOnly` / `backup_policy=includedInSystemBackup` / `export_policy=includedByDefault`——与 entries / learning content 同备份+导出口径，仅不同步（对话历史的价值在跨会话持续存在；ADR-008 §4「可导出」）。这是 spec 三分法的明确补充：① 可重建派生（向量索引，不备份不导出）；② 不可重算行为信号（`dictionary_lookup_events`，excluded）；③ **可恢复用户主数据（companion，included）**。
+- **隐私边界**：S1 零系统自动注入（不读 Memory facts / 不 FTS）；外发仅用户消息 + 显式带入单条 Entry，经 Provider 抽象 + E6 投影。Memory 注入 + PII scrubbing = LM03-S2。
+- 语音接缝事实源：`docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`。

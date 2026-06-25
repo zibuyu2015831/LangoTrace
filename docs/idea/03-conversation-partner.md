@@ -12,6 +12,8 @@
 > **前置已形式化 + 本体已拆解导航（2026-06-25）**：语伴（LM03）的两份前置已落为权威文档——① 定位 ADR：[ADR-008 采用「扎根记录的语言对话练习模态」语伴定位](../decisions/008-language-companion-as-grounded-practice-modality.md)（Accepted，固化 §6.1 要求的定位变更 + 六条硬边界 + 入口位置 = 练习 Tab 二级 + 记录详情，落实 §10.6 推荐）；② Provider 扩容：[多轮 + 文本流式扩容方案](../plans/active/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md)（Draft，范围 = OpenAI 兼容族多轮 + 流式，Anthropic 后置，落实 §10.3）。
 >
 > **本体功能点（§3 各节）已拆解 + 决策收口**：见 [语伴（LM03）切片拆解与决策收口](../plans/active/2026-06-25-docs-lm03-companion-decomposition.md)（用户 2026-06-25 决策 = **直接拆完整聊天引擎**；切片 S1 MVP 文本对话→S2 找话题/Memory 注入→S3 流式/小结→S4 v2 Style/Anthropic；已收口 §9/§10.6 约 22 项待决，仅余 4 项待用户定）。各子片进入实现前各自拆 active plan + 双轮自审 + 用户授权。
+>
+> **S1 已落地（2026-06-25）**：MVP 单线程文本对话引擎落地，见 [LM03-S1 active plan](../plans/done/2026-06-25-feature-lm03-s1-companion-mvp.md)。入口英文名定为 **Language Companion**；§3.1 开关/§3.2 单线程删该条及后续/§3.3 人设枚举/§3.5 语种识别本地+AI 路由/§3.6 方案 A/§3.9 难度 v1 静态 level/§3.10 冷启动本地问候/§6.7 失败态 均已实现；**§3.7 逐句朗读暂缓**（加性后续）、§3.6 方案 B/§3.8 反哺/§3.11 Memory 注入=S2、§5.2 流式 UX=S3、§3.11 Style=S4。
 
 ---
 

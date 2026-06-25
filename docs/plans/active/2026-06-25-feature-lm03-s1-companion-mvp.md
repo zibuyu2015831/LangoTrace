@@ -294,7 +294,21 @@ scripts/check-docs.sh
 
 ## 18–19. 实施记录 / 完成标准
 
-（待实现授权后填写。）
+**2026-06-25 落地（dev 分支，用户实现授权后按 §15 TDD 逐 Phase）**：
+
+- **Phase 1（Core）**：`CompanionPersona`（三枚举→受控片段，无自由文本）+ `CompanionMessage`/`CompanionThread`（语音接缝 `inputModality`/`audioArtifactID`）+ `CompanionConversation.messagesAfterDeleting`（删该条及后续纯函数）+ `CompanionFeaturePreferenceStore`/`UserDefaultsCompanionFeatureStore`（默认 false）+ `CompanionReplyFailure`。Core 255 tests 绿。
+- **Phase 2（Data）**：v30 `conversation_companions`/`companion_threads`/`companion_messages`（per-space FK CASCADE + `source_entry_id` ON DELETE SET NULL + UNIQUE(thread_id,sequence) + 语音接缝列 + 显式策略列 localOnly/includedInSystemBackup/includedByDefault）+ `GRDBCompanionRepository`。Data 262 tests 绿。
+- **Phase 3（AI）**：`CompanionPromptRegistry`（typed directive 元数据 + `builtin.companion.system.v1` + `docs/prompts/companion/system.md`）+ `CompanionConversationEngine`（transport seam + 检测闭包 + 上下文截断保最近不动持久 + 缓冲非流式 + 失败映射 + 红线零 Memory/零 FTS）。AI 206 tests 绿。
+- **Phase 4（UI）**：`CompanionChatStore`/`CompanionChatPresentation`/`CompanionChatActions`/`CompanionChatView`（三端聊天 + 冷启动本地问候零外发 + 失败保输入）；`companionChat(seed?)` 路由接入三端全部 exhaustive switch；入口 = 设置开关行（env 驱动，三端）+ 练习 Tab 二级入口（iPhone/macOS）+ 记录详情「围绕这条记录对话」按钮（三端，方案 A 种子）；11 个 companion 本地化 key（en+zh-Hans）。三端 UI 编译 + UI 596 tests 绿（含 Han guard）。
+- **Phase 5（App）**：`AppEnvironment+Companion`（repository + 引擎 + `CompanionStreamingTransport` 绑定解析的 Provider endpoint+secret；难度基线读 `LanguageSpace.level`；方案 A 首轮注入单条 Entry；成功才持久 user+assistant）+ `AppEnvironment` 字段 + `LangoTraceApp` 三处注入 + @State 镜像开关。**xcodegen + macOS app 构建 SUCCEEDED**。
+- **验证**：轻量本机 Core 255 + Data 262 + AI 206 + UI 596 全绿；macOS app 构建绿；format/lint 0 error（AppEnvironment 抽出 `AIRequestPreviewEndpointCache` 保 <1300）。含 v30 migration + iPhone/iPad 构建的全量 Build & Test 走 GitHub Actions CI。
+
+### 实施期偏差（诚实记录，须用户知悉）
+
+1. **逐句 TTS 朗读暂缓（idea-03 §3.7 初版必需 → 本片未实现）**：既有 `SentenceAudioPlaybackActions` seam 形状是「学习内容渲染句（rendering+sentence+index）」，复用于任意对话回复文本需非平凡适配（合成 rendering 或新 TTS 入口）。为不让 S1 view 膨胀且避免改动既有 TTS seam，本片**仅交付文本聊天**，朗读作为**低风险加性后续增量**（基础设施已就绪，接线即可）。已登记为剩余项（§20）。
+2. **Pad 通用冷启动入口经记录详情而非独立练习落地页**：Pad 工作区是 entry-driven（无独立练习 landing tab），通用「练习 Tab 二级」入口在 iPhone/macOS 落地；Pad 通过记录详情「围绕这条记录对话」（方案 A）+ 设置开关触达语伴——符合「界面按设备分别设计」（决策 #2），非功能缺失。
+
+完成标准（达成项）：① §15 全部先失败测试转绿；② 开关默认 OFF / 关闭不激活 / 三端入口 env 门控；③ 始终目标语（typed directive 契约 + 请求携带目标语 code）；④ 人设纯枚举无注入；⑤ 单线程 per-space + 删该条及后续 + 清空 + space 级联；⑥ companion 表 local-only / 可导出 + 语音接缝；⑦ 上下文截断不丢持久历史；⑧ 失败保输入不伪装；⑨ S1 零系统自动注入；⑩ 外发经 Provider；⑪ macOS app 构建绿。**待全量 CI（iPhone/iPad/macOS 构建 + v30 migration）绿后移入 done/。** 偏差项：⑫ 朗读暂缓（§20）。
 
 完成标准：① §15 全部先失败测试转绿，§16 验证含 CI 三端构建 + v30 migration 全绿；② 开关默认 OFF / 关闭不激活 / 三端入口仅 enabled 出现；③ 始终目标语（契约 + 携带验证）；④ 人设纯枚举无注入；⑤ 单线程 per-space + 删该条及后续 + 清空 + space 级联；⑥ companion 表 local-only / 可导出 + 语音接缝；⑦ 上下文截断不丢持久历史；⑧ 失败保输入不伪装；⑨ S1 零系统自动注入；⑩ 外发经 Provider + E6 投影；⑪ 朗读复用 TTS；⑫ §17 文档回写 + 架构备忘录已落；移入 `done/` + dashboard 更新。
 
@@ -309,3 +323,4 @@ scripts/check-docs.sh
 - **Anthropic / mimo 流式未适配**：S1 限 OpenAI 兼容族；其他 Provider 多轮 / 流式 = S4 / 后续 run（失败态须对不支持 Provider 给清晰提示）。
 - **难度基线退静态 level（隔离再审 P0-1 后）**：S1 刻意读 `LanguageSpace.level` 不接 band/AbilityCoverage；若 onboarding 自评失真，S1 基线即失真——可接受退化（v2 接 LM02-S4b band；onboarding 措辞软化 = 登记孤儿微切片）。
 - **始终目标语 / 拟真确认非确定性**：以结构化 directive 契约 + 请求携带验证替代输出语种单测；真实质量留模拟器人工验证（page-inventory 关注点）。
+- **逐句 TTS 朗读暂缓（剩余项，§18 偏差 1）**：本片仅文本聊天；朗读复用既有 TTS seam 需适配「任意对话文本→可朗读句」，作低风险加性增量后续接线，不阻断 S1 文本闭环。

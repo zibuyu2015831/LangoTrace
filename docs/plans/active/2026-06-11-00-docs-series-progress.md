@@ -56,7 +56,7 @@
   ✅ S4b（band 服务 + derive() 迟滞 + 总览呈现，最高风险）       ← 2026-06-25 已 Done（唯一碰 derive()；BandHysteresis 迟滞 + band 仅喂 derive 不增外发字段 + 不展示降级 + CI 绿，已移 done/）
 
 第 3 批（语伴 = 完整聊天引擎；消费上方已退险的 Provider 多轮/流式 infra）
-  🟡 LM03-S1（MVP 单线程文本对话引擎）       ← 2026-06-25 已拆 active plan + 双轮自审 Reviewed（两路隔离再审收口 3 P0+4 P1）；**待用户实现授权**
+  🟢 LM03-S1（MVP 单线程文本对话引擎）       ← 2026-06-25 用户授权后五 Phase TDD 全落地（本机全绿 + macOS app 构建绿）；待全量 CI 绿移 done/；TTS 朗读暂缓（§18 偏差）
      ↓
   LM03-S2（方案B 找话题 + Memory 注入 + 反哺记忆）
      ↓
@@ -83,7 +83,7 @@
 | LM02-S4b | ~~`2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis`~~ → `done/` | band 服务 + derive 迟滞 + 总览（最高风险） | ✅ **Done（2026-06-25）**：三门控满足后实现——BandHysteresis 迟滞（连续 3 次越阈 + ≥5 次停留）+ GRDBLearnerBandProvider（独立信号、红线、不覆盖标签）+ derive() 接 band（仅新内容、用户覆盖优先、:95 静态 :96 随 band）+ 总览不展示降级；CI Build & Test 全绿（run 28167168073）；§17 回写（ADR-006 §10.1 实施进展 / architecture/002 / idea-02 §14）；已移 `done/`。**LM02 本地优先系列 + enabler 六片全部完成** |
 | 独立 infra | ~~`2026-06-25-feature-ai-provider-multi-turn-and-streaming`~~ → `done/` | AI Provider 多轮 + 文本流式（LM03 消费） | ✅ **Done（2026-06-25）**：Phase 0 spike gate 过 → 生产实现；CI Build & Test 全绿（run 28156767558）；§17 文档回写完成（spec/005 + system-map §4.9/§7 + 新 architecture note + ADR-008 + add-ai-provider workflow）；已移 `done/`。mimo 流式 / Anthropic / 对话级 log 写入按记录 defer 至 LM03 / 后续 run |
 | 导航 | `2026-06-25-docs-lm02-remaining-slices-decomposition` | LM02 后续切片拆解 + 排序 | 🔵 **In Progress**（S2/S3 已拆 active plan；S4 已转拆解边界拆 S4a/S4b；改写 + onboarding 措辞两孤儿已补登；AI 校准留登记未拆） |
-| LM03-S1 | `2026-06-25-feature-lm03-s1-companion-mvp` | 语伴 MVP 单线程文本对话引擎 | 🟡 **Draft / 自审 Reviewed（2026-06-25）**：双轮 + 两路隔离子代理对照 HEAD 再审，独立收敛 3 P0（Ability 基线取值错误→改读 `LanguageSpace.level`；开关持久化未指定→复用 Core 偏好 store 范式；导出策略列未明确→companion 表显式 included-in-export/backup）+ 4 P1 均已核验收口写回。入口英文名 = **Language Companion**。语音预留架构备忘录已落。**待用户实现授权**（LM03-S2/S3/S4 未拆） |
+| LM03-S1 | `2026-06-25-feature-lm03-s1-companion-mvp` | 语伴 MVP 单线程文本对话引擎 | 🟢 **代码全落地（2026-06-25 用户授权后）**：五 Phase TDD（Core 域类型+开关/v30 companion 迁移+repo/引擎+Prompt Registry/三端聊天 UI+路由+入口+开关/App 装配）；本机 Core 255+Data 262+AI 206+UI 596 全绿 + macOS app 构建绿；入口英文名 = Language Companion。**偏差**：逐句 TTS 朗读暂缓（加性后续，§18）；Pad 通用入口经记录详情。**待全量 CI（三端构建+v30）绿后移 done/** |
 | 导航 | `2026-06-25-docs-lm03-companion-decomposition` | 语伴完整引擎切片 + 决策收口 | 🔵 **In Progress**（S1–S4 切片边界 + §9/§10.6 决策收口；**S1 已拆 active plan**；LM03-S2…S4 子片待各批次开工前再拆） |
 
 > E10（导入导出）/ E11（同步引擎）已于 2026-06-25 移入 `docs/archive/plans/`（引擎切片落地 + 剩余诚实 defer），不再占用本表；恢复入口与 `learner_memory_facts` 硬接缝见上方「已完成基线」与 `docs/archive/plans/README.md`。

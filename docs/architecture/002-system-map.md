@@ -287,6 +287,15 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 
 硬接缝：E10 可恢复备份必须纳入 `learner_memory_facts`（否则删库=永久失忆），事实源 `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`。
 
+### 4.11 语伴 MVP 单线程文本对话（LM03-S1）
+
+- **入口**：设置开关（默认 OFF，`UserDefaultsCompanionFeatureStore`，per-device）→ 启用后三端入口出现：练习 Tab 二级（iPhone/macOS `CompanionEntryCard`）+ 记录详情「围绕这条记录对话」（三端 `CompanionEntryDetailButton`，方案 A 种子）。关闭即门控隐藏 + 不装配。
+- **数据流**：`CompanionChatView` → `CompanionChatStore`（@MainActor）→ `CompanionChatActions`（App 注入）→ `GRDBCompanionRepository`（v30 `conversation_companions`/`companion_threads`/`companion_messages`，per-space、local-only、可导出、不同步）+ `CompanionConversationEngine`（`LangoTraceAI`）。引擎装配 system（`CompanionPromptRegistry` 固定模板 + 三枚举受控片段 + 难度基线读 `LanguageSpace.level`）+ 历史（上下文截断保最近、不动持久）+ 方案 A 首轮单条 Entry，经 `CompanionStreamingTransport`→`AIChatStreamingService`（缓冲非流式 S1），成功才持久 user+assistant，失败保输入不伪装。
+- **隐私边界**：S1 **零系统自动注入**（不读 Memory 生活事实 / 不 FTS）→ 仅用户打字 + 显式带入单条记录的主动外发（决策 #10 trivially 满足）；外发经 Provider 抽象 + `projectionMetadata()`（E6）；人设纯枚举防注入（AI-17）；始终目标语（typed directive 契约）。
+- **故障恢复**：Provider 未配置 / 不可用 / 拒绝 → honest 失败态（`CompanionReplyFailure`）+ 可重试 + 不丢输入。
+- **测试入口**：`CompanionPersonaTests`/`CompanionDeletionSemanticsTests`/`CompanionFeatureStoreTests`（Core）、`GRDBCompanionRepositoryTests`（Data）、`CompanionConversationEngineTests`/`CompanionPromptRegistryTests`（AI）、`CompanionChatStoreTests`/`CompanionChatPresentationTests`（UI）。
+- **未实现接缝**：逐句 TTS 朗读（暂缓，加性后续）；语音输入（远期，schema `input_modality`/`audio_artifact_id` 已预留，见 `docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`）；Memory 注入 + PII scrubbing（LM03-S2）；文本流式 UX（LM03-S3）；Style 注入 + Anthropic（LM03-S4）。
+
 ## 5. 模块依赖方向
 
 当前依赖方向：
