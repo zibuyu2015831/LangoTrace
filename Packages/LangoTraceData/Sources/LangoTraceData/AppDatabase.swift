@@ -145,6 +145,9 @@ private extension AppDatabase {
         migrator.registerMigration("v29_create_analysis_ledger") { db in
             try createAnalysisLedgerInfrastructure(db)
         }
+        migrator.registerMigration("v30_create_companion_infrastructure") { db in
+            try createCompanionInfrastructure(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
