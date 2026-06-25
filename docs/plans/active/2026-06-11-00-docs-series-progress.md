@@ -40,7 +40,7 @@
 第 1 批（本地优先，零外发，可门控为一批）
   ✅ LM02-S1（Memory 层 + 学习画像总览页）   ← 2026-06-25 已 Done（v27 migration + writer seam + 三端总览页 + CI 绿，已移 done/）；S2/S3/S4a 硬前置已满足
      ↓
-  LM02-S3（盲点：dictation diff 派生）       ← 填 S1 总览页盲点分区；compute-on-read 无 migration（双轮过：2 P1 已收口=红线 grep+行为断言 / LIMIT 200）
+  ✅ LM02-S3（盲点：dictation diff 派生）       ← 2026-06-25 已 Done（填 S1 盲点分区 + CI 绿，已移 done/）；compute-on-read 无 migration
   LM02-S2（Style：seam-only 不展示）         ← 与 S3 并行；compute-on-read 无 migration
         （S2/S3 均 read-only，不依赖 S1 的 writer，但 S3 展示依赖 S1 总览页先落地）
 
@@ -71,7 +71,7 @@
 |---|---|---|---|
 | LM02-S1 | ~~`2026-06-25-feature-lm02-memory-layer-and-learner-profile-overview`~~ → `done/` | Memory 层 + 学习画像总览页 | ✅ **Done（2026-06-25）**：三 Phase 落地（v27 `learner_memory_facts` + `AppDatabase.writer` + 三端总览页 + 治理）；CI Build & Test 全绿（run 28159562884）；§17 文档回写完成（ADR-006 / architecture 001+002 / spec/007 / page-inventory）；已移 `done/`。**S2/S3/S4a 硬前置已满足** |
 | LM02-S2 | `2026-06-25-feature-lm02-s2-style-surface-imprint` | Style 表层印记（seam-only 不展示） | 🟡 **Draft / Reviewed**（双轮过；compute-on-read 源语言写作印记，零外发/零迁移）；**用户定 do-now/seam-only**；待实现授权 |
-| LM02-S3 | `2026-06-25-feature-lm02-s3-blind-spots` | 盲点（dictation diff 派生） | 🟡 **Draft / Reviewed**（双轮过；2026-06-25 收口 2 P1：红线 = 源级 grep + 行为断言 sentinel；规模上限 = `ORDER BY created_at DESC LIMIT 200`；P2/P3 同次并入）；**待实现授权** |
+| LM02-S3 | ~~`2026-06-25-feature-lm02-s3-blind-spots`~~ → `done/` | 盲点（dictation diff 派生） | ✅ **Done（2026-06-25）**：compute-on-read dictation diff 盲点 + 填充 S1 总览页盲点分区（红线源级 grep + 行为断言双守；`LIMIT 200`）；CI Build & Test 全绿（run 28160963826）；§17 文档回写（含 idea-02 §7.1 源替换纠正）；已移 `done/` |
 | LM02-S4 | `2026-06-25-feature-lm02-s4-band-reestimation` | band 动态重估（拆解边界） | ⚪ **拆解边界 / 自审 N/A**（2026-06-25 完整双轮后转拆解边界，已 spawn S4a/S4b；4 P0+4 P1 分配进子片为实现前必决项）；不再作单一可实现方案 |
 | LM02-S4a | `2026-06-25-feature-lm02-s4a-lookup-capture-and-ledger` | 查词捕获 + 分析账本（地基，低风险） | 🟡 **Draft / Reviewed**（双轮 + 拆分后隔离再审三关过；再审收口 P0-A source_origin 降前向接缝 / P1-B 持久化新类别显式声明 / P2-C 埋点改 AI 解释 seam）；硬前置 S1；**待实现授权** |
 | LM02-S4b | `2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis` | band 服务 + derive 迟滞 + 总览（最高风险） | 🟡 **Draft / Reviewed**（双轮 + 隔离再审三关过；再审收口 P0-1 band 经 :96 影响外发档位措辞 / P1-1 迟滞 dwell 改 document-open 次数 / P2-1 计数器状态）；门控 S4a+S3 信号回归 + ADR-006 §10 修订存在；**待实现授权** |

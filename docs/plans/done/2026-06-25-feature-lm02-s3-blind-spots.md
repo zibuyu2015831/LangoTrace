@@ -1,6 +1,6 @@
 # 任务方案：盲点（常犯错误清单，源自练习机械 diff）（LM02 Slice 3）
 
-状态：Draft
+状态：Done（2026-06-25 两 Phase 落地；轻量本机 LearnerModel 32 + UI 580 全绿 + GitHub Actions Build & Test 全绿（run 28160963826）；§17 文档已回写；已移入 done/）
 自审核状态：**Reviewed（双轮过；2026-06-25 收口第二轮 2 P1）**——[P1-1] 红线守卫测试机制已定稿 = **行为断言（sentinel）+ §14 既有源级 grep 守卫**（弃不可实现的 SQL 文本断言）；[P1-2] compute-on-read 规模上限已定稿 = **`ORDER BY created_at DESC LIMIT 200`**（约束 5 升 blocker + 先失败测试）。P2-1/P2-2/P3-1/P3-2 同次并入。详见第 13 节第三个自审块。**仍待用户实现授权**。
 类型：feature
 创建日期：2026-06-25
