@@ -34,8 +34,14 @@ LM02 Slice 1 落地仓库**首张系统级（横切语言空间）业务表** `l
 - LM02 v1 现状：复用既有整库 `FileProtection.completeUntilFirstUserAuthentication`（`AppDatabase.swift`，iOS），**未**引入字段级加密 / SQLCipher。LM02 v1 用「系统级重置 = 物理硬删」降低软删明文残留风险，但未解决整库静态加密强度问题。
 - 后续若 Memory / Style 体量增长、或引入更敏感的认知风格画像，须重新评估字段级加密 / SQLCipher，并在需要时升 ADR（密钥管理 / 后台访问复杂度是主要权衡，见 idea-01 §12.7 倾向 FileProtection 优先、不引 SQLCipher）。
 
+### 3. 查词行为事件 FileProtection 接缝（LM02-S4a，2026-06-25）
+
+- LM02-S4a 落地 `dictionary_lookup_events`（v28）：高频查词 / 索取解释行为信号，是「用户读什么 / 哪些词难」的浓缩行为 PII。v1 复用整库 `FileProtection.completeUntilFirstUserAuthentication`，**显式声明 local-only / 排除备份 / 排除导出**（设备迁移后不可恢复——S4b band 须能从剩余信号优雅降级）。
+- 后续若查词事件体量增长、或与 Memory / Style 合并形成更完整行为画像，须连同上节字段级加密评估一并重估。
+
 ## 后续检查触发点
 
 - 启动任何 E10 备份 / 恢复切片方案前。
 - 引入 Style 层或 Memory 自动抽取（v2）导致 PII 体量 / 敏感度上升时。
 - 出现「敏感语言空间隔离」或「设备失窃静态安全」相关需求时（呼应 ADR-006 复审条件）。
+- 查词行为事件（S4a）与其它行为信号合并、或引入 S4b band 外发档位时。

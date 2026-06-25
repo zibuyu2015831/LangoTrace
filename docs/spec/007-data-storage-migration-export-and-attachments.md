@@ -231,3 +231,13 @@ LM02 Slice 2 落地 Learner Model 的 **Style 层 v1 表面写作印记**（seam
 - **ADR-006 §8 持久化分类分层细化**：§8 把整个 Style 层列「准原始 → 纳入备份」**未分 v1/v2**；本切片 reconcile——**v1 表面印记 = 真派生不持久**；§8「准原始 → 持久 + 备份」实质仅适用 **v2 自陈 / AI 认知风格**（不可从行为廉价重算）。事实源 `docs/architecture/notes/2026-06-25-style-surface-imprint-recompute-notes.md`。
 - **红线（ADR-006 §4）**：只读 `entries.body`，绝不读 `learning_materials` / `learning_text` / `input_kind` / `memory_candidates`（AI 生成物）。语言判定靠 `NLLanguageRecognizer`，`entries.source` 非语言键。
 - 与 LM01 Ability（compute-on-read 不持久）、S1 Memory（准原始 → `includedInRecoverableBackup`）、S3 盲点（compute-on-read 不持久）并列，构成 Learner Model 三层持久化分叉的完整图景：**能从已备份源数据廉价重算者不持久；不可廉价重算者（Memory 显式记住 / v2 认知风格）才准原始 + 备份**。
+
+## 变更记录补充：查词行为捕获 + 分析账本（LM02 Slice 4a，2026-06-25）
+
+LM02 Slice 4a 落地 S4b band 重估的**信号 + 增量重算地基**（硬前置 S1 v27 + writer seam）：
+
+- migration `v28_create_dictionary_lookup_events`：查词 / 索取解释**行为事件**（`language_space_id` FK ON DELETE CASCADE、`looked_up_term`、`source_content_id`、`source_content_origin TEXT CHECK('userAuthored','aiGenerated') DEFAULT 'userAuthored'`、`occurred_at`、`soft_deleted_at`）。**显式持久化策略列**：`sync_policy=localOnly` / `backup_policy=excludedFromSystemBackup` / `export_policy=excludedByDefault`——**「不可重算用户行为信号」新类别**（非照搬 practice_text_attempts 伪先例：后者无策略列、归档导出方案列其为主数据；spec §112 的 local-only 讲的是 TTS / 媒体派生资产）。索引 `(language_space_id, soft_deleted_at, occurred_at)` 支撑窗口查询。
+- migration `v29_create_analysis_ledger`：ADR-006 §9 分析账本 + 高水位 cursor 首次建对——键 `UNIQUE(source_type, source_id, analyzer, analyzer_version)` + `cursor_position`（增量窗口聚合、非 per-item 旗标）；升 `analyzer_version` = 新行 cursor 0 = 全量重跑；cursor 单调推进（stale advance 忽略）。账本以 `(source_type, source_id)` 引用源，不在源表加列（查词事件 `source_type='dictionaryLookup'`）。
+- **持久化分层**：查词事件 = 不可重算用户行为信号（local-only 不备份不导出，设备迁移后丢失——S4b band 须能从剩余信号优雅降级重估）；账本 / cursor = 派生状态（可从事件重算）。**开放产品问题**：查词事件是否应像 practice 主数据可导出，v1 默认否。
+- **红线（ADR-006 §4）**：repository / 埋点写入字段仅用户行为（term + 时间 + 内容引用），绝不记 AI 判定难度 / AI 点评内容。FileProtection 接缝登记进 `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`。
+- **source_content_origin 前向接缝**：v1 阅读文档恒用户导入（`reading_documents.source_kind` 仅 pastedText/fileImport），故 v1 恒 `userAuthored`；`aiGenerated` 分支待未来「学习材料可作阅读源」基础设施落地再填 + S4b 启用二阶闭环过滤。

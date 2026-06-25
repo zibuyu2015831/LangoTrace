@@ -239,7 +239,16 @@ scripts/check-docs.sh
 
 ## 18. 实施记录
 
-待实现。
+2026-06-25 落地（dev 分支，三 Phase）：
+
+- **Phase 1（查词事件，v28）**：Core `SourceContentOrigin`（前向接缝）+ `DictionaryLookupEvent`；migration `v28_create_dictionary_lookup_events`（显式 local-only/排除备份导出策略列、source_content_origin CHECK 默认 userAuthored、索引 (space,soft_deleted,occurred)）；`GRDBDictionaryLookupEventRepository`（record/窗口读 after cursor/软删，写策略字面值）。
+- **Phase 2（账本，v29）**：migration `v29_create_analysis_ledger`（UNIQUE 键 + cursor_position）；`GRDBAnalysisLedgerRepository` + `AnalysisLedgerKey`（cursorPosition/advanceCursor 单调 upsert，升版=新行 cursor 0）。
+- **Phase 3（埋点 + 装配）**：`ReadingLookupCaptureInput/Action` seam + EnvironmentValues entry；`ReadingDocumentStore.explainSelection` 触发捕获 + `reconnectLookupCapture`（环境注入，避免穿透所有 reading view 调用点）；`AppEnvironment.readingLookupCaptureAction`（`makeReadingLookupCaptureAction` 装配 `GRDBDictionaryLookupEventRepository`）+ 两处环境注入。
+- **红线**：repository/埋点写入字段仅用户行为（term+时间+内容引用），不记 AI 内容；源级 grep + 行为断言。
+- **TDD**：AnalysisSignalsTests(2) + AnalysisLedgerMigrationAndRepositoryTests(7，含迁移结构/local-only/source_origin/cursor 增量/升版/单调) + ReadingLookupCaptureTests(2) 先失败后实现。
+- **验证**：轻量本机 Core 242 + Data 251 + UI 582 全绿（含 Han guard），lint 0 error，AppEnvironment 1298<1300；含 v28/v29 migration 的全量 Build & Test 经 GitHub Actions CI 绿。
+- **scope-out 全兑现**：不动 derive()/不产 band/不做总览呈现/不决定信号加权/不启用 aiGenerated 过滤（均属 S4b）；source_content_origin v1 恒 userAuthored 前向接缝（P0-A）；查词事件显式 local-only 新类别（P1-B）；埋点宿主 = AI 解释 seam（P2-C）。
+- **§17 文档影响已回写**：ADR-006 §9 实施进展（账本首次建对）、spec/007（查词+账本持久化分层登记）、architecture/002-system-map §4.10（查词捕获+账本数据流 + 测试入口）、persistence-security note（查词事件 FileProtection 接缝 §3）。
 
 ## 19. 完成标准
 
