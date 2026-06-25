@@ -1,0 +1,87 @@
+import Foundation
+import LangoTraceCore
+
+/// Simple v1 growth trend for the learner profile overview (idea-02 §14.2 keeps
+/// v1 to gentle counts, never a downgrade verdict).
+public struct LearnerProfileTrend: Sendable, Equatable {
+    /// Memory items deposited this week (borrowed from the review statistics).
+    public let depositedThisWeek: Int
+    /// Distinct knowledge-coverage entries for the current language.
+    public let coverageEntryCount: Int
+
+    public init(depositedThisWeek: Int, coverageEntryCount: Int) {
+        self.depositedThisWeek = depositedThisWeek
+        self.coverageEntryCount = coverageEntryCount
+    }
+}
+
+/// Compute-on-read aggregate for the three-platform 学习画像 overview page (§12.4).
+///
+/// Field provenance is deliberately explicit:
+/// - **Learner-owned**: `abilityCoverage` (compute-on-read from deposits) and
+///   `memoryFacts` (the system-level Memory layer).
+/// - **Borrowed for display**: `reviewStatistics` comes from the per-space
+///   `memory_items` review queue (owned by the memory feature, NOT the Learner
+///   Model). A system-level Memory reset must never alter it.
+public struct LearnerProfileSnapshot: Sendable, Equatable {
+    // Learner-owned.
+    public let abilityCoverage: AbilityCoverage
+    public let memoryFacts: [MemoryFact]
+    /// Borrowed for display (per-space memory_items review queue).
+    public let reviewStatistics: MemoryStatistics
+    /// Derived.
+    public let trend: LearnerProfileTrend
+
+    public init(
+        abilityCoverage: AbilityCoverage,
+        memoryFacts: [MemoryFact],
+        reviewStatistics: MemoryStatistics,
+        trend: LearnerProfileTrend
+    ) {
+        self.abilityCoverage = abilityCoverage
+        self.memoryFacts = memoryFacts
+        self.reviewStatistics = reviewStatistics
+        self.trend = trend
+    }
+}
+
+/// Builds a `LearnerProfileSnapshot` for the current space + language. Lives in
+/// `LangoTraceLearnerModel` and **borrows** the `MemoryItemRepository` (Data-owned)
+/// purely to read review statistics — it does not own that data.
+///
+/// `async` because the review statistics read is async; the synchronous Ability /
+/// Memory reads run inside the async context. Pure read, no side effects.
+public struct LearnerProfileSnapshotBuilder: Sendable {
+    private let provider: any LearnerContextProvider
+    private let memoryItemRepository: any MemoryItemRepository
+
+    public init(
+        provider: any LearnerContextProvider,
+        memoryItemRepository: any MemoryItemRepository
+    ) {
+        self.provider = provider
+        self.memoryItemRepository = memoryItemRepository
+    }
+
+    /// Snapshot for the given space + language. The caller (UI store) supplies both
+    /// partition keys from the active space; the snapshot does not guess them.
+    public func snapshot(
+        spaceID: String,
+        languageCode: String,
+        now: Date
+    ) async throws -> LearnerProfileSnapshot {
+        let abilityCoverage = try provider.abilityCoverage(languageCode: languageCode)
+        let memoryFacts = try provider.memoryFacts(visibility: nil)
+        let reviewStatistics = try await memoryItemRepository.memoryStatistics(spaceID: spaceID, now: now)
+        let trend = LearnerProfileTrend(
+            depositedThisWeek: reviewStatistics.depositedThisWeek,
+            coverageEntryCount: abilityCoverage.entries.count
+        )
+        return LearnerProfileSnapshot(
+            abilityCoverage: abilityCoverage,
+            memoryFacts: memoryFacts,
+            reviewStatistics: reviewStatistics,
+            trend: trend
+        )
+    }
+}

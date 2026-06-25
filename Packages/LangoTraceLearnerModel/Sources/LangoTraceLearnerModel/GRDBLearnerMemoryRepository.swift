@@ -47,13 +47,13 @@ public struct GRDBLearnerMemoryRepository: Sendable {
     public func list(includeDeleted: Bool = false) throws -> [MemoryFact] {
         try writer.read { db in
             let sql = """
-            SELECT id, kind, text, salience, visibility, source, source_entry_id, created_at, soft_deleted_at
+            SELECT \(LearnerMemoryFactRow.selectedColumns)
             FROM learner_memory_facts
             \(includeDeleted ? "" : "WHERE soft_deleted_at IS NULL")
             ORDER BY created_at ASC, id ASC
             """
             let rows = try Row.fetchAll(db, sql: sql)
-            return rows.compactMap(Self.fact(from:))
+            return rows.compactMap(LearnerMemoryFactRow.fact(from:))
         }
     }
 
@@ -73,26 +73,5 @@ public struct GRDBLearnerMemoryRepository: Sendable {
         try writer.write { db in
             try db.execute(sql: "DELETE FROM learner_memory_facts")
         }
-    }
-
-    private static func fact(from row: Row) -> MemoryFact? {
-        guard let kind = MemoryFactKind(rawValue: row["kind"]),
-              let visibility = MemoryFactVisibility(rawValue: row["visibility"]),
-              let source = LearnerSourceType(rawValue: row["source"])
-        else {
-            return nil
-        }
-        let softDeletedAt: Date? = (row["soft_deleted_at"] as Double?).map { Date(timeIntervalSince1970: $0) }
-        return MemoryFact(
-            id: row["id"],
-            kind: kind,
-            text: row["text"],
-            salience: row["salience"],
-            visibility: visibility,
-            source: source,
-            sourceEntryID: row["source_entry_id"],
-            createdAt: Date(timeIntervalSince1970: row["created_at"]),
-            softDeletedAt: softDeletedAt
-        )
     }
 }

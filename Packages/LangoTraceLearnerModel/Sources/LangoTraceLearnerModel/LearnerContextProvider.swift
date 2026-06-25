@@ -35,4 +35,11 @@ public protocol LearnerContextProvider: Sendable {
     /// from active deposited sources. Returns an empty coverage (not nil/throw) when the
     /// language has no active deposits.
     func abilityCoverage(languageCode: String) throws -> AbilityCoverage
+
+    /// System-level Memory facts (LM02), oldest-first. `visibility == nil` returns
+    /// every active fact (the governance / overview view); a non-nil value filters
+    /// to that visibility (future companion consumption). Two real consumers — the
+    /// overview page and the future companion — lift idea-01 §12.2's YAGNI concern,
+    /// so this is exposed as its own read method (not a "difficulty ∪ facts" union).
+    func memoryFacts(visibility: MemoryFactVisibility?) throws -> [MemoryFact]
 }

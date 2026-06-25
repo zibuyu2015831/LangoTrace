@@ -39,6 +39,24 @@ public struct GRDBLearnerContextProvider: LearnerContextProvider {
         return AbilityCoverage(languageCode: languageCode, entries: entries, generatedAt: clock())
     }
 
+    public func memoryFacts(visibility: MemoryFactVisibility?) throws -> [MemoryFact] {
+        try reader.read { db in
+            var sql = """
+            SELECT id, kind, text, salience, visibility, source, source_entry_id, created_at, soft_deleted_at
+            FROM learner_memory_facts
+            WHERE soft_deleted_at IS NULL
+            """
+            var arguments: [DatabaseValueConvertible] = []
+            if let visibility {
+                sql += " AND visibility = ?"
+                arguments.append(visibility.rawValue)
+            }
+            sql += " ORDER BY created_at ASC, id ASC"
+            let rows = try Row.fetchAll(db, sql: sql, arguments: StatementArguments(arguments))
+            return rows.compactMap(LearnerMemoryFactRow.fact(from:))
+        }
+    }
+
     /// Merges raw rows into coverage entries by target text, preserving first-seen order,
     /// counting occurrences, and collecting one evidence ref per source row. A row whose
     /// `kind` is not a known structural kind is skipped (defensive; the CHECK constraint
