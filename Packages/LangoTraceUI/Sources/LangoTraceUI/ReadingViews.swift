@@ -19,6 +19,7 @@ struct ReadingLibraryView: View {
     @State private var collectionDrafts: [String: String] = [:]
     @State private var tagDrafts: [String: String] = [:]
     @State private var isInspectorFolded = false
+    @Environment(\.readingLookupCaptureAction) private var readingLookupCaptureAction
 
     init(
         platform: ReadingPlatformRole,
@@ -60,6 +61,7 @@ struct ReadingLibraryView: View {
                 desktopLibraryAndReader
             }
         }
+        .task { documentStore.reconnectLookupCapture(readingLookupCaptureAction) }
         .sheet(isPresented: $isImportSheetPresented) {
             ReadingImportSheetView(
                 importTitle: $importTitle,
@@ -425,6 +427,7 @@ struct ReadingDocumentDetailView: View {
     let ttsAction: ReadingTTSAction
     @StateObject private var documentStore: ReadingDocumentStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.readingLookupCaptureAction) private var readingLookupCaptureAction
 
     init(
         platform: ReadingPlatformRole,
@@ -509,6 +512,7 @@ struct ReadingDocumentDetailView: View {
                 await store.openDocument(documentID, platform: platform)
             }
         }
+        .task { documentStore.reconnectLookupCapture(readingLookupCaptureAction) }
         .task(id: detailDocumentSyncKey) {
             syncDetailDocumentStore()
         }

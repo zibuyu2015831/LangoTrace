@@ -139,6 +139,12 @@ private extension AppDatabase {
         migrator.registerMigration("v27_create_learner_memory_facts") { db in
             try createLearnerMemoryFactsInfrastructure(db)
         }
+        migrator.registerMigration("v28_create_dictionary_lookup_events") { db in
+            try createDictionaryLookupEventInfrastructure(db)
+        }
+        migrator.registerMigration("v29_create_analysis_ledger") { db in
+            try createAnalysisLedgerInfrastructure(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 

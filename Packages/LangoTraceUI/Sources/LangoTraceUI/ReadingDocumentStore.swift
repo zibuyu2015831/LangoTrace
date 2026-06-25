@@ -27,6 +27,12 @@ public final class ReadingDocumentStore: ObservableObject {
 
     let explanationAction: ReadingExplanationAction
     let ttsAction: ReadingTTSAction
+    /// LM02-S4a: fired when the user requests an explanation (lookup behaviour
+    /// signal). nil disables capture. Pure local persistence — never outbound.
+    /// Settable so the SwiftUI environment-injected action can be reconnected
+    /// after construction (the store is a `StateObject` built before the
+    /// environment is available).
+    private(set) var lookupCaptureAction: ReadingLookupCaptureAction?
     let nativeLanguageCode: String
     let targetLanguageCode: String
     let proficiencyLevelCode: String
@@ -47,6 +53,7 @@ public final class ReadingDocumentStore: ObservableObject {
         proficiencyLevelCode: String = "",
         explanationAction: @escaping ReadingExplanationAction,
         ttsAction: @escaping ReadingTTSAction,
+        lookupCaptureAction: ReadingLookupCaptureAction? = nil,
         cacheStorage: (any ExplanationCacheStorage)? = nil
     ) {
         self.documentID = documentID
@@ -58,13 +65,29 @@ public final class ReadingDocumentStore: ObservableObject {
         currentExplanationMode = ExplanationLanguageMode.derive(from: proficiencyLevelCode)
         self.explanationAction = explanationAction
         self.ttsAction = ttsAction
+        self.lookupCaptureAction = lookupCaptureAction
         self.cacheStorage = cacheStorage
+    }
+
+    /// Swaps in the environment-injected lookup-capture action (the store is built
+    /// before the SwiftUI environment is available).
+    public func reconnectLookupCapture(_ action: ReadingLookupCaptureAction?) {
+        guard let action else { return }
+        lookupCaptureAction = action
     }
 
     public func explainSelection() {
         guard explanationState != .loading, let selection = selectedSelection ?? fallbackSelection else {
             return
         }
+
+        // LM02-S4a: capture the lookup behaviour signal — the user explicitly
+        // requested an explanation for this term, regardless of cache outcome.
+        lookupCaptureAction?(ReadingLookupCaptureInput(
+            spaceID: spaceID,
+            documentID: documentID,
+            lookedUpTerm: selection.selectedText
+        ))
 
         let cacheKey = "\(selection.sourceAnchorID):\(currentExplanationMode.rawValue)"
         if let cached = explanationCache[cacheKey] {

@@ -40,6 +40,8 @@ struct AppEnvironment {
     // (seam-only, user decision 2026-06-25). No consumer reads it yet — the
     // companion v2 / rewrite slices will. Compute-on-read, pure local.
     let learnerStyleProvider: (any LearnerStyleProvider)?
+    // LM02-S4a: reading lookup-capture action persisting behaviour-signal events.
+    let readingLookupCaptureAction: ReadingLookupCaptureAction
     // E12: recomputes settings row values (AI provider / sync / local data) off the main
     // thread from non-sensitive snapshots only — never Keychain plaintext, never a probe.
     let loadSettingsStatus: @Sendable () async -> SettingsStatusProjection
@@ -202,6 +204,9 @@ struct AppEnvironment {
         // LM02-S2: Style surface-imprint provider (seam-only, no consumer yet).
         let learnerStyleProvider: (any LearnerStyleProvider)? =
             (try? databaseFactory.database()).map { GRDBLearnerStyleProvider(reader: $0.reader) }
+
+        // LM02-S4a: reading lookup-capture action (behaviour-signal persistence).
+        let readingLookupCaptureAction = makeReadingLookupCaptureAction(databaseFactory: databaseFactory)
 
         // E12: settings status projection. Reads only the non-sensitive config snapshot and
         // the on-disk footprint; the sync value comes from the (disabled) sync service.
@@ -383,6 +388,7 @@ struct AppEnvironment {
             syncService: DisabledSyncService(),
             learnerContextProvider: learnerContextProvider,
             learnerStyleProvider: learnerStyleProvider,
+            readingLookupCaptureAction: readingLookupCaptureAction,
             loadSettingsStatus: loadSettingsStatus
         )
     }
