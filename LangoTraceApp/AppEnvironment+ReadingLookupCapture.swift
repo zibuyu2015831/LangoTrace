@@ -1,6 +1,7 @@
 import Foundation
 import LangoTraceCore
 import LangoTraceData
+import LangoTraceLearnerModel
 import LangoTraceUI
 
 /// Assembles the LM02-S4a reading lookup-capture action: when the user requests
