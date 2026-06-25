@@ -40,7 +40,7 @@
 > **2026-06-25 用户决策：按风险拆 S2a / S2b**（仿 S4a/S4b 先例）。Memory 注入 v1 排序 = **时近性 + 种类配额**（salience 列 v1 不参与，留 v2 FTS 相关性召回）。
 
 #### LM03-S2a：聊天反哺学习（入站 / 本地，低外发增量）
-> **→ 已 Done（2026-06-26）**：[`done/2026-06-25-feature-lm03-s2a-companion-reflux.md`](../done/2026-06-25-feature-lm03-s2a-companion-reflux.md)。五 Phase TDD 全落地（Core 候选值类型 / v31 迁移 + repo 三方法 + band 红线守卫 / 提取引擎 + Prompt Registry + capability 闭集新 case / 三端 UI 提取动作 + 三态 + 预览披露 + 本地化 / App 装配）；轻量单包测试全绿 + 本地 macOS BUILD SUCCEEDED。双轮隔离自审完成（两 P0 经主会话核验降为 P1；第二轮 5 项契约具体化全采纳）。**新表 `companion_memory_candidates`（v31）独立、不改 memory_candidates；band derive() 零改动；无新系统自动外发**。备忘录：`docs/architecture/notes/2026-06-26-companion-reflux-production-signal-and-candidate-unification-notes.md`。
+> **→ 已 Done（2026-06-26）**：[`done/2026-06-25-feature-lm03-s2a-companion-reflux.md`](../done/2026-06-25-feature-lm03-s2a-companion-reflux.md)。五 Phase TDD 全落地（Core 候选值类型 / v31 迁移 + repo 三方法 + band 红线守卫 / 提取引擎 + Prompt Registry + capability 闭集新 case / 三端 UI 提取动作 + 三态 + 预览披露 + 本地化 / App 装配）；轻量单包测试全绿 + 全量 CI `Build & Test` 全绿（run 28186684074）。双轮隔离自审完成（两 P0 经主会话核验降为 P1；第二轮 5 项契约具体化全采纳）。**新表 `companion_memory_candidates`（v31）独立、不改 memory_candidates；band derive() 零改动；无新系统自动外发**。备忘录：`docs/architecture/notes/2026-06-26-companion-reflux-production-signal-and-candidate-unification-notes.md`。
 - **范围**：① 聊天词汇 / 表达提取 → **新表 `companion_memory_candidates`（v31，独立表，不改 memory_candidates）**，**显式触发**（非静默每轮，成本 + 隐私分类双理由——提取同既有「重新分析」显式重发先例，不进系统自动注入门）；② 用户目标语发言 → Ability 产出证据**最薄前向读接缝** `productionUtterances()` + 架构备忘录，**不改 band derive() / 不登记无消费者 ledger 常量**（红线 + 最高风险后置）。
 - **硬前置**：LM03-S1（Done）。**不依赖** Memory / FTS / 隐私两层（那些属 S2b）。
 - **风险**：中（新迁移 + 新 AI 提取引擎 + 三端动作；但无新系统自动外发，band 零改动）。

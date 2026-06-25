@@ -1,6 +1,6 @@
 # 任务方案：LM03-S2a 语伴聊天反哺学习（入站 / 本地，低外发增量）
 
-状态：Done（2026-06-26 用户授权实现；五 Phase TDD 全落地，轻量单包测试全绿 + 本地 macOS BUILD SUCCEEDED）
+状态：Done（2026-06-26 用户授权实现；五 Phase TDD 全落地，轻量单包测试全绿 + 全量 CI Build & Test 全绿 run 28186684074）
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-25
@@ -231,4 +231,4 @@
 
 **实现期对方案的两处一致性调整（均不改架构边界）**：① store 方法用参数无关的 `extractCandidates()`（读内部 `threadID`，与既有 `send()` / `clear()` 一致），而非方案 round-2 字面记法 `extractCompanionCandidates(threadID:)`；actions 闭包 `extract(threadID:)` 仍带 threadID。② `CompanionExtractionError` 命名沿用方案 `.invalidStructuredOutput`（新类型，与 `LearningMaterialGenerationService` 的 `.invalidStructuredResponse` 同义不同名，无需统一）。
 
-§17 文档回写完成：architecture/002 §4.12、spec/005 / 007 变更记录、ADR-008 §6、page-inventory 三端、prompts/companion/extraction.md（新）、架构备忘录（新）、拆解文档、仪表盘。完整验证（v31 迁移 + 三端构建 + 全包 + lint）走 GitHub Actions `Build & Test`。
+§17 文档回写完成：architecture/002 §4.12、spec/005 / 007 变更记录、ADR-008 §6、page-inventory 三端、prompts/companion/extraction.md（新）、架构备忘录（新）、拆解文档、仪表盘。**完整验证已绿：GitHub Actions `Build & Test` run 28186684074（v31 迁移 + iPhone/iPad/macOS 构建 + macOS app test + 全包测试 + lint + check-docs），仓库跑前 public、跑完转回 private。**
