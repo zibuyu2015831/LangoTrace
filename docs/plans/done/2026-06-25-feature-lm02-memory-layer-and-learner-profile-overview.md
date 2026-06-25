@@ -1,6 +1,6 @@
 # 任务方案：学习者模型 Memory 层地基 + 学习画像总览页（LM02 Slice 1）
 
-状态：Draft
+状态：Done（2026-06-25 三 Phase 落地；轻量本机 LearnerModel 24 + Data 244 + UI 578 全绿 + GitHub Actions Build & Test 全绿（run 28159562884：六包测试 + 三端构建 + macOS app test + lint/format/check-docs）；§17 文档影响已回写；已移入 done/）
 自审核状态：Reviewed（2026-06-25 隔离子代理双轮审查，4 项 P0/P1 阻塞已修订写回，2 个待决点已收口，见第 13 节）
 类型：feature
 创建日期：2026-06-25
