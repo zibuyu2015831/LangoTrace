@@ -5664,6 +5664,102 @@
         }
       }
     },
+    "learnerProfile.blindSpots.count": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "×%lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "×%lld"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do a few dictation exercises to unlock your error patterns."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "做几次听写练习以解锁错误模式分析。"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From your dictation practice — repeated transcription errors, not a grammar verdict."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自你的听写练习——重复的转写错误，不是语法判决。"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.kind.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mistyped"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写错"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.kind.extra": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "extra"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多写"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.kind.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "missed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漏写"
+          }
+        }
+      }
+    },
     "learnerProfile.blindSpots.placeholder": {
       "localizations": {
         "en": {
@@ -5685,13 +5781,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Weak Spots & Blind Spots"
+            "value": "Repeated Practice Errors"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "薄弱与盲点"
+            "value": "重复练习错误模式"
           }
         }
       }

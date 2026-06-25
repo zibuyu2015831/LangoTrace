@@ -8,6 +8,10 @@ public enum LearnerSourceType: String, Sendable, Equatable {
     /// A Memory-layer fact the user explicitly saved (LM02). No source row in
     /// any table — provenance is the user's own action.
     case manualMemory
+    /// A dictation `practice_text_attempts` row backing a blind spot (LM02-S3).
+    /// `LearnerEvidenceRef` is in-memory only (never persisted), so adding a case
+    /// carries no raw-value persistence compatibility burden.
+    case practiceTextAttempt
 }
 
 /// Provenance reference for a covered knowledge point (ADR-006 §9). Single-row FK

@@ -9,8 +9,8 @@ import SwiftUI
 ///
 /// Shows a gentle, never-downgrading level (constraint 5), Ability knowledge
 /// coverage, review statistics, the system-level Memory facts with unified
-/// governance (explicit-remember add / single delete / system reset), and a
-/// reserved blind-spot placeholder.
+/// governance (explicit-remember add / single delete / system reset), and the
+/// blind-spot section (LM02-S3: repeated dictation-practice errors).
 struct LearnerProfileView: View {
     let languageSpace: LanguageSpacePreview
 
@@ -62,7 +62,7 @@ struct LearnerProfileView: View {
             reviewSection(presentation)
         }
         memorySection(presentation)
-        blindSpotSection()
+        blindSpotSection(presentation)
         governanceSection()
     }
 
@@ -132,12 +132,41 @@ struct LearnerProfileView: View {
         }
     }
 
-    private func blindSpotSection() -> some View {
-        Section(localizedString("learnerProfile.blindSpots.title")) {
-            // Reserved — a later LM02 slice fills this from production signals.
-            // Never fabricated.
-            localizedText("learnerProfile.blindSpots.placeholder")
-                .foregroundStyle(.secondary)
+    private func blindSpotSection(_ presentation: LearnerProfilePresentation) -> some View {
+        Section {
+            if presentation.blindSpots.isEmpty {
+                // Honest empty state: guidance to do dictation practice (the signal
+                // source), never a fabricated blind spot.
+                localizedText("learnerProfile.blindSpots.empty")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(presentation.blindSpots) { spot in
+                    HStack {
+                        localizedText(blindSpotKindKey(spot.kind))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(spot.text)
+                        Spacer()
+                        Text(String(format: localizedString("learnerProfile.blindSpots.count"), spot.occurrenceCount))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        } header: {
+            localizedText("learnerProfile.blindSpots.title")
+        } footer: {
+            // Honest framing (constraint 4): repeated practice errors from dictation, not a
+            // grammar verdict or a level judgement.
+            localizedText("learnerProfile.blindSpots.footer")
+        }
+    }
+
+    private func blindSpotKindKey(_ kind: BlindSpotKind) -> String {
+        switch kind {
+        case .missing: "learnerProfile.blindSpots.kind.missing"
+        case .changed: "learnerProfile.blindSpots.kind.changed"
+        case .extra: "learnerProfile.blindSpots.kind.extra"
         }
     }
 

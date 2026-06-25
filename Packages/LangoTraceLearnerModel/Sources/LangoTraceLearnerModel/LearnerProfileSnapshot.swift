@@ -27,6 +27,9 @@ public struct LearnerProfileSnapshot: Sendable, Equatable {
     // Learner-owned.
     public let abilityCoverage: AbilityCoverage
     public let memoryFacts: [MemoryFact]
+    /// Recurring practice error patterns (LM02-S3), compute-on-read from dictation
+    /// attempts. Empty until the learner has done dictation practice.
+    public let blindSpots: [BlindSpot]
     /// Borrowed for display (per-space memory_items review queue).
     public let reviewStatistics: MemoryStatistics
     /// Derived.
@@ -35,11 +38,13 @@ public struct LearnerProfileSnapshot: Sendable, Equatable {
     public init(
         abilityCoverage: AbilityCoverage,
         memoryFacts: [MemoryFact],
+        blindSpots: [BlindSpot] = [],
         reviewStatistics: MemoryStatistics,
         trend: LearnerProfileTrend
     ) {
         self.abilityCoverage = abilityCoverage
         self.memoryFacts = memoryFacts
+        self.blindSpots = blindSpots
         self.reviewStatistics = reviewStatistics
         self.trend = trend
     }
@@ -54,13 +59,17 @@ public struct LearnerProfileSnapshot: Sendable, Equatable {
 public struct LearnerProfileSnapshotBuilder: Sendable {
     private let provider: any LearnerContextProvider
     private let memoryItemRepository: any MemoryItemRepository
+    /// Optional blind-spot read (LM02-S3); `nil` leaves blind spots empty.
+    private let blindSpotProvider: (any LearnerBlindSpotProvider)?
 
     public init(
         provider: any LearnerContextProvider,
-        memoryItemRepository: any MemoryItemRepository
+        memoryItemRepository: any MemoryItemRepository,
+        blindSpotProvider: (any LearnerBlindSpotProvider)? = nil
     ) {
         self.provider = provider
         self.memoryItemRepository = memoryItemRepository
+        self.blindSpotProvider = blindSpotProvider
     }
 
     /// Snapshot for the given space + language. The caller (UI store) supplies both
@@ -72,6 +81,10 @@ public struct LearnerProfileSnapshotBuilder: Sendable {
     ) async throws -> LearnerProfileSnapshot {
         let abilityCoverage = try provider.abilityCoverage(languageCode: languageCode)
         let memoryFacts = try provider.memoryFacts(visibility: nil)
+        var blindSpots: [BlindSpot] = []
+        if let blindSpotProvider {
+            blindSpots = (try? blindSpotProvider.blindSpots(languageCode: languageCode)) ?? []
+        }
         let reviewStatistics = try await memoryItemRepository.memoryStatistics(spaceID: spaceID, now: now)
         let trend = LearnerProfileTrend(
             depositedThisWeek: reviewStatistics.depositedThisWeek,
@@ -80,6 +93,7 @@ public struct LearnerProfileSnapshotBuilder: Sendable {
         return LearnerProfileSnapshot(
             abilityCoverage: abilityCoverage,
             memoryFacts: memoryFacts,
+            blindSpots: blindSpots,
             reviewStatistics: reviewStatistics,
             trend: trend
         )

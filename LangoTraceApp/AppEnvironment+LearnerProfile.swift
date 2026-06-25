@@ -15,12 +15,16 @@ func makeLearnerProfileActions(
 ) -> LearnerProfileActions {
     let learnerMemoryRepository: GRDBLearnerMemoryRepository? =
         (try? databaseFactory.database()).map { GRDBLearnerMemoryRepository(writer: $0.writer) }
+    // LM02-S3: compute-on-read blind spots from dictation attempts.
+    let blindSpotProvider: GRDBLearnerBlindSpotProvider? =
+        (try? databaseFactory.database()).map { GRDBLearnerBlindSpotProvider(reader: $0.reader) }
     return LearnerProfileActions(
         loadSnapshot: { spaceID, languageCode in
             guard let learnerContextProvider, let memoryItemRepository else { return nil }
             let builder = LearnerProfileSnapshotBuilder(
                 provider: learnerContextProvider,
-                memoryItemRepository: memoryItemRepository
+                memoryItemRepository: memoryItemRepository,
+                blindSpotProvider: blindSpotProvider
             )
             return try? await builder.snapshot(spaceID: spaceID, languageCode: languageCode, now: Date())
         },

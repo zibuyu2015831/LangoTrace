@@ -30,6 +30,23 @@ public struct MemoryFactPresentation: Equatable, Sendable, Identifiable {
     }
 }
 
+/// One recurring practice error pattern rendered for the blind-spot section
+/// (LM02-S3). Honestly framed as a repeated practice error from dictation — never
+/// a grammar verdict or a level judgement (constraint 4).
+public struct BlindSpotPresentation: Equatable, Sendable, Identifiable {
+    public let id: String
+    public let kind: BlindSpotKind
+    public let text: String
+    public let occurrenceCount: Int
+
+    public init(id: String, kind: BlindSpotKind, text: String, occurrenceCount: Int) {
+        self.id = id
+        self.kind = kind
+        self.text = text
+        self.occurrenceCount = occurrenceCount
+    }
+}
+
 /// View state for the three-platform learner-profile overview page, mapped purely
 /// from a `LearnerProfileSnapshot` plus the current space's onboarding level. No
 /// SwiftUI, no IO — fully testable.
@@ -40,9 +57,11 @@ public struct LearnerProfilePresentation: Equatable, Sendable {
     public let masteredCount: Int
     public let depositedThisWeek: Int
     public let memoryFacts: [MemoryFactPresentation]
-    /// Reserved blind-spot section — always `true` in v1. Blind spots need
-    /// target-language production signals not yet available (§6); v1 shows a
-    /// "coming soon" placeholder and **never fabricates** blind-spot entries.
+    /// Recurring practice error patterns (LM02-S3), from the learner's own
+    /// dictation attempts. Aggregated compute-on-read — never fabricated.
+    public let blindSpots: [BlindSpotPresentation]
+    /// `true` when there are no blind spots yet — the section shows guidance to do
+    /// dictation practice (the signal source), not a "coming soon" feature stub.
     public let blindSpotsPlaceholder: Bool
     /// Drives the "keep recording to unlock your profile" empty state: no coverage,
     /// no facts, no review activity at all.
@@ -57,7 +76,15 @@ public struct LearnerProfilePresentation: Equatable, Sendable {
         memoryFacts = snapshot.memoryFacts.map {
             MemoryFactPresentation(id: $0.id, kind: $0.kind, text: $0.text)
         }
-        blindSpotsPlaceholder = true
+        blindSpots = snapshot.blindSpots.map {
+            BlindSpotPresentation(
+                id: $0.id,
+                kind: $0.kind,
+                text: $0.representativeText,
+                occurrenceCount: $0.occurrenceCount
+            )
+        }
+        blindSpotsPlaceholder = snapshot.blindSpots.isEmpty
         isEmpty = snapshot.abilityCoverage.entries.isEmpty
             && snapshot.memoryFacts.isEmpty
             && snapshot.reviewStatistics == .zero
