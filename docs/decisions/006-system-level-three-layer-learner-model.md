@@ -94,6 +94,22 @@
 - **评估 = 演进的内部值**：评估覆盖「内部难度信号」，**永不覆盖「用户可见标签」**；用户标签保留可手动编辑，评估只「建议 / 并存」、绝不静默改写。
 - **永不展示「降级」**：只展示覆盖 / 已纠正错误 / 趋势 / 成长（不打击信心红线）。
 
+#### 10.1 band 重估的实施契约（LM02-S4b 门控前置修订，2026-06-25）
+
+本小节把 §10 的「评估 = 演进的内部值」具体化为 band 重估的实施契约，作为 **LM02-S4b（band 服务 + derive() 迟滞）进入实现的清线门控**（S4b 须在本修订 artifact 存在后方可动 `derive()`）。本修订**细化**而**不反转** §10 的三条红线（评估只演进内部值 / 永不覆盖用户标签 / 永不降级）。
+
+1. **band = 演进的内部难度信号，建在独立行为信号上**：band 由 **S4a 捕获的查词信号 + S3 产出错误 + 练习行为** 派生（ADR-006 §4 闭环红线 = band 须建在**不被 level 污染**的独立信号上，idea-02 §13.1）；**绝不**吃 `memory_candidates.difficulty` / AI 判定（否则 level→生成→难度→band 闭环自证）。
+
+2. **derive() 吃演进 band**：`ExplanationLanguageMode.derive()` 的 `proficiencyLevelCode` 来源从静态 onboarding level **改吃演进 band**——这是 band 的**唯一**消费点（v1 blast radius 限 `ReadingDocumentStore` 的 2 处 derive 调用）。
+
+3. **迟滞契约（防体验在脚下漂移）**：band 接 derive() **必须经可测迟滞状态机**——band 小波动**不立即**改档；仅**持续越阈 + 足够停留**（停留单位 = **document-open 次数**，非 wall-clock dwell）才切档；切档**只作用于新内容**，不回改已渲染的解释。迟滞计数器 **per-language、local-only、重启清零属可接受退化**（非持久）。具体阈值 / 停留次数由 S4b 钉死为可测值。
+
+4. **band 仅喂 derive()、不引入新增外发字段（诚实外发论证）**：band v1 **仅**驱动 derive() 的解释档位；`proficiencyLevelCode`（AI Provider 请求字段）/ 材料生成 / 照片写作 / 回译点评**仍读静态 `LanguageLevel`**，band 不流入。**诚实承认**：AI 解释请求同时携带 `explanationLanguageMode = derive() 输出`，故 band 经 derive() **确实影响发往 Provider 的解释档位**——但正确论证是 band **不引入新增外发字段**：`explanationLanguageMode` 早已随请求外发、隐私量级不变（仍是**三档枚举**，非 band 数值 / 置信度 / 趋势）。**不**宣称「band 零跨外发」（代码 `:96` 证伪）。
+
+5. **永不覆盖用户可见 `LanguageLevel` 标签 / 永不降级**（重申 §10 红线）：band 是内部信号、只「建议 / 并存」，**绝不**静默改写用户可见标签；总览页只展示覆盖 / 已纠正 / 趋势 / 成长，**绝不**展示「你从 B1 降 A2」。
+
+> 本修订仅为 S4b 清线门控的契约 artifact；band 服务、derive() 迟滞接线、总览呈现的实际实现见 [LM02-S4b 方案](../plans/active/2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis.md)，实施后回写实施进展。AI 校准 band（外发增量）仍属 v2 opt-in、须过 §6 隐私闸，不在 S4b。
+
 ## 备选方案
 
 ### 方案 A：不抽模块，两子域各自为政
