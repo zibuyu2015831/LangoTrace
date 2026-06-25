@@ -305,7 +305,16 @@ scripts/check-docs.sh
 
 ## 18. 实施记录
 
-待实现。
+2026-06-25 落地（dev 分支，两 Phase）：
+
+- **Phase 1（域模型 + provider）**：`BlindSpot` / `BlindSpotKind`（{missing,changed,extra} 一对一映射 `PracticeDictationDiff.SegmentKind`，含 `init(segmentKind:)`）；`LearnerSourceType.practiceTextAttempt`；`LearnerBlindSpotProvider` 协议 + `GRDBLearnerBlindSpotProvider`（镜像 LM01 compute-on-read，SQL 仅 FROM/JOIN `practice_text_attempts` + `language_spaces`，dictation + diff 非空 + active 过滤 + `LIMIT 200`，重跑 `compare()` 取词文本按 kind+词频次聚合，证据集分布；`recomputeLimit` 可注入）。
+- **Phase 2（UI 填充 S1 盲点分区）**：`LearnerProfileSnapshot` 加 `blindSpots`（builder 可选 `blindSpotProvider`）；`BlindSpotPresentation` + `LearnerProfileView` 盲点分区列表（诚实标注「重复练习错误模式 / 来自听写练习」、不下判决/降级）+ 空态；`AppEnvironment` 装配 `GRDBLearnerBlindSpotProvider(reader:)`；6 条本地化 key。
+- **红线守卫双守**：源级 grep（provider 源不引用 `memory_candidates`/`learning_materials`/`learning_text`/`LangoTraceAI`）+ 行为断言 `redLineExcludesAICandidateAndLearningText`（sentinel 不泄漏）。
+- **规模上限**：`ORDER BY created_at DESC LIMIT 200`（约束 5 blocker），先失败测试 `recomputeBoundedToRecentNAttempts`（注入 limit=2 验证截断）。
+- **TDD**：BlindSpotModelTests(2) + GRDBLearnerBlindSpotProviderTests(6，含红线/规模/attempt 软删/空间软删) + BlindSpotPresentationTests(2) 先失败后实现。
+- **验证**：轻量本机 LearnerModel 32 + UI 580 全绿（含 Han-free chrome guard），format/lint 0 error；含三端 UI 的全量 Build & Test 经 GitHub Actions CI 绿。
+- **scope-down 全兑现**：无 deposit（需独立 migration）、无自由产出语种检测、无 band 判决、无持久化盲点表、无外发、不碰 derive()/LanguageLevel。
+- **§17 文档影响已回写**：ADR-006 影响节（S3 进展）、architecture/001 §2.8、architecture/002-system-map §4.10 盲点条目、platform-page-inventory（三端盲点分区填充）、idea-02 §7.1（源替换 + 加注 errorPattern AI 候选不作信号源）。
 
 ## 19. 完成标准
 
