@@ -20,6 +20,7 @@ extension AppDatabase {
     /// `text` / null. `audio_artifact_id` is an un-constrained nullable column for
     /// now; the FK to the media-artifact store is deferred to the voice slice that
     /// actually writes it (see the companion voice-input architecture note).
+    // swiftlint:disable:next function_body_length
     static func createCompanionInfrastructure(_ db: Database) throws {
         try db.execute(sql: """
         CREATE TABLE conversation_companions (
