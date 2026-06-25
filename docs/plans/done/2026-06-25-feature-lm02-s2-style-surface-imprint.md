@@ -1,6 +1,6 @@
 # 任务方案：Style 表层印记（本地启发式，零外发）（LM02 Slice 2）
 
-状态：Draft
+状态：Done（2026-06-25 seam-only 落地；轻量本机 LearnerModel 41 全绿 + GitHub Actions Build & Test 全绿（run 28161953442）；§17 文档已回写（含 ADR-006 §8 分层细化 + 新 architecture note）；已移入 done/）
 自审核状态：Reviewed（2026-06-25 隔离子代理双轮审查，一轮 2 P0/3 P1 + 二轮 1 P0/4 P1 已修订写回，见第 13 节）
 类型：feature
 创建日期：2026-06-25

@@ -41,7 +41,7 @@
   ✅ LM02-S1（Memory 层 + 学习画像总览页）   ← 2026-06-25 已 Done（v27 migration + writer seam + 三端总览页 + CI 绿，已移 done/）；S2/S3/S4a 硬前置已满足
      ↓
   ✅ LM02-S3（盲点：dictation diff 派生）       ← 2026-06-25 已 Done（填 S1 盲点分区 + CI 绿，已移 done/）；compute-on-read 无 migration
-  LM02-S2（Style：seam-only 不展示）         ← 与 S3 并行；compute-on-read 无 migration
+  ✅ LM02-S2（Style：seam-only 不展示）         ← 2026-06-25 已 Done（compute-on-read seam-only + CI 绿，已移 done/）；无 migration
         （S2/S3 均 read-only，不依赖 S1 的 writer，但 S3 展示依赖 S1 总览页先落地）
 
 第 2 批（band，最高风险，须第 1 批 S3 信号成熟 + 回归充分）— 2026-06-25 已拆 S4a/S4b 各自 active plan + 双轮 + 隔离再审
@@ -70,7 +70,7 @@
 | 系列 | 方案文件（`docs/plans/active/`） | 主题 | 状态 / 门控 |
 |---|---|---|---|
 | LM02-S1 | ~~`2026-06-25-feature-lm02-memory-layer-and-learner-profile-overview`~~ → `done/` | Memory 层 + 学习画像总览页 | ✅ **Done（2026-06-25）**：三 Phase 落地（v27 `learner_memory_facts` + `AppDatabase.writer` + 三端总览页 + 治理）；CI Build & Test 全绿（run 28159562884）；§17 文档回写完成（ADR-006 / architecture 001+002 / spec/007 / page-inventory）；已移 `done/`。**S2/S3/S4a 硬前置已满足** |
-| LM02-S2 | `2026-06-25-feature-lm02-s2-style-surface-imprint` | Style 表层印记（seam-only 不展示） | 🟡 **Draft / Reviewed**（双轮过；compute-on-read 源语言写作印记，零外发/零迁移）；**用户定 do-now/seam-only**；待实现授权 |
+| LM02-S2 | ~~`2026-06-25-feature-lm02-s2-style-surface-imprint`~~ → `done/` | Style 表层印记（seam-only 不展示） | ✅ **Done（2026-06-25）**：compute-on-read 源语言写作印记 seam-only（NL 注入 detector + 按母语分组 + 红线 entries-only）；CI Build & Test 全绿（run 28161953442）；§17 回写（含 ADR-006 §8 持久化分层细化 + 新 architecture note + idea-01 §13.9 收口）；已移 `done/` |
 | LM02-S3 | ~~`2026-06-25-feature-lm02-s3-blind-spots`~~ → `done/` | 盲点（dictation diff 派生） | ✅ **Done（2026-06-25）**：compute-on-read dictation diff 盲点 + 填充 S1 总览页盲点分区（红线源级 grep + 行为断言双守；`LIMIT 200`）；CI Build & Test 全绿（run 28160963826）；§17 文档回写（含 idea-02 §7.1 源替换纠正）；已移 `done/` |
 | LM02-S4 | `2026-06-25-feature-lm02-s4-band-reestimation` | band 动态重估（拆解边界） | ⚪ **拆解边界 / 自审 N/A**（2026-06-25 完整双轮后转拆解边界，已 spawn S4a/S4b；4 P0+4 P1 分配进子片为实现前必决项）；不再作单一可实现方案 |
 | LM02-S4a | `2026-06-25-feature-lm02-s4a-lookup-capture-and-ledger` | 查词捕获 + 分析账本（地基，低风险） | 🟡 **Draft / Reviewed**（双轮 + 拆分后隔离再审三关过；再审收口 P0-A source_origin 降前向接缝 / P1-B 持久化新类别显式声明 / P2-C 埋点改 AI 解释 seam）；硬前置 S1；**待实现授权** |
