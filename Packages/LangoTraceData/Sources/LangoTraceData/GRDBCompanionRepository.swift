@@ -2,6 +2,19 @@ import Foundation
 import GRDB
 import LangoTraceCore
 
+/// Language-space context for a companion turn (resolved in the Data layer).
+public struct CompanionLanguageContext: Equatable, Sendable {
+    public let targetLanguageCode: String
+    public let nativeLanguageCode: String
+    public let level: String
+
+    public init(targetLanguageCode: String, nativeLanguageCode: String, level: String) {
+        self.targetLanguageCode = targetLanguageCode
+        self.nativeLanguageCode = nativeLanguageCode
+        self.level = level
+    }
+}
+
 /// Persists the Language Companion conversation (LM03-S1). One active thread per
 /// space; messages are linearly sequenced so "delete this message and everything
 /// after it" (ADR-008 §4) is well-defined. Reads / writes through the injected
@@ -46,6 +59,35 @@ public struct GRDBCompanionRepository: Sendable {
                 arguments: [thread.id, thread.languageSpaceID, thread.sourceEntryID, now.timeIntervalSince1970]
             )
             return thread
+        }
+    }
+
+    /// Language-space context the companion engine needs at send time (target /
+    /// native language + the static onboarding level baseline). Kept in the Data
+    /// layer so the App never touches GRDB directly.
+    public func languageContext(spaceID: String) throws -> CompanionLanguageContext? {
+        try writer.read { db in
+            guard let row = try Row.fetchOne(
+                db,
+                sql: "SELECT target_language_code, native_language_code, level FROM language_spaces WHERE id = ?",
+                arguments: [spaceID]
+            ) else { return nil }
+            return CompanionLanguageContext(
+                targetLanguageCode: row["target_language_code"],
+                nativeLanguageCode: row["native_language_code"],
+                level: row["level"]
+            )
+        }
+    }
+
+    /// Plan-A: the body of an explicitly brought-in entry (nil if deleted).
+    public func entryBody(entryID: String) throws -> String? {
+        try writer.read { db in
+            try String.fetchOne(
+                db,
+                sql: "SELECT body FROM entries WHERE id = ? AND deleted_at IS NULL",
+                arguments: [entryID]
+            )
         }
     }
 

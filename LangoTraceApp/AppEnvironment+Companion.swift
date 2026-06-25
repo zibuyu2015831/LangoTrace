@@ -1,5 +1,4 @@
 import Foundation
-import GRDB
 import LangoTraceAI
 import LangoTraceCore
 import LangoTraceData
@@ -84,19 +83,23 @@ private func companionSend(
     detectLanguage: @escaping @Sendable (String) -> String?
 ) async -> CompanionSendOutcome {
     guard
-        let database = try? databaseFactory.database(),
-        let thread = try? GRDBCompanionRepository(writer: database.writer).thread(id: threadID),
-        let space = try? companionSpaceInfo(reader: database.reader, spaceID: thread.languageSpaceID)
+        let database = try? databaseFactory.database()
     else {
         return .failed(.other)
     }
     let repository = GRDBCompanionRepository(writer: database.writer)
+    guard
+        let thread = try? repository.thread(id: threadID),
+        let space = try? repository.languageContext(spaceID: thread.languageSpaceID)
+    else {
+        return .failed(.other)
+    }
     let history = (try? repository.messages(threadID: threadID)) ?? []
     let persona = (try? repository.loadPersona(spaceID: thread.languageSpaceID)) ?? .default
 
     // Plan-A: seed the brought-in record only on the first turn.
     let seedEntryBody: String? = (history.isEmpty ? thread.sourceEntryID : nil)
-        .flatMap { try? companionEntryBody(reader: database.reader, entryID: $0) }
+        .flatMap { try? repository.entryBody(entryID: $0) }
 
     // Resolve the provider endpoint + secret (honest failure when not configured).
     let configurationRepository = GRDBAIProviderConfigurationRepository(database: database)
@@ -147,36 +150,5 @@ private func companionSend(
         return .appended(user: user, assistant: assistant)
     case let .failure(reason):
         return .failed(reason)
-    }
-}
-
-private struct CompanionSpaceInfo {
-    var targetLanguageCode: String
-    var nativeLanguageCode: String
-    var level: String
-}
-
-private func companionSpaceInfo(reader: DatabaseReader, spaceID: String) throws -> CompanionSpaceInfo? {
-    try reader.read { db in
-        guard let row = try Row.fetchOne(
-            db,
-            sql: "SELECT target_language_code, native_language_code, level FROM language_spaces WHERE id = ?",
-            arguments: [spaceID]
-        ) else { return nil }
-        return CompanionSpaceInfo(
-            targetLanguageCode: row["target_language_code"],
-            nativeLanguageCode: row["native_language_code"],
-            level: row["level"]
-        )
-    }
-}
-
-private func companionEntryBody(reader: DatabaseReader, entryID: String) throws -> String? {
-    try reader.read { db in
-        try String.fetchOne(
-            db,
-            sql: "SELECT body FROM entries WHERE id = ? AND deleted_at IS NULL",
-            arguments: [entryID]
-        )
     }
 }
