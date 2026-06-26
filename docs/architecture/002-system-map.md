@@ -336,7 +336,19 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - **温和复述（persona 暴露）**：v1 暴露既有 `CompanionCorrection.warmRecast` 二元 opt-in（默认 `.ifNeeded` 关），directive `correctionPolicy(.warmRecast)` + 受控片段文本早已映射。`CompanionLoadedThread` 加 `correction`（struct 默认值，不破坏构造）；App `loadThread` 带出 `loadPersona(spaceID).correction`；store `gentleRecastEnabled` 派生 + `setGentleRecast`；toggle 经 App **read-modify-write**——persona 为 per-space（`conversation_companions`），`savePersona` 全字段 upsert，故 `loadPersona`→仅改 correction→save，保 tone/formality。
 - **故障恢复**：先 yield 部分 delta 后抛错 → `onPartial` 已回调但最终 `.failure`，store 据此清空 in-flight、不持久部分回复（honest failure）。
 - **测试入口**：`CompanionConversationEngineTests`（流式 onPartial 累积 / 空流不回调 / 部分后失败，AI）、`CompanionPromptRegistryTests`（warmRecast fragment 文本，AI）、`CompanionStreamingStoreTests`（partials 累积 + 失败清空 + recast 派生与路由，UI）、`GRDBCompanionRepositoryTests`（read-modify-write 保 tone，Data）。
-- **范围外**：对话记忆 / 滚动摘要 / 对话小结（LM03-S3b，高风险，v33 摘要持久化 + 摘要 capability + 失效重建一致性）；常驻建议 chip / 长按翻译·解析·提示（长按能力未建）；persona tone/formality 编辑器 / `.none` 档；Anthropic 多 Provider 流式适配（LM03-S4）。
+- **范围外**：对话记忆 / 滚动摘要（LM03-S3b-1，见 §4.16）；对话小结（LM03-S3b-2）；常驻建议 chip / 长按翻译·解析·提示（长按能力未建）；persona tone/formality 编辑器 / `.none` 档；Anthropic 多 Provider 流式适配（LM03-S4）。
+
+### 4.16 语伴对话记忆 / 滚动摘要（LM03-S3b-1，上下文窗口压缩 + 失效重建一致性）
+
+- **定位**：会话超窗时把**老化出 recent-verbatim 窗**的较早轮次压缩为滚动摘要（`<<<CONVERSATION MEMORY>>>` 引用块）注入语伴 system prompt，长对话保持「记得你上次说的」（idea-03 §3.2/§5.2/§3.11）。**只压缩本会话自身消息、不注入外部数据**——区别于 S2b-1 Memory 注入（注入外部系统级事实 = 最高门）。
+- **隐私归类（语伴整体 opt-in 内，无新 consent 门）**：摘要系统自动触发，但被摘要内容 = provider 在本会话早轮已收到的对话（同会话同 provider、内容已见过），无新外发类目/无外部数据 → 归语伴整体 opt-in，**不新增 consent 门**；诚实披露经新 capability `.companionSummarization`（preview-only、不写 `ai_request_logs`，includedContent = `[.companionConversation]`，外部数据全 excluded）；被摘要轮 + 现有摘要经 `scrub`（PIIScrubber）outbound 脱敏。
+- **触发判定（引擎纯函数，可单测）**：`CompanionConversationEngine.shouldSummarize(messageCount:watermark:threshold≈24:recentVerbatimWindow≈12)`——超阈值且存在老化出窗未折叠轮次 → true。判定不埋 App（自审 P0-3）。
+- **数据流（send 回合内，App `companionSend`）**：`shouldSummarize` true → 取老化出窗且 `sequence > 水位` 的待折叠轮 → `engine.summarize(messagesToFold:existingSummary:)`（非流式缓冲、`CompanionSummarizationPromptRegistry` `builtin.companion.summary.v1`、scrub 覆盖被折叠轮 + 现有摘要）→ 成功则 `repository.updateRollingSummary(text:coversThroughSequence:新水位)`（失败 = honest failure，不更新、不阻塞回复）→ `reply` 只发 `sequence > 水位` 的未摘要近端轮 + `conversationMemory: 摘要文本`（无重叠双发）。reply 仍走 S3a `onPartial` 流式（摘要不流式、在 reply 前完成）。
+- **持久化（v33）**：`companion_threads` 加 3 列 `rolling_summary`/`summary_covers_through_sequence`/`summary_updated_at`（派生 cache 列，水位模型，无 fingerprint）；`CompanionRollingSummary`（Core 值类型）；local-only 不同步、随 thread 行 backup/export lane（可重建、恢复安全）。
+- **失效重建一致性（idea-03 §3.2，本片最高风险）**：`deleteMessageAndSubsequent`/`clearThread` 在**既有同一 `writer.write` 事务内**——删除点 `sequence ≤ 水位`（或 clear）→ 同事务清空摘要 + 水位（SQLite 原子、无中途态）；删除点 > 水位 → 保留；水位 null → no-op。重建惰性：失效后下次 send 再超窗重摘。
+- **band 红线隔离**：摘要只读 `companion_messages.content`，**不碰 band derive() / 不读 AI 难度 / learning_text**；守卫 `CompanionRollingSummaryBandGuardTests`（摘要专属源级 grep 无禁词 + 插入对话 + 摘要后 band 不变）。
+- **测试入口**：`CompanionRollingSummaryRepositoryTests`（v33 + 一致性六态，Data）、`CompanionConversationEngineTests`（shouldSummarize 四态 / summarize 缓冲·失败·scrub / conversationMemory 注入，AI）、`CompanionSummarizationTests`（prompt directive + 披露，AI）、`CompanionRollingSummaryBandGuardTests`（红线，LearnerModel）。
+- **范围外**：对话小结（S3b-2）；成本软提示 UI（§6.8 defer）；摘要经 `LearnerContextProvider` 统一取用（§3.11 v2 generalize，本片 companion-owned + repo 方法封装预留迁移点 + architecture note）；fingerprint 增量免重算（v2）；per-conversation 摘要开关（defer，「关语伴」已是整体 opt-out）。
 
 ## 5. 模块依赖方向
 

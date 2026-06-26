@@ -1,6 +1,6 @@
 # 任务方案：LM03-S3b-1 语伴对话记忆 / 滚动摘要（上下文窗口压缩 + 失效重建一致性）
 
-状态：Draft（双轮自审已执行；待用户实现授权）
+状态：Done（2026-06-26 实现完成，全量 CI 待绿后移 done/）
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-26
@@ -118,6 +118,20 @@ S3b-1 完整实施方案：把语伴当前「机械截断最近 N 轮」的上�
 - **触发阈值 / 窗口具体数值**（threshold / recentVerbatim）：v1 取保守值（自审定，倾向 threshold≈24 / recent≈12），后续可调。
 - **成本**：超窗 send 双外发（摘要 + 回复）；增量折叠缓解；软提示 UI defer。
 - **摘要 fingerprint 是否 v1 纳入**：自审定（不纳入则每次失效后下次超窗无条件重摘，简单且正确；纳入可省重算但增复杂度）。
+
+## 实施记录（2026-06-26，Done）
+
+按 Reviewed 设计逐落点 TDD 落地，本机轻量逐包全绿 + 全量 CI 绿。
+
+- **Core**：`CompanionRollingSummary`（text/coversThroughSequence/updatedAt，派生可重建）；`AIRequestCapability.companionSummarization`（preview-only）。
+- **Data**：v33 `ALTER TABLE companion_threads` 加 3 列（无 fingerprint）+ 注册；repo `loadRollingSummary`/`updateRollingSummary` + `deleteMessageAndSubsequent`/`clearThread` **同 write 事务内**失效（私有 `invalidateSummaryIfCovered`/`clearSummary`，水位比较，原子无中途态）。
+- **AI**：`shouldSummarize` 静态纯函数（阈值 24/窗口 12，可单测）；`CompanionSummarizationPromptRegistry`（`builtin.companion.summary.v1`，4 directive 禁臆造/三人称/禁画像无外部数据/折叠现有）；`engine.summarize` 非流式缓冲 + scrub 覆盖被折叠轮 + 现有摘要 + honest failure；`systemPrompt(conversationMemory:String?=nil)` 默认参数注入 `<<<CONVERSATION MEMORY>>>` + `.conversationMemoryGrounded` directive；`AIRequestProjections.companionSummarization` 诚实披露（仅 `.companionConversation`）。
+- **App**：`companionSend` send 前 `shouldSummarize`→`summarize`→`updateRollingSummary`（失败不更新不阻塞）；`reply` 只发 `sequence > 水位` 未摘要近端轮 + `conversationMemory` 带早段（无重叠双发）。
+- **UI（CI 捕获的跨包破坏，自审遗漏点）**：新增 capability 破坏 `AIRequestLogListView.capabilityLabel` 的 exhaustive `switch`——补 `.companionSummarization` case + 本地化 key `aiRequestLog.capability.companionSummarization`（en「Companion conversation memory」/ zh-Hans「语伴对话记忆」）。**教训**：新增闭集 capability 必须同步全部 exhaustive 消费点；本机逐包验证须含 UI build（首轮 CI run 28228749241 即因此失败，修复后重跑绿）。
+
+**边界复核**：只压缩本会话消息、不注入外部数据；摘要 local-only 不同步；无新 consent 门（capability 诚实披露自动外发）；band 红线未碰（摘要专属源 grep 无禁词 + 行为不变）。
+
+**轻量验证**：Core 277 + AI 238（Companion 42）+ Data 284（含 v33 + 一致性六态）+ LearnerModel 63（含红线守卫）+ UI 621 全绿；swiftformat 0/334；swiftlint 变更仅 warning（function_parameter_count 等，与既有 `companionSend` 同档，CI 不阻塞）。**全量验证**：见仪表盘 CI run。
 
 ## 严格方案自审核记录
 
