@@ -71,10 +71,20 @@
 - **硬前置**：LM03-S1（Done）+ Provider 流式（就绪）。**无新 migration / 无新 AI capability / 无新外发类目**。
 - **风险**：低（纯 UX + persona 选项暴露；流式并发顺序是主要审查点）。
 
-#### LM03-S3b：对话记忆/滚动摘要 + 对话小结（高风险）
-- **范围**：对话记忆 / 长期关系记忆（滚动窗口 + 摘要，含「删除某条及其后续」时摘要失效重建，§3.2/§3.11）；对话小结（手动 + 可选会话结束，§3.12）。
-- **硬前置**：LM03-S3a + Provider 流式 + plan 10/11 记忆（E7/E8 就绪）。**新增**：v33 摘要持久化 + `CompanionSummarizationPromptRegistry` + 摘要 capability + 删除失效重建一致性。
-- **风险**：高（摘要持久化 + 失效重建一致性 + 新摘要 AI 外发）。进入实现前须补全方案 + 双轮自审 + 授权。
+#### LM03-S3b：对话记忆/滚动摘要 + 对话小结 —— 2026-06-26 用户决策拆 S3b-1 / S3b-2
+> 两半风险异质（滚动摘要 = 高风险地基：持久化 + 上下文窗口整合 + 失效重建一致性 + 新自动 AI 外发；对话小结 = 中风险、复用 S2a），按风险拆，先做地基 S3b-1。
+
+##### LM03-S3b-1：对话记忆 / 滚动摘要（上下文窗口压缩 + 失效重建一致性）
+> **→ 完整 active plan + 双轮自审（2 P0 + 多 P1/P2 写回）= Reviewed，待用户实现授权**：[`active/2026-06-26-feature-lm03-s3b1-companion-rolling-summary.md`](2026-06-26-feature-lm03-s3b1-companion-rolling-summary.md)。自审收口：失效重建 in-transaction（repo 同事务）/ 触发判定下沉引擎纯函数 `shouldSummarize` / 隐私「已逐轮外发」措辞订正为「provider 本会话早轮已收到」（不改不新增 consent 门决策）/ `systemPrompt` 默认参数救调用 / fingerprint v1 去除 / 新 `CompanionRollingSummary` 类型 + `.companionSummarization` capability 先定义。
+- **范围**：会话超窗时把老化出窗的较早轮次压缩为滚动摘要（`<<<CONVERSATION MEMORY>>>` 引用块）注入 system prompt（§3.2/§5.2/§3.11）；**删该条及后续 / 清空 → 覆盖被删内容的摘要一并失效重建**（§3.2 硬规则，本片最高风险）。v33 `ALTER TABLE companion_threads` 加摘要列（水位模型，非新表）+ `CompanionSummarizationPromptRegistry`（`builtin.companion.summary.v1`）+ `.companionSummarization` capability + 引擎 `summarize` 方法。
+- **隐私归类（2026-06-26 用户定）**：**语伴整体 opt-in 内，不新增 consent 门**——只压缩本会话已逐轮外发内容、不注入外部数据；措施 = 摘要 capability 披露 + 复用 S2b-1 PII scrub + 摘要 local-only 不同步。区别于 S2b-1 Memory 注入（外部系统级事实 = 最高门）。
+- **硬前置**：LM03-S1（Done）+ S3a（Done）+ Provider 流式（就绪）。**新增 v33 migration + 新自动 AI 外发（摘要）**。
+- **风险**：高（失效重建一致性 + 新自动 AI 外发 + 上下文窗口整合）。
+
+##### LM03-S3b-2：对话小结（§3.12，复用 S2a + S3b-1 摘要 infra）
+- **范围**：轻量「本次对话小结」（用到的新词/表达 + 典型错误 + 可加记忆库候选）；手动 + 可选会话结束触发；复用 S2a `CompanionExtractionEngine` 提取 + S3b-1 摘要 infra + plan 10/11 deposit 批量入口。
+- **硬前置**：LM03-S2a（Done）+ S3b-1（摘要 infra）。
+- **风险**：中（复用既有提取 + 摘要；批量 deposit 入口 + 触发形态）。进入实现前补全方案 + 双轮自审 + 授权。
 
 ### LM03-S4（v2）：Style 注入 + Anthropic 适配 + 认知风格下投影
 - **范围**：Style 受控片段注入（依赖 LM02-S2 Style，经 Ability i+1 下投影，§3.11 / idea-01 §13.5）；Anthropic Messages 多轮 + 流式适配（idea-03 §10.3）；Style v2 触发时机（§9 待决）。
