@@ -65,7 +65,10 @@
        ↓
     ✅ S2b-2（方案B 找话题：一次性授权 + recency 智能最小发送 top-1）  ← Done 2026-06-26（六 Phase TDD + 全量 CI 绿 run 28217180799，连带修复方案A seedEntryBody 脱敏遗漏，已移 done/）
      ↓
-  LM03-S3（文本流式 + 对话记忆 + 小结 + 复述）
+  LM03-S3 已拆 S3a/S3b（2026-06-26）
+    🟢 S3a（文本流式 UX + 温和复述，低风险）  ← 完整 plan + 双轮自审（1 P0+多 P1 写回）= Reviewed，待用户实现授权
+       ↓
+    ⛔ S3b（对话记忆/滚动摘要 + 对话小结，高风险）  ← 边界登记（v33 摘要持久化 + 摘要 capability + 失效重建）
      ↓
   LM03-S4（v2：Style 注入 + Anthropic 适配 + i+1 下投影）
 
@@ -92,7 +95,9 @@
 | LM03-S2a | ~~`2026-06-25-feature-lm03-s2a-companion-reflux`~~ → `done/` | 语伴聊天反哺（入站 / 低外发） | ✅ **Done（2026-06-26）**：五 Phase TDD（Core 候选值类型 / v31 `companion_memory_candidates` 独立表 + repo 三方法 + band 红线守卫 / 提取引擎 + Prompt Registry + capability 闭集新 case / 三端 UI 提取动作三态 + 预览披露 / App 装配）；轻量单包测试全绿（Core/Data/AI/LearnerModel/UI）+ **全量 CI `Build & Test` 全绿（run 28186684074：v31 迁移 + 三端构建 + macOS app test + 全包 + lint）**。**新表独立不改 memory_candidates；band derive() 零改动；无新系统自动外发**；显式触发提取同「重新分析」先例。§17 回写完成（architecture/002 §4.12、spec/005·007、ADR-008 §6、page-inventory、prompts/companion/extraction.md、架构备忘录）。 |
 | LM03-S2b-1 | ~~`2026-06-26-feature-lm03-s2b1-companion-memory-injection`~~ → `done/` | 语伴 Memory 注入 + 两层隐私 + PII scrubbing | ✅ **Done（2026-06-26）**：双轮自审 Reviewed → 用户授权（接受 3 项推荐默认）→ 六 Phase TDD（Core consent/gate/scrubber + capability/descriptor / LearnerModel 选择层 + band 红线守卫 / AI prompt 注入 + 投影 + engine scrub seam / Data v32 `uses_learner_profile` / UI 一次性预览 + per-conversation 开关 / App 装配）。**全量 CI `Build & Test` 全绿（run 28214663981：v32 迁移 + 三端构建 + macOS app test + 全包 + lint）**。系统级生活事实 top-5（时近性+种类配额）注入 + 两层隐私（全局一次性预览 / per-conversation toggle）+ PII v1（手机号+身份证，outbound 含历史回放、存原文发脱敏）+ `.curatedLearnerMemory` 诚实披露（`.longTermMemory` 仍全局 excluded）+ band derive() 零改动。§17 回写完成（ADR-006·008 / spec/005·007·008 / architecture/002 §4.13 / page-inventory / prompts/companion/system-injection.md）；已移 `done/` |
 | LM03-S2b-2 | ~~`2026-06-26-feature-lm03-s2b2-companion-active-topic-finding`~~ → `done/` | 语伴方案B 主动找话题（一次性授权 + recency 智能最小发送） | ✅ **Done（2026-06-26）**：完整 plan + 双轮隔离自审（两轮各自独立命中相同 2 P0 + 共 6 P1）→ Reviewed → 用户授权 → 六 Phase TDD（Core consent/gate/candidate / LearnerModel recency 选条 + band 守卫 / AI prompt 注入 + 投影 + engine scrub〔连带修 seedEntryBody〕/ Data recentTopicCandidates / UI 一次性话题预览 + 冷启动零外发回归 / App send 回合内 grounding）。**全量 CI `Build & Test` 全绿（run 28217180799）**。一次性全局话题授权 + 复用 v32 开关（语义统一）+ recency top-1（仅 send 回合内、不破冷启动零外发、不用 FTS、纯 entries.body 仅当前 space）+ `.broughtInRecords` A/B 共用披露。**连带修复 S2b-1/方案A 既有漏洞**（seedEntryBody 未脱敏 + 零 preview 披露）。band 红线不碰、无新 migration。§17 回写完成；已移 `done/` |
-| 导航 | `2026-06-25-docs-lm03-companion-decomposition` | 语伴完整引擎切片 + 决策收口 | 🔵 **In Progress**（S1–S4 切片边界 + §9/§10.6 决策收口；**S1 已拆+Done；S2 已拆 S2a(Done)/S2b；S2b 再拆 S2b-1(完整 plan)/S2b-2(边界)**；S3…S4 子片待各批次开工前再拆） |
+| LM03-S3a | `2026-06-26-feature-lm03-s3a-companion-streaming-and-recast` | 语伴文本流式 UX + 温和复述纠正 | 🟢 **Reviewed / 待用户实现授权**（2026-06-26 自 S3 拆出 + 双轮隔离自审，1 P0+多 P1 写回）：文本流式逐字显示（复用既有 `CompanionReplyTransport` 流，**AsyncStream 单 MainActor 顺序消费**，不改持久化/外发）+ 温和复述 opt-in（暴露既有 `CompanionCorrection.warmRecast`，默认关，read-modify-write 保 tone/formality）。**无新 migration / capability / 外发类目**。低风险（并发模型自审改采 AsyncStream） |
+| LM03-S3b | （未拆 active plan，边界登记于拆解文档） | 语伴对话记忆/滚动摘要 + 对话小结 | ⛔ **边界登记 / 门控未开**（2026-06-26 自 S3 拆出）：滚动窗口 + 摘要 + 删除失效重建 + 对话小结。**新增** v33 摘要持久化 + `CompanionSummarizationPromptRegistry` + 摘要 capability。进入实现前须拆 active plan + 双轮自审 + 授权 |
+| 导航 | `2026-06-25-docs-lm03-companion-decomposition` | 语伴完整引擎切片 + 决策收口 | 🔵 **In Progress**（S1–S4 切片边界 + §9/§10.6 决策收口；**S1 Done；S2a Done；S2b-1 Done；S2b-2 Done；S3 已拆 S3a(完整 plan Reviewed)/S3b(边界)**；S4 待开工前再拆） |
 
 > E10（导入导出）/ E11（同步引擎）已于 2026-06-25 移入 `docs/archive/plans/`（引擎切片落地 + 剩余诚实 defer），不再占用本表；恢复入口与 `learner_memory_facts` 硬接缝见上方「已完成基线」与 `docs/archive/plans/README.md`。
 

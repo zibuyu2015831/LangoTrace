@@ -62,10 +62,19 @@
 - **自审重要产出**：两轮独立命中并将修复 **S2b-1/方案A 既有隐私漏洞**——`seedEntryBody` 未脱敏外发 + 方案A 记录零 preview 披露（本片连带修复）。
 - **风险**：高（系统自动注入外发 + 单条记录 PII 集中度）。待用户授权 + 2 项确认（单条记录一次性预览闸是否够 / 连带修方案A 披露）。
 
-### LM03-S3：文本流式 + 对话记忆 + 小结 + 温和复述
-- **范围**：文本流式输出（真人感，依赖 Provider 流式前置，§5.2）；对话记忆 / 长期关系记忆（滚动窗口 + 摘要，含「删除某条及其后续」时摘要失效重建，§3.2/§3.11）；对话小结（手动 + 可选会话结束，§3.12）；温和复述纠正（opt-in 默认关，§3.4）；常驻建议 chip（可选，默认走长按提示）。
-- **硬前置**：LM03-S1/S2 + Provider 流式 + plan 10/11 记忆。
-- **风险**：中（流式体验 + 摘要失效重建一致性）。
+### LM03-S3：文本流式 + 对话记忆 + 小结 + 温和复述 —— 2026-06-26 用户决策拆 S3a / S3b
+> 原单片捆五件事、风险差异大（流式/复述低风险 vs 摘要持久化/一致性高风险），按风险拆。
+
+#### LM03-S3a：文本流式 UX + 温和复述（低风险）
+> **→ 已拆完整 active plan（Draft，待双轮自审 → 授权）**：[`active/2026-06-26-feature-lm03-s3a-companion-streaming-and-recast.md`](2026-06-26-feature-lm03-s3a-companion-streaming-and-recast.md)。
+- **范围**：文本流式逐字显示 UX（复用既有 `CompanionReplyTransport` 流式，仅 surface deltas + in-flight 态，**不改持久化**）；温和复述纠正 opt-in（暴露既有 `CompanionCorrection.warmRecast`，默认 `.ifNeeded` 关，persona save 复用）。建议 chip defer（长按提示本身未建）。
+- **硬前置**：LM03-S1（Done）+ Provider 流式（就绪）。**无新 migration / 无新 AI capability / 无新外发类目**。
+- **风险**：低（纯 UX + persona 选项暴露；流式并发顺序是主要审查点）。
+
+#### LM03-S3b：对话记忆/滚动摘要 + 对话小结（高风险）
+- **范围**：对话记忆 / 长期关系记忆（滚动窗口 + 摘要，含「删除某条及其后续」时摘要失效重建，§3.2/§3.11）；对话小结（手动 + 可选会话结束，§3.12）。
+- **硬前置**：LM03-S3a + Provider 流式 + plan 10/11 记忆（E7/E8 就绪）。**新增**：v33 摘要持久化 + `CompanionSummarizationPromptRegistry` + 摘要 capability + 删除失效重建一致性。
+- **风险**：高（摘要持久化 + 失效重建一致性 + 新摘要 AI 外发）。进入实现前须补全方案 + 双轮自审 + 授权。
 
 ### LM03-S4（v2）：Style 注入 + Anthropic 适配 + 认知风格下投影
 - **范围**：Style 受控片段注入（依赖 LM02-S2 Style，经 Ability i+1 下投影，§3.11 / idea-01 §13.5）；Anthropic Messages 多轮 + 流式适配（idea-03 §10.3）；Style v2 触发时机（§9 待决）。
