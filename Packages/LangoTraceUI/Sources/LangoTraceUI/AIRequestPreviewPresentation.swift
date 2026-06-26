@@ -81,6 +81,7 @@ struct RequestPreviewCardModel: Equatable {
         case .proficiencyLevel: localizedString("requestPreview.content.proficiencyLevel")
         case .companionConversation: localizedString("requestPreview.content.companionConversation")
         case .curatedLearnerMemory: localizedString("requestPreview.content.curatedLearnerMemory")
+        case .curatedLearnerStyle: localizedString("requestPreview.content.curatedLearnerStyle")
         case .broughtInRecords: localizedString("requestPreview.content.broughtInRecords")
         case .historicalEntries, .photoAttachments, .audioRecordings,
              .longTermMemory, .apiCredential, .otherLanguageSpaces:

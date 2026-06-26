@@ -113,7 +113,10 @@ func makeCompanionChatActions(
             try? repository.savePersona(updated, spaceID: spaceID)
         },
         memoryPreviewProjection: { _ in
-            // The "will-send-with-injection" disclosure for the one-time preview.
+            // The "will-send-with-injection" disclosure for the one-time learner-
+            // profile preview. The single profile consent now covers BOTH curated
+            // Memory facts and the writing-style register (LM03-S4a), so the
+            // disclosure names both.
             guard let database = try? databaseFactory.database() else { return nil }
             let configurationRepository = GRDBAIProviderConfigurationRepository(database: database)
             guard
@@ -121,7 +124,8 @@ func makeCompanionChatActions(
                 let endpoint = profile.textGenerationEndpointInput
             else { return nil }
             return AIRequestPreviewProjection.companionConversation(
-                endpoint: endpoint, lengthBucket: .medium, hasMemoryInjection: true
+                endpoint: endpoint, lengthBucket: .medium,
+                hasMemoryInjection: true, hasStyleInjection: true
             )
         },
         recordTopicPreviewProjection: { _ in
@@ -268,6 +272,33 @@ private func companionSend(
         memoryContext = []
     }
 
+    // Style injection (LM03-S4a): gated by the SAME one-time learner-profile consent
+    // as Memory. When open, project the system-level surface Style imprint for this
+    // space's native language through the READ-ONLY Ability band (the i+1
+    // down-projection ceiling — never touches band derive/write) into a quantized
+    // descriptor. It carries no raw writing content, so there is nothing to scrub;
+    // projection returns nil (no injection) when the style signal is too sparse.
+    let styleDescriptor: CompanionStyleDescriptor?
+    if CompanionInjectionGate.shouldInject(consent: consent, threadUsesProfile: thread.usesLearnerProfile) {
+        let styleProvider = GRDBLearnerStyleProvider(reader: database.reader)
+        let bandProvider = GRDBLearnerBandProvider(
+            reader: database.reader,
+            blindSpotProvider: GRDBLearnerBlindSpotProvider(reader: database.reader)
+        )
+        let seedLevel = LanguageLevel(rawValue: space.level) ?? .a1
+        if let imprint = try? styleProvider.styleImprint(),
+           let band = try? bandProvider.band(languageCode: space.targetLanguageCode, seedLevel: seedLevel)
+        {
+            styleDescriptor = CompanionStyleProjection.project(
+                imprint: imprint, nativeLanguageCode: space.nativeLanguageCode, band: band
+            )
+        } else {
+            styleDescriptor = nil
+        }
+    } else {
+        styleDescriptor = nil
+    }
+
     // Plan-A: seed the brought-in record only on the first turn.
     let seedEntryBody: String? = (history.isEmpty ? thread.sourceEntryID : nil)
         .flatMap { try? repository.entryBody(entryID: $0) }
@@ -356,6 +387,7 @@ private func companionSend(
         memoryContext: memoryContext,
         broughtInRecords: broughtInRecords,
         conversationMemory: summary?.text,
+        styleDescriptor: styleDescriptor,
         onPartial: onPartial
     )
 

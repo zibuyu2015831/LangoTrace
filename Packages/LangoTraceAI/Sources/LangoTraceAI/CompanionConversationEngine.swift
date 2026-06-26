@@ -78,7 +78,8 @@ public struct CompanionConversationEngine: Sendable {
         seedEntryBody: String?,
         memoryContext: [String] = [],
         broughtInRecords: [String] = [],
-        conversationMemory: String? = nil
+        conversationMemory: String? = nil,
+        styleDescriptor: CompanionStyleDescriptor? = nil
     ) -> (system: CompanionRenderedPrompt, messages: [ConversationMessage]) {
         let prompt = CompanionPromptRegistry.systemPrompt(
             persona: persona,
@@ -94,7 +95,11 @@ public struct CompanionConversationEngine: Sendable {
             broughtInRecords: broughtInRecords.map(scrub),
             // The rolling summary (LM03-S3b-1) lands in the system prompt too — scrub
             // it on the way out like every other outbound payload.
-            conversationMemory: conversationMemory.map(scrub)
+            conversationMemory: conversationMemory.map(scrub),
+            // The Style descriptor (LM03-S4a) carries only quantized categories +
+            // a CEFR ceiling — no raw user content — so it is NOT scrubbed (there is
+            // nothing to scrub).
+            styleDescriptor: styleDescriptor
         )
         // Keep only the most recent turns (system is separate). Truncation acts on
         // the outbound assembly only — `history` (the persisted thread) is untouched.
@@ -131,6 +136,7 @@ public struct CompanionConversationEngine: Sendable {
         memoryContext: [String] = [],
         broughtInRecords: [String] = [],
         conversationMemory: String? = nil,
+        styleDescriptor: CompanionStyleDescriptor? = nil,
         onPartial: @Sendable (String) -> Void = { _ in }
     ) async -> CompanionReplyOutcome {
         // Detect on the raw input (routing hint); the outbound payload is scrubbed
@@ -146,7 +152,8 @@ public struct CompanionConversationEngine: Sendable {
             seedEntryBody: seedEntryBody,
             memoryContext: memoryContext,
             broughtInRecords: broughtInRecords,
-            conversationMemory: conversationMemory
+            conversationMemory: conversationMemory,
+            styleDescriptor: styleDescriptor
         )
         var buffer = ""
         do {

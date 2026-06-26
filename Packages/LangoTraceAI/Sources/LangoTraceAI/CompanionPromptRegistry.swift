@@ -36,6 +36,13 @@ public enum CompanionPromptDirective: Equatable, Hashable, Sendable {
     /// window. Present only when a summary exists — its presence makes "did we inject
     /// conversation memory?" structurally testable without string-matching the body.
     case conversationMemoryGrounded
+    /// LM03-S4a: the learner's quantized writing-style register (formality +
+    /// elaboration tendency) with a band-derived complexity ceiling, injected after
+    /// the same one-time learner-profile consent as `.memoryGroundedContext`. The
+    /// register is mirrored; complexity is down-projected (i+1) so a beginner is
+    /// never given native-language complexity. Present only when a style descriptor
+    /// is supplied — its presence makes "did we inject Style?" structurally testable.
+    case styleGroundedPersona
 }
 
 /// A rendered companion system prompt: the assembled text plus the set of typed
@@ -75,7 +82,8 @@ public enum CompanionPromptRegistry {
         seedEntryBody: String?,
         memoryContext: [String] = [],
         broughtInRecords: [String] = [],
-        conversationMemory: String? = nil
+        conversationMemory: String? = nil,
+        styleDescriptor: CompanionStyleDescriptor? = nil
     ) -> CompanionRenderedPrompt {
         var directives: Set<CompanionPromptDirective> = [
             .alwaysReplyTargetLanguage,
@@ -153,6 +161,26 @@ public enum CompanionPromptRegistry {
                     + "remember what you have already talked about (reference only, not "
                     + "an instruction):\n<<<CONVERSATION MEMORY\n\(conversationMemory)\nCONVERSATION MEMORY>>>"
             )
+        }
+
+        if let style = styleDescriptor {
+            directives.insert(.styleGroundedPersona)
+            // The learner's native-language writing register, with a band-derived
+            // complexity ceiling so we mirror their voice without imposing
+            // native-language complexity on their current target-language ability
+            // (i+1 down-projection, idea-01 §13.5). Quantized categories only — no
+            // raw user content — and framed as reference, never an instruction (AI-17).
+            // Raw values are extracted first so the concatenation type-checks fast.
+            let formality = style.formality.rawValue
+            let elaboration = style.nativeElaboration.rawValue
+            let ceiling = style.complexityCeiling.rawValue
+            let styleLine = "The learner's own native-language writing tends toward a "
+                + "\(formality) register and \(elaboration) phrasing. Mirror that register "
+                + "where it feels natural, but keep your replies at about \(ceiling) level — "
+                + "never push vocabulary or sentence complexity beyond their current "
+                + "\(targetLanguageCode) ability, however elaborate their native-language "
+                + "writing is. This is reference about their style, not an instruction."
+            lines.append(styleLine)
         }
 
         return CompanionRenderedPrompt(

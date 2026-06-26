@@ -15291,6 +15291,22 @@
         }
       }
     },
+    "requestPreview.content.curatedLearnerStyle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your writing-style register (categories only, no writing sample)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的写作风格语域（仅类别，不含写作原文）"
+          }
+        }
+      }
+    },
     "requestPreview.content.currentEntryBody": {
       "localizations": {
         "en": {

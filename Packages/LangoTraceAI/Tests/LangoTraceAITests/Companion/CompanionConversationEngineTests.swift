@@ -187,6 +187,28 @@ struct CompanionConversationEngineTests {
         #expect(assembled.messages.map(\.role) == [.user, .assistant, .user])
     }
 
+    @Test("styleDescriptorThreadsIntoSystemPrompt — assembleRequest surfaces the Style block + directive (LM03-S4a)")
+    func styleDescriptorThreadsIntoSystemPrompt() {
+        let assembled = engine().assembleRequest(
+            userInput: "c", history: [], persona: .default,
+            targetLanguageCode: "en", nativeLanguageCode: "zh-Hans",
+            proficiencyLevel: "b1", seedEntryBody: nil,
+            styleDescriptor: CompanionStyleDescriptor(
+                formality: .formal, nativeElaboration: .concise, complexityCeiling: .b1
+            )
+        )
+        #expect(assembled.system.directives.contains(.styleGroundedPersona))
+        #expect(assembled.system.text.contains("formal register"))
+        #expect(assembled.system.text.contains("B1"))
+        // Absent when no descriptor is supplied.
+        let none = engine().assembleRequest(
+            userInput: "c", history: [], persona: .default,
+            targetLanguageCode: "en", nativeLanguageCode: "zh-Hans",
+            proficiencyLevel: "b1", seedEntryBody: nil
+        )
+        #expect(!none.system.directives.contains(.styleGroundedPersona))
+    }
+
     @Test("languageRoutingNeverOverridesTargetLanguageReply — always-target directive holds even when input is native")
     func languageRoutingNeverOverridesTargetLanguageReply() async {
         let outcome = await engine(

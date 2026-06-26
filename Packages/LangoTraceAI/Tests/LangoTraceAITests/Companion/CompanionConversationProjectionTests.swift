@@ -5,13 +5,26 @@ import Testing
 
 @Suite("Companion conversation projection (LM03-S2b-1 honest disclosure)")
 struct CompanionConversationProjectionTests {
-    private func projection(injecting: Bool, records: Bool = false) -> AIRequestPreviewProjection {
+    private func projection(injecting: Bool, records: Bool = false, style: Bool = false) -> AIRequestPreviewProjection {
         .companionConversation(
             endpoint: endpoint(adapterKind: .openAICompatibleChat),
             lengthBucket: .medium,
             hasMemoryInjection: injecting,
-            hasBroughtInRecords: records
+            hasBroughtInRecords: records,
+            hasStyleInjection: style
         )
+    }
+
+    @Test("withStyleInjection — discloses curatedLearnerStyle (LM03-S4a); absent without it")
+    func disclosesStyleInjection() {
+        let withStyle = projection(injecting: false, style: true)
+        #expect(withStyle.includedContent.contains(.curatedLearnerStyle))
+        #expect(withStyle.includedContent.contains(.companionConversation))
+        // Style is its own category, independent of Memory injection.
+        #expect(!withStyle.includedContent.contains(.curatedLearnerMemory))
+
+        let withoutStyle = projection(injecting: false, style: false)
+        #expect(!withoutStyle.includedContent.contains(.curatedLearnerStyle))
     }
 
     @Test("withBroughtInRecords — discloses broughtInRecords; longTermMemory still excluded")

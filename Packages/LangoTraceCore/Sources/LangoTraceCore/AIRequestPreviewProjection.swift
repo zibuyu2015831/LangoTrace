@@ -76,6 +76,13 @@ public enum AIRequestContentDescriptor: String, Codable, CaseIterable, Equatable
     /// derived, consented subset that *is* sent — so the preview can honestly show
     /// both "sends: curated subset" and "does not send: full memory store".
     case curatedLearnerMemory
+    /// The learner's quantized writing-style register (formality + elaboration
+    /// tendency + a band-derived complexity ceiling) the companion injects after
+    /// the same one-time learner-profile consent as `.curatedLearnerMemory`
+    /// (LM03-S4a). Names the derived style categories as a class — never any raw
+    /// writing sample. Carries no user content, so it is the lowest-PII of the
+    /// injected categories.
+    case curatedLearnerStyle
     /// One of the user's own saved records, brought into the conversation as a
     /// topic — either explicitly by the user (方案A "talk about this record") or,
     /// after one-time consent, auto-selected by the companion to find a topic

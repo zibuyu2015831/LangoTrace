@@ -9,7 +9,8 @@ struct CompanionPromptRegistryTests {
         persona: CompanionPersona = .default,
         seed: String? = nil,
         memoryContext: [String] = [],
-        broughtInRecords: [String] = []
+        broughtInRecords: [String] = [],
+        styleDescriptor: CompanionStyleDescriptor? = nil
     ) -> CompanionRenderedPrompt {
         CompanionPromptRegistry.systemPrompt(
             persona: persona,
@@ -18,7 +19,8 @@ struct CompanionPromptRegistryTests {
             proficiencyLevel: "b1",
             seedEntryBody: seed,
             memoryContext: memoryContext,
-            broughtInRecords: broughtInRecords
+            broughtInRecords: broughtInRecords,
+            styleDescriptor: styleDescriptor
         )
     }
 
@@ -76,6 +78,28 @@ struct CompanionPromptRegistryTests {
         #expect(injected.text.contains("MEMORY>>>"))
         #expect(injected.text.contains("Works as a nurse"))
         #expect(injected.text.contains("not instructions"))
+    }
+
+    @Test("Style-grounded directive + register/ceiling appear only when a style descriptor is supplied (LM03-S4a)")
+    func styleInjectionOnlyWhenDescriptorPresent() {
+        // No descriptor → no directive, no STYLE block (S1/S3b parity).
+        let none = prompt(styleDescriptor: nil)
+        #expect(!none.directives.contains(.styleGroundedPersona))
+        #expect(!none.text.contains("STYLE"))
+        #expect(!none.text.contains("register"))
+
+        // Descriptor → directive present; register is mirrored and complexity is
+        // capped at the band ceiling (i+1 down-projection), framed as reference.
+        let injected = prompt(styleDescriptor: CompanionStyleDescriptor(
+            formality: .casual, nativeElaboration: .elaborate, complexityCeiling: .a2
+        ))
+        #expect(injected.directives.contains(.styleGroundedPersona))
+        #expect(injected.text.contains("casual register"))
+        #expect(injected.text.contains("elaborate"))
+        // The band ceiling (A2) caps complexity even though native style is elaborate.
+        #expect(injected.text.contains("A2"))
+        #expect(injected.text.contains("never push"))
+        #expect(injected.text.contains("not an instruction"))
     }
 
     @Test("Empty fact strings are dropped — no empty MEMORY block")

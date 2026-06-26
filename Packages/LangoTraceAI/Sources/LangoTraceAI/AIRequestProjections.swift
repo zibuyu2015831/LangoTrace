@@ -116,7 +116,8 @@ public extension AIRequestPreviewProjection {
         endpoint: AIProviderEndpointInput,
         lengthBucket: AIRequestLengthBucket,
         hasMemoryInjection: Bool,
-        hasBroughtInRecords: Bool = false
+        hasBroughtInRecords: Bool = false,
+        hasStyleInjection: Bool = false
     ) -> AIRequestPreviewProjection {
         var included: [AIRequestContentDescriptor] = [
             .companionConversation,
@@ -126,6 +127,11 @@ public extension AIRequestPreviewProjection {
         ]
         if hasMemoryInjection {
             included.append(.curatedLearnerMemory)
+        }
+        // Style register (LM03-S4a) egresses under the same one-time learner-profile
+        // consent as Memory; disclose it as its own (lowest-PII) category.
+        if hasStyleInjection {
+            included.append(.curatedLearnerStyle)
         }
         // 方案A (user brought in a record) or 方案B (companion auto-sourced one).
         // Either way the record body egresses, so the preview discloses it.
