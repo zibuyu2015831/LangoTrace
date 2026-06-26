@@ -26,15 +26,21 @@ public enum PIIScrubber {
 
     /// Mainland-China mobile: exactly 11 digits, 1 followed by 3-9, not embedded
     /// in a longer digit run.
-    private static let mobileRegex = try! NSRegularExpression(
-        pattern: "(?<![0-9])1[3-9][0-9]{9}(?![0-9])"
-    )
+    private static let mobileRegex = makeRegex("(?<![0-9])1[3-9][0-9]{9}(?![0-9])")
 
     /// 18-character national ID: 17 digits + a check character (digit or X/x), not
     /// embedded in a longer alphanumeric ID-like run.
-    private static let nationalIDRegex = try! NSRegularExpression(
-        pattern: "(?<![0-9Xx])[0-9]{17}[0-9Xx](?![0-9Xx])"
-    )
+    private static let nationalIDRegex = makeRegex("(?<![0-9Xx])[0-9]{17}[0-9Xx](?![0-9Xx])")
+
+    /// Compiles a compile-time-constant pattern. The patterns are fixed literals
+    /// covered by `PIIScrubberTests`; an invalid one is a programmer error surfaced
+    /// loudly rather than force-tried (avoids `force_try`).
+    private static func makeRegex(_ pattern: String) -> NSRegularExpression {
+        guard let regex = try? NSRegularExpression(pattern: pattern) else {
+            preconditionFailure("Invalid PII regex pattern: \(pattern)")
+        }
+        return regex
+    }
 
     /// Returns `text` with structured PII replaced by neutral placeholders.
     /// National ID is matched first (18 chars) so an ID is never partially
