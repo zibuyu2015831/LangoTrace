@@ -8,8 +8,9 @@ enum AIProviderTextRequestAdapterError: Error, Equatable {
     /// The endpoint base URL could not be turned into a request URL.
     case invalidEndpointURL
     /// The adapter kind has no text-provider implementation yet
-    /// (`anthropicMessages` / `geminiGenerateContent` are reserved extension
-    /// points; real wiring happens via `docs/workflows/add-ai-provider.md`).
+    /// (`geminiGenerateContent` is the remaining reserved extension point;
+    /// `anthropicMessages` is wired as of LM03-S4b — real wiring happens via
+    /// `docs/workflows/add-ai-provider.md`).
     case unsupportedProvider
     /// The response body could not be decoded into model output text.
     case invalidResponseBody
@@ -31,7 +32,9 @@ enum AIProviderTextRequestAdapterFactory {
             OpenAIResponsesTextAdapter()
         case .mimoCompatibleChat:
             MimoCompatibleChatTextAdapter()
-        case .anthropicMessages, .geminiGenerateContent:
+        case .anthropicMessages:
+            AnthropicMessagesTextAdapter()
+        case .geminiGenerateContent:
             throw AIProviderTextRequestAdapterError.unsupportedProvider
         }
     }
@@ -94,14 +97,24 @@ protocol AIProviderTextRequestAdapter: Sendable {
     /// the payload carries no recognizable output text.
     func outputText(fromResponseObject object: [String: Any]) -> String?
 
+    /// Provider-specific request headers (auth scheme plus any version pins) to
+    /// apply to a finalized request. This is a **protocol requirement** — not an
+    /// extension-only helper — so per-kind overrides dispatch through the
+    /// `any AIProviderTextRequestAdapter` existential the services hold. The
+    /// OpenAI-compatible default returns `Authorization: Bearer`; Anthropic
+    /// overrides to `x-api-key` + `anthropic-version`; mimo overrides to
+    /// `api-key`. Returns an empty dictionary when no secret is present.
+    func providerRequestHeaders(secret: String?) -> [String: String]
+
     /// Body for a **multi-turn, streaming** chat request (the language-companion
     /// transport seam). Carries an ordered `[ConversationMessage]` plus an
     /// optional leading system segment, with `stream: true` baked in.
     ///
     /// Returns `nil` for adapter kinds with no streaming chat implementation
-    /// (`anthropicMessages` / `geminiGenerateContent` — already rejected by the
-    /// factory; the default inherits `nil`). The streaming service treats `nil`
-    /// as "unsupported provider" so support stays structural.
+    /// (`geminiGenerateContent` — rejected by the factory; the default inherits
+    /// `nil`). OpenAI Chat / Responses / mimo and Anthropic override it. The
+    /// streaming service treats `nil` as "unsupported provider" so support stays
+    /// structural.
     func streamingChatBody(
         model: String,
         system: String?,
@@ -145,6 +158,16 @@ extension AIProviderTextRequestAdapter {
         nil
     }
 
+    /// Default OpenAI-compatible auth: `Authorization: Bearer` when a non-blank
+    /// secret is present, no auth header otherwise. Anthropic / mimo override
+    /// this requirement; OpenAI Chat / Responses inherit the default.
+    func providerRequestHeaders(secret: String?) -> [String: String] {
+        guard let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return [:]
+        }
+        return ["Authorization": "Bearer \(secret)"]
+    }
+
     /// Shared `messages`/`input` wire array builder: optional leading system
     /// segment, then the ordered turns mapped to `{role, content}` dictionaries.
     func conversationWireMessages(
@@ -175,10 +198,12 @@ extension AIProviderTextRequestAdapter {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            // Bearer is the OpenAI-compatible scheme. Anthropic's `x-api-key`
-            // header strategy will be injected by its own adapter when added.
-            request.setValue("Bearer \(secret)", forHTTPHeaderField: "Authorization")
+        // Auth scheme + any version pins come from the per-kind requirement so
+        // a non-Bearer provider (Anthropic `x-api-key`, mimo `api-key`) dispatches
+        // through the existential the services hold rather than being locked to
+        // the OpenAI Bearer default here.
+        for (field, value) in providerRequestHeaders(secret: secret) {
+            request.setValue(value, forHTTPHeaderField: field)
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         if let timeoutSeconds {
@@ -502,26 +527,14 @@ struct MimoCompatibleChatTextAdapter: AIProviderTextRequestAdapter {
         OpenAICompatibleResponseTextParser.chatCompletionsText(fromResponseObject: object)
     }
 
-    func makeRequest(
-        baseURL: String,
-        secret: String?,
-        body: [String: Any],
-        timeoutSeconds: TimeInterval?
-    ) throws -> URLRequest {
-        guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: baseURL, pathSuffix: pathSuffix)
-        else {
-            throw AIProviderTextRequestAdapterError.invalidEndpointURL
+    /// mimo authenticates with a bare `api-key` header rather than
+    /// `Authorization: Bearer`. Overriding the dispatched requirement (instead of
+    /// a same-name `makeRequest` overload, which the existential never reaches)
+    /// is what actually applies this header on the shared request path.
+    func providerRequestHeaders(secret: String?) -> [String: String] {
+        guard let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return [:]
         }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            request.setValue(secret, forHTTPHeaderField: "api-key")
-        }
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        if let timeoutSeconds {
-            request.timeoutInterval = timeoutSeconds
-        }
-        return request
+        return ["api-key": secret]
     }
 }

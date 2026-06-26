@@ -74,13 +74,51 @@ struct AIChatStreamingServiceTests {
         #expect(input.map { $0["role"] } == ["user"])
     }
 
-    @Test("reserved provider kinds throw unsupportedProvider from the stream")
+    @Test("the remaining reserved provider kind throws unsupportedProvider from the stream")
     func reservedProviderKindsAreUnsupported() async {
+        // LM03-S4b wired Anthropic; Gemini stays reserved.
         let service = AIChatStreamingService(httpClient: ScriptedStreamingHTTPClient(steps: []))
-        let stream = service.stream(request(adapterKind: .anthropicMessages))
+        let stream = service.stream(request(adapterKind: .geminiGenerateContent))
         await #expect(throws: AIChatStreamingError.unsupportedProvider) {
             for try await _ in stream {}
         }
+    }
+
+    /// Anthropic SSE bytes emitting "He" + "llo". Anthropic uses named `event:`
+    /// lines (ignored by the data-only parser) and, critically, sends **no**
+    /// `data: [DONE]` — the stream ends on byte EOF.
+    private func anthropicHelloStreamBytes() -> [UInt8] {
+        let sse = """
+        event: message_start
+        data: {"type":"message_start","message":{"role":"assistant","content":[]}}
+
+        event: content_block_start
+        data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
+
+        event: content_block_delta
+        data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"He"}}
+
+        event: content_block_delta
+        data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"llo"}}
+
+        event: message_stop
+        data: {"type":"message_stop"}
+
+        """
+        return Array(sse.utf8)
+    }
+
+    @Test("Anthropic stream yields ordered deltas and completes on byte EOF without [DONE]")
+    func anthropicStreamYieldsDeltasThenCompletesOnEOF() async throws {
+        let client = ScriptedStreamingHTTPClient(steps: [.bytes(anthropicHelloStreamBytes())])
+        let service = AIChatStreamingService(httpClient: client)
+        var deltas: [String] = []
+        for try await event in service.stream(request(adapterKind: .anthropicMessages)) {
+            if case let .delta(text) = event {
+                deltas.append(text)
+            }
+        }
+        #expect(deltas == ["He", "llo"])
     }
 
     // MARK: - Streaming happy path

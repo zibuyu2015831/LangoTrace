@@ -438,7 +438,7 @@ func unsupportedAdaptersAndPlaceholderCapabilitiesDoNotSendHTTP() async throws {
     let service = AIProviderConfigurationProbeService(httpClient: httpClient)
 
     let result = try await service.probeDraftConfiguration(
-        draftInput(adapterKind: .anthropicMessages)
+        draftInput(adapterKind: .geminiGenerateContent)
     )
 
     #expect(result.overallStatus == .failed)
@@ -469,6 +469,35 @@ func localProvidersCanProbeWithoutAuthorizationHeader() async throws {
 
     #expect(result.overallStatus == .succeeded)
     #expect(await httpClient.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
+}
+
+@Test("Anthropic draft probe passes text + structured JSON via x-api-key, never leaking the secret as Bearer")
+func anthropicDraftProbeSucceedsWithApiKeyHeader() async throws {
+    // Anthropic returns model output in `content[].text`, not `choices[].message`.
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"content":[{"type":"text","text":"OK"}]}"#),
+        .json(#"{"content":[{"type":"text","text":"{\"ok\":true}"}]}"#),
+    ])
+    let service = AIProviderConfigurationProbeService(httpClient: httpClient)
+
+    let result = try await service.probeDraftConfiguration(
+        draftInput(
+            providerPresetID: "anthropic",
+            adapterKind: .anthropicMessages,
+            baseURL: "https://api.anthropic.com/v1",
+            plaintextSecret: "sk-ant-secret"
+        )
+    )
+
+    #expect(result.capability(.textReply)?.status == .succeeded)
+    #expect(result.capability(.structuredJSON)?.status == .succeeded)
+    let requests = await httpClient.requests
+    #expect(!requests.isEmpty)
+    // Authenticated with x-api-key + anthropic-version, and the secret never
+    // rides an Authorization: Bearer header.
+    #expect(requests.allSatisfy { $0.value(forHTTPHeaderField: "x-api-key") == "sk-ant-secret" })
+    #expect(requests.allSatisfy { $0.value(forHTTPHeaderField: "anthropic-version") == "2023-06-01" })
+    #expect(requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
 }
 
 private extension AIProviderConfigurationProbeResult {

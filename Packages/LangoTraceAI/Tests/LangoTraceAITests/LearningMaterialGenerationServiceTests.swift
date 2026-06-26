@@ -344,7 +344,7 @@ func learningMaterialGenerationServiceRejectsUnsupportedAdaptersBeforeHTTP() asy
     await #expect(throws: LearningMaterialGenerationServiceError(category: .unsupportedProvider)) {
         try await service.generate(
             LearningMaterialServiceGenerationRequest(
-                endpoint: endpoint(adapterKind: .anthropicMessages),
+                endpoint: endpoint(adapterKind: .geminiGenerateContent),
                 plaintextSecret: "sk-test-secret",
                 input: sampleGenerationInput(sourceText: "我去了。"),
                 operationID: DiagnosticOperationID(rawValue: "op-unsupported"),
