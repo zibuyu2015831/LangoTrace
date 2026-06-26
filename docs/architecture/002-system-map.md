@@ -294,7 +294,7 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - **隐私边界**：S1 **零系统自动注入**（不读 Memory 生活事实 / 不 FTS）→ 仅用户打字 + 显式带入单条记录的主动外发（决策 #10 trivially 满足）；外发经 Provider 抽象 + `projectionMetadata()`（E6）；人设纯枚举防注入（AI-17）；始终目标语（typed directive 契约）。
 - **故障恢复**：Provider 未配置 / 不可用 / 拒绝 → honest 失败态（`CompanionReplyFailure`）+ 可重试 + 不丢输入。
 - **测试入口**：`CompanionPersonaTests`/`CompanionDeletionSemanticsTests`/`CompanionFeatureStoreTests`（Core）、`GRDBCompanionRepositoryTests`（Data）、`CompanionConversationEngineTests`/`CompanionPromptRegistryTests`（AI）、`CompanionChatStoreTests`/`CompanionChatPresentationTests`（UI）。
-- **未实现接缝**：逐句 TTS 朗读（暂缓，加性后续）；语音输入（远期，schema `input_modality`/`audio_artifact_id` 已预留，见 `docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`）；方案B 主动找话题（LM03-S2b-2，门控未开）；文本流式 UX（LM03-S3）；Style 注入 + Anthropic（LM03-S4）。Memory 注入 + PII scrubbing = LM03-S2b-1（见 §4.13）。
+- **未实现接缝**：逐句 TTS 朗读（暂缓，加性后续）；语音输入（远期，schema `input_modality`/`audio_artifact_id` 已预留，见 `docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`）；对话记忆 / 滚动摘要 / 对话小结（LM03-S3b，门控未开）；Style 注入 + Anthropic（LM03-S4）。方案B 主动找话题 = LM03-S2b-2（见 §4.14）；Memory 注入 + PII scrubbing = LM03-S2b-1（见 §4.13）；**文本流式 UX + 温和复述 = LM03-S3a 已落地（见 §4.15）**。
 
 ### 4.12 语伴聊天反哺（LM03-S2a，入站半环）
 
@@ -327,6 +327,16 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - **band 红线**：只读 `entries.body`，**不取 FTS snippet（含 AI 文本）/ 不碰 derive()**；守卫 `CompanionTopicSelectionBandGuardTests`（源 grep + 数据源行为断言）。
 - **测试入口**：`CompanionTopicSourcingConsentStoreTests`/`CompanionInjectionGateTopicTests`/`CompanionTopicCandidate`（Core）、`CompanionTopicSelectionTests`/`CompanionTopicSelectionBandGuardTests`（LearnerModel）、`CompanionPromptRegistryTests`/`CompanionConversationProjectionTests`/`CompanionConversationEngineTests`（AI）、`CompanionTopicCandidateRepositoryTests`（Data）、`CompanionTopicSourcingUITests`（UI，含冷启动零外发回归）。
 - **v1 残余 / 范围外**：单条记录 PII 集中（仅手机号/身份证脱敏，缓解 = top-1 + 一次性预览 + 可关）；同会话可能重复引用最近记录（不追踪已用种子）；recency ≠ 相关（FTS 精排 / 子范围授权 / 独立 `uses_record_topics` 列留后续 + architecture note）。无新 migration（复用 v32 + 只读 entries + UserDefaults consent）。
+
+### 4.15 语伴文本流式 UX + 温和复述（LM03-S3a，纯显示 + persona 暴露）
+
+- **定位**：把 S1「缓冲整段再显示」非流式 UX 升级为**逐字流式显示**，并暴露既有温和复述纠错档。**流式只改显示，不改外发**——请求体 / 内容类目 / 隐私闸 / PII scrub 与 S1·S2b 完全一致；**无新 migration、无新 AI capability、无新外发类目**；不碰 band 红线。
+- **流式数据流**：`CompanionConversationEngine.reply(..., onPartial:)` 在既有 delta 循环内逐 token 回调**累积缓冲全文**（传输层早已逐 delta yield，S1 只是缓冲）→ `CompanionChatActions.send` seam **新增 `onPartial` 第三参**（App `companionSend` 透传 → engine）→ `CompanionChatStore.send()` 内建 `AsyncStream<String>`，`onPartial` 仅 `cont.yield`（`@Sendable` 保序），**单 MainActor consumer 顺序消费**更新 `@Published inFlightReply`（correct-by-construction，零 Task fan-out / 无单调守卫）→ `CompanionChatView` 在 `isSending && inFlightReply` 非空白时渲染**进行中 assistant 气泡**。
+- **持久化不变量**：`inFlightReply` 纯 UI 派生态，**从不进持久路径**；仅成功 outcome 的**完整缓冲文本**持久（engine `.reply(text:)` 返回全文，App 持久之）；失败 / 取消任何路径无条件清空 `inFlightReply` + 保 draft 不伪装（ADR-008 §7）。
+- **温和复述（persona 暴露）**：v1 暴露既有 `CompanionCorrection.warmRecast` 二元 opt-in（默认 `.ifNeeded` 关），directive `correctionPolicy(.warmRecast)` + 受控片段文本早已映射。`CompanionLoadedThread` 加 `correction`（struct 默认值，不破坏构造）；App `loadThread` 带出 `loadPersona(spaceID).correction`；store `gentleRecastEnabled` 派生 + `setGentleRecast`；toggle 经 App **read-modify-write**——persona 为 per-space（`conversation_companions`），`savePersona` 全字段 upsert，故 `loadPersona`→仅改 correction→save，保 tone/formality。
+- **故障恢复**：先 yield 部分 delta 后抛错 → `onPartial` 已回调但最终 `.failure`，store 据此清空 in-flight、不持久部分回复（honest failure）。
+- **测试入口**：`CompanionConversationEngineTests`（流式 onPartial 累积 / 空流不回调 / 部分后失败，AI）、`CompanionPromptRegistryTests`（warmRecast fragment 文本，AI）、`CompanionStreamingStoreTests`（partials 累积 + 失败清空 + recast 派生与路由，UI）、`GRDBCompanionRepositoryTests`（read-modify-write 保 tone，Data）。
+- **范围外**：对话记忆 / 滚动摘要 / 对话小结（LM03-S3b，高风险，v33 摘要持久化 + 摘要 capability + 失效重建一致性）；常驻建议 chip / 长按翻译·解析·提示（长按能力未建）；persona tone/formality 编辑器 / `.none` 档；Anthropic 多 Provider 流式适配（LM03-S4）。
 
 ## 5. 模块依赖方向
 

@@ -66,7 +66,7 @@
 > 原单片捆五件事、风险差异大（流式/复述低风险 vs 摘要持久化/一致性高风险），按风险拆。
 
 #### LM03-S3a：文本流式 UX + 温和复述（低风险）
-> **→ 已拆完整 active plan（Draft，待双轮自审 → 授权）**：[`active/2026-06-26-feature-lm03-s3a-companion-streaming-and-recast.md`](2026-06-26-feature-lm03-s3a-companion-streaming-and-recast.md)。
+> **→ 已 Done（2026-06-26，全量 CI 绿 run 28226376483）**：[`done/2026-06-26-feature-lm03-s3a-companion-streaming-and-recast.md`](../done/2026-06-26-feature-lm03-s3a-companion-streaming-and-recast.md)。双轮隔离自审收口 1 P0（并发模型：原 cumulative+Task hop+单调守卫不保序 → 改 `AsyncStream` + 单 MainActor consumer 顺序消费，correct-by-construction）+ 多 P1（send 闭包 +onPartial 破坏 8 fixture 机械补 `_` / loadThread 新增 loadPersona 带出 correction / setGentleRecast read-modify-write 保 tone-formality）+ P2（取消失败清空 in-flight 升 TDD / 持久完整文本守卫 / 空白 partial 不渲染 / warmRecast fragment 文本断言）。六落点 TDD 全落地（engine onPartial 累积 + recast fragment / store AsyncStream 流式 + recast 派生 / view in-flight 气泡 + toggle / Data read-modify-write 保 tone / 本地化 key）。**流式只改显示——无新 migration / 无新 AI capability / 无新外发类目，请求体·隐私闸·PII scrub 与 S1·S2b 一致；`inFlightReply` 纯 UI 态不入持久路径；band 红线未碰**。
 - **范围**：文本流式逐字显示 UX（复用既有 `CompanionReplyTransport` 流式，仅 surface deltas + in-flight 态，**不改持久化**）；温和复述纠正 opt-in（暴露既有 `CompanionCorrection.warmRecast`，默认 `.ifNeeded` 关，persona save 复用）。建议 chip defer（长按提示本身未建）。
 - **硬前置**：LM03-S1（Done）+ Provider 流式（就绪）。**无新 migration / 无新 AI capability / 无新外发类目**。
 - **风险**：低（纯 UX + persona 选项暴露；流式并发顺序是主要审查点）。

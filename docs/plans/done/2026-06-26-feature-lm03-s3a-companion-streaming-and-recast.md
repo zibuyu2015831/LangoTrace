@@ -1,6 +1,6 @@
 # 任务方案：LM03-S3a 语伴文本流式 UX + 温和复述纠正
 
-状态：Draft（双轮自审已执行；待用户实现授权）
+状态：Done（2026-06-26 实现完成，全量 CI 绿 run 28226376483，移 done/）
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-26
@@ -10,7 +10,22 @@
 
 - 2026-06-26：用户确认 **LM03-S3 按风险拆 S3a / S3b**。本片 = **S3a**：文本流式 UX + 温和复述纠正（低风险）。**对话记忆/滚动摘要 + 对话小结 = S3b**（高风险，独立后续门控）。
 - 2026-06-26：用户确认 **S3a v1 范围 = 流式 + 温和复述**（建议 chip defer）。
-- **实现授权**：尚未授权。本方案已完成双轮隔离自审 → `Reviewed`，提交用户授权，授权前不写生产代码。
+- **实现授权**：2026-06-26 用户经 `/goal`「方案审核通过，立即开始实施，直至功能完整落地并完成测试。注意测试需要通过 GitHub action 进行」授权实现；CI 经用户确认「现在跑（我代切 public→CI→private）」走 public 临时切换。
+
+## 实施记录（2026-06-26，Done）
+
+按 Reviewed 设计逐落点 TDD 落地，本机轻量逐包全绿 + 全量 CI `Build & Test` 绿（run 28226376483），无开放项。
+
+- **engine（AI）**：`CompanionConversationEngine.reply(..., onPartial:)` 在既有 delta 循环内逐 token 回调累积缓冲全文；stub 改为「yield deltas 后再抛 error」以表达「流了一截再失败」。新增 3 例：onPartial 累积（"He"→"Hello"）/ 空流不回调 + `.empty` / 部分后失败仍 `.failure`。`CompanionPromptRegistryTests` 补 warmRecast fragment 文本断言（既有仅断言 directive）。
+- **seam（UI）**：`CompanionChatActions.send` +`onPartial` 第三参——破坏 7 处闭包字面量 fixture + `.disabled` 机械补 `_`（默认参数救不了闭包字面量 arity，已如自审 P1 列全）；`CompanionLoadedThread` +`correction`（struct 默认值，不破坏构造）；新增 `setGentleRecast(spaceID,Bool)`。
+- **store（UI）**：`@Published inFlightReply`/`gentleRecastEnabled`；`send()` 用 `AsyncStream` + 单 MainActor consumer 顺序消费（`onPartial` 仅 `yield`、`finish()` 后 `await consumer.value` 排空），任何完成路径清空 `inFlightReply`；`setGentleRecast` 派生更新。新增 `CompanionStreamingStoreTests`（partials 累积经 Combine sink 取证 + 持久完整文本守卫 + 失败清空保 draft + recast 派生与 spaceID 路由）。
+- **view（UI）**：in-flight assistant 气泡（`isSending && inFlightReply` trim 非空才渲染）+ 温和复述 toolbar toggle；新增本地化 key `companion.recast.toggle`（en「Gentle recast」/ zh-Hans「温和复述」），`CompanionChatPresentationTests` 锁 key。
+- **App**：`companionSend` 透传 onPartial → engine；`loadThread` 新增 `loadPersona(spaceID).correction` 带出；`setGentleRecast` = loadPersona→仅改 correction→savePersona（read-modify-write 保 tone/formality）。
+- **Data**：`GRDBCompanionRepositoryTests` 新增 read-modify-write 守卫（先设 humorous/formal → 仅改 correction → 读回 tone/formality 不变且 correction==warmRecast）。
+
+**边界复核**：无新 migration（head 仍 v32）、无新 AI capability、无新外发类目；流式只改显示，请求体 / 内容类目 / 隐私闸 / PII scrub 与 S1·S2b 完全一致；`inFlightReply` 纯 UI 派生态从不进持久路径；band 红线未碰（变更文件源级无 `derive(`/`learning_text`/`difficulty` 新增）。
+
+**轻量验证**：`swift test` AI（Companion 35）+ Data（CompanionRepository 12）+ UI（全包 621）全绿；swiftformat lint 0 待格式化；swiftlint 变更文件零告警（既有 `AppEnvironment.swift` 等 pre-existing 告警与本片无关）。**全量验证**：CI run 28226376483 `Build & Test` 绿（三端构建 + macOS app test + 全包测试 + lint + check-docs）。
 
 ## 这份文档是什么
 

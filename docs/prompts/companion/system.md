@@ -34,7 +34,7 @@ S1 **零系统自动注入**：请求 system 段只允许包含——
 - `difficultyResponsiveLayer`（idea-03 §3.9）：每轮读信号、自然调整难度，**不宣布**难度变化。
 - `practicePartnerNotAssistant`（ADR-008 §2.5）：语言练习对象，不承接无关开放任务。
 - `topicGroundedInRecord`（仅方案 A）：以带入记录为话题。
-- `correctionPolicy(...)`：随人设纠错倾向枚举。
+- `correctionPolicy(...)`：随人设纠错倾向枚举。**温和复述 opt-in（LM03-S3a）**：纠错档 = 既有 `CompanionCorrection` 闭集（`.ifNeeded` 默认 / `.warmRecast` 温和复述 / `.none`）；S3a 仅把 `.warmRecast` 暴露为用户 toggle（默认仍 `.ifNeeded` 关），其 directive `correctionPolicy(.warmRecast)` + 受控片段文本（"naturally restate the correct form …"）早已映射，开后自然生效——不引入任何自由文本，AI-17 边界不变。纠错档是 per-space persona（`conversation_companions`），toggle 经 App read-modify-write 仅改 correction、保 tone/formality。
 
 ## 4. 注入加固
 
