@@ -56,7 +56,7 @@
 - **风险**：高（最高隐私门核心：系统自动注入外发 + 预览披露语义变化）。
 
 ##### LM03-S2b-2：方案B 主动找话题（一次性授权 + recency 智能最小发送）
-> **→ 完整 plan + 双轮隔离自审 = `Reviewed`（待用户实现授权）**：[`active/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md`](2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md)。
+> **→ Done（2026-06-26，全量 CI 绿 run 28217180799）**：[`done/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md`](../done/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md)。
 - **范围（自审后定）**：一次性全局话题授权（mirror S2b-1 consent）+ 复用 v32 per-conversation 开关 + **recency top-1 最小发送**（FTS 须 rebuild 易陈旧 + body 含 AI 文本，降后续）+ 新 `.broughtInRecords` descriptor（A/B 共用）；**找话题仅 send 回合内**（不破 S1 冷启动零外发）；无新 migration。
 - **硬前置**：LM03-S1 + LM03-S2b-1（Done，复用其隐私闸 + PII scrubbing + 一次性预览）。
 - **自审重要产出**：两轮独立命中并将修复 **S2b-1/方案A 既有隐私漏洞**——`seedEntryBody` 未脱敏外发 + 方案A 记录零 preview 披露（本片连带修复）。

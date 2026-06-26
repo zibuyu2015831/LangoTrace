@@ -22,7 +22,7 @@
 ## 用户确认记录
 
 - 2026-06-25：用户确认 LM03-S2 按风险拆 S2a/S2b。
-- 2026-06-26：用户确认 **S2b 进一步拆 S2b-1 / S2b-2**（推荐）。本片 = **S2b-1**：语伴 Memory 注入（系统级生活事实）+ 两层隐私控制 + PII scrubbing。**方案B 主动找话题拆出为 S2b-2，独立后续门控**（边界登记见 [`active/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md`](../active/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md)）。
+- 2026-06-26：用户确认 **S2b 进一步拆 S2b-1 / S2b-2**（推荐）。本片 = **S2b-1**：语伴 Memory 注入（系统级生活事实）+ 两层隐私控制 + PII scrubbing。**方案B 主动找话题拆出为 S2b-2，独立后续门控**（边界登记见 [`done/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md`](2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md)）。
 - 2026-06-26：用户确认 **PII scrubbing v1 覆盖范围 = 手机号 + 身份证号**（确定性正则、低误杀；邮箱 / 地址留 v2）。
 - 2026-06-25（沿用）：**Memory 注入 v1 排序 = 时近性 + 种类配额**（recency-primary；salience 列 v1 不参与，留 v2 FTS 相关性召回）。
 - **实现授权**：**✅ 2026-06-26 用户授权实现**，并接受 3 项推荐默认：① 一次性预览在「首次进语伴会话（consent==notDecided）」触发；② 脱敏占位用母语中性短语；③ 接受 scrub 含历史回放（改 S1 原样外发行为，对齐「任何外发前」）。按方案 TDD 逐 Phase 实施，轻量本地单包测试 + 格式检查，重测试走 GitHub Actions CI。

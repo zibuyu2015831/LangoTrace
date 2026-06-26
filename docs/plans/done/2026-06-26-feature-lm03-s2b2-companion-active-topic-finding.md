@@ -1,6 +1,6 @@
 # 任务方案：LM03-S2b-2 语伴方案B 主动找话题（一次性授权 + recency 智能最小发送）
 
-状态：In Progress（六 Phase TDD 全落地 + 轻量单包测试全绿；待全量 CI）
+状态：Done（六 Phase TDD + §17 文档收口 + 全量 CI 绿，已移 done/）
 
 ## 实施记录（2026-06-26）
 
@@ -13,7 +13,7 @@
 - **Phase 5（UI）**：`.broughtInRecords` label（exhaustive switch）；store topic consent/`canSourceTopic`/`needsTopicSourcingPreview`/`topicPreviewModel`；View 一次性话题预览 sheet；本地化 key（含 toggle 语义统一为「使用我的内容」）；冷启动零外发回归（`loadNeverSendsEvenWhenTopicAuthorized`）。
 - **Phase 6（App）**：`companionSend` send 回合内 topic grounding（无方案A种子 + shouldSourceTopic 门开 → recentTopicCandidates → select top-1 → broughtInRecords）+ `recordTopicPreviewProjection` 接线；持久存原文、仅 outbound 脱敏。
 
-待办：全量 CI（三端构建 + macOS app test，无新 migration）。
+**全量 CI `Build & Test` 全绿（run 28217180799：iPhone/iPad/macOS 构建 + macOS app test + 全包测试 + lint，无新 migration）**。§17 文档回写完成。本片完成，移入 `done/`。
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-26（自 2026-06-25 原 S2b 拆分而来）
@@ -22,7 +22,7 @@
 ## 用户确认记录
 
 - 2026-06-25：用户确认 S2 按风险拆 S2a/S2b。
-- 2026-06-26：用户确认 **S2b 进一步拆 S2b-1 / S2b-2**；Memory 注入 + 两层隐私 + PII scrubbing = S2b-1（[`done/...s2b1`](../done/2026-06-26-feature-lm03-s2b1-companion-memory-injection.md)，已落地 + CI 绿）。
+- 2026-06-26：用户确认 **S2b 进一步拆 S2b-1 / S2b-2**；Memory 注入 + 两层隐私 + PII scrubbing = S2b-1（[`done/...s2b1`](2026-06-26-feature-lm03-s2b1-companion-memory-injection.md)，已落地 + CI 绿）。
 - 2026-06-26（本片定调）：用户要 **减少授权与选择的交互、让语伴更有智能感** → v1 采**系统自动选条**（非手动逐条挑），授权收敛为**一次性全局授权**；过滤维度 v1 **仅 recency**（`entries` 无 tags 列、FTS 索引须显式 rebuild 易陈旧——见自审 P1-2，FTS 精排降后续）。
 - **实现授权**：尚未授权。本方案已完成双轮隔离自审 → `Reviewed`，提交用户授权，授权前不写生产代码。
 
