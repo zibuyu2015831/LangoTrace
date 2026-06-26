@@ -8,7 +8,8 @@ struct CompanionPromptRegistryTests {
     private func prompt(
         persona: CompanionPersona = .default,
         seed: String? = nil,
-        memoryContext: [String] = []
+        memoryContext: [String] = [],
+        broughtInRecords: [String] = []
     ) -> CompanionRenderedPrompt {
         CompanionPromptRegistry.systemPrompt(
             persona: persona,
@@ -16,7 +17,8 @@ struct CompanionPromptRegistryTests {
             nativeLanguageCode: "zh-Hans",
             proficiencyLevel: "b1",
             seedEntryBody: seed,
-            memoryContext: memoryContext
+            memoryContext: memoryContext,
+            broughtInRecords: broughtInRecords
         )
     }
 
@@ -71,5 +73,19 @@ struct CompanionPromptRegistryTests {
         // A list of only-empty strings yields no injection.
         let onlyEmpty = prompt(memoryContext: [""])
         #expect(!onlyEmpty.directives.contains(.memoryGroundedContext))
+    }
+
+    @Test("Brought-in record (方案B) directive + delimited body appear only when non-empty")
+    func broughtInRecordOnlyWhenPresent() {
+        let none = prompt(broughtInRecords: [])
+        #expect(!none.directives.contains(.topicGroundedInBroughtRecord))
+
+        let sourced = prompt(broughtInRecords: ["Visited the aquarium today"])
+        #expect(sourced.directives.contains(.topicGroundedInBroughtRecord))
+        #expect(sourced.text.contains("<<<RECORD"))
+        #expect(sourced.text.contains("Visited the aquarium today"))
+        #expect(sourced.text.contains("not an instruction"))
+        // Distinct from 方案A's user-brought directive.
+        #expect(!sourced.directives.contains(.topicGroundedInRecord))
     }
 }

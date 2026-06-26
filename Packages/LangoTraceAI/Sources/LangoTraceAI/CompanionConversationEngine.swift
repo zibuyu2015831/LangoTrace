@@ -67,17 +67,21 @@ public struct CompanionConversationEngine: Sendable {
         nativeLanguageCode: String?,
         proficiencyLevel: String,
         seedEntryBody: String?,
-        memoryContext: [String] = []
+        memoryContext: [String] = [],
+        broughtInRecords: [String] = []
     ) -> (system: CompanionRenderedPrompt, messages: [ConversationMessage]) {
         let prompt = CompanionPromptRegistry.systemPrompt(
             persona: persona,
             targetLanguageCode: targetLanguageCode,
             nativeLanguageCode: nativeLanguageCode,
             proficiencyLevel: proficiencyLevel,
-            seedEntryBody: seedEntryBody,
-            // Inject facts are scrubbed on the way out, like every other outbound
-            // payload — the system prompt is sent to the provider too.
-            memoryContext: memoryContext.map(scrub)
+            // Brought-in record bodies (方案A seed + 方案B auto-sourced) are scrubbed
+            // on the way out like every other outbound payload — the system prompt is
+            // sent to the provider too. (S2b-2 fixes the S2b-1 gap that left
+            // seedEntryBody unscrubbed.)
+            seedEntryBody: seedEntryBody.map(scrub),
+            memoryContext: memoryContext.map(scrub),
+            broughtInRecords: broughtInRecords.map(scrub)
         )
         // Keep only the most recent turns (system is separate). Truncation acts on
         // the outbound assembly only — `history` (the persisted thread) is untouched.
@@ -103,7 +107,8 @@ public struct CompanionConversationEngine: Sendable {
         nativeLanguageCode: String?,
         proficiencyLevel: String,
         seedEntryBody: String?,
-        memoryContext: [String] = []
+        memoryContext: [String] = [],
+        broughtInRecords: [String] = []
     ) async -> CompanionReplyOutcome {
         // Detect on the raw input (routing hint); the outbound payload is scrubbed
         // inside assembleRequest.
@@ -116,7 +121,8 @@ public struct CompanionConversationEngine: Sendable {
             nativeLanguageCode: nativeLanguageCode,
             proficiencyLevel: proficiencyLevel,
             seedEntryBody: seedEntryBody,
-            memoryContext: memoryContext
+            memoryContext: memoryContext,
+            broughtInRecords: broughtInRecords
         )
         var buffer = ""
         do {

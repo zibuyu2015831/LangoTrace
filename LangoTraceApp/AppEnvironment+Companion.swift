@@ -43,9 +43,10 @@ func makeCompanionChatActions(
 ) -> CompanionChatActions {
     let detector = NaturalLanguageDetector()
     let detectLanguage: @Sendable (String) -> String? = { detector.detect($0)?.language }
-    // Same UserDefaults key the UI consent store reads/writes — the App send path
-    // and the one-time preview decision stay in sync (LM03-S2b-1).
+    // Same UserDefaults keys the UI consent stores read/write — the App send path
+    // and the one-time preview decisions stay in sync (LM03-S2b-1 / S2b-2).
     let consentStore = UserDefaultsCompanionMemoryConsentStore()
+    let topicConsentStore = UserDefaultsCompanionTopicSourcingConsentStore()
 
     return CompanionChatActions(
         loadThread: { spaceID, sourceEntryID in
@@ -65,7 +66,8 @@ func makeCompanionChatActions(
                 databaseFactory: databaseFactory,
                 credentialStore: credentialStore,
                 detectLanguage: detectLanguage,
-                consent: consentStore.consent
+                consent: consentStore.consent,
+                topicConsent: topicConsentStore.consent
             )
         },
         deleteFrom: { messageID in
@@ -98,6 +100,19 @@ func makeCompanionChatActions(
             else { return nil }
             return AIRequestPreviewProjection.companionConversation(
                 endpoint: endpoint, lengthBucket: .medium, hasMemoryInjection: true
+            )
+        },
+        recordTopicPreviewProjection: { _ in
+            // The "will-send-with-a-record" disclosure for the one-time topic
+            // sourcing preview (LM03-S2b-2).
+            guard let database = try? databaseFactory.database() else { return nil }
+            let configurationRepository = GRDBAIProviderConfigurationRepository(database: database)
+            guard
+                let profile = try? await configurationRepository.loadDefaultProfile(),
+                let endpoint = profile.textGenerationEndpointInput
+            else { return nil }
+            return AIRequestPreviewProjection.companionConversation(
+                endpoint: endpoint, lengthBucket: .medium, hasMemoryInjection: false, hasBroughtInRecords: true
             )
         }
     )
@@ -177,7 +192,8 @@ private func companionSend(
     databaseFactory: SharedAppDatabaseFactory,
     credentialStore: any AIProviderCredentialStore,
     detectLanguage: @escaping @Sendable (String) -> String?,
-    consent: CompanionMemoryConsent
+    consent: CompanionMemoryConsent,
+    topicConsent: CompanionTopicSourcingConsent
 ) async -> CompanionSendOutcome {
     guard
         let database = try? databaseFactory.database()
@@ -211,6 +227,21 @@ private func companionSend(
     let seedEntryBody: String? = (history.isEmpty ? thread.sourceEntryID : nil)
         .flatMap { try? repository.entryBody(entryID: $0) }
 
+    // Plan-B topic sourcing (LM03-S2b-2): this is a SEND-turn decision, never on
+    // load (cold-start stays zero-outbound). When there is no plan-A seed and the
+    // topic-sourcing gate is open (consent read last-moment + the same thread row's
+    // shared toggle), auto-source the most recent record (recency top-1, v1). The
+    // engine scrubs the record body on the way out — persistence keeps the original.
+    let broughtInRecords: [String]
+    if seedEntryBody == nil,
+       CompanionInjectionGate.shouldSourceTopic(consent: topicConsent, threadUsesProfile: thread.usesLearnerProfile)
+    {
+        let candidates = (try? repository.recentTopicCandidates(spaceID: thread.languageSpaceID, limit: 1)) ?? []
+        broughtInRecords = CompanionTopicSelection.select(candidates: candidates).map(\.body)
+    } else {
+        broughtInRecords = []
+    }
+
     // Resolve the provider endpoint + secret (honest failure when not configured).
     let configurationRepository = GRDBAIProviderConfigurationRepository(database: database)
     guard
@@ -243,7 +274,8 @@ private func companionSend(
         nativeLanguageCode: space.nativeLanguageCode,
         proficiencyLevel: space.level,
         seedEntryBody: seedEntryBody,
-        memoryContext: memoryContext
+        memoryContext: memoryContext,
+        broughtInRecords: broughtInRecords
     )
 
     switch outcome {

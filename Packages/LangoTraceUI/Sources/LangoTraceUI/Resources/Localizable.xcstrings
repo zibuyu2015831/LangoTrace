@@ -3609,13 +3609,45 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use learner profile"
+            "value": "Use my content"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用学习画像"
+            "value": "使用我的内容"
+          }
+        }
+      }
+    },
+    "companion.topic.preview.decline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't use my records for topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不用我的记录找话题"
+          }
+        }
+      }
+    },
+    "companion.topic.preview.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let the companion find topics from your records?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让语伴从你的记录里找话题？"
           }
         }
       }
@@ -15223,6 +15255,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "本段对话（发送以提取词汇 / 表达）"
+          }
+        }
+      }
+    },
+    "requestPreview.content.broughtInRecords": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One of your saved records (as a topic)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你保存的 1 条记录（作为话题）"
           }
         }
       }

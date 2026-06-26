@@ -1,6 +1,19 @@
 # 任务方案：LM03-S2b-2 语伴方案B 主动找话题（一次性授权 + recency 智能最小发送）
 
-状态：Draft（双轮自审已执行；待用户实现授权）
+状态：In Progress（六 Phase TDD 全落地 + 轻量单包测试全绿；待全量 CI）
+
+## 实施记录（2026-06-26）
+
+六 Phase TDD 全落地，轻量本地单包测试全绿（Core 277 / LearnerModel 61 / AI 227 / Data 277 / UI 617），swiftformat 干净、swiftlint 0 serious：
+
+- **Phase 1（Core）**：`CompanionTopicSourcingConsent` 三态 store；`CompanionInjectionGate.shouldSourceTopic`/`broughtInRecords` 纯函数 + 统一 toggle 不变量测试；`.broughtInRecords` descriptor；`CompanionTopicCandidate` 值类型。
+- **Phase 2（LearnerModel）**：`CompanionTopicSelection`（recency top-1 纯函数）+ band 红线守卫（源 grep + 行为断言）。
+- **Phase 3（AI）**：`CompanionPromptRegistry.systemPrompt(broughtInRecords:)` + `.topicGroundedInBroughtRecord`；`companionConversation(hasBroughtInRecords:)`；`CompanionConversationEngine` 加 `broughtInRecords` 参 + **修复 `seedEntryBody` scrub 遗漏**（方案A）+ scrub broughtInRecords（方案B）。
+- **Phase 4（Data）**：`GRDBCompanionRepository.recentTopicCandidates`（recency、排软删、仅当前 space，纯 entries.body）。
+- **Phase 5（UI）**：`.broughtInRecords` label（exhaustive switch）；store topic consent/`canSourceTopic`/`needsTopicSourcingPreview`/`topicPreviewModel`；View 一次性话题预览 sheet；本地化 key（含 toggle 语义统一为「使用我的内容」）；冷启动零外发回归（`loadNeverSendsEvenWhenTopicAuthorized`）。
+- **Phase 6（App）**：`companionSend` send 回合内 topic grounding（无方案A种子 + shouldSourceTopic 门开 → recentTopicCandidates → select top-1 → broughtInRecords）+ `recordTopicPreviewProjection` 接线；持久存原文、仅 outbound 脱敏。
+
+待办：全量 CI（三端构建 + macOS app test，无新 migration）。
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-26（自 2026-06-25 原 S2b 拆分而来）

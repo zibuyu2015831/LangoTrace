@@ -15,6 +15,8 @@ struct CompanionChatView: View {
     @State private var isPresentingClearConfirm = false
     @State private var memoryPreview: CompanionMemoryPreviewModel?
     @State private var isPresentingMemoryPreview = false
+    @State private var topicPreview: CompanionMemoryPreviewModel?
+    @State private var isPresentingTopicPreview = false
 
     init(languageSpace: LanguageSpacePreview, seed: CompanionChatRouteSeed) {
         self.languageSpace = languageSpace
@@ -61,6 +63,9 @@ struct CompanionChatView: View {
         .sheet(isPresented: $isPresentingMemoryPreview) {
             memoryConsentPreview
         }
+        .sheet(isPresented: $isPresentingTopicPreview) {
+            topicSourcingPreview
+        }
         .confirmationDialog(
             localizedString(CompanionChatCopy.clearKey),
             isPresented: $isPresentingClearConfirm,
@@ -73,13 +78,52 @@ struct CompanionChatView: View {
         .task {
             store.reconnect(actions)
             await store.load()
-            // One-time disclosure: surface the injection preview once when the user
-            // has not yet decided (zero-friction afterwards — never per-send).
+            // One-time disclosure: surface a preview once when the user has not yet
+            // decided (zero-friction afterwards — never per-send). Memory first; the
+            // topic-sourcing preview surfaces on a later open once Memory is decided.
             if store.needsMemoryConsentPreview {
                 memoryPreview = await store.memoryPreviewModel()
                 isPresentingMemoryPreview = true
+            } else if store.needsTopicSourcingPreview {
+                topicPreview = await store.topicPreviewModel()
+                isPresentingTopicPreview = true
             }
         }
+    }
+
+    /// The one-time topic-sourcing consent preview (LM03-S2b-2). Honestly shows
+    /// that a record body may be sent to find a topic, then records the decision.
+    private var topicSourcingPreview: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            localizedText(CompanionChatCopy.topicPreviewTitleKey)
+                .font(.headline)
+            if let preview = topicPreview {
+                localizedText(CompanionChatCopy.memoryPreviewSendsKey)
+                    .font(.subheadline.weight(.semibold))
+                ForEach(preview.includedLabels, id: \.self) { label in
+                    Text("• \(label)").font(.footnote)
+                }
+                localizedText(CompanionChatCopy.memoryPreviewNotSendsKey)
+                    .font(.subheadline.weight(.semibold))
+                ForEach(preview.excludedLabels, id: \.self) { label in
+                    Text("• \(label)").font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            HStack {
+                Button(localizedString(CompanionChatCopy.topicDeclineKey), role: .cancel) {
+                    store.setTopicConsent(.disabled)
+                    isPresentingTopicPreview = false
+                }
+                Spacer()
+                Button(localizedString(CompanionChatCopy.memoryUseKey)) {
+                    store.setTopicConsent(.enabled)
+                    isPresentingTopicPreview = false
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding()
     }
 
     /// The one-time Memory-injection consent preview (LM03-S2b-1). Honestly shows

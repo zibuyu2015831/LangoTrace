@@ -63,7 +63,7 @@
        ↓
     ✅ S2b-1（Memory 注入 + 两层隐私 + PII scrubbing〔手机号+身份证〕，最高隐私门核心）  ← Done 2026-06-26（六 Phase TDD + 全量 CI 绿 run 28214663981，已移 done/）
        ↓
-    🟢 S2b-2（方案B 找话题：一次性授权 + recency 智能最小发送 top-1）  ← 完整 plan + 双轮自审（2 P0+6 P1 写回）= Reviewed，待用户实现授权
+    ✅ S2b-2（方案B 找话题：一次性授权 + recency 智能最小发送 top-1）  ← 实现完成：六 Phase TDD + 轻量单包测试全绿，待全量 CI（连带修复方案A seedEntryBody 脱敏遗漏）
      ↓
   LM03-S3（文本流式 + 对话记忆 + 小结 + 复述）
      ↓

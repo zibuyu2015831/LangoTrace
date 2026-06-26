@@ -65,6 +65,12 @@ public enum AIRequestContentDescriptor: String, Codable, CaseIterable, Equatable
     /// derived, consented subset that *is* sent — so the preview can honestly show
     /// both "sends: curated subset" and "does not send: full memory store".
     case curatedLearnerMemory
+    /// One of the user's own saved records, brought into the conversation as a
+    /// topic — either explicitly by the user (方案A "talk about this record") or,
+    /// after one-time consent, auto-selected by the companion to find a topic
+    /// (方案B, LM03-S2b-2). Shared by both paths so the preview honestly discloses
+    /// that a record body is sent. Names the record as a category, never its body.
+    case broughtInRecords
     // Always-excluded categories (the privacy guarantees the preview asserts).
     case historicalEntries
     case photoAttachments

@@ -34,4 +34,28 @@ public enum CompanionInjectionGate {
     ) -> [String] {
         shouldInject(consent: consent, threadUsesProfile: threadUsesProfile) ? renderedFacts : []
     }
+
+    // MARK: - Topic sourcing (LM03-S2b-2 方案B)
+
+    /// Source a topic from the user's records only when the user has globally
+    /// consented to topic sourcing AND the per-conversation toggle is on. The
+    /// toggle is **shared** with Memory injection (`uses_learner_profile`,
+    /// semantics unified from S2b-2: "use my content — profile + records"), so
+    /// turning it off disables both. The global consents stay separate.
+    public static func shouldSourceTopic(
+        consent: CompanionTopicSourcingConsent,
+        threadUsesProfile: Bool
+    ) -> Bool {
+        consent == .enabled && threadUsesProfile
+    }
+
+    /// The brought-in record bodies to inject — the already-selected,
+    /// already-scrubbed record text when the gate is open, otherwise empty.
+    public static func broughtInRecords(
+        rendered: [String],
+        consent: CompanionTopicSourcingConsent,
+        threadUsesProfile: Bool
+    ) -> [String] {
+        shouldSourceTopic(consent: consent, threadUsesProfile: threadUsesProfile) ? rendered : []
+    }
 }

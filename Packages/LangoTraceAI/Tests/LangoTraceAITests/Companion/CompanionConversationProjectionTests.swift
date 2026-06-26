@@ -5,12 +5,26 @@ import Testing
 
 @Suite("Companion conversation projection (LM03-S2b-1 honest disclosure)")
 struct CompanionConversationProjectionTests {
-    private func projection(injecting: Bool) -> AIRequestPreviewProjection {
+    private func projection(injecting: Bool, records: Bool = false) -> AIRequestPreviewProjection {
         .companionConversation(
             endpoint: endpoint(adapterKind: .openAICompatibleChat),
             lengthBucket: .medium,
-            hasMemoryInjection: injecting
+            hasMemoryInjection: injecting,
+            hasBroughtInRecords: records
         )
+    }
+
+    @Test("withBroughtInRecords — discloses broughtInRecords; longTermMemory still excluded")
+    func withBroughtInRecords() {
+        let p = projection(injecting: false, records: true)
+        #expect(p.includedContent.contains(.broughtInRecords))
+        #expect(p.excludedContent.contains(.longTermMemory))
+        #expect(!p.includedContent.contains(.curatedLearnerMemory))
+    }
+
+    @Test("withoutBroughtInRecords — no broughtInRecords disclosed")
+    func withoutBroughtInRecords() {
+        #expect(!projection(injecting: false, records: false).includedContent.contains(.broughtInRecords))
     }
 
     @Test("withInjection — discloses curatedLearnerMemory but keeps longTermMemory excluded")

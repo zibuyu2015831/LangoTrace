@@ -42,24 +42,32 @@ final class CompanionChatStore: ObservableObject {
     /// the preview once, then never again.
     @Published private(set) var memoryConsent: CompanionMemoryConsent = .notDecided
     /// Per-conversation toggle (the second privacy layer), from the loaded thread.
+    /// Shared by Memory injection (S2b-1) and record topic-sourcing (S2b-2):
+    /// off → both disabled.
     @Published private(set) var usesLearnerProfile = true
+    /// Global, three-state consent for the companion to draw a topic from the
+    /// user's records (S2b-2). One-time preview, like Memory consent.
+    @Published private(set) var topicConsent: CompanionTopicSourcingConsent = .notDecided
 
     private let spaceID: String
     private let sourceEntryID: String?
     private var actions: CompanionChatActions
     private let consentStore: any CompanionMemoryConsentStore
+    private let topicConsentStore: any CompanionTopicSourcingConsentStore
     private var threadID: String?
 
     init(
         spaceID: String,
         sourceEntryID: String?,
         actions: CompanionChatActions,
-        consentStore: any CompanionMemoryConsentStore = UserDefaultsCompanionMemoryConsentStore()
+        consentStore: any CompanionMemoryConsentStore = UserDefaultsCompanionMemoryConsentStore(),
+        topicConsentStore: any CompanionTopicSourcingConsentStore = UserDefaultsCompanionTopicSourcingConsentStore()
     ) {
         self.spaceID = spaceID
         self.sourceEntryID = sourceEntryID
         self.actions = actions
         self.consentStore = consentStore
+        self.topicConsentStore = topicConsentStore
     }
 
     /// UI-only derived state: would a send inject Memory right now? Authoritative
@@ -78,6 +86,31 @@ final class CompanionChatStore: ObservableObject {
     func setMemoryConsent(_ consent: CompanionMemoryConsent) {
         consentStore.consent = consent
         memoryConsent = consent
+    }
+
+    /// UI-only: would a send auto-source a topic from records right now?
+    /// Authoritative egress gating happens in the App send path, never here.
+    var canSourceTopic: Bool {
+        topicConsent == .enabled && usesLearnerProfile
+    }
+
+    /// True when the one-time topic-sourcing preview must be shown (undecided).
+    var needsTopicSourcingPreview: Bool {
+        topicConsent == .notDecided
+    }
+
+    /// Records the user's one-time topic-sourcing decision.
+    func setTopicConsent(_ consent: CompanionTopicSourcingConsent) {
+        topicConsentStore.consent = consent
+        topicConsent = consent
+    }
+
+    /// Builds the one-time topic-sourcing preview from the real "will-send"
+    /// projection (nil when no provider is configured).
+    func topicPreviewModel() async -> CompanionMemoryPreviewModel? {
+        guard let threadID else { return nil }
+        guard let projection = await actions.recordTopicPreviewProjection(threadID) else { return nil }
+        return CompanionMemoryPreviewModel(projection: projection)
     }
 
     /// Flips the per-conversation toggle and persists it.
@@ -116,6 +149,7 @@ final class CompanionChatStore: ObservableObject {
         showsColdStartGreeting = loaded.messages.isEmpty
         usesLearnerProfile = loaded.usesLearnerProfile
         memoryConsent = consentStore.consent
+        topicConsent = topicConsentStore.consent
         failure = nil
         phase = .ready
     }

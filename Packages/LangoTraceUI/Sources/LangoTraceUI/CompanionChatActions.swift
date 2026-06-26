@@ -54,6 +54,10 @@ public struct CompanionChatActions: Sendable {
     /// sent and the full memory store that is not). nil when no provider is
     /// configured (the preview falls back to local-only copy).
     public var memoryPreviewProjection: @Sendable (_ threadID: String) async -> AIRequestPreviewProjection?
+    /// The "will-send" projection for a companion send that auto-sources a topic
+    /// from records (LM03-S2b-2) — backs the one-time topic-sourcing preview
+    /// (discloses that a record body is sent). nil when no provider is configured.
+    public var recordTopicPreviewProjection: @Sendable (_ threadID: String) async -> AIRequestPreviewProjection?
 
     public init(
         loadThread: @escaping @Sendable (String, String?) async -> CompanionLoadedThread?,
@@ -62,7 +66,8 @@ public struct CompanionChatActions: Sendable {
         clear: @escaping @Sendable (String) async -> Void,
         extract: @escaping @Sendable (String) async -> CompanionExtractionOutcome,
         setUsesLearnerProfile: @escaping @Sendable (String, Bool) async -> Void = { _, _ in },
-        memoryPreviewProjection: @escaping @Sendable (String) async -> AIRequestPreviewProjection? = { _ in nil }
+        memoryPreviewProjection: @escaping @Sendable (String) async -> AIRequestPreviewProjection? = { _ in nil },
+        recordTopicPreviewProjection: @escaping @Sendable (String) async -> AIRequestPreviewProjection? = { _ in nil }
     ) {
         self.loadThread = loadThread
         self.send = send
@@ -71,6 +76,7 @@ public struct CompanionChatActions: Sendable {
         self.extract = extract
         self.setUsesLearnerProfile = setUsesLearnerProfile
         self.memoryPreviewProjection = memoryPreviewProjection
+        self.recordTopicPreviewProjection = recordTopicPreviewProjection
     }
 
     public static let disabled = CompanionChatActions(
@@ -80,7 +86,8 @@ public struct CompanionChatActions: Sendable {
         clear: { _ in },
         extract: { _ in .failed(.providerUnavailable) },
         setUsesLearnerProfile: { _, _ in },
-        memoryPreviewProjection: { _ in nil }
+        memoryPreviewProjection: { _ in nil },
+        recordTopicPreviewProjection: { _ in nil }
     )
 }
 

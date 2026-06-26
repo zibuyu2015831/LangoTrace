@@ -317,6 +317,17 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - **测试入口**：`PIIScrubberTests`/`CompanionMemoryConsentStoreTests`/`CompanionInjectionGateTests`/`CompanionThreadProfileToggleTests`（Core）、`CompanionMemorySelectionTests`/`CompanionMemoryInjectionBandGuardTests`（LearnerModel）、`CompanionPromptRegistryTests`/`CompanionConversationProjectionTests`/`CompanionConversationEngineTests`（AI）、`CompanionMemoryToggleMigrationTests`（Data）、`CompanionMemoryInjectionUITests`/`CompanionMemoryPreviewModelTests`（UI）。
 - **范围外（S2b-2 / v2）**：方案B 主动找话题（强依赖本片隐私闸）；salience / FTS 相关性召回；companionOnly 事实注入；对话级注入日志；邮箱 / 地址 PII。
 
+### 4.14 语伴方案B 主动找话题（LM03-S2b-2，系统自动注入记录）
+
+- **定位**：用户无方案A 显式带入记录时，语伴**授权后自动从用户记录里挑一条开启话题**（决策 #10 第二个系统自动注入实例）。**仅 send 回合内**触发——不破 S1「冷启动 load 零外发」铁律（`CompanionChatStore.load()` 从不 send）。
+- **两层隐私**：① 全局一次性话题授权 `CompanionTopicSourcingConsent`（三态 `UserDefaults`，mirror S2b-1，首次预览披露、非每次弹窗、`notDecided`/`disabled` 不找话题）；② **复用 v32 `uses_learner_profile`**（语义自本片统一为「使用我的内容＝画像＋记录」，关一处同关 Memory 注入与找话题）。注入门 `CompanionInjectionGate.shouldSourceTopic` 纯函数四态可测。
+- **数据流（send 回合内）**：`companionSend` 无方案A种子 + `shouldSourceTopic` 门开（consent 最后一刻读 + 同 thread 行 toggle）→ `GRDBCompanionRepository.recentTopicCandidates(spaceID:limit:1)`（**纯 `entries.body`、排软删、仅当前 space**；**不用 FTS**——FTS 须 rebuild 易陈旧 + body 折叠 AI `learning_text`）→ `CompanionTopicSelection.select`（recency top-1，LearnerModel 纯函数）→ `.body` → `CompanionConversationEngine`（scrub seam）脱敏 → `CompanionPromptRegistry.systemPrompt(broughtInRecords:)` `<<<RECORD>>>` 引用非指令 + `.topicGroundedInBroughtRecord` directive。
+- **诚实披露**：新 included descriptor `.broughtInRecords`（**A/B 共用**：方案A 用户显式带入 + 方案B 自动找）；`companionConversation(..., hasBroughtInRecords:)` 注入时披露；一次性预览 `CompanionMemoryPreviewModel` 复用展示「发：你的 1 条记录 / 不发：完整记录库 / 照片 / 录音」。
+- **连带修复（S2b-1/方案A 既有漏洞）**：S2b-1 的 engine scrub seam **遗漏 `seedEntryBody`**（方案A 记录正文未脱敏外发）+ 方案A 记录在 preview 零披露。本片把 `seedEntryBody` 纳入 scrub + `.broughtInRecords` A/B 共用披露，一并修复。
+- **band 红线**：只读 `entries.body`，**不取 FTS snippet（含 AI 文本）/ 不碰 derive()**；守卫 `CompanionTopicSelectionBandGuardTests`（源 grep + 数据源行为断言）。
+- **测试入口**：`CompanionTopicSourcingConsentStoreTests`/`CompanionInjectionGateTopicTests`/`CompanionTopicCandidate`（Core）、`CompanionTopicSelectionTests`/`CompanionTopicSelectionBandGuardTests`（LearnerModel）、`CompanionPromptRegistryTests`/`CompanionConversationProjectionTests`/`CompanionConversationEngineTests`（AI）、`CompanionTopicCandidateRepositoryTests`（Data）、`CompanionTopicSourcingUITests`（UI，含冷启动零外发回归）。
+- **v1 残余 / 范围外**：单条记录 PII 集中（仅手机号/身份证脱敏，缓解 = top-1 + 一次性预览 + 可关）；同会话可能重复引用最近记录（不追踪已用种子）；recency ≠ 相关（FTS 精排 / 子范围授权 / 独立 `uses_record_topics` 列留后续 + architecture note）。无新 migration（复用 v32 + 只读 entries + UserDefaults consent）。
+
 ## 5. 模块依赖方向
 
 当前依赖方向：

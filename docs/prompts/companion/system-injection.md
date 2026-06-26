@@ -38,3 +38,10 @@ Memory 注入是**系统自动注入外发**（与用户显式发送/重发严�
 - capability `.companionConversation`（首个对话送 capability，preview-only、不写 `ai_request_logs`）。
 - 注入时 includedContent 含 `.curatedLearnerMemory`；`.longTermMemory` **始终 excluded**（原始全量不外发）。
 - 一次性预览 `CompanionMemoryPreviewModel` 同时展示 included（curated 子集）与 excluded（完整记忆库 / 照片 / 录音），诚实区分「发 curated / 不发全量」。
+
+## 6. 方案B 记录找话题注入（LM03-S2b-2）
+
+- 同一 `builtin.companion.system.v1` 的加性 `broughtInRecords: [String]` 受控片段：授权（`CompanionTopicSourcingConsent` 一次性）后，**仅 send 回合内**（无方案A 种子 + `CompanionInjectionGate.shouldSourceTopic` 门开）自动带入 `CompanionTopicSelection` 选出的 recency top-1 记录正文（纯 `entries.body`、仅当前 space、不用 FTS）。
+- 渲染：`<<<RECORD ... RECORD>>>` delimiter（引用非指令，AI-17）+ `.topicGroundedInBroughtRecord` directive（区别方案A 的 `.topicGroundedInRecord`，结构可测）。
+- **PII scrubbing**：`broughtInRecords`（方案B）与 `seedEntryBody`（方案A）均经 `CompanionConversationEngine.scrub` outbound 脱敏——**本片修复 S2b-1 遗漏的 `seedEntryBody` 脱敏**；存原文发脱敏、不入日志/DB。
+- 披露：included descriptor `.broughtInRecords`（A/B 共用）；`companionConversation(..., hasBroughtInRecords:)`。

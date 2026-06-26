@@ -83,6 +83,10 @@ public enum CompanionChatCopy {
     public static let memoryUseKey = "companion.memory.preview.use"
     public static let memoryDeclineKey = "companion.memory.preview.decline"
 
+    // LM03-S2b-2 record topic-sourcing one-time preview copy.
+    public static let topicPreviewTitleKey = "companion.topic.preview.title"
+    public static let topicDeclineKey = "companion.topic.preview.decline"
+
     // LM03-S2a chat-reflux extraction copy.
     public static let extractActionKey = "companion.extraction.action"
     public static let extractLoadingKey = "companion.extraction.loading"

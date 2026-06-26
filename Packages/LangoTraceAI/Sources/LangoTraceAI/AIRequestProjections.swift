@@ -115,7 +115,8 @@ public extension AIRequestPreviewProjection {
     static func companionConversation(
         endpoint: AIProviderEndpointInput,
         lengthBucket: AIRequestLengthBucket,
-        hasMemoryInjection: Bool
+        hasMemoryInjection: Bool,
+        hasBroughtInRecords: Bool = false
     ) -> AIRequestPreviewProjection {
         var included: [AIRequestContentDescriptor] = [
             .companionConversation,
@@ -125,6 +126,11 @@ public extension AIRequestPreviewProjection {
         ]
         if hasMemoryInjection {
             included.append(.curatedLearnerMemory)
+        }
+        // 方案A (user brought in a record) or 方案B (companion auto-sourced one).
+        // Either way the record body egresses, so the preview discloses it.
+        if hasBroughtInRecords {
+            included.append(.broughtInRecords)
         }
         return AIRequestPreviewProjection(
             capability: .companionConversation,

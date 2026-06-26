@@ -84,6 +84,35 @@ public struct GRDBCompanionRepository: Sendable {
         }
     }
 
+    /// Plan-B (LM03-S2b-2): the most recent records in this space, as topic
+    /// candidates for the companion to auto-source a conversation topic. Reads the
+    /// raw `entries.body` (the user's own text — never FTS-folded text that mixes in
+    /// AI `learning_text`), excludes soft-deleted rows, and is **space-scoped**
+    /// (decision #10: never draws from other language spaces). Newest first; rides
+    /// the `idx_entries_space_created_at` index.
+    public func recentTopicCandidates(spaceID: String, limit: Int) throws -> [CompanionTopicCandidate] {
+        guard limit > 0 else { return [] }
+        return try writer.read { db in
+            try Row.fetchAll(
+                db,
+                sql: """
+                SELECT id, title, body, created_at FROM entries
+                WHERE space_id = ? AND deleted_at IS NULL
+                ORDER BY created_at DESC, id DESC
+                LIMIT ?
+                """,
+                arguments: [spaceID, limit]
+            ).map { row in
+                CompanionTopicCandidate(
+                    id: row["id"],
+                    title: row["title"],
+                    body: row["body"],
+                    createdAt: Date(timeIntervalSince1970: row["created_at"])
+                )
+            }
+        }
+    }
+
     /// Plan-A: the body of an explicitly brought-in entry (nil if deleted).
     public func entryBody(entryID: String) throws -> String? {
         try writer.read { db in

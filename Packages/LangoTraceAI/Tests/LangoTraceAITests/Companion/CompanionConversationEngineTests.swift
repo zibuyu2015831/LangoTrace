@@ -82,6 +82,29 @@ struct CompanionConversationEngineTests {
         #expect(!assembled.system.text.contains("13900139000"))
     }
 
+    @Test("outboundScrubCoversSeedAndBroughtInRecords — 方案A seed + 方案B records are scrubbed (S2b-2 fix)")
+    func outboundScrubCoversSeedAndBroughtInRecords() {
+        let scrubbingEngine = CompanionConversationEngine(
+            transport: StubTransport(deltas: ["ok"]),
+            scrub: PIIScrubber.scrub
+        )
+        let assembled = scrubbingEngine.assembleRequest(
+            userInput: "hi",
+            history: [],
+            persona: .default,
+            targetLanguageCode: "en",
+            nativeLanguageCode: "zh-Hans",
+            proficiencyLevel: "b1",
+            seedEntryBody: "call me at 13800138000", // 方案A — previously unscrubbed (S2b-1 gap)
+            broughtInRecords: ["my id is 11010519491231002X"] // 方案B auto-sourced
+        )
+        // Both record bodies scrubbed in the outbound system prompt.
+        #expect(assembled.system.text.contains(PIIScrubber.mobilePlaceholder))
+        #expect(assembled.system.text.contains(PIIScrubber.nationalIDPlaceholder))
+        #expect(!assembled.system.text.contains("13800138000"))
+        #expect(!assembled.system.text.contains("11010519491231002X"))
+    }
+
     // MARK: - Assembly
 
     @Test("contextWindowTruncatesOldestKeepsRecent — keeps the most recent N turns plus the new input")
