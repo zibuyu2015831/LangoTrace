@@ -161,6 +161,7 @@
 - **Style 集成（v1/v2 分阶）**：
   - v1：Style 层尚无数据，语伴响应风格仅靠 persona 固定模板
   - v2：`LearnerContextProvider` 返回 Style 受控片段，语伴自然融入用户表达习惯（简洁/幽默/类比等），同时经 Ability i+1 下投影（01 §13.5）——不把母语丰富度强加给初学者；「提示」按钮的建议句型也随之个性化
+    - **→ surface v1 已落地（LM03-S4a，2026-06-27）**：`CompanionStyleProjection` 把 LM02-S2 surface Style 印记（句长/词汇丰富度/正式度）+ 只读 band 量化为 `CompanionStyleDescriptor`，经 `CompanionPromptRegistry` 注入 `<<<STYLE>>>` 块——正式度镜像语域、复杂度按 `band.estimatedLevel` 只读封顶兑现 i+1；复用 S2b-1 两层 consent（Memory+Style 一闸）、Style 块零原始内容无需 scrub、无新 migration/capability/外发类目。认知风格 v2（AI 校准）仍后置。
 - 隐私：关系记忆属高敏感个人数据，默认 local-only、可查看、可删除（统一治理入口）；Memory 生活事实纳入导出 + 可恢复备份（01 §13.7）。
 
 ### 3.12 对话小结与进步可见

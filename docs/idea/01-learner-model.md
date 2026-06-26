@@ -277,11 +277,11 @@ mastery「状态」本质就是 SRS 调度器的计算产物（interval / ease /
 
 ### 13.9 本轮新增 / 更新待决点
 
-> **【2026-06-25 LM02-S2 落地收口】**：① **命名** = 内部类型 `StyleImprint`（表达印记）、用户面文案「表达快照 / 你的写作」（仅展示时用，当前 seam-only 不展示）——v2 认知半边落地时再议总称。② **持久化** = v1 表面印记 = compute-on-read 真派生**不持久不备份**（ADR-006 §8 分层细化：「准原始 / 备份」仅适用 v2 自陈 + 认知风格），事实源 architecture note `2026-06-25-style-surface-imprint-recompute-notes.md`。③ **展示默认**（实在 decomposition §35③ / §13.4）= **默认不展示**（seam-only，用户 2026-06-25 定）。下投影档位映射 / AI 校准触发仍为 v2 待决。详见 [LM02-S2 方案](../plans/done/2026-06-25-feature-lm02-s2-style-surface-imprint.md)。
+> **【2026-06-25 LM02-S2 落地收口】**：① **命名** = 内部类型 `StyleImprint`（表达印记）、用户面文案「表达快照 / 你的写作」（仅展示时用，当前 seam-only 不展示）——v2 认知半边落地时再议总称。② **持久化** = v1 表面印记 = compute-on-read 真派生**不持久不备份**（ADR-006 §8 分层细化：「准原始 / 备份」仅适用 v2 自陈 + 认知风格），事实源 architecture note `2026-06-25-style-surface-imprint-recompute-notes.md`。③ **展示默认**（实在 decomposition §35③ / §13.4）= **默认不展示**（seam-only，用户 2026-06-25 定）。~~下投影档位映射~~ → **LM03-S4a（2026-06-27）已定义 surface v1 下投影档位映射**（语伴消费）：正式度镜像语域、复杂度按 Ability `band.estimatedLevel` 只读封顶（不把母语复杂度强加初学者，§13.5）；认知风格 v2 + AI 校准触发仍待决。详见 [LM02-S2 方案](../plans/done/2026-06-25-feature-lm02-s2-style-surface-imprint.md)、[LM03-S4a 方案](../plans/done/2026-06-27-feature-lm03-s4a-companion-style-injection.md)。
 
 - Style 正式命名（Style / Voice / 表达印记——「Style」略低估认知半边）。
 - 认知风格 AI 校准的触发节奏与最小发送形态（送什么摘要、是否经用户同意样例）。
-- Style ↔ Ability 下投影的**档位映射**（是否复用 02 §13.3 的迟滞 / 仅新内容策略）。
+- ~~Style ↔ Ability 下投影的**档位映射**~~ → **surface v1 已定义（LM03-S4a，2026-06-27）**：语伴注入时正式度镜像 + 复杂度按 `band.estimatedLevel` 只读封顶；band 信号稀疏回退 seed。认知风格 v2 档位映射仍待决。
 - product-main-reference 一次定位修订的最终文案与 02 / 03 合并口径。
 - 全局共享无 opt-out 的长期风险复盘点（若未来出现「敏感空间隔离」诉求再议）。
 

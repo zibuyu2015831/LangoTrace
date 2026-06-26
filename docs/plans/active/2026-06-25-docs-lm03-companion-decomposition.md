@@ -97,10 +97,13 @@
 - **硬前置**：Provider Anthropic 适配（本片实现）；独立于 §9 与 LM02-S2 Style。
 - **风险**：中（多 Provider 鉴权 + SSE 形态差异；无新外发类目）。
 
-#### LM03-S4a：Style 受控片段注入 + 认知风格 i+1 下投影（待开工）
+#### LM03-S4a：Style 受控片段注入 + 认知风格 i+1 下投影
+> **→ 已 Done（2026-06-27，全量 CI 绿 run 28256888515）**：[`done/2026-06-27-feature-lm03-s4a-companion-style-injection.md`](../done/2026-06-27-feature-lm03-s4a-companion-style-injection.md)。双轮自审 → 授权 → TDD：Core `CompanionStyleDescriptor` + `.curatedLearnerStyle` / LearnerModel `CompanionStyleProjection`（formality 镜像量化 + elaboration + **ceiling=band.estimatedLevel** 只读封顶 + sampleCount 阈值 + band 红线守卫）/ AI `<<<STYLE>>>` 渲染 + `.styleGroundedPersona` directive + engine 透传 / UI exhaustive switch 上修 + 本地化 / App 同 `uses_learner_profile` 门装配 + 预览披露 Memory+Style。**i+1 v1 mapping 定义**（正式度镜像 + 复杂度按 band 封顶；认知风格 v2 后置）。**Style 块零原始用户内容**（枚举派生类别 + CEFR ceiling）→ 无需 PII scrub；复用 S2b-1 两层 consent，**无新 consent 门 / 无新 migration / 无新 capability / 无新外发类目语义升级**；band 红线只读。Prompt 登记 `docs/prompts/companion/style.md`。
 - **范围**：Style 受控片段注入（依赖 LM02-S2 Style，经 Ability i+1 下投影，§3.11 / idea-01 §13.5）；§9 时机已收口 = **A（注入 v1 surface Style）**。
-- **硬前置**：LM02-S2（Style，已 Done seam-only）+ ADR-006 §6 隐私闸（Style 外发，复用 S2b-1 两层 consent + PII scrub）+ Ability band（i+1 下投影，已 Done）。
-- **风险**：中（系统自动注入外发增量；surface Style 注入价值与 i+1 下投影档位映射须细化）。
+- **硬前置**：LM02-S2（Style，Done seam-only）+ ADR-006 §6 隐私闸（复用 S2b-1 两层 consent）+ Ability band（i+1 下投影，Done，只读）。
+- **风险**：中（系统自动注入外发；自审 P0 band 红线 + P1 闭集破坏均守卫钉死 / 计划内上修）。
+
+> **至此 LM03 语伴系列（S1→S2a→S2b-1→S2b-2→S3a→S3b-1→S3b-2→S4b→S4a）全部 Done。** 本拆解 / 决策导航文档随之收尾，可移入 `done/`（待下一次系列收口统一归档）。
 
 ### 远期（不在本次拆解的 active plan 范围）
 - 语音输入 / 语音对话（依赖 Speech Recognition，先写架构备忘录，§3.7）；场景 / 主题对话模式（决策 #5：Prompt 模式非新空间，§9 远期）；向量检索增强话题相关性。

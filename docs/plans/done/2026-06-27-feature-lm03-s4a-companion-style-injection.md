@@ -1,6 +1,6 @@
 # 任务方案：LM03-S4a —— Style 受控片段注入 + 认知风格 i+1 下投影
 
-状态：Reviewed（双轮隔离自审完成；待用户实现授权）
+状态：Done（2026-06-27 用户授权 → TDD 落地 → 全量 CI 绿 run 28256888515 → §17 回写）
 自审核状态：Reviewed（见 §11）
 类型：feature
 创建日期：2026-06-27
@@ -140,3 +140,20 @@ Workflow：[`workflows/add-prompt.md`](../../workflows/add-prompt.md)（新增�
 - **directive injection 安全？**——`<<<STYLE>>>` 块 reference-only 框架（仿 Memory），且内容为固定枚举派生英文，无用户自由文本拼入 → 无 prompt 注入面。
 
 **自审结论**：单片 S4a 连贯、无需下拆。最高风险 = P0 band 红线（守卫钉死）+ P1 闭集破坏（已上修计划内）。i+1 v1 mapping 定义清晰、认知风格 v2 后置。升 **Reviewed**，待用户实现授权。
+
+## 12. 收口记录（2026-06-27）
+
+实现 commit `cc5c417`；全量 CI `Build & Test` 绿 **run 28256888515**（6 包 + 三端构建 + macOS app test + lint + docs）。
+
+逐落点 TDD 落地：Core `CompanionStyleDescriptor` + `.curatedLearnerStyle` / LearnerModel `CompanionStyleProjection`（formality 量化 + elaboration 量化 + ceiling=band.estimatedLevel + sampleCount 阈值 nil + 主子标签匹配）+ band 红线守卫 / AI `<<<STYLE>>>` 渲染 + `.styleGroundedPersona` + engine 透传 + `hasStyleInjection` 投影 / UI `RequestPreviewCardModel.label` exhaustive switch 上修 + `requestPreview.content.curatedLearnerStyle` 本地化 / App 同 `uses_learner_profile` 门装配 styleImprint+band→project→styleDescriptor + 预览披露 Memory+Style。
+
+**自审验证回填 / 实施期教训**：
+- **P0 band 红线**：守卫源级 grep 一度**误伤自身注释**——`CompanionStyleProjection.swift` 注释里写「never touches `BandHysteresis` / `derive()`」恰含 grep 禁词 → 改写注释避开字面量 `bandhysteresis`/`derive(`。教训：解释「不用某禁词」的注释也会触发字面量 grep 守卫，措辞须避开。
+- **P1 闭集破坏（计划内已上修）**：`.curatedLearnerStyle` 破坏 `RequestPreviewCardModel.label` exhaustive switch（行 72）+ 需本地化 key——**方案已提前列出、非 CI 才发现**；UI 测试误用类型名 `AIRequestPreviewPresentation`（实际方法在 `RequestPreviewCardModel`，文件名误导）→ 改正。
+- **本机 module-cache staleness 复发**：加 Core 闭集 case 后，AI / UI 各自 `.build` 缓存旧 Core 模块致「cannot find `.curatedLearnerStyle`」假错；`rm -rf <pkg>/.build` 重建即过。复用本会话教训（Speech/Sync 同因）。
+- **type-check 超时**：`<<<STYLE>>>` 渲染原为单条巨型 `+`-插值链触发 Swift type-check 超时 → 抽出 rawValue 到局部变量后秒过。
+- **switch-expression 推断**：`elaboration` switch-表达式隐式 return 不推断 case 上下文 → 改 `if/return`。
+
+**偏差**：无。认知风格 v2（AI 校准）按方案后置，非偏差。
+
+**至此 LM03 语伴系列（S1→S2a→S2b-1→S2b-2→S3a→S3b-1→S3b-2→S4b→S4a）全部 Done。** 轻量验证：Core 280 / LearnerModel 71 / AI 254 / UI 625 绿。本片**无新 migration / 无新 AIRequestCapability / 无新外发类目语义升级**（Style 块零原始内容、复用 consent 门、band 只读）。
