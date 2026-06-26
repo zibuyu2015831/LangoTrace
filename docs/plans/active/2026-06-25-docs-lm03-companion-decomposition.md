@@ -20,7 +20,7 @@
 ## 硬前置（全部子片）
 
 1. **ADR-008 定位**（已 Accepted）：六条硬边界 + 入口 = 练习 Tab 二级 / 记录详情（**不做第四 Tab / 顶层导航**）。
-2. **Provider 多轮 + 文本流式**（Draft/Reviewed）：当前 AI 请求是 OpenAI 兼容单发、无多轮、无文本流式（流式仅 TTS）。语伴依赖多轮 + 流式；Anthropic Messages 适配后置。
+2. **Provider 多轮 + 文本流式**（**已落地 `done/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md`**：OpenAI 兼容族多轮 messages + 文本流式 `AsyncThrowingStream` 已就绪，并由 LM03-S1/S3a 消费）。Anthropic Messages 适配后置（LM03-S4）。
 3. **数据依赖已就绪**：plan 09（请求预览 / 日志，E6）已落地；plan 10/11（记忆 deposit / 复习，E7/E8）已落地；plan 12（FTS，E9）已落地——方案 B 找话题 + 聊天反哺记忆 + Memory 注入的数据底子具备。
 4. **2026-05-25 语伴备忘录对齐**：复用命名 `ConversationCompanion / CompanionThread / CompanionMessage / CompanionMemorySummary / CompanionAnalysis`；对话情景 per-space、生活事实系统级（ADR-006 §7.1 / idea-03 §10.1）。
 5. **LM02 Memory（S1）就绪**：Memory 注入依赖 S1 系统级生活事实 + `LearnerContextProvider`；Style 注入依赖 S2（v2）。
@@ -129,7 +129,7 @@
 ## 推荐排序与门控
 
 ```text
-前置：ADR-008（已定）+ Provider 多轮/流式（Draft/Reviewed，待实现）+ 2026-05-25 命名对齐
+前置：ADR-008（已定）+ Provider 多轮/流式（已落地 done/）+ 2026-05-25 命名对齐
    ↓
 LM03-S1（MVP 文本对话引擎）   ← 完整引擎起点；不依赖 LM02 后续切片（难度退静态 level）
    ↓
