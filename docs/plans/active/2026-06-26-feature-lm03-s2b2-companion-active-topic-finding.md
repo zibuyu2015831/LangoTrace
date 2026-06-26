@@ -9,7 +9,7 @@
 ## 用户确认记录
 
 - 2026-06-25：用户确认 S2 按风险拆 S2a/S2b。
-- 2026-06-26：用户确认 **S2b 进一步拆 S2b-1 / S2b-2**。本片 = **S2b-2**：方案B 主动找话题（一次性范围授权 + 本地 FTS 预筛 + 最小发送）。**Memory 注入 + 两层隐私 + PII scrubbing 拆为 S2b-1**（见 [`2026-06-26-feature-lm03-s2b1-companion-memory-injection.md`](2026-06-26-feature-lm03-s2b1-companion-memory-injection.md)）。
+- 2026-06-26：用户确认 **S2b 进一步拆 S2b-1 / S2b-2**。本片 = **S2b-2**：方案B 主动找话题（一次性范围授权 + 本地 FTS 预筛 + 最小发送）。**Memory 注入 + 两层隐私 + PII scrubbing 拆为 S2b-1**（见 [`done/2026-06-26-feature-lm03-s2b1-companion-memory-injection.md`](../done/2026-06-26-feature-lm03-s2b1-companion-memory-injection.md)）。
 - **实现授权**：尚未授权；本片当前仅作边界登记，进入实现前须补全实施方案 + 双轮隔离自审 → `Reviewed` + 用户授权。
 
 ## 这份文档是什么

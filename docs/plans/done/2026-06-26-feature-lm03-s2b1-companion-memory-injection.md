@@ -1,6 +1,6 @@
 # 任务方案：LM03-S2b-1 语伴 Memory 注入 + 两层隐私控制 + PII scrubbing
 
-状态：In Progress（六 Phase TDD 全落地 + 轻量单包测试全绿；待 §17 文档收口 + 全量 CI）
+状态：Done（六 Phase TDD + §17 文档收口 + 全量 CI 绿，已移 done/）
 
 ## 实施记录（2026-06-26）
 
@@ -13,7 +13,7 @@
 - **Phase 5（UI）**：两处 exhaustive switch、`CompanionMemoryPreviewModel`（included curated + excluded longTermMemory 披露）、`CompanionChatStore` consent/toggle 态 + `canInjectMemory`/`needsMemoryConsentPreview`、`CompanionChatView` 一次性预览 sheet + per-conversation 开关、本地化 key（en+zh-Hans）。
 - **Phase 6（App）**：`AppEnvironment+Companion` 装配——`companionSend` 注入门权威判定（consent 最后一刻读 + 同 thread 行 toggle）→ select → 经 engine scrub 注入；`setUsesLearnerProfile` / `memoryPreviewProjection` 接线；持久存原文、仅 outbound 脱敏。
 
-待办：§17 文档收口 + 全量 CI（v32 迁移 + 三端构建 + macOS app test）。
+**全量 CI `Build & Test` 全绿（run 28214663981：v32 迁移 + iPhone/iPad/macOS 构建 + macOS app test + 全包测试 + lint）**。实施期 CI 修复：SwiftLint `force_try`（PIIScrubber 正则编译）→ 改 guard + preconditionFailure helper（commit f351f9e）。§17 文档回写完成（ADR-006·008、spec/005·007·008、architecture/002 §4.13、page-inventory、prompts/companion/system-injection.md、拆解+仪表盘）。本片完成，移入 `done/`。
 自审核状态：Reviewed（双轮隔离自审完成；4 P0 + 7 P1 + 关键 P2 已写回范围/架构/TDD 正文。Reviewed ≠ 用户已批准实现）
 类型：feature
 创建日期：2026-06-26
@@ -22,7 +22,7 @@
 ## 用户确认记录
 
 - 2026-06-25：用户确认 LM03-S2 按风险拆 S2a/S2b。
-- 2026-06-26：用户确认 **S2b 进一步拆 S2b-1 / S2b-2**（推荐）。本片 = **S2b-1**：语伴 Memory 注入（系统级生活事实）+ 两层隐私控制 + PII scrubbing。**方案B 主动找话题拆出为 S2b-2，独立后续门控**（边界登记见 [`2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md`](2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md)）。
+- 2026-06-26：用户确认 **S2b 进一步拆 S2b-1 / S2b-2**（推荐）。本片 = **S2b-1**：语伴 Memory 注入（系统级生活事实）+ 两层隐私控制 + PII scrubbing。**方案B 主动找话题拆出为 S2b-2，独立后续门控**（边界登记见 [`active/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md`](../active/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md)）。
 - 2026-06-26：用户确认 **PII scrubbing v1 覆盖范围 = 手机号 + 身份证号**（确定性正则、低误杀；邮箱 / 地址留 v2）。
 - 2026-06-25（沿用）：**Memory 注入 v1 排序 = 时近性 + 种类配额**（recency-primary；salience 列 v1 不参与，留 v2 FTS 相关性召回）。
 - **实现授权**：**✅ 2026-06-26 用户授权实现**，并接受 3 项推荐默认：① 一次性预览在「首次进语伴会话（consent==notDecided）」触发；② 脱敏占位用母语中性短语；③ 接受 scrub 含历史回放（改 S1 原样外发行为，对齐「任何外发前」）。按方案 TDD 逐 Phase 实施，轻量本地单包测试 + 格式检查，重测试走 GitHub Actions CI。

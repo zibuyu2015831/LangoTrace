@@ -50,7 +50,7 @@
 > 整个语伴系列**最高隐私门**（系统自动注入外发，受决策 #10），原单片含三件重活，2026-06-26 用户确认按风险再拆，把基础的 Memory 注入半片与最复杂的方案B 找话题半片分离、逐门控授权。
 
 ##### LM03-S2b-1：Memory 注入 + 两层隐私控制 + PII scrubbing
-> **→ 实现完成（六 Phase TDD + 轻量单包测试全绿）/ 待全量 CI**：[`active/2026-06-26-feature-lm03-s2b1-companion-memory-injection.md`](2026-06-26-feature-lm03-s2b1-companion-memory-injection.md)。双轮自审捕获并写回 4 P0（授权 UX 须一次性预览非发送前拦截 / `.longTermMemory` 改用 `.curatedLearnerMemory` 不破全局红线 / scrub 须含历史回放 / 预览 card 不可复用须新建语伴专用 view）+ 7 P1 + 关键 P2（注入门纯函数 seam 等）→ Reviewed → 用户授权（接受 3 项推荐默认）→ 六 Phase 落地（v32 迁移 + consent/gate/scrubber + selection + prompt 注入 + 三端 UI 一次性预览 + App 装配）。§17 文档已回写。
+> **→ Done（2026-06-26，全量 CI 绿 run 28214663981）**：[`done/2026-06-26-feature-lm03-s2b1-companion-memory-injection.md`](../done/2026-06-26-feature-lm03-s2b1-companion-memory-injection.md)。双轮自审捕获并写回 4 P0（授权 UX 须一次性预览非发送前拦截 / `.longTermMemory` 改用 `.curatedLearnerMemory` 不破全局红线 / scrub 须含历史回放 / 预览 card 不可复用须新建语伴专用 view）+ 7 P1 + 关键 P2（注入门纯函数 seam 等）→ Reviewed → 用户授权（接受 3 项推荐默认）→ 六 Phase 落地（v32 迁移 + consent/gate/scrubber + selection + prompt 注入 + 三端 UI 一次性预览 + App 装配）→ §17 回写 → 全量 CI 绿。
 - **范围**：系统级生活事实经 `LearnerContextProvider.memoryFacts(.global)` 取 **top-5（时近性 + 种类配额）** → PII scrubbing → 注入语伴 system prompt（§3.11）；两层隐私控制（全局首次预览 + 全局关 / per-conversation toggle，v32 `companion_threads.uses_learner_profile`）；PII scrubbing **v1 = 手机号 + 身份证号**（用户 2026-06-26 定）；注入预览**如实披露** `.longTermMemory`（首个 `companionConversation` capability，§6.9）。
 - **硬前置**：LM03-S1（Done）+ LM02-S1 Memory / `LearnerContextProvider`（就绪）+ **两层隐私 + PII scrubbing 可验证**（额外门）。
 - **风险**：高（最高隐私门核心：系统自动注入外发 + 预览披露语义变化）。
