@@ -81,10 +81,12 @@
 - **硬前置**：LM03-S1（Done）+ S3a（Done）+ Provider 流式（就绪）。**新增 v33 migration + 新自动 AI 外发（摘要）**。
 - **风险**：高（失效重建一致性 + 新自动 AI 外发 + 上下文窗口整合）。
 
-##### LM03-S3b-2：对话小结（§3.12，复用 S2a + S3b-1 摘要 infra）
-- **范围**：轻量「本次对话小结」（用到的新词/表达 + 典型错误 + 可加记忆库候选）；手动 + 可选会话结束触发；复用 S2a `CompanionExtractionEngine` 提取 + S3b-1 摘要 infra + plan 10/11 deposit 批量入口。
-- **硬前置**：LM03-S2a（Done）+ S3b-1（摘要 infra）。
-- **风险**：中（复用既有提取 + 摘要；批量 deposit 入口 + 触发形态）。进入实现前补全方案 + 双轮自审 + 授权。
+##### LM03-S3b-2：对话小结（§3.12，候选批量 deposit 闭合「对话 → 记忆」）
+> **→ 完整 active plan + 双轮自审（两 P0 经核验降级为非破坏 + P1/P2 写回）= Reviewed，待用户实现授权**：[`active/2026-06-26-feature-lm03-s3b2-companion-session-deposit.md`](2026-06-26-feature-lm03-s3b2-companion-session-deposit.md)。
+- **范围（用户 2026-06-26 定）**：**复用 S2a 提取（含 errorPattern 五类候选）+ 批量 deposit 到 E7/E8 复习系统（`memory_items`）**，把对话闭合回「记录 → 对话 → 记忆」。**不新增摘要 AI**；deposit 粒度 = 批量「全部加入」+ 逐条「已加入」态（§3.8 反手动选词）。调查结论：S2a 提取 + E7 deposit + E8 复习均已落地，但 `companion_memory_candidates` 与 `memory_items` **当前完全孤立**——真增量 = 建立这条 deposit 连接 + 小结 UI。
+- **硬前置**：LM03-S2a（Done，候选源）+ E7/E8 记忆 deposit·复习（Done）。
+- **边界**：**无新 AI / 无新外发类目 / 无新 migration**（deposit 纯本地、复用 E7 幂等 `deposit`、`source_kind 'candidate'`、`entry_id` 可空写 NULL）；band 红线不碰（difficulty 默认 `.medium` 不读难度）。
+- **风险**：中低（纯本地 deposit 连接 + UI；自审两 P0〔entryID 放宽 / 新 seam 破坏〕经核验均为非破坏）。
 
 ### LM03-S4（v2）：Style 注入 + Anthropic 适配 + 认知风格下投影
 - **范围**：Style 受控片段注入（依赖 LM02-S2 Style，经 Ability i+1 下投影，§3.11 / idea-01 §13.5）；Anthropic Messages 多轮 + 流式适配（idea-03 §10.3）；Style v2 触发时机（§9 待决）。
