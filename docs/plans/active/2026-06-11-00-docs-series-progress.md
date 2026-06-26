@@ -63,7 +63,7 @@
        ↓
     ✅ S2b-1（Memory 注入 + 两层隐私 + PII scrubbing〔手机号+身份证〕，最高隐私门核心）  ← Done 2026-06-26（六 Phase TDD + 全量 CI 绿 run 28214663981，已移 done/）
        ↓
-    ⛔ S2b-2（方案B 找话题：范围授权 + FTS 预筛 + 最小发送）  ← Draft 边界登记，强依赖 S2b-1 先落地
+    🟢 S2b-2（方案B 找话题：一次性授权 + recency 智能最小发送 top-1）  ← 完整 plan + 双轮自审（2 P0+6 P1 写回）= Reviewed，待用户实现授权
      ↓
   LM03-S3（文本流式 + 对话记忆 + 小结 + 复述）
      ↓
@@ -91,7 +91,7 @@
 | LM03-S1 | ~~`2026-06-25-feature-lm03-s1-companion-mvp`~~ → `done/` | 语伴 MVP 单线程文本对话引擎 | ✅ **Done（2026-06-25）**：五 Phase TDD（Core 域类型+开关 / v30 companion 迁移+repo / 引擎+Prompt Registry / 三端聊天 UI+路由+入口+开关 / App 装配）；**全量 Build & Test 全绿（run 28178973216：iPhone/iPad/macOS 构建 + v30 migration + macOS app test + 全包测试 + lint + check-docs）**；§17 回写（architecture/002 §4.11、page-inventory 三端、spec/005·006·007·008、ADR-008、idea-03）；已移 `done/`。入口英文名 = Language Companion。**偏差**：逐句 TTS 朗读暂缓（加性后续，§18）；Pad 通用入口经记录详情。**LM03-S2/S3/S4 未拆** |
 | LM03-S2a | ~~`2026-06-25-feature-lm03-s2a-companion-reflux`~~ → `done/` | 语伴聊天反哺（入站 / 低外发） | ✅ **Done（2026-06-26）**：五 Phase TDD（Core 候选值类型 / v31 `companion_memory_candidates` 独立表 + repo 三方法 + band 红线守卫 / 提取引擎 + Prompt Registry + capability 闭集新 case / 三端 UI 提取动作三态 + 预览披露 / App 装配）；轻量单包测试全绿（Core/Data/AI/LearnerModel/UI）+ **全量 CI `Build & Test` 全绿（run 28186684074：v31 迁移 + 三端构建 + macOS app test + 全包 + lint）**。**新表独立不改 memory_candidates；band derive() 零改动；无新系统自动外发**；显式触发提取同「重新分析」先例。§17 回写完成（architecture/002 §4.12、spec/005·007、ADR-008 §6、page-inventory、prompts/companion/extraction.md、架构备忘录）。 |
 | LM03-S2b-1 | ~~`2026-06-26-feature-lm03-s2b1-companion-memory-injection`~~ → `done/` | 语伴 Memory 注入 + 两层隐私 + PII scrubbing | ✅ **Done（2026-06-26）**：双轮自审 Reviewed → 用户授权（接受 3 项推荐默认）→ 六 Phase TDD（Core consent/gate/scrubber + capability/descriptor / LearnerModel 选择层 + band 红线守卫 / AI prompt 注入 + 投影 + engine scrub seam / Data v32 `uses_learner_profile` / UI 一次性预览 + per-conversation 开关 / App 装配）。**全量 CI `Build & Test` 全绿（run 28214663981：v32 迁移 + 三端构建 + macOS app test + 全包 + lint）**。系统级生活事实 top-5（时近性+种类配额）注入 + 两层隐私（全局一次性预览 / per-conversation toggle）+ PII v1（手机号+身份证，outbound 含历史回放、存原文发脱敏）+ `.curatedLearnerMemory` 诚实披露（`.longTermMemory` 仍全局 excluded）+ band derive() 零改动。§17 回写完成（ADR-006·008 / spec/005·007·008 / architecture/002 §4.13 / page-inventory / prompts/companion/system-injection.md）；已移 `done/` |
-| LM03-S2b-2 | `2026-06-26-feature-lm03-s2b2-companion-active-topic-finding` | 语伴方案B 主动找话题（范围授权 + FTS 预筛 + 最小发送） | ⛔ **Draft 边界登记 / 门控未开**（2026-06-26 自 S2b 拆出）：方案B 一次性范围授权 + 本地 FTS 预筛 + 最小发送。**强依赖 S2b-1 先落地**（复用其隐私闸 + PII scrubbing + 注入预览）。进入实现前须补全实施方案 + 双轮自审 + 授权 |
+| LM03-S2b-2 | `2026-06-26-feature-lm03-s2b2-companion-active-topic-finding` | 语伴方案B 主动找话题（一次性授权 + recency 智能最小发送） | 🟢 **Reviewed / 待用户实现授权**（2026-06-26 完整 plan + 双轮隔离自审，两轮各自独立命中相同 2 P0 + 共 6 P1 写回）：一次性全局话题授权（mirror S2b-1 consent）+ 复用 v32 per-conversation 开关（语义统一）+ recency top-1 最小发送（FTS 降后续）+ 新 `.broughtInRecords` descriptor（A/B 共用）。**自审发现并将修复 S2b-1/方案A 既有隐私漏洞**：`seedEntryBody` 未脱敏外发 + 方案A 记录零 preview 披露。**找话题仅 send 回合内**（不破冷启动零外发）。无新 migration。2 项待用户确认 |
 | 导航 | `2026-06-25-docs-lm03-companion-decomposition` | 语伴完整引擎切片 + 决策收口 | 🔵 **In Progress**（S1–S4 切片边界 + §9/§10.6 决策收口；**S1 已拆+Done；S2 已拆 S2a(Done)/S2b；S2b 再拆 S2b-1(完整 plan)/S2b-2(边界)**；S3…S4 子片待各批次开工前再拆） |
 
 > E10（导入导出）/ E11（同步引擎）已于 2026-06-25 移入 `docs/archive/plans/`（引擎切片落地 + 剩余诚实 defer），不再占用本表；恢复入口与 `learner_memory_facts` 硬接缝见上方「已完成基线」与 `docs/archive/plans/README.md`。

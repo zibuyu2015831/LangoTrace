@@ -55,11 +55,12 @@
 - **硬前置**：LM03-S1（Done）+ LM02-S1 Memory / `LearnerContextProvider`（就绪）+ **两层隐私 + PII scrubbing 可验证**（额外门）。
 - **风险**：高（最高隐私门核心：系统自动注入外发 + 预览披露语义变化）。
 
-##### LM03-S2b-2：方案B 主动找话题（范围授权 + FTS 预筛 + 最小发送）
-> **→ 已登记边界 plan（Draft，门控未开）**：[`active/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md`](2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md)。
-- **范围**：方案 B（一次性范围授权 + 本地 `GRDBLocalSearchRepository.search` FTS 预筛 + 最小发送，§3.6）。
-- **硬前置**：LM03-S1 + plan 12 FTS（就绪）+ **S2b-1 先落地（强依赖：复用其隐私闸 + PII scrubbing + 注入预览披露）**。
-- **风险**：高（另一类系统注入外发；须挂在 S2b-1 已验证隐私闸上）。进入实现前须补全实施方案 + 双轮自审 + 用户授权。
+##### LM03-S2b-2：方案B 主动找话题（一次性授权 + recency 智能最小发送）
+> **→ 完整 plan + 双轮隔离自审 = `Reviewed`（待用户实现授权）**：[`active/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md`](2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md)。
+- **范围（自审后定）**：一次性全局话题授权（mirror S2b-1 consent）+ 复用 v32 per-conversation 开关 + **recency top-1 最小发送**（FTS 须 rebuild 易陈旧 + body 含 AI 文本，降后续）+ 新 `.broughtInRecords` descriptor（A/B 共用）；**找话题仅 send 回合内**（不破 S1 冷启动零外发）；无新 migration。
+- **硬前置**：LM03-S1 + LM03-S2b-1（Done，复用其隐私闸 + PII scrubbing + 一次性预览）。
+- **自审重要产出**：两轮独立命中并将修复 **S2b-1/方案A 既有隐私漏洞**——`seedEntryBody` 未脱敏外发 + 方案A 记录零 preview 披露（本片连带修复）。
+- **风险**：高（系统自动注入外发 + 单条记录 PII 集中度）。待用户授权 + 2 项确认（单条记录一次性预览闸是否够 / 连带修方案A 披露）。
 
 ### LM03-S3：文本流式 + 对话记忆 + 小结 + 温和复述
 - **范围**：文本流式输出（真人感，依赖 Provider 流式前置，§5.2）；对话记忆 / 长期关系记忆（滚动窗口 + 摘要，含「删除某条及其后续」时摘要失效重建，§3.2/§3.11）；对话小结（手动 + 可选会话结束，§3.12）；温和复述纠正（opt-in 默认关，§3.4）；常驻建议 chip（可选，默认走长按提示）。
