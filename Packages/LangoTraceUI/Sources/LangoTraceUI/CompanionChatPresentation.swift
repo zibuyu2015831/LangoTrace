@@ -75,6 +75,14 @@ public enum CompanionChatCopy {
     public static let inputPlaceholderKey = "companion.input.placeholder"
     public static let clearKey = "companion.action.clear"
 
+    // LM03-S2b-1 memory-injection two-layer privacy copy.
+    public static let memoryToggleKey = "companion.memory.toggle"
+    public static let memoryPreviewTitleKey = "companion.memory.preview.title"
+    public static let memoryPreviewSendsKey = "companion.memory.preview.sends"
+    public static let memoryPreviewNotSendsKey = "companion.memory.preview.notSends"
+    public static let memoryUseKey = "companion.memory.preview.use"
+    public static let memoryDeclineKey = "companion.memory.preview.decline"
+
     // LM03-S2a chat-reflux extraction copy.
     public static let extractActionKey = "companion.extraction.action"
     public static let extractLoadingKey = "companion.extraction.loading"

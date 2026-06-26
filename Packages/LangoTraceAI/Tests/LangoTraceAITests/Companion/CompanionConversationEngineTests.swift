@@ -53,6 +53,35 @@ struct CompanionConversationEngineTests {
         )
     }
 
+    // MARK: - Outbound PII scrub (LM03-S2b-1)
+
+    @Test("outboundScrubCoversHistoryInputAndInjectedFacts — last turn's PII does not egress on replay")
+    func outboundScrubCoversHistoryInputAndInjectedFacts() {
+        let scrubbingEngine = CompanionConversationEngine(
+            transport: StubTransport(deltas: ["ok"]),
+            scrub: PIIScrubber.scrub
+        )
+        // A prior turn contains a phone number (persisted raw, replayed each round).
+        let history = [message(0, .user, "call me at 13800138000")]
+        let assembled = scrubbingEngine.assembleRequest(
+            userInput: "my id is 11010519491231002X",
+            history: history,
+            persona: .default,
+            targetLanguageCode: "en",
+            nativeLanguageCode: "zh-Hans",
+            proficiencyLevel: "b1",
+            seedEntryBody: nil,
+            memoryContext: ["reachable at 13900139000"]
+        )
+        // History replay scrubbed.
+        #expect(assembled.messages.first?.content == "call me at \(PIIScrubber.mobilePlaceholder)")
+        // Current input scrubbed.
+        #expect(assembled.messages.last?.content == "my id is \(PIIScrubber.nationalIDPlaceholder)")
+        // Injected memory fact scrubbed (it lands in the system prompt).
+        #expect(assembled.system.text.contains(PIIScrubber.mobilePlaceholder))
+        #expect(!assembled.system.text.contains("13900139000"))
+    }
+
     // MARK: - Assembly
 
     @Test("contextWindowTruncatesOldestKeepsRecent — keeps the most recent N turns plus the new input")

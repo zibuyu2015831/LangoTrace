@@ -37,15 +37,23 @@ public struct CompanionConversationEngine: Sendable {
     private let detectLanguage: (@Sendable (String) -> String?)?
     /// Max user/assistant turns sent to the provider (excludes the system prompt).
     private let maximumContextMessages: Int
+    /// Outbound-only PII scrub applied to **everything that leaves the device**:
+    /// the replayed history, the current input, and the injected memory facts
+    /// (LM03-S2b-1 / `PIIScrubber`). Default is identity (S1 / tests). The engine
+    /// is the single outbound chokepoint so last turn's PII cannot egress on
+    /// replay this turn. Persistence keeps the originals — scrub is send-only.
+    private let scrub: @Sendable (String) -> String
 
     public init(
         transport: any CompanionReplyTransport,
         detectLanguage: (@Sendable (String) -> String?)? = nil,
-        maximumContextMessages: Int = 20
+        maximumContextMessages: Int = 20,
+        scrub: @escaping @Sendable (String) -> String = { $0 }
     ) {
         self.transport = transport
         self.detectLanguage = detectLanguage
         self.maximumContextMessages = maximumContextMessages
+        self.scrub = scrub
     }
 
     /// The assembled outbound request: the system prompt and the truncated
@@ -58,25 +66,31 @@ public struct CompanionConversationEngine: Sendable {
         targetLanguageCode: String,
         nativeLanguageCode: String?,
         proficiencyLevel: String,
-        seedEntryBody: String?
+        seedEntryBody: String?,
+        memoryContext: [String] = []
     ) -> (system: CompanionRenderedPrompt, messages: [ConversationMessage]) {
         let prompt = CompanionPromptRegistry.systemPrompt(
             persona: persona,
             targetLanguageCode: targetLanguageCode,
             nativeLanguageCode: nativeLanguageCode,
             proficiencyLevel: proficiencyLevel,
-            seedEntryBody: seedEntryBody
+            seedEntryBody: seedEntryBody,
+            // Inject facts are scrubbed on the way out, like every other outbound
+            // payload — the system prompt is sent to the provider too.
+            memoryContext: memoryContext.map(scrub)
         )
         // Keep only the most recent turns (system is separate). Truncation acts on
         // the outbound assembly only — `history` (the persisted thread) is untouched.
+        // Every replayed turn AND the current input is scrubbed: prior turns are
+        // re-sent each round, so scrubbing only the current input would leak.
         let recent = history.suffix(max(0, maximumContextMessages))
         var messages = recent.map { message in
             ConversationMessage(
                 role: message.role == .assistant ? .assistant : .user,
-                content: message.content
+                content: scrub(message.content)
             )
         }
-        messages.append(ConversationMessage(role: .user, content: userInput))
+        messages.append(ConversationMessage(role: .user, content: scrub(userInput)))
         return (prompt, messages)
     }
 
@@ -88,8 +102,11 @@ public struct CompanionConversationEngine: Sendable {
         targetLanguageCode: String,
         nativeLanguageCode: String?,
         proficiencyLevel: String,
-        seedEntryBody: String?
+        seedEntryBody: String?,
+        memoryContext: [String] = []
     ) async -> CompanionReplyOutcome {
+        // Detect on the raw input (routing hint); the outbound payload is scrubbed
+        // inside assembleRequest.
         let detected = detectLanguage?(userInput)
         let assembled = assembleRequest(
             userInput: userInput,
@@ -98,7 +115,8 @@ public struct CompanionConversationEngine: Sendable {
             targetLanguageCode: targetLanguageCode,
             nativeLanguageCode: nativeLanguageCode,
             proficiencyLevel: proficiencyLevel,
-            seedEntryBody: seedEntryBody
+            seedEntryBody: seedEntryBody,
+            memoryContext: memoryContext
         )
         var buffer = ""
         do {

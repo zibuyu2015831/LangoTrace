@@ -45,11 +45,21 @@
 - **硬前置**：LM03-S1（Done）。**不依赖** Memory / FTS / 隐私两层（那些属 S2b）。
 - **风险**：中（新迁移 + 新 AI 提取引擎 + 三端动作；但无新系统自动外发，band 零改动）。
 
-#### LM03-S2b：外发注入（Memory 注入 + 方案 B 找话题 + 两层隐私控制 + PII scrubbing）
-> **→ 已登记边界 plan（Draft，门控未开）**：[`active/2026-06-25-feature-lm03-s2b-companion-memory-injection.md`](2026-06-25-feature-lm03-s2b-companion-memory-injection.md)。
-- **范围**：方案 B（一次性范围授权 + 本地 FTS 预筛 + 最小发送，§3.6）；Memory 注入（系统级生活事实 **top-5 时近性 + 种类配额** + per-space 对话情景，经 `LearnerContextProvider`，§3.11）+ 两层隐私控制（首次开启预览 + per-conversation toggle + PII scrubbing，§6.9）。
-- **硬前置**：LM03-S1 + plan 12 FTS（已就绪）+ LM02-S1 Memory + **隐私两层控制 + PII scrubbing 可验证**（额外门）。
-- **风险**：高（整个语伴系列最高隐私门 = 系统自动注入外发，受决策 #10）。进入实现前须补全实施方案 + 双轮自审 + 用户授权。
+#### LM03-S2b：外发注入 —— 2026-06-26 用户决策再拆 S2b-1 / S2b-2
+
+> 整个语伴系列**最高隐私门**（系统自动注入外发，受决策 #10），原单片含三件重活，2026-06-26 用户确认按风险再拆，把基础的 Memory 注入半片与最复杂的方案B 找话题半片分离、逐门控授权。
+
+##### LM03-S2b-1：Memory 注入 + 两层隐私控制 + PII scrubbing
+> **→ 实现完成（六 Phase TDD + 轻量单包测试全绿）/ 待全量 CI**：[`active/2026-06-26-feature-lm03-s2b1-companion-memory-injection.md`](2026-06-26-feature-lm03-s2b1-companion-memory-injection.md)。双轮自审捕获并写回 4 P0（授权 UX 须一次性预览非发送前拦截 / `.longTermMemory` 改用 `.curatedLearnerMemory` 不破全局红线 / scrub 须含历史回放 / 预览 card 不可复用须新建语伴专用 view）+ 7 P1 + 关键 P2（注入门纯函数 seam 等）→ Reviewed → 用户授权（接受 3 项推荐默认）→ 六 Phase 落地（v32 迁移 + consent/gate/scrubber + selection + prompt 注入 + 三端 UI 一次性预览 + App 装配）。§17 文档已回写。
+- **范围**：系统级生活事实经 `LearnerContextProvider.memoryFacts(.global)` 取 **top-5（时近性 + 种类配额）** → PII scrubbing → 注入语伴 system prompt（§3.11）；两层隐私控制（全局首次预览 + 全局关 / per-conversation toggle，v32 `companion_threads.uses_learner_profile`）；PII scrubbing **v1 = 手机号 + 身份证号**（用户 2026-06-26 定）；注入预览**如实披露** `.longTermMemory`（首个 `companionConversation` capability，§6.9）。
+- **硬前置**：LM03-S1（Done）+ LM02-S1 Memory / `LearnerContextProvider`（就绪）+ **两层隐私 + PII scrubbing 可验证**（额外门）。
+- **风险**：高（最高隐私门核心：系统自动注入外发 + 预览披露语义变化）。
+
+##### LM03-S2b-2：方案B 主动找话题（范围授权 + FTS 预筛 + 最小发送）
+> **→ 已登记边界 plan（Draft，门控未开）**：[`active/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md`](2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md)。
+- **范围**：方案 B（一次性范围授权 + 本地 `GRDBLocalSearchRepository.search` FTS 预筛 + 最小发送，§3.6）。
+- **硬前置**：LM03-S1 + plan 12 FTS（就绪）+ **S2b-1 先落地（强依赖：复用其隐私闸 + PII scrubbing + 注入预览披露）**。
+- **风险**：高（另一类系统注入外发；须挂在 S2b-1 已验证隐私闸上）。进入实现前须补全实施方案 + 双轮自审 + 用户授权。
 
 ### LM03-S3：文本流式 + 对话记忆 + 小结 + 温和复述
 - **范围**：文本流式输出（真人感，依赖 Provider 流式前置，§5.2）；对话记忆 / 长期关系记忆（滚动窗口 + 摘要，含「删除某条及其后续」时摘要失效重建，§3.2/§3.11）；对话小结（手动 + 可选会话结束，§3.12）；温和复述纠正（opt-in 默认关，§3.4）；常驻建议 chip（可选，默认走长按提示）。

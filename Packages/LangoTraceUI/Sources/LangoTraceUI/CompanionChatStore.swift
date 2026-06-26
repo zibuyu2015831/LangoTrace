@@ -35,15 +35,64 @@ final class CompanionChatStore: ObservableObject {
     @Published private(set) var lastExtractionCount: Int?
     @Published private(set) var extractionFailure: CompanionExtractionError?
 
+    // MARK: - Memory injection two-layer privacy (LM03-S2b-1)
+
+    /// Global, three-state consent for injecting the learner's life facts. The
+    /// authorization UX is a one-time preview (not per-send): `notDecided` surfaces
+    /// the preview once, then never again.
+    @Published private(set) var memoryConsent: CompanionMemoryConsent = .notDecided
+    /// Per-conversation toggle (the second privacy layer), from the loaded thread.
+    @Published private(set) var usesLearnerProfile = true
+
     private let spaceID: String
     private let sourceEntryID: String?
     private var actions: CompanionChatActions
+    private let consentStore: any CompanionMemoryConsentStore
     private var threadID: String?
 
-    init(spaceID: String, sourceEntryID: String?, actions: CompanionChatActions) {
+    init(
+        spaceID: String,
+        sourceEntryID: String?,
+        actions: CompanionChatActions,
+        consentStore: any CompanionMemoryConsentStore = UserDefaultsCompanionMemoryConsentStore()
+    ) {
         self.spaceID = spaceID
         self.sourceEntryID = sourceEntryID
         self.actions = actions
+        self.consentStore = consentStore
+    }
+
+    /// UI-only derived state: would a send inject Memory right now? Authoritative
+    /// egress gating happens in the App send path, never here.
+    var canInjectMemory: Bool {
+        memoryConsent == .enabled && usesLearnerProfile
+    }
+
+    /// True when the one-time injection preview must be shown (consent undecided).
+    /// Not a per-send check — it stops surfacing once the user decides.
+    var needsMemoryConsentPreview: Bool {
+        memoryConsent == .notDecided
+    }
+
+    /// Records the user's one-time decision from the preview.
+    func setMemoryConsent(_ consent: CompanionMemoryConsent) {
+        consentStore.consent = consent
+        memoryConsent = consent
+    }
+
+    /// Flips the per-conversation toggle and persists it.
+    func setUsesLearnerProfile(_ enabled: Bool) async {
+        guard let threadID else { return }
+        await actions.setUsesLearnerProfile(threadID, enabled)
+        usesLearnerProfile = enabled
+    }
+
+    /// Builds the one-time injection preview from the real "will-send" projection
+    /// (nil when no provider is configured — the view falls back to local copy).
+    func memoryPreviewModel() async -> CompanionMemoryPreviewModel? {
+        guard let threadID else { return nil }
+        guard let projection = await actions.memoryPreviewProjection(threadID) else { return nil }
+        return CompanionMemoryPreviewModel(projection: projection)
     }
 
     /// Swaps in the environment-injected actions (created `.disabled` before the
@@ -65,6 +114,8 @@ final class CompanionChatStore: ObservableObject {
         threadID = loaded.threadID
         messages = loaded.messages.map(CompanionMessagePresentation.init)
         showsColdStartGreeting = loaded.messages.isEmpty
+        usesLearnerProfile = loaded.usesLearnerProfile
+        memoryConsent = consentStore.consent
         failure = nil
         phase = .ready
     }

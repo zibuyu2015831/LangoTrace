@@ -2162,6 +2162,22 @@
         }
       }
     },
+    "aiRequestLog.capability.companionConversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion conversation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语伴对话"
+          }
+        }
+      }
+    },
     "aiRequestLog.capability.companionExtraction": {
       "localizations": {
         "en": {
@@ -3504,6 +3520,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "输入消息"
+          }
+        }
+      }
+    },
+    "companion.memory.preview.decline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't use my profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不使用学习画像"
+          }
+        }
+      }
+    },
+    "companion.memory.preview.notSends": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Won't send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会发送"
+          }
+        }
+      }
+    },
+    "companion.memory.preview.sends": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Will send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将会发送"
+          }
+        }
+      }
+    },
+    "companion.memory.preview.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use your learner profile in conversation?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在对话中使用你的学习画像？"
+          }
+        }
+      }
+    },
+    "companion.memory.preview.use": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用"
+          }
+        }
+      }
+    },
+    "companion.memory.toggle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use learner profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用学习画像"
           }
         }
       }
@@ -15115,6 +15227,22 @@
         }
       }
     },
+    "requestPreview.content.curatedLearnerMemory": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A few of your saved life facts (selected and scrubbed)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你保存的少量生活事实（已挑选并脱敏）"
+          }
+        }
+      }
+    },
     "requestPreview.content.currentEntryBody": {
       "localizations": {
         "en": {
@@ -15438,6 +15566,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "启用在线生成时，语迹会先请求确认，再发送 %@、选中的正文片段和所选表达风格 %@。"
+          }
+        }
+      }
+    },
+    "requestPreview.notSent.audioRecordings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your voice recordings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的录音"
+          }
+        }
+      }
+    },
+    "requestPreview.notSent.longTermMemory": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your full long-term memory store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的完整长期记忆库"
+          }
+        }
+      }
+    },
+    "requestPreview.notSent.photoAttachments": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的照片"
           }
         }
       }

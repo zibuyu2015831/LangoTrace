@@ -263,3 +263,11 @@ LM03-S2a 落地语伴聊天反哺的派生候选存储与产出证据前向接�
   - **派生数据分类（plan §D4）**：与 `memory_candidates` 一致，**无 sync/backup/export 策略列**——评审暂存、可复算（删 thread CASCADE / 重算 = 显式重新提取），local-only。主数据边界在「升级为记忆条目」（`learner_memory_facts`，已进可恢复备份）。备份恢复一致性：恢复后 `companion_messages`（主数据）在、`companion_memory_candidates`（派生）不在，用户可对保留对话重新显式提取——与 `memory_candidates` 删材料后需重新分析一致，属可接受降级。
 - **产出证据前向读接缝（交付物 B）**：`GRDBCompanionRepository.productionUtterances(spaceID:after:)` 只读既有 v30 列（`role='user'` 且行内 `detected_language == target_language_code`），**无新表、无迁移、无 ledger 常量、不改 band**；band 消费 = 后续演进片（备忘录 `docs/architecture/notes/2026-06-26-companion-reflux-production-signal-and-candidate-unification-notes.md`）。
 - **隐私边界**：提取 = 用户显式触发重发已存对话（同「重新分析」），非系统自动注入；capability `companionExtraction` 仅含 `companionConversation` 类目，无新外发类目，请求预览显式披露。Memory 注入 = LM03-S2b。
+
+## 变更记录补充：语伴 Memory 注入 per-conversation 开关（LM03 Slice 2b-1，2026-06-26）
+
+LM03-S2b-1 落地语伴 Memory 注入两层隐私控制的第二层（per-conversation 开关）；第一层（全局三态 consent）持久化在 `UserDefaults`（`CompanionMemoryConsent`，非敏感、与 `CompanionFeaturePreferenceStore` 同层），不进 DB。
+
+- migration `v32_create_companion_memory_toggle`：`ALTER TABLE companion_threads ADD COLUMN uses_learner_profile INTEGER NOT NULL DEFAULT 1`。每条既有 thread 默认「跟随全局 consent」（与 `CompanionThread.usesLearnerProfile` 的 `true` 默认一致）；为 0 时该会话无论全局 consent 如何都不注入 Memory。
+- **非派生、随会话主数据**：该列是 per-conversation 偏好，骑乘 `companion_threads` 既有 sync/backup/export 策略列（local-only、可恢复），不单列策略列。
+- **注入外发边界（决策 #10 首个系统自动注入实例）**：Memory 注入 = 系统自动外发，受**首次开启的一次性预览 + 全局关 + per-conversation 开关**三道控制（spec/008 §2）；注入前对**注入片段 + 历史回放 + 用户输入**统一 PII scrubbing（手机号 / 身份证号，outbound-only，**存原文、发脱敏**，不写 DB / 日志）。`learner_memory_facts` 仍 local-only 主数据、不新增任何同步 / 备份外发。

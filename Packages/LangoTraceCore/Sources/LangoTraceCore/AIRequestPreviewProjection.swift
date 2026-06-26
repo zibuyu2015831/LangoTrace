@@ -26,6 +26,15 @@ public enum AIRequestCapability: String, Codable, CaseIterable, Equatable, Senda
     /// its only included descriptor is `companionConversation`. NOT a system
     /// auto-injection (decision #10) — that gated path is Memory injection (S2b).
     case companionExtraction
+    /// Companion conversation send (LM03-S1 + S2b-1). The first capability that
+    /// models the *outbound conversation request itself*. When the user has
+    /// consented to Memory injection (and the per-conversation toggle is on), its
+    /// projection additionally discloses `.curatedLearnerMemory` — the **only**
+    /// path on which a curated, scrubbed subset of long-term memory egresses
+    /// (decision #10 system auto-injection, behind the one-time preview gate).
+    /// Preview-only in S2b-1: it does not write `ai_request_logs` (conversation-
+    /// level logging is deferred).
+    case companionConversation
 }
 
 /// Closed vocabulary describing *categories* of content a request includes or
@@ -49,6 +58,13 @@ public enum AIRequestContentDescriptor: String, Codable, CaseIterable, Equatable
     case nativeLanguageProfile
     case targetLanguageProfile
     case proficiencyLevel
+    /// The curated, scrubbed top-5 subset of long-term memory life facts that the
+    /// companion request injects after the user's one-time consent (LM03-S2b-1).
+    /// Deliberately distinct from `.longTermMemory`: the raw long-term memory
+    /// store stays globally excluded (never bulk-sent), while this names the
+    /// derived, consented subset that *is* sent — so the preview can honestly show
+    /// both "sends: curated subset" and "does not send: full memory store".
+    case curatedLearnerMemory
     // Always-excluded categories (the privacy guarantees the preview asserts).
     case historicalEntries
     case photoAttachments

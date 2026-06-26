@@ -5,10 +5,14 @@ import SwiftUI
 public struct CompanionLoadedThread: Equatable, Sendable {
     public var threadID: String
     public var messages: [CompanionMessage]
+    /// Per-conversation learner-profile injection toggle (LM03-S2b-1 second
+    /// privacy layer). Defaults true (follow global consent).
+    public var usesLearnerProfile: Bool
 
-    public init(threadID: String, messages: [CompanionMessage]) {
+    public init(threadID: String, messages: [CompanionMessage], usesLearnerProfile: Bool = true) {
         self.threadID = threadID
         self.messages = messages
+        self.usesLearnerProfile = usesLearnerProfile
     }
 }
 
@@ -43,19 +47,30 @@ public struct CompanionChatActions: Sendable {
     /// A user-triggered action — same shape as generate / re-analyse learning
     /// material (re-send already-stored user content), not a system auto-injection.
     public var extract: @Sendable (_ threadID: String) async -> CompanionExtractionOutcome
+    /// Sets the per-conversation learner-profile injection toggle (LM03-S2b-1).
+    public var setUsesLearnerProfile: @Sendable (_ threadID: String, _ usesLearnerProfile: Bool) async -> Void
+    /// The "will-send" projection for a companion send *with* Memory injection —
+    /// backs the one-time consent preview (discloses the curated subset that is
+    /// sent and the full memory store that is not). nil when no provider is
+    /// configured (the preview falls back to local-only copy).
+    public var memoryPreviewProjection: @Sendable (_ threadID: String) async -> AIRequestPreviewProjection?
 
     public init(
         loadThread: @escaping @Sendable (String, String?) async -> CompanionLoadedThread?,
         send: @escaping @Sendable (String, String) async -> CompanionSendOutcome,
         deleteFrom: @escaping @Sendable (String) async -> Void,
         clear: @escaping @Sendable (String) async -> Void,
-        extract: @escaping @Sendable (String) async -> CompanionExtractionOutcome
+        extract: @escaping @Sendable (String) async -> CompanionExtractionOutcome,
+        setUsesLearnerProfile: @escaping @Sendable (String, Bool) async -> Void = { _, _ in },
+        memoryPreviewProjection: @escaping @Sendable (String) async -> AIRequestPreviewProjection? = { _ in nil }
     ) {
         self.loadThread = loadThread
         self.send = send
         self.deleteFrom = deleteFrom
         self.clear = clear
         self.extract = extract
+        self.setUsesLearnerProfile = setUsesLearnerProfile
+        self.memoryPreviewProjection = memoryPreviewProjection
     }
 
     public static let disabled = CompanionChatActions(
@@ -63,7 +78,9 @@ public struct CompanionChatActions: Sendable {
         send: { _, _ in .failed(.providerUnavailable) },
         deleteFrom: { _ in },
         clear: { _ in },
-        extract: { _ in .failed(.providerUnavailable) }
+        extract: { _ in .failed(.providerUnavailable) },
+        setUsesLearnerProfile: { _, _ in },
+        memoryPreviewProjection: { _ in nil }
     )
 }
 

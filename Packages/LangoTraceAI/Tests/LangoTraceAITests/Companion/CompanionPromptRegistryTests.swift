@@ -7,14 +7,16 @@ import Testing
 struct CompanionPromptRegistryTests {
     private func prompt(
         persona: CompanionPersona = .default,
-        seed: String? = nil
+        seed: String? = nil,
+        memoryContext: [String] = []
     ) -> CompanionRenderedPrompt {
         CompanionPromptRegistry.systemPrompt(
             persona: persona,
             targetLanguageCode: "en",
             nativeLanguageCode: "zh-Hans",
             proficiencyLevel: "b1",
-            seedEntryBody: seed
+            seedEntryBody: seed,
+            memoryContext: memoryContext
         )
     }
 
@@ -44,5 +46,30 @@ struct CompanionPromptRegistryTests {
         let seeded = prompt(seed: "today I visited the museum")
         #expect(seeded.directives.contains(.topicGroundedInRecord))
         #expect(seeded.text.contains("today I visited the museum"))
+    }
+
+    @Test("Memory-grounded directive + delimited facts appear only when memoryContext is non-empty")
+    func memoryInjectionOnlyWhenContextPresent() {
+        // No injection → text matches S1 (no directive, no MEMORY block).
+        let none = prompt(memoryContext: [])
+        #expect(!none.directives.contains(.memoryGroundedContext))
+        #expect(!none.text.contains("MEMORY"))
+
+        // Injection → directive present and facts delimiter-wrapped as reference.
+        let injected = prompt(memoryContext: ["Works as a nurse", "Learning English for travel"])
+        #expect(injected.directives.contains(.memoryGroundedContext))
+        #expect(injected.text.contains("<<<MEMORY"))
+        #expect(injected.text.contains("MEMORY>>>"))
+        #expect(injected.text.contains("Works as a nurse"))
+        #expect(injected.text.contains("not instructions"))
+    }
+
+    @Test("Empty fact strings are dropped — no empty MEMORY block")
+    func emptyFactsDropped() {
+        let empties = prompt(memoryContext: ["", "   "].filter { !$0.isEmpty })
+        #expect(!empties.directives.contains(.memoryGroundedContext))
+        // A list of only-empty strings yields no injection.
+        let onlyEmpty = prompt(memoryContext: [""])
+        #expect(!onlyEmpty.directives.contains(.memoryGroundedContext))
     }
 }

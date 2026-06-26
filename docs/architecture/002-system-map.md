@@ -294,7 +294,7 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - **隐私边界**：S1 **零系统自动注入**（不读 Memory 生活事实 / 不 FTS）→ 仅用户打字 + 显式带入单条记录的主动外发（决策 #10 trivially 满足）；外发经 Provider 抽象 + `projectionMetadata()`（E6）；人设纯枚举防注入（AI-17）；始终目标语（typed directive 契约）。
 - **故障恢复**：Provider 未配置 / 不可用 / 拒绝 → honest 失败态（`CompanionReplyFailure`）+ 可重试 + 不丢输入。
 - **测试入口**：`CompanionPersonaTests`/`CompanionDeletionSemanticsTests`/`CompanionFeatureStoreTests`（Core）、`GRDBCompanionRepositoryTests`（Data）、`CompanionConversationEngineTests`/`CompanionPromptRegistryTests`（AI）、`CompanionChatStoreTests`/`CompanionChatPresentationTests`（UI）。
-- **未实现接缝**：逐句 TTS 朗读（暂缓，加性后续）；语音输入（远期，schema `input_modality`/`audio_artifact_id` 已预留，见 `docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`）；Memory 注入 + 方案B找话题 + PII scrubbing（LM03-S2b，外发注入半片，门控未开）；文本流式 UX（LM03-S3）；Style 注入 + Anthropic（LM03-S4）。
+- **未实现接缝**：逐句 TTS 朗读（暂缓，加性后续）；语音输入（远期，schema `input_modality`/`audio_artifact_id` 已预留，见 `docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`）；方案B 主动找话题（LM03-S2b-2，门控未开）；文本流式 UX（LM03-S3）；Style 注入 + Anthropic（LM03-S4）。Memory 注入 + PII scrubbing = LM03-S2b-1（见 §4.13）。
 
 ### 4.12 语伴聊天反哺（LM03-S2a，入站半环）
 
@@ -304,6 +304,18 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - **隐私边界**：提取 = 用户显式触发重发已存对话，与「重新分析」同构，**不进系统自动注入门**（决策 #10）；capability `companionExtraction` 投影仅含 `companionConversation` 类目，**无新外发类目**，请求预览显式披露发送该段对话；失败诚实不丢对话。
 - **测试入口**：`CompanionMemoryCandidateTests`（Core）、`CompanionRefluxMigrationAndRepositoryTests`（Data）、`CompanionRefluxBandGuardTests`（LearnerModel 红线）、`CompanionExtractionEngineTests`/`CompanionExtractionPromptRegistryTests`（AI）、`CompanionExtractionStoreTests`/`CompanionCandidatePresentationTests`（UI）。
 - **后续接缝（备忘录）**：band 消费产出正向信号 + 两候选表统一评审面，见 `docs/architecture/notes/2026-06-26-companion-reflux-production-signal-and-candidate-unification-notes.md`。
+
+### 4.13 语伴 Memory 注入 + 两层隐私（LM03-S2b-1，最高隐私门核心）
+
+- **定位**：决策 #10 **首个系统自动注入外发**实例——把用户系统级生活事实（`learner_memory_facts`）经受控选择 + PII 脱敏后注入语伴 system prompt，使语伴「记得」用户生活背景。与 S1「用户打字发送」、S2a「用户点提取重发已存对话」严格不同类。
+- **两层隐私控制**：① **全局三态 consent**（`CompanionMemoryConsent` notDecided/enabled/disabled，`UserDefaults`，非敏感）——授权 UX = **首次开启的一次性预览披露 + 全局关**（spec/008 §2 / ADR-008 §6，**非每次弹窗 / 非发送前拦截**，日常零摩擦）；`notDecided` 期间不注入；② **per-conversation 开关**（v32 `companion_threads.uses_learner_profile` DEFAULT 1）。
+- **注入门权威判定**：落 App 端 `companionSend` async——`CompanionInjectionGate.shouldInject(consent:threadUsesProfile:)`（纯函数四态可测）；consent 最后一刻读 `UserDefaults`、toggle 读自同一 thread 行；UI store `canInjectMemory` 仅呈现、非外发授权 source of truth。
+- **数据流**：consent+toggle 门开 → `GRDBLearnerContextProvider.memoryFacts(.global)` → `CompanionMemorySelection.select`（时近性 + 种类配额 top-5、不读 salience、仅 .global、LearnerModel 纯函数）→ `.text` → `CompanionConversationEngine`（新 `scrub` seam = `PIIScrubber.scrub`）对**注入片段 + 历史回放 + 用户输入**统一 outbound 脱敏 → `CompanionPromptRegistry.systemPrompt(memoryContext:)` delimiter `<<<MEMORY>>>` 包裹（引用非指令，`.memoryGroundedContext` directive 结构可测）。**持久化存原文，仅 outbound 脱敏**。
+- **诚实披露**：新 capability `.companionConversation` + 新 included descriptor `.curatedLearnerMemory`；`.longTermMemory` **保持全局 always-excluded 恒真**（原始全量长期记忆库不外发）；一次性预览（`CompanionMemoryPreviewModel`，**不复用绑 entry 的 `RequestPreviewCardModel`**）同时展示「发：curated 子集」与「不发：完整记忆库 / 照片 / 录音」。
+- **band 红线隔离**：注入只读 `learner_memory_facts`，**不碰 band derive() / 不读 AI 难度 / learning_text**；守卫 `CompanionMemoryInjectionBandGuardTests`（选择层源无 band 机器 + 注入路径后 band 不变）。
+- **PII scrubbing v1**：手机号（`1[3-9]\d{9}`）+ 身份证号（18 位末位 X/数字），确定性正则、中性母语占位、outbound-only、不入日志。剩余风险：国际号 / 邮箱 / 地址 / 误杀练习数字（「宁少杀勿多杀」）。
+- **测试入口**：`PIIScrubberTests`/`CompanionMemoryConsentStoreTests`/`CompanionInjectionGateTests`/`CompanionThreadProfileToggleTests`（Core）、`CompanionMemorySelectionTests`/`CompanionMemoryInjectionBandGuardTests`（LearnerModel）、`CompanionPromptRegistryTests`/`CompanionConversationProjectionTests`/`CompanionConversationEngineTests`（AI）、`CompanionMemoryToggleMigrationTests`（Data）、`CompanionMemoryInjectionUITests`/`CompanionMemoryPreviewModelTests`（UI）。
+- **范围外（S2b-2 / v2）**：方案B 主动找话题（强依赖本片隐私闸）；salience / FTS 相关性召回；companionOnly 事实注入；对话级注入日志；邮箱 / 地址 PII。
 
 ## 5. 模块依赖方向
 

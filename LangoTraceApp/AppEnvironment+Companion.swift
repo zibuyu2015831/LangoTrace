@@ -43,6 +43,9 @@ func makeCompanionChatActions(
 ) -> CompanionChatActions {
     let detector = NaturalLanguageDetector()
     let detectLanguage: @Sendable (String) -> String? = { detector.detect($0)?.language }
+    // Same UserDefaults key the UI consent store reads/writes — the App send path
+    // and the one-time preview decision stay in sync (LM03-S2b-1).
+    let consentStore = UserDefaultsCompanionMemoryConsentStore()
 
     return CompanionChatActions(
         loadThread: { spaceID, sourceEntryID in
@@ -51,7 +54,9 @@ func makeCompanionChatActions(
             guard let thread = try? repository.loadOrCreateThread(spaceID: spaceID, sourceEntryID: sourceEntryID)
             else { return nil }
             let messages = (try? repository.messages(threadID: thread.id)) ?? []
-            return CompanionLoadedThread(threadID: thread.id, messages: messages)
+            return CompanionLoadedThread(
+                threadID: thread.id, messages: messages, usesLearnerProfile: thread.usesLearnerProfile
+            )
         },
         send: { threadID, userInput in
             await companionSend(
@@ -59,7 +64,8 @@ func makeCompanionChatActions(
                 userInput: userInput,
                 databaseFactory: databaseFactory,
                 credentialStore: credentialStore,
-                detectLanguage: detectLanguage
+                detectLanguage: detectLanguage,
+                consent: consentStore.consent
             )
         },
         deleteFrom: { messageID in
@@ -75,6 +81,23 @@ func makeCompanionChatActions(
                 threadID: threadID,
                 databaseFactory: databaseFactory,
                 credentialStore: credentialStore
+            )
+        },
+        setUsesLearnerProfile: { threadID, enabled in
+            guard let database = try? databaseFactory.database() else { return }
+            try? GRDBCompanionRepository(writer: database.writer)
+                .setUsesLearnerProfile(threadID: threadID, enabled)
+        },
+        memoryPreviewProjection: { _ in
+            // The "will-send-with-injection" disclosure for the one-time preview.
+            guard let database = try? databaseFactory.database() else { return nil }
+            let configurationRepository = GRDBAIProviderConfigurationRepository(database: database)
+            guard
+                let profile = try? await configurationRepository.loadDefaultProfile(),
+                let endpoint = profile.textGenerationEndpointInput
+            else { return nil }
+            return AIRequestPreviewProjection.companionConversation(
+                endpoint: endpoint, lengthBucket: .medium, hasMemoryInjection: true
             )
         }
     )
@@ -153,7 +176,8 @@ private func companionSend(
     userInput: String,
     databaseFactory: SharedAppDatabaseFactory,
     credentialStore: any AIProviderCredentialStore,
-    detectLanguage: @escaping @Sendable (String) -> String?
+    detectLanguage: @escaping @Sendable (String) -> String?,
+    consent: CompanionMemoryConsent
 ) async -> CompanionSendOutcome {
     guard
         let database = try? databaseFactory.database()
@@ -169,6 +193,19 @@ private func companionSend(
     }
     let history = (try? repository.messages(threadID: threadID)) ?? []
     let persona = (try? repository.loadPersona(spaceID: thread.languageSpaceID)) ?? .default
+
+    // Memory injection (LM03-S2b-1): authoritative egress gate decided here, at the
+    // last moment, from the global consent + this thread's toggle. When open, select
+    // the recency+quota top-5 global life facts; the engine scrubs them (and the
+    // history replay + input) on the way out — persistence keeps the originals.
+    let memoryContext: [String]
+    if CompanionInjectionGate.shouldInject(consent: consent, threadUsesProfile: thread.usesLearnerProfile) {
+        let contextProvider = GRDBLearnerContextProvider(reader: database.reader)
+        let facts = (try? contextProvider.memoryFacts(visibility: .global)) ?? []
+        memoryContext = CompanionMemorySelection.select(facts: facts).map(\.text)
+    } else {
+        memoryContext = []
+    }
 
     // Plan-A: seed the brought-in record only on the first turn.
     let seedEntryBody: String? = (history.isEmpty ? thread.sourceEntryID : nil)
@@ -194,7 +231,9 @@ private func companionSend(
             endpoint: endpoint,
             plaintextSecret: plaintextSecret
         ),
-        detectLanguage: detectLanguage
+        detectLanguage: detectLanguage,
+        // Outbound-only PII scrub over history replay + input + injected facts.
+        scrub: PIIScrubber.scrub
     )
     let outcome = await engine.reply(
         userInput: userInput,
@@ -203,7 +242,8 @@ private func companionSend(
         targetLanguageCode: space.targetLanguageCode,
         nativeLanguageCode: space.nativeLanguageCode,
         proficiencyLevel: space.level,
-        seedEntryBody: seedEntryBody
+        seedEntryBody: seedEntryBody,
+        memoryContext: memoryContext
     )
 
     switch outcome {

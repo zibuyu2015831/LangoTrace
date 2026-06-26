@@ -13,6 +13,8 @@ struct CompanionChatView: View {
     @Environment(\.companionChatActions) private var actions
     @StateObject private var store: CompanionChatStore
     @State private var isPresentingClearConfirm = false
+    @State private var memoryPreview: CompanionMemoryPreviewModel?
+    @State private var isPresentingMemoryPreview = false
 
     init(languageSpace: LanguageSpacePreview, seed: CompanionChatRouteSeed) {
         self.languageSpace = languageSpace
@@ -39,6 +41,14 @@ struct CompanionChatView: View {
                 }
                 .disabled(!store.canExtract)
             }
+            ToolbarItem(placement: .secondaryAction) {
+                Toggle(isOn: Binding(
+                    get: { store.usesLearnerProfile },
+                    set: { enabled in Task { await store.setUsesLearnerProfile(enabled) } }
+                )) {
+                    localizedText(CompanionChatCopy.memoryToggleKey)
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button(role: .destructive) {
                     isPresentingClearConfirm = true
@@ -47,6 +57,9 @@ struct CompanionChatView: View {
                 }
                 .disabled(store.messages.isEmpty)
             }
+        }
+        .sheet(isPresented: $isPresentingMemoryPreview) {
+            memoryConsentPreview
         }
         .confirmationDialog(
             localizedString(CompanionChatCopy.clearKey),
@@ -60,7 +73,49 @@ struct CompanionChatView: View {
         .task {
             store.reconnect(actions)
             await store.load()
+            // One-time disclosure: surface the injection preview once when the user
+            // has not yet decided (zero-friction afterwards — never per-send).
+            if store.needsMemoryConsentPreview {
+                memoryPreview = await store.memoryPreviewModel()
+                isPresentingMemoryPreview = true
+            }
         }
+    }
+
+    /// The one-time Memory-injection consent preview (LM03-S2b-1). Honestly shows
+    /// the curated subset that will be sent and the full memory store that will
+    /// not, then records the sticky decision.
+    private var memoryConsentPreview: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            localizedText(CompanionChatCopy.memoryPreviewTitleKey)
+                .font(.headline)
+            if let preview = memoryPreview {
+                localizedText(CompanionChatCopy.memoryPreviewSendsKey)
+                    .font(.subheadline.weight(.semibold))
+                ForEach(preview.includedLabels, id: \.self) { label in
+                    Text("• \(label)").font(.footnote)
+                }
+                localizedText(CompanionChatCopy.memoryPreviewNotSendsKey)
+                    .font(.subheadline.weight(.semibold))
+                ForEach(preview.excludedLabels, id: \.self) { label in
+                    Text("• \(label)").font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            HStack {
+                Button(localizedString(CompanionChatCopy.memoryDeclineKey), role: .cancel) {
+                    store.setMemoryConsent(.disabled)
+                    isPresentingMemoryPreview = false
+                }
+                Spacer()
+                Button(localizedString(CompanionChatCopy.memoryUseKey)) {
+                    store.setMemoryConsent(.enabled)
+                    isPresentingMemoryPreview = false
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding()
     }
 
     private var transcript: some View {

@@ -60,7 +60,8 @@ CLAUDE.md / `docs/README.md` 第 3 节北极星明确「**产品不是 AI 聊天
   - **系统自动注入**（Memory 生活事实 / Style 受控片段进 system prompt）须明示授权或提供关闭选项，授权 UX 为「首次开启语伴的一次性预览披露」+ per-conversation 快捷开关，而非每次弹窗。
 - 结构化 PII（手机号、身份证号）在任何外发前做确定性 scrubbing，作为 defense-in-depth，不替代上述授权机制。
 - 主动「找话题」采用方案 A（显式带入单条）+ 方案 B（一次性范围授权 + 本地预筛最小发送），严格遵守核心决策 #10。
-- **聊天反哺提取（idea-03 §3.8，LM03-S2a 已落地）属「用户主动发起」类**：用户在语伴页显式点击「提取词汇 / 表达」时，把已存对话内容重发给同一 Provider 提取记忆候选——与「重新分析」同构，仅受全局 Provider 配置 + 请求预览约束，**不属系统自动注入、不需每次确认弹窗**。候选入独立派生表 `companion_memory_candidates`（v31），仅产出 + 展示，升级为记忆条目（主数据）属未来 deposit 管线。**系统自动注入（Memory 画像）仍为 LM03-S2b，门控未开**。详见 `docs/plans/done/2026-06-25-feature-lm03-s2a-companion-reflux.md`。
+- **聊天反哺提取（idea-03 §3.8，LM03-S2a 已落地）属「用户主动发起」类**：用户在语伴页显式点击「提取词汇 / 表达」时，把已存对话内容重发给同一 Provider 提取记忆候选——与「重新分析」同构，仅受全局 Provider 配置 + 请求预览约束，**不属系统自动注入、不需每次确认弹窗**。候选入独立派生表 `companion_memory_candidates`（v31），仅产出 + 展示，升级为记忆条目（主数据）属未来 deposit 管线。详见 `docs/plans/done/2026-06-25-feature-lm03-s2a-companion-reflux.md`。
+- **系统自动注入（Memory 画像，idea-03 §3.11，LM03-S2b-1 已落地）**：把用户系统级生活事实（`learner_memory_facts` `.global` top-5 时近性 + 种类配额）经 PII scrubbing 后注入语伴 system prompt，是决策 #10 **首个系统自动注入外发**实例。授权 UX 严格按本节「首次开启的一次性预览披露 + per-conversation 快捷开关、非每次弹窗」落地（`CompanionMemoryConsent` 三态 + v32 `uses_learner_profile`）；注入前对**注入片段 + 历史回放 + 用户输入**统一 PII 脱敏（手机号 / 身份证，outbound-only、存原文发脱敏）；预览以新 `.curatedLearnerMemory` 类目诚实披露「发 curated 子集」，`.longTermMemory`（原始全量）**保持永不外发**。band 红线不碰（只读 `learner_memory_facts`）。**方案B 主动找话题（外发增量）= LM03-S2b-2，门控未开**。详见 `docs/plans/active/2026-06-26-feature-lm03-s2b1-companion-memory-injection.md`。
 
 ### 7. 安全与误用边界
 

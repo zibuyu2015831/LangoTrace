@@ -101,6 +101,42 @@ public extension AIRequestPreviewProjection {
             excludedContent: alwaysExcludedContent
         )
     }
+
+    /// Single-source factory for the companion *conversation send* projection
+    /// (LM03-S1 + S2b-1). The first capability that models the outbound
+    /// conversation itself. When `hasMemoryInjection` is true (the user consented
+    /// to Memory injection and the per-conversation toggle is on), it additionally
+    /// discloses `.curatedLearnerMemory` — the consented, scrubbed top-5 subset of
+    /// long-term memory. Crucially, `.longTermMemory` **stays in the excluded set**
+    /// always: the raw long-term memory store is never bulk-sent, so the preview
+    /// can honestly show both "sends: curated subset" and "does not send: full
+    /// memory store". Preview-only — no `makeLogEntry` (conversation-level logging
+    /// is deferred).
+    static func companionConversation(
+        endpoint: AIProviderEndpointInput,
+        lengthBucket: AIRequestLengthBucket,
+        hasMemoryInjection: Bool
+    ) -> AIRequestPreviewProjection {
+        var included: [AIRequestContentDescriptor] = [
+            .companionConversation,
+            .nativeLanguageProfile,
+            .targetLanguageProfile,
+            .proficiencyLevel,
+        ]
+        if hasMemoryInjection {
+            included.append(.curatedLearnerMemory)
+        }
+        return AIRequestPreviewProjection(
+            capability: .companionConversation,
+            providerPresetID: endpoint.providerPresetID,
+            modelName: endpoint.modelName,
+            promptID: CompanionPromptRegistry.systemPromptID,
+            promptVersion: CompanionPromptRegistry.promptVersion,
+            lengthBucket: lengthBucket,
+            includedContent: included,
+            excludedContent: alwaysExcludedContent
+        )
+    }
 }
 
 public extension LearningMaterialServiceGenerationRequest {

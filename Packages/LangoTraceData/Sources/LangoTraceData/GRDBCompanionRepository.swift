@@ -39,16 +39,20 @@ public struct GRDBCompanionRepository: Sendable {
         try writer.write { db in
             if let existing = try Self.thread(from: Row.fetchOne(
                 db,
-                sql: "SELECT id, space_id, source_entry_id, created_at FROM companion_threads WHERE space_id = ? ORDER BY created_at ASC, id ASC LIMIT 1",
+                sql: "SELECT id, space_id, source_entry_id, created_at, uses_learner_profile FROM companion_threads WHERE space_id = ? ORDER BY created_at ASC, id ASC LIMIT 1",
                 arguments: [spaceID]
             )) {
                 return existing
             }
+            // INSERT omits uses_learner_profile, so the column takes its DEFAULT 1.
+            // The returned in-memory thread must mirror that default for read-back
+            // consistency with `thread(id:)` (LM03-S2b-1 self-review P1-R2-2).
             let thread = CompanionThread(
                 id: id(),
                 languageSpaceID: spaceID,
                 sourceEntryID: sourceEntryID,
-                createdAt: now
+                createdAt: now,
+                usesLearnerProfile: true
             )
             try db.execute(
                 sql: """
@@ -96,9 +100,21 @@ public struct GRDBCompanionRepository: Sendable {
         try writer.read { db in
             try Self.thread(from: Row.fetchOne(
                 db,
-                sql: "SELECT id, space_id, source_entry_id, created_at FROM companion_threads WHERE id = ?",
+                sql: "SELECT id, space_id, source_entry_id, created_at, uses_learner_profile FROM companion_threads WHERE id = ?",
                 arguments: [id]
             ))
+        }
+    }
+
+    /// Sets the per-conversation learner-profile injection toggle (LM03-S2b-1
+    /// second privacy layer). When false, no Memory is injected for this thread
+    /// regardless of the global consent.
+    public func setUsesLearnerProfile(threadID: String, _ usesLearnerProfile: Bool) throws {
+        try writer.write { db in
+            try db.execute(
+                sql: "UPDATE companion_threads SET uses_learner_profile = ? WHERE id = ?",
+                arguments: [usesLearnerProfile, threadID]
+            )
         }
     }
 
@@ -331,11 +347,15 @@ public struct GRDBCompanionRepository: Sendable {
 
     private static func thread(from row: Row?) -> CompanionThread? {
         guard let row else { return nil }
+        // Older callers (pre-v32) may not select the column; default to true
+        // (follow global) when it is absent, matching the DB DEFAULT 1.
+        let usesProfile = (row["uses_learner_profile"] as Int64?).map { $0 != 0 } ?? true
         return CompanionThread(
             id: row["id"],
             languageSpaceID: row["space_id"],
             sourceEntryID: row["source_entry_id"],
-            createdAt: Date(timeIntervalSince1970: row["created_at"])
+            createdAt: Date(timeIntervalSince1970: row["created_at"]),
+            usesLearnerProfile: usesProfile
         )
     }
 
