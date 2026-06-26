@@ -136,6 +136,28 @@ func makeCompanionChatActions(
             return AIRequestPreviewProjection.companionConversation(
                 endpoint: endpoint, lengthBucket: .medium, hasMemoryInjection: false, hasBroughtInRecords: true
             )
+        },
+        depositAllCandidates: { spaceID in
+            // Session summary (LM03-S3b-2): batch-deposit every companion candidate
+            // into the E7/E8 memory review system, closing the chat → memory loop.
+            // Local-only, idempotent (already-deposited candidates return the existing
+            // item). App-level orchestration keeps GRDBMemoryItemRepository free of any
+            // companion-table coupling.
+            guard let database = try? databaseFactory.database() else { return 0 }
+            let companionRepository = GRDBCompanionRepository(writer: database.writer)
+            let memoryRepository = GRDBMemoryItemRepository(database: database)
+            let candidates = (try? companionRepository.companionCandidates(spaceID: spaceID)) ?? []
+            var count = 0
+            for candidate in candidates {
+                let input = MemoryDepositInput(companionCandidate: candidate, spaceID: spaceID)
+                if await (try? memoryRepository.deposit(input)) != nil { count += 1 }
+            }
+            return count
+        },
+        depositedCandidateIDs: { spaceID in
+            guard let database = try? databaseFactory.database() else { return [] }
+            let memoryRepository = GRDBMemoryItemRepository(database: database)
+            return await (try? memoryRepository.depositedCandidateIDs(spaceID: spaceID)) ?? []
         }
     )
 }

@@ -81,6 +81,15 @@ public struct CompanionChatActions: Sendable {
     /// from records (LM03-S2b-2) — backs the one-time topic-sourcing preview
     /// (discloses that a record body is sent). nil when no provider is configured.
     public var recordTopicPreviewProjection: @Sendable (_ threadID: String) async -> AIRequestPreviewProjection?
+    /// Batch-deposits all of the space's companion chat candidates into the memory
+    /// review system (LM03-S3b-2 session summary — closes the chat → memory loop). A
+    /// purely local action (no provider call); idempotent (already-deposited
+    /// candidates are skipped). Returns the count of candidates now deposited.
+    public var depositAllCandidates: @Sendable (_ spaceID: String) async -> Int
+    /// Source-candidate ids already deposited in the space — drives the per-candidate
+    /// "added" state. Includes all deposit sources; the store intersects it with the
+    /// companion candidate ids it displays (LM03-S3b-2).
+    public var depositedCandidateIDs: @Sendable (_ spaceID: String) async -> Set<String>
 
     public init(
         loadThread: @escaping @Sendable (String, String?) async -> CompanionLoadedThread?,
@@ -93,7 +102,9 @@ public struct CompanionChatActions: Sendable {
         setUsesLearnerProfile: @escaping @Sendable (String, Bool) async -> Void = { _, _ in },
         setGentleRecast: @escaping @Sendable (String, Bool) async -> Void = { _, _ in },
         memoryPreviewProjection: @escaping @Sendable (String) async -> AIRequestPreviewProjection? = { _ in nil },
-        recordTopicPreviewProjection: @escaping @Sendable (String) async -> AIRequestPreviewProjection? = { _ in nil }
+        recordTopicPreviewProjection: @escaping @Sendable (String) async -> AIRequestPreviewProjection? = { _ in nil },
+        depositAllCandidates: @escaping @Sendable (String) async -> Int = { _ in 0 },
+        depositedCandidateIDs: @escaping @Sendable (String) async -> Set<String> = { _ in [] }
     ) {
         self.loadThread = loadThread
         self.send = send
@@ -104,6 +115,8 @@ public struct CompanionChatActions: Sendable {
         self.setGentleRecast = setGentleRecast
         self.memoryPreviewProjection = memoryPreviewProjection
         self.recordTopicPreviewProjection = recordTopicPreviewProjection
+        self.depositAllCandidates = depositAllCandidates
+        self.depositedCandidateIDs = depositedCandidateIDs
     }
 
     public static let disabled = CompanionChatActions(
@@ -115,7 +128,9 @@ public struct CompanionChatActions: Sendable {
         setUsesLearnerProfile: { _, _ in },
         setGentleRecast: { _, _ in },
         memoryPreviewProjection: { _ in nil },
-        recordTopicPreviewProjection: { _ in nil }
+        recordTopicPreviewProjection: { _ in nil },
+        depositAllCandidates: { _ in 0 },
+        depositedCandidateIDs: { _ in [] }
     )
 }
 

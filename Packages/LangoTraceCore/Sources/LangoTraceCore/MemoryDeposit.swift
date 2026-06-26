@@ -38,7 +38,10 @@ public enum MemoryItemSourceKind: String, Codable, CaseIterable, Equatable, Send
 /// (which CASCADE-deletes `memory_candidates`).
 public struct MemoryDepositInput: Equatable, Sendable {
     public var spaceID: String
-    public var entryID: String
+    /// Owning entry, or nil for sources with no entry (a companion conversation
+    /// candidate has no record behind it — LM03-S3b-2). `memory_items.entry_id` is
+    /// a nullable FK (`ON DELETE SET NULL`), so nil is persisted as NULL.
+    public var entryID: String?
     public var sourceCandidateID: String
     public var kind: MemoryItemKind
     public var text: String
@@ -49,7 +52,7 @@ public struct MemoryDepositInput: Equatable, Sendable {
 
     public init(
         spaceID: String,
-        entryID: String,
+        entryID: String?,
         sourceCandidateID: String,
         kind: MemoryItemKind,
         text: String,
@@ -81,6 +84,25 @@ public struct MemoryDepositInput: Equatable, Sendable {
             exampleTarget: candidate.exampleTarget,
             exampleNative: candidate.exampleNative,
             difficulty: candidate.difficulty
+        )
+    }
+
+    /// Builds a deposit input from a companion conversation candidate (LM03-S3b-2),
+    /// closing the chat → memory loop (idea-03 §3.12). A companion candidate has no
+    /// owning entry (`entryID = nil`) and carries no difficulty signal — it defaults
+    /// to `.medium` (a neutral seed; the band / difficulty machinery is never read,
+    /// preserving the red line). The kind reuses the shared five-kind mapping.
+    public init(companionCandidate candidate: CompanionMemoryCandidate, spaceID: String) {
+        self.init(
+            spaceID: spaceID,
+            entryID: nil,
+            sourceCandidateID: candidate.id,
+            kind: MemoryItemKind(candidate.kind),
+            text: candidate.text,
+            note: candidate.explanationNative,
+            exampleTarget: candidate.exampleTarget,
+            exampleNative: candidate.exampleNative,
+            difficulty: .medium
         )
     }
 }

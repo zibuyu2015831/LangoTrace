@@ -90,6 +90,10 @@ public enum CompanionChatCopy {
     public static let topicPreviewTitleKey = "companion.topic.preview.title"
     public static let topicDeclineKey = "companion.topic.preview.decline"
 
+    // LM03-S3b-2 session-summary deposit copy.
+    public static let depositAllKey = "companion.deposit.all"
+    public static let depositedBadgeKey = "companion.deposit.added"
+
     // LM03-S2a chat-reflux extraction copy.
     public static let extractActionKey = "companion.extraction.action"
     public static let extractLoadingKey = "companion.extraction.loading"

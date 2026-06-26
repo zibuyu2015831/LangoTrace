@@ -214,8 +214,19 @@ struct CompanionChatView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             } else {
-                Text(String(format: localizedString(CompanionChatCopy.extractSuccessCountKey), count))
-                    .font(.footnote.weight(.semibold))
+                HStack {
+                    Text(String(format: localizedString(CompanionChatCopy.extractSuccessCountKey), count))
+                        .font(.footnote.weight(.semibold))
+                    Spacer()
+                    // Session summary (LM03-S3b-2): batch-deposit every candidate into
+                    // the memory review system, closing the chat → memory loop.
+                    Button {
+                        Task { await store.depositAllCandidates() }
+                    } label: {
+                        localizedText(CompanionChatCopy.depositAllKey).font(.footnote)
+                    }
+                    .disabled(!store.canDeposit)
+                }
                 ForEach(store.candidates) { candidate in
                     candidateRow(candidate)
                 }
@@ -225,7 +236,14 @@ struct CompanionChatView: View {
 
     private func candidateRow(_ candidate: CompanionCandidatePresentation) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(candidate.text).font(.subheadline.weight(.medium))
+            HStack {
+                Text(candidate.text).font(.subheadline.weight(.medium))
+                if store.isCandidateDeposited(candidate.id) {
+                    localizedText(CompanionChatCopy.depositedBadgeKey)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
             Text(candidate.explanationNative).font(.caption).foregroundStyle(.secondary)
             if candidate.isSourceMessageDeleted {
                 Text(localizedString(CompanionChatCopy.extractSourceDeletedKey))

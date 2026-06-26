@@ -44,6 +44,15 @@ final class CompanionChatStore: ObservableObject {
     @Published private(set) var lastExtractionCount: Int?
     @Published private(set) var extractionFailure: CompanionExtractionError?
 
+    // MARK: - Session summary deposit (LM03-S3b-2)
+
+    /// Source-candidate ids already deposited into the memory review system. Drives
+    /// the per-candidate "added" badge; refreshed on load and after a deposit. The
+    /// presentation stays unchanged — `isDeposited` is a dynamic, store-owned state
+    /// (not a static presentation field), so the view queries it reactively.
+    @Published private(set) var depositedCandidateIDs: Set<String> = []
+    @Published private(set) var isDepositing = false
+
     // MARK: - Memory injection two-layer privacy (LM03-S2b-1)
 
     /// Global, three-state consent for injecting the learner's life facts. The
@@ -160,6 +169,7 @@ final class CompanionChatStore: ObservableObject {
         gentleRecastEnabled = loaded.correction == .warmRecast
         memoryConsent = consentStore.consent
         topicConsent = topicConsentStore.consent
+        depositedCandidateIDs = await actions.depositedCandidateIDs(spaceID)
         failure = nil
         phase = .ready
     }
@@ -232,6 +242,31 @@ final class CompanionChatStore: ObservableObject {
             extractionFailure = error
         }
         isExtracting = false
+    }
+
+    // MARK: - Session summary deposit (LM03-S3b-2)
+
+    /// Whether a candidate has already been deposited into the memory review system
+    /// (drives the per-candidate "added" badge). Reactive: backed by the
+    /// `@Published depositedCandidateIDs`, so the view refreshes after a deposit.
+    func isCandidateDeposited(_ id: String) -> Bool {
+        depositedCandidateIDs.contains(id)
+    }
+
+    /// True when there are extracted candidates and no deposit is in flight.
+    var canDeposit: Bool {
+        !candidates.isEmpty && !isDepositing
+    }
+
+    /// Batch-deposits all of this space's companion candidates into the memory
+    /// review system (LM03-S3b-2 — closes the chat → memory loop). Idempotent;
+    /// refreshes the deposited set afterwards.
+    func depositAllCandidates() async {
+        guard !isDepositing else { return }
+        isDepositing = true
+        _ = await actions.depositAllCandidates(spaceID)
+        depositedCandidateIDs = await actions.depositedCandidateIDs(spaceID)
+        isDepositing = false
     }
 
     func deleteFrom(id: String) async {

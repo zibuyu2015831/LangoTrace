@@ -23848,6 +23848,38 @@
           }
         }
       }
+    },
+    "companion.deposit.all": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add all to memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部加入记忆库"
+          }
+        }
+      }
+    },
+    "companion.deposit.added": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加入"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
