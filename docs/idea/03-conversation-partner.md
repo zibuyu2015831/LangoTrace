@@ -307,6 +307,7 @@ AI 对话几乎是主流 AI 语言学习工具的基础能力，缺失会让产�
 ### 10.3 流式与 Provider 抽象的依赖链比 §5.2 所述更长
 - 文本流式当前**不存在**（仅 TTS），且 AI-11「响应流式化」已推迟进 **plan 01（E0a）**；语伴「真人感」高度依赖流式，故其体验质量被 E0a 流式项是否落地**门控**。
 - 当前生成服务**不支持 Anthropic / Gemini**；一个**聊天**功能现实上需要 Anthropic Messages API（多轮 + 流式一等公民）。语伴会**倒逼 Provider 抽象扩容**到多轮 + 流式 + 多家适配。建议在 plan 中把「Provider 抽象多轮 + 流式 + Anthropic 适配」列为**显式前置**，而非隐含进 MVP。
+  - **→ 已落地**：多轮 + 文本流式 enabler（OpenAI 兼容族，2026-06-25）+ **Anthropic Messages 多轮+流式适配（LM03-S4b，2026-06-27，全量 CI 绿 run 28252751284）**——`AnthropicMessagesTextAdapter`（顶层 system / 必填 max_tokens / `content[].text` / `content_block_delta` 流式 / 无 `[DONE]` EOF 终止）+ 鉴权可动态派发协议要求 `providerRequestHeaders`（连带修复 mimo 潜伏鉴权 bug）。语伴 send 路径 kind-agnostic、零 App 改动即可跑 Anthropic。Gemini 仍后置。
 
 ### 10.4 在线依赖与本地优先气质的张力（§6.7 已触及，补充产品落点）
 聊天 UI 让用户期待「随时秒回」，但语伴本质依赖在线 Provider，与本地优先气质冲突最大。除失败态外，建议在产品层**主动降低秒回期待**：把它定位为「**练习对象**」而非「**助手**」——UI 文案、节奏、朗读优先都强化「这是练习」，避免培养「随叫随到的 AI」预期。

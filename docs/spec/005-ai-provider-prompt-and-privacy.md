@@ -184,7 +184,7 @@ Provider 配置页已经从真实级 mock 表单进入本地配置保存和配�
 - 未保存 draft 测试必须测试当前屏幕配置，且不得先写入 Keychain、SQLite 或 validation event；已保存且无修改的配置测试由服务层通过 Keychain 引用重新解析密钥。
 - 已保存 profile 的 App 级合成测试可以记录 `synthetic_test` 类型的非敏感 validation event，并在同一 Data 事务内更新最近验证摘要；语言支持结果是语言空间上下文下的适配性提示，不得把 language support 失败写成 Provider profile 全局最近验证失败，也不得写入 Provider profile 静态能力事实。draft 测试只允许记录非敏感 diagnostic event，不得污染持久 profile 事实。取消的测试不得写失败 validation event。
 - 本地配置验证可以记录 `credential_validation` 类型的非敏感 validation event；合成测试可以记录 `synthetic_test`。允许字段包括 provider、model、endpoint purpose、状态、错误分类、耗时、operation id 和 allowlisted target language code；不得记录请求体、响应体、语言支持 `sample` 原文、API Key、完整 Keychain account、完整请求头、Base URL query 中的敏感参数或用户内容。
-- OpenAI Responses 和 OpenAI-compatible Chat 是第一阶段真实文本、内置图片合成测试和 OpenAI-like embeddings 配置测试范围；Anthropic / Gemini 第一阶段应返回明确暂不支持测试，不得误映射为认证失败或网络失败。Provider preset 不能作为模型级图片输入能力或向量能力的最终事实源；OpenRouter 和 Custom OpenAI-compatible 等兼容层应表达为 model-dependent，允许用户显式开启并由真实 probe 验证。`supportsImageInput` 只作为 endpoint 运行期防线和保存快照，不表示模型已被验证支持图片理解；embedding 可用性也以 endpoint scoped probe result 为准。
+- OpenAI Responses 和 OpenAI-compatible Chat 是第一阶段真实文本、内置图片合成测试和 OpenAI-like embeddings 配置测试范围；**Anthropic Messages 自 LM03-S4b（2026-06-27）起支持文本 + 尽力而为结构化 JSON 探针**（`x-api-key`+`anthropic-version` 鉴权、`content[].text` 解析），其图片 / TTS / embedding 探针与 Gemini 全部探针仍返回明确暂不支持测试，不得误映射为认证失败或网络失败。Provider preset 不能作为模型级图片输入能力或向量能力的最终事实源；OpenRouter 和 Custom OpenAI-compatible 等兼容层应表达为 model-dependent，允许用户显式开启并由真实 probe 验证。`supportsImageInput` 只作为 endpoint 运行期防线和保存快照，不表示模型已被验证支持图片理解；embedding 可用性也以 endpoint scoped probe result 为准。
 - Provider preset 不能默认声明所有能力都可用。Chat、Embedding、TTS、图片理解、语音识别和自定义请求头需要分别表达支持状态。
 - 聚合服务或兼容层的路由提示应只在用户选择该类 Provider 或进入高级信息时出现，避免把所有 Provider 的技术风险说明长期展示在普通设置主路径。
 
@@ -221,7 +221,7 @@ Provider 配置保存链路必须记录可诊断但非敏感的阶段状态：
 - 是否为不同任务定义严格 JSON Schema。
 - 是否引入本地内容脱敏或敏感词提示。
 - 多轮对话与文本流式的传输能力已落地（见 §3、§8）。**语伴会话已接文本流式 UX**（LM03-S3a：`CompanionConversationEngine.reply(onPartial:)` 逐 delta 累积回调 → `CompanionChatActions.send` seam +`onPartial` 第三参 → store `AsyncStream` 单 MainActor 顺序消费 → in-flight 气泡；流式只改显示，外发请求体 / 内容类目 / 隐私闸与 S1/S2b 完全一致，无新 capability / 无新外发类目）。**语伴对话记忆 / 滚动摘要已落地**（LM03-S3b-1：超窗时把老化轮压缩为摘要注入、`.companionSummarization` capability preview-only 诚实披露、删/清空摘要同事务失效重建；只压缩本会话已外发内容、无新外发类目、无新 consent 门）。其余上层消费（Memory·Style 注入演进 / 对话小结 / 对话级日志写入接线）仍属可演进，按 LM03 各切片推进。
-- Anthropic Messages / Gemini 多轮 + 流式适配仍为保留扩展点（当前 `unsupportedProvider`），后续走 `docs/workflows/add-ai-provider.md` 整体接入。
+- **Anthropic Messages 多轮 + 流式适配已落地（LM03-S4b，2026-06-27）**：`AnthropicMessagesTextAdapter`（顶层 `system` / 必填 `max_tokens` / `content[].text` 解析 / `content_block_delta` 流式 / 无 `[DONE]` 由字节 EOF 终止）；鉴权升为可动态派发的协议要求 `providerRequestHeaders`（Anthropic `x-api-key`+`anthropic-version`、mimo `api-key`、OpenAI 默认 Bearer，连带修复 mimo 旧 override 潜伏鉴权 bug）。语伴 send 路径 kind-agnostic、零 App 改动即可跑 Anthropic。**无新外发类目、无新 `AIRequestCapability`**：Anthropic 只是又一个用户自配 Provider 端点，决策 #10 与语伴隐私闸不变；密钥走既有 Keychain，不入日志 / SQLite / 同步。Anthropic 上的严格 schema 结构化输出（`tool_use`）与图片理解仍后置。Gemini 多轮 + 流式适配仍为保留扩展点（当前 `unsupportedProvider`），后续走 `docs/workflows/add-ai-provider.md` 接入。
 
 这些变化如果影响隐私、商业模式或默认数据边界，应更新 ADR。
 

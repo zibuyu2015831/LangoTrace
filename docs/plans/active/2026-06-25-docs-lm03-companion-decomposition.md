@@ -89,9 +89,18 @@
 - **风险**：中低（纯本地 deposit 连接 + UI；自审两 P0〔entryID 放宽 / 新 seam 破坏〕经核验均为非破坏）。
 
 ### LM03-S4（v2）：Style 注入 + Anthropic 适配 + 认知风格下投影
-- **范围**：Style 受控片段注入（依赖 LM02-S2 Style，经 Ability i+1 下投影，§3.11 / idea-01 §13.5）；Anthropic Messages 多轮 + 流式适配（idea-03 §10.3）；Style v2 触发时机（§9 待决）。
-- **硬前置**：LM02-S2（Style）+ Provider Anthropic 适配 + ADR-006 §6 隐私闸（Style 外发）。
-- **风险**：中（外发增量 + 多 Provider）。
+> **2026-06-27 用户决策：S4 按风险拆 S4a（Style 注入）/ S4b（Anthropic 适配），与 S2a/S2b、S3a/S3b 同构；先做 S4b（独立于 §9）。§9 Style 时机收口为 A（未来 S4a 注入 v1 surface Style）。**
+
+#### LM03-S4b：Anthropic Messages 多轮 + 流式适配
+> **→ 已 Done（2026-06-27，全量 CI 绿 run 28252751284）**：[`done/2026-06-27-feature-lm03-s4b-anthropic-messages-adapter.md`](../done/2026-06-27-feature-lm03-s4b-anthropic-messages-adapter.md)。双轮自审 → 授权 → TDD：鉴权升为可动态派发协议要求 `providerRequestHeaders`（Anthropic `x-api-key`+`anthropic-version` / mimo `api-key`，**连带修复 mimo 死 override 潜伏鉴权 bug**）+ `AnthropicMessagesTextAdapter`（顶层 system / 必填 max_tokens / `content[].text` / `content_block_delta` 流式 / 无 [DONE] EOF 终止）+ Anthropic 响应/流式 parser + 工厂放行 + UI 探针放行。**无新 migration / 无新 AIRequestCapability / 无新外发类目**；语伴 send 路径 kind-agnostic 零 App 改动。结构化严格模式（tool_use）+ 图片在 Anthropic 上后置。自审 P1-1 跨测试破坏实际范围比方案广（6 处 unsupported fixture 改 gemini），**聚焦 AI 包本机当场捕获**（印证 S3b-1 闭集语义变更须本机跑全包教训）。
+- **范围**：Anthropic Messages 多轮 + 流式适配（idea-03 §10.3）。
+- **硬前置**：Provider Anthropic 适配（本片实现）；独立于 §9 与 LM02-S2 Style。
+- **风险**：中（多 Provider 鉴权 + SSE 形态差异；无新外发类目）。
+
+#### LM03-S4a：Style 受控片段注入 + 认知风格 i+1 下投影（待开工）
+- **范围**：Style 受控片段注入（依赖 LM02-S2 Style，经 Ability i+1 下投影，§3.11 / idea-01 §13.5）；§9 时机已收口 = **A（注入 v1 surface Style）**。
+- **硬前置**：LM02-S2（Style，已 Done seam-only）+ ADR-006 §6 隐私闸（Style 外发，复用 S2b-1 两层 consent + PII scrub）+ Ability band（i+1 下投影，已 Done）。
+- **风险**：中（系统自动注入外发增量；surface Style 注入价值与 i+1 下投影档位映射须细化）。
 
 ### 远期（不在本次拆解的 active plan 范围）
 - 语音输入 / 语音对话（依赖 Speech Recognition，先写架构备忘录，§3.7）；场景 / 主题对话模式（决策 #5：Prompt 模式非新空间，§9 远期）；向量检索增强话题相关性。

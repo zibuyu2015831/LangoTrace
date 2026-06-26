@@ -1,6 +1,6 @@
 # 任务方案：LM03-S4b —— Anthropic Messages 多轮 + 流式适配
 
-状态：Reviewed（双轮隔离自审完成；待用户实现授权）
+状态：Done（2026-06-27 用户授权 → TDD 落地 → 全量 CI 绿 run 28252751284 → §17 回写）
 自审核状态：Reviewed（见 §11）
 类型：feature
 创建日期：2026-06-27
@@ -153,3 +153,22 @@ mimo 当前实际走扩展 `makeRequest` → 发 `Authorization: Bearer`（而�
 1. Anthropic 线格式细节（max_tokens 字段来源、anthropic-version 值）以官方 Messages API 为准；实现时若 endpoint 无 max_tokens 字段用常量 4096。
 2. mimo 行为修复连带触碰非语伴 Provider；回归测试覆盖。
 3. 结构化严格模式在 Anthropic 上后置 = 学习材料/阅读/照片能力在 Anthropic 上为尽力而为（语伴/探针不受影响）。
+
+## 13. 收口记录（2026-06-27）
+
+实现 commit `bce7cfd`；全量 CI `Build & Test` 绿 **run 28252751284**（6 包 + 三端构建 + macOS app test + lint + docs）。
+
+逐落点 TDD 落地：
+- **鉴权接缝**：协议要求 `providerRequestHeaders(secret:)` + 默认 Bearer；`makeRequest` 改用之；删 mimo 死 override 改 `providerRequestHeaders` 返 `api-key`（潜伏 bug 修复）。
+- **`AnthropicMessagesTextAdapter`**（新）+ `AnthropicResponseTextParser` + `AnthropicStreamDeltaExtractor`：顶层 system / max_tokens 4096 / `content[].text` / `content_block_delta` text_delta / 图片 data-URL→base64 source；工厂放行。
+- **UI**：设置页 capabilityPolicy 对 `.anthropicMessages` 放行 text/structured-JSON 探针（switch 改返回值非加 case）。
+- **AI 测试**：新 Anthropic adapter 套件（鉴权头 / body 形状 / 解析 / 流式 EOF 无 [DONE]）+ probe 集成（x-api-key 不泄漏为 Bearer）+ mimo api-key 回归。
+- **App**：零改动（`CompanionStreamingTransport` 直传 endpoint，kind-agnostic，P1-4 已核验）。
+
+**自审验证回填**：
+- **P1-1（最易漏的跨测试破坏）实际范围比方案列举更广**——除工厂 + streaming reserved-kinds 两处外，另有 4 个服务测试（ReadingSelection / LearningMaterial / PracticeBacktranslation / ProbeService「不支持适配器」用例）以 `.anthropicMessages` 作 unsupported fixture，放行后全部失败 → 全改用 `.geminiGenerateContent`。**聚焦 AI 包测试当场捕获（非 CI 才发现），印证 S3b-1 教训：闭集语义变更须本机跑全包。**
+- P0 鉴权动态派发、EOF 终止、SSE event 行无需改 parser 均按方案 correct-by-construction 验证通过。
+
+**偏差**：无。结构化严格模式（tool_use）+ 图片在 Anthropic 上按方案后置，非偏差。
+
+轻量验证：AI 251 / UI 624 / 其余包不受影响。本片**无新 migration / 无新 AIRequestCapability / 无新外发类目**。

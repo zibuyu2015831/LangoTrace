@@ -245,8 +245,8 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 这是对话级 AI 请求的**传输能力**数据流，目前**只到 Provider seam，无 UI / 会话 store**（消费方语伴 LM03 后续接入）：
 
 1. 调用方构造 `AIChatStreamingServiceRequest`（endpoint + secret + 可选 system + 有序 `[ConversationMessage]`）。
-2. `AIChatStreamingService`（`LangoTraceAI`）经 adapter 的 `streamingChatBody`（chat/completions `messages` + `stream:true`；responses `input` + `stream`；mimo 流式未验证暂 `unsupportedProvider`；anthropic / gemini 仍 `unsupportedProvider`）构造请求。
-3. 经 `AIProviderStreamingHTTPClient.streamBytes` → `AsyncThrowingStream<UInt8, Error>` 增量读；`ServerSentEventParser` 字节级解析（仅按 `0x0A` 切分，跨 chunk 半行 + 多字节安全），`OpenAIStreamDeltaExtractor` 提取 delta。
+2. `AIChatStreamingService`（`LangoTraceAI`）经 adapter 的 `streamingChatBody`（chat/completions `messages` + `stream:true`；responses `input` + `stream`；**anthropic 顶层 `system` + 必填 `max_tokens` + `content_block_delta` 流式、无 `[DONE]` 由字节 EOF 终止，LM03-S4b 落地**；mimo 流式未验证暂 `unsupportedProvider`；gemini 仍 `unsupportedProvider`）构造请求。鉴权经可动态派发的协议要求 `providerRequestHeaders`（OpenAI Bearer / anthropic `x-api-key`+`anthropic-version` / mimo `api-key`，修复 mimo 旧 override 潜伏鉴权 bug）。
+3. 经 `AIProviderStreamingHTTPClient.streamBytes` → `AsyncThrowingStream<UInt8, Error>` 增量读；`ServerSentEventParser` 字节级解析（仅按 `0x0A` 切分，跨 chunk 半行 + 多字节安全），`OpenAIStreamDeltaExtractor` / `AnthropicStreamDeltaExtractor` 提取 delta。
 4. 服务以 `AsyncThrowingStream<AIChatStreamEvent>`（全仓首个 throwing 异步流）逐 token yield；流终止于 `[DONE]` 或映射后的错误。
 5. **投影就绪不写日志**：`request.projectionMetadata()` 携带 preset / model / lengthBucket / messageCount（无正文 / persona / 密钥）；对话级 `ai_request_logs` 写入由 LM03 在请求终止后经 App-Shell recorder 接线（E6 依赖方向）。
 
@@ -294,7 +294,7 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - **隐私边界**：S1 **零系统自动注入**（不读 Memory 生活事实 / 不 FTS）→ 仅用户打字 + 显式带入单条记录的主动外发（决策 #10 trivially 满足）；外发经 Provider 抽象 + `projectionMetadata()`（E6）；人设纯枚举防注入（AI-17）；始终目标语（typed directive 契约）。
 - **故障恢复**：Provider 未配置 / 不可用 / 拒绝 → honest 失败态（`CompanionReplyFailure`）+ 可重试 + 不丢输入。
 - **测试入口**：`CompanionPersonaTests`/`CompanionDeletionSemanticsTests`/`CompanionFeatureStoreTests`（Core）、`GRDBCompanionRepositoryTests`（Data）、`CompanionConversationEngineTests`/`CompanionPromptRegistryTests`（AI）、`CompanionChatStoreTests`/`CompanionChatPresentationTests`（UI）。
-- **未实现接缝**：逐句 TTS 朗读（暂缓，加性后续）；语音输入（远期，schema `input_modality`/`audio_artifact_id` 已预留，见 `docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`）；对话记忆 / 滚动摘要 / 对话小结（LM03-S3b，门控未开）；Style 注入 + Anthropic（LM03-S4）。方案B 主动找话题 = LM03-S2b-2（见 §4.14）；Memory 注入 + PII scrubbing = LM03-S2b-1（见 §4.13）；**文本流式 UX + 温和复述 = LM03-S3a 已落地（见 §4.15）**。
+- **未实现接缝**：逐句 TTS 朗读（暂缓，加性后续）；语音输入（远期，schema `input_modality`/`audio_artifact_id` 已预留，见 `docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`）；Style 受控片段注入 + i+1 下投影（LM03-S4a，下一候选，§9=A）。**对话记忆 / 滚动摘要 = LM03-S3b-1、对话小结 deposit = LM03-S3b-2 均已落地**；方案B 主动找话题 = LM03-S2b-2（见 §4.14）；Memory 注入 + PII scrubbing = LM03-S2b-1（见 §4.13）；**文本流式 UX + 温和复述 = LM03-S3a 已落地（见 §4.15）**；**Anthropic Messages 多轮+流式适配 = LM03-S4b 已落地（语伴 kind-agnostic 零改动即可跑 Anthropic，见 §4.9）**。
 
 ### 4.12 语伴聊天反哺（LM03-S2a 入站半环 + S3b-2 deposit 闭环）
 
