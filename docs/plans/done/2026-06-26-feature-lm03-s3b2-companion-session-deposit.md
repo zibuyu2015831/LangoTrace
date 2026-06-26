@@ -1,6 +1,6 @@
 # 任务方案：LM03-S3b-2 语伴对话小结 —— 候选批量 deposit 闭合「对话 → 记忆」
 
-状态：Draft（双轮自审已执行；待用户实现授权）
+状态：Done（2026-06-26 实现完成，全量 CI 绿 run 28243788513，移 done/）
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-06-26
@@ -104,6 +104,20 @@ S3b-2 完整实施方案：落地 idea-03 §3.12「对话小结」的核心闭�
 - **批量 deposit 原子性**：v1 = 逐条幂等 deposit（非单事务全成全失）；因幂等，部分成功后重点「全部加入」可安全补齐 → 可接受，不引入批量事务。
 - **「已加入」集合含分析候选 id**：`depositedCandidateIDs(spaceID)` 返回全来源 deposited id；store 与 companion 候选 id 取交集，不误标 → 正确。
 - **difficulty 默认 `.medium`**：候选无难度信号、deposit 需值 → 中性默认（不读 band，红线安全）；复习初始难度中性可接受。
+
+## 实施记录（2026-06-26，Done）
+
+按 Reviewed 设计逐落点 TDD 落地，本机轻量逐包全绿 + 全量 CI 绿（run 28243788513）。
+
+- **Core**：`MemoryDepositInput.entryID` String→String?（**核验非破坏**：2 处 memberwise 调用点传 String 隐式兼容、既有 `init(candidate:…)` 不改）；新 `init(companionCandidate:spaceID:)`（entryID nil / difficulty .medium / kind 五类映射 / note=explanationNative）。`MemoryDepositTests`（companion init + 映射 + analysis 回归）。
+- **Data**：`deposit()` 无改动即支持 nil entryID（`DepositedMemoryItem.entryID` 本可选、`entry_id` 可空 FK）；`MemoryItemRepositoryTests` 扩 companion deposit（entry_id NULL / source_kind candidate / 幂等 / depositedCandidateIDs）+ 既有 analysis deposit 回归绿。
+- **UI**：`CompanionChatActions` +`depositAllCandidates`/`depositedCandidateIDs`（init 末尾默认 + `.disabled`，**核验不破坏标签参数 fixture**）；store `@Published depositedCandidateIDs`/`isDepositing` + `depositAllCandidates()` + `isCandidateDeposited()` + load 带出 deposited 集（**不改 presentation**，避 `let` 重投影）；view 提取结果区「全部加入记忆库」批量按钮 + 逐条「已加入」徽标；本地化 key `companion.deposit.all`/`companion.deposit.added`（en+zh）。`CompanionDepositStoreTests`。
+- **App**：`depositAllCandidates` = 读 `companionCandidates` 逐条 `MemoryDepositInput(companionCandidate:)`→`memoryItemRepository.deposit`（幂等、App 编排、memory repo 不耦合 companion 表）；`depositedCandidateIDs` 透传。
+- **CI 教训复用（S3b-1）**：本机跑了 **UI 包全量测试** 捕获 `no-hardcoded-Han` 守卫——新增 UI 源注释含「已加入/对话小结」Han 字符被拦，已改英文（UI 源注释须英文）。本片**无跨包 exhaustive switch 破坏**（deposit 是新增 seam、非闭集 capability 消费点变更）。
+
+**边界复核**：纯本地 deposit、无新 AI / 无新外发类目 / 无新 migration；复用 E7 幂等（`source_kind 'candidate'` + UUID `source_candidate_id`）；band 红线未碰（difficulty 默认 medium 不读难度信号）。
+
+**轻量验证**：Core `MemoryDepositTests` + Data `MemoryItemRepositoryTests`(14，含 companion + analysis 回归) + UI(624) + swiftformat 0/453 + swiftlint（无 error）。**全量验证**：CI run 28243788513 `Build & Test` 绿（三端构建 + macOS app test + 全包测试 + lint）。
 
 ## 严格方案自审核记录
 

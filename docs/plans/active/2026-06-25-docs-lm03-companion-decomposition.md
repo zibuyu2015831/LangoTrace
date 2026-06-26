@@ -82,7 +82,7 @@
 - **风险**：高（失效重建一致性 + 新自动 AI 外发 + 上下文窗口整合）。
 
 ##### LM03-S3b-2：对话小结（§3.12，候选批量 deposit 闭合「对话 → 记忆」）
-> **→ 完整 active plan + 双轮自审（两 P0 经核验降级为非破坏 + P1/P2 写回）= Reviewed，待用户实现授权**：[`active/2026-06-26-feature-lm03-s3b2-companion-session-deposit.md`](2026-06-26-feature-lm03-s3b2-companion-session-deposit.md)。
+> **→ 已 Done（2026-06-26，全量 CI 绿 run 28243788513）**：[`done/2026-06-26-feature-lm03-s3b2-companion-session-deposit.md`](../done/2026-06-26-feature-lm03-s3b2-companion-session-deposit.md)。双轮自审两 P0（entryID 放宽 / 新 seam 破坏）经主会核验**均为非破坏** + P1/P2 写回（isDeposited 改 store 承载 / source_kind UUID 残余文档化 / 验证含 UI build）。逐落点 TDD：Core companion deposit init + 映射 + analysis 回归 / Data companion deposit entry_id NULL + 幂等 + analysis 回归 / UI 批量标记·幂等·load 预置。**纯本地 deposit、无新 AI / 外发类目 / migration**（复用 E7 幂等、`source_kind 'candidate'`、`entry_id` 写 NULL）；band 红线未碰（difficulty 默认 medium）。CI 教训复用：本机跑 UI 全量捕获 no-hardcoded-Han 守卫（新增注释 Han→英文）。
 - **范围（用户 2026-06-26 定）**：**复用 S2a 提取（含 errorPattern 五类候选）+ 批量 deposit 到 E7/E8 复习系统（`memory_items`）**，把对话闭合回「记录 → 对话 → 记忆」。**不新增摘要 AI**；deposit 粒度 = 批量「全部加入」+ 逐条「已加入」态（§3.8 反手动选词）。调查结论：S2a 提取 + E7 deposit + E8 复习均已落地，但 `companion_memory_candidates` 与 `memory_items` **当前完全孤立**——真增量 = 建立这条 deposit 连接 + 小结 UI。
 - **硬前置**：LM03-S2a（Done，候选源）+ E7/E8 记忆 deposit·复习（Done）。
 - **边界**：**无新 AI / 无新外发类目 / 无新 migration**（deposit 纯本地、复用 E7 幂等 `deposit`、`source_kind 'candidate'`、`entry_id` 可空写 NULL）；band 红线不碰（difficulty 默认 `.medium` 不读难度）。
