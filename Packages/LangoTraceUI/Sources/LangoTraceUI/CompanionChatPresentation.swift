@@ -75,6 +75,9 @@ public enum CompanionChatCopy {
     public static let inputPlaceholderKey = "companion.input.placeholder"
     public static let clearKey = "companion.action.clear"
 
+    /// LM03-S3a gentle-recast correction posture toggle.
+    public static let gentleRecastToggleKey = "companion.recast.toggle"
+
     // LM03-S2b-1 memory-injection two-layer privacy copy.
     public static let memoryToggleKey = "companion.memory.toggle"
     public static let memoryPreviewTitleKey = "companion.memory.preview.title"

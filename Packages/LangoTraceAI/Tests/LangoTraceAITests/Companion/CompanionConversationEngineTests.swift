@@ -5,7 +5,9 @@ import Testing
 
 @Suite("Companion conversation engine")
 struct CompanionConversationEngineTests {
-    /// Stub transport: yields preset deltas, or finishes throwing `error`.
+    /// Stub transport: yields the preset deltas, then finishes — throwing `error`
+    /// after the deltas when one is set (so "streamed some, then failed" is
+    /// expressible for the S3a partial-then-error path).
     private struct StubTransport: CompanionReplyTransport {
         var deltas: [String] = []
         var error: Error?
@@ -17,15 +19,29 @@ struct CompanionConversationEngineTests {
             let deltas = deltas
             let error = error
             return AsyncThrowingStream { continuation in
+                for delta in deltas {
+                    continuation.yield(.delta(delta))
+                }
                 if let error {
                     continuation.finish(throwing: error)
                     return
                 }
-                for delta in deltas {
-                    continuation.yield(.delta(delta))
-                }
                 continuation.finish()
             }
+        }
+    }
+
+    /// Thread-safe sink for the cumulative `onPartial` callbacks (the closure is
+    /// `@Sendable`; collect under a lock so the assertions read a stable snapshot).
+    private final class PartialCollector: @unchecked Sendable {
+        private let lock = NSLock()
+        private var values: [String] = []
+        func append(_ value: String) {
+            lock.lock(); values.append(value); lock.unlock()
+        }
+
+        var snapshot: [String] {
+            lock.lock(); defer { lock.unlock() }; return values
         }
     }
 
@@ -215,5 +231,52 @@ struct CompanionConversationEngineTests {
             nativeLanguageCode: nil, proficiencyLevel: "b1", seedEntryBody: nil
         )
         #expect(unsupported == .failure(.providerUnavailable))
+    }
+
+    // MARK: - Streaming onPartial (LM03-S3a)
+
+    @Test("onPartialReceivesCumulativeBufferPerDelta — caller sees the growing reply, ending on the full text")
+    func onPartialReceivesCumulativeBuffer() async {
+        let collector = PartialCollector()
+        let outcome = await engine(transport: StubTransport(deltas: ["He", "llo"])).reply(
+            userInput: "hi", history: [], persona: .default,
+            targetLanguageCode: "en", nativeLanguageCode: nil,
+            proficiencyLevel: "b1", seedEntryBody: nil,
+            onPartial: { collector.append($0) }
+        )
+        // Each callback carries the cumulative buffer so far, in order.
+        #expect(collector.snapshot == ["He", "Hello"])
+        // The final outcome is still the complete buffered reply.
+        #expect(outcome == .reply(text: "Hello", detectedLanguage: nil))
+    }
+
+    @Test("emptyStreamNeverCallsOnPartial — no partial bubble for a reply that never arrives")
+    func emptyStreamNeverCallsOnPartial() async {
+        let collector = PartialCollector()
+        let outcome = await engine(transport: StubTransport(deltas: [])).reply(
+            userInput: "hi", history: [], persona: .default,
+            targetLanguageCode: "en", nativeLanguageCode: nil,
+            proficiencyLevel: "b1", seedEntryBody: nil,
+            onPartial: { collector.append($0) }
+        )
+        #expect(collector.snapshot.isEmpty)
+        #expect(outcome == .failure(.empty))
+    }
+
+    @Test("partialDeltaThenErrorStillReportsFailure — onPartial fired, but the turn ends as an honest failure")
+    func partialDeltaThenErrorStillReportsFailure() async {
+        let collector = PartialCollector()
+        let outcome = await engine(
+            transport: StubTransport(deltas: ["He"], error: AIChatStreamingError.networkUnavailable)
+        ).reply(
+            userInput: "hi", history: [], persona: .default,
+            targetLanguageCode: "en", nativeLanguageCode: nil,
+            proficiencyLevel: "b1", seedEntryBody: nil,
+            onPartial: { collector.append($0) }
+        )
+        // The partial was surfaced before the failure...
+        #expect(collector.snapshot == ["He"])
+        // ...but the outcome is failure: the store discards the partial, never persists it.
+        #expect(outcome == .failure(.providerUnavailable))
     }
 }

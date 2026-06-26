@@ -8,11 +8,22 @@ public struct CompanionLoadedThread: Equatable, Sendable {
     /// Per-conversation learner-profile injection toggle (LM03-S2b-1 second
     /// privacy layer). Defaults true (follow global consent).
     public var usesLearnerProfile: Bool
+    /// The space persona's correction posture (LM03-S3a). Carried out on load so
+    /// the gentle-recast toggle reflects the persisted state instead of stale UI.
+    /// A struct default keeps every existing `CompanionLoadedThread(...)`
+    /// construction source-compatible.
+    public var correction: CompanionCorrection
 
-    public init(threadID: String, messages: [CompanionMessage], usesLearnerProfile: Bool = true) {
+    public init(
+        threadID: String,
+        messages: [CompanionMessage],
+        usesLearnerProfile: Bool = true,
+        correction: CompanionCorrection = .ifNeeded
+    ) {
         self.threadID = threadID
         self.messages = messages
         self.usesLearnerProfile = usesLearnerProfile
+        self.correction = correction
     }
 }
 
@@ -39,7 +50,14 @@ public enum CompanionExtractionOutcome: Equatable, Sendable {
 /// turns **only on success** — local-first, no system-auto-injection in S1.
 public struct CompanionChatActions: Sendable {
     public var loadThread: @Sendable (_ spaceID: String, _ sourceEntryID: String?) async -> CompanionLoadedThread?
-    public var send: @Sendable (_ threadID: String, _ userInput: String) async -> CompanionSendOutcome
+    /// Runs one turn. `onPartial` streams the cumulative in-flight reply (LM03-S3a)
+    /// for a UI-only bubble — it never persists; only the success outcome's full
+    /// text is stored. The closure carries the *third* arity, so existing literal
+    /// `{ _, _ in }` fixtures must become `{ _, _, _ in }` (a default value cannot
+    /// rescue a closure literal's arity).
+    public var send: @Sendable (
+        _ threadID: String, _ userInput: String, _ onPartial: @escaping @Sendable (String) -> Void
+    ) async -> CompanionSendOutcome
     public var deleteFrom: @Sendable (_ messageID: String) async -> Void
     public var clear: @Sendable (_ threadID: String) async -> Void
     /// Explicit chat reflux: extract vocabulary / expressions from the thread's
@@ -49,6 +67,11 @@ public struct CompanionChatActions: Sendable {
     public var extract: @Sendable (_ threadID: String) async -> CompanionExtractionOutcome
     /// Sets the per-conversation learner-profile injection toggle (LM03-S2b-1).
     public var setUsesLearnerProfile: @Sendable (_ threadID: String, _ usesLearnerProfile: Bool) async -> Void
+    /// Toggles the space persona's gentle-recast correction posture (LM03-S3a):
+    /// on → `.warmRecast`, off → `.ifNeeded`. Keyed by spaceID because the persona
+    /// is per-space (`conversation_companions`), not per-conversation. The App
+    /// implements this read-modify-write to preserve tone / formality.
+    public var setGentleRecast: @Sendable (_ spaceID: String, _ enabled: Bool) async -> Void
     /// The "will-send" projection for a companion send *with* Memory injection —
     /// backs the one-time consent preview (discloses the curated subset that is
     /// sent and the full memory store that is not). nil when no provider is
@@ -61,11 +84,14 @@ public struct CompanionChatActions: Sendable {
 
     public init(
         loadThread: @escaping @Sendable (String, String?) async -> CompanionLoadedThread?,
-        send: @escaping @Sendable (String, String) async -> CompanionSendOutcome,
+        send: @escaping @Sendable (
+            String, String, @escaping @Sendable (String) -> Void
+        ) async -> CompanionSendOutcome,
         deleteFrom: @escaping @Sendable (String) async -> Void,
         clear: @escaping @Sendable (String) async -> Void,
         extract: @escaping @Sendable (String) async -> CompanionExtractionOutcome,
         setUsesLearnerProfile: @escaping @Sendable (String, Bool) async -> Void = { _, _ in },
+        setGentleRecast: @escaping @Sendable (String, Bool) async -> Void = { _, _ in },
         memoryPreviewProjection: @escaping @Sendable (String) async -> AIRequestPreviewProjection? = { _ in nil },
         recordTopicPreviewProjection: @escaping @Sendable (String) async -> AIRequestPreviewProjection? = { _ in nil }
     ) {
@@ -75,17 +101,19 @@ public struct CompanionChatActions: Sendable {
         self.clear = clear
         self.extract = extract
         self.setUsesLearnerProfile = setUsesLearnerProfile
+        self.setGentleRecast = setGentleRecast
         self.memoryPreviewProjection = memoryPreviewProjection
         self.recordTopicPreviewProjection = recordTopicPreviewProjection
     }
 
     public static let disabled = CompanionChatActions(
         loadThread: { _, _ in nil },
-        send: { _, _ in .failed(.providerUnavailable) },
+        send: { _, _, _ in .failed(.providerUnavailable) },
         deleteFrom: { _ in },
         clear: { _ in },
         extract: { _ in .failed(.providerUnavailable) },
         setUsesLearnerProfile: { _, _ in },
+        setGentleRecast: { _, _ in },
         memoryPreviewProjection: { _ in nil },
         recordTopicPreviewProjection: { _ in nil }
     )

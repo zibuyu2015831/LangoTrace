@@ -21,7 +21,7 @@ struct CompanionChatStoreTests {
         let box = Box()
         let actions = CompanionChatActions(
             loadThread: { _, _ in CompanionLoadedThread(threadID: "t1", messages: []) },
-            send: { _, _ in box.sendCalled = true; return .failed(.other) },
+            send: { _, _, _ in box.sendCalled = true; return .failed(.other) },
             deleteFrom: { _ in },
             clear: { _ in },
             extract: { _ in .extracted([]) }
@@ -40,7 +40,7 @@ struct CompanionChatStoreTests {
         let assistant = message("a1", .assistant, "hello")
         let actions = CompanionChatActions(
             loadThread: { _, _ in CompanionLoadedThread(threadID: "t1", messages: []) },
-            send: { _, _ in .appended(user: user, assistant: assistant) },
+            send: { _, _, _ in .appended(user: user, assistant: assistant) },
             deleteFrom: { _ in },
             clear: { _ in },
             extract: { _ in .extracted([]) }
@@ -60,7 +60,7 @@ struct CompanionChatStoreTests {
     func failureStatePreservesUserInputAndDoesNotFake() async {
         let actions = CompanionChatActions(
             loadThread: { _, _ in CompanionLoadedThread(threadID: "t1", messages: []) },
-            send: { _, _ in .failed(.providerUnavailable) },
+            send: { _, _, _ in .failed(.providerUnavailable) },
             deleteFrom: { _ in },
             clear: { _ in },
             extract: { _ in .extracted([]) }

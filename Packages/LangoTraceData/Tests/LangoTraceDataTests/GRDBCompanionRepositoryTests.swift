@@ -198,4 +198,27 @@ struct GRDBCompanionRepositoryTests {
         try repository.savePersona(.default, spaceID: "s1")
         #expect(try repository.loadPersona(spaceID: "s1") == .default)
     }
+
+    @Test("Gentle-recast read-modify-write preserves tone / formality (S3a)")
+    func gentleRecastReadModifyWritePreservesTone() throws {
+        let (database, _) = try makeDatabase()
+        try database.writer.write { try seedSpace($0) }
+        let repository = GRDBCompanionRepository(writer: database.writer)
+        // The user has a non-default persona (humorous / formal).
+        try repository.savePersona(
+            CompanionPersona(tone: .humorous, formality: .formal, correction: .ifNeeded), spaceID: "s1"
+        )
+        // Mirror the App's setGentleRecast read-modify-write: load, change ONLY the
+        // correction, save. Because savePersona is a full-field upsert, skipping the
+        // read would clobber tone / formality.
+        let current = try repository.loadPersona(spaceID: "s1")
+        try repository.savePersona(
+            CompanionPersona(tone: current.tone, formality: current.formality, correction: .warmRecast),
+            spaceID: "s1"
+        )
+        let updated = try repository.loadPersona(spaceID: "s1")
+        #expect(updated.correction == .warmRecast)
+        #expect(updated.tone == .humorous) // preserved
+        #expect(updated.formality == .formal) // preserved
+    }
 }

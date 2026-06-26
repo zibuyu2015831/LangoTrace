@@ -55,14 +55,22 @@ func makeCompanionChatActions(
             guard let thread = try? repository.loadOrCreateThread(spaceID: spaceID, sourceEntryID: sourceEntryID)
             else { return nil }
             let messages = (try? repository.messages(threadID: thread.id)) ?? []
+            // Carry out the persona correction posture so the gentle-recast toggle
+            // reflects persisted state on load (LM03-S3a) — persona is otherwise
+            // only read inside send.
+            let persona = (try? repository.loadPersona(spaceID: spaceID)) ?? .default
             return CompanionLoadedThread(
-                threadID: thread.id, messages: messages, usesLearnerProfile: thread.usesLearnerProfile
+                threadID: thread.id,
+                messages: messages,
+                usesLearnerProfile: thread.usesLearnerProfile,
+                correction: persona.correction
             )
         },
-        send: { threadID, userInput in
+        send: { threadID, userInput, onPartial in
             await companionSend(
                 threadID: threadID,
                 userInput: userInput,
+                onPartial: onPartial,
                 databaseFactory: databaseFactory,
                 credentialStore: credentialStore,
                 detectLanguage: detectLanguage,
@@ -89,6 +97,20 @@ func makeCompanionChatActions(
             guard let database = try? databaseFactory.database() else { return }
             try? GRDBCompanionRepository(writer: database.writer)
                 .setUsesLearnerProfile(threadID: threadID, enabled)
+        },
+        setGentleRecast: { spaceID, enabled in
+            // Read-modify-write: savePersona is a full-field upsert, so load the
+            // current persona and change ONLY the correction posture — otherwise we
+            // would clobber the user's tone / formality (LM03-S3a).
+            guard let database = try? databaseFactory.database() else { return }
+            let repository = GRDBCompanionRepository(writer: database.writer)
+            let current = (try? repository.loadPersona(spaceID: spaceID)) ?? .default
+            let updated = CompanionPersona(
+                tone: current.tone,
+                formality: current.formality,
+                correction: enabled ? .warmRecast : .ifNeeded
+            )
+            try? repository.savePersona(updated, spaceID: spaceID)
         },
         memoryPreviewProjection: { _ in
             // The "will-send-with-injection" disclosure for the one-time preview.
@@ -189,6 +211,7 @@ private func companionExtract(
 private func companionSend(
     threadID: String,
     userInput: String,
+    onPartial: @escaping @Sendable (String) -> Void,
     databaseFactory: SharedAppDatabaseFactory,
     credentialStore: any AIProviderCredentialStore,
     detectLanguage: @escaping @Sendable (String) -> String?,
@@ -275,7 +298,8 @@ private func companionSend(
         proficiencyLevel: space.level,
         seedEntryBody: seedEntryBody,
         memoryContext: memoryContext,
-        broughtInRecords: broughtInRecords
+        broughtInRecords: broughtInRecords,
+        onPartial: onPartial
     )
 
     switch outcome {

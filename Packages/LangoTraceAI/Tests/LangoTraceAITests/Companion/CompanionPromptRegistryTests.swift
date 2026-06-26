@@ -42,6 +42,18 @@ struct CompanionPromptRegistryTests {
         #expect(recast.directives.contains(.correctionPolicy(.warmRecast)))
     }
 
+    @Test("Warm-recast persona renders its instruction fragment into the prompt text (S3a opt-in)")
+    func warmRecastFragmentRenderedInText() {
+        // The directive set already encodes the posture; assert the actual
+        // instruction text reaches the model so the opt-in genuinely takes effect.
+        let recast = prompt(persona: CompanionPersona(tone: .friendly, formality: .casual, correction: .warmRecast))
+        #expect(recast.text.contains("naturally"))
+        #expect(recast.text.contains("restate the correct form"))
+        // The default (ifNeeded) posture must NOT emit the recast wording.
+        let ifNeeded = prompt(persona: .default)
+        #expect(!ifNeeded.text.contains("restate the correct form in your own reply"))
+    }
+
     @Test("Topic-grounded directive appears only when a record is brought in")
     func topicDirectiveOnlyWithSeed() {
         #expect(!prompt(seed: nil).directives.contains(.topicGroundedInRecord))

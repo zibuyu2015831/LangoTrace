@@ -21,7 +21,7 @@ struct CompanionMemoryInjectionUITests {
             loadThread: { _, _ in
                 CompanionLoadedThread(threadID: "t1", messages: [], usesLearnerProfile: usesLearnerProfile)
             },
-            send: { _, _ in .failed(.other) },
+            send: { _, _, _ in .failed(.other) },
             deleteFrom: { _ in },
             clear: { _ in },
             extract: { _ in .extracted([]) },

@@ -99,6 +99,14 @@ public struct CompanionConversationEngine: Sendable {
     }
 
     /// Produces the assistant reply for `userInput`, buffering the transport stream.
+    ///
+    /// `onPartial` is invoked once per transport delta with the **cumulative**
+    /// buffer so far (LM03-S3a streaming UX) — the App routes it to a UI-only
+    /// in-flight bubble. It never touches persisted state: only the complete
+    /// buffered text in the returned `.reply` is persisted, and a stream that
+    /// fails after some deltas still returns `.failure` (the caller discards the
+    /// partial — honest failure, ADR-008 §7). Default is a no-op (non-streaming
+    /// callers / tests).
     public func reply(
         userInput: String,
         history: [CompanionMessage],
@@ -108,7 +116,8 @@ public struct CompanionConversationEngine: Sendable {
         proficiencyLevel: String,
         seedEntryBody: String?,
         memoryContext: [String] = [],
-        broughtInRecords: [String] = []
+        broughtInRecords: [String] = [],
+        onPartial: @Sendable (String) -> Void = { _ in }
     ) async -> CompanionReplyOutcome {
         // Detect on the raw input (routing hint); the outbound payload is scrubbed
         // inside assembleRequest.
@@ -131,6 +140,9 @@ public struct CompanionConversationEngine: Sendable {
                 switch event {
                 case let .delta(text):
                     buffer += text
+                    // Surface the growing reply for the streaming UI. Cumulative so
+                    // the consumer can render the full bubble without re-joining.
+                    onPartial(buffer)
                 }
             }
         } catch {

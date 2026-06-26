@@ -23,6 +23,15 @@ final class CompanionChatStore: ObservableObject {
     /// True when the thread has no messages yet — the view shows the local
     /// greeting (idea-03 §3.10), produced without any outbound request.
     @Published private(set) var showsColdStartGreeting = false
+    /// The cumulative in-flight assistant reply while a send streams (LM03-S3a).
+    /// UI-only — the view renders a transient bubble from it; it is NEVER persisted
+    /// (only the success outcome's full text is stored) and is cleared on every
+    /// completion path (success / failure / cancel).
+    @Published private(set) var inFlightReply: String = ""
+    /// Whether the space persona uses the gentle-recast correction posture
+    /// (`.warmRecast`). Derived from the loaded thread's persona; the toolbar
+    /// toggle flips it (LM03-S3a).
+    @Published private(set) var gentleRecastEnabled = false
 
     // MARK: - Chat reflux extraction (LM03-S2a)
 
@@ -148,6 +157,7 @@ final class CompanionChatStore: ObservableObject {
         messages = loaded.messages.map(CompanionMessagePresentation.init)
         showsColdStartGreeting = loaded.messages.isEmpty
         usesLearnerProfile = loaded.usesLearnerProfile
+        gentleRecastEnabled = loaded.correction == .warmRecast
         memoryConsent = consentStore.consent
         topicConsent = topicConsentStore.consent
         failure = nil
@@ -159,7 +169,22 @@ final class CompanionChatStore: ObservableObject {
         guard !text.isEmpty, !isSending, let threadID else { return }
         isSending = true
         failure = nil
-        let outcome = await actions.send(threadID, text)
+        inFlightReply = ""
+
+        // Stream the partial reply through a single AsyncStream consumed by one
+        // ordered MainActor loop: `onPartial` only `yield`s (Sendable, in order),
+        // so the in-flight bubble updates are race-free by construction — no Task
+        // fan-out, no monotonic guard needed (LM03-S3a P0-1).
+        let (partials, continuation) = AsyncStream<String>.makeStream()
+        let consumer = Task { @MainActor in
+            for await partial in partials {
+                inFlightReply = partial
+            }
+        }
+        let outcome = await actions.send(threadID, text) { continuation.yield($0) }
+        continuation.finish()
+        await consumer.value
+
         switch outcome {
         case let .appended(user, assistant):
             messages.append(CompanionMessagePresentation(user))
@@ -171,7 +196,17 @@ final class CompanionChatStore: ObservableObject {
             // faked assistant turn.
             failure = reason
         }
+        // The in-flight reply is UI-only — clear it on every path (success persists
+        // the full text as a real message; failure / cancel discard the partial).
+        inFlightReply = ""
         isSending = false
+    }
+
+    /// Flips the space persona's gentle-recast posture and persists it (LM03-S3a).
+    /// The App does a read-modify-write so tone / formality are preserved.
+    func setGentleRecast(_ enabled: Bool) async {
+        await actions.setGentleRecast(spaceID, enabled)
+        gentleRecastEnabled = enabled
     }
 
     /// True when extraction can run: the thread has at least one message and no

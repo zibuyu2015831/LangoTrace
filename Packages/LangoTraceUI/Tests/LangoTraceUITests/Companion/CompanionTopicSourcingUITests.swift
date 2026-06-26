@@ -19,7 +19,7 @@ struct CompanionTopicSourcingUITests {
     private func store(box: Box = Box(), topic: FakeTopicConsent = FakeTopicConsent(), usesProfile: Bool = true) -> CompanionChatStore {
         let actions = CompanionChatActions(
             loadThread: { _, _ in CompanionLoadedThread(threadID: "t1", messages: [], usesLearnerProfile: usesProfile) },
-            send: { _, _ in box.sendCalled = true; return .failed(.other) },
+            send: { _, _, _ in box.sendCalled = true; return .failed(.other) },
             deleteFrom: { _ in },
             clear: { _ in },
             extract: { _ in .extracted([]) }

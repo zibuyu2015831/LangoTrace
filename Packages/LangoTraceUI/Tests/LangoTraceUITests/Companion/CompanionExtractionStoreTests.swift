@@ -28,7 +28,7 @@ struct CompanionExtractionStoreTests {
     ) -> CompanionChatStore {
         let actions = CompanionChatActions(
             loadThread: { _, _ in CompanionLoadedThread(threadID: "t1", messages: [message("u1")]) },
-            send: { _, _ in .failed(.other) },
+            send: { _, _, _ in .failed(.other) },
             deleteFrom: { _ in },
             clear: { _ in },
             extract: extract
@@ -74,7 +74,7 @@ struct CompanionExtractionStoreTests {
     func cannotExtractEmptyThread() async {
         let actions = CompanionChatActions(
             loadThread: { _, _ in CompanionLoadedThread(threadID: "t1", messages: []) },
-            send: { _, _ in .failed(.other) },
+            send: { _, _, _ in .failed(.other) },
             deleteFrom: { _ in },
             clear: { _ in },
             extract: { _ in .extracted([]) }

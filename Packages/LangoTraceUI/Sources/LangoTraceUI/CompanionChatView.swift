@@ -51,6 +51,14 @@ struct CompanionChatView: View {
                     localizedText(CompanionChatCopy.memoryToggleKey)
                 }
             }
+            ToolbarItem(placement: .secondaryAction) {
+                Toggle(isOn: Binding(
+                    get: { store.gentleRecastEnabled },
+                    set: { enabled in Task { await store.setGentleRecast(enabled) } }
+                )) {
+                    localizedText(CompanionChatCopy.gentleRecastToggleKey)
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button(role: .destructive) {
                     isPresentingClearConfirm = true
@@ -170,6 +178,14 @@ struct CompanionChatView: View {
                 }
                 ForEach(store.messages) { message in
                     bubble(text: message.text, isUser: message.isUser)
+                }
+                // Transient streaming bubble (LM03-S3a): grows as deltas arrive, then
+                // is replaced by the persisted assistant message on completion. Skip
+                // whitespace-only partials so an empty bubble never flashes.
+                if store.isSending,
+                   !store.inFlightReply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                {
+                    bubble(text: store.inFlightReply, isUser: false)
                 }
                 if let failure = store.failure {
                     Text(localizedString(CompanionChatCopy.failureKey(failure)))

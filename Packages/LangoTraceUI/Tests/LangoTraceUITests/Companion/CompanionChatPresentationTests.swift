@@ -25,6 +25,7 @@ struct CompanionChatPresentationTests {
         #expect(CompanionChatCopy.settingsToggleKey == "companion.settings.toggle")
         #expect(CompanionChatCopy.coldStartGreetingKey == "companion.greeting.coldStart")
         #expect(CompanionChatCopy.entryDetailActionKey == "companion.entry.talkAboutRecord")
+        #expect(CompanionChatCopy.gentleRecastToggleKey == "companion.recast.toggle")
     }
 
     @Test("Message presentation maps role to isUser")
