@@ -216,6 +216,14 @@ public struct GRDBCompanionRepository: Sendable {
     }
 
     /// Deletes a message AND every message after it (linear-context self-consistency).
+    ///
+    /// Within the **same write transaction** it also invalidates the rolling
+    /// summary if it covers any now-deleted message (LM03-S3b-1 / idea-03 §3.2):
+    /// deleting at or before the summary watermark means the summary folds content
+    /// that no longer exists, so it must be cleared and rebuilt lazily — otherwise
+    /// the deleted content keeps influencing replies through the stale summary.
+    /// Atomic by construction: there is no intermediate state where messages are
+    /// gone but the summary still references them.
     public func deleteMessageAndSubsequent(messageID: String) throws {
         try writer.write { db in
             guard let row = try Row.fetchOne(
@@ -229,18 +237,93 @@ public struct GRDBCompanionRepository: Sendable {
                 sql: "DELETE FROM companion_messages WHERE thread_id = ? AND sequence >= ?",
                 arguments: [threadID, sequence]
             )
+            try Self.invalidateSummaryIfCovered(db, threadID: threadID, deletedFromSequence: sequence)
         }
     }
 
     /// Removes all messages of a thread (清空 / restart). The thread row and
-    /// per-space persona survive; system-level data is untouched (ADR-008 §4).
+    /// per-space persona survive; system-level data is untouched (ADR-008 §4). The
+    /// rolling summary is cleared too — clearing the whole conversation clears its
+    /// derived memory (idea-03 §3.2). Same transaction, atomic.
     public func clearThread(threadID: String) throws {
         try writer.write { db in
             try db.execute(
                 sql: "DELETE FROM companion_messages WHERE thread_id = ?",
                 arguments: [threadID]
             )
+            try Self.clearSummary(db, threadID: threadID)
         }
+    }
+
+    // MARK: - Rolling summary (LM03-S3b-1 对话记忆)
+
+    /// Loads the thread's rolling summary, or nil when none is stored / it was
+    /// invalidated (any of the three columns NULL ⇒ no usable summary).
+    public func loadRollingSummary(threadID: String) throws -> CompanionRollingSummary? {
+        try writer.read { db in
+            guard let row = try Row.fetchOne(
+                db,
+                sql: """
+                SELECT rolling_summary, summary_covers_through_sequence, summary_updated_at
+                FROM companion_threads WHERE id = ?
+                """,
+                arguments: [threadID]
+            ) else { return nil }
+            let text: String? = row["rolling_summary"]
+            let covers: Int? = row["summary_covers_through_sequence"]
+            let updatedAt: Double? = row["summary_updated_at"]
+            guard let text, let covers, let updatedAt else { return nil }
+            return CompanionRollingSummary(
+                text: text,
+                coversThroughSequence: covers,
+                updatedAt: Date(timeIntervalSince1970: updatedAt)
+            )
+        }
+    }
+
+    /// Persists / replaces the thread's rolling summary and its watermark.
+    public func updateRollingSummary(
+        threadID: String,
+        text: String,
+        coversThroughSequence: Int,
+        now: Date = Date()
+    ) throws {
+        try writer.write { db in
+            try db.execute(
+                sql: """
+                UPDATE companion_threads
+                SET rolling_summary = ?, summary_covers_through_sequence = ?, summary_updated_at = ?
+                WHERE id = ?
+                """,
+                arguments: [text, coversThroughSequence, now.timeIntervalSince1970, threadID]
+            )
+        }
+    }
+
+    /// Clears the summary iff its watermark covers a now-deleted message. A NULL
+    /// watermark (no summary) means `Int.fetchOne` returns nil ⇒ nothing to do.
+    private static func invalidateSummaryIfCovered(
+        _ db: Database, threadID: String, deletedFromSequence: Int
+    ) throws {
+        guard let watermark = try Int.fetchOne(
+            db,
+            sql: "SELECT summary_covers_through_sequence FROM companion_threads WHERE id = ?",
+            arguments: [threadID]
+        ) else { return }
+        if deletedFromSequence <= watermark {
+            try clearSummary(db, threadID: threadID)
+        }
+    }
+
+    private static func clearSummary(_ db: Database, threadID: String) throws {
+        try db.execute(
+            sql: """
+            UPDATE companion_threads
+            SET rolling_summary = NULL, summary_covers_through_sequence = NULL, summary_updated_at = NULL
+            WHERE id = ?
+            """,
+            arguments: [threadID]
+        )
     }
 
     // MARK: - Persona

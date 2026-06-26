@@ -23832,6 +23832,22 @@
           }
         }
       }
+    },
+    "aiRequestLog.capability.companionSummarization": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion conversation memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语伴对话记忆"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

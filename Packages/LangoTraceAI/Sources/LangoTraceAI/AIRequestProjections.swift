@@ -143,6 +143,30 @@ public extension AIRequestPreviewProjection {
             excludedContent: alwaysExcludedContent
         )
     }
+
+    /// Single-source factory for the companion *summarization* projection
+    /// (LM03-S3b-1 "对话记忆"). Its only included category is `companionConversation`
+    /// — the summarization re-sends turns of *this same conversation* the provider
+    /// already received earlier (when fresh, in-window). It admits **no new outbound
+    /// category and no external data**: long-term memory, brought-in records,
+    /// photos, audio, historical entries all stay excluded, so the preview honestly
+    /// discloses that only this conversation is sent to build its memory.
+    /// Preview-only — no `makeLogEntry`.
+    static func companionSummarization(
+        endpoint: AIProviderEndpointInput,
+        lengthBucket: AIRequestLengthBucket
+    ) -> AIRequestPreviewProjection {
+        AIRequestPreviewProjection(
+            capability: .companionSummarization,
+            providerPresetID: endpoint.providerPresetID,
+            modelName: endpoint.modelName,
+            promptID: CompanionSummarizationPromptRegistry.summarizationPromptID,
+            promptVersion: CompanionSummarizationPromptRegistry.promptVersion,
+            lengthBucket: lengthBucket,
+            includedContent: [.companionConversation],
+            excludedContent: alwaysExcludedContent
+        )
+    }
 }
 
 public extension LearningMaterialServiceGenerationRequest {

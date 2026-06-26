@@ -31,6 +31,28 @@ struct CompanionConversationEngineTests {
         }
     }
 
+    /// Captures the system + messages passed to the transport (for asserting the
+    /// summarization outbound payload is scrubbed).
+    private final class CapturingTransport: CompanionReplyTransport, @unchecked Sendable {
+        private let lock = NSLock()
+        private(set) var capturedMessages: [ConversationMessage] = []
+        var deltas: [String] = ["summary"]
+
+        func streamReply(
+            system _: String,
+            messages: [ConversationMessage]
+        ) -> AsyncThrowingStream<AIChatStreamEvent, Error> {
+            lock.lock(); capturedMessages = messages; lock.unlock()
+            let deltas = deltas
+            return AsyncThrowingStream { continuation in
+                for delta in deltas {
+                    continuation.yield(.delta(delta))
+                }
+                continuation.finish()
+            }
+        }
+    }
+
     /// Thread-safe sink for the cumulative `onPartial` callbacks (the closure is
     /// `@Sendable`; collect under a lock so the assertions read a stable snapshot).
     private final class PartialCollector: @unchecked Sendable {
@@ -278,5 +300,76 @@ struct CompanionConversationEngineTests {
         #expect(collector.snapshot == ["He"])
         // ...but the outcome is failure: the store discards the partial, never persists it.
         #expect(outcome == .failure(.providerUnavailable))
+    }
+
+    // MARK: - Rolling summary / 对话记忆 (LM03-S3b-1)
+
+    @Test("shouldSummarize triggers only past threshold with aged-out unsummarized turns")
+    func shouldSummarizeDecision() {
+        // Past threshold, nothing summarized yet → summarize.
+        #expect(CompanionConversationEngine.shouldSummarize(messageCount: 30, watermark: nil, threshold: 24, recentVerbatimWindow: 12))
+        // Past threshold, watermark below the oldest verbatim turn (30-12=18) → summarize.
+        #expect(CompanionConversationEngine.shouldSummarize(messageCount: 30, watermark: 5, threshold: 24, recentVerbatimWindow: 12))
+        // Past threshold but the watermark already covers everything beyond the window → no.
+        #expect(!CompanionConversationEngine.shouldSummarize(messageCount: 30, watermark: 25, threshold: 24, recentVerbatimWindow: 12))
+        // Not past threshold → no.
+        #expect(!CompanionConversationEngine.shouldSummarize(messageCount: 20, watermark: nil, threshold: 24, recentVerbatimWindow: 12))
+    }
+
+    @Test("summarize buffers the folded recap into a full summary")
+    func summarizeBuffers() async {
+        let outcome = await engine(transport: StubTransport(deltas: ["She visited ", "the museum."])).summarize(
+            messagesToFold: [message(0, .user, "I went to the museum"), message(1, .assistant, "Nice!")],
+            existingSummary: nil, targetLanguageCode: "en", nativeLanguageCode: "zh-Hans"
+        )
+        #expect(outcome == .summary("She visited the museum."))
+    }
+
+    @Test("summarize maps transport failure to honest failure — caller keeps the old summary")
+    func summarizeFailure() async {
+        let outcome = await engine(
+            transport: StubTransport(error: AIChatStreamingError.networkUnavailable)
+        ).summarize(
+            messagesToFold: [message(0, .user, "hi")],
+            existingSummary: "old", targetLanguageCode: "en", nativeLanguageCode: nil
+        )
+        #expect(outcome == .failure(.providerUnavailable))
+    }
+
+    @Test("summarize scrubs the folded turns and the prior summary on the way out")
+    func summarizeScrubsOutbound() async {
+        let capturing = CapturingTransport()
+        let scrubbingEngine = CompanionConversationEngine(transport: capturing, scrub: PIIScrubber.scrub)
+        _ = await scrubbingEngine.summarize(
+            messagesToFold: [message(0, .user, "call me at 13800138000")],
+            existingSummary: "id was 11010519491231002X",
+            targetLanguageCode: "en", nativeLanguageCode: "zh-Hans"
+        )
+        let sent = capturing.capturedMessages.map(\.content).joined(separator: "\n")
+        #expect(sent.contains(PIIScrubber.mobilePlaceholder))
+        #expect(sent.contains(PIIScrubber.nationalIDPlaceholder))
+        #expect(!sent.contains("13800138000"))
+        #expect(!sent.contains("11010519491231002X"))
+    }
+
+    @Test("conversationMemory injects a delimited memory block + directive; absent → unchanged")
+    func conversationMemoryInjection() {
+        let withMemory = engine().assembleRequest(
+            userInput: "c", history: [], persona: .default,
+            targetLanguageCode: "en", nativeLanguageCode: "zh-Hans",
+            proficiencyLevel: "b1", seedEntryBody: nil,
+            conversationMemory: "Earlier she talked about her trip."
+        )
+        #expect(withMemory.system.directives.contains(.conversationMemoryGrounded))
+        #expect(withMemory.system.text.contains("<<<CONVERSATION MEMORY"))
+        #expect(withMemory.system.text.contains("Earlier she talked about her trip."))
+
+        let without = engine().assembleRequest(
+            userInput: "c", history: [], persona: .default,
+            targetLanguageCode: "en", nativeLanguageCode: "zh-Hans",
+            proficiencyLevel: "b1", seedEntryBody: nil
+        )
+        #expect(!without.system.directives.contains(.conversationMemoryGrounded))
+        #expect(!without.system.text.contains("CONVERSATION MEMORY"))
     }
 }

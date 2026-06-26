@@ -35,6 +35,17 @@ public enum AIRequestCapability: String, Codable, CaseIterable, Equatable, Senda
     /// Preview-only in S2b-1: it does not write `ai_request_logs` (conversation-
     /// level logging is deferred).
     case companionConversation
+    /// Companion conversation summarization (LM03-S3b-1 "对话记忆"). When a single
+    /// conversation grows past the context window, the turns that age out are
+    /// folded into a rolling summary by an automatic summarization request. Its
+    /// only included descriptor is `companionConversation`: it re-sends turns of
+    /// *this same conversation* the provider already received earlier (when they
+    /// were fresh, in-window) — **no new outbound category, no external data**
+    /// (no Memory facts, no records). An evolution of context-window management,
+    /// within the companion's overall opt-in (decision #10 boundary holds: same
+    /// conversation, same provider, content already seen). Preview-only: it does
+    /// not write `ai_request_logs`.
+    case companionSummarization
 }
 
 /// Closed vocabulary describing *categories* of content a request includes or

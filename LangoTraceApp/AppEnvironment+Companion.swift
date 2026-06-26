@@ -289,9 +289,43 @@ private func companionSend(
         // Outbound-only PII scrub over history replay + input + injected facts.
         scrub: PIIScrubber.scrub
     )
+
+    // Rolling summary / 对话记忆 (LM03-S3b-1): before replying, fold the turns that
+    // have aged out of the recent-verbatim window into the conversation summary, so
+    // a long conversation stays grounded without re-sending everything. Best-effort:
+    // a summarization failure leaves the stored summary untouched and never blocks
+    // the reply. The reply then sends only the unsummarized recent turns verbatim,
+    // with the summary carrying the earlier context (no double-send overlap).
+    let recentVerbatimWindow = 12
+    let existingSummary = try? repository.loadRollingSummary(threadID: threadID)
+    if CompanionConversationEngine.shouldSummarize(
+        messageCount: history.count, watermark: existingSummary?.coversThroughSequence
+    ) {
+        let foldBoundary = max(0, history.count - recentVerbatimWindow)
+        let priorWatermark = existingSummary?.coversThroughSequence ?? Int.min
+        let toFold = history[0 ..< foldBoundary].filter { $0.sequence > priorWatermark }
+        if let newWatermark = toFold.last?.sequence {
+            let summaryOutcome = await engine.summarize(
+                messagesToFold: Array(toFold),
+                existingSummary: existingSummary?.text,
+                targetLanguageCode: space.targetLanguageCode,
+                nativeLanguageCode: space.nativeLanguageCode
+            )
+            if case let .summary(text) = summaryOutcome {
+                try? repository.updateRollingSummary(
+                    threadID: threadID, text: text, coversThroughSequence: newWatermark
+                )
+            }
+        }
+    }
+    let summary = try? repository.loadRollingSummary(threadID: threadID)
+    let replyHistory = summary.map { current in
+        history.filter { $0.sequence > current.coversThroughSequence }
+    } ?? history
+
     let outcome = await engine.reply(
         userInput: userInput,
-        history: history,
+        history: replyHistory,
         persona: persona,
         targetLanguageCode: space.targetLanguageCode,
         nativeLanguageCode: space.nativeLanguageCode,
@@ -299,6 +333,7 @@ private func companionSend(
         seedEntryBody: seedEntryBody,
         memoryContext: memoryContext,
         broughtInRecords: broughtInRecords,
+        conversationMemory: summary?.text,
         onPartial: onPartial
     )
 

@@ -22,6 +22,15 @@ public enum CompanionReplyOutcome: Equatable, Sendable {
     case failure(CompanionReplyFailure)
 }
 
+/// Outcome of one rolling-summary generation (LM03-S3b-1). On failure the caller
+/// must NOT update the persisted summary and must continue the reply unaffected
+/// (honest failure — summarization is best-effort context compression, never a
+/// blocker for the turn).
+public enum CompanionSummarizationOutcome: Equatable, Sendable {
+    case summary(String)
+    case failure(CompanionReplyFailure)
+}
+
 /// Assembles a multi-turn companion request and produces the assistant reply.
 ///
 /// v1 is non-streaming UX: it buffers the transport's deltas and returns the full
@@ -68,7 +77,8 @@ public struct CompanionConversationEngine: Sendable {
         proficiencyLevel: String,
         seedEntryBody: String?,
         memoryContext: [String] = [],
-        broughtInRecords: [String] = []
+        broughtInRecords: [String] = [],
+        conversationMemory: String? = nil
     ) -> (system: CompanionRenderedPrompt, messages: [ConversationMessage]) {
         let prompt = CompanionPromptRegistry.systemPrompt(
             persona: persona,
@@ -81,7 +91,10 @@ public struct CompanionConversationEngine: Sendable {
             // seedEntryBody unscrubbed.)
             seedEntryBody: seedEntryBody.map(scrub),
             memoryContext: memoryContext.map(scrub),
-            broughtInRecords: broughtInRecords.map(scrub)
+            broughtInRecords: broughtInRecords.map(scrub),
+            // The rolling summary (LM03-S3b-1) lands in the system prompt too — scrub
+            // it on the way out like every other outbound payload.
+            conversationMemory: conversationMemory.map(scrub)
         )
         // Keep only the most recent turns (system is separate). Truncation acts on
         // the outbound assembly only — `history` (the persisted thread) is untouched.
@@ -117,6 +130,7 @@ public struct CompanionConversationEngine: Sendable {
         seedEntryBody: String?,
         memoryContext: [String] = [],
         broughtInRecords: [String] = [],
+        conversationMemory: String? = nil,
         onPartial: @Sendable (String) -> Void = { _ in }
     ) async -> CompanionReplyOutcome {
         // Detect on the raw input (routing hint); the outbound payload is scrubbed
@@ -131,7 +145,8 @@ public struct CompanionConversationEngine: Sendable {
             proficiencyLevel: proficiencyLevel,
             seedEntryBody: seedEntryBody,
             memoryContext: memoryContext,
-            broughtInRecords: broughtInRecords
+            broughtInRecords: broughtInRecords,
+            conversationMemory: conversationMemory
         )
         var buffer = ""
         do {
@@ -153,6 +168,73 @@ public struct CompanionConversationEngine: Sendable {
             return .failure(CompanionReplyFailure.empty)
         }
         return .reply(text: buffer, detectedLanguage: detected)
+    }
+
+    /// Whether a send should (re)build the rolling summary first (LM03-S3b-1).
+    /// Pure function so the threshold/window policy is unit-testable in isolation
+    /// (self-review P0-3) rather than buried in the App send path. True when the
+    /// conversation is past `threshold` AND there are turns that have aged out of
+    /// the recent-verbatim window but are not yet folded into the summary (watermark
+    /// nil = nothing folded yet).
+    public static func shouldSummarize(
+        messageCount: Int,
+        watermark: Int?,
+        threshold: Int = 24,
+        recentVerbatimWindow: Int = 12
+    ) -> Bool {
+        guard messageCount > threshold else { return false }
+        let oldestVerbatimSequence = messageCount - recentVerbatimWindow
+        guard let watermark else { return true }
+        return watermark < oldestVerbatimSequence
+    }
+
+    /// Folds the earlier conversation turns (`messagesToFold`) — and the prior
+    /// summary if any — into an updated rolling summary (LM03-S3b-1). Non-streaming:
+    /// buffers the transport and returns the full text. Outbound content is scrubbed
+    /// like every other payload (the folded turns + the prior summary). On any
+    /// transport error it returns `.failure`; the caller leaves the persisted
+    /// summary untouched and continues the reply (best-effort, never blocks).
+    public func summarize(
+        messagesToFold: [CompanionMessage],
+        existingSummary: String?,
+        targetLanguageCode: String,
+        nativeLanguageCode: String?
+    ) async -> CompanionSummarizationOutcome {
+        let prompt = CompanionSummarizationPromptRegistry.summarizationPrompt(
+            targetLanguageCode: targetLanguageCode,
+            nativeLanguageCode: nativeLanguageCode
+        )
+        var messages: [ConversationMessage] = []
+        if let existingSummary, !existingSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            messages.append(ConversationMessage(
+                role: .user,
+                content: "Prior summary to fold in:\n\(scrub(existingSummary))"
+            ))
+        }
+        // The folded turns are supplied as reference content, scrubbed on the way out.
+        for message in messagesToFold {
+            messages.append(ConversationMessage(
+                role: message.role == .assistant ? .assistant : .user,
+                content: scrub(message.content)
+            ))
+        }
+        var buffer = ""
+        do {
+            let stream = transport.streamReply(system: prompt.text, messages: messages)
+            for try await event in stream {
+                switch event {
+                case let .delta(text):
+                    buffer += text
+                }
+            }
+        } catch {
+            return .failure(Self.failure(from: error))
+        }
+        let trimmed = buffer.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return .failure(CompanionReplyFailure.empty)
+        }
+        return .summary(buffer)
     }
 
     static func failure(from error: Error) -> CompanionReplyFailure {

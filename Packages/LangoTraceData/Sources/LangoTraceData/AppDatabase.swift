@@ -154,6 +154,9 @@ private extension AppDatabase {
         migrator.registerMigration("v32_create_companion_memory_toggle") { db in
             try createCompanionMemoryToggleInfrastructure(db)
         }
+        migrator.registerMigration("v33_add_companion_rolling_summary") { db in
+            try createCompanionRollingSummaryInfrastructure(db)
+        }
         try migrator.migrate(databaseQueue)
     }
 
