@@ -10,6 +10,7 @@ public enum CapabilityStatus: String, Equatable, Sendable {
 
 public struct SettingsCapability: Equatable, Identifiable, Sendable {
     public enum Kind: String, CaseIterable, Equatable, Hashable, Sendable {
+        case companion
         case languageSpace
         case interfaceLanguage
         case appearance
@@ -25,6 +26,8 @@ public struct SettingsCapability: Equatable, Identifiable, Sendable {
 
         public var systemImage: String {
             switch self {
+            case .companion:
+                "bubble.left.and.bubble.right"
             case .languageSpace:
                 "text.badge.star"
             case .interfaceLanguage:

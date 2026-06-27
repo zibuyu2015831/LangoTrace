@@ -216,6 +216,13 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
     public func settingsCapabilities(for _: String) -> [SettingsCapability] {
         [
             SettingsCapability(
+                kind: .companion,
+                status: .ready,
+                summary: "settings.companion.summary",
+                detail: "settings.companion.detail",
+                nextRequirement: "settings.companion.nextRequirement"
+            ),
+            SettingsCapability(
                 kind: .languageSpace,
                 status: .mockOnly,
                 summary: "settings.languageSpace.summary",

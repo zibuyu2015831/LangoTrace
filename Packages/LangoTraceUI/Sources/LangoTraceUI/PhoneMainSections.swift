@@ -357,6 +357,7 @@ struct SettingsView: View {
     let onSelectCapability: (SettingsCapability.Kind) -> Void
     var onSelectLearnerProfile: (() -> Void)?
     var onAppearRefresh: () -> Void = {}
+    @Environment(\.companionFeatureEnabled) private var companionFeatureEnabled
 
     var body: some View {
         PhonePage(
@@ -368,7 +369,6 @@ struct SettingsView: View {
         ) {
             if let onSelectLearnerProfile {
                 LearnerProfileSettingsRow(action: onSelectLearnerProfile)
-                CompanionSettingsToggleRow()
             }
             ForEach(capabilities) { capability in
                 CapabilityStatusRow(
@@ -383,7 +383,8 @@ struct SettingsView: View {
                     for: capability.kind,
                     status: settingsStatus,
                     interfaceLanguage: interfaceLanguagePreference,
-                    appearance: appearancePreference
+                    appearance: appearancePreference,
+                    companionEnabled: companionFeatureEnabled
                 ))
             }
         }

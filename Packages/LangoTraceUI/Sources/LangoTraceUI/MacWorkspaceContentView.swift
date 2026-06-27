@@ -224,7 +224,6 @@ struct MacWorkspaceContentView: View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader(titleKey: "mac.settings.section.title", subtitleKey: "mac.settings.section.subtitle")
             LearnerProfileSettingsRow(action: { onRoute(.learnerProfile) })
-            CompanionSettingsToggleRow()
             ForEach(settingsCapabilities) { capability in
                 CapabilityStatusRow(
                     localizedTitleKey: capability.kind.localizedTitleKey,
@@ -240,8 +239,18 @@ struct MacWorkspaceContentView: View {
                         }
                     }
                 )
+                .trailingValue(companionTrailingValue(for: capability.kind))
             }
         }
+    }
+
+    /// Only the companion row carries a trailing value on this surface (its on/off state);
+    /// the other capability rows here intentionally stay value-less, as before.
+    private func companionTrailingValue(for kind: SettingsCapability.Kind) -> String? {
+        guard kind == .companion else { return nil }
+        return localizedString(
+            companionFeatureEnabled ? "settings.value.companion.enabled" : "settings.value.companion.disabled"
+        )
     }
 
     private var languageSpaceManagement: some View {

@@ -92,7 +92,9 @@ struct PageClosureStateTests {
         #expect(SettingsCapability.Kind.languageSpace.localizedTitleKey == "settings.languageSpace.title")
         #expect(SettingsCapability.Kind.interfaceLanguage.localizedTitleKey == "settings.interfaceLanguage.title")
         #expect(SettingsCapability.Kind.aiProvider.localizedTitleKey == "settings.aiProvider.title")
+        #expect(SettingsCapability.Kind.companion.localizedTitleKey == "settings.companion.title")
         #expect(SettingsCapability.Kind.importExport.localizedTitleKey == "settings.importExport.title")
+        #expect(SettingsCapability.Kind.allCases.contains(.companion))
         #expect(SettingsCapability.Kind.allCases.contains(.importExport))
         #expect(!SettingsCapability.Kind.allCases.map(\.rawValue).contains("export"))
         #expect(CapabilityStatus.ready.localizedTitleKey == "capabilityStatus.ready")
@@ -110,6 +112,19 @@ struct PageClosureStateTests {
         #expect(source.contains("ForEach(capabilities)"))
         #expect(!source.contains("\"phone.settings.currentSpace.title\""))
         #expect(!source.contains("\"phone.settings.currentSpace.subtitle\""))
+    }
+
+    /// The companion on/off switch is no longer a bare row in the three settings lists; it
+    /// lives inside the companion capability's detail page (promoted to a `CapabilityStatusRow`).
+    @Test("Companion toggle lives in its capability detail page, not the settings lists")
+    func companionToggleMovedIntoCapabilityDetailPage() throws {
+        let detail = try String(contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"), encoding: .utf8)
+        #expect(detail.contains("CompanionSettingsToggleRow"))
+
+        for fileName in ["PhoneMainSections.swift", "PadMainSections.swift", "MacWorkspaceContentView.swift"] {
+            let source = try String(contentsOf: sourceFileURL(named: fileName), encoding: .utf8)
+            #expect(!source.contains("CompanionSettingsToggleRow()"))
+        }
     }
 
     @Test("Onboarding bottom action stays constrained on wide Mac and iPad windows")

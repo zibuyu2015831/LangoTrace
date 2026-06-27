@@ -23896,6 +23896,108 @@
           }
         }
       }
+    },
+    "settings.companion.title": {
+      "comment": "Settings row title for the Language Companion capability.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language Companion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语伴"
+          }
+        }
+      }
+    },
+    "settings.companion.summary": {
+      "comment": "Settings row summary for the Language Companion capability.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off by default. Free conversation in your target language, grounded in your own records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认关闭。用目标语自由对话，扎根你自己的生活记录。"
+          }
+        }
+      }
+    },
+    "settings.companion.detail": {
+      "comment": "Language Companion settings detail body (ADR-008 grounding).",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Always replies in your target language as a single conversation partner, grounded in your own records. Off by default — a focused practice mode, not a general AI chat."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "始终用你的目标语作为单一对话对象回复，扎根你自己的生活记录。默认关闭——它是聚焦的练习模态，不是通用 AI 聊天。"
+          }
+        }
+      }
+    },
+    "settings.companion.nextRequirement": {
+      "comment": "Language Companion settings privacy boundary and deferred scope.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When on, your records are sent to the provider only when you explicitly chat, and only with your consent to use your learner profile. Voice and scenario modes are not available yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启后，只有在你主动对话、且你已同意使用学习者画像时，记录才会发送给 Provider。语音和场景模式尚未提供。"
+          }
+        }
+      }
+    },
+    "settings.value.companion.enabled": {
+      "comment": "Settings row trailing value: Language Companion is enabled.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已开启"
+          }
+        }
+      }
+    },
+    "settings.value.companion.disabled": {
+      "comment": "Settings row trailing value: Language Companion is off.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已关闭"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

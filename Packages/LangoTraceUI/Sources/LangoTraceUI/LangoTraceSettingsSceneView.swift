@@ -15,6 +15,7 @@ public struct LangoTraceSettingsSceneView: View {
     private let onDeleteLanguageSpace: (String) -> Void
     private let onInterfaceLanguagePreferenceChange: (InterfaceLanguagePreference) -> Void
     private let onAppearancePreferenceChange: (AppearancePreference) -> Void
+    @Environment(\.companionFeatureEnabled) private var companionFeatureEnabled
     @State private var selection: LangoTraceSettingsSceneSelection?
 
     public init(
@@ -96,7 +97,8 @@ public struct LangoTraceSettingsSceneView: View {
                     for: capability.kind,
                     status: settingsStatus,
                     interfaceLanguage: interfaceLanguagePreference,
-                    appearance: appearancePreference
+                    appearance: appearancePreference,
+                    companionEnabled: companionFeatureEnabled
                 ))
             }
         }
@@ -146,6 +148,7 @@ public struct LangoTraceSettingsSceneView: View {
         languageSpace != nil
             || kind == SettingsCapability.Kind.appearance
             || kind == .interfaceLanguage
+            || kind == .companion
     }
 
     private var languageSpaceManagement: some View {
