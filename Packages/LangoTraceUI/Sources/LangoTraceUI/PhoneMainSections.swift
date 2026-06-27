@@ -416,7 +416,10 @@ struct LearnerProfileSettingsRow: View {
                     .font(.caption)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
             }
-            .contentShape(Rectangle())
+            // Mirror CapabilityStatusRow: card chrome inside the button label so the whole
+            // card is tappable and the row matches every capability row in the settings list.
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .langoPanel(padding: 16)
         }
         .buttonStyle(.plain)
     }
