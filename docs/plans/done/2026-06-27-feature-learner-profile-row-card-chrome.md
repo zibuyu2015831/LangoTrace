@@ -1,6 +1,6 @@
 # 学习画像设置行补齐卡片底（设置 IA 视觉统一收尾）
 
-状态：Reviewed（双轮自审已完成，用户授权「立即进行」→ 实现中）
+状态：Done（2026-06-27 用户授权「立即进行」→ TDD 落地 → 轻量 UI 628 绿 → 全量 CI 绿 run 28281981091 → §17 回写 → 移 done/）
 自审核状态：Reviewed（见末节双轮自审记录）
 类型：feature
 创建日期：2026-06-27
@@ -63,9 +63,11 @@
 - 剩余风险：`.langoPanel(padding: 16)` 与能力行同参，视觉应一致；若设计上想让学习画像略突出（更大/置顶强调），属后续可选项，本任务不做。
 
 ## 收口（实现后回填）
-- [ ] 失败测试先红
-- [ ] 生产代码改后绿（本机 LangoTraceUI 单包）
-- [ ] swiftformat/swiftlint 自查
-- [ ] CI Build & Test 绿
-- [ ] §17 文档回写
-- [ ] 移入 done/
+- [x] 失败测试先红（`learnerProfileRowUsesCardChromeButStaysNonCapability` 初版红：缺 `langoPanel`）
+- [x] 生产代码改后绿（本机 LangoTraceUI 单包 628 绿）
+- [x] swiftformat 干净；swiftlint 仅 PhoneMainSections:251 / 测试文件头部既有 pre-existing warning，非本次新增
+- [x] CI Build & Test 绿 run 28281981091（SHA 0270b41）
+- [x] §17 文档回写（spec/003 + platform-page-inventory）
+- [x] 移入 done/
+
+实现期一处偏差与修订：源码守卫初版用 `!rowBody.contains("CapabilityStatusRow")`，被生产代码里「Mirror CapabilityStatusRow: …」**注释**误触发；改为 `!rowBody.contains("CapabilityStatusRow(")`（构造调用才是「是否升级为能力」的真实信号，注释提名无妨），同时把 rowBody 切片严格 bound 到 `LearnerProfileSettingsRow` 与下一个 top-level `struct` 之间，避免误纳同文件后续 `langoPanel`。
