@@ -1,6 +1,6 @@
 # 任务方案：语伴升级为设置「能力」+ 独立详情页（设置 IA 统一）
 
-状态：Approved（2026-06-27 用户批准方向「按推荐顺序与方案」→ 待 Reviewed 后实现）
+状态：Done（2026-06-27 用户授权 → TDD 落地 → 全量 CI 绿 run 28281128222 → §17 回写 → 移 done/，见 §11）
 自审核状态：Reviewed（见 §10）
 类型：feature
 创建日期：2026-06-27
@@ -124,3 +124,18 @@ ADR-008 §2.6「默认关」不变（toggle 仍在、仍默认关、仅迁位）
 **自审结论**：单任务连贯、无需下拆。最高风险 = P1 闭集破坏（三处 switch，已逐一钉死、计划内）+ 尾值数据源（选 env，理由充分）。可发现性、ADR-008、练习门控经对抗式审查均无回归。升 **Reviewed**，待用户实现授权。
 
 > 用户 2026-06-27 已批准「按推荐顺序与方案进行」（方向授权）。本方案 Reviewed 后即按此授权进入 TDD 实现。
+
+## 11. 收口记录（2026-06-27）
+
+实现 commit `de86d18`；全量 CI `Build & Test` 绿 **run 28281128222**（App 编译 + 三端构建 + 全包 + lint + docs）。轻量本机：Data 287 / UI 627 绿、swiftformat 干净。
+
+逐落点 TDD 落地：Data `SettingsCapability.Kind.companion`（chat 图标）+ 两处 `settingsCapabilities` 首位插入 / UI `localizedTitleKey` + `settingsRowValue(companionEnabled:)` 三态 + `SettingsCapabilityDetailView.companionSettingsContent`（toggle 入详情 + ADR-008 边界、豁免语言空间上下文）+ 三端移除裸 toggle 接尾值 + `LangoTraceSettingsSceneView.canShowDetail` 放行 + 6 个本地化 key（en/zh）。
+
+**自审验证回填 / 实施期教训**：
+- **P1 闭集破坏（计划内逐一覆盖 + 一处计划外）**：`SettingsCapability.Kind` 加 `.companion` 破坏 `systemImage`/`localizedTitleKey`/`settingsRowValue` 三处 switch——方案已列、当场补。**计划外一处**：`InMemoryLearningContentRepositoryTests` 有一条断言能力 kind **精确有序列表**的测试（首位插 companion 后 `==` 失败），本机 Data 测试当场捕获、补 `.companion` 于首位即过——印证「闭集顺序也可能被测试钉死」，本机轻量验证拦在 CI 前。
+- **swiftformat docComments**：新增的两处 `// 仅 companion 行带尾值` 紧贴 `private func` 声明，被 `docComments` 规则要求改 `///` doc 注释——本机 `swiftformat --lint` 当场捕获、改 `///` 即过。
+- **静态 vs 实例同名歧义**：测试初版引用 `GRDBLearningContentRepositoryBridge.settingsCapabilities`（静态）与实例 `settingsCapabilities(for:)` 基名相同致重载歧义，连类型标注也未消歧 → 改走 `InMemoryLearningContentRepository.seeded` 实例方法（与该测试文件既有风格一致）。
+
+**偏差**：无。「学习画像」分组化按方案范围外保留为顶部单行，非偏差。
+
+**边界确认**：无新 migration / 无新 `AIRequestCapability` / 无新外发类目 / 无 Core 模型变更；feature flag 仍 UserDefaults 默认关、ADR-008 §2.6 不变；练习 Tab 语伴门控读同一 env 无回归。纯 UI/IA，无数据/AI/权限/同步变化，按 `docs/review/README.md` 判断无需专项审查。
