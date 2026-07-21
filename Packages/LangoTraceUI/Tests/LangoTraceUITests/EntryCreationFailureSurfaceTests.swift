@@ -13,7 +13,7 @@ struct EntryCreationFailureSurfaceTests {
         #expect(!phone.contains("try? contentStore.createEntry("))
         #expect(pad.contains("let entry = try contentStore.createEntry("))
         #expect(!pad.contains("try? contentStore.createEntry("))
-        #expect(editor.contains("let onSave: (String, String) throws -> Void"))
+        #expect(editor.contains("let onSave: (String, String, String) throws -> Void"))
         #expect(editor.contains("saveErrorKey = \"entryEditor.saveFailed\""))
     }
 
@@ -22,7 +22,7 @@ struct EntryCreationFailureSurfaceTests {
         let macMain = try source("MacMainView.swift")
         let macSheet = try source("MacEntryEditorSheet.swift")
 
-        #expect(macMain.contains("func saveEntry(title: String, body: String) throws"))
+        #expect(macMain.contains("func saveEntry(title: String, body: String, scene: String) throws"))
         #expect(!macMain.contains("try? contentStore.createEntry("))
         #expect(macMain.contains("guard !hasDraftContent else { return }"))
         #expect(macSheet.contains("saveErrorKey = \"entryEditor.saveFailed\""))
