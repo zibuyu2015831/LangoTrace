@@ -30,6 +30,7 @@ struct MacWorkspaceContentView: View {
     let onShowEntry: (LearningEntry) -> Void
     let onRoute: (MacWorkspaceRoute) -> Void
 
+    @Environment(\.companionFeatureEnabled) private var companionFeatureEnabled
     @Environment(\.memoryDepositActions) private var memoryDepositActions
     @State private var depositedMemory: [DepositedMemoryItem] = []
 
@@ -74,6 +75,10 @@ struct MacWorkspaceContentView: View {
             .id(seed.practiceRouteIdentity)
         case let .settings(kind):
             settingDetail(kind: kind)
+        case .learnerProfile:
+            LearnerProfileView(languageSpace: languageSpace)
+        case let .companionChat(seed):
+            CompanionChatView(languageSpace: languageSpace, seed: seed)
         case .languageSpaceManagement:
             languageSpaceManagement
         case let .unavailable(kind):
@@ -157,6 +162,9 @@ struct MacWorkspaceContentView: View {
     private var practiceContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader(titleKey: "mac.practice.section.title", subtitleKey: "mac.practice.section.subtitle")
+            if companionFeatureEnabled {
+                CompanionEntryCard(action: { onRoute(.companionChat(CompanionChatRouteSeed())) })
+            }
             ForEach(entries) { entry in
                 let items = contentStore.practiceItems(for: entry)
                 if items.isEmpty {
@@ -215,6 +223,7 @@ struct MacWorkspaceContentView: View {
     private var settingsContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader(titleKey: "mac.settings.section.title", subtitleKey: "mac.settings.section.subtitle")
+            LearnerProfileSettingsRow(action: { onRoute(.learnerProfile) })
             ForEach(settingsCapabilities) { capability in
                 CapabilityStatusRow(
                     localizedTitleKey: capability.kind.localizedTitleKey,
@@ -230,8 +239,18 @@ struct MacWorkspaceContentView: View {
                         }
                     }
                 )
+                .trailingValue(companionTrailingValue(for: capability.kind))
             }
         }
+    }
+
+    /// Only the companion row carries a trailing value on this surface (its on/off state);
+    /// the other capability rows here intentionally stay value-less, as before.
+    private func companionTrailingValue(for kind: SettingsCapability.Kind) -> String? {
+        guard kind == .companion else { return nil }
+        return localizedString(
+            companionFeatureEnabled ? "settings.value.companion.enabled" : "settings.value.companion.disabled"
+        )
     }
 
     private var languageSpaceManagement: some View {
@@ -265,7 +284,8 @@ struct MacWorkspaceContentView: View {
             contentStore: contentStore,
             titlePresentation: .embeddedHeader,
             onPracticeSentence: { onRoute(.practiceSentence($0)) },
-            onOpenReading: { onRoute(.bilingualReading($0)) }
+            onOpenReading: { onRoute(.bilingualReading($0)) },
+            onCompanion: { onRoute(.companionChat(CompanionChatRouteSeed(sourceEntryID: $0))) }
         )
     }
 

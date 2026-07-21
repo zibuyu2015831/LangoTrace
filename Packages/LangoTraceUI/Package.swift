@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
         .package(path: "../LangoTraceCore"),
         .package(path: "../LangoTraceData"),
+        .package(path: "../LangoTraceLearnerModel"),
     ],
     targets: [
         .target(
@@ -24,6 +25,7 @@ let package = Package(
             dependencies: [
                 .product(name: "LangoTraceCore", package: "LangoTraceCore"),
                 .product(name: "LangoTraceData", package: "LangoTraceData"),
+                .product(name: "LangoTraceLearnerModel", package: "LangoTraceLearnerModel"),
             ],
             resources: [
                 .process("Resources"),
@@ -34,6 +36,7 @@ let package = Package(
             dependencies: [
                 "LangoTraceUI",
                 .product(name: "LangoTraceData", package: "LangoTraceData"),
+                .product(name: "LangoTraceLearnerModel", package: "LangoTraceLearnerModel"),
             ]
         ),
     ]

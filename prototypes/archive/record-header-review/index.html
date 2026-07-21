@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>记录页头部优化评审 — 语迹原型</title>
+<link rel="stylesheet" href="../../shared/tokens.css">
+<link rel="stylesheet" href="../../shared/components.css">
+<style>
+  /* 评审专用页面样式（仅本审核原型，不回写 shared）。 */
+  .frame-label {
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .frame-label .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .dot.bad { background: var(--error); }
+  .dot.good { background: var(--accent); }
+  .frame-label .sub { font-weight: 500; color: var(--muted); }
+  .frame-col { display: flex; flex-direction: column; align-items: center; }
+
+  /* 方向 B：导航栏上下文条（胶囊 + 居中标题 + 齿轮，标题绝对居中避免偏心） */
+  .ctx-nav {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 14px;
+    min-height: 50px;
+  }
+  .ctx-nav .ctx-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: var(--fs-title3);
+    font-weight: 700;
+    color: var(--ink);
+    pointer-events: none;
+  }
+  /* 呼吸：导航栏到首个内容留 20pt，回收大标题带但不抹掉所有空间。 */
+  .app-scroll.air { padding-top: 20px; }
+
+  /* 顶部留白标尺（仅评审标注，非 UI 元素） */
+  .gap-ruler {
+    position: relative;
+    align-self: stretch;
+    margin: 0 20px;
+    border-left: 2px dashed var(--accent);
+    border-right: 2px dashed var(--accent);
+  }
+  .gap-ruler span {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: var(--accent); color: var(--on-accent);
+    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); white-space: nowrap;
+  }
+  .empty-navbar-note {
+    position: absolute; top: 14px; left: 20px;
+    background: var(--error); color: #fff;
+    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: var(--r-pill);
+  }
+  .empty-navbar {
+    position: relative; flex: none; height: 44px;
+    border-bottom: 1px dashed var(--error);
+    opacity: 0.9;
+  }
+
+  /* Hero（沿用 record.html 的 2 栏高频动作） */
+  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hero-action {
+    display: flex; flex-direction: column; gap: 10px; padding: 16px;
+    border-radius: var(--r-md); border: 1px solid var(--hairline);
+    background: var(--surface); box-shadow: var(--shadow-card); text-align: left;
+  }
+  .hero-action.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .hero-action .ha-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--accent-tint); color: var(--accent-deep); }
+  .hero-action.primary .ha-icon { background: rgba(255,255,255,0.16); color: var(--on-accent); }
+  .hero-action .ha-title { font-size: var(--fs-title3); font-weight: 700; }
+  .hero-action .ha-sub { font-size: var(--fs-footnote); opacity: 0.75; line-height: 1.4; }
+
+  .entry-card { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: var(--r-md); border: 1px solid var(--hairline); background: var(--surface); box-shadow: var(--shadow-card); }
+  .entry-card.raw { background: var(--surface-2); box-shadow: none; }
+  .entry-card.raw .entry-title { color: var(--ink-2); font-weight: 620; }
+  .entry-top { display: flex; align-items: center; gap: 8px; }
+  .entry-time { font-size: var(--fs-caption); color: var(--faint); font-weight: 620; }
+  .entry-top .pill { margin-left: auto; }
+  .entry-title { font-size: var(--fs-body); font-weight: 680; }
+  .entry-excerpt { font-size: var(--fs-sub); color: var(--muted); line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .timeline-day { display: flex; align-items: baseline; gap: 8px; padding: 4px 6px 0; }
+  .day-label { font-size: var(--fs-footnote); font-weight: 700; color: var(--ink-2); }
+  .day-sub { font-size: var(--fs-caption); color: var(--faint); }
+
+  .read-row { display: flex; flex-direction: column; gap: 3px; padding: 14px 16px; border-radius: var(--r-md); border: 1px solid var(--hairline); background: var(--surface); box-shadow: var(--shadow-card); }
+  .read-title { font-family: var(--font-serif); font-size: var(--fs-title3); font-weight: 600; color: var(--target-lang); }
+  .read-meta { font-size: var(--fs-footnote); color: var(--muted); }
+
+  .scorebar { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 24px; }
+  .score { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-pill); padding: 6px 14px; font-size: 13px; box-shadow: var(--shadow-card); }
+  .score b { color: var(--accent); }
+
+  /* —— 导航栏三元素协调性变体（仅本评审，不回写 shared） —— */
+  .harmony-h { margin: 36px 0 6px; font-size: 20px; font-weight: 760; letter-spacing: -0.01em; }
+  .harmony-stage { display: flex; flex-wrap: wrap; gap: 26px; justify-content: center; }
+  .navcard { width: 393px; border-radius: 40px; background: var(--app-bg); border: 1px solid var(--hairline); box-shadow: var(--shadow-card); overflow: hidden; padding-bottom: 18px; }
+  .vnav { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 16px; min-height: 50px; }
+  .vnav .vtitle { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none; }
+  .vgap { height: 20px; }
+  .vhero { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px; }
+  .vhero .vh { height: 70px; border-radius: var(--r-md); border: 1px solid var(--hairline); background: var(--surface); box-shadow: var(--shadow-card); }
+  .vhero .vh.primary { background: var(--accent); border-color: var(--accent); }
+  .vrole { padding: 13px 18px 0; font-size: var(--fs-footnote); color: var(--muted); line-height: 1.5; }
+
+  /* A 降权胶囊：flanks 安静，标题为锚（靠轻重对比建层级） */
+  .cap-quiet { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; min-height: 32px; border: 0; background: var(--surface-2); box-shadow: none; border-radius: var(--r-pill); font-size: var(--fs-footnote); font-weight: 600; color: var(--ink-2); }
+  .cap-quiet .dir { color: var(--faint); font-weight: 500; }
+  .gear-quiet { width: 40px; height: 40px; border: 0; background: transparent; box-shadow: none; color: var(--muted); }
+  .vtitle.anchor { font-size: var(--fs-title2); font-weight: 760; letter-spacing: -0.01em; color: var(--ink); }
+
+  /* B 统一描边控件：对称双控件夹住居中标题（靠控件配对建秩序） */
+  .cap-paired { display: inline-flex; align-items: center; gap: 6px; padding: 0 13px; height: 36px; min-height: 0; border: 1px solid var(--hairline); background: var(--surface); box-shadow: none; border-radius: var(--r-pill); font-size: var(--fs-footnote); font-weight: 620; color: var(--ink); }
+  .cap-paired .dir { color: var(--muted); font-weight: 500; }
+  .gear-paired { width: 36px; height: 36px; border: 1px solid var(--hairline); background: var(--surface); box-shadow: none; color: var(--ink-2); }
+  .vtitle.center { font-size: var(--fs-title3); font-weight: 700; color: var(--ink); }
+
+  /* C 文字态语言入口：三者全部减负（最大呼吸） */
+  .cap-text { display: inline-flex; align-items: center; gap: 4px; padding: 6px 2px; min-height: 0; border: 0; background: transparent; box-shadow: none; font-size: var(--fs-sub); font-weight: 650; color: var(--accent); }
+  .gear-plain { width: 40px; height: 40px; border: 0; background: transparent; box-shadow: none; color: var(--muted); }
+
+  /* —— 第二轮：去双边框 + 左右平衡（克制化） —— */
+  .cap-bare { display: inline-flex; align-items: center; gap: 5px; padding: 6px 4px; min-height: 0; border: 0; background: transparent; box-shadow: none; border-radius: var(--r-pill); font-size: var(--fs-sub); font-weight: 600; color: var(--ink-2); }
+  .cap-bare .chev { color: var(--faint); display: inline-flex; }
+  .cap-softfill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; min-height: 32px; border: 0; background: var(--surface-2); box-shadow: none; border-radius: var(--r-pill); font-size: var(--fs-footnote); font-weight: 600; color: var(--ink-2); }
+  .gear-bare { width: 40px; height: 40px; border: 0; background: transparent; box-shadow: none; color: var(--muted); }
+  .lang-mono { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 0; background: transparent; box-shadow: none; color: var(--ink-2); font-size: var(--fs-title3); font-weight: 700; }
+
+  /* —— 第四轮：只保留语种 + 描边紧凑 tag —— */
+  .cap-tag { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 0 12px; height: 34px; border: 1px solid var(--hairline); background: transparent; box-shadow: none; border-radius: var(--r-pill); font-size: var(--fs-sub); font-weight: 620; color: var(--ink-2); }
+  .cap-tag .chev { color: var(--faint); display: inline-flex; }
+  .gear-tag { width: 34px; height: 34px; min-width: 34px; border: 1px solid var(--hairline); background: transparent; box-shadow: none; color: var(--ink-2); border-radius: 50%; }
+
+  /* —— 语言标签文案对比（自然语言 vs 代码） —— */
+  .chip-compare { display: flex; flex-wrap: wrap; gap: 16px; }
+  .chip-compare .cc { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 16px 16px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--hairline); box-shadow: var(--shadow-card); width: 178px; }
+  .chip-compare .cc.good { border-color: var(--accent); }
+  .chip-compare .cc.bad { border-color: var(--error); }
+  .chip-compare .cc .chiptext { font-size: var(--fs-title3); font-weight: 650; color: var(--ink); letter-spacing: 0.01em; }
+  .chip-compare .cc .cc-label { font-size: 12px; font-weight: 700; color: var(--ink-2); text-align: center; }
+  .chip-compare .cc .cc-note { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.45; }
+</style>
+</head>
+<body>
+<div class="proto-shell">
+  <div class="proto-eyebrow">LangoTrace · iPhone · 设计评审</div>
+  <div class="proto-header">
+    <h1>记录页头部优化（方向 B）</h1>
+    <span class="crumb"><a href="../../index.html">← 返回原型总览</a></span>
+  </div>
+  <p class="proto-note">
+    两个问题同一根因：语言胶囊与设置齿轮被放进滚动正文（对应 SwiftUI 即空导航栏 → 顶部留白），且齿轮逐页手搓导致阅读页缺失。方向 B 把胶囊 + 齿轮上移进导航栏，四 tab 共用。
+    本轮按评审修订：<strong>顶部保留 20pt 呼吸</strong>，不再让内容贴住导航栏。对应 active plan
+    <code>docs/plans/active/2026-06-20-refactor-phone-root-context-toolbar.md</code>。
+  </p>
+  <div class="scorebar">
+    <span class="score">总评 <b>6.6→ 修订后 8.0</b>/10</span>
+    <span class="score">功能性 <b>7</b></span>
+    <span class="score">视觉层级 <b>7</b></span>
+    <span class="score">细节执行 <b>5→8</b></span>
+    <span class="score">哲学一致性 <b>8</b></span>
+    <span class="score">创新性 <b>6</b></span>
+  </div>
+
+  <div class="proto-stage">
+
+    <!-- 现状 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot bad"></span>现状 · 问题<span class="sub">胶囊/齿轮在正文 + 大标题</span></div>
+      <div class="device-iphone">
+        <div class="screen">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="dynamic-island"></div>
+            <div class="status-icons">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <!-- 对应 SwiftUI 的空 .navigationTitle 大标题导航栏 -->
+          <div class="empty-navbar"><span class="empty-navbar-note">空导航栏 → 留白</span></div>
+          <div class="context-header">
+            <button class="capsule">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14.5 14.5 0 0 1 0 18M12 3a14.5 14.5 0 0 0 0 18"/></svg>
+              <span class="dir">中文 →</span> 英语 · B1
+            </button>
+            <button class="icon-btn" aria-label="设置">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+            </button>
+          </div>
+          <div class="page-title-large">记录</div>
+          <div class="app-main">
+            <div class="app-scroll">
+              <div class="hero">
+                <button class="hero-action primary">
+                  <span class="ha-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg></span>
+                  <span class="ha-title">写一句</span>
+                  <span class="ha-sub">用母语记下此刻，再变成 English 学习材料</span>
+                </button>
+                <button class="hero-action">
+                  <span class="ha-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M8.5 6l1.5-2.5h4L15.5 6"/><circle cx="12" cy="13" r="3.4"/></svg></span>
+                  <span class="ha-title">用照片开始</span>
+                  <span class="ha-sub">从一张生活照片出发，引导今天的表达</span>
+                </button>
+              </div>
+              <div class="chips"><button class="chip active">全部</button><button class="chip">照片</button><button class="chip">待练习</button><button class="chip">已沉淀</button></div>
+              <div class="timeline-day"><span class="day-label">今天</span><span class="day-sub">6月11日 周四</span></div>
+              <div class="entry-card"><div class="entry-top"><span class="entry-time">08:42</span><span class="pill pill-ready">学习材料 · 3 句</span></div><div class="entry-title">公司楼下的咖啡车</div><p class="entry-excerpt">楼下新来了一辆咖啡车，老板说每天只来三个小时。排队时闻到现磨豆子的味道，突然觉得周四也没那么难熬。</p></div>
+              <div class="entry-card raw"><div class="entry-top"><span class="entry-time">07:15</span><span class="pill pill-neutral">未生成</span></div><div class="entry-title">清晨的雨</div><p class="entry-excerpt">出门前下了一阵小雨，地铁口的台阶湿漉漉的。</p></div>
+            </div>
+          </div>
+          <div class="tab-bar">
+            <div class="tab-item active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>记录</div>
+            <div class="tab-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>阅读</div>
+            <div class="tab-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>练习</div>
+            <div class="tab-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/></svg>记忆</div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 方向 B 修订 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>方向 B · 修订（推荐）<span class="sub">导航栏上下文条 + 20pt 呼吸</span></div>
+      <div class="device-iphone">
+        <div class="screen">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="dynamic-island"></div>
+            <div class="status-icons">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <div class="ctx-nav">
+            <button class="cap-paired">
+              <span class="dir">中文 →</span> 英语 · B1
+            </button>
+            <span class="ctx-title">记录</span>
+            <button class="gear-paired icon-btn" aria-label="设置">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+            </button>
+          </div>
+          <div class="gap-ruler" style="height:20px"><span>20pt 呼吸</span></div>
+          <div class="app-main">
+            <div class="app-scroll air" style="padding-top:0">
+              <div class="hero">
+                <button class="hero-action primary">
+                  <span class="ha-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg></span>
+                  <span class="ha-title">写一句</span>
+                  <span class="ha-sub">用母语记下此刻，再变成 English 学习材料</span>
+                </button>
+                <button class="hero-action">
+                  <span class="ha-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M8.5 6l1.5-2.5h4L15.5 6"/><circle cx="12" cy="13" r="3.4"/></svg></span>
+                  <span class="ha-title">用照片开始</span>
+                  <span class="ha-sub">从一张生活照片出发，引导今天的表达</span>
+                </button>
+              </div>
+              <div class="chips"><button class="chip active">全部</button><button class="chip">照片</button><button class="chip">待练习</button><button class="chip">已沉淀</button></div>
+              <div class="timeline-day"><span class="day-label">今天</span><span class="day-sub">6月11日 周四</span></div>
+              <div class="entry-card"><div class="entry-top"><span class="entry-time">08:42</span><span class="pill pill-ready">学习材料 · 3 句</span></div><div class="entry-title">公司楼下的咖啡车</div><p class="entry-excerpt">楼下新来了一辆咖啡车，老板说每天只来三个小时。排队时闻到现磨豆子的味道，突然觉得周四也没那么难熬。</p></div>
+              <div class="entry-card raw"><div class="entry-top"><span class="entry-time">07:15</span><span class="pill pill-neutral">未生成</span></div><div class="entry-title">清晨的雨</div><p class="entry-excerpt">出门前下了一阵小雨，地铁口的台阶湿漉漉的。</p></div>
+            </div>
+          </div>
+          <div class="tab-bar">
+            <div class="tab-item active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>记录</div>
+            <div class="tab-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>阅读</div>
+            <div class="tab-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>练习</div>
+            <div class="tab-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/></svg>记忆</div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 阅读统一 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>阅读 · 统一后<span class="sub">同一套导航栏，齿轮自动补齐</span></div>
+      <div class="device-iphone">
+        <div class="screen">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="dynamic-island"></div>
+            <div class="status-icons">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <div class="ctx-nav">
+            <button class="cap-paired">
+              <span class="dir">中文 →</span> 英语 · B1
+            </button>
+            <span class="ctx-title">阅读</span>
+            <button class="gear-paired icon-btn" aria-label="设置">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg>
+            </button>
+          </div>
+          <div class="gap-ruler" style="height:20px"><span>20pt 呼吸</span></div>
+          <div class="app-main">
+            <div class="app-scroll" style="padding-top:0">
+              <div class="read-row"><div class="read-title">The Morning Routine</div><div class="read-meta">A1 · 312 词 · 双语对照</div></div>
+              <div class="read-row"><div class="read-title">A Letter to My Future Self</div><div class="read-meta">B1 · 540 词 · 沉浸阅读</div></div>
+              <div class="read-row"><div class="read-title">Coffee and Conversations</div><div class="read-meta">A2 · 280 词 · 已读</div></div>
+              <div class="read-row"><div class="read-title">Notes from a Rainy Day</div><div class="read-meta">B1 · 410 词 · 双语对照</div></div>
+            </div>
+          </div>
+          <div class="tab-bar">
+            <div class="tab-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>记录</div>
+            <div class="tab-item active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.4 4.2 5.5 4.2c-1 0-1.9.1-2.5.3v14.3c.6-.2 1.5-.3 2.5-.3 2.9 0 5 .8 6.5 2.3 1.5-1.5 3.6-2.3 6.5-2.3 1 0 1.9.1 2.5.3V4.5c-.6-.2-1.5-.3-2.5-.3-2.9 0-5 .8-6.5 2.3z"/><path d="M12 6.5v14.3"/></svg>阅读</div>
+            <div class="tab-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>练习</div>
+            <div class="tab-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5 4.5 20.5V5A1.5 1.5 0 0 1 6 3.5z"/></svg>记忆</div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="harmony-h">导航栏三元素协调性 · 修订方向</h2>
+  <p class="proto-note">
+    你保留了居中标题，当前不协调的根因有三：① <strong>主次压反</strong>——胶囊带边框 + 阴影 + 地球图标，是视觉最重的元素，却只承载次要的语言上下文，而页面身份「记录」只是一行最轻的裸文字；② <strong>形与重不统一</strong>——38pt 药丸胶囊 / 44pt 圆形描边齿轮 / 无容器标题，三种视觉语汇各说各话；③ <strong>居中被带偏</strong>——胶囊偏宽把标题挤向左，右侧空出一段。下面三个方向都保留标题、只统一三元素关系（触控目标仍 ≥44pt，视觉尺寸为示意）。
+  </p>
+  <div class="proto-stage harmony-stage">
+
+    <!-- A 降权胶囊 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>A · 降权胶囊<span class="sub">轻重对比 · 标题为锚</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-quiet"><span class="dir">中文 →</span> 英语 · B1</button>
+          <span class="vtitle anchor">记录</span>
+          <button class="icon-btn gear-quiet" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">胶囊去地球图标 / 去阴影、收为安静 chip，齿轮转透明无描边；标题加重为唯一锚点。靠「轻重对比」把次要语境压到后景。</div>
+      </div>
+    </div>
+
+    <!-- B 统一描边控件 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>B · 统一描边控件（推荐）<span class="sub">对称双控件 · 标题居中</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-paired"><span class="dir">中文 →</span> 英语 · B1</button>
+          <span class="vtitle center">记录</span>
+          <button class="gear-paired icon-btn" aria-label="设置"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">胶囊与齿轮统一为「同高 + 同 hairline 描边 + 无阴影」同一控件家族，成对称双控件夹住居中标题。靠「控件配对」建立秩序，最稳。</div>
+      </div>
+    </div>
+
+    <!-- C 文字态语言入口 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>C · 文字态语言入口<span class="sub">三者减负 · 最大呼吸</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-text"><span class="dir">中文 →</span> 英语 · B1 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+          <span class="vtitle center">记录</span>
+          <button class="icon-btn gear-plain" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">胶囊去掉边框 / 背景 / 阴影，变成 accent 色文字 + chevron 的「可点入口」；齿轮转透明。三者全部减负，呼吸最足、最现代，但语言入口的可点性最弱。</div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="harmony-h">第二轮 · 双边框克制化与左右平衡</h2>
+  <p class="proto-note">
+    第二轮反馈：方向 B 的「胶囊描边 + 齿轮描边」双容器，叠在下方 Hero 卡 / 写一句 / 用照片开始 / 筛选 chip / 空状态卡一连串描边之上，顶部显得繁杂，不够克制；且宽胶囊与小齿轮左右失衡。<strong>关键事实</strong>：spec/002 §54 / §157 规定顶部轻量上下文就是 <code>英语 · B1</code>（目标语言 + 等级），并非「中文 -> 英语 · B1」——当前实现其实多显示了母语侧。下面三个方向都<strong>去掉导航栏描边</strong>回到克制，差异在「语言上下文保留多少 / 左右如何平衡」（触控目标仍 ≥44pt）。
+  </p>
+  <div class="proto-stage harmony-stage">
+
+    <!-- R1 去边框紧凑 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>R1 · 去边框 · 紧凑目标语（推荐）<span class="sub">无描边 · 保留信息</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-bare">英语 · B1 <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
+          <span class="vtitle anchor">记录</span>
+          <button class="icon-btn gear-bare" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">两侧都去描边：语言为浅色文字 + 下拉小箭头（可点切换），齿轮为裸图标；标题加重为唯一锚点。导航栏零描边，把"卡片描边"语汇还给下方内容，最克制；语言按 spec 收敛为「英语 · B1」，仍一眼可知学什么。</div>
+      </div>
+    </div>
+
+    <!-- R2 对称单字 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot bad"></span>R2 · 对称单字（你的提案）<span class="sub">最平衡 · 但信息最少</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="lang-mono" aria-label="语言空间">英</button>
+          <span class="vtitle anchor">记录</span>
+          <button class="icon-btn gear-bare" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">单字「英」与齿轮等大，左右完全对称、最克制。代价：丢失等级 B1 与「学什么」的完整意义，且「英」有歧义（英语 / 英国）；与 spec §54「英语 · B1」相比信息缩水，语言空间是产品核心概念（ADR-004），一眼可辨价值被牺牲。</div>
+      </div>
+    </div>
+
+    <!-- R3 轻底胶囊 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>R3 · 轻底胶囊<span class="sub">单一软底 · 无描边</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-softfill">英语 · B1</button>
+          <span class="vtitle center">记录</span>
+          <button class="icon-btn gear-bare" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">只保留语言一个软底胶囊（无描边、无阴影），齿轮转裸图标。语言作为产品核心上下文用一处低对比 fill 微微凸显，齿轮退为次要图标——既消掉双描边，又保留语言的可点存在感；左右仍不等宽，但只剩一个容器，繁杂感大幅下降。</div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="harmony-h">语言标签文案 · 自然语言 vs 语种代码</h2>
+  <p class="proto-note">
+    第三轮提问：用 <code>cn</code> / <code>en</code> 这类代码如何？<strong>关键事实</strong>：<code>cn</code> 是国家代码（ISO 3166），中文的语种代码是 <code>zh</code>（ISO 639）；<code>cn → en</code> 把国家码与语种码混用，技术上不一致。代码更紧凑，但偏技术气质、与产品暖调冲突，且对中文用户「英语」并不比「EN」长多少却更易读（spec/002 §54 也规定为「英语 · B1」）。下面并排对比文案形态：
+  </p>
+  <div class="chip-compare">
+    <div class="cc good">
+      <span class="chiptext cap-bare">英语 · B1</span>
+      <span class="cc-label">目标语 + 等级（推荐）</span>
+      <span class="cc-note">spec §54 写法；中文秒读、暖、含等级</span>
+    </div>
+    <div class="cc">
+      <span class="chiptext cap-bare">中 → 英 · B1</span>
+      <span class="cc-label">中文单字 + 方向</span>
+      <span class="cc-note">紧凑、暖、正确、有方向感；次选</span>
+    </div>
+    <div class="cc">
+      <span class="chiptext cap-bare">EN · B1</span>
+      <span class="cc-label">目标语种码 + 等级</span>
+      <span class="cc-note">紧凑，但大写码偏技术感、丢暖度</span>
+    </div>
+    <div class="cc">
+      <span class="chiptext cap-bare">ZH → EN</span>
+      <span class="cc-label">语种码（正确写法）</span>
+      <span class="cc-note">zh 才是中文语种码；多数用户不认识 zh</span>
+    </div>
+    <div class="cc bad">
+      <span class="chiptext cap-bare">CN → EN</span>
+      <span class="cc-label">国家码（你的写法 · 不准确）</span>
+      <span class="cc-note">cn 是国家码不是语种码，与 en 语种码混用不一致</span>
+    </div>
+  </div>
+
+  <h2 class="harmony-h">第四轮 · 只保留语种「英语」+ 紧凑对称</h2>
+  <p class="proto-note">
+    第四轮提案：语言只保留语种「英语」、去掉「· B1」，文本居中、加一圈描边 + 左右内边距，让它收成一枚和齿轮差不多大的小 tag，左右更协调。<strong>关键事实</strong>：spec/002 §54 / §157 写的是「<strong>例如</strong> <code>英语 · B1</code>」——「例如」是举例不是强制，去掉等级在 spec 允许范围内（落地时同步把示例文案改成「英语」）。一门空间只对应一门语言（核心决策 #4），所以「英语」已能唯一标识当前空间，「B1」是少变的水平自评、对切换帮助有限。真正要权衡的是「描边」：第二轮你嫌双描边繁杂的根因是<strong>宽胶囊</strong>叠在卡片描边上；缩短为「英语」后描边的繁杂感大幅下降，但若只给 chip 描边、齿轮裸露，又会回到第一轮「形与重不统一」。下面把你的写法和它的两个邻居并排：
+  </p>
+  <div class="proto-stage harmony-stage">
+
+    <!-- V1 你的提案：描边 tag + 裸齿轮 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot bad"></span>V1 · 描边 tag + 裸齿轮（你的写法）<span class="sub">语汇不一致</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-tag">英语 <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
+          <span class="vtitle center">记录</span>
+          <button class="icon-btn gear-bare" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">「英语」收成描边 tag、与齿轮宽度接近，左侧确实更紧凑。但 chip 有描边、齿轮裸露 → 两个控件语汇不一致（第一轮「形与重不统一」原样回来）；且这唯一一圈描边孤零零叠在下方卡片描边上，显得是个"被忘了删的边框"。</div>
+      </div>
+    </div>
+
+    <!-- V2 一致：双描边 tag（对称） -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>V2 · 双描边 tag · 对称<span class="sub">语汇一致 · 真正平衡</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-tag">英语 <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
+          <span class="vtitle center">记录</span>
+          <button class="icon-btn gear-tag" aria-label="设置"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">把你的「描边 tag」诉求贯彻到底：齿轮也收进同款描边圆，两侧成对、同高、同 hairline，对称夹住居中标题——这才是「描边 + 协调」的一致解。代价：导航栏又出现两圈描边（比第二轮的宽胶囊轻得多，但仍非零描边）；这正是第二轮想避开的方向。</div>
+      </div>
+    </div>
+
+    <!-- V3 反建议：去描边 + 只保留语种 -->
+    <div class="frame-col">
+      <div class="frame-label"><span class="dot good"></span>V3 · 去描边「英语」（反建议 · 推荐）<span class="sub">零描边 · 自然变短</span></div>
+      <div class="navcard">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-icons">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+        </div>
+        <div class="vnav">
+          <button class="cap-bare">英语 <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>
+          <span class="vtitle anchor">记录</span>
+          <button class="icon-btn gear-bare" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.6a7.6 7.6 0 0 0 0-3.2l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.8-1.6L14 2.4h-4l-.3 2.5a7.7 7.7 0 0 0-2.8 1.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3.2l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.8 1.6l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.8-1.6l2.3 1 2-3.4z"/></svg></button>
+        </div>
+        <div class="vgap"></div>
+        <div class="vhero"><div class="vh primary"></div><div class="vh"></div></div>
+        <div class="vrole">采纳你「去 B1」的判断，但不加描边：仅「英语 ⌄」三字本身就比「英语 · B1」短一截，已自然靠近齿轮的视觉体量；两侧仍是同款裸控件、零描边，把描边语汇完整留给下方卡片。既满足你「更协调」的诉求，又延续第二轮「最克制」的共识——同时改动最小（当前实现只删 ` · B1` 即可）。</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="proto-annotations">
+    <h2>评审结论与修订</h2>
+    <ul>
+      <li><strong>同根问题</strong>：胶囊 + 齿轮在滚动正文 → SwiftUI 导航栏 inline 区全空 = 顶部留白；齿轮逐页手搓 → 阅读页缺齿轮。方向 B 把二者上移进共享导航栏一并解决。</li>
+      <li><strong>细节执行修订（评审 5 → 8）</strong>：导航栏到首个内容保留 <strong>20pt 呼吸</strong>（回收大标题带，但不抹掉所有空间）；去掉导航栏底部 hairline，避免与 Hero 卡顶部边框两条横线打架。</li>
+      <li><strong>保留 inline 标题</strong>：导航栏中央保留「记录 / 阅读 / 练习 / 记忆」，既给页面身份，又给 push 详情页的返回标签；标题绝对居中、加重为锚点（weight 700），不被左侧胶囊带偏。</li>
+      <li><strong>三元素协调（采纳方向 B · 统一描边控件）</strong>：语言胶囊与设置齿轮统一为同一描边控件家族——同高、同 1px hairline、无阴影、同 pill 圆角，成对称双控件夹住居中标题；去掉胶囊的地球图标（「中文 → 英语」已表达语言含义，图标冗余）并压缩胶囊宽度，让标题真正居中。解决原先「主次压反 / 形与重不统一 / 居中被带偏」三处不协调。备选 A（降权胶囊）会让胶囊过淡、削弱语言切换入口可发现性；C（accent 绿文字入口）占用 accent 绿，违反「accent 只表示可操作 / 主动作」语义，均不采纳。</li>
+      <li><strong>一致性</strong>：四 tab（含阅读）共用同一套导航栏修饰符，结构上不可能再漏齿轮；设置详情页用 <code>showsContextHeader: false</code> 门控，不注入胶囊/齿轮。</li>
+      <li><strong>第二/三轮 → 方向 A · 去边框</strong>：双描边过繁杂、不够克制，且左右失衡。改为<strong>两侧均去描边</strong>（描边语汇留给内容卡），齿轮为裸图标；左右平衡靠「同样低对比」而非等宽。否决语种代码：<code>cn</code> 是国家码（语种码应为 <code>zh</code>）、混用不一致，且代码冷感与产品暖调 / spec 冲突。</li>
+      <li><strong>最终采纳（第四轮 → V3 · 仅目标语言 + 不加描边）</strong>：用户提出去 B1 + 加描边收成小 tag。采纳「去 B1 不加描边」：语言收敛为 <code>英语</code>（仅目标语言），缩短后左侧体量自然靠近齿轮、协调感无需描边即可达成，延续第二轮零描边共识。否决加描边：V1（chip 描边 + 齿轮裸露）语汇不一致，V2（两边都描边）重现双描边。去 B1 依据：spec §54 / §157 写「例如 英语 · B1」为举例，且一门空间一门语言（核心决策 #4），目标语言已唯一标识当前空间。完整 <code>中文 -> 英语 · B1</code> 仅作 VoiceOver value。</li>
+      <li><strong>权威边界</strong>：本原型是设计基准与评审证据，不是实现事实源；落地以 active plan 与 spec/002 §54-55、spec/003 §143 为准。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

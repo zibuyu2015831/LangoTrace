@@ -160,6 +160,9 @@ struct PracticeView: View {
     let onLanguageSpaceAction: () -> Void
     var onSettingsAction: (() -> Void)?
     let onPractice: (LearningEntry) -> Void
+    var onCompanion: (() -> Void)?
+
+    @Environment(\.companionFeatureEnabled) private var companionFeatureEnabled
 
     var body: some View {
         PhonePage(
@@ -168,6 +171,9 @@ struct PracticeView: View {
             onLanguageSpaceAction: onLanguageSpaceAction,
             onSettingsAction: onSettingsAction
         ) {
+            if companionFeatureEnabled, let onCompanion {
+                CompanionEntryCard(action: onCompanion)
+            }
             if entries.isEmpty {
                 LocalizedCompactPanel(
                     titleKey: "phone.practice.empty.title",
@@ -349,7 +355,9 @@ struct SettingsView: View {
     let onLanguageSpaceAction: () -> Void
     let onSettingsAction: (() -> Void)?
     let onSelectCapability: (SettingsCapability.Kind) -> Void
+    var onSelectLearnerProfile: (() -> Void)?
     var onAppearRefresh: () -> Void = {}
+    @Environment(\.companionFeatureEnabled) private var companionFeatureEnabled
 
     var body: some View {
         PhonePage(
@@ -359,6 +367,9 @@ struct SettingsView: View {
             onSettingsAction: onSettingsAction,
             showsContextHeader: false
         ) {
+            if let onSelectLearnerProfile {
+                LearnerProfileSettingsRow(action: onSelectLearnerProfile)
+            }
             ForEach(capabilities) { capability in
                 CapabilityStatusRow(
                     localizedTitleKey: capability.kind.localizedTitleKey,
@@ -372,11 +383,45 @@ struct SettingsView: View {
                     for: capability.kind,
                     status: settingsStatus,
                     interfaceLanguage: interfaceLanguagePreference,
-                    appearance: appearancePreference
+                    appearance: appearancePreference,
+                    companionEnabled: companionFeatureEnabled
                 ))
             }
         }
         .onAppear(perform: onAppearRefresh)
+    }
+}
+
+/// Settings entry row for the learner profile overview (LM02). An independent
+/// navigation item — deliberately not a `SettingsCapability` (the profile is not
+/// a status-bearing configuration capability).
+struct LearnerProfileSettingsRow: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: "person.text.rectangle")
+                    .foregroundStyle(LangoTraceDesign.ColorToken.accent)
+                    .frame(width: 28)
+                VStack(alignment: .leading, spacing: 2) {
+                    localizedText("learnerProfile.title")
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                    localizedText("settings.learnerProfile.summary")
+                        .font(.caption)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+            }
+            // Mirror CapabilityStatusRow: card chrome inside the button label so the whole
+            // card is tappable and the row matches every capability row in the settings list.
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .langoPanel(padding: 16)
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -389,21 +434,29 @@ struct PhonePage<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        ScrollView {
+        let page = ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if showsContextHeader {
-                    PhoneContextHeader(
-                        languageSpace: languageSpace,
-                        onLanguageSpaceAction: onLanguageSpaceAction,
-                        onSettingsAction: onSettingsAction
-                    )
-                }
                 content
             }
-            .padding(20)
+            // Reclaim the large-title band but keep 20pt breathing room below the
+            // navigation bar (design review: 0pt feels oppressive).
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
             .padding(.bottom, 92)
         }
-        .navigationTitle(localizedText(titleKey))
         .langoPageBackground()
+
+        if showsContextHeader {
+            page.phoneRootContextToolbar(
+                titleKey: titleKey,
+                languageSpace: languageSpace,
+                onLanguageSpaceAction: onLanguageSpaceAction,
+                onSettingsAction: onSettingsAction
+            )
+        } else {
+            // SettingsView and other non-root consumers keep a plain inline title
+            // with no language capsule / gear injected.
+            page.navigationTitle(localizedText(titleKey))
+        }
     }
 }

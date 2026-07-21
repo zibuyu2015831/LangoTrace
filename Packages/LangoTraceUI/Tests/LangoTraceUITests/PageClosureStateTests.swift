@@ -92,7 +92,9 @@ struct PageClosureStateTests {
         #expect(SettingsCapability.Kind.languageSpace.localizedTitleKey == "settings.languageSpace.title")
         #expect(SettingsCapability.Kind.interfaceLanguage.localizedTitleKey == "settings.interfaceLanguage.title")
         #expect(SettingsCapability.Kind.aiProvider.localizedTitleKey == "settings.aiProvider.title")
+        #expect(SettingsCapability.Kind.companion.localizedTitleKey == "settings.companion.title")
         #expect(SettingsCapability.Kind.importExport.localizedTitleKey == "settings.importExport.title")
+        #expect(SettingsCapability.Kind.allCases.contains(.companion))
         #expect(SettingsCapability.Kind.allCases.contains(.importExport))
         #expect(!SettingsCapability.Kind.allCases.map(\.rawValue).contains("export"))
         #expect(CapabilityStatus.ready.localizedTitleKey == "capabilityStatus.ready")
@@ -110,6 +112,44 @@ struct PageClosureStateTests {
         #expect(source.contains("ForEach(capabilities)"))
         #expect(!source.contains("\"phone.settings.currentSpace.title\""))
         #expect(!source.contains("\"phone.settings.currentSpace.subtitle\""))
+    }
+
+    /// The companion on/off switch is no longer a bare row in the three settings lists; it
+    /// lives inside the companion capability's detail page (promoted to a `CapabilityStatusRow`).
+    @Test("Companion toggle lives in its capability detail page, not the settings lists")
+    func companionToggleMovedIntoCapabilityDetailPage() throws {
+        let detail = try String(contentsOf: sourceFileURL(named: "SettingsCapabilityDetailView.swift"), encoding: .utf8)
+        #expect(detail.contains("CompanionSettingsToggleRow"))
+
+        for fileName in ["PhoneMainSections.swift", "PadMainSections.swift", "MacWorkspaceContentView.swift"] {
+            let source = try String(contentsOf: sourceFileURL(named: fileName), encoding: .utf8)
+            #expect(!source.contains("CompanionSettingsToggleRow()"))
+        }
+    }
+
+    /// The learner-profile settings row carries the same `.langoPanel` card chrome as every
+    /// capability row, so it is no longer the lone chrome-less row at the top of the list. It
+    /// stays a plain navigation row (NOT promoted to a `CapabilityStatusRow`/`SettingsCapability`),
+    /// because the profile is a read-only viewer with no status or trailing value.
+    @Test("Learner profile settings row uses the shared card chrome but stays non-capability")
+    func learnerProfileRowUsesCardChromeButStaysNonCapability() throws {
+        let source = try String(contentsOf: sourceFileURL(named: "PhoneMainSections.swift"), encoding: .utf8)
+
+        #expect(source.contains("struct LearnerProfileSettingsRow: View"))
+        // Card chrome is now applied inside the row so all three platforms unify at once.
+        guard let rowRange = source.range(of: "struct LearnerProfileSettingsRow: View") else {
+            Issue.record("LearnerProfileSettingsRow declaration not found")
+            return
+        }
+        let afterDecl = source[rowRange.upperBound...]
+        // Bound the slice to this struct only: stop at the next top-level `struct` declaration.
+        let structEnd = afterDecl.range(of: "\nstruct ")?.lowerBound ?? afterDecl.endIndex
+        let rowBody = String(afterDecl[..<structEnd])
+        #expect(rowBody.contains("langoPanel"))
+        // Regression: the profile row must not be reshaped into a status-bearing capability row
+        // (i.e. it must not render itself through a CapabilityStatusRow). A comment mentioning the
+        // type by name is fine; the constructor call is the real signal.
+        #expect(!rowBody.contains("CapabilityStatusRow("))
     }
 
     @Test("Onboarding bottom action stays constrained on wide Mac and iPad windows")

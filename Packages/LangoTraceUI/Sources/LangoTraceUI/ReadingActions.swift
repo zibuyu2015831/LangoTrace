@@ -1,5 +1,6 @@
 import Foundation
 import LangoTraceCore
+import SwiftUI
 
 public struct ReadingExplanationRequest: Equatable, Sendable {
     public var documentID: String
@@ -91,6 +92,39 @@ public enum ReadingTTSOutcome: Equatable, Sendable {
 }
 
 public typealias ReadingTTSAction = @Sendable (ReadingTTSRequest) async -> ReadingTTSOutcome
+
+/// Input for the LM02-S4a lookup-capture seam: the user explicitly requested an
+/// explanation for `lookedUpTerm` on `documentID`. A behaviour signal only — never
+/// the AI's returned explanation.
+public struct ReadingLookupCaptureInput: Sendable, Equatable {
+    public let spaceID: String
+    public let documentID: String
+    public let lookedUpTerm: String
+
+    public init(spaceID: String, documentID: String, lookedUpTerm: String) {
+        self.spaceID = spaceID
+        self.documentID = documentID
+        self.lookedUpTerm = lookedUpTerm
+    }
+}
+
+/// Fired when the user requests an explanation (the lookup / explanation-request
+/// behaviour signal). Pure local persistence — never outbound.
+public typealias ReadingLookupCaptureAction = @Sendable (ReadingLookupCaptureInput) -> Void
+
+public extension EnvironmentValues {
+    /// LM02-S4a lookup-capture seam, injected from App Shell; nil disables capture.
+    @Entry var readingLookupCaptureAction: ReadingLookupCaptureAction?
+}
+
+/// LM02-S4b band-level source for derive(): given the target language + seed level,
+/// returns the internal band level (or nil to leave the static seed). Pure local.
+public typealias ReadingBandLevelSource = @Sendable (String, LanguageLevel) async -> LanguageLevel?
+
+public extension EnvironmentValues {
+    /// LM02-S4b band source, injected from App Shell; nil leaves the static seed.
+    @Entry var readingBandLevelSource: ReadingBandLevelSource?
+}
 
 public struct ReadingLibraryActions: Sendable {
     public var listDocuments: @Sendable (String, Bool, ReadingLibrarySearchQuery?) async throws

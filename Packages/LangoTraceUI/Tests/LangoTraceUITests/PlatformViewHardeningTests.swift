@@ -23,11 +23,15 @@ struct PlatformViewHardeningTests {
         #expect(macWorkspace.contains("LazyVStack(alignment: .leading, spacing: 12)"))
     }
 
-    @Test("Reading phone home keeps a single large title from the navigation bar")
-    func readingPhoneHomeKeepsSingleLargeTitle() throws {
+    @Test("Reading phone home gets its single title from the shared root context toolbar")
+    func readingPhoneHomeUsesSharedRootContextToolbar() throws {
         let source = try source("ReadingViews.swift")
 
-        #expect(source.contains(".navigationTitle(localizedString(\"tab.reading\"))"))
+        // Title now comes from the shared inline context toolbar (capsule + gear),
+        // not a duplicate nav-bar large title or a hand-rolled title in the body.
+        #expect(source.contains(".phoneRootContextToolbar("))
+        #expect(source.contains("titleKey: \"tab.reading\""))
+        #expect(!source.contains(".navigationTitle(localizedString(\"tab.reading\"))"))
         #expect(!source.contains(".font(.largeTitle.weight(.semibold))"))
         #expect(source.contains("reading.library.subtitle"))
     }

@@ -45,6 +45,134 @@ public extension AIRequestPreviewProjection {
             excludedContent: alwaysExcludedContent
         )
     }
+
+    /// Single-source factory for the photo-writing assist projection. This is the
+    /// *only* projection whose `includedContent` carries `.photoAttachments`: a
+    /// photo enters an outbound AI request solely through this explicit,
+    /// user-triggered capability. Every other always-excluded category stays
+    /// excluded — the exclusion set is derived from `alwaysExcludedContent` with
+    /// photos removed, so it cannot silently drift from the shared list.
+    ///
+    /// The projection is mode-independent on purpose: both writing-suggestions
+    /// and native-draft modes send the same content categories (the photo, the
+    /// optional user note, and the language-space profile), so the preview the
+    /// user confirms is honest regardless of mode.
+    static func photoWritingAssist(
+        endpoint: AIProviderEndpointInput,
+        lengthBucket: AIRequestLengthBucket
+    ) -> AIRequestPreviewProjection {
+        AIRequestPreviewProjection(
+            capability: .photoWritingAssist,
+            providerPresetID: endpoint.providerPresetID,
+            modelName: endpoint.modelName,
+            promptID: PhotoWritingAssistPromptRegistry.promptID,
+            promptVersion: PhotoWritingAssistPromptRegistry.promptVersion,
+            lengthBucket: lengthBucket,
+            includedContent: [
+                .photoAttachments,
+                .currentEntryBody,
+                .nativeLanguageProfile,
+                .targetLanguageProfile,
+                .proficiencyLevel,
+            ],
+            excludedContent: alwaysExcludedContent.filter { $0 != .photoAttachments }
+        )
+    }
+
+    /// Single-source factory for the companion chat extraction projection
+    /// (LM03-S2a). Its only included category is `companionConversation` — the
+    /// conversation the user already shared turn-by-turn, re-sent on an explicit
+    /// "extract" action. It admits **no new outbound category** (no photo, no
+    /// long-term memory, no historical entries): every always-excluded guarantee
+    /// stays excluded, so the preview the user confirms honestly discloses that
+    /// only this conversation is sent.
+    static func companionExtraction(
+        endpoint: AIProviderEndpointInput,
+        lengthBucket: AIRequestLengthBucket
+    ) -> AIRequestPreviewProjection {
+        AIRequestPreviewProjection(
+            capability: .companionExtraction,
+            providerPresetID: endpoint.providerPresetID,
+            modelName: endpoint.modelName,
+            promptID: CompanionExtractionPromptRegistry.promptID,
+            promptVersion: CompanionExtractionPromptRegistry.promptVersion,
+            lengthBucket: lengthBucket,
+            includedContent: [.companionConversation],
+            excludedContent: alwaysExcludedContent
+        )
+    }
+
+    /// Single-source factory for the companion *conversation send* projection
+    /// (LM03-S1 + S2b-1). The first capability that models the outbound
+    /// conversation itself. When `hasMemoryInjection` is true (the user consented
+    /// to Memory injection and the per-conversation toggle is on), it additionally
+    /// discloses `.curatedLearnerMemory` — the consented, scrubbed top-5 subset of
+    /// long-term memory. Crucially, `.longTermMemory` **stays in the excluded set**
+    /// always: the raw long-term memory store is never bulk-sent, so the preview
+    /// can honestly show both "sends: curated subset" and "does not send: full
+    /// memory store". Preview-only — no `makeLogEntry` (conversation-level logging
+    /// is deferred).
+    static func companionConversation(
+        endpoint: AIProviderEndpointInput,
+        lengthBucket: AIRequestLengthBucket,
+        hasMemoryInjection: Bool,
+        hasBroughtInRecords: Bool = false,
+        hasStyleInjection: Bool = false
+    ) -> AIRequestPreviewProjection {
+        var included: [AIRequestContentDescriptor] = [
+            .companionConversation,
+            .nativeLanguageProfile,
+            .targetLanguageProfile,
+            .proficiencyLevel,
+        ]
+        if hasMemoryInjection {
+            included.append(.curatedLearnerMemory)
+        }
+        // Style register (LM03-S4a) egresses under the same one-time learner-profile
+        // consent as Memory; disclose it as its own (lowest-PII) category.
+        if hasStyleInjection {
+            included.append(.curatedLearnerStyle)
+        }
+        // 方案A (user brought in a record) or 方案B (companion auto-sourced one).
+        // Either way the record body egresses, so the preview discloses it.
+        if hasBroughtInRecords {
+            included.append(.broughtInRecords)
+        }
+        return AIRequestPreviewProjection(
+            capability: .companionConversation,
+            providerPresetID: endpoint.providerPresetID,
+            modelName: endpoint.modelName,
+            promptID: CompanionPromptRegistry.systemPromptID,
+            promptVersion: CompanionPromptRegistry.promptVersion,
+            lengthBucket: lengthBucket,
+            includedContent: included,
+            excludedContent: alwaysExcludedContent
+        )
+    }
+
+    /// Single-source factory for the companion *summarization* projection
+    /// (LM03-S3b-1 "对话记忆"). Its only included category is `companionConversation`
+    /// — the summarization re-sends turns of *this same conversation* the provider
+    /// already received earlier (when fresh, in-window). It admits **no new outbound
+    /// category and no external data**: long-term memory, brought-in records,
+    /// photos, audio, historical entries all stay excluded, so the preview honestly
+    /// discloses that only this conversation is sent to build its memory.
+    /// Preview-only — no `makeLogEntry`.
+    static func companionSummarization(
+        endpoint: AIProviderEndpointInput,
+        lengthBucket: AIRequestLengthBucket
+    ) -> AIRequestPreviewProjection {
+        AIRequestPreviewProjection(
+            capability: .companionSummarization,
+            providerPresetID: endpoint.providerPresetID,
+            modelName: endpoint.modelName,
+            promptID: CompanionSummarizationPromptRegistry.summarizationPromptID,
+            promptVersion: CompanionSummarizationPromptRegistry.promptVersion,
+            lengthBucket: lengthBucket,
+            includedContent: [.companionConversation],
+            excludedContent: alwaysExcludedContent
+        )
+    }
 }
 
 public extension LearningMaterialServiceGenerationRequest {
@@ -174,6 +302,35 @@ public extension PracticeBacktranslationReviewServiceRequest {
 
     private var reviewCharacterCount: Int {
         input.nativeSentence.count + input.userAttempt.count + input.referenceSentence.count
+    }
+}
+
+public extension PhotoWritingAssistServiceRequest {
+    /// Projection for a photo-writing assist request — the only capability whose
+    /// preview admits the photo (see `AIRequestPreviewProjection.photoWritingAssist`).
+    func previewProjection() -> AIRequestPreviewProjection {
+        .photoWritingAssist(
+            endpoint: endpoint,
+            lengthBucket: AIRequestLengthBucket(characterCount: input.userNote.count)
+        )
+    }
+
+    func makeLogEntry(id: String, outcome: AIRequestLogOutcome, createdAt: Date) -> AIRequestLogEntry {
+        AIRequestLogEntry(
+            id: id,
+            operationID: DiagnosticOperationID(rawValue: id),
+            capability: .photoWritingAssist,
+            providerPresetID: endpoint.providerPresetID,
+            endpointPurpose: endpoint.purpose,
+            adapterKind: endpoint.adapterKind,
+            modelName: endpoint.modelName,
+            promptID: PhotoWritingAssistPromptRegistry.promptID,
+            promptVersion: PhotoWritingAssistPromptRegistry.promptVersion,
+            inputLengthBucket: AIRequestLengthBucket(characterCount: input.userNote.count),
+            status: outcome.status,
+            failureBucket: outcome.failureBucket,
+            createdAt: createdAt
+        )
     }
 }
 

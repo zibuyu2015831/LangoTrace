@@ -321,7 +321,7 @@ struct ReadingSelectionExplanationServiceTests {
         await #expect(throws: ReadingSelectionExplanationServiceError(category: .unsupportedProvider)) {
             try await service.explain(
                 ReadingSelectionExplanationServiceRequest(
-                    endpoint: endpoint(adapterKind: .anthropicMessages),
+                    endpoint: endpoint(adapterKind: .geminiGenerateContent),
                     plaintextSecret: "sk-test-secret",
                     input: sampleInput(
                         selection: "ticket",

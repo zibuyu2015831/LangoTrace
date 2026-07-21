@@ -9,6 +9,8 @@
 
 > 说明：本文件是需求构想的**临时留存**，存放于 `docs/idea/`（待议构想孵化区），不作为新会话入口，也不替代任何 spec / ADR / active plan。正式实施前必须按 `docs/plans/README.md` 与 `docs/plans/plan-review-protocol.md` 拆成 active plan、按需新增 / 更新 ADR，并走用户确认链路。需求成熟后建议拆为 ADR + plan 后归档本文件。
 
+> **落地进展（2026-06-25）**：本构想已升格为 [ADR-006](../decisions/006-system-level-three-layer-learner-model.md)（Ability 层折叠其中）。系列实施：**LM01**（Ability 知识覆盖）、**LM02 Slice 1**（Memory 层 + 总览页）、**S2**（Style seam-only）、**S3**（盲点 dictation diff）、**S4a**（查词捕获 + 分析账本 v28/v29）、**S4b**（band 重估 + derive() 迟滞 + 总览）**均已落地 done/ + CI 绿**。**§14.2 的 band 评估机制已由 S4b 落地**：band 吃独立行为信号（S4a 查词 + S3 错误）、经 `BandHysteresis` 迟滞（连续 3 次越阈 + ≥5 次停留）接 `derive()`、永不展示降级 / 不覆盖标签、band 仅喂 derive() 不增外发字段（ADR-006 §10.1）；分技能 v1 仅理解 + 覆盖（产出低置信）、AI 校准（方案 B 外发增量）仍属 v2 opt-in 后置。详见 [LM02-S4b 方案](../plans/done/2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis.md)。
+
 > 架构归属：本能力对应「学习者模型 / Learner Model」模块的 **Ability 层**——见上位文档 [`01-learner-model.md`](01-learner-model.md)。该模型已于 2026-06-14 第 3 轮重构为 **Ability / Memory / Style 三层 + 系统级（跨语言空间）**（取代旧「能力画像 + 关系记忆两平级子域、按空间」，见 01 §13）；**Ability 按 language code 维护**（同语言多空间共享一份，内部 band 按语言 / 覆盖按标签，删除走 provenance 重算，见 01 §13.2 / §13.3）。实现时应建在该统一模块边界内、经 `LearnerContextProvider` 对外供给，而非自建独立 store。
 
 ---
@@ -119,7 +121,7 @@
 - **核心内容**：
   - **总体水平与置信度**：当前估计的 CEFR 区间 + 趋势（进步 / 持平），克制呈现，避免「降级判决」（见 §8.6）。
   - **分技能画像**：理解 vs 产出（阅读 / 听力 / 写作 / 口语）的相对强弱，直观点出「读得懂但说不出」这类鸿沟。
-  - **常犯错误 / 学习盲点**：聚合 `memory_candidates` 中 `kind = errorPattern` 与高频语法点 / 词汇盲区，列成「你最近常错的点」「待巩固清单」——这是页面最具行动价值的部分。
+  - **常犯错误 / 学习盲点**：**【2026-06-25 LM02-S3 落地修正】源已替换为「用户目标语产出 + 机械 diff」**——v1 从 `practice_text_attempts`（听写 dictation 的用户产出 + `PracticeDictationDiff` 机械 diff）compute-on-read 聚合「重复练习错误模式」，诚实标注来源、不下水平判决。**`memory_candidates` 的 `kind = errorPattern` 是 AI 生成候选（ADR-006 §4 红线禁作水平 / 盲点信号源），不得用作盲点信号**（原构想此处误用，已纠正）。自由产出（Entry 目标语写作错误）的语种检测信号留后续子增量。详见 [LM02-S3 方案](../plans/done/2026-06-25-feature-lm02-s3-blind-spots.md)。
   - **知识覆盖**：已掌握 / 巩固中 / 未掌握的词汇与语法点概览。
   - **进步轨迹**：基于评估历史的时间线 / 趋势（呼应「进步可见」与语伴 §3.12 对话小结）。
 - **行动闭环**：盲点 / 错误项可一键**加入记忆库 / 生成针对性练习**（接 plan 10/11 与练习），让页面不止于展示，而是「看见问题 → 立即练」。

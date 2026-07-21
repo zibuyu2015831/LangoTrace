@@ -1,0 +1,121 @@
+# ADR-008: 采用「扎根记录的语言对话练习模态」语伴定位
+
+日期：2026-06-25
+
+状态：Accepted
+
+## 背景
+
+CLAUDE.md / `docs/README.md` 第 3 节北极星明确「**产品不是 AI 聊天工具**」。「语伴」（AI 语言对话）引入了对话能力，直接触碰这条核心定位——按 CLAUDE.md §1.1.4 与 §4，对核心产品定位的补充 / 细化必须以 ADR 记录，不能只停留在产品参考或聊天记录。
+
+围绕语伴的判断已经过多轮收敛，且部分结论已被吸收进权威文档，唯独缺这一道 ADR 手续：
+
+- 需求构想 `docs/idea/03-conversation-partner.md`（经 6 轮迭代）确立语伴是「扎根个人生活记录的目标语言对话练习模态」，并在 §6.1 明写「定位变更必须新增 / 更新 ADR」。
+- 架构备忘录 `docs/architecture/notes/2026-05-25-language-companion-extension-notes.md`（Accepted）已给出产品边界、数据模型命名（`Companion*`）、入口位置建议，并在「是否需要 ADR」节把这件事留为「正式实施前必须判断」。
+- `product-main-reference.md` §9.13（语伴）、§27（个人语言画像）、§11（外发边界）已把语伴定位、隐私边界写进产品参考。
+- ADR-006（系统级三层学习者模型）§17 明确「『语伴』是本模型的消费者，依赖链最长，单独排在最后，本 ADR 不替其定边界」——边界留给本 ADR。
+
+本 ADR 把上述已收敛的判断升格为正式决策，并固化 2026-06-25 会话确认的三处定夺（定位 ADR 落地、入口位置、Provider 扩容范围中与定位相关者）。它是语伴系列（ADR-006 影响节的 LM03）落地前的两份前置之一；另一份是 Provider 多轮 + 流式扩容方案 `docs/plans/active/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md`。
+
+## 决策
+
+语迹引入「语伴」能力，并将其严格约束为**扎根个人记录的目标语言对话练习模态**，而非通用 AI 聊天助手。语伴是对核心定位「产品不是 AI 聊天工具」的**有界例外与细化**，不是推翻：产品重心仍是本地优先的个人语言记忆系统，语伴只补齐「自由产出」这一练习模态。
+
+### 1. 语伴是练习模态，不是产品中心
+
+- 语伴补齐现有四种练习（跟读、听写、回译、写作修改）之外唯一缺失的「自由产出 = 用目标语互动表达」模态。
+- 语伴**不得**成为与记录、练习、记忆并列的产品重心，不得把 App 的叙事从「用生活记录学习语言」转向「聊天」。
+
+### 2. 六条硬边界（语伴 vs 通用聊天助手）
+
+1. **始终目标语回复**：无论用户用母语还是目标语发言，主回复一律使用当前语言空间的目标学习语言；翻译 / 语法分析 / 母语解释属辅助面板或显式长按操作，不混入主回复。
+2. **话题源自记录**：默认上下文最小化（当前空间、目标语言、水平、最近少量轮次、用户显式带入的 Entry / 句子 / 已确认的有限记忆摘要）；不默认读取全部生活记录。
+3. **以学习纠错为目的**：默认不内联纠错，模拟真人按需确认 / 复述；不把对话包装成课程或角色扮演。
+4. **单一对话对象**：每个语言空间一个固定语伴身份、一段会话，不支持新建 / 多会话 / 角色市场 / 人格模板 / 任意 system prompt 设置。
+5. **不承接通用任务**：语伴不是通用助手，不执行与语言练习无关的开放任务。
+6. **默认关闭、可控开关**：语伴开关默认关闭，需用户在设置中手动开启；关闭时三端导航 / 菜单不出现该项，相关数据与 AI 路径不激活。
+
+### 3. 入口位置：练习 Tab 二级入口 + 记录详情入口，不做第四 Tab
+
+- 三端入口采用：**练习 Tab 内「对话练习」二级入口** + **Entry 详情「围绕这条记录对话」入口**；iPad / macOS 走右侧学习面板的上下文对话入口。
+- **不**把语伴做成与记录 / 练习 / 记忆并列的第四个底部 Tab 或顶层导航——与 `2026-05-25-language-companion-extension-notes.md` §「入口位置」及 idea-03 §10.6 一致，守住「不是聊天工具 / 不堆 Tab」定位。
+- 三端共享同一 conversation store、Prompt Registry 与 Provider service，不复制平台专属 AI 逻辑。
+
+### 4. 数据模型归语言空间，复用既有命名
+
+- 复用备忘录命名：`ConversationCompanion`（空间级配置）、`CompanionThread`（线程）、`CompanionMessage`（消息 + 辅助分析缓存 + 失败态）、`CompanionMemorySummary`（per-space 对话情景摘要）、`CompanionAnalysis`（翻译 / 语法 / 纠错结果）。
+- 这些对象归属语言空间，默认 local-only、默认不同步、可导出、可按条（及其后续）/ 整段删除。
+- 删除某条消息 = 删除该条**及其后续全部消息**（线性上下文自洽）；清空 = 删整段会话 + per-space 情景摘要，**不**清系统级 Memory（对齐 ADR-006 §7 删除三件套）。
+
+### 5. 关系记忆归 Learner Model 统一治理，不自建 store
+
+- 语伴的「记得你」长期关系记忆按 ADR-006 归 **Memory 层**：生活事实 / 目标升系统级、对话情景留 per-space；通过 `LearnerContextProvider` 取用，不在语伴内自建记忆 store。
+- 难度自适应取 Ability 信号（v1 退回静态 `LanguageLevel`，v2 接动态 band），不暴露「陪练强度」用户选项（对齐 ADR-006 与备忘录 §1）。
+
+### 6. 隐私与外发边界
+
+- 语伴每次请求必须经 Provider 抽象，并走 plan 09 请求预览 / 日志（已落地 E6）；UI 不直接调用模型。
+- 外发分两类（对齐 ADR-006 §5、`product-main-reference.md` §11 / §27.3、spec 008 §2）：
+  - **用户主动发起**（在语伴中打字发送、长按触发翻译 / 解析）本身即核心决策 #10 的「明示触发」，不需额外确认弹窗。
+  - **系统自动注入**（Memory 生活事实 / Style 受控片段进 system prompt）须明示授权或提供关闭选项，授权 UX 为「首次开启语伴的一次性预览披露」+ per-conversation 快捷开关，而非每次弹窗。
+- 结构化 PII（手机号、身份证号）在任何外发前做确定性 scrubbing，作为 defense-in-depth，不替代上述授权机制。
+- 主动「找话题」采用方案 A（显式带入单条）+ 方案 B（一次性范围授权 + 本地预筛最小发送），严格遵守核心决策 #10。
+- **聊天反哺提取（idea-03 §3.8，LM03-S2a 已落地）属「用户主动发起」类**：用户在语伴页显式点击「提取词汇 / 表达」时，把已存对话内容重发给同一 Provider 提取记忆候选——与「重新分析」同构，仅受全局 Provider 配置 + 请求预览约束，**不属系统自动注入、不需每次确认弹窗**。候选入独立派生表 `companion_memory_candidates`（v31），仅产出 + 展示，升级为记忆条目（主数据）属未来 deposit 管线。详见 `docs/plans/done/2026-06-25-feature-lm03-s2a-companion-reflux.md`。
+- **系统自动注入（Memory 画像，idea-03 §3.11，LM03-S2b-1 已落地）**：把用户系统级生活事实（`learner_memory_facts` `.global` top-5 时近性 + 种类配额）经 PII scrubbing 后注入语伴 system prompt，是决策 #10 **首个系统自动注入外发**实例。授权 UX 严格按本节「首次开启的一次性预览披露 + per-conversation 快捷开关、非每次弹窗」落地（`CompanionMemoryConsent` 三态 + v32 `uses_learner_profile`）；注入前对**注入片段 + 历史回放 + 用户输入**统一 PII 脱敏（手机号 / 身份证，outbound-only、存原文发脱敏）；预览以新 `.curatedLearnerMemory` 类目诚实披露「发 curated 子集」，`.longTermMemory`（原始全量）**保持永不外发**。band 红线不碰（只读 `learner_memory_facts`）。详见 `docs/plans/done/2026-06-26-feature-lm03-s2b1-companion-memory-injection.md`。
+- **方案B 主动找话题（LM03-S2b-2 已落地）**：用户无方案A 显式带入时，语伴**授权后自动从用户记录里挑一条（recency top-1）开启话题**——决策 #10 第二个系统自动注入实例。v1 把本节「一次性范围授权」落为**一次性全局话题授权**（`CompanionTopicSourcingConsent`，子范围 tags/时间窗因 schema 限制留后续，属合规裁剪非反转）+ per-conversation 开关复用；**仅 send 回合内触发**（不破冷启动零外发）；只读 `entries.body` 纯列、仅当前 space、不用 FTS；记录正文经 PII scrubbing（连带**修复 S2b-1 遗漏的 `seedEntryBody` 脱敏**）；`.broughtInRecords` A/B 共用诚实披露。详见 `docs/plans/active/2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md`。
+
+### 7. 安全与误用边界
+
+- 语伴不提供未成年人、情感依赖、医疗 / 法律 / 财务建议等场景的开放承接；遇此类场景应克制、转向语言练习或拒答，具体策略在 LM03 plan 细化。
+- AI 输出错误时不得自动覆盖用户原文，须提供可理解的纠正 / 反馈路径。
+
+## 备选方案
+
+### 方案 A：不做语伴
+
+优点：完全守住「不是聊天工具」定位，零隐私 / 成本 / 在线依赖负担。
+
+缺点：缺失语言习得中收益最高的「自由产出」练习模态；AI 对话已是主流学习工具基础能力，长期削弱竞争力。
+
+### 方案 B：通用 AI 聊天助手
+
+把语伴做成开放聊天 / 角色市场 / 任意 system prompt。
+
+优点：功能上限高、me-too 心智门槛低。
+
+缺点：直接推翻北极星、把产品重心从生活记录转向聊天；隐私治理与误用面急剧扩大；与「本地优先的个人语言记忆系统」定位冲突。
+
+### 方案 C：扎根记录的语言对话练习模态（采纳）
+
+六条硬边界 + 默认关闭 + 练习 Tab 二级入口 + 关系记忆归 Learner Model 统一治理。
+
+优点：补齐唯一缺失练习模态，差异化来自「扎根记录 + 关系记忆」；守住北极星与隐私边界；可分期落地。
+
+缺点：本质仍是 me-too 能力中 ROI 最差、依赖链最长者；在线依赖与本地优先气质存在张力，需优雅失败态与「练习对象而非助手」的产品定位缓解。
+
+## 影响
+
+- **产品定位文档**：`product-main-reference.md` §9.13 / §11 / §27 已吸收语伴定位与外发边界（本 ADR 与其保持一致，补充 ADR 交叉引用）；`docs/README.md`（CLAUDE.md）§3「产品不是 AI 聊天工具」需补一句「语伴是受本 ADR-008 约束的有界练习模态例外」，避免入口文档与本决策表面冲突。
+- **spec**：`spec/005`（语伴 Prompt 进 Registry、请求经 Provider、请求预览 / 日志、输出语言边界）、`spec/006`（主回复目标语、辅助面板界面语 / 母语边界）、`spec/008`（Memory 注入授权 UX）在 LM03 plan 落地时同步登记。
+- **Prompt Registry**：语伴 system prompt 必须进 `docs/prompts/` 与代码 Registry，选项→受控片段映射，不散落 UI / 服务代码。
+- **前置依赖**：
+  - **Provider 扩容**（本 ADR 的姊妹前置）：多轮 messages + 文本流式。**2026-06-25 已落地传输能力 + preview 投影就绪**（OpenAI 兼容族 chat/completions + responses；`AIChatStreamingService` → `AsyncThrowingStream`；见 `docs/plans/done/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md` 与 `docs/architecture/notes/2026-06-25-chat-streaming-provider-seam-notes.md`）。**对话级 log 写入接线随 LM03**（流式 outcome 终止后由 App-Shell recorder 写入，本前置只到投影就绪，不自带写入）。Anthropic Messages / mimo 流式适配仍后置（独立 `add-ai-provider` run）。
+  - **LM02**（学习画像总览 + Memory / Style 层 + `LearnerContextProvider` 扩展）：语伴 v2 的 Memory / Style 注入依赖之；v1 可退回静态 level + 仅 per-space 情景摘要。
+- **计划系列**：语伴 = ADR-006 影响节的 **LM03，排在最后**，依赖 LM02 + 本 Provider 扩容前置；本 ADR 不替 LM03 拆方案，仅定边界。**LM03-S1（MVP 单线程文本对话引擎）已于 2026-06-25 落地**（六硬边界全守：始终目标语 typed directive、话题源于记录方案 A、单线程 per-space、人设枚举防注入、不承接通用任务 directive、默认 OFF 开关；入口 = 练习 Tab 二级 + 记录详情，非第四 Tab；S1 零系统自动注入）；详见 `docs/plans/done/2026-06-25-feature-lm03-s1-companion-mvp.md`。S2（Memory 注入 + PII scrubbing）/ S3（流式 + 对话记忆）/ S4（Style + Anthropic）后续。
+- **既有备忘录对齐**：`2026-05-25-language-companion-extension-notes.md` 的 per-space 记忆假设与 ADR-006 系统级 Memory 的对齐在 LM03 plan 处理。
+
+## 风险
+
+- 语伴本质是 me-too 能力，差异化完全依赖记录语料、关系记忆、FTS 找话题三者成熟，价值后置。
+- 聊天 UI 让用户期待「随时秒回」，但语伴依赖在线 Provider，与本地优先气质张力最大；须靠失败态设计 + 「练习对象而非助手」定位缓解。
+- 长会话每轮重发历史 + 摘要，消耗用户自带 token，需成本可见与软提示。
+- Memory 注入是最浓缩 PII 外发点，授权 UX 与 PII scrubbing 若执行不严会越过核心决策 #10。
+
+## 复审条件
+
+以下情况需要复审本决策：
+
+- 语伴在真实使用中演变为顶层高频入口或产品重心，「不是聊天工具」前提不再成立。
+- 出现角色扮演 / 角色市场 / 情感陪伴的明确产品需求，六条硬边界不再适用。
+- 在线依赖与本地优先的张力在真实体验中无法用失败态 + 定位缓解，损害产品气质。
+- 商业模式或多用户 / 教学方向变化，使「单人、本地、练习模态」前提不再成立。

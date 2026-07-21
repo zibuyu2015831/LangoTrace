@@ -143,7 +143,7 @@ private extension SentenceTTSGenerationService {
         switch error {
         case .cancelled:
             .cancelled
-        case .timedOut, .networkUnavailable, .invalidHTTPResponse:
+        case .timedOut, .networkUnavailable, .invalidHTTPResponse, .unacceptableStatusCode:
             .networkFailed
         case .responseTooLarge:
             .audioTooLarge

@@ -207,6 +207,13 @@ private extension GRDBLearningContentRepositoryBridge {
     static var settingsCapabilities: [SettingsCapability] {
         [
             SettingsCapability(
+                kind: .companion,
+                status: .ready,
+                summary: "settings.companion.summary",
+                detail: "settings.companion.detail",
+                nextRequirement: "settings.companion.nextRequirement"
+            ),
+            SettingsCapability(
                 kind: .languageSpace,
                 status: .ready,
                 summary: "settings.languageSpace.summary",

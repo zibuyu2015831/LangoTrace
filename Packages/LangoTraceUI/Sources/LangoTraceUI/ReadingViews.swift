@@ -9,6 +9,8 @@ struct ReadingLibraryView: View {
     let ttsAction: ReadingTTSAction
     let cacheStorage: (any ExplanationCacheStorage)?
     var onOpenPhoneDocument: ((String) -> Void)?
+    var onLanguageSpaceAction: (() -> Void)?
+    var onSettingsAction: (() -> Void)?
     @StateObject private var documentStore: ReadingDocumentStore
     @State private var importTitle = ""
     @State private var importBody = ""
@@ -17,6 +19,8 @@ struct ReadingLibraryView: View {
     @State private var collectionDrafts: [String: String] = [:]
     @State private var tagDrafts: [String: String] = [:]
     @State private var isInspectorFolded = false
+    @Environment(\.readingLookupCaptureAction) private var readingLookupCaptureAction
+    @Environment(\.readingBandLevelSource) private var readingBandLevelSource
 
     init(
         platform: ReadingPlatformRole,
@@ -24,7 +28,9 @@ struct ReadingLibraryView: View {
         explanationAction: @escaping ReadingExplanationAction,
         ttsAction: @escaping ReadingTTSAction,
         cacheStorage: (any ExplanationCacheStorage)? = nil,
-        onOpenPhoneDocument: ((String) -> Void)? = nil
+        onOpenPhoneDocument: ((String) -> Void)? = nil,
+        onLanguageSpaceAction: (() -> Void)? = nil,
+        onSettingsAction: (() -> Void)? = nil
     ) {
         self.platform = platform
         self.store = store
@@ -32,6 +38,8 @@ struct ReadingLibraryView: View {
         self.ttsAction = ttsAction
         self.cacheStorage = cacheStorage
         self.onOpenPhoneDocument = onOpenPhoneDocument
+        self.onLanguageSpaceAction = onLanguageSpaceAction
+        self.onSettingsAction = onSettingsAction
         _documentStore = StateObject(wrappedValue: ReadingDocumentStore(
             documentID: store.selectedDocument?.id ?? "",
             spaceID: store.languageSpace.id,
@@ -53,6 +61,11 @@ struct ReadingLibraryView: View {
             case .pad, .mac:
                 desktopLibraryAndReader
             }
+        }
+        .task {
+            documentStore.reconnectLookupCapture(readingLookupCaptureAction)
+            documentStore.reconnectBandSource(readingBandLevelSource)
+            await documentStore.evaluateBandForDocumentOpen()
         }
         .sheet(isPresented: $isImportSheetPresented) {
             ReadingImportSheetView(
@@ -111,6 +124,8 @@ struct ReadingLibraryView: View {
             store: store,
             isImportSheetPresented: $isImportSheetPresented,
             isFileImporterPresented: $isFileImporterPresented,
+            onLanguageSpaceAction: onLanguageSpaceAction,
+            onSettingsAction: onSettingsAction,
             onOpenDocument: { documentID in
                 Task {
                     await store.openDocument(documentID, platform: .phone)
@@ -254,34 +269,24 @@ struct ReadingLibraryView: View {
         )
     }
 
+    @ViewBuilder
     private var readerPane: some View {
-        Group {
-            if let document = store.selectedDocument {
-                if let presentation = store.selectedPresentation {
-                    readerContent(document: document, presentation: presentation, includeOuterPadding: true)
-                } else {
-                    ReadingReaderEmptyState()
-                }
+        if let document = store.selectedDocument {
+            if let presentation = store.selectedPresentation {
+                readerContent(document: document, presentation: presentation, includeOuterPadding: true)
             } else {
                 ReadingReaderEmptyState()
             }
+        } else {
+            ReadingReaderEmptyState()
         }
     }
 
+    @ViewBuilder
     private func readerWorkbenchBody(layout: ReadingLayoutModel) -> some View {
-        Group {
-            if let document = store.selectedDocument {
-                if let presentation = store.selectedPresentation {
-                    readerContent(document: document, presentation: presentation, includeOuterPadding: false)
-                } else {
-                    ReadingReaderEmptyState()
-                        .frame(
-                            maxWidth: layout.workspaceStyle == .balancedWorkbench ? 780 : 720,
-                            minHeight: layout.workspaceStyle == .balancedWorkbench ? 460 : 420,
-                            alignment: .center
-                        )
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+        if let document = store.selectedDocument {
+            if let presentation = store.selectedPresentation {
+                readerContent(document: document, presentation: presentation, includeOuterPadding: false)
             } else {
                 ReadingReaderEmptyState()
                     .frame(
@@ -291,6 +296,14 @@ struct ReadingLibraryView: View {
                     )
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
+        } else {
+            ReadingReaderEmptyState()
+                .frame(
+                    maxWidth: layout.workspaceStyle == .balancedWorkbench ? 780 : 720,
+                    minHeight: layout.workspaceStyle == .balancedWorkbench ? 460 : 420,
+                    alignment: .center
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -417,6 +430,8 @@ struct ReadingDocumentDetailView: View {
     let ttsAction: ReadingTTSAction
     @StateObject private var documentStore: ReadingDocumentStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.readingLookupCaptureAction) private var readingLookupCaptureAction
+    @Environment(\.readingBandLevelSource) private var readingBandLevelSource
 
     init(
         platform: ReadingPlatformRole,
@@ -500,6 +515,11 @@ struct ReadingDocumentDetailView: View {
             if activeDocument?.id != documentID {
                 await store.openDocument(documentID, platform: platform)
             }
+        }
+        .task {
+            documentStore.reconnectLookupCapture(readingLookupCaptureAction)
+            documentStore.reconnectBandSource(readingBandLevelSource)
+            await documentStore.evaluateBandForDocumentOpen()
         }
         .task(id: detailDocumentSyncKey) {
             syncDetailDocumentStore()
@@ -635,6 +655,8 @@ private struct ReadingPhoneLibraryHomeView: View {
     @ObservedObject var store: ReadingLibraryStore
     @Binding var isImportSheetPresented: Bool
     @Binding var isFileImporterPresented: Bool
+    let onLanguageSpaceAction: (() -> Void)?
+    let onSettingsAction: (() -> Void)?
     let onOpenDocument: (String) -> Void
 
     var body: some View {
@@ -658,15 +680,20 @@ private struct ReadingPhoneLibraryHomeView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 16)
+            .padding(.top, 20)
             .padding(.bottom, 28)
         }
-        .navigationTitle(localizedString("tab.reading"))
         .langoPageBackground()
+        .phoneRootContextToolbar(
+            titleKey: "tab.reading",
+            languageSpace: store.languageSpace,
+            onLanguageSpaceAction: onLanguageSpaceAction ?? {},
+            onSettingsAction: onSettingsAction
+        )
     }
 
     private var header: some View {
-        // The large title comes from navigationTitle; only the subtitle lives here.
+        // Inline title carries the page identity; this subtitle introduces the library.
         Text(localizedString("reading.library.subtitle"))
             .font(.body)
             .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
@@ -734,30 +761,29 @@ private struct ReadingPhoneLibraryHomeView: View {
         ReadingLibraryFilterControls(store: store)
     }
 
+    @ViewBuilder
     private var documentList: some View {
-        Group {
-            if store.filteredDocuments.isEmpty {
-                ContentUnavailableView(
-                    localizedString("reading.library.empty.title"),
-                    systemImage: "book.closed",
-                    description: Text(localizedString("reading.library.empty.body"))
-                )
-            } else {
-                LazyVStack(alignment: .leading, spacing: 12) {
-                    ForEach(store.filteredDocuments, id: \.id) { document in
-                        ReadingLibraryDocumentRow(
-                            document: document,
-                            onOpen: { onOpenDocument(document.id) },
-                            onToggleFavorite: {
-                                Task {
-                                    await store.setFavorite(
-                                        documentID: document.id,
-                                        isFavorite: !document.isFavorite
-                                    )
-                                }
+        if store.filteredDocuments.isEmpty {
+            ContentUnavailableView(
+                localizedString("reading.library.empty.title"),
+                systemImage: "book.closed",
+                description: Text(localizedString("reading.library.empty.body"))
+            )
+        } else {
+            LazyVStack(alignment: .leading, spacing: 12) {
+                ForEach(store.filteredDocuments, id: \.id) { document in
+                    ReadingLibraryDocumentRow(
+                        document: document,
+                        onOpen: { onOpenDocument(document.id) },
+                        onToggleFavorite: {
+                            Task {
+                                await store.setFavorite(
+                                    documentID: document.id,
+                                    isFavorite: !document.isFavorite
+                                )
                             }
-                        )
-                    }
+                        }
+                    )
                 }
             }
         }
@@ -974,15 +1000,14 @@ private struct ReadingEmptyLibraryCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Image(systemName: "book.closed")
-                .font(.title2)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .frame(width: 52, height: 52)
-                .background(LangoTraceDesign.ColorToken.surfacePanel)
-                .clipShape(.circle)
             VStack(alignment: .leading, spacing: 8) {
-                Text(localizedString("reading.library.empty.title"))
-                    .font(.title3.weight(.semibold))
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Image(systemName: "book.closed")
+                        .font(.title3)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    Text(localizedString("reading.library.empty.title"))
+                        .font(.title3.weight(.semibold))
+                }
                 Text(localizedString("reading.library.empty.body"))
                     .font(.body)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
@@ -993,6 +1018,7 @@ private struct ReadingEmptyLibraryCard: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(LangoTraceDesign.ColorToken.primaryActionFill)
                 .controlSize(.large)
 
                 Button(action: onImportFile) {
@@ -1017,16 +1043,15 @@ private struct ReadingEmptyLibraryCard: View {
 private struct ReadingReaderEmptyState: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Image(systemName: "text.book.closed")
-                .font(.title2)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .frame(width: 52, height: 52)
-                .background(LangoTraceDesign.ColorToken.surfacePanel)
-                .clipShape(.circle)
             VStack(alignment: .leading, spacing: 8) {
-                Text(localizedString("reading.library.empty.title"))
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Image(systemName: "text.book.closed")
+                        .font(.title3)
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                    Text(localizedString("reading.library.empty.title"))
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                }
                 Text(localizedString("reading.inspector.body"))
                     .font(.body)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)

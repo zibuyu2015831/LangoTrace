@@ -392,6 +392,8 @@ extension CapabilityStatus {
 extension SettingsCapability.Kind {
     var localizedTitleKey: String {
         switch self {
+        case .companion:
+            "settings.companion.title"
         case .languageSpace:
             "settings.languageSpace.title"
         case .interfaceLanguage:

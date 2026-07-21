@@ -81,6 +81,51 @@ struct MemoryItemRepositoryTests {
         #expect(try await repository.depositedEntryIDs(spaceID: "space-1") == ["entry-1"])
     }
 
+    // MARK: - Companion conversation candidate deposit (LM03-S3b-2)
+
+    private func companionCandidate(id: String = "ccand-1", kind: LearningMemoryCandidate.Kind = .word) -> CompanionMemoryCandidate {
+        CompanionMemoryCandidate(
+            id: id, kind: kind, text: " via the chat", explanationNative: "来自聊天",
+            exampleTarget: "We chatted.", exampleNative: "我们聊了天。", createdAt: .init(timeIntervalSince1970: 0)
+        )
+    }
+
+    @Test("a companion candidate deposits with NULL entry_id and source_kind candidate")
+    func companionCandidateDepositsWithNullEntry() async throws {
+        let database = try makeDatabase()
+        let repository = try GRDBMemoryItemRepository(database: database)
+        let deposited = try await repository.deposit(
+            MemoryDepositInput(companionCandidate: companionCandidate(), spaceID: "space-1")
+        )
+        #expect(deposited.entryID == nil) // conversation candidate has no owning entry
+        #expect(deposited.sourceKind == .candidate)
+        #expect(deposited.kind == .wordPhrase)
+        #expect(deposited.reviewState == .new)
+        // entry_id is persisted as NULL.
+        let entryIDIsNull = try await database.databaseQueue.read { db in
+            try Bool.fetchOne(
+                db,
+                sql: "SELECT entry_id IS NULL FROM memory_items WHERE id = ?",
+                arguments: [deposited.id]
+            )
+        }
+        #expect(entryIDIsNull == true)
+    }
+
+    @Test("companion candidate deposit is idempotent on the same candidate id")
+    func companionCandidateDepositIdempotent() async throws {
+        let repository = try GRDBMemoryItemRepository(database: makeDatabase())
+        let first = try await repository.deposit(
+            MemoryDepositInput(companionCandidate: companionCandidate(), spaceID: "space-1")
+        )
+        let second = try await repository.deposit(
+            MemoryDepositInput(companionCandidate: companionCandidate(), spaceID: "space-1")
+        )
+        #expect(first.id == second.id)
+        #expect(try await repository.listMemoryItems(spaceID: "space-1").count == 1)
+        #expect(try await repository.depositedCandidateIDs(spaceID: "space-1") == ["ccand-1"])
+    }
+
     @Test("soft delete removes an item from the list and projections")
     func softDeleteHides() async throws {
         let repository = try GRDBMemoryItemRepository(database: makeDatabase())

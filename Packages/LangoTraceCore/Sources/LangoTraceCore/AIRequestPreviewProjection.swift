@@ -4,15 +4,48 @@ import Foundation
 /// preview projection and request log this module models (系列 E6).
 ///
 /// Closed set: extending it requires a deliberate new case plus a projection
-/// function in the owning service (see `LangoTraceAI`). The reserved
-/// `practiceBacktranslationReview` case has no projection function yet — it is
-/// the seam E5 Slice 2 (回译 AI 点评) plugs into without reshaping this contract.
+/// function in the owning service (see `LangoTraceAI`). Every case below has a
+/// live projection function.
 public enum AIRequestCapability: String, Codable, CaseIterable, Equatable, Sendable {
     case learningMaterialGeneration
     case readingSelectionExplanation
-    /// Reserved for E5 Slice 2; plugs into the existing
+    /// Back-translation critique; plugs into the existing
     /// `PracticeMode.backtranslation` practice seam.
     case practiceBacktranslationReview
+    /// Photo-writing AI assist (看图辅助写作). The *only* capability whose
+    /// projection includes `photoAttachments`: a photo enters an outbound AI
+    /// request solely through this explicit, user-triggered action. All other
+    /// capabilities keep excluding photos (see `LangoTraceAI`
+    /// `alwaysExcludedContent`).
+    case photoWritingAssist
+    /// Companion chat vocabulary / expression extraction (LM03-S2a). Sends the
+    /// *conversation the user already shared turn-by-turn* back to the same
+    /// provider, on an explicit "extract" action, to mine review candidates — the
+    /// same shape as 生成学习材料 / 重新分析 (re-send already-stored user content on
+    /// an explicit trigger). It introduces **no new outbound content category**:
+    /// its only included descriptor is `companionConversation`. NOT a system
+    /// auto-injection (decision #10) — that gated path is Memory injection (S2b).
+    case companionExtraction
+    /// Companion conversation send (LM03-S1 + S2b-1). The first capability that
+    /// models the *outbound conversation request itself*. When the user has
+    /// consented to Memory injection (and the per-conversation toggle is on), its
+    /// projection additionally discloses `.curatedLearnerMemory` — the **only**
+    /// path on which a curated, scrubbed subset of long-term memory egresses
+    /// (decision #10 system auto-injection, behind the one-time preview gate).
+    /// Preview-only in S2b-1: it does not write `ai_request_logs` (conversation-
+    /// level logging is deferred).
+    case companionConversation
+    /// Companion conversation summarization (LM03-S3b-1 "对话记忆"). When a single
+    /// conversation grows past the context window, the turns that age out are
+    /// folded into a rolling summary by an automatic summarization request. Its
+    /// only included descriptor is `companionConversation`: it re-sends turns of
+    /// *this same conversation* the provider already received earlier (when they
+    /// were fresh, in-window) — **no new outbound category, no external data**
+    /// (no Memory facts, no records). An evolution of context-window management,
+    /// within the companion's overall opt-in (decision #10 boundary holds: same
+    /// conversation, same provider, content already seen). Preview-only: it does
+    /// not write `ai_request_logs`.
+    case companionSummarization
 }
 
 /// Closed vocabulary describing *categories* of content a request includes or
@@ -29,9 +62,33 @@ public enum AIRequestContentDescriptor: String, Codable, CaseIterable, Equatable
     case readingContextWindow
     case practiceAttempt
     case backtranslationReferenceSentence
+    /// The companion conversation the user already shared turn-by-turn, re-sent on
+    /// an explicit "extract" action (LM03-S2a). Names the conversation as a
+    /// category — never the message bodies.
+    case companionConversation
     case nativeLanguageProfile
     case targetLanguageProfile
     case proficiencyLevel
+    /// The curated, scrubbed top-5 subset of long-term memory life facts that the
+    /// companion request injects after the user's one-time consent (LM03-S2b-1).
+    /// Deliberately distinct from `.longTermMemory`: the raw long-term memory
+    /// store stays globally excluded (never bulk-sent), while this names the
+    /// derived, consented subset that *is* sent — so the preview can honestly show
+    /// both "sends: curated subset" and "does not send: full memory store".
+    case curatedLearnerMemory
+    /// The learner's quantized writing-style register (formality + elaboration
+    /// tendency + a band-derived complexity ceiling) the companion injects after
+    /// the same one-time learner-profile consent as `.curatedLearnerMemory`
+    /// (LM03-S4a). Names the derived style categories as a class — never any raw
+    /// writing sample. Carries no user content, so it is the lowest-PII of the
+    /// injected categories.
+    case curatedLearnerStyle
+    /// One of the user's own saved records, brought into the conversation as a
+    /// topic — either explicitly by the user (方案A "talk about this record") or,
+    /// after one-time consent, auto-selected by the companion to find a topic
+    /// (方案B, LM03-S2b-2). Shared by both paths so the preview honestly discloses
+    /// that a record body is sent. Names the record as a category, never its body.
+    case broughtInRecords
     // Always-excluded categories (the privacy guarantees the preview asserts).
     case historicalEntries
     case photoAttachments

@@ -64,8 +64,12 @@ public enum AIProviderListStatus: String, Sendable, Equatable, CaseIterable {
         }
 
         let readyCount = readiness.count(where: { $0 })
-        if readyCount == 0 { return .missingKey }
-        if readyCount == readiness.count { return .configured }
+        if readyCount == 0 {
+            return .missingKey
+        }
+        if readyCount == readiness.count {
+            return .configured
+        }
         return .partiallyAvailable
     }
 }

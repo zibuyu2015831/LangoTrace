@@ -8,6 +8,13 @@ enum PhoneRoute: Hashable {
     case practiceSentence(PracticeSessionRouteSeed)
     case settings(SettingsCapability.Kind)
     case settingsList
+    /// Learner profile overview (LM02) — an independent settings navigation item,
+    /// not a `SettingsCapability`.
+    case learnerProfile
+    /// Language Companion chat (LM03-S1). Reached from the practice-tab secondary
+    /// entry (seed nil) or a record's "talk about this record" entry (seed with
+    /// `sourceEntryID`).
+    case companionChat(CompanionChatRouteSeed)
 }
 
 enum PhoneSheet: Identifiable {

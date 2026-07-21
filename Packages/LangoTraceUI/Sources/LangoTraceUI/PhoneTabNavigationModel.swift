@@ -30,17 +30,29 @@ final class PhoneTabNavigationModel {
     func replaceCurrentRoute(with route: PhoneRoute, on tab: PhoneRootTab) {
         switch tab {
         case .entries:
-            if entriesPath.isEmpty { entriesPath.append(route) }
-            else { entriesPath[entriesPath.count - 1] = route }
+            if entriesPath.isEmpty {
+                entriesPath.append(route)
+            } else {
+                entriesPath[entriesPath.count - 1] = route
+            }
         case .reading:
-            if readingPath.isEmpty { readingPath.append(route) }
-            else { readingPath[readingPath.count - 1] = route }
+            if readingPath.isEmpty {
+                readingPath.append(route)
+            } else {
+                readingPath[readingPath.count - 1] = route
+            }
         case .practice:
-            if practicePath.isEmpty { practicePath.append(route) }
-            else { practicePath[practicePath.count - 1] = route }
+            if practicePath.isEmpty {
+                practicePath.append(route)
+            } else {
+                practicePath[practicePath.count - 1] = route
+            }
         case .memory:
-            if memoryPath.isEmpty { memoryPath.append(route) }
-            else { memoryPath[memoryPath.count - 1] = route }
+            if memoryPath.isEmpty {
+                memoryPath.append(route)
+            } else {
+                memoryPath[memoryPath.count - 1] = route
+            }
         }
     }
 }

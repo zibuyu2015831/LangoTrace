@@ -48,7 +48,9 @@ struct SearchPaletteView: View {
                 .textFieldStyle(.plain)
                 .focused($queryFieldFocused)
                 .onSubmit {
-                    if let hit = store.selectedHit { onSelect(hit) }
+                    if let hit = store.selectedHit {
+                        onSelect(hit)
+                    }
                 }
             if store.isIndexing {
                 ProgressView().controlSize(.small)

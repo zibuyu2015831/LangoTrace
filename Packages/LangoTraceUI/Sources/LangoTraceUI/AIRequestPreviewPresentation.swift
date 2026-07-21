@@ -79,11 +79,29 @@ struct RequestPreviewCardModel: Equatable {
         case .nativeLanguageProfile: localizedString("requestPreview.content.nativeLanguageProfile")
         case .targetLanguageProfile: localizedString("requestPreview.content.targetLanguageProfile")
         case .proficiencyLevel: localizedString("requestPreview.content.proficiencyLevel")
+        case .companionConversation: localizedString("requestPreview.content.companionConversation")
+        case .curatedLearnerMemory: localizedString("requestPreview.content.curatedLearnerMemory")
+        case .curatedLearnerStyle: localizedString("requestPreview.content.curatedLearnerStyle")
+        case .broughtInRecords: localizedString("requestPreview.content.broughtInRecords")
         case .historicalEntries, .photoAttachments, .audioRecordings,
              .longTermMemory, .apiCredential, .otherLanguageSpaces:
             // Excluded categories are never rendered as "included"; surfaced via
             // the shared not-sent copy instead.
             ""
+        }
+    }
+
+    /// Localized label for an *excluded* descriptor when a preview wants to
+    /// explicitly reassure the user a category is NOT sent (LM03-S2b-1 companion
+    /// preview). Distinct from `label(for:)`'s included path, which keeps
+    /// `.longTermMemory` empty: here the raw full memory store is disclosed as
+    /// not-sent alongside the curated subset that is.
+    static func excludedDisclosureLabel(for descriptor: AIRequestContentDescriptor) -> String {
+        switch descriptor {
+        case .longTermMemory: localizedString("requestPreview.notSent.longTermMemory")
+        case .photoAttachments: localizedString("requestPreview.notSent.photoAttachments")
+        case .audioRecordings: localizedString("requestPreview.notSent.audioRecordings")
+        default: ""
         }
     }
 }

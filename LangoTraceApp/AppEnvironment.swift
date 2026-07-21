@@ -29,11 +29,22 @@ struct AppEnvironment {
     let localSearchActions: LocalSearchActions
     let memoryDepositActions: MemoryDepositActions
     let memoryReviewActions: MemoryReviewActions
+    /// LM02 Slice 1: learner profile overview seam (snapshot load + Memory governance).
+    let learnerProfileActions: LearnerProfileActions
+    // LM03-S1: Language Companion conversation seam + per-device feature switch (default OFF).
+    let companionChatActions: CompanionChatActions
+    let companionFeatureStore: any CompanionFeaturePreferenceStore
     let syncService: any SyncService
     // LM01: the Learner Model seam is assembled here so LM02's overview UI can consume
     // Ability knowledge coverage without re-wiring. No UI reads it yet (compute-on-read,
     // pure local; nil when the database is unavailable).
     let learnerContextProvider: (any LearnerContextProvider)?
+    // LM02-S2: Style surface-imprint seam (seam-only forward infra, no consumer yet).
+    let learnerStyleProvider: (any LearnerStyleProvider)?
+    // LM02-S4a: reading lookup-capture action persisting behaviour-signal events.
+    let readingLookupCaptureAction: ReadingLookupCaptureAction
+    // LM02-S4b: band-level source driving derive() (via hysteresis in the store).
+    let readingBandLevelSource: ReadingBandLevelSource
     // E12: recomputes settings row values (AI provider / sync / local data) off the main
     // thread from non-sensitive snapshots only — never Keychain plaintext, never a probe.
     let loadSettingsStatus: @Sendable () async -> SettingsStatusProjection
@@ -107,10 +118,12 @@ struct AppEnvironment {
             let database = try databaseFactory.database()
             let mediaRoot = try SentenceAudioPlaybackAssembly.defaultMediaArtifactsRoot()
             let fileStore = try LocalMediaArtifactFileStore(rootDirectory: mediaRoot)
-            let pipeline = PhotoImportPipeline(fileStore: fileStore, database: database)
-            photoWritingActions = PhotoWritingActions { data, entryID, spaceID in
-                _ = try pipeline.importPhoto(data: data, entryID: entryID, spaceID: spaceID)
-            }
+            photoWritingActions = PhotoWritingActionsAssembly.makeActions(
+                database: database,
+                fileStore: fileStore,
+                credentialStore: credentialStore,
+                aiRequestLogRecorder: aiRequestLogRecorder
+            )
         } catch {
             photoWritingActions = .disabled
             recordBootstrapComponentFailure(
@@ -191,6 +204,14 @@ struct AppEnvironment {
         let learnerContextProvider: (any LearnerContextProvider)? =
             (try? databaseFactory.database()).map { GRDBLearnerContextProvider(reader: $0.reader) }
 
+        // LM02-S2: Style surface-imprint provider (seam-only, no consumer yet).
+        let learnerStyleProvider: (any LearnerStyleProvider)? =
+            (try? databaseFactory.database()).map { GRDBLearnerStyleProvider(reader: $0.reader) }
+
+        // LM02-S4a/S4b: reading lookup-capture action + band-level source.
+        let readingLookupCaptureAction = makeReadingLookupCaptureAction(databaseFactory: databaseFactory)
+        let readingBandLevelSource = makeReadingBandLevelSource(databaseFactory: databaseFactory)
+
         // E12: settings status projection. Reads only the non-sensitive config snapshot and
         // the on-disk footprint; the sync value comes from the (disabled) sync service.
         let settingsConfigRepository: GRDBAIProviderConfigurationRepository? =
@@ -240,25 +261,13 @@ struct AppEnvironment {
         )
 
         // E8: local memory review queue (fixed-interval scheduler over E7 columns).
-        let memoryReviewActions = MemoryReviewActions(
-            loadDueBatch: { spaceID, limit in
-                guard let memoryItemRepository else { return [] }
-                return await (try? memoryItemRepository.dueItems(spaceID: spaceID, limit: limit, now: Date())) ?? []
-            },
-            recordOutcome: { id, outcome in
-                guard let memoryItemRepository else { return }
-                _ = try? await memoryItemRepository.recordReviewOutcome(id: id, outcome: outcome, now: Date())
-            },
-            markMastered: { id in
-                guard let memoryItemRepository else { return }
-                try? await memoryItemRepository.markMastered(id: id, now: Date())
-            },
-            statistics: { spaceID in
-                guard let memoryItemRepository else { return .zero }
-                return await (try? memoryItemRepository.memoryStatistics(spaceID: spaceID, now: Date())) ?? .zero
-            }
-        )
+        let memoryReviewActions = makeMemoryReviewActions(memoryItemRepository: memoryItemRepository)
 
+        let learnerProfileActions = makeLearnerProfileActions(
+            databaseFactory: databaseFactory,
+            learnerContextProvider: learnerContextProvider,
+            memoryItemRepository: memoryItemRepository
+        )
         return AppEnvironment(
             makeLanguageSpaceRepository: {
                 try GRDBLanguageSpaceRepository(
@@ -379,30 +388,19 @@ struct AppEnvironment {
             localSearchActions: localSearchActions,
             memoryDepositActions: memoryDepositActions,
             memoryReviewActions: memoryReviewActions,
+            learnerProfileActions: learnerProfileActions,
+            companionChatActions: makeCompanionChatActions(
+                databaseFactory: databaseFactory,
+                credentialStore: credentialStore
+            ),
+            companionFeatureStore: makeCompanionFeatureStore(),
             syncService: DisabledSyncService(),
             learnerContextProvider: learnerContextProvider,
+            learnerStyleProvider: learnerStyleProvider,
+            readingLookupCaptureAction: readingLookupCaptureAction,
+            readingBandLevelSource: readingBandLevelSource,
             loadSettingsStatus: loadSettingsStatus
         )
-    }
-}
-
-/// Thread-safe holder for the cached default text-generation endpoint that backs
-/// the synchronous preview-card projection seam (mirrors the locked-box pattern
-/// E0a adopted over `nonisolated(unsafe) static var`).
-final class AIRequestPreviewEndpointCache: @unchecked Sendable {
-    private let lock = NSLock()
-    private var endpoint: AIProviderEndpointInput?
-
-    func set(_ endpoint: AIProviderEndpointInput?) {
-        lock.lock()
-        defer { lock.unlock() }
-        self.endpoint = endpoint
-    }
-
-    func current() -> AIProviderEndpointInput? {
-        lock.lock()
-        defer { lock.unlock() }
-        return endpoint
     }
 }
 

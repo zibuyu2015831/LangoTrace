@@ -85,6 +85,7 @@ func defaultSettingsCapabilitiesAreReadOnly() {
     let capabilities = repository.settingsCapabilities(for: "en")
 
     #expect(capabilities.map(\.kind) == [
+        .companion,
         .languageSpace,
         .interfaceLanguage,
         .appearance,

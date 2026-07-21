@@ -10,9 +10,17 @@ func settingsRowValue(
     for kind: SettingsCapability.Kind,
     status: SettingsStatusProjection,
     interfaceLanguage: InterfaceLanguagePreference,
-    appearance: AppearancePreference
+    appearance: AppearancePreference,
+    companionEnabled: Bool? = nil
 ) -> String? {
     switch kind {
+    case .companion:
+        // The companion's on/off state is a device-global feature flag, not part of the
+        // (space-scoped) projection — it is passed in from the environment so the trailing
+        // value stays reactive in the iPad/Mac two-pane layout. `nil` means "unknown here".
+        companionEnabled.map {
+            localizedString($0 ? "settings.value.companion.enabled" : "settings.value.companion.disabled")
+        }
     case .interfaceLanguage:
         localizedString(interfaceLanguagePreferenceTitleKey(for: interfaceLanguage))
     case .appearance:

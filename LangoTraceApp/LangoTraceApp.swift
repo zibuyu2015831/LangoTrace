@@ -19,6 +19,9 @@ struct LangoTraceApp: App {
     @State private var settingsSceneStatus = SettingsStatusProjection()
     @State private var interfaceLanguagePreference: InterfaceLanguagePreference
     @State private var appearancePreference: AppearancePreference
+    /// LM03-S1: Language Companion feature switch, mirrored from the UserDefaults
+    /// store so toggling it re-renders the gated entries this session.
+    @State private var companionFeatureEnabled: Bool
 
     init() {
         let environment = AppEnvironment.bootstrap()
@@ -34,6 +37,7 @@ struct LangoTraceApp: App {
         )
         _interfaceLanguagePreference = State(initialValue: store.preference)
         _appearancePreference = State(initialValue: appearanceStore.preference)
+        _companionFeatureEnabled = State(initialValue: environment.companionFeatureStore.isEnabled)
         // Apply the chrome language before the first scene body resolves localized
         // strings. View `onAppear` runs after the first body evaluation, so this is
         // the only place that reliably covers the first render of every scene.
@@ -70,6 +74,12 @@ struct LangoTraceApp: App {
                 .environment(\.localSearchActions, environment.localSearchActions)
                 .environment(\.memoryDepositActions, environment.memoryDepositActions)
                 .environment(\.memoryReviewActions, environment.memoryReviewActions)
+                .environment(\.learnerProfileActions, environment.learnerProfileActions)
+                .environment(\.readingLookupCaptureAction, environment.readingLookupCaptureAction)
+                .environment(\.readingBandLevelSource, environment.readingBandLevelSource)
+                .environment(\.companionChatActions, environment.companionChatActions)
+                .environment(\.companionFeatureEnabled, companionFeatureEnabled)
+                .environment(\.setCompanionFeatureEnabled, setCompanionFeatureEnabled)
                 .preferredColorScheme(appearancePreference.preferredColorScheme)
                 .task { settingsSceneStatus = await environment.loadSettingsStatus() }
             }
@@ -137,10 +147,23 @@ struct LangoTraceApp: App {
         .environment(\.localSearchActions, environment.localSearchActions)
         .environment(\.memoryDepositActions, environment.memoryDepositActions)
         .environment(\.memoryReviewActions, environment.memoryReviewActions)
+        .environment(\.learnerProfileActions, environment.learnerProfileActions)
+        .environment(\.readingLookupCaptureAction, environment.readingLookupCaptureAction)
+        .environment(\.readingBandLevelSource, environment.readingBandLevelSource)
+        .environment(\.companionChatActions, environment.companionChatActions)
+        .environment(\.companionFeatureEnabled, companionFeatureEnabled)
+        .environment(\.setCompanionFeatureEnabled, setCompanionFeatureEnabled)
         .preferredColorScheme(appearancePreference.preferredColorScheme)
         .task {
             session.restoreLanguageSpace()
         }
+    }
+
+    /// Persists the Language Companion feature switch and mirrors it into view
+    /// state so the gated entries update immediately (LM03-S1, default OFF).
+    private func setCompanionFeatureEnabled(_ newValue: Bool) {
+        environment.companionFeatureStore.isEnabled = newValue
+        companionFeatureEnabled = newValue
     }
 
     private var resolvedInterfaceLanguageCode: String {

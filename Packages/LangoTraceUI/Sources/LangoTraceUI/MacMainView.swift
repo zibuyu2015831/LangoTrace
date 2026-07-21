@@ -448,7 +448,9 @@ private struct MacSidebarItem: View {
     }
 
     private var itemBackground: Color {
-        if active { return LangoTraceDesign.ColorToken.surfaceRaised }
+        if active {
+            return LangoTraceDesign.ColorToken.surfaceRaised
+        }
         return isHovered ? LangoTraceDesign.ColorToken.elevatedPaper : .clear
     }
 

@@ -216,7 +216,9 @@ public enum PracticeDictationDiff {
                 (0x3040 ... 0x309F).contains(value) || // Hiragana
                 (0x30A0 ... 0x30FF).contains(value) || // Katakana
                 (0xAC00 ... 0xD7AF).contains(value) // Hangul syllables
-            if isHan { return true }
+            if isHan {
+                return true
+            }
         }
         return false
     }

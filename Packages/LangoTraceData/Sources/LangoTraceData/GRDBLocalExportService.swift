@@ -93,13 +93,21 @@ public struct GRDBLocalExportService: @unchecked Sendable {
             var skippedEntries = 0
             for entry in package.entries {
                 let changed = try Self.insertOrIgnoreEntry(entry, in: db)
-                if changed { importedEntries += 1 } else { skippedEntries += 1 }
+                if changed {
+                    importedEntries += 1
+                } else {
+                    skippedEntries += 1
+                }
             }
             var importedMemories = 0
             var skippedMemories = 0
             for memory in package.memories {
                 let changed = try Self.insertOrIgnoreMemory(memory, in: db)
-                if changed { importedMemories += 1 } else { skippedMemories += 1 }
+                if changed {
+                    importedMemories += 1
+                } else {
+                    skippedMemories += 1
+                }
             }
             return ImportResult(
                 importedEntries: importedEntries,

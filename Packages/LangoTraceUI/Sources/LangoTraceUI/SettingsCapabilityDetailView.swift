@@ -61,7 +61,9 @@ struct SettingsCapabilityDetailView: View {
             }
 
             if !capability.requiresLanguageSpaceContext || languageSpace != nil {
-                if capability.kind == .aiProvider {
+                if capability.kind == .companion {
+                    companionSettingsContent
+                } else if capability.kind == .aiProvider {
                     aiProviderSettingsContainer
                 } else if capability.kind == .sync {
                     syncSettingsContainer
@@ -82,6 +84,10 @@ struct SettingsCapabilityDetailView: View {
         case .aiProvider:
             false
         case .interfaceLanguage, .appearance:
+            false
+        case .companion:
+            // The companion toggle row carries its own title + description, so a separate
+            // capability header would duplicate it.
             false
         default:
             true
@@ -173,6 +179,9 @@ struct SettingsCapabilityDetailView: View {
     private var appearanceSettingsContent: some View {
         let preferences = AppearancePreference.allCases
 
+        // Appearance is purely cosmetic (light/dark/system); no clarifying
+        // footnote is needed. The macOS inspector still surfaces the
+        // settings.appearance.selectionFootnote copy as its descriptive panel.
         return VStack(alignment: .leading, spacing: 12) {
             VStack(spacing: 0) {
                 ForEach(Array(preferences.enumerated()), id: \.element.id) { index, preference in
@@ -183,12 +192,6 @@ struct SettingsCapabilityDetailView: View {
                 }
             }
             .langoPanel(padding: 0)
-
-            localizedText("settings.appearance.selectionFootnote")
-                .font(.footnote)
-                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 2)
         }
     }
 
@@ -260,6 +263,25 @@ struct SettingsCapabilityDetailView: View {
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
+    private var companionSettingsContent: some View {
+        // The on/off switch (ADR-008 §2.6, default OFF) lives here, framed as a card, plus a
+        // grounding/privacy explanation. The companion has real side effects when enabled
+        // (it can send records to the provider on explicit use), so — unlike read-only
+        // capabilities — it does NOT show the "no side effects" panel.
+        VStack(alignment: .leading, spacing: 18) {
+            CompanionSettingsToggleRow()
+                .langoPanel(padding: 16)
+            LocalizedTextPanel(
+                titleKey: settingsCurrentBoundaryTitleKey,
+                textKey: "settings.companion.detail"
+            )
+            LocalizedTextPanel(
+                titleKey: settingsNextRequirementTitleKey,
+                textKey: "settings.companion.nextRequirement"
+            )
+        }
+    }
+
     private func defaultCapabilityContent(
         localizationKeys: SettingsCapabilityDetailLocalizationKeys
     ) -> some View {
@@ -311,7 +333,9 @@ struct SettingsCapabilityDetailView: View {
 
 private extension SettingsCapability {
     var requiresLanguageSpaceContext: Bool {
-        kind != .appearance && kind != .interfaceLanguage
+        // Companion, appearance and interface language are device-global settings — they are
+        // reachable and meaningful without a language space.
+        kind != .appearance && kind != .interfaceLanguage && kind != .companion
     }
 }
 

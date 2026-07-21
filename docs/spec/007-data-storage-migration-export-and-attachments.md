@@ -46,7 +46,7 @@
 
 #### 3.1.2 派生数据
 
-派生数据来自主数据、模型推理、索引或缓存重建，例如 `LearningMaterial` 分析结果、memory / practice candidate、FTS / 向量索引、TTS artifact 和各类可重建摘要。
+派生数据来自主数据、模型推理、索引或缓存重建，例如 `LearningMaterial` 分析结果、memory / practice candidate（学习材料候选 `memory_candidates` 与语伴聊天反哺候选 `companion_memory_candidates`，二者均为升级为记忆条目前的评审暂存）、FTS / 向量索引、TTS artifact 和各类可重建摘要。
 
 默认生命周期不是通用 CRUD，而是：
 
@@ -211,3 +211,63 @@ E10 Slice 1 落地本地非敏感导出/导入引擎（无新 migration，导出
 - Data `GRDBLocalExportService`：`exportPackage(spaceID:)`/`exportPackageData` 导出 entries + deposited memory_items（用户主数据）；`preview`/`importPackage` verify-before-write（先校验 formatVersion ≤ 当前 + checksum，再同 id skip 合并）。明文开放格式，**无加密**——secrets 是排除而非保护（核心决策 9）；manifest schemaVersion 记 `v26`（informational）。
 - 排除保证（有测试断言导出 JSON 不含 keychain/secret/api_key）：凭证/Keychain 列、provider/TTS 配置、ai_request_logs 与 operation 摘要、search_index/向量/cache/tts artifacts 派生、app_state 设备本地。
 - **deferred**（见 `docs/architecture/notes/2026-06-18-export-backup-deferred-slices.md`）：Slice 2（macOS `fileExporter`/`fileImporter` + entitlement + 附件文件打包，需 macOS runner 验证）、加密/口令备份包（依赖不存在的 KDF/安全存储）、其余主数据表（learning materials/reading/practice）导出。引擎格式已证明，扩展为机械工作。
+
+## 变更记录补充：学习者模型 Memory 层落地（LM02 Slice 1，2026-06-25）
+
+LM02 Slice 1 落地 Learner Model 的 **Memory 层**——用户**显式记住**的生活事实 / 目标，系统级横切语言空间（ADR-006 §3）：
+
+- migration `v27_create_learner_memory_facts`：**仓库首张系统级表**，刻意**无 `space_id`/无 space FK**（事实全局共享，切换空间可见、删空间不级联删，ADR-006 §7.1）；`source_entry_id TEXT REFERENCES entries(id) ON DELETE SET NULL`（弱引用，事实比来源记录长寿，沿用 `memory_items.entry_id` 先例）；`kind`/`visibility`/`source`/三策略列均带 CHECK 约束；`soft_deleted_at REAL`。索引 `idx_learner_memory_facts_active_created(soft_deleted_at, created_at)`。
+- **准原始持久化策略（ADR-006 §8，与 TTS 派生资产相反）**：策略列复用 Core `MediaArtifact*Policy` 词汇但取 `sync_policy=localOnly` / `backup_policy=includedInSystemBackup` / `export_policy=includedInRecoverableBackup`（**真实枚举字面值**，不存在 `included`）。
+- **删除语义（二段式）**：单条删 = `soft_deleted_at` 置位（可查看已删除 / 撤销）；系统级「重置 App 对我的了解」= `resetAll()` **物理 DELETE**（使「重置」名实相符，并消除最浓缩 PII 软删明文残留）。v2 自动抽取的 tombstone 暂不建（v1 无抽取）。
+- **写 seam**：`AppDatabase` 新增 `public var writer: DatabaseWriter`（LM01 §20 预告），`GRDBLearnerMemoryRepository` 经此拥有系统级读写。Ability 覆盖仍 compute-on-read 不持久（E7/LM01 不受影响）。
+- **静态安全**：v1 复用整库 `FileProtection.completeUntilFirstUserAuthentication`（iOS）；**字段级加密 / SQLCipher 未决**（ADR-006 §5.2），记入 `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`。
+- **E10 硬接缝**：可恢复备份**必须**纳入 `learner_memory_facts`（`export_policy=includedInRecoverableBackup`），否则删库 = 永久失忆；实际打包随 E10 后续切片（当前 Slice 2 deferred），接缝由上述 architecture note 托管。
+
+## 变更记录补充：学习者模型 Style 表面印记（LM02 Slice 2，2026-06-25）
+
+LM02 Slice 2 落地 Learner Model 的 **Style 层 v1 表面写作印记**（seam-only，不展示）：
+
+- **compute-on-read 真派生、不持久、不进备份**：`GRDBLearnerStyleProvider` 从 `entries.body` 机械重算（`NaturalLanguage` 检测语种 + 机械分词指标 + 按母语分组），**无新表 / 无 writer / 无 migration**，与 LM01 Ability 同型；`entries` 本身已纳主数据备份，重算即得。
+- **ADR-006 §8 持久化分类分层细化**：§8 把整个 Style 层列「准原始 → 纳入备份」**未分 v1/v2**；本切片 reconcile——**v1 表面印记 = 真派生不持久**；§8「准原始 → 持久 + 备份」实质仅适用 **v2 自陈 / AI 认知风格**（不可从行为廉价重算）。事实源 `docs/architecture/notes/2026-06-25-style-surface-imprint-recompute-notes.md`。
+- **红线（ADR-006 §4）**：只读 `entries.body`，绝不读 `learning_materials` / `learning_text` / `input_kind` / `memory_candidates`（AI 生成物）。语言判定靠 `NLLanguageRecognizer`，`entries.source` 非语言键。
+- 与 LM01 Ability（compute-on-read 不持久）、S1 Memory（准原始 → `includedInRecoverableBackup`）、S3 盲点（compute-on-read 不持久）并列，构成 Learner Model 三层持久化分叉的完整图景：**能从已备份源数据廉价重算者不持久；不可廉价重算者（Memory 显式记住 / v2 认知风格）才准原始 + 备份**。
+
+## 变更记录补充：查词行为捕获 + 分析账本（LM02 Slice 4a，2026-06-25）
+
+LM02 Slice 4a 落地 S4b band 重估的**信号 + 增量重算地基**（硬前置 S1 v27 + writer seam）：
+
+- migration `v28_create_dictionary_lookup_events`：查词 / 索取解释**行为事件**（`language_space_id` FK ON DELETE CASCADE、`looked_up_term`、`source_content_id`、`source_content_origin TEXT CHECK('userAuthored','aiGenerated') DEFAULT 'userAuthored'`、`occurred_at`、`soft_deleted_at`）。**显式持久化策略列**：`sync_policy=localOnly` / `backup_policy=excludedFromSystemBackup` / `export_policy=excludedByDefault`——**「不可重算用户行为信号」新类别**（非照搬 practice_text_attempts 伪先例：后者无策略列、归档导出方案列其为主数据；spec §112 的 local-only 讲的是 TTS / 媒体派生资产）。索引 `(language_space_id, soft_deleted_at, occurred_at)` 支撑窗口查询。
+- migration `v29_create_analysis_ledger`：ADR-006 §9 分析账本 + 高水位 cursor 首次建对——键 `UNIQUE(source_type, source_id, analyzer, analyzer_version)` + `cursor_position`（增量窗口聚合、非 per-item 旗标）；升 `analyzer_version` = 新行 cursor 0 = 全量重跑；cursor 单调推进（stale advance 忽略）。账本以 `(source_type, source_id)` 引用源，不在源表加列（查词事件 `source_type='dictionaryLookup'`）。
+- **持久化分层**：查词事件 = 不可重算用户行为信号（local-only 不备份不导出，设备迁移后丢失——S4b band 须能从剩余信号优雅降级重估）；账本 / cursor = 派生状态（可从事件重算）。**开放产品问题**：查词事件是否应像 practice 主数据可导出，v1 默认否。
+- **红线（ADR-006 §4）**：repository / 埋点写入字段仅用户行为（term + 时间 + 内容引用），绝不记 AI 判定难度 / AI 点评内容。FileProtection 接缝登记进 `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`。
+- **source_content_origin 前向接缝**：v1 阅读文档恒用户导入（`reading_documents.source_kind` 仅 pastedText/fileImport），故 v1 恒 `userAuthored`；`aiGenerated` 分支待未来「学习材料可作阅读源」基础设施落地再填 + S4b 启用二阶闭环过滤。
+
+## 变更记录补充：语伴会话存储（LM03 Slice 1，2026-06-25）
+
+LM03-S1 落地语伴单线程文本对话的 GRDB 存储（硬前置 S1 writer seam）：
+
+- migration `v30_create_companion_infrastructure`，三表均 per-space、显式策略列：
+  - `conversation_companions`（`space_id` PK/FK ON DELETE CASCADE、人设三枚举 `tone`/`formality`/`correction` 带 CHECK）。
+  - `companion_threads`（`space_id` FK CASCADE、`source_entry_id` FK **ON DELETE SET NULL**=方案 A 弱链、`created_at`）。
+  - `companion_messages`（`thread_id` FK CASCADE、`UNIQUE(thread_id, sequence)` 线性序、`role` CHECK('user','assistant')、`content`、`detected_language`、`target_language_code`、**语音前向接缝** `input_modality` CHECK('text','voice') DEFAULT 'text' + `audio_artifact_id`（v1 恒 null，FK 待语音切片））。
+- **持久化策略第三类（区别于 S4a 行为信号）**：companion 三表 = **可恢复用户主数据**，显式 `sync_policy=localOnly` / `backup_policy=includedInSystemBackup` / `export_policy=includedByDefault`——与 entries / learning content 同备份+导出口径，仅不同步（对话历史的价值在跨会话持续存在；ADR-008 §4「可导出」）。这是 spec 三分法的明确补充：① 可重建派生（向量索引，不备份不导出）；② 不可重算行为信号（`dictionary_lookup_events`，excluded）；③ **可恢复用户主数据（companion，included）**。
+- **隐私边界**：S1 零系统自动注入（不读 Memory facts / 不 FTS）；外发仅用户消息 + 显式带入单条 Entry，经 Provider 抽象 + E6 投影。Memory 注入 + PII scrubbing = LM03-S2b。
+- 语音接缝事实源：`docs/architecture/notes/2026-06-25-companion-voice-input-and-engine-boundary-notes.md`。
+
+## 变更记录补充：语伴聊天反哺候选（LM03 Slice 2a，2026-06-26）
+
+LM03-S2a 落地语伴聊天反哺的派生候选存储与产出证据前向接缝：
+
+- migration `v31_create_companion_reflux_infrastructure`，新表 `companion_memory_candidates`（**独立表，不改 `memory_candidates`**——后者 `entry_id`/`material_id` NOT NULL FK 物理排斥聊天来源行；改可空需 12 步整表重建，触碰学习内容主路径，故隔离，plan §D1）：
+  - 列 `id` PK、`space_id` FK CASCADE、`thread_id` FK `companion_threads` CASCADE、`message_id` FK `companion_messages` **ON DELETE SET NULL**（弱链：删来源消息→候选存活、`message_id` 置 NULL）、`kind`（复用学习材料候选 5 值 CHECK）、`text`、`explanation_native`、`example_target`、`example_native`、`status`（CHECK 'candidate'）、`created_at`/`updated_at`。
+  - **派生数据分类（plan §D4）**：与 `memory_candidates` 一致，**无 sync/backup/export 策略列**——评审暂存、可复算（删 thread CASCADE / 重算 = 显式重新提取），local-only。主数据边界在「升级为记忆条目」（`learner_memory_facts`，已进可恢复备份）。备份恢复一致性：恢复后 `companion_messages`（主数据）在、`companion_memory_candidates`（派生）不在，用户可对保留对话重新显式提取——与 `memory_candidates` 删材料后需重新分析一致，属可接受降级。
+- **产出证据前向读接缝（交付物 B）**：`GRDBCompanionRepository.productionUtterances(spaceID:after:)` 只读既有 v30 列（`role='user'` 且行内 `detected_language == target_language_code`），**无新表、无迁移、无 ledger 常量、不改 band**；band 消费 = 后续演进片（备忘录 `docs/architecture/notes/2026-06-26-companion-reflux-production-signal-and-candidate-unification-notes.md`）。
+- **隐私边界**：提取 = 用户显式触发重发已存对话（同「重新分析」），非系统自动注入；capability `companionExtraction` 仅含 `companionConversation` 类目，无新外发类目，请求预览显式披露。Memory 注入 = LM03-S2b。
+
+## 变更记录补充：语伴 Memory 注入 per-conversation 开关（LM03 Slice 2b-1，2026-06-26）
+
+LM03-S2b-1 落地语伴 Memory 注入两层隐私控制的第二层（per-conversation 开关）；第一层（全局三态 consent）持久化在 `UserDefaults`（`CompanionMemoryConsent`，非敏感、与 `CompanionFeaturePreferenceStore` 同层），不进 DB。
+
+- migration `v32_create_companion_memory_toggle`：`ALTER TABLE companion_threads ADD COLUMN uses_learner_profile INTEGER NOT NULL DEFAULT 1`。每条既有 thread 默认「跟随全局 consent」（与 `CompanionThread.usesLearnerProfile` 的 `true` 默认一致）；为 0 时该会话无论全局 consent 如何都不注入 Memory。
+- **非派生、随会话主数据**：该列是 per-conversation 偏好，骑乘 `companion_threads` 既有 sync/backup/export 策略列（local-only、可恢复），不单列策略列。
+- **注入外发边界（决策 #10 首个系统自动注入实例）**：Memory 注入 = 系统自动外发，受**首次开启的一次性预览 + 全局关 + per-conversation 开关**三道控制（spec/008 §2）；注入前对**注入片段 + 历史回放 + 用户输入**统一 PII scrubbing（手机号 / 身份证号，outbound-only，**存原文、发脱敏**，不写 DB / 日志）。`learner_memory_facts` 仍 local-only 主数据、不新增任何同步 / 备份外发。

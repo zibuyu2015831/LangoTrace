@@ -5,6 +5,15 @@ import Foundation
 /// v1 only sources from explicit memory deposits.
 public enum LearnerSourceType: String, Sendable, Equatable {
     case memoryItem
+    /// A Memory-layer fact the user explicitly saved (LM02). No source row in
+    /// any table — provenance is the user's own action.
+    case manualMemory
+    /// A dictation `practice_text_attempts` row backing a blind spot (LM02-S3).
+    /// `LearnerEvidenceRef` is in-memory only (never persisted), so adding a case
+    /// carries no raw-value persistence compatibility burden.
+    case practiceTextAttempt
+    /// An `entries.body` source-language entry backing a Style imprint (LM02-S2).
+    case entryBody
 }
 
 /// Provenance reference for a covered knowledge point (ADR-006 §9). Single-row FK
@@ -32,4 +41,11 @@ public protocol LearnerContextProvider: Sendable {
     /// from active deposited sources. Returns an empty coverage (not nil/throw) when the
     /// language has no active deposits.
     func abilityCoverage(languageCode: String) throws -> AbilityCoverage
+
+    /// System-level Memory facts (LM02), oldest-first. `visibility == nil` returns
+    /// every active fact (the governance / overview view); a non-nil value filters
+    /// to that visibility (future companion consumption). Two real consumers — the
+    /// overview page and the future companion — lift idea-01 §12.2's YAGNI concern,
+    /// so this is exposed as its own read method (not a "difficulty ∪ facts" union).
+    func memoryFacts(visibility: MemoryFactVisibility?) throws -> [MemoryFact]
 }

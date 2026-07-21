@@ -10,6 +10,8 @@ enum PadWorkspaceRoute: Equatable {
     case reading
     case settingsList
     case settings(SettingsCapability.Kind)
+    case learnerProfile
+    case companionChat(CompanionChatRouteSeed)
     case memory
     case importExport
     case languageSpaceManagement
@@ -18,6 +20,8 @@ enum PadWorkspaceRoute: Equatable {
         switch self {
         case .workspace:
             "pad.route.workspace"
+        case .companionChat:
+            "companion.entry.title"
         case .entryDetail:
             "entryDetail.title"
         case .bilingualReading:
@@ -28,6 +32,8 @@ enum PadWorkspaceRoute: Equatable {
             "tab.reading"
         case .settingsList, .settings:
             "tab.settings"
+        case .learnerProfile:
+            "learnerProfile.title"
         case .memory:
             "tab.memory"
         case .importExport:

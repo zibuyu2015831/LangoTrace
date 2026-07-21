@@ -8,8 +8,9 @@ enum AIProviderTextRequestAdapterError: Error, Equatable {
     /// The endpoint base URL could not be turned into a request URL.
     case invalidEndpointURL
     /// The adapter kind has no text-provider implementation yet
-    /// (`anthropicMessages` / `geminiGenerateContent` are reserved extension
-    /// points; real wiring happens via `docs/workflows/add-ai-provider.md`).
+    /// (`geminiGenerateContent` is the remaining reserved extension point;
+    /// `anthropicMessages` is wired as of LM03-S4b — real wiring happens via
+    /// `docs/workflows/add-ai-provider.md`).
     case unsupportedProvider
     /// The response body could not be decoded into model output text.
     case invalidResponseBody
@@ -31,7 +32,9 @@ enum AIProviderTextRequestAdapterFactory {
             OpenAIResponsesTextAdapter()
         case .mimoCompatibleChat:
             MimoCompatibleChatTextAdapter()
-        case .anthropicMessages, .geminiGenerateContent:
+        case .anthropicMessages:
+            AnthropicMessagesTextAdapter()
+        case .geminiGenerateContent:
             throw AIProviderTextRequestAdapterError.unsupportedProvider
         }
     }
@@ -70,12 +73,115 @@ protocol AIProviderTextRequestAdapter: Sendable {
         maximumOutputTokens: Int
     ) -> [String: Any]
 
+    /// Body for a **structured-output (JSON schema) request that also carries one
+    /// inline image** — the contract the photo-writing assist capability needs.
+    ///
+    /// This is deliberately separate from `imagePromptBody` (which is plain-text,
+    /// schema-less, and capped at a tiny probe token budget) and from
+    /// `structuredCompletionBody` (which carries no image). Returns `nil` for
+    /// adapter kinds that do not support combining an image with structured
+    /// output; the photo-writing assist service treats `nil` as
+    /// "unsupported adapter" so support stays structural rather than implicit.
+    func structuredImagePromptBody(
+        model: String,
+        system: String,
+        user: String,
+        temperature: Double,
+        structuredOutputName: String,
+        schema: [String: Any],
+        imageDataURL: String,
+        maximumOutputTokens: Int
+    ) -> [String: Any]?
+
     /// Extracts model output text from a decoded response object, or `nil` when
     /// the payload carries no recognizable output text.
     func outputText(fromResponseObject object: [String: Any]) -> String?
+
+    /// Provider-specific request headers (auth scheme plus any version pins) to
+    /// apply to a finalized request. This is a **protocol requirement** — not an
+    /// extension-only helper — so per-kind overrides dispatch through the
+    /// `any AIProviderTextRequestAdapter` existential the services hold. The
+    /// OpenAI-compatible default returns `Authorization: Bearer`; Anthropic
+    /// overrides to `x-api-key` + `anthropic-version`; mimo overrides to
+    /// `api-key`. Returns an empty dictionary when no secret is present.
+    func providerRequestHeaders(secret: String?) -> [String: String]
+
+    /// Body for a **multi-turn, streaming** chat request (the language-companion
+    /// transport seam). Carries an ordered `[ConversationMessage]` plus an
+    /// optional leading system segment, with `stream: true` baked in.
+    ///
+    /// Returns `nil` for adapter kinds with no streaming chat implementation
+    /// (`geminiGenerateContent` — rejected by the factory; the default inherits
+    /// `nil`). OpenAI Chat / Responses / mimo and Anthropic override it. The
+    /// streaming service treats `nil` as "unsupported provider" so support stays
+    /// structural.
+    func streamingChatBody(
+        model: String,
+        system: String?,
+        messages: [ConversationMessage]
+    ) -> [String: Any]?
+
+    /// Extracts the incremental text delta from a single SSE `data:` payload for
+    /// this adapter's stream shape (chat/completions vs Responses events), or
+    /// `nil` for chunks that carry no text.
+    func streamContentDelta(fromDataPayload payload: String) -> String?
 }
 
 extension AIProviderTextRequestAdapter {
+    /// Default: no structured-image support. Kinds that support it (OpenAI Chat /
+    /// Responses) override this; mimo and the reserved kinds inherit `nil`.
+    func structuredImagePromptBody(
+        model _: String,
+        system _: String,
+        user _: String,
+        temperature _: Double,
+        structuredOutputName _: String,
+        schema _: [String: Any],
+        imageDataURL _: String,
+        maximumOutputTokens _: Int
+    ) -> [String: Any]? {
+        nil
+    }
+
+    /// Default: no streaming chat support. OpenAI Chat / Responses / mimo
+    /// override; the reserved kinds inherit `nil`.
+    func streamingChatBody(
+        model _: String,
+        system _: String?,
+        messages _: [ConversationMessage]
+    ) -> [String: Any]? {
+        nil
+    }
+
+    /// Default: no stream delta shape. Overridden per kind.
+    func streamContentDelta(fromDataPayload _: String) -> String? {
+        nil
+    }
+
+    /// Default OpenAI-compatible auth: `Authorization: Bearer` when a non-blank
+    /// secret is present, no auth header otherwise. Anthropic / mimo override
+    /// this requirement; OpenAI Chat / Responses inherit the default.
+    func providerRequestHeaders(secret: String?) -> [String: String] {
+        guard let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return [:]
+        }
+        return ["Authorization": "Bearer \(secret)"]
+    }
+
+    /// Shared `messages`/`input` wire array builder: optional leading system
+    /// segment, then the ordered turns mapped to `{role, content}` dictionaries.
+    func conversationWireMessages(
+        system: String?,
+        messages: [ConversationMessage]
+    ) -> [[String: String]] {
+        var wire: [[String: String]] = []
+        if let system, !system.isEmpty {
+            wire.append(["role": ConversationRole.system.rawValue, "content": system])
+        }
+        wire.append(contentsOf: messages.map { ["role": $0.role.rawValue, "content": $0.content] })
+        return wire
+    }
+
     /// Builds a finalized POST `URLRequest`: resolves the URL via the shared
     /// URL builder, sets JSON content type, injects the Bearer credential when
     /// present, serializes `body`, and applies the optional timeout.
@@ -92,10 +198,12 @@ extension AIProviderTextRequestAdapter {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            // Bearer is the OpenAI-compatible scheme. Anthropic's `x-api-key`
-            // header strategy will be injected by its own adapter when added.
-            request.setValue("Bearer \(secret)", forHTTPHeaderField: "Authorization")
+        // Auth scheme + any version pins come from the per-kind requirement so
+        // a non-Bearer provider (Anthropic `x-api-key`, mimo `api-key`) dispatches
+        // through the existential the services hold rather than being locked to
+        // the OpenAI Bearer default here.
+        for (field, value) in providerRequestHeaders(secret: secret) {
+            request.setValue(value, forHTTPHeaderField: field)
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         if let timeoutSeconds {
@@ -179,8 +287,59 @@ struct OpenAICompatibleChatTextAdapter: AIProviderTextRequestAdapter {
         ]
     }
 
+    func structuredImagePromptBody(
+        model: String,
+        system: String,
+        user: String,
+        temperature: Double,
+        structuredOutputName: String,
+        schema: [String: Any],
+        imageDataURL: String,
+        maximumOutputTokens: Int
+    ) -> [String: Any]? {
+        [
+            "model": model,
+            "temperature": temperature,
+            "response_format": [
+                "type": "json_schema",
+                "json_schema": [
+                    "name": structuredOutputName,
+                    "strict": true,
+                    "schema": schema,
+                ],
+            ],
+            "messages": [
+                ["role": "system", "content": system],
+                [
+                    "role": "user",
+                    "content": [
+                        ["type": "text", "text": user],
+                        ["type": "image_url", "image_url": ["url": imageDataURL]],
+                    ],
+                ],
+            ],
+            "max_tokens": maximumOutputTokens,
+        ]
+    }
+
     func outputText(fromResponseObject object: [String: Any]) -> String? {
         OpenAICompatibleResponseTextParser.chatCompletionsText(fromResponseObject: object)
+    }
+
+    func streamingChatBody(
+        model: String,
+        system: String?,
+        messages: [ConversationMessage]
+    ) -> [String: Any]? {
+        [
+            "model": model,
+            "messages": conversationWireMessages(system: system, messages: messages),
+            "stream": true,
+        ]
+    }
+
+    func streamContentDelta(fromDataPayload payload: String) -> String? {
+        OpenAIStreamDeltaExtractor.chatCompletionsContentDelta(fromDataPayload: payload)
     }
 }
 
@@ -244,8 +403,59 @@ struct OpenAIResponsesTextAdapter: AIProviderTextRequestAdapter {
         ]
     }
 
+    func structuredImagePromptBody(
+        model: String,
+        system: String,
+        user: String,
+        temperature: Double,
+        structuredOutputName: String,
+        schema: [String: Any],
+        imageDataURL: String,
+        maximumOutputTokens: Int
+    ) -> [String: Any]? {
+        [
+            "model": model,
+            "temperature": temperature,
+            "text": [
+                "format": [
+                    "type": "json_schema",
+                    "name": structuredOutputName,
+                    "strict": true,
+                    "schema": schema,
+                ],
+            ],
+            "input": [
+                ["role": "system", "content": system],
+                [
+                    "role": "user",
+                    "content": [
+                        ["type": "input_text", "text": user],
+                        ["type": "input_image", "image_url": imageDataURL],
+                    ],
+                ],
+            ],
+            "max_output_tokens": maximumOutputTokens,
+        ]
+    }
+
     func outputText(fromResponseObject object: [String: Any]) -> String? {
         OpenAICompatibleResponseTextParser.responsesText(fromResponseObject: object)
+    }
+
+    func streamingChatBody(
+        model: String,
+        system: String?,
+        messages: [ConversationMessage]
+    ) -> [String: Any]? {
+        [
+            "model": model,
+            "input": conversationWireMessages(system: system, messages: messages),
+            "stream": true,
+        ]
+    }
+
+    func streamContentDelta(fromDataPayload payload: String) -> String? {
+        OpenAIStreamDeltaExtractor.responsesContentDelta(fromDataPayload: payload)
     }
 }
 
@@ -317,26 +527,14 @@ struct MimoCompatibleChatTextAdapter: AIProviderTextRequestAdapter {
         OpenAICompatibleResponseTextParser.chatCompletionsText(fromResponseObject: object)
     }
 
-    func makeRequest(
-        baseURL: String,
-        secret: String?,
-        body: [String: Any],
-        timeoutSeconds: TimeInterval?
-    ) throws -> URLRequest {
-        guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: baseURL, pathSuffix: pathSuffix)
-        else {
-            throw AIProviderTextRequestAdapterError.invalidEndpointURL
+    /// mimo authenticates with a bare `api-key` header rather than
+    /// `Authorization: Bearer`. Overriding the dispatched requirement (instead of
+    /// a same-name `makeRequest` overload, which the existential never reaches)
+    /// is what actually applies this header on the shared request path.
+    func providerRequestHeaders(secret: String?) -> [String: String] {
+        guard let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return [:]
         }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            request.setValue(secret, forHTTPHeaderField: "api-key")
-        }
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        if let timeoutSeconds {
-            request.timeoutInterval = timeoutSeconds
-        }
-        return request
+        return ["api-key": secret]
     }
 }

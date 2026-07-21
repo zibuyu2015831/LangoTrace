@@ -4,151 +4,136 @@
 自审核状态：N/A（导航/指针文档，不含生产代码变更）
 类型：docs
 创建日期：2026-06-15
-最后更新日期：2026-06-18（E5 Slice 1 纯本地回译落地，方案因 Slice 2 deferred 保持 active；当前指针推进至 E6）
+最后更新日期：2026-06-25（系列收尾后转为学习者模型系列 LM02/LM03 的实施指针；已删除 01–15 + 原型/infra 的历史 Phase 明细，仅保留前向可执行内容）
 
 ## 这份文档是什么
 
-本文件是 `docs/plans/active/` 的**活的进度仪表盘与跨会话恢复指针**，只做导航：
+`docs/plans/active/` 的**进度仪表盘 + 跨会话恢复指针**，只做导航：一行登记每份方案状态、标出**实施顺序与门控**、记录**待用户决策**。新会话从这里读「下一步实施什么、按什么顺序、还缺哪些前置」。
 
-- 一行状态登记 active/ 全部方案；
-- 标出推荐实施顺序与「下一步从这里继续」的当前指针；
-- 承载单份方案的状态字段看不出的 **Phase 级子进度**（当前主要是 plan 01）。
+它**不是**事实源：每份方案的权威范围 / TDD 落点 / 自审核见各方案文件；历史决策与 ~110 条审查处置见 `docs/plans/done/2026-06-11-chore-code-review-and-dev-plan-series.md` 附录 A。冲突以权威文档为准。
 
-它**不是**事实源，不替代任何权威文档：
+## 实施环境约束（实施前必读）
 
-- 历史决策与 ~110 条审查发现处置全表 → 主控文档（已 Done）`docs/plans/done/2026-06-11-chore-code-review-and-dev-plan-series.md` 附录 A。
-- 验证真相（Mac/CI 跑没跑、绿没绿）→ `docs/testing/2026-06-15-architecture-foundations-pending-verification.md` 及后续各 Phase 待验证清单。
-- 每份方案的权威范围、TDD 落点、自审核 → 各方案文件本身。
+- **Linux 环境**：无 Swift 工具链，所有 `swift test` / `xcodebuild` / `swiftformat` / `swiftlint` 走 GitHub Actions；触发 CI 前仓库临时设 public、commit message 带 `[ci]`，跑完设回 private。
+- **MacBook 环境**：本机只跑轻量单包测试（`swift test --package-path Packages/<target>`）+ 格式检查；重测试（`scripts/verify.sh` 全量、三端构建、跨多包）一律放 GitHub Actions（被动散热设备防过热降频）。
+- **合并 `main`**：禁止本地直接 merge/push；经 PR + `Build & Test` 绿勾合并（CLAUDE.md 决策 #18）。日常开发在 `dev` 分支。
 
-冲突时以上述权威文档为准；本仪表盘只反映「推进到哪了」。
+## 已完成基线（不再展开）
 
-## 实施环境约束
+- **01–15 实施系列 + LM01 + 原型/infra 修复：全部 Implemented/Verified + CI 绿，已移入 `done/`**（记录详情见各 done 方案 + 上述主控文档附录 A）。其中 LM01 落地了独立包 `LangoTraceLearnerModel`（Ability 知识覆盖 compute-on-read，无 migration），是 LM02/LM03 的地基。
+- **E10（导入导出）/ E11（同步引擎）：Slice 1 / 引擎切片已落地 + CI 绿，因依赖不存在的基础设施（加密 KDF/安全存储；iCloud container/付费 capability/真实账号/多设备）诚实 defer，已于 2026-06-25 整体移入 `docs/archive/plans/`**（active/ 收敛为学习者模型系列），恢复入口见 `docs/archive/plans/README.md` 与各方案自审核记录。**硬接缝（不随归档失效）**：E10 实现可恢复备份时**必须**纳入 LM02-S1 的 `learner_memory_facts`（否则删库=永久失忆），事实源为 `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`。
 
-读取本仪表盘时，须先检测开发设备环境，按以下分支约束实施方式：
+## ✅ 第 1+2 批 + enabler 全部完成（2026-06-25）
 
-- **Linux 环境**：无 Swift 工具链，所有 `swift test` / `xcodebuild` / `swiftformat` / `swiftlint` 走 GitHub Actions；触发 CI 前需将仓库临时设为 public、commit message 带 `[ci]`，跑完可设回 private。
-- **MacBook 环境**：本机可执行轻量单包测试（`swift test --package-path Packages/<target>`）和格式检查（`swiftformat --lint` / `swiftlint`）；重测试（全量验证 `scripts/verify.sh`、三端构建、跨多包测试）一律放 GitHub Actions，避免被动散热设备过热降频。
+**LM02 本地优先系列 + enabler 六片已全部落地、CI 绿、移入 `done/`**：enabler（AI Provider 多轮+流式）、LM02-S1（Memory 层 + 总览页 v27）、S2（Style seam-only）、S3（盲点 dictation diff）、S4a（查词捕获 + 账本 v28/v29）、S4b（band 重估 + derive 迟滞）。ADR-006 §10.1 band 契约修订 artifact 已写入。各片 §17 文档影响已回写（ADR-006 / spec/007 / architecture 001+002 / page-inventory / idea-01+02 / 架构备忘录）。`active/` 现仅余导航/拆解/边界文档 + 未授权的 LM03 系列。
 
-> **基线**：plan 01 全部 Phase 已 CI `Build & Test` 全绿（run `27595028506`，HEAD `2258e10`），已移入 `done/`。
+**下一次授权候选**：**LM03-S2 已于 2026-06-25 按风险拆 S2a/S2b**（用户决策，仿 S4a/S4b）。**LM03-S2a（聊天反哺：chat→候选提取 + 产出证据前向接缝，入站/低外发）已于 2026-06-26 实现完成、移 `done/`**（五 Phase TDD + **全量 CI `Build & Test` 全绿（run 28186684074：v31 迁移 + iPhone/iPad/macOS 构建 + macOS app test + 全包测试 + lint）**；[`done/2026-06-25-feature-lm03-s2a-companion-reflux.md`](../done/2026-06-25-feature-lm03-s2a-companion-reflux.md)）。**S2b（S2b-1 + S2b-2）已于 2026-06-26 全部 Done + CI 绿、移 done/**。**LM03-S3 已按风险拆 S3a/S3b；S3a（文本流式 UX + 温和复述，低风险）已于 2026-06-26 实现完成、移 `done/`**（双轮自审 → 授权 → 六落点 TDD〔engine onPartial 累积 / `AsyncStream` 单 MainActor 顺序消费 / in-flight 气泡 / 温和复述 read-modify-write〕 + **全量 CI `Build & Test` 全绿 run 28226376483**；流式只改显示，无新 migration/capability/外发类目，band 红线未碰；[`done/2026-06-26-feature-lm03-s3a-companion-streaming-and-recast.md`](../done/2026-06-26-feature-lm03-s3a-companion-streaming-and-recast.md)）。**LM03-S3b 已按风险拆 S3b-1/S3b-2；S3b-1（对话记忆/滚动摘要，高风险地基）已于 2026-06-26 实现完成、移 `done/`**（双轮自审 2 P0+多 P1/P2 → 授权 → 逐落点 TDD〔v33 + 一致性六态 / shouldSummarize 纯函数 / summarize + scrub + conversationMemory 注入 / band 红线守卫〕 + **全量 CI `Build & Test` 全绿 run 28229050120**〔首轮捕获跨包 exhaustive switch 破坏、补 case 后重跑绿〕；[`done/2026-06-26-feature-lm03-s3b1-companion-rolling-summary.md`](../done/2026-06-26-feature-lm03-s3b1-companion-rolling-summary.md)）。**LM03-S3b-2（对话小结：候选批量 deposit 闭合「对话→记忆」）已于 2026-06-26 实现完成、移 `done/`**（双轮自审两 P0 经核验非破坏 → 授权 → 逐落点 TDD + **全量 CI 绿 run 28243788513**；复用 S2a 提取 + E7/E8 幂等 deposit，无新 AI/外发/migration；[`done/2026-06-26-feature-lm03-s3b2-companion-session-deposit.md`](../done/2026-06-26-feature-lm03-s3b2-companion-session-deposit.md)）。**至此 LM03-S3b（对话记忆 + 对话小结）全部 Done**。**LM03-S4（v2）已于 2026-06-27 按风险拆 S4a（Style 注入）/ S4b（Anthropic 适配）；§9 Style 时机收口 = A（未来 S4a 注入 v1 surface Style）。S4b（Anthropic Messages 多轮+流式适配）已于 2026-06-27 实现完成、移 `done/`**（双轮自审 → 授权 → TDD：鉴权升可动态派发协议要求 `providerRequestHeaders`〔连带修复 mimo 死 override 潜伏鉴权 bug〕 + `AnthropicMessagesTextAdapter`〔顶层 system / max_tokens / `content[].text` / `content_block_delta` 流式 / 无 [DONE] EOF 终止〕 + 工厂/UI 探针放行；**全量 CI 绿 run 28252751284**；无新 migration/capability/外发类目，语伴零 App 改动；自审 P1-1 跨测试破坏 6 处本机当场捕获；[`done/2026-06-27-feature-lm03-s4b-anthropic-messages-adapter.md`](../done/2026-06-27-feature-lm03-s4b-anthropic-messages-adapter.md)）。**LM03-S4a（Style 受控片段注入 + i+1 下投影）已于 2026-06-27 实现完成、移 `done/`**（双轮自审 P0 band 红线〔守卫钉死，注释误伤已订正〕+ P1 闭集破坏〔计划内上修〕 → 授权 → TDD：Core `CompanionStyleDescriptor` + `.curatedLearnerStyle` / LearnerModel `CompanionStyleProjection`〔正式度镜像 + 复杂度 **ceiling=band.estimatedLevel 只读封顶** + sampleCount 阈值〕 / AI `<<<STYLE>>>` 渲染 + `.styleGroundedPersona` + 透传 / UI exhaustive switch 上修 + 本地化 / App 同 `uses_learner_profile` 门装配 + 预览披露 Memory+Style；**全量 CI 绿 run 28256888515**；Style 块零原始内容 → 无需 scrub、复用 S2b-1 consent、无新 migration/capability/外发类目；i+1 v1 mapping 落地、认知风格 v2 后置；[`done/2026-06-27-feature-lm03-s4a-companion-style-injection.md`](../done/2026-06-27-feature-lm03-s4a-companion-style-injection.md)）。**🎉 至此 LM03 语伴系列（S1→S2a→S2b-1→S2b-2→S3a→S3b-1→S3b-2→S4b→S4a）全部 Done——文本对话引擎主体 + 找话题 + Memory/Style 注入 + 流式 + 对话记忆 + 小结 + Anthropic 适配全部落地。** 下一候选 = 待用户指定（语伴远期：语音对话 / 场景模式 / 向量检索；或其它系列）。历史：S2b 按用户决策拆 **S2b-1 / S2b-2**：**S2b-1（Memory 注入 + 两层隐私 + PII scrubbing〔手机号+身份证〕，最高隐私门核心）= Done 2026-06-26**（双轮自审 → 授权 → 六 Phase TDD → 全量 CI 绿 run 28214663981，[`done/...s2b1-companion-memory-injection.md`](../done/2026-06-26-feature-lm03-s2b1-companion-memory-injection.md)）；**S2b-2（方案B 找话题）= Draft 边界登记、强依赖 S2b-1 先落地**（[`...s2b2-companion-active-topic-finding.md`](2026-06-26-feature-lm03-s2b2-companion-active-topic-finding.md)）。Memory 注入 v1 排序已定 = **时近性 + 种类配额**。S3 / S4 子片待开工前再拆；五个登记孤儿（语伴逐句 TTS 朗读接线〔S1 偏差〕/ S3 deposit 子增量 / 改写消费者 / onboarding 措辞 / AI 校准 v2）。
 
-## 当前指针
+## 当前实施重点：学习者模型系列（LM02 + LM03）
 
-> **批量自主执行已编排**（2026-06-18）：E6…LM01 的全部剩余工作项方案，由仓库根目录编排手册 `BATCH-EXECUTION-PLAYBOOK.md` 统一驱动（用户已完全预授权，每方案独立分支 → 本地 merge dev → CI 绿 → 移 done/，不动 main，AI 自审后重排顺序）；`/goal` 指令见根目录 `BATCH-EXECUTION-GOAL.md`。本仪表盘仍为进度事实源，run 级游标见 Playbook §9。
-
-> **当前指针**：**系列收尾**。批量 run 的 9 份工作项方案已全部处置——**E6 / E5（S1+S2）/ E9 / E7 / E8 / LM01 / E12 已实现 + CI 全绿并移入 `done/`**；**E10 Slice 1 与 E11 引擎切片已落地 + CI 全绿，因依赖不存在的基础设施（加密 KDF/安全存储；iCloud container/付费 capability/真实账号/多设备）诚实 defer，保持 In Progress 留 `active/`**，恢复入口见各自 architecture note。E12（设置真实状态投影，run `27752466241`）为最后一份。E10/E11 的落地与 defer 边界详见状态总表第 13/14 行与各自方案「完成状态（批量 run）」段；批量游标详见 Playbook §9「整批结束」。
+> 来源 idea：`docs/idea/01-learner-model.md`（总纲，已固化为 ADR-006）/ `02-dynamic-proficiency-assessment.md` / `03-conversation-partner.md`（已固化定位 ADR-008）。三份 idea 内容已全部拆解为下列方案（AI 校准 v2 刻意不预拆，留外发增量后置）。
 >
-> _历史指针_：E10 `docs/plans/active/2026-06-11-13-feature-import-export-backup.md`。**E8（记忆复习队列）已于 2026-06-18 落地并 CI 全绿**（run `27747133409`，已移入 done/）：Core 固定间隔调度器 + repository 复习方法 + iPhone 统计条/复习会话；无新 migration。
->
-> _历史指针_：E8 `docs/plans/active/2026-06-11-11-feature-memory-review-queue.md`（记忆复习队列）。**E7（记忆沉淀基础）已于 2026-06-18 落地并 CI 全绿**（run `27745572810`，已移入 done/）：v26 memory_items 主数据（含 E8 review 列）+ 幂等候选沉淀 + 三端只读沉淀列表 + iPhone 加入记忆动作 + 真实 settled 时间线筛选；解锁 E8 复习队列与 E9 记忆搜索组。
->
-> _历史指针_：E7 `docs/plans/active/2026-06-11-10-feature-memory-deposit-foundation.md`（记忆沉淀基础）。**E9（本地 FTS 全文搜索）已于 2026-06-18 落地并 CI 全绿**（run `27742853935`，已移入 done/）：v25 FTS5 trigram 索引 + 应用层 writer + 分组查询（trigram/LIKE 降级、space 隔离、rebuild-on-open）+ mac 命令面板/iPad sheet 复用既有搜索命令；记忆搜索组待 E7 落地。E7 解锁 E8（复习队列）与 E9 记忆搜索组。
->
-> _历史指针_：E9 `docs/plans/active/2026-06-11-12-feature-local-fts-search.md`（本地 FTS 全文搜索）。**E5 Slice 2（回译可选 AI 点评）已于 2026-06-18 落地并 CI 全绿**（run `27741263024`，已连同 Slice 1 移入 done/）：显式「请 AI 点评」触发 + footnote 披露 + 无判定输出契约 + E6 预览/日志接入，运行期保留显式触发（核心决策 10）。E5 整体收口。
->
-> _下方为历史指针_：E5 Slice 2 `docs/plans/active/2026-06-11-08-feature-practice-backtranslation.md`（回译可选 AI 点评）。**E6（AI 请求预览 + 请求日志基础）已于 2026-06-18 落地并 CI 全绿**（run `27738605916`，已移入 done/）：Core 投影/日志模型、v24 `ai_request_logs`、AI 同源 previewProjection()/makeLogEntry()、UI 真实预览卡 + 内容无正文日志列表（iPad/mac/设置可达）、App-Shell `AIRequestLogRecorder` 在真实 generate/analyze/explain 三态写日志。E6 解锁 E5 Slice 2 的技术门禁（预留 capability `practiceBacktranslationReview`）。E5 Slice 2 的「单独隐私授权」门禁由批量 run 总授权 §1 满足（预授权 dev 阶段构建该功能，实现须保留运行期显式「请 AI 点评」触发，不默认自动外发）。下一步推进 E5 Slice 2。
+> **用户已定（2026-06-25）**：① 实施节奏 = **拆完→门控分批实现**；② 语伴 = **直接拆完整聊天引擎**；③ LM02-S2 = **do-now / seam-only**；④ 本轮**仅拆 plan、暂未授权任何实现**。
 
-## 状态总表
+### 实施顺序与门控
 
-状态取值：`Draft`（草稿，需逐份自审核 + 用户确认）→ `User Approved` → `In Progress` → `Implemented` → 移入 `done/`。
+**每份方案进入实现前的通用门控**：(a) 双轮自审完成 → `Reviewed`；(b) **用户实现授权**（当前全部未授权）；(c) 含 migration / 三端 UI 的收口走 GitHub Actions CI。
 
-| 序 | 系列 | 方案 | 主题 | 状态 |
-|---|---|---|---|---|
-| 01 | E0a | `2026-06-11-01-refactor-architecture-foundations` | Core/Data/AI/Speech 架构地基整固 | ✅ **Verified**（CI run `27595028506` 全绿，已移入 done/） |
-| 02 | E0b | `2026-06-11-02-refactor-ui-architecture-debt` | UI/App 层结构债清偿 | ✅ **Verified**（2026-06-17 本机 UI/Data/Core 三包测试全绿，已移入 done/） |
-| 03 | E1 | `2026-06-11-03-feature-record-timeline-and-filters` | 记录生活时间线 + 三端筛选投影 | ✅ **Verified**（2026-06-17 全 5 Phase 实施完成 + post-E1 清理，已移入 done/） |
-| 04 | E2 | `2026-06-11-04-feature-entry-photo-attachment-and-photo-writing` | 照片附件主数据 + 照片引导写作 | ✅ **Verified**（2026-06-17 全 5 Phase 实施完成 + 文档收口，已移入 done/） |
-| 04-FU | E2 follow-up | `2026-06-17-bug-photo-writing-detail-image-missing` | 照片写作记录详情不展示图片 | ✅ **Verified**（2026-06-17 模拟器验证通过，含旧库修复；已移入 done/） |
-| 04-FU-b | E2 infra | `2026-06-17-bug-photo-detail-card-layout` | 照片记录详情图片卡片布局修复 | ✅ **Verified**（2026-06-17 已实施 + 验证，已移入 done/） |
-| 04-FU-c | E2 infra | `2026-06-17-bug-photo-writing-legacy-attachment-repair` | 照片写作旧数据附件修复与运行验证 | ✅ **Verified**（2026-06-17 模拟器验证通过，已移入 done/） |
-| 05 | R1 | `2026-06-11-05-feature-reading-experience-completion` | 阅读体验收口 | ✅ **Implemented**（2026-06-17 全 4 Phase 实施完成，已移入 done/） |
-| 06 | E3 | `2026-06-11-06-feature-practice-mode-routing-foundation` | 练习方式路由基础 | ✅ **Implemented**（2026-06-17 Core/Data/UI 轻量测试通过，已移入 done/） |
-| 07 | E4 | `2026-06-11-07-feature-practice-dictation` | 听写练习 | ✅ **Implemented**（2026-06-18 Core/Data/UI 轻量测试通过，已移入 done/） |
-| 08 | E5 | `2026-06-11-08-feature-practice-backtranslation` | 回译练习 | ✅ **Implemented**（Slice 1 run `27734245351` + Slice 2 可选 AI 点评 run `27741263024` 均 Build & Test 全绿，已移入 done/） |
-| 09 | E6 | `2026-06-11-09-feature-ai-request-preview-and-log-foundation` | AI 请求预览 + 请求日志基础 | ✅ **Implemented**（2026-06-18 CI run `27738605916` Build & Test 全绿，已移入 done/） |
-| 10 | E7 | `2026-06-11-10-feature-memory-deposit-foundation` | 记忆沉淀基础 | ✅ **Implemented**（2026-06-18 CI run `27745572810` Build & Test 全绿，已移入 done/） |
-| 11 | E8 | `2026-06-11-11-feature-memory-review-queue` | 记忆复习队列 | ✅ **Implemented**（2026-06-18 CI run `27747133409` Build & Test 全绿，已移入 done/） |
-| 12 | E9 | `2026-06-11-12-feature-local-fts-search` | 本地 FTS 全文搜索 | ✅ **Implemented**（2026-06-18 CI run `27742853935` Build & Test 全绿，已移入 done/） |
-| 13 | E10 | `2026-06-11-13-feature-import-export-backup` | 导入导出与可恢复备份包 | 🟡 **In Progress**（Slice 1 非敏感导出/导入引擎 2026-06-18 CI run `27748408455` 全绿；Slice 2 macOS 文件面板/附件打包 + 加密备份 + 其余主数据表诚实 defer，方案保持 active） |
-| 14 | E11 | `2026-06-11-14-feature-sync-engine-icloud-foundation` | 同步引擎 + iCloud 首通道 | 🟡 **In Progress**（引擎切片：Sync Engine + Adapter 协议 + 冲突解决器 + 真实 SyncService 协议 + ADR-007，2026-06-18 CI run `27749378002` 全绿；CloudKit 真实通道 / entitlement / 变更跟踪 schema 写路径 / 双设备验证诚实 defer，方案保持 active） |
-| 15 | E12 | `2026-06-11-15-feature-settings-status-projection` | 设置真实状态投影 | ✅ **Implemented**（2026-06-18 CI run `27752466241` Build & Test 全绿，已移入 done/；设置行值投影 + UIV-08 硬编码清零；sync 行真实通道接线 deferred） |
-| — | LM01 | `2026-06-15-01-feature-learner-model-boundary-and-ability-coverage` | 学习者模型边界 + Ability 覆盖 | ✅ **Implemented**（2026-06-18 CI run `27749945215` Build & Test 全绿，已移入 done/；新独立包 LangoTraceLearnerModel + 知识覆盖 compute-on-read，无 migration） |
-| — | — | `2026-06-15-chore-prototype-large-screen-density-and-state-coverage` | 原型大屏密度 + 状态原型补全 | ✅ **Verified**（2026-06-16 截图验收通过，已移入 done/） |
-| — | infra | `2026-06-17-bug-build-errors-xcodegen-import-exhaustive-switch` | XcodeGen 注册 + import + exhaustive switch 构建修复 | ✅ **Verified**（2026-06-17 已修复，已移入 done/） |
-| — | infra | `2026-06-17-bug-generation-sqlite-unique-constraint` | 生成学习材料 SQLite 唯一约束冲突修复 | ✅ **Verified**（2026-06-17 已修复，已移入 done/） |
+```text
+独立基础设施（可与第 1/2 批并行先行，退 spike 险，不压在语伴关键路径）
+  ✅ AI Provider 多轮 + 文本流式（OpenAI 兼容族；Anthropic 后置）  ← 2026-06-25 已 Done（Phase 0 spike gate 过 + CI 全绿，已移 done/）；LM03 仅消费
 
-说明：
+第 1 批（本地优先，零外发，可门控为一批）
+  ✅ LM02-S1（Memory 层 + 学习画像总览页）   ← 2026-06-25 已 Done（v27 migration + writer seam + 三端总览页 + CI 绿，已移 done/）；S2/S3/S4a 硬前置已满足
+     ↓
+  ✅ LM02-S3（盲点：dictation diff 派生）       ← 2026-06-25 已 Done（填 S1 盲点分区 + CI 绿，已移 done/）；compute-on-read 无 migration
+  ✅ LM02-S2（Style：seam-only 不展示）         ← 2026-06-25 已 Done（compute-on-read seam-only + CI 绿，已移 done/）；无 migration
+        （S2/S3 均 read-only，不依赖 S1 的 writer，但 S3 展示依赖 S1 总览页先落地）
 
-- 01–15 是 2026-06-11 全量代码审查派生的连号实施系列；E 编码与处置见主控文档附录 A。
-- 后两份为 2026-06-15 新增：LM01 已落地并 CI 绿（独立包 LangoTraceLearnerModel + Ability 知识覆盖 compute-on-read），已移入 done/；原型收尾已实现并自审核 Reviewed，仅差归档。
-- **批量 run（2026-06-18）已收尾**：01–15 + LM01 系列里，E6 / E5（S1+S2）/ E9 / E7 / E8 / LM01 / E12 全部 Implemented + CI 绿并移入 done/；E10（Slice 1）与 E11（引擎切片）已落地 + CI 绿，但因依赖不存在的基础设施（加密 KDF/安全存储；iCloud container/付费 capability/真实账号/多设备）诚实 defer，保持 In Progress 留 active/，恢复入口见各自 architecture note。
+第 2 批（band，最高风险，须第 1 批 S3 信号成熟 + 回归充分）— 2026-06-25 已拆 S4a/S4b 各自 active plan + 双轮 + 隔离再审
+  ✅ S4a（查词捕获 + 分析账本/cursor，v28/v29 migration）  ← 2026-06-25 已 Done（不动 derive()；查词 local-only 新类别 + ADR-006 §9 账本+cursor + AI 解释 seam 埋点 + CI 绿，已移 done/）
+     ↓
+  ✅ S4b（band 服务 + derive() 迟滞 + 总览呈现，最高风险）       ← 2026-06-25 已 Done（唯一碰 derive()；BandHysteresis 迟滞 + band 仅喂 derive 不增外发字段 + 不展示降级 + CI 绿，已移 done/）
 
-## plan 01（E0a）Phase 级子进度
+第 3 批（语伴 = 完整聊天引擎；消费上方已退险的 Provider 多轮/流式 infra）
+  ✅ LM03-S1（MVP 单线程文本对话引擎）       ← 2026-06-25 已 Done（五 Phase TDD + 全量 CI 绿 run 28178973216，已移 done/）；TTS 朗读暂缓（§18 偏差，加性后续）
+     ↓
+  LM03-S2 已拆 S2a/S2b（2026-06-25，仿 S4a/S4b）；S2b 再拆 S2b-1/S2b-2（2026-06-26 用户决策）
+    ✅ S2a（聊天反哺：chat→候选 + 产出前向接缝，入站/低外发）  ← Done 2026-06-26（CI 全绿 run 28186684074）
+       ↓
+    ✅ S2b-1（Memory 注入 + 两层隐私 + PII scrubbing〔手机号+身份证〕，最高隐私门核心）  ← Done 2026-06-26（六 Phase TDD + 全量 CI 绿 run 28214663981，已移 done/）
+       ↓
+    ✅ S2b-2（方案B 找话题：一次性授权 + recency 智能最小发送 top-1）  ← Done 2026-06-26（六 Phase TDD + 全量 CI 绿 run 28217180799，连带修复方案A seedEntryBody 脱敏遗漏，已移 done/）
+     ↓
+  LM03-S3 已拆 S3a/S3b（2026-06-26）
+    ✅ S3a（文本流式 UX + 温和复述，低风险）  ← Done 2026-06-26（双轮自审 1 P0+多 P1 写回 → 授权 → 六落点 TDD：engine onPartial 累积 + AsyncStream 单 MainActor 顺序消费 + in-flight 气泡 + 温和复述 read-modify-write；全量 CI 绿 run 28226376483；流式只改显示无新 migration/capability/外发类目，band 红线未碰；已移 done/）
+       ↓
+    S3b 已拆 S3b-1/S3b-2（2026-06-26，两半风险异质）
+      ✅ S3b-1（对话记忆/滚动摘要：上下文窗口压缩 + 失效重建一致性，高风险）  ← Done 2026-06-26（双轮自审 2 P0+多 P1/P2 → 授权 → 逐落点 TDD：v33 + 一致性六态 / shouldSummarize 纯函数 / summarize + scrub + 注入 / band 红线守卫；全量 CI 绿 run 28229050120〔首轮捕获跨包 exhaustive switch 破坏、补 case 后重跑绿〕；摘要只压缩本会话已外发内容、无新外发类目、无新 consent 门、band 红线未碰；已移 done/）
+         ↓
+      ✅ S3b-2（对话小结 §3.12：候选批量 deposit 闭合「对话→记忆」，中低风险）  ← Done 2026-06-26（双轮自审两 P0 经核验降级非破坏 + P1/P2 → 授权 → 逐落点 TDD：Core companion deposit init + Data 幂等 + UI 批量标记；全量 CI 绿 run 28243788513；复用 S2a 提取 + E7/E8 幂等 deposit，无新 AI/外发/migration，band 红线未碰；已移 done/）
+     ↓
+  LM03-S4（v2）已按风险拆 S4a/S4b（2026-06-27，§9=A 收口）
+      ✅ S4b（Anthropic Messages 多轮+流式适配）  ← Done 2026-06-27（双轮自审 → 授权 → TDD：鉴权升可动态派发协议要求 providerRequestHeaders〔修复 mimo 死 override 潜伏鉴权 bug〕 + AnthropicMessagesTextAdapter〔顶层 system / max_tokens / content[].text / content_block_delta 流式 / 无 [DONE] EOF 终止〕 + 工厂/UI 探针放行；全量 CI 绿 run 28252751284；无新 migration/capability/外发类目，语伴零 App 改动；自审 P1-1 跨测试破坏 6 处本机当场捕获；已移 done/）
+         ↓
+      ✅ S4a（Style 受控片段注入 + i+1 下投影）  ← Done 2026-06-27（双轮自审 P0 band 红线 + P1 闭集破坏均钉死/上修 → 授权 → TDD：CompanionStyleProjection〔正式度镜像 + 复杂度 ceiling=band.estimatedLevel 只读封顶〕 + <<<STYLE>>> 渲染 + 同 uses_learner_profile 门装配；全量 CI 绿 run 28256888515；Style 块零原始内容→无需 scrub、复用 S2b-1 consent、无新 migration/capability/外发类目；已移 done/）
 
-权威范围见方案 §12；验证收敛见待验证清单。此处仅记完成度。
+  🎉 LM03 语伴系列全部 Done（S1→S2a→S2b-1→S2b-2→S3a→S3b-1→S3b-2→S4b→S4a）
 
-| Phase | 内容 | 状态 |
-|---|---|---|
-| 1 | AI text provider adapter 抽象 | ✅ 已实施 + CI 绿 |
-| 2 | 错误分类补全与错用修正 | ✅ 已实施 + CI 绿 |
-| 3a | 死代码清理 + 不变量收紧 | ✅ 已实施 + CI 绿 |
-| 3b | StableHashing 收敛（8 处散落哈希 → Core 共享工具） | ✅ 已实施 + CI 绿 |
-| 3c | normalized() 拆分（normalizedDraft/validated）+ 时钟注入 | ✅ 已实施 + CI 绿 |
-| 3-余 | 协议默认实现移除 / RedactedSecret / Reading 范围整数偏移 | ✅ 已实施 + CI 绿 |
-| 4 | 数据层：迁移、44 处枚举解码 decodeStored、软删除列修正、FK/CHECK、@MainActor | ✅ 已实施 + CI 绿 |
-| 5 | AI/Speech 尾项：bytes(for:) 流式、AIBoundary/SpeechBoundary 统一、WAV RIFF chunk walker、spec 012 prompt v4 等 | ✅ 已实施 + CI 绿 |
+未来切片登记（2026-06-25 补登孤儿，仅占位、未拆 active plan，见 LM02 拆解文档）
+  改写/写作修改（Style→Ability i+1 下投影第二消费者，兑现 S2）；onboarding 自评措辞软化微切片
 
-## plan 02（E0b）Phase 级子进度
+跨切 v2（外发增量，逐项 opt-in，隐私闸后）
+  AI 校准（Style 认知风格 / band AI 估计）    ← 叠加在 S2/S4b 上，未拆 active plan
+```
 
-权威范围见方案 `docs/plans/done/2026-06-11-02-refactor-ui-architecture-debt.md`；此处仅记完成度。
+### 待办方案状态总表
 
-| Phase | 内容 | 状态 |
-|---|---|---|
-| 1 | iPhone 每个 Tab 独立 `NavigationStack`，消除共享路径 | ✅ 已实施 + 本机测试绿 |
-| 2 | iPad / macOS 消除嵌套 `ScrollView` | ✅ 已实施 + 本机测试绿 |
-| 3 | TTS 播放 sink 集中到 `LearningContentStore`；`ReadingTTSOutcome` 类型化枚举替代 `String` 信号 | ✅ 已实施 + 本机测试绿 |
-| 4 | `EntryPracticeStatus` 结构化枚举替代 `practiceSummary: String`；中文 fallback 移出数据层 | ✅ 已实施 + 本机测试绿 |
-| 5 | `LanguageOverrideBox`（`NSRecursiveLock`）替代 `nonisolated(unsafe) static var`；`saveRendering` 写入 `LearningContentRepository` 协议 | ✅ 已实施 + 本机测试绿 |
-| 6 | 测试债清偿：源码断言测试替换为行为 seam 测试；spec 009 新增禁止「读取源码断言子串」规则；PhoneIOSConvergenceTests 等存量登记为迁移 backlog | ✅ 已实施 + 本机测试绿 |
+| 系列 | 方案文件（`docs/plans/active/`） | 主题 | 状态 / 门控 |
+|---|---|---|---|
+| LM02-S1 | ~~`2026-06-25-feature-lm02-memory-layer-and-learner-profile-overview`~~ → `done/` | Memory 层 + 学习画像总览页 | ✅ **Done（2026-06-25）**：三 Phase 落地（v27 `learner_memory_facts` + `AppDatabase.writer` + 三端总览页 + 治理）；CI Build & Test 全绿（run 28159562884）；§17 文档回写完成（ADR-006 / architecture 001+002 / spec/007 / page-inventory）；已移 `done/`。**S2/S3/S4a 硬前置已满足** |
+| LM02-S2 | ~~`2026-06-25-feature-lm02-s2-style-surface-imprint`~~ → `done/` | Style 表层印记（seam-only 不展示） | ✅ **Done（2026-06-25）**：compute-on-read 源语言写作印记 seam-only（NL 注入 detector + 按母语分组 + 红线 entries-only）；CI Build & Test 全绿（run 28161953442）；§17 回写（含 ADR-006 §8 持久化分层细化 + 新 architecture note + idea-01 §13.9 收口）；已移 `done/` |
+| LM02-S3 | ~~`2026-06-25-feature-lm02-s3-blind-spots`~~ → `done/` | 盲点（dictation diff 派生） | ✅ **Done（2026-06-25）**：compute-on-read dictation diff 盲点 + 填充 S1 总览页盲点分区（红线源级 grep + 行为断言双守；`LIMIT 200`）；CI Build & Test 全绿（run 28160963826）；§17 文档回写（含 idea-02 §7.1 源替换纠正）；已移 `done/` |
+| LM02-S4 | `2026-06-25-feature-lm02-s4-band-reestimation` | band 动态重估（拆解边界） | ⚪ **拆解边界 / 自审 N/A**（2026-06-25 完整双轮后转拆解边界，已 spawn S4a/S4b；4 P0+4 P1 分配进子片为实现前必决项）；不再作单一可实现方案 |
+| LM02-S4a | ~~`2026-06-25-feature-lm02-s4a-lookup-capture-and-ledger`~~ → `done/` | 查词捕获 + 分析账本（地基，低风险） | ✅ **Done（2026-06-25）**：v28 查词事件（显式 local-only）+ v29 ADR-006 §9 账本+高水位 cursor + 阅读 AI 解释 seam 埋点；CI Build & Test 全绿（run 28163829316）；§17 回写（ADR-006 §9 / spec/007 / architecture/002 / persistence note）；已移 `done/`。**S4b 信号地基已就绪** |
+| LM02-S4b | ~~`2026-06-25-feature-lm02-s4b-band-service-and-derive-hysteresis`~~ → `done/` | band 服务 + derive 迟滞 + 总览（最高风险） | ✅ **Done（2026-06-25）**：三门控满足后实现——BandHysteresis 迟滞（连续 3 次越阈 + ≥5 次停留）+ GRDBLearnerBandProvider（独立信号、红线、不覆盖标签）+ derive() 接 band（仅新内容、用户覆盖优先、:95 静态 :96 随 band）+ 总览不展示降级；CI Build & Test 全绿（run 28167168073）；§17 回写（ADR-006 §10.1 实施进展 / architecture/002 / idea-02 §14）；已移 `done/`。**LM02 本地优先系列 + enabler 六片全部完成** |
+| 独立 infra | ~~`2026-06-25-feature-ai-provider-multi-turn-and-streaming`~~ → `done/` | AI Provider 多轮 + 文本流式（LM03 消费） | ✅ **Done（2026-06-25）**：Phase 0 spike gate 过 → 生产实现；CI Build & Test 全绿（run 28156767558）；§17 文档回写完成（spec/005 + system-map §4.9/§7 + 新 architecture note + ADR-008 + add-ai-provider workflow）；已移 `done/`。mimo 流式 / Anthropic / 对话级 log 写入按记录 defer 至 LM03 / 后续 run |
+| 导航 | `2026-06-25-docs-lm02-remaining-slices-decomposition` | LM02 后续切片拆解 + 排序 | 🔵 **In Progress**（S2/S3 已拆 active plan；S4 已转拆解边界拆 S4a/S4b；改写 + onboarding 措辞两孤儿已补登；AI 校准留登记未拆） |
+| LM03-S1 | ~~`2026-06-25-feature-lm03-s1-companion-mvp`~~ → `done/` | 语伴 MVP 单线程文本对话引擎 | ✅ **Done（2026-06-25）**：五 Phase TDD（Core 域类型+开关 / v30 companion 迁移+repo / 引擎+Prompt Registry / 三端聊天 UI+路由+入口+开关 / App 装配）；**全量 Build & Test 全绿（run 28178973216：iPhone/iPad/macOS 构建 + v30 migration + macOS app test + 全包测试 + lint + check-docs）**；§17 回写（architecture/002 §4.11、page-inventory 三端、spec/005·006·007·008、ADR-008、idea-03）；已移 `done/`。入口英文名 = Language Companion。**偏差**：逐句 TTS 朗读暂缓（加性后续，§18）；Pad 通用入口经记录详情。**LM03-S2/S3/S4 未拆** |
+| LM03-S2a | ~~`2026-06-25-feature-lm03-s2a-companion-reflux`~~ → `done/` | 语伴聊天反哺（入站 / 低外发） | ✅ **Done（2026-06-26）**：五 Phase TDD（Core 候选值类型 / v31 `companion_memory_candidates` 独立表 + repo 三方法 + band 红线守卫 / 提取引擎 + Prompt Registry + capability 闭集新 case / 三端 UI 提取动作三态 + 预览披露 / App 装配）；轻量单包测试全绿（Core/Data/AI/LearnerModel/UI）+ **全量 CI `Build & Test` 全绿（run 28186684074：v31 迁移 + 三端构建 + macOS app test + 全包 + lint）**。**新表独立不改 memory_candidates；band derive() 零改动；无新系统自动外发**；显式触发提取同「重新分析」先例。§17 回写完成（architecture/002 §4.12、spec/005·007、ADR-008 §6、page-inventory、prompts/companion/extraction.md、架构备忘录）。 |
+| LM03-S2b-1 | ~~`2026-06-26-feature-lm03-s2b1-companion-memory-injection`~~ → `done/` | 语伴 Memory 注入 + 两层隐私 + PII scrubbing | ✅ **Done（2026-06-26）**：双轮自审 Reviewed → 用户授权（接受 3 项推荐默认）→ 六 Phase TDD（Core consent/gate/scrubber + capability/descriptor / LearnerModel 选择层 + band 红线守卫 / AI prompt 注入 + 投影 + engine scrub seam / Data v32 `uses_learner_profile` / UI 一次性预览 + per-conversation 开关 / App 装配）。**全量 CI `Build & Test` 全绿（run 28214663981：v32 迁移 + 三端构建 + macOS app test + 全包 + lint）**。系统级生活事实 top-5（时近性+种类配额）注入 + 两层隐私（全局一次性预览 / per-conversation toggle）+ PII v1（手机号+身份证，outbound 含历史回放、存原文发脱敏）+ `.curatedLearnerMemory` 诚实披露（`.longTermMemory` 仍全局 excluded）+ band derive() 零改动。§17 回写完成（ADR-006·008 / spec/005·007·008 / architecture/002 §4.13 / page-inventory / prompts/companion/system-injection.md）；已移 `done/` |
+| LM03-S2b-2 | ~~`2026-06-26-feature-lm03-s2b2-companion-active-topic-finding`~~ → `done/` | 语伴方案B 主动找话题（一次性授权 + recency 智能最小发送） | ✅ **Done（2026-06-26）**：完整 plan + 双轮隔离自审（两轮各自独立命中相同 2 P0 + 共 6 P1）→ Reviewed → 用户授权 → 六 Phase TDD（Core consent/gate/candidate / LearnerModel recency 选条 + band 守卫 / AI prompt 注入 + 投影 + engine scrub〔连带修 seedEntryBody〕/ Data recentTopicCandidates / UI 一次性话题预览 + 冷启动零外发回归 / App send 回合内 grounding）。**全量 CI `Build & Test` 全绿（run 28217180799）**。一次性全局话题授权 + 复用 v32 开关（语义统一）+ recency top-1（仅 send 回合内、不破冷启动零外发、不用 FTS、纯 entries.body 仅当前 space）+ `.broughtInRecords` A/B 共用披露。**连带修复 S2b-1/方案A 既有漏洞**（seedEntryBody 未脱敏 + 零 preview 披露）。band 红线不碰、无新 migration。§17 回写完成；已移 `done/` |
+| LM03-S3a | ~~`2026-06-26-feature-lm03-s3a-companion-streaming-and-recast`~~ → `done/` | 语伴文本流式 UX + 温和复述纠正 | ✅ **Done（2026-06-26）**：双轮自审（1 P0+多 P1 写回）→ 用户授权 → 六落点 TDD（engine onPartial 累积 / **AsyncStream 单 MainActor 顺序消费** / in-flight 气泡 / 温和复述 read-modify-write 保 tone/formality）。**全量 CI `Build & Test` 全绿（run 28226376483）**。流式只改显示、`inFlightReply` 不入持久路径；**无新 migration / capability / 外发类目**；band 红线未碰。§17 回写完成；已移 `done/` |
+| LM03-S3b-1 | ~~`2026-06-26-feature-lm03-s3b1-companion-rolling-summary`~~ → `done/` | 语伴对话记忆/滚动摘要（上下文窗口压缩 + 失效重建一致性） | ✅ **Done（2026-06-26）**：双轮自审（2 P0：失效 in-transaction / 触发纯函数 `shouldSummarize`；+ 多 P1/P2）→ 用户授权 → 逐落点 TDD（Data v33 + 一致性六态 / AI summarize + scrub + conversationMemory 注入 + 披露 / LearnerModel band 红线守卫）。**全量 CI `Build & Test` 全绿（run 28229050120；首轮捕获跨包 exhaustive switch 破坏、补 case + 本地化 key 后重跑绿）**。超窗自动压缩老化轮、删/清空同事务失效重建；摘要只压缩本会话已外发内容、`.companionSummarization` 仅披露 `.companionConversation`、无新 consent 门、local-only 不同步；band 红线未碰。§17 回写完成（含 architecture/002 §4.16 + prompts/companion/summary.md + architecture/notes generalize 迁移点）；已移 `done/` |
+| LM03-S3b-2 | ~~`2026-06-26-feature-lm03-s3b2-companion-session-deposit`~~ → `done/` | 语伴对话小结（§3.12，候选批量 deposit） | ✅ **Done（2026-06-26）**：双轮自审两 P0（entryID 放宽 / 新 seam 破坏）经核验**均为非破坏** + P1/P2 写回 → 用户授权 → 逐落点 TDD（Core companion deposit init + Data 幂等 + analysis 回归 + UI 批量标记/load 预置）。复用 S2a 提取（含 errorPattern）+ **批量 deposit 候选到 E7/E8 复习系统**（`memory_items`），「全部加入」+ 逐条「已加入」态，闭合「对话 → 记忆」。**无新 AI / 外发类目 / migration**（复用 E7 幂等、source_kind 'candidate'、entry_id 写 NULL）；band 红线未碰（difficulty 默认 medium）。**全量 CI 绿 run 28243788513**（本机 UI 全量捕获 no-hardcoded-Han 守卫、注释 Han→英文）。§17 回写完成；已移 `done/` |
+| LM03-S4b | ~~`2026-06-27-feature-lm03-s4b-anthropic-messages-adapter`~~ → `done/` | 语伴 Anthropic Messages 多轮+流式适配 | ✅ **Done（2026-06-27）**：双轮自审（P0 鉴权动态派发 correct-by-construction + P1-1 跨测试破坏 + P1-2 mimo 修复）→ 用户授权 → TDD：鉴权升可动态派发协议要求 `providerRequestHeaders`（OpenAI Bearer 默认 / Anthropic `x-api-key`+`anthropic-version` / mimo `api-key`，**连带修复 mimo 死 override 潜伏鉴权 bug**）+ `AnthropicMessagesTextAdapter`（顶层 system / 必填 max_tokens 4096 / `content[].text` 解析 / `content_block_delta` text_delta 流式 / 无 [DONE] EOF 终止 / 图片 data-URL→base64）+ `AnthropicResponseTextParser` + `AnthropicStreamDeltaExtractor` + 工厂放行 + UI 探针放行。**全量 CI 绿 run 28252751284**。**无新 migration / 无新 AIRequestCapability / 无新外发类目**；语伴 send 路径 kind-agnostic 零 App 改动；结构化严格模式(tool_use)+图片后置；自审 P1-1 跨测试破坏 6 处 unsupported fixture 改 gemini、**聚焦 AI 包本机当场捕获**（印证 S3b-1 闭集语义变更教训）。§17 回写完成；已移 `done/` |
+| LM03-S4a | ~~`2026-06-27-feature-lm03-s4a-companion-style-injection`~~ → `done/` | 语伴 Style 受控片段注入 + i+1 下投影 | ✅ **Done（2026-06-27）**：双轮自审（P0 band 红线 correct-by-construction + 守卫；P1 闭集破坏计划内上修）→ 用户授权 → 逐落点 TDD：Core `CompanionStyleDescriptor` + `.curatedLearnerStyle` / LearnerModel `CompanionStyleProjection`（formality 镜像 + elaboration + **ceiling=band.estimatedLevel 只读封顶** + sampleCount 阈值 + band 红线守卫）/ AI `<<<STYLE>>>` 渲染 + `.styleGroundedPersona` + engine 透传 + `hasStyleInjection` / UI `RequestPreviewCardModel.label` exhaustive switch 上修 + 本地化 / App 同 `uses_learner_profile` 门装配 + 预览披露 Memory+Style。**全量 CI 绿 run 28256888515**。i+1 v1 mapping 落地（正式度镜像 + 复杂度 band 封顶；认知风格 v2 后置）；**Style 块零原始内容→无需 PII scrub、复用 S2b-1 两层 consent、无新 migration/capability/外发类目语义升级**；band 红线只读。实施期教训：grep 守卫误伤自身注释（订正措辞）+ module-cache staleness（清 .build）+ type-check 超时（抽局部变量）。§17 回写完成；已移 `done/` |
+| 导航 | `2026-06-25-docs-lm03-companion-decomposition` | 语伴完整引擎切片 + 决策收口 | ✅ **决策导航完成（2026-06-27）**：S1–S4 全部切片落地——**S1 / S2a / S2b-1 / S2b-2 / S3a / S3b-1 / S3b-2 / S4b / S4a 全 Done**；§9/§10.6 决策全收口。**LM03 语伴系列收尾**，本导航文档待统一归档移 `done/` |
 
-## plan 03（E1）Phase 级子进度
+> E10（导入导出）/ E11（同步引擎）已于 2026-06-25 移入 `docs/archive/plans/`（引擎切片落地 + 剩余诚实 defer），不再占用本表；恢复入口与 `learner_memory_facts` 硬接缝见上方「已完成基线」与 `docs/archive/plans/README.md`。
 
-权威范围见方案 `docs/plans/done/2026-06-11-03-feature-record-timeline-and-filters.md`；此处仅记完成度。
+## 待用户决策（实施前收口）
 
-| Phase | 内容 | 状态 |
-|---|---|---|
-| 1 | 共享筛选与投影类型（`EntryTimelineFilter`、`groupEntriesByDay`、`EntryMaterialStatusPill` 等 UI 纯函数层） | ✅ 已实施 + 本机测试绿 |
-| 2 | Data 只读投影查询（`learningPracticeReadiness` 协议 + GRDB SQL EXISTS 实现） | ✅ 已实施 + 本机测试绿 |
-| 3 | iPhone 时间线（筛选 chips、日期分组、空态两态、EntryCard pill 替换） | ✅ 已实施 + 本机测试绿 |
-| 4 | iPad 与 Mac 接线（删除 PadFilter、EntryTimelineRow pill、Mac sidebar 计数驱动） | ✅ 已实施 + 本机测试绿 |
-| 5 | 文档收口 + post-E1 清理（platform inventory、impl map、architecture note、String Catalog orphan 清理） | ✅ 已实施 + 本机测试绿 |
+1. **各 plan 推荐默认是否接受**：S1 的 visibility=global / 二段式删除、Provider 的 OpenAI 兼容族范围、S3 聚合策略等——各方案已带推荐默认 + 确认点，可批量过目或逐项推翻。
+2. **4 项语伴决策**（其余 18 项已按 §10.6 推荐收口，见 LM03 拆解文档）：① Style v2 接入时机；② Memory 注入 salience 评分机制；③ 模糊输入/夹码体验阈值；④ 语伴入口英文名。
+3. **逐批实现授权**：**✅ 2026-06-25 用户已授权实现 LM02 本地优先系列 + enabler**（enabler / S1 / S2 / S3 / S4a / S4b 六份 Reviewed feature plan），将由独立 goal 会话按下方「实施顺序与门控」逐片驱动（每片：TDD → 轻量本地测试 + 格式检查 → 重测试走 GitHub Actions CI → commit → 移 done/）。**LM03（语伴）不在本次授权内**——其子片 active plan 尚未拆出，须先各自双轮自审 + 隔离再审，属下一次授权。
+   - **开放项默认已接受（用户 2026-06-25）**：① 查词事件 v1 = local-only / 排除导出（S4a §20）；② onboarding 自评措辞软化 = 登记孤儿、不在本次实现内。
 
-## plan 04（E2）Phase 级子进度
+### 架构完整性审查决议（2026-06-25 已决，4 项）
 
-权威范围见方案 `docs/plans/done/2026-06-11-04-feature-entry-photo-attachment-and-photo-writing.md`；此处仅记完成度。
+补完 S3 第二轮 + S4 双轮自审 + 三 idea 拆分完整性审查后，**四件架构级缺口已由用户拍板**（详见各方案 §13 + 拆解文档）：
 
-| Phase | 内容 | 状态 |
-|---|---|---|
-| 0 | Spike gate：v17 `media_artifacts` CHECK 扩展 + TDD 红绿验证 | ✅ 已实施 + 本机测试绿 |
-| 1 | Core photo model（`EntryPhotoAttachment`、`PhotoArtifactKey`）+ v17 migration `entry_photo_attachments` + `GRDBEntryPhotoAttachmentRepository` | ✅ 已实施 + 本机测试绿 |
-| 2 | `PhotoImportPipeline`（EXIF GPS strip → hash → 缩略图 → staging → 原子 move → 元数据事务）| ✅ 已实施 + 本机测试绿 |
-| 3 | `PhotoWritingView` 替换 mock `PhonePhotoWritingPreviewView`；`PhotoDisplayActions` 环境值；`AppEnvironment` 装配 | ✅ 已实施 + 本机测试绿 |
-| 4 | `EntryTimelineFilter.photo` 升级含 `hasPhotoAttachment`；`EntryCard` 缩略图；`EntryDetailView` 全宽照片 | ✅ 已实施 + 本机测试绿 |
-| 5 | 文档收口（impl map、platform inventory、spec 007、architecture note、方案移入 done/）| ✅ 已完成（commit c10c412）|
+4. **✅ 已决并已落地：S4 拆 S4a/S4b，S4 文件转拆解边界**（自审 N/A）。**2026-06-25「先收口再实施」已完成拆分**：S4a（`...s4a-lookup-capture-and-ledger`，信号捕获+账本，低风险）+ S4b（`...s4b-band-service-and-derive-hysteresis`，band 服务+derive 迟滞，最高风险）**各自 active plan 已建 + 各自双轮自审 + 拆分后隔离子代理再审三关过**。再审捕获并收口了拆分引入的实质错误：S4a 的 source_content_origin 不可捕获（降前向接缝）、practice 伪先例（改新类别显式声明）、埋点落点（改 AI 解释 seam）；S4b 的「band 不跨外发」被 `:96` 证伪（改诚实措辞）、迟滞 dwell 单位错配（改 document-open 次数）。两片现 Draft/Reviewed，**待实现授权**（S4b 另门控 S4a+S3 信号回归 + ADR-006 §10 修订 artifact 存在）。
+5. **✅ 已决：两处孤儿能力均登记为未来切片**（LM02 拆解文档「未来切片登记」节）：① 改写/写作修改（Style→Ability i+1 下投影第二消费者，兑现 S2 立项前提）；② onboarding 自评措辞软化微切片（idea-02 §7.2 / ADR-006 §10，纯展示、不改 `LanguageLevel` 枚举）。仅占位、不立即拆 active plan。
+6. **✅ 已决：AI Provider 多轮+流式 enabler 改标独立基础设施**（原「语伴前置」）：可与第 1/2 批并行先行退 spike 险（首个 `AsyncThrowingStream` / `bytes(for:)` OS 差异 / mimo SSE 未验），LM03 仅消费。方案范围不变、仅排序定位调整。
+7. **✅ 已决：S4 ADR = ADR-006 §10 修订**（非新独立 ADR）：band 重估 + derive() 吃演进信号 + 迟滞契约作 §10 扩展修订，作为 **S4b 清线门控**（修订 artifact 须先存在）。
 
-## plan 05（R1）Phase 级子进度
+> 上述决议仅落 **plan/拆解文档** 层；S4a/S4b active plan 拆分、ADR-006 §10 实际修订、孤儿切片 active plan 均在各自实现批次开工前执行，仍需逐批用户实现授权（当前无任何方案获实现授权）。
 
-权威范围见方案 `docs/plans/done/2026-06-11-05-feature-reading-experience-completion.md`；此处仅记完成度。
-
-| Phase | 内容 | 状态 |
-|---|---|---|
-| 1 | DATA-08 结构构建统一（`rebuildStructure` 真实分句 + `importInlineDocument` 同事务构建 + v21 `content_revision` 列） | ✅ 已实施 + 本机测试绿 |
-| 2 | 阅读进度与收藏（v22 migration + `GRDBReadingLibraryRepository` + `ReadingWordCounter` + UI 三段元信息 + 收藏 + 筛选 chips） | ✅ 已实施 + 本机测试绿 |
-| 3 | iPad inspector 折叠降级（`canFoldInspector` + 折叠按钮 + 底部 compact 面板 safeAreaInset） | ✅ 已实施 + 本机测试绿 |
-| 4 | 解释语言模式面板控件（`switchExplanationMode` + `ExplanationLanguageModePicker` + 三端接线） | ✅ 已实施 + 本机测试绿 |
-| 5 | 文档收口（spec 012 变更记录 + platform inventory + 架构备忘录 §5 + migration 审查说明 + 移入 done/） | ✅ 已完成 |
+> 备注（E10/E11 归档硬接缝复核）：`learner_memory_facts` 可恢复备份硬接缝仍由架构备忘录 `2026-06-25-learner-memory-persistence-and-security-notes.md` 托管、可追溯，未被静默孤立；但「无 active plan 会执行 E10 备份」属设计内的备忘录机制——Memory 备份安全性取决于未来会话恢复 E10 时先读该备忘录。
 
 ## 维护约定
 
-- 每完成一个 Phase / 一份方案状态推进时，同步更新本表（与对应方案的 `状态：` 字段保持一致）。
-- 本文件随系列收尾一并移入 `done/`；它存在的意义就是系列全程的「中断后从哪继续」。
-- 详细决策、验证结果、TDD 落点不写在这里，写回各权威文档并在此留指针。
+- 每份方案状态推进时同步更新本表（与方案 `状态：` 字段一致）；某 LM03 子片拉为 active plan 时在此登记并在 LM03 拆解文档标注。
+- 详细决策 / 验证结果 / TDD 落点不写这里，写回各权威文档并在此留指针。
+- 本文件随学习者模型系列收尾一并移入 `done/`。

@@ -2162,6 +2162,326 @@
         }
       }
     },
+    "aiRequestLog.capability.companionConversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion conversation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语伴对话"
+          }
+        }
+      }
+    },
+    "aiRequestLog.capability.companionExtraction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion vocabulary extraction"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语伴词汇提取"
+          }
+        }
+      }
+    },
+    "aiRequestLog.capability.learningMaterialGeneration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learning material"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "学习材料"
+          }
+        }
+      }
+    },
+    "aiRequestLog.capability.photoWritingAssist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo writing assist"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片写作辅助"
+          }
+        }
+      }
+    },
+    "aiRequestLog.capability.practiceBacktranslationReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back-translation review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回译点评"
+          }
+        }
+      }
+    },
+    "aiRequestLog.capability.readingSelectionExplanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading explanation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阅读释义"
+          }
+        }
+      }
+    },
+    "aiRequestLog.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No AI requests yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有 AI 请求记录。"
+          }
+        }
+      }
+    },
+    "aiRequestLog.failure.credentialMissing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credential problem"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "凭证问题"
+          }
+        }
+      }
+    },
+    "aiRequestLog.failure.invalidResponse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unexpected response"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "响应异常"
+          }
+        }
+      }
+    },
+    "aiRequestLog.failure.network": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network problem"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络问题"
+          }
+        }
+      }
+    },
+    "aiRequestLog.failure.persistence": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存失败"
+          }
+        }
+      }
+    },
+    "aiRequestLog.failure.providerNotConfigured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service not set up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务未配置"
+          }
+        }
+      }
+    },
+    "aiRequestLog.failure.providerRejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service declined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务方拒绝"
+          }
+        }
+      }
+    },
+    "aiRequestLog.failure.timeout": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timed out"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求超时"
+          }
+        }
+      }
+    },
+    "aiRequestLog.failure.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown problem"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知问题"
+          }
+        }
+      }
+    },
+    "aiRequestLog.failure.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not supported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持"
+          }
+        }
+      }
+    },
+    "aiRequestLog.status.cancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消"
+          }
+        }
+      }
+    },
+    "aiRequestLog.status.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失败"
+          }
+        }
+      }
+    },
+    "aiRequestLog.status.success": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
+          }
+        }
+      }
+    },
+    "aiRequestLog.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI request log"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 请求记录"
+          }
+        }
+      }
+    },
     "app.badge.aiNotConfigured": {
       "comment": "Badge indicating external AI is not configured.",
       "localizations": {
@@ -2964,6 +3284,406 @@
         }
       }
     },
+    "companion.action.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear conversation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空对话"
+          }
+        }
+      }
+    },
+    "companion.entry.talkAboutRecord": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Talk about this record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "围绕这条记录对话"
+          }
+        }
+      }
+    },
+    "companion.entry.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language Companion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语伴"
+          }
+        }
+      }
+    },
+    "companion.extraction.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extract vocabulary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提取词汇 / 表达"
+          }
+        }
+      }
+    },
+    "companion.extraction.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No vocabulary found in this conversation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本段对话未找到可提取的词汇"
+          }
+        }
+      }
+    },
+    "companion.extraction.failure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extraction failed. Your conversation is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提取失败，对话已保留"
+          }
+        }
+      }
+    },
+    "companion.extraction.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extracting…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在提取…"
+          }
+        }
+      }
+    },
+    "companion.extraction.sourceDeleted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source message deleted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源消息已删除"
+          }
+        }
+      }
+    },
+    "companion.extraction.successCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extracted %lld items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已提取 %lld 项"
+          }
+        }
+      }
+    },
+    "companion.failure.cancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request was cancelled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求已取消。"
+          }
+        }
+      }
+    },
+    "companion.failure.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your AI provider rejected the request. Check your provider settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider 拒绝了请求。请检查 Provider 配置。"
+          }
+        }
+      }
+    },
+    "companion.failure.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        }
+      }
+    },
+    "companion.failure.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The companion can't be reached right now. Check your network or AI provider, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时联系不上语伴。请检查网络或 AI Provider 后重试。"
+          }
+        }
+      }
+    },
+    "companion.greeting.coldStart": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Say hello to start practicing — your companion always replies in your target language."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打个招呼开始练习吧——语伴会始终用你的目标语回复。"
+          }
+        }
+      }
+    },
+    "companion.input.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入消息"
+          }
+        }
+      }
+    },
+    "companion.memory.preview.decline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't use my profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不使用学习画像"
+          }
+        }
+      }
+    },
+    "companion.memory.preview.notSends": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Won't send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会发送"
+          }
+        }
+      }
+    },
+    "companion.memory.preview.sends": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Will send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将会发送"
+          }
+        }
+      }
+    },
+    "companion.memory.preview.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use your learner profile in conversation?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在对话中使用你的学习画像？"
+          }
+        }
+      }
+    },
+    "companion.memory.preview.use": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用"
+          }
+        }
+      }
+    },
+    "companion.memory.toggle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use my content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用我的内容"
+          }
+        }
+      }
+    },
+    "companion.topic.preview.decline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't use my records for topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不用我的记录找话题"
+          }
+        }
+      }
+    },
+    "companion.topic.preview.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let the companion find topics from your records?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让语伴从你的记录里找话题？"
+          }
+        }
+      }
+    },
+    "companion.settings.toggle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language Companion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语伴"
+          }
+        }
+      }
+    },
+    "companion.settings.toggle.description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off by default. Practice free conversation in your target language, grounded in your own records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认关闭。用目标语自由对话练习，扎根你自己的生活记录。"
+          }
+        }
+      }
+    },
     "entry.defaultScene": {
       "comment": "Fallback display text for entries without a scene label.",
       "localizations": {
@@ -2998,6 +3718,40 @@
         }
       }
     },
+    "entry.detail.collapse": {
+      "comment": "Button that collapses a long entry detail text card back to its preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收起"
+          }
+        }
+      }
+    },
+    "entry.detail.expand": {
+      "comment": "Button that expands a collapsed entry detail text card to show the full text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show full text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "展开全文"
+          }
+        }
+      }
+    },
     "entry.detail.learningText.fallbackTitle": {
       "comment": "Entry detail learning text fallback card title.",
       "localizations": {
@@ -3028,6 +3782,108 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新生成"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerate.confirm": {
+      "comment": "Confirmation dialog confirm button that overwrites learning material.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerate.confirmMessage": {
+      "comment": "Confirmation dialog message explaining regenerate overwrites edits and runs an AI request.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This overwrites the current expression and any manual edits, and runs an AI request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会覆盖当前的英文表达和你的手动修改，并发起一次 AI 请求。"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerate.confirmTitle": {
+      "comment": "Confirmation dialog title before overwriting learning material via regenerate/reanalyze.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace current content?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换当前内容？"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerateMenu": {
+      "comment": "Accessibility label / title for the learning material regenerate menu.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regenerate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新生成"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerateMenu.reanalyze": {
+      "comment": "Menu item: re-explain (re-analyze) the current target text into sentences.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Re-explain current text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新讲解（当前英文）"
+          }
+        }
+      }
+    },
+    "entry.detail.learningText.regenerateMenu.translate": {
+      "comment": "Menu item: re-translate the learning material from the native record.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Re-translate from record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新翻译（按中文记录）"
           }
         }
       }
@@ -3198,278 +4054,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "编辑记录"
-          }
-        }
-      }
-    },
-    "entry.detail.collapse": {
-      "comment": "Button that collapses a long entry detail text card back to its preview.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Collapse"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "收起"
-          }
-        }
-      }
-    },
-    "entry.detail.expand": {
-      "comment": "Button that expands a collapsed entry detail text card to show the full text.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show full text"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "展开全文"
-          }
-        }
-      }
-    },
-    "entry.detail.learningText.regenerateMenu": {
-      "comment": "Accessibility label / title for the learning material regenerate menu.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Regenerate"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新生成"
-          }
-        }
-      }
-    },
-    "entry.detail.learningText.regenerateMenu.translate": {
-      "comment": "Menu item: re-translate the learning material from the native record.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Re-translate from record"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新翻译（按中文记录）"
-          }
-        }
-      }
-    },
-    "entry.detail.learningText.regenerateMenu.reanalyze": {
-      "comment": "Menu item: re-explain (re-analyze) the current target text into sentences.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Re-explain current text"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新讲解（当前英文）"
-          }
-        }
-      }
-    },
-    "entry.detail.learningText.regenerate.confirmTitle": {
-      "comment": "Confirmation dialog title before overwriting learning material via regenerate/reanalyze.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Replace current content?"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "替换当前内容？"
-          }
-        }
-      }
-    },
-    "entry.detail.learningText.regenerate.confirmMessage": {
-      "comment": "Confirmation dialog message explaining regenerate overwrites edits and runs an AI request.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This overwrites the current expression and any manual edits, and runs an AI request."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "这会覆盖当前的英文表达和你的手动修改，并发起一次 AI 请求。"
-          }
-        }
-      }
-    },
-    "entry.detail.learningText.regenerate.confirm": {
-      "comment": "Confirmation dialog confirm button that overwrites learning material.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Replace"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "替换"
-          }
-        }
-      }
-    },
-    "entry.reading.title": {
-      "comment": "Navigation title for the bilingual immersive reading page.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reading"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "双语阅读"
-          }
-        }
-      }
-    },
-    "entry.reading.open": {
-      "comment": "Accessibility label for opening the bilingual reading page from the entry detail.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Read full text"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "阅读全文"
-          }
-        }
-      }
-    },
-    "entry.reading.fontSize.decrease": {
-      "comment": "Accessibility label for decreasing the reading font size.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Decrease text size"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "缩小字号"
-          }
-        }
-      }
-    },
-    "entry.reading.fontSize.increase": {
-      "comment": "Accessibility label for increasing the reading font size.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Increase text size"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "放大字号"
-          }
-        }
-      }
-    },
-    "entry.reading.reveal.hint": {
-      "comment": "Accessibility hint telling the user a tap reveals the native translation.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tap to show the translation"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "点按显示译文"
-          }
-        }
-      }
-    },
-    "entry.reading.empty": {
-      "comment": "Shown on the reading page when there is no learning material to read yet.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No learning material to read yet."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "还没有可阅读的学习材料。"
-          }
-        }
-      }
-    },
-    "entry.reading.playAll": {
-      "comment": "Accessibility label for starting continuous read-aloud of the whole passage.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Play all"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "连续播放"
-          }
-        }
-      }
-    },
-    "entry.reading.playAll.stop": {
-      "comment": "Accessibility label for stopping continuous read-aloud.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stop playback"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "停止播放"
           }
         }
       }
@@ -3725,6 +4309,142 @@
           "stringUnit": {
             "state": "translated",
             "value": "练习 %d 组"
+          }
+        }
+      }
+    },
+    "entry.reading.empty": {
+      "comment": "Shown on the reading page when there is no learning material to read yet.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No learning material to read yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有可阅读的学习材料。"
+          }
+        }
+      }
+    },
+    "entry.reading.fontSize.decrease": {
+      "comment": "Accessibility label for decreasing the reading font size.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decrease text size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缩小字号"
+          }
+        }
+      }
+    },
+    "entry.reading.fontSize.increase": {
+      "comment": "Accessibility label for increasing the reading font size.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Increase text size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放大字号"
+          }
+        }
+      }
+    },
+    "entry.reading.open": {
+      "comment": "Accessibility label for opening the bilingual reading page from the entry detail.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read full text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阅读全文"
+          }
+        }
+      }
+    },
+    "entry.reading.playAll": {
+      "comment": "Accessibility label for starting continuous read-aloud of the whole passage.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play all"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连续播放"
+          }
+        }
+      }
+    },
+    "entry.reading.playAll.stop": {
+      "comment": "Accessibility label for stopping continuous read-aloud.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop playback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止播放"
+          }
+        }
+      }
+    },
+    "entry.reading.reveal.hint": {
+      "comment": "Accessibility hint telling the user a tap reveals the native translation.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to show the translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点按显示译文"
+          }
+        }
+      }
+    },
+    "entry.reading.title": {
+      "comment": "Navigation title for the bilingual immersive reading page.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双语阅读"
           }
         }
       }
@@ -5376,6 +6096,534 @@
         }
       }
     },
+    "learnerProfile.blindSpots.count": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "×%lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "×%lld"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do a few dictation exercises to unlock your error patterns."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "做几次听写练习以解锁错误模式分析。"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From your dictation practice — repeated transcription errors, not a grammar verdict."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自你的听写练习——重复的转写错误，不是语法判决。"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.kind.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mistyped"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写错"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.kind.extra": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "extra"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多写"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.kind.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "missed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漏写"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As you practice and produce, common blind spots will appear here (coming soon)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "随着你练习与产出，这里会显示常见盲点（即将推出）。"
+          }
+        }
+      }
+    },
+    "learnerProfile.blindSpots.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeated Practice Errors"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重复练习错误模式"
+          }
+        }
+      }
+    },
+    "learnerProfile.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "learnerProfile.coverage.count": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld items covered"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已覆盖 %lld 项"
+          }
+        }
+      }
+    },
+    "learnerProfile.coverage.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Knowledge Coverage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "知识覆盖"
+          }
+        }
+      }
+    },
+    "learnerProfile.kind.goal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标"
+          }
+        }
+      }
+    },
+    "learnerProfile.kind.lifeFact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Life fact"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生活事实"
+          }
+        }
+      }
+    },
+    "learnerProfile.kind.preference": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偏好"
+          }
+        }
+      }
+    },
+    "learnerProfile.kind.relationship": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relationship"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关系"
+          }
+        }
+      }
+    },
+    "learnerProfile.level.calibrating": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About %@, continuously calibrating"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "约 %@，持续校准"
+          }
+        }
+      }
+    },
+    "learnerProfile.level.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current Level"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前水平"
+          }
+        }
+      }
+    },
+    "learnerProfile.memory.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep recording to unlock your profile."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续记录以解锁画像。"
+          }
+        }
+      }
+    },
+    "learnerProfile.memory.kind": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kind"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "类别"
+          }
+        }
+      }
+    },
+    "learnerProfile.memory.save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remember"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记住"
+          }
+        }
+      }
+    },
+    "learnerProfile.memory.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Life facts and goals you explicitly asked the App to remember."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你显式让 App 记住的生活事实与目标。"
+          }
+        }
+      }
+    },
+    "learnerProfile.memory.textPlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. I work in Shanghai"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如：我在上海工作"
+          }
+        }
+      }
+    },
+    "learnerProfile.memory.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What the App Remembers About You"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App 记住的关于你"
+          }
+        }
+      }
+    },
+    "learnerProfile.reset.button": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset What the App Knows About Me"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置 App 对我的了解"
+          }
+        }
+      }
+    },
+    "learnerProfile.reset.confirm.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置"
+          }
+        }
+      }
+    },
+    "learnerProfile.reset.confirm.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only clears the life facts the App remembers about you. Your learning records and memory library are not affected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这只会清除 App 记住的关于你的生活事实，不影响你的学习记录与记忆库。"
+          }
+        }
+      }
+    },
+    "learnerProfile.reset.confirm.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset what the App knows about you?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置 App 对你的了解？"
+          }
+        }
+      }
+    },
+    "learnerProfile.review.due": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld due for review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待复习 %lld"
+          }
+        }
+      }
+    },
+    "learnerProfile.review.mastered": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld mastered"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已掌握 %lld"
+          }
+        }
+      }
+    },
+    "learnerProfile.review.thisWeek": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld added this week"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周新增 %lld"
+          }
+        }
+      }
+    },
+    "learnerProfile.review.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory Review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记忆复习"
+          }
+        }
+      }
+    },
+    "learnerProfile.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learning Profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "学习画像"
+          }
+        }
+      }
+    },
+    "learnerProfile.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile temporarily unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法加载画像。"
+          }
+        }
+      }
+    },
     "mac.bulkImport.summary": {
       "comment": "Mac bulk import summary.",
       "localizations": {
@@ -6498,6 +7746,70 @@
         }
       }
     },
+    "memory.deposit.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入记忆"
+          }
+        }
+      }
+    },
+    "memory.deposit.added": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加入"
+          }
+        }
+      }
+    },
+    "memory.deposited.empty.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add words or sentences from the candidates below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从下方的候选词句中加入。"
+          }
+        }
+      }
+    },
+    "memory.deposited.empty.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved memory yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有沉淀的记忆"
+          }
+        }
+      }
+    },
     "memory.empty.body": {
       "comment": "Empty memory panel body.",
       "localizations": {
@@ -6630,6 +7942,230 @@
           "stringUnit": {
             "state": "translated",
             "value": "学习记忆"
+          }
+        }
+      }
+    },
+    "memory.review.done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        }
+      }
+    },
+    "memory.review.empty.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New deposits will show up here when they're due."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新沉淀的词句到期后会出现在这里。"
+          }
+        }
+      }
+    },
+    "memory.review.empty.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing to review right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时没有要复习的"
+          }
+        }
+      }
+    },
+    "memory.review.finished.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You've reviewed everything due for now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已经看完当前到期的内容。"
+          }
+        }
+      }
+    },
+    "memory.review.finished.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nice session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这轮不错"
+          }
+        }
+      }
+    },
+    "memory.review.markMastered": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as mastered"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记已掌握"
+          }
+        }
+      }
+    },
+    "memory.review.needsAnotherLook": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Look again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还要再看"
+          }
+        }
+      }
+    },
+    "memory.review.remembered": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I remember"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记得"
+          }
+        }
+      }
+    },
+    "memory.review.reveal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show meaning"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看释义"
+          }
+        }
+      }
+    },
+    "memory.review.start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始复习"
+          }
+        }
+      }
+    },
+    "memory.review.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复习"
+          }
+        }
+      }
+    },
+    "memory.stats.deposited": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This week"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周沉淀"
+          }
+        }
+      }
+    },
+    "memory.stats.due": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待复习"
+          }
+        }
+      }
+    },
+    "memory.stats.mastered": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mastered"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已掌握"
           }
         }
       }
@@ -8915,6 +10451,38 @@
         }
       }
     },
+    "phone.memory.deposited.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Words and sentences you've kept"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你保留下来的词句"
+          }
+        }
+      }
+    },
+    "phone.memory.deposited.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已沉淀记忆"
+          }
+        }
+      }
+    },
     "phone.memory.personal.subtitle": {
       "comment": "Memory section subtitle.",
       "localizations": {
@@ -9149,6 +10717,295 @@
           "stringUnit": {
             "state": "translated",
             "value": "今天从一条生活记录开始。"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.adopt": {
+      "comment": "Button: adopt the native draft into the writing area.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "采用这段草稿"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.button": {
+      "comment": "Button: explicitly ask AI to look at the photo and help write.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask AI about this photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让 AI 看图帮我写"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.confirm.message": {
+      "comment": "Confirmation body: what will be sent.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your photo and your note will be sent to your AI provider to generate writing help. Nothing else is sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的照片和这段备注将发送给 AI Provider 以生成写作帮助，不会发送其它内容。"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.confirm.send": {
+      "comment": "Confirmation primary action: send.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.confirm.title": {
+      "comment": "Confirmation title before sending the photo to the AI provider.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send this photo to your AI provider?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把这张照片发送给 AI Provider？"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.dismiss": {
+      "comment": "Button: dismiss the assist result panel.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.error.generic": {
+      "comment": "Generic assist failure message.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't get writing help. Check your AI provider and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能获取写作帮助，请检查 AI Provider 后重试。"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.guidance.imageInputDisabled": {
+      "comment": "Guidance when the provider can take images but image input is not enabled.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on image input for this AI provider in Settings to use photo writing help."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先在设置中为该 AI Provider 开启图片输入，才能使用照片写作帮助。"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.mode.draft": {
+      "comment": "Assist mode: native-language draft to translate.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "母语草稿"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.mode.suggestions": {
+      "comment": "Assist mode: writing tips/suggestions.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Writing tips"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写作提示"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.angles": {
+      "comment": "Result section: writing angles.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Writing angles"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写作角度"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.draft": {
+      "comment": "Result section: native-language draft to translate.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft to translate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待翻译草稿"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.expressions": {
+      "comment": "Result section: useful target-language expressions.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Useful expressions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用表达"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.questions": {
+      "comment": "Result section: guiding questions.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guiding questions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引导问题"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.scene": {
+      "comment": "Result section: what the photo shows.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What's in the photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片内容"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.result.vocab": {
+      "comment": "Result section: target-language vocabulary hints.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vocabulary hints"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "词汇提示"
+          }
+        }
+      }
+    },
+    "photoWriting.assist.sending": {
+      "comment": "Status while the assist request is in flight.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asking AI…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在请求 AI……"
           }
         }
       }
@@ -9404,23 +11261,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "把这个瞬间变成一句话"
-          }
-        }
-      }
-    },
-    "photoWriting.privacy.notice": {
-      "comment": "Privacy footer on the photo writing page — photo bytes stay local.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your photo stays on this device and is never sent to AI providers."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "照片仅保存在本设备，不会发送给 AI Provider。"
           }
         }
       }
@@ -9727,6 +11567,246 @@
           "stringUnit": {
             "state": "translated",
             "value": "对照参考"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.button": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask AI to review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请 AI 点评"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.failed.authentication": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your API credential."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查 API 凭证。"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.failed.invalidResponse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The response could not be read. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "响应无法解析，请重试。"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.failed.network": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network problem. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络异常，请重试。"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.failed.providerNotConfigured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up an AI provider in settings first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先在设置中配置 AI Provider。"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.failed.providerRejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The provider declined the request. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务方拒绝了本次请求，请稍后再试。"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.failed.timeout": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request timed out. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求超时，请重试。"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.failed.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review didn’t run"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点评未完成"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.failed.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This provider or model is not supported yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前服务方或模型暂不支持。"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.footnote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An AI review sends your answer, the meaning to translate, and the reference to your configured AI provider — only when you tap below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点评会把你的作答、待翻译的母语原意和参考表达发送给你已配置的 AI Provider，仅在你点击下方按钮时发送。"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.observations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Observations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "观察"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.registerNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Register"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语体"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.sending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewing…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点评中…"
+          }
+        }
+      }
+    },
+    "practice.backtranslation.review.suggestions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggestions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建议"
           }
         }
       }
@@ -13147,6 +15227,214 @@
         }
       }
     },
+    "requestPreview.content.backtranslationReferenceSentence": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference sentence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参考表达"
+          }
+        }
+      }
+    },
+    "requestPreview.content.companionConversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This conversation (sent to extract vocabulary / expressions)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本段对话（发送以提取词汇 / 表达）"
+          }
+        }
+      }
+    },
+    "requestPreview.content.broughtInRecords": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One of your saved records (as a topic)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你保存的 1 条记录（作为话题）"
+          }
+        }
+      }
+    },
+    "requestPreview.content.curatedLearnerMemory": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A few of your saved life facts (selected and scrubbed)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你保存的少量生活事实（已挑选并脱敏）"
+          }
+        }
+      }
+    },
+    "requestPreview.content.curatedLearnerStyle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your writing-style register (categories only, no writing sample)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的写作风格语域（仅类别，不含写作原文）"
+          }
+        }
+      }
+    },
+    "requestPreview.content.currentEntryBody": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current entry text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前记录正文"
+          }
+        }
+      }
+    },
+    "requestPreview.content.currentLearningText": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current learning text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前学习正文"
+          }
+        }
+      }
+    },
+    "requestPreview.content.nativeLanguageProfile": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your native language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "母语设置"
+          }
+        }
+      }
+    },
+    "requestPreview.content.practiceAttempt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的作答"
+          }
+        }
+      }
+    },
+    "requestPreview.content.proficiencyLevel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proficiency level"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "水平自评"
+          }
+        }
+      }
+    },
+    "requestPreview.content.readingContextWindow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Surrounding context"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上下文窗口"
+          }
+        }
+      }
+    },
+    "requestPreview.content.selectedReadingPassage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected passage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选中的阅读片段"
+          }
+        }
+      }
+    },
+    "requestPreview.content.targetLanguageProfile": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标语言"
+          }
+        }
+      }
+    },
     "requestPreview.external.body": {
       "comment": "External request preview body.",
       "localizations": {
@@ -13160,6 +15448,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "确认后将发送：%@、选中的正文片段和所选表达风格 %@。"
+          }
+        }
+      }
+    },
+    "requestPreview.field.length": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approximate size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大致长度"
+          }
+        }
+      }
+    },
+    "requestPreview.field.model": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型"
+          }
+        }
+      }
+    },
+    "requestPreview.field.provider": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务方"
+          }
+        }
+      }
+    },
+    "requestPreview.includes.header": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Will send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将发送"
+          }
+        }
+      }
+    },
+    "requestPreview.length.long": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Long"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "较长"
+          }
+        }
+      }
+    },
+    "requestPreview.length.medium": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medium"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中等"
+          }
+        }
+      }
+    },
+    "requestPreview.length.short": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Short"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "较短"
           }
         }
       }
@@ -13234,6 +15634,54 @@
         }
       }
     },
+    "requestPreview.notSent.audioRecordings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your voice recordings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的录音"
+          }
+        }
+      }
+    },
+    "requestPreview.notSent.longTermMemory": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your full long-term memory store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的完整长期记忆库"
+          }
+        }
+      }
+    },
+    "requestPreview.notSent.photoAttachments": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的照片"
+          }
+        }
+      }
+    },
     "requestPreview.notSent": {
       "comment": "Request preview exclusion list.",
       "localizations": {
@@ -13304,6 +15752,22 @@
         }
       }
     },
+    "requestPreview.realtime.offline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Online generation is off, so nothing will be sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在线生成未开启，不会发送任何内容。"
+          }
+        }
+      }
+    },
     "requestPreview.title": {
       "comment": "Request preview card title.",
       "localizations": {
@@ -13353,6 +15817,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "Предпросмотр запроса"
+          }
+        }
+      }
+    },
+    "search.group.entry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录"
+          }
+        }
+      }
+    },
+    "search.group.memory": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记忆"
+          }
+        }
+      }
+    },
+    "search.group.reading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阅读"
+          }
+        }
+      }
+    },
+    "search.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search your records, reading, and memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索记录、阅读与记忆"
+          }
+        }
+      }
+    },
+    "search.scope.currentSpace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scope: current language space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "范围：当前语言空间"
+          }
+        }
+      }
+    },
+    "search.zeroState": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matches in this language space."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前语言空间没有匹配结果。"
           }
         }
       }
@@ -15777,6 +18337,22 @@
         }
       }
     },
+    "settings.learnerProfile.summary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See what the App knows about you"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看 App 对你的了解"
+          }
+        }
+      }
+    },
     "settings.localData.detail": {
       "comment": "Local data settings detail body.",
       "localizations": {
@@ -16462,6 +19038,108 @@
           "stringUnit": {
             "state": "translated",
             "value": "Синхронизация"
+          }
+        }
+      }
+    },
+    "settings.value.aiProvider.configured": {
+      "comment": "Settings row value: AI provider configured and ready.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已配置"
+          }
+        }
+      }
+    },
+    "settings.value.aiProvider.missingKey": {
+      "comment": "Settings row value: AI provider configured but its key is missing.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key missing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺密钥"
+          }
+        }
+      }
+    },
+    "settings.value.aiProvider.notConfigured": {
+      "comment": "Settings row value: AI provider not set up yet.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未配置"
+          }
+        }
+      }
+    },
+    "settings.value.aiProvider.partial": {
+      "comment": "Settings row value: some AI endpoints ready, some not.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partly ready"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分可用"
+          }
+        }
+      }
+    },
+    "settings.value.localData.computing": {
+      "comment": "Settings row value: local data size is still being computed.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calculating…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计算中…"
+          }
+        }
+      }
+    },
+    "settings.value.sync.notEnabled": {
+      "comment": "Settings row value: sync is off; data stays on this device.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未启用"
           }
         }
       }
@@ -21155,903 +23833,55 @@
         }
       }
     },
-    "requestPreview.field.provider": {
+    "companion.recast.toggle": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Service"
+            "value": "Gentle recast"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务方"
+            "value": "温和复述"
           }
         }
       }
     },
-    "requestPreview.field.model": {
+    "aiRequestLog.capability.companionSummarization": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Model"
+            "value": "Companion conversation memory"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模型"
+            "value": "语伴对话记忆"
           }
         }
       }
     },
-    "requestPreview.field.length": {
+    "companion.deposit.all": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approximate size"
+            "value": "Add all to memory"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "大致长度"
+            "value": "全部加入记忆库"
           }
         }
       }
     },
-    "requestPreview.length.short": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Short"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "较短"
-          }
-        }
-      }
-    },
-    "requestPreview.length.medium": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Medium"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "中等"
-          }
-        }
-      }
-    },
-    "requestPreview.length.long": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Long"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "较长"
-          }
-        }
-      }
-    },
-    "requestPreview.includes.header": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Will send"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "将发送"
-          }
-        }
-      }
-    },
-    "requestPreview.content.currentEntryBody": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Current entry text"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前记录正文"
-          }
-        }
-      }
-    },
-    "requestPreview.content.currentLearningText": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Current learning text"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前学习正文"
-          }
-        }
-      }
-    },
-    "requestPreview.content.selectedReadingPassage": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selected passage"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "选中的阅读片段"
-          }
-        }
-      }
-    },
-    "requestPreview.content.readingContextWindow": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Surrounding context"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "上下文窗口"
-          }
-        }
-      }
-    },
-    "requestPreview.content.nativeLanguageProfile": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your native language"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "母语设置"
-          }
-        }
-      }
-    },
-    "requestPreview.content.targetLanguageProfile": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Target language"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目标语言"
-          }
-        }
-      }
-    },
-    "requestPreview.content.proficiencyLevel": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Proficiency level"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "水平自评"
-          }
-        }
-      }
-    },
-    "requestPreview.realtime.offline": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Online generation is off, so nothing will be sent."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在线生成未开启，不会发送任何内容。"
-          }
-        }
-      }
-    },
-    "aiRequestLog.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AI request log"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AI 请求记录"
-          }
-        }
-      }
-    },
-    "aiRequestLog.empty": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No AI requests yet."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "还没有 AI 请求记录。"
-          }
-        }
-      }
-    },
-    "aiRequestLog.status.success": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Completed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已完成"
-          }
-        }
-      }
-    },
-    "aiRequestLog.status.failed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Failed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "失败"
-          }
-        }
-      }
-    },
-    "aiRequestLog.status.cancelled": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancelled"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已取消"
-          }
-        }
-      }
-    },
-    "aiRequestLog.capability.learningMaterialGeneration": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Learning material"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "学习材料"
-          }
-        }
-      }
-    },
-    "aiRequestLog.capability.readingSelectionExplanation": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reading explanation"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "阅读释义"
-          }
-        }
-      }
-    },
-    "aiRequestLog.capability.practiceBacktranslationReview": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Back-translation review"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "回译点评"
-          }
-        }
-      }
-    },
-    "aiRequestLog.failure.providerNotConfigured": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Service not set up"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "服务未配置"
-          }
-        }
-      }
-    },
-    "aiRequestLog.failure.credentialMissing": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Credential problem"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "凭证问题"
-          }
-        }
-      }
-    },
-    "aiRequestLog.failure.network": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Network problem"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "网络问题"
-          }
-        }
-      }
-    },
-    "aiRequestLog.failure.timeout": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Timed out"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请求超时"
-          }
-        }
-      }
-    },
-    "aiRequestLog.failure.providerRejected": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Service declined"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "服务方拒绝"
-          }
-        }
-      }
-    },
-    "aiRequestLog.failure.unsupported": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not supported"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂不支持"
-          }
-        }
-      }
-    },
-    "aiRequestLog.failure.invalidResponse": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unexpected response"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "响应异常"
-          }
-        }
-      }
-    },
-    "aiRequestLog.failure.persistence": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not save"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存失败"
-          }
-        }
-      }
-    },
-    "aiRequestLog.failure.unknown": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unknown problem"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未知问题"
-          }
-        }
-      }
-    },
-    "requestPreview.content.practiceAttempt": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your answer"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "你的作答"
-          }
-        }
-      }
-    },
-    "requestPreview.content.backtranslationReferenceSentence": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reference sentence"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "参考表达"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.footnote": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "An AI review sends your answer, the meaning to translate, and the reference to your configured AI provider — only when you tap below."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "点评会把你的作答、待翻译的母语原意和参考表达发送给你已配置的 AI Provider，仅在你点击下方按钮时发送。"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.button": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ask AI to review"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请 AI 点评"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.sending": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reviewing…"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "点评中…"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.cancel": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "取消"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.observations": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Observations"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "观察"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.suggestions": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Suggestions"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "建议"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.registerNote": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Register"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "语体"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.failed.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Review didn’t run"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "点评未完成"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.failed.providerNotConfigured": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Set up an AI provider in settings first."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请先在设置中配置 AI Provider。"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.failed.unsupported": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This provider or model is not supported yet."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前服务方或模型暂不支持。"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.failed.authentication": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check your API credential."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请检查 API 凭证。"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.failed.providerRejected": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The provider declined the request. Try again later."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "服务方拒绝了本次请求，请稍后再试。"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.failed.network": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Network problem. Try again."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "网络异常，请重试。"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.failed.timeout": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The request timed out. Try again."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请求超时，请重试。"
-          }
-        }
-      }
-    },
-    "practice.backtranslation.review.failed.invalidResponse": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The response could not be read. Try again."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "响应无法解析，请重试。"
-          }
-        }
-      }
-    },
-    "search.placeholder": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search your records, reading, and memory"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜索记录、阅读与记忆"
-          }
-        }
-      }
-    },
-    "search.scope.currentSpace": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scope: current language space"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "范围：当前语言空间"
-          }
-        }
-      }
-    },
-    "search.zeroState": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No matches in this language space."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前语言空间没有匹配结果。"
-          }
-        }
-      }
-    },
-    "search.group.entry": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Records"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "记录"
-          }
-        }
-      }
-    },
-    "search.group.reading": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reading"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "阅读"
-          }
-        }
-      }
-    },
-    "search.group.memory": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Memory"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "记忆"
-          }
-        }
-      }
-    },
-    "memory.deposit.action": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add to memory"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "加入记忆"
-          }
-        }
-      }
-    },
-    "memory.deposit.added": {
+    "companion.deposit.added": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -22067,364 +23897,93 @@
         }
       }
     },
-    "phone.memory.deposited.title": {
+    "settings.companion.title": {
+      "comment": "Settings row title for the Language Companion capability.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved memory"
+            "value": "Language Companion"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已沉淀记忆"
+            "value": "语伴"
           }
         }
       }
     },
-    "phone.memory.deposited.subtitle": {
+    "settings.companion.summary": {
+      "comment": "Settings row summary for the Language Companion capability.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Words and sentences you've kept"
+            "value": "Off by default. Free conversation in your target language, grounded in your own records."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你保留下来的词句"
+            "value": "默认关闭。用目标语自由对话，扎根你自己的生活记录。"
           }
         }
       }
     },
-    "memory.deposited.empty.title": {
+    "settings.companion.detail": {
+      "comment": "Language Companion settings detail body (ADR-008 grounding).",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved memory yet"
+            "value": "Always replies in your target language as a single conversation partner, grounded in your own records. Off by default — a focused practice mode, not a general AI chat."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有沉淀的记忆"
+            "value": "始终用你的目标语作为单一对话对象回复，扎根你自己的生活记录。默认关闭——它是聚焦的练习模态，不是通用 AI 聊天。"
           }
         }
       }
     },
-    "memory.deposited.empty.body": {
+    "settings.companion.nextRequirement": {
+      "comment": "Language Companion settings privacy boundary and deferred scope.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add words or sentences from the candidates below."
+            "value": "When on, your records are sent to the provider only when you explicitly chat, and only with your consent to use your learner profile. Voice and scenario modes are not available yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "从下方的候选词句中加入。"
+            "value": "开启后，只有在你主动对话、且你已同意使用学习者画像时，记录才会发送给 Provider。语音和场景模式尚未提供。"
           }
         }
       }
     },
-    "memory.review.start": {
+    "settings.value.companion.enabled": {
+      "comment": "Settings row trailing value: Language Companion is enabled.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start review"
+            "value": "On"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始复习"
+            "value": "已开启"
           }
         }
       }
     },
-    "memory.review.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Review"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "复习"
-          }
-        }
-      }
-    },
-    "memory.review.reveal": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show meaning"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "看释义"
-          }
-        }
-      }
-    },
-    "memory.review.remembered": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "I remember"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "记得"
-          }
-        }
-      }
-    },
-    "memory.review.needsAnotherLook": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Look again"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "还要再看"
-          }
-        }
-      }
-    },
-    "memory.review.markMastered": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mark as mastered"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "标记已掌握"
-          }
-        }
-      }
-    },
-    "memory.review.empty.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nothing to review right now"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂时没有要复习的"
-          }
-        }
-      }
-    },
-    "memory.review.empty.body": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New deposits will show up here when they're due."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "新沉淀的词句到期后会出现在这里。"
-          }
-        }
-      }
-    },
-    "memory.review.finished.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nice session"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "这轮不错"
-          }
-        }
-      }
-    },
-    "memory.review.finished.body": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You've reviewed everything due for now."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "你已经看完当前到期的内容。"
-          }
-        }
-      }
-    },
-    "memory.review.done": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Done"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "完成"
-          }
-        }
-      }
-    },
-    "memory.stats.deposited": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This week"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本周沉淀"
-          }
-        }
-      }
-    },
-    "memory.stats.due": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "To review"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "待复习"
-          }
-        }
-      }
-    },
-    "memory.stats.mastered": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mastered"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已掌握"
-          }
-        }
-      }
-    },
-    "settings.value.aiProvider.notConfigured": {
-      "comment": "Settings row value: AI provider not set up yet.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not set up"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未配置"
-          }
-        }
-      }
-    },
-    "settings.value.aiProvider.configured": {
-      "comment": "Settings row value: AI provider configured and ready.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configured"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已配置"
-          }
-        }
-      }
-    },
-    "settings.value.aiProvider.missingKey": {
-      "comment": "Settings row value: AI provider configured but its key is missing.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Key missing"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "缺密钥"
-          }
-        }
-      }
-    },
-    "settings.value.aiProvider.partial": {
-      "comment": "Settings row value: some AI endpoints ready, some not.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Partly ready"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "部分可用"
-          }
-        }
-      }
-    },
-    "settings.value.sync.notEnabled": {
-      "comment": "Settings row value: sync is off; data stays on this device.",
+    "settings.value.companion.disabled": {
+      "comment": "Settings row trailing value: Language Companion is off.",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -22435,24 +23994,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未启用"
-          }
-        }
-      }
-    },
-    "settings.value.localData.computing": {
-      "comment": "Settings row value: local data size is still being computed.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calculating…"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "计算中…"
+            "value": "已关闭"
           }
         }
       }

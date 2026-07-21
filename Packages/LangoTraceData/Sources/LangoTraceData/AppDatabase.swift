@@ -12,6 +12,15 @@ public struct AppDatabase: @unchecked Sendable {
         databaseQueue
     }
 
+    /// Write seam for cross-package repositories that own their own writes (e.g.
+    /// the Learner Model's system-level Memory facts). Exposes the queue as a
+    /// `DatabaseWriter` (the same `DatabaseQueue` already serialises all writes),
+    /// so a caller can run write transactions without reaching the concrete queue.
+    /// (LM01 §20 预告的一次性增量。)
+    public var writer: DatabaseWriter {
+        databaseQueue
+    }
+
     public init(databaseQueue: DatabaseQueue) throws {
         self.databaseQueue = databaseQueue
         // `PRAGMA foreign_keys` is a no-op inside a transaction, so it must run
@@ -127,42 +136,28 @@ private extension AppDatabase {
         migrator.registerMigration("v26_create_memory_item_infrastructure") { db in
             try createMemoryItemInfrastructure(db)
         }
+        migrator.registerMigration("v27_create_learner_memory_facts") { db in
+            try createLearnerMemoryFactsInfrastructure(db)
+        }
+        migrator.registerMigration("v28_create_dictionary_lookup_events") { db in
+            try createDictionaryLookupEventInfrastructure(db)
+        }
+        migrator.registerMigration("v29_create_analysis_ledger") { db in
+            try createAnalysisLedgerInfrastructure(db)
+        }
+        migrator.registerMigration("v30_create_companion_infrastructure") { db in
+            try createCompanionInfrastructure(db)
+        }
+        migrator.registerMigration("v31_create_companion_reflux_infrastructure") { db in
+            try createCompanionRefluxInfrastructure(db)
+        }
+        migrator.registerMigration("v32_create_companion_memory_toggle") { db in
+            try createCompanionMemoryToggleInfrastructure(db)
+        }
+        migrator.registerMigration("v33_add_companion_rolling_summary") { db in
+            try createCompanionRollingSummaryInfrastructure(db)
+        }
         try migrator.migrate(databaseQueue)
-    }
-
-    static func createLanguageSpaceInfrastructure(_ db: Database) throws {
-        try db.create(table: "language_spaces") { table in
-            table.column("id", .text).primaryKey()
-            table.column("native_language_code", .text).notNull()
-            table.column("target_language_code", .text).notNull()
-            table.column("level", .text).notNull()
-            table.column("display_name", .text).notNull()
-            table.column("display_name_normalized", .text).notNull()
-            table.column("created_at", .double).notNull()
-            table.column("updated_at", .double).notNull()
-            table.column("last_opened_at", .double)
-            table.column("deleted_at", .double)
-        }
-        try db.create(
-            index: "idx_language_spaces_active_updated_at",
-            on: "language_spaces",
-            columns: ["deleted_at", "updated_at"]
-        )
-        try db.create(
-            index: "idx_language_spaces_target_language",
-            on: "language_spaces",
-            columns: ["target_language_code"]
-        )
-        try db.create(
-            index: "idx_language_spaces_display_name_normalized",
-            on: "language_spaces",
-            columns: ["display_name_normalized"]
-        )
-        try db.create(table: "app_state") { table in
-            table.column("key", .text).primaryKey()
-            table.column("value", .text)
-            table.column("updated_at", .double).notNull()
-        }
     }
 
     static func createAIProviderConfiguration(_ db: Database) throws {

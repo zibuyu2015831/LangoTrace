@@ -4,15 +4,33 @@ import SwiftUI
 
 struct PhotoWritingView: View {
     let languageSpace: LanguageSpacePreview
+    let actions: PhotoWritingActions
     let onSave: (_ body: String, _ imageData: Data?) throws -> Void
     let onDismiss: () -> Void
 
+    @StateObject private var assist: PhotoWritingAssistViewModel
     @State private var draftState = PhotoWritingDraftState()
     @State private var selectedItem: PhotosPickerItem?
     @State private var selectedImageData: Data?
     @State private var selectedImage: Image?
     @State private var saveError: String?
     @State private var isSaving = false
+    @State private var showAssistConfirm = false
+
+    init(
+        languageSpace: LanguageSpacePreview,
+        actions: PhotoWritingActions = .disabled,
+        onSave: @escaping (_ body: String, _ imageData: Data?) throws -> Void,
+        onDismiss: @escaping () -> Void
+    ) {
+        self.languageSpace = languageSpace
+        self.actions = actions
+        self.onSave = onSave
+        self.onDismiss = onDismiss
+        _assist = StateObject(
+            wrappedValue: PhotoWritingAssistViewModel(languageSpace: languageSpace, actions: actions)
+        )
+    }
 
     var body: some View {
         NavigationStack {
@@ -24,7 +42,7 @@ struct PhotoWritingView: View {
                         chipHintPanel(chip: chip)
                     }
                     writingArea
-                    privacyNotice
+                    assistSection
                 }
                 .padding(20)
             }
@@ -63,7 +81,21 @@ struct PhotoWritingView: View {
                         }
                     }
                 }
+                // A new photo invalidates any prior assist result.
+                assist.reset()
             }
+        }
+        .confirmationDialog(
+            localizedString("photoWriting.assist.confirm.title"),
+            isPresented: $showAssistConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(localizedString("photoWriting.assist.confirm.send")) {
+                startAssist()
+            }
+            Button(localizedString("common.cancel"), role: .cancel) {}
+        } message: {
+            localizedText("photoWriting.assist.confirm.message")
         }
     }
 
@@ -156,15 +188,94 @@ struct PhotoWritingView: View {
         .langoPanel(padding: 10)
     }
 
-    private var privacyNotice: some View {
-        Label {
-            localizedText("photoWriting.privacy.notice")
-        } icon: {
-            Image(systemName: "lock")
+    // MARK: - AI assist
+
+    private var assistSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Picker(selection: $assist.selectedMode) {
+                localizedText("photoWriting.assist.mode.suggestions")
+                    .tag(PhotoWritingAssistMode.writingSuggestions)
+                localizedText("photoWriting.assist.mode.draft")
+                    .tag(PhotoWritingAssistMode.sourceLanguageDraft)
+            } label: {
+                EmptyView()
+            }
+            .pickerStyle(.segmented)
+            .disabled(assist.isSending)
+
+            Button {
+                showAssistConfirm = true
+            } label: {
+                Label(localizedString("photoWriting.assist.button"), systemImage: "sparkles")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(selectedImageData == nil || assist.isSending)
+
+            assistStateView
         }
-        .font(.footnote.weight(.medium))
-        .foregroundStyle(LangoTraceDesign.ColorToken.privacyLocal)
+        .langoPanel(padding: 14)
+    }
+
+    @ViewBuilder
+    private var assistStateView: some View {
+        switch assist.state {
+        case .idle:
+            EmptyView()
+        case .sending:
+            HStack(spacing: 10) {
+                ProgressView()
+                localizedText("photoWriting.assist.sending")
+                    .font(.callout)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                Spacer(minLength: 0)
+                Button(action: assist.cancel) {
+                    localizedText("common.cancel")
+                }
+                .buttonStyle(.borderless)
+            }
+        case let .result(result):
+            PhotoWritingAssistResultPanel(
+                result: result,
+                onAdopt: assist.adoptableText == nil ? nil : { adopt() },
+                onDismiss: assist.reset
+            )
+        case let .failed(category):
+            assistFailureView(category)
+        }
+    }
+
+    @ViewBuilder
+    private func assistFailureView(_ category: PhotoWritingAssistFailureCategory) -> some View {
+        let key = category == .imageInputNotEnabled
+            ? "photoWriting.assist.guidance.imageInputDisabled"
+            : "photoWriting.assist.error.generic"
+        Label {
+            localizedText(key)
+        } icon: {
+            Image(systemName: category == .imageInputNotEnabled ? "wand.and.stars" : "exclamationmark.triangle")
+        }
+        .font(.footnote)
+        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
         .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func startAssist() {
+        guard let data = selectedImageData else { return }
+        assist.requestAssist(imageData: data, note: draftState.draftText)
+    }
+
+    /// Non-destructive adopt: append the native draft to the writing area instead
+    /// of overwriting whatever the user already wrote.
+    private func adopt() {
+        guard let text = assist.adoptableText else { return }
+        if draftState.draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            draftState.draftText = text
+        } else {
+            draftState.draftText += "\n\n" + text
+        }
+        assist.reset()
     }
 
     // MARK: - Actions

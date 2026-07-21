@@ -627,7 +627,17 @@ extension AIProviderAdapterKind {
                 canProbeSpeechSynthesis: true,
                 canProbeEmbedding: false
             )
-        case .anthropicMessages, .geminiGenerateContent:
+        case .anthropicMessages:
+            // LM03-S4b: Anthropic Messages text + best-effort structured-JSON are
+            // wired; image / TTS / embedding stay deferred.
+            AIProviderAdapterCapabilityPolicy(
+                canProbeText: true,
+                canProbeStructuredJSON: true,
+                canProbeImageInput: false,
+                canProbeSpeechSynthesis: false,
+                canProbeEmbedding: false
+            )
+        case .geminiGenerateContent:
             AIProviderAdapterCapabilityPolicy(
                 canProbeText: false,
                 canProbeStructuredJSON: false,

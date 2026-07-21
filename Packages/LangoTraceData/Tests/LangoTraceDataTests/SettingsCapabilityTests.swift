@@ -30,3 +30,18 @@ func settingsCapabilitiesExposeGlobalAppearanceWithoutChangingLearningContext() 
     #expect(appearance?.isReadOnly == true)
     #expect(SettingsCapability.Kind.appearance.systemImage == "circle.lefthalf.filled")
 }
+
+@Test("Companion leads the settings capabilities as a ready card with a chat icon")
+func settingsCapabilitiesLeadWithCompanionCard() {
+    #expect(SettingsCapability.Kind.allCases.contains(.companion))
+    #expect(SettingsCapability.Kind.companion.systemImage == "bubble.left.and.bubble.right")
+
+    // The settings list surfaces companion as the first capability card, directly under
+    // the learner-profile row — preserving its top placement now that it is no longer a
+    // bare toggle.
+    let repository = InMemoryLearningContentRepository.seeded(spaceID: "en")
+    let first = repository.settingsCapabilities(for: "en").first
+    #expect(first?.kind == .companion)
+    #expect(first?.status == .ready)
+    #expect(first?.summary == "settings.companion.summary")
+}

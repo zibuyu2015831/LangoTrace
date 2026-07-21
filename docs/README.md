@@ -78,7 +78,16 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 8. 测试场所与仓库可见性：本机为 MacBook Air（被动散热），**重测试（全量验证、三端构建、跨多包测试）一律放 GitHub Actions，本机只做轻量单包测试或 `swiftformat`/`swiftlint` 自查**。仓库平时可保持 private，**需要跑 CI 前临时设为 public**（public 的 Actions 免费无上限，private 的 macOS 额度紧）。可见性切换：若 AI 的 `gh` 凭证具备 `repo` scope + 仓库 ADMIN 权限，AI 可在**报告并取得用户许可后直接用 `gh repo edit --visibility` 切换**（跑前 public、跑完 private），减少用户手动操作；无该能力时退回提醒用户手动切换。任何情况下可见性变更默认先取得用户许可，不静默切换。细节见 [CI 与分支协作 Runbook §1.1](development/002-ci-and-branch-workflow.md)。
 9. 合并到 `main` 的纪律：**原则上禁止本地直接 `git merge` / `git push` 到 `main`，所有变更必须经 PR + `Build & Test` 绿勾合并**。当用户要合并到 `main`（或出现本地直接合并意图）时，AI 应主动提醒：先把仓库临时设为 public → 开 PR → 用 `gh` 核对 `Build & Test` 通过 → 走 PR 合并。标准流程见 [CI 与分支协作 Runbook §3.1](development/002-ci-and-branch-workflow.md)。
 
-## 2. 项目当前状态
+### 1.5 工作产物必须落在仓库内原则
+
+AI 在协助设计、评审、调试或验证时创建的一切产物——原型 HTML、设计稿、对比 mockup、临时脚本、截图、采集的素材等——**必须写入本仓库目录树内，禁止落到仓库之外的任何位置**（如 `~/Desktop`、`~/Downloads`、`/tmp` 或其他项目）。仓库是唯一工作面，便于版本管理、复查、归档和团队协作。
+
+落地规则：
+
+1. 按性质归位：多端页面 / 设计原型 / 评审 mockup 写入 `prototypes/`（一次性评审原型归 `prototypes/archive/<topic>/`）；诊断日志写入被 Git 忽略的 `logs/`；研究证据写入 `docs/reference/research/spikes/`；任务方案写入 `docs/plans/`。拿不准归属时先问，不要图省事丢到仓库外。
+2. 原型遵循 `prototypes/` 既有约束：纯 HTML/CSS，复用 `shared/` token 与组件，不依赖 npm / 框架 / CDN / 远程资源；不要为一次 mockup 在仓库引入数 MB 的第三方运行时（如 React/Babel 打包）。
+3. 不把仓库当临时草稿桶：无保留价值的中间产物（截图、playwright 缓存等）用完即删，不提交进 Git；需要保留的评审证据配一份 README 说明用途与对应 active plan。
+4. 若历史上已有产物落在仓库外，应在发现时迁回对应目录并删除原件，不留双份。
 
 当前仓库已经完成 SwiftUI Multiplatform 工程初始化，并从纯 App Shell 推进到产品体验骨架和首批真实学习内容基础设施阶段。现有实现可以展示 Welcome / Onboarding / Main 启动路由、真实语言空间 SQLite / GRDB 持久化、iPhone 语言空间管理页、iPhone / iPad / macOS 分平台主界面、文本记录写入 GRDB learning content repository、显式触发的学习材料生成 / 重新分析、逐句 TTS 播放、单句跟读录音完成闭环、隐私状态图标、iPad 侧栏折叠和边缘手势。
 
@@ -150,7 +159,7 @@ LangoTrace 的可执行单元测试按模块归属放在 `Packages/*/Tests`，�
 
 产品不是：
 
-- 不是 AI 聊天工具。
+- 不是 AI 聊天工具。（语伴是受 [ADR-008](decisions/008-language-companion-as-grounded-practice-modality.md) 约束的有界练习模态例外：默认关闭、扎根记录、始终目标语、单一对话对象，不改变产品重心仍是本地优先的个人语言记忆系统。）
 - 不是传统背单词 App。
 - 不是课程驱动产品。
 - 不是云端账号和平台绑定优先的学习平台。

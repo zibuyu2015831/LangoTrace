@@ -60,7 +60,9 @@ struct PhoneMainView: View {
                     cacheStorage: readingCacheStorage,
                     onOpenPhoneDocument: { documentID in
                         navModel.push(.readingDocument(documentID), on: .reading)
-                    }
+                    },
+                    onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
+                    onSettingsAction: { navModel.push(.settingsList, on: .reading) }
                 )
                 .phoneNavigationDestinations(for: .reading, context: self)
             }
@@ -81,7 +83,8 @@ struct PhoneMainView: View {
                     renderingForEntry: rendering(for:),
                     onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
                     onSettingsAction: { navModel.push(.settingsList, on: .practice) },
-                    onPractice: { entry in navModel.push(.practiceSentenceList(entry.id), on: .practice) }
+                    onPractice: { entry in navModel.push(.practiceSentenceList(entry.id), on: .practice) },
+                    onCompanion: { navModel.push(.companionChat(CompanionChatRouteSeed()), on: .practice) }
                 )
                 .phoneNavigationDestinations(for: .practice, context: self)
             }
@@ -125,8 +128,9 @@ struct PhoneMainView: View {
                     presentedSheet = nil
                     navModel.push(.entryDetail(entry.id), on: .entries)
                 }
+                .presentationDetents([.medium, .large])
             case .photoWriting:
-                PhotoWritingView(languageSpace: languageSpace) { body, imageData in
+                PhotoWritingView(languageSpace: languageSpace, actions: photoWritingActions) { body, imageData in
                     let coordinator = PhotoWritingSaveCoordinator(
                         createEntry: { title, body, source in
                             try contentStore.createEntry(title: title, body: body, source: source)
@@ -212,7 +216,10 @@ struct PhoneMainView: View {
                     contentStore: contentStore,
                     titlePresentation: .objectNavigationTitle,
                     onPracticeSentence: { seed in navModel.push(.practiceSentence(seed), on: tab) },
-                    onOpenReading: { entryID in navModel.push(.bilingualReading(entryID), on: tab) }
+                    onOpenReading: { entryID in navModel.push(.bilingualReading(entryID), on: tab) },
+                    onCompanion: { entryID in
+                        navModel.push(.companionChat(CompanionChatRouteSeed(sourceEntryID: entryID)), on: tab)
+                    }
                 )
             }
         case let .bilingualReading(entryID):
@@ -298,8 +305,13 @@ struct PhoneMainView: View {
                 onLanguageSpaceAction: { presentedSheet = .languageSpaceSwitcher },
                 onSettingsAction: nil,
                 onSelectCapability: { kind in navModel.push(.settings(kind), on: tab) },
+                onSelectLearnerProfile: { navModel.push(.learnerProfile, on: tab) },
                 onAppearRefresh: { Task { await contentStore.refreshSettingsStatus() } }
             )
+        case .learnerProfile:
+            LearnerProfileView(languageSpace: languageSpace)
+        case let .companionChat(seed):
+            CompanionChatView(languageSpace: languageSpace, seed: seed)
         }
     }
 }

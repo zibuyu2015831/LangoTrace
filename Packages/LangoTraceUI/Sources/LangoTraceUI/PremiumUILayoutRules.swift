@@ -191,10 +191,10 @@ enum PadSettingsFocusPolicy {
 private extension PadWorkspaceRoute {
     var isSettingsDetail: Bool {
         switch self {
-        case .settings:
+        case .settings, .learnerProfile:
             true
         case .workspace, .entryDetail, .bilingualReading, .practiceSentenceList, .practiceSentence, .reading,
-             .settingsList, .memory, .importExport, .languageSpaceManagement:
+             .settingsList, .memory, .importExport, .languageSpaceManagement, .companionChat:
             false
         }
     }

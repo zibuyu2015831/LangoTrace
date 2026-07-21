@@ -61,6 +61,13 @@ struct RequestPreviewCardTests {
         #expect(includedLabels == [localizedString("requestPreview.content.currentEntryBody")])
     }
 
+    @Test("curatedLearnerStyle descriptor renders its localized included label (LM03-S4a)")
+    func curatedLearnerStyleHasIncludedLabel() {
+        let label = RequestPreviewCardModel.label(for: .curatedLearnerStyle)
+        #expect(label == localizedString("requestPreview.content.curatedLearnerStyle"))
+        #expect(!label.isEmpty)
+    }
+
     @Test("a mock rendering keeps the local draft copy")
     func mockRenderingKeepsLocalDraft() {
         let model = RequestPreviewCardModel(projection: projection(), entry: makeEntry(), rendering: makeRendering(isMock: true))

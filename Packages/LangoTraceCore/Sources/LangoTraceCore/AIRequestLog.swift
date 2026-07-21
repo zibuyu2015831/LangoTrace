@@ -94,6 +94,33 @@ public enum AIRequestLogFailureBucket: String, Codable, CaseIterable, Equatable,
             self = .unknown
         }
     }
+
+    public init(_ category: PhotoWritingAssistFailureCategory) {
+        switch category {
+        case .providerNotConfigured:
+            self = .providerNotConfigured
+        case .authenticationFailed:
+            self = .credentialMissing
+        case .networkUnavailable:
+            self = .network
+        case .timeout:
+            self = .timeout
+        case .rateLimited, .providerRejected:
+            self = .providerRejected
+        // The endpoint supports images but the user has not enabled image input,
+        // or the adapter / model cannot take images: all "this won't run as
+        // configured" outcomes collapse onto the unsupported bucket.
+        case .imageInputNotEnabled, .unsupportedProvider, .unsupportedModel:
+            self = .unsupported
+        case .invalidStructuredResponse:
+            self = .invalidResponse
+        case .imageTooLarge:
+            // A pre-flight block; defensive map so the initializer stays total.
+            self = .unknown
+        case .cancelled:
+            self = .unknown
+        }
+    }
 }
 
 /// The outcome of an attempted outbound AI request, used to stamp a log row.

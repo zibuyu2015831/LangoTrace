@@ -40,6 +40,24 @@ struct SettingsRowValuePresentationTests {
         #expect(value(.sync, .init(sync: .notEnabled)) == localizedString("settings.value.sync.notEnabled"))
     }
 
+    /// The companion row's trailing value reflects the device-global feature flag (passed in,
+    /// not read from the projection — so it stays reactive in the iPad/Mac two-pane layout).
+    @Test("companion row reflects the feature flag, or nil when unknown")
+    func companionRow() {
+        #expect(settingsRowValue(
+            for: .companion, status: .init(), interfaceLanguage: .system, appearance: .system,
+            companionEnabled: true
+        ) == localizedString("settings.value.companion.enabled"))
+        #expect(settingsRowValue(
+            for: .companion, status: .init(), interfaceLanguage: .system, appearance: .system,
+            companionEnabled: false
+        ) == localizedString("settings.value.companion.disabled"))
+        #expect(settingsRowValue(
+            for: .companion, status: .init(), interfaceLanguage: .system, appearance: .system,
+            companionEnabled: nil
+        ) == nil)
+    }
+
     @Test("local data row formats a byte count when known and shows a placeholder otherwise")
     func localDataRow() {
         let computing = value(.localData, .init(localData: nil))

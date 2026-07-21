@@ -627,7 +627,9 @@ private extension AIProviderConfigurationProbeService {
     }
 
     func supportsImageProbe(_ adapterKind: AIProviderAdapterKind) -> Bool {
-        adapterKind == .openAIResponses || adapterKind == .openAICompatibleChat
+        // Shared with photo-writing assist via the single allowlist so the probe
+        // and the real image request can never diverge (self-review P1-6).
+        AIProviderImageSupport.supportsInlineImage(adapterKind)
     }
 
     func errorCategory(forHTTPStatusCode statusCode: Int) -> AIProviderValidationErrorCategory {
