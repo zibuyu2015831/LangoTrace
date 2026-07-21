@@ -453,9 +453,10 @@ func geminiDraftProbeSucceedsWithGoogApiKeyHeader() async throws {
 
     #expect(result.capability(.textReply)?.status == .succeeded)
     #expect(result.capability(.structuredJSON)?.status == .succeeded)
-    // Image stays structurally unsupported (AIProviderImageSupport) and the
-    // disabled capabilities stay notEnabled.
-    #expect(result.capability(.imageUnderstanding)?.status == .unsupported)
+    // Image input is not enabled on the draft (and stays structurally
+    // unsupported for gemini via AIProviderImageSupport); the disabled
+    // capabilities all report notEnabled.
+    #expect(result.capability(.imageUnderstanding)?.status == .notEnabled)
     #expect(result.capability(.speechSynthesis)?.status == .notEnabled)
     #expect(result.capability(.embedding)?.status == .notEnabled)
     let requests = await httpClient.requests
