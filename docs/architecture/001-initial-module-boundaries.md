@@ -166,6 +166,8 @@ LearnerModel -> Core, Data
 
 ## 5. 当前代码快照
 
+> **历史初始化快照（已降权，2026-07-22）**：本节记录的是工程初始化阶段的代码状态，未随后续开发维护，其中「仍是 Mock / 内存 repository」等描述已不符合当前实现。当前系统事实以 [002-system-map.md](002-system-map.md) 与 [platform-page-inventory.md](../platform-page-inventory.md) 为准；本节仅保留为初始化阶段的历史证据，不作为当前事实源。
+
 ### 5.1 App Shell
 
 当前文件：

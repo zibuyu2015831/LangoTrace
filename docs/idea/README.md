@@ -47,6 +47,20 @@
 | 02 | [`02-dynamic-proficiency-assessment.md`](02-dynamic-proficiency-assessment.md) | 动态水平评估（能力画像子域） | 把用户语言水平从一次性静态自评变为持续演进的能力画像，并配「水平总览」页面；建议先于语伴实现 |
 | 03 | [`03-conversation-partner.md`](03-conversation-partner.md) | 语伴（AI 语言对话 + 关系记忆子域） | 默认关闭、扎根个人记录的目标语言对话练习；其「长期关系记忆」是学习者模型的另一个子域 |
 
+## 5.1 未来切片登记（2026-07-22，承接 LM 系列收口）
+
+> **边界**：登记 ≠ 实施授权；每项进入实现前必须各自拆 `docs/plans/active/` 方案并按 plan-review-protocol 双轮自审核；本节不改变 idea 目录非事实源地位。来源：LM02/LM03 系列导航文档收口归档（`docs/plans/done/2026-06-11-00-docs-series-progress.md`、`.../2026-06-25-docs-lm02-remaining-slices-decomposition.md`、`.../2026-06-25-docs-lm03-companion-decomposition.md`），登记于此避免归档后静默丢失。
+
+| 切片 | 来源 / 设计源 | 硬前置 | 风险 |
+| --- | --- | --- | --- |
+| 语伴逐句 TTS 朗读接线 | LM03-S1 §18 偏差记录（`docs/plans/done/2026-06-25-feature-lm03-s1-companion-mvp.md`）；复用逐句 TTS 播放基础设施 | 无（加性后续） | 低 |
+| 语伴 S3 deposit 子增量 | LM03-S3b-2 收口时登记的后续增量（`docs/plans/done/2026-06-26-feature-lm03-s3b2-companion-session-deposit.md`） | S3b-2 已落地（已满足） | 低 |
+| 改写 / 写作修改消费者 | idea-01 §13.5、idea-03 §10.2；Style→Ability i+1 下投影的第二个落地消费者，兑现 LM02-S2 立项前提 | LM02-S2 Style + LM01 Ability（均已落地） | 低 |
+| onboarding 自评措辞软化 | idea-02 §7.2 / ADR-006 §10；CEFR 裸标签软化为阶段化措辞，仅展示层，不改 `LanguageLevel` 枚举 | 无 | 极低 |
+| AI 校准 v2（Style 认知风格 / band AI 估计） | idea-01 / idea-02；外发增量，逐项 opt-in | **ADR-006 §6 隐私闸**（未过闸不得实现） | 高（外发） |
+
+远期方向占位（未拆解、未排序）：语伴语音对话、语伴场景模式、语伴向量检索（来源：LM03 拆解文档「远期」段）。
+
 ## 6. 架构师评审纪要（2026-06-13）
 
 对三份构想做了一轮系统架构师评审（详细结论写入各文件「架构师评审」节：01 §12、02 §13、03 §10；每节末附**推荐定稿**子表 01 §12.7 / 02 §13.7 / 03 §10.6，把待决点转为架构师推荐方案，待用户最终确认）。跨文件要点：

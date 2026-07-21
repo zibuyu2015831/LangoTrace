@@ -1,8 +1,8 @@
 # LangoTrace 系统地图
 
 状态：Accepted
-最后核对：2026-05-26
-代码快照：94919d3bc7823f127979e6c455dbc2f8165fd5f9
+最后核对：2026-07-22
+代码快照：c6b0b9e0e04a010f8ab9ad9b8c8d4dcd952e3339
 
 本文档是当前工程结构的快速地图，吸收 VMark `dev-docs/architecture.md` 的短路径系统视图，但不替代 ADR、spec、任务方案或代码。本文档只描述当前代码和已明确标记的未来能力；如果代码继续演进，必须更新 `最后核对` 和 `代码快照`。
 
@@ -17,14 +17,15 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 - `Packages/LangoTraceData/`：SQLite / GRDB、Repository、migration、本地媒体派生资产和设置能力数据。
 - `Packages/LangoTraceAI/`：AI Provider 配置服务、Keychain credential store、Provider probe、学习材料生成和 TTS 生成适配。
 - `Packages/LangoTraceSpeech/`：TTS 音频校验、preview playback、系统播放边界和前台练习录音 service。
-- `Packages/LangoTraceSync/`：同步包边界和 disabled sync service；真实同步仍未实现。
+- `Packages/LangoTraceSync/`：同步引擎纯逻辑切片（`SyncRecord` / `SyncAdapter` / LWW 冲突解决）和 disabled sync service；真实同步通道仍未实现。
+- `Packages/LangoTraceLearnerModel/`：ADR-006 学习者模型子系统——Ability 知识覆盖、Memory 层、Style 印记、盲点派生、band 重估与语伴 Memory / Style 投影。
 - `Packages/LangoTraceUI/`：共享 SwiftUI 页面、三端布局、状态 store、设置页、AI Provider UI 和 TTS 播放 action seam。
 - `LangoTraceAppTests/`、`Packages/*/Tests/`、`Tests/Tooling/`：App 装配、package 单元测试和宿主机工具测试。
 
-当前真实能力边界：
+当前真实能力边界（细节以 §4 与 `platform-page-inventory.md` 为准）：
 
-- 已实现：首次启动路由、语言空间 SQLite / GRDB 持久化、AI Provider 本地配置和 Keychain secret 分离、AI Provider 合成 probe、learning content GRDB 主路径、TTS 配置和逐句播放 coordinator、local media artifact / TTS audio cache、单句跟读 practice session / recording metadata 和前台麦克风录音保存。
-- 未完成：完整生活记录时间线、照片 / 音频附件主数据、FTS、导出、真实同步、Photos / Camera / Speech Recognition / OCR 权限接入、StoreKit、发布材料、发音评分、听写、回译和完整 Prompt Preset 执行链路。
+- 已实现：首次启动路由、语言空间 SQLite / GRDB 持久化、AI Provider 本地配置和 Keychain secret 分离、AI Provider 合成 probe、learning content GRDB 主路径、TTS 配置和逐句播放 coordinator、local media artifact / TTS audio cache、跟读录音 / 听写 / 回译练习、FTS5 trigram 全文搜索、照片附件主数据与照片写作、双语沉浸阅读、AI 请求预览与请求日志、AI Provider 多轮 + 流式与 Anthropic Messages 适配、学习者模型子系统（v27-v29）、学习画像总览页、语伴（v30-v33）、导入导出 Slice 1（明文主数据）。
+- 未完成：时间线场景标签筛选与搜索联动、Entry 音频附件、附件导出打包与可恢复备份、Gemini 文本学习内容适配、Prompt Preset 执行链路、跟读发音评分、Embedding 真实向量索引、Photos / Camera / Speech Recognition / OCR 权限接入、真实同步通道与变更跟踪 schema、StoreKit、发布材料。
 
 ## 2. App 和 Package 入口点
 

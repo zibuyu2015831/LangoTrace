@@ -133,8 +133,8 @@
 - `docs/spec/005-ai-provider-prompt-and-privacy.md`（提取 capability + 显式触发非自动外发分类）
 - `docs/spec/007-data-storage-migration-export-and-attachments.md`（v31 派生候选表登记；§3 派生数据列表补 `memory_candidates` / `companion_memory_candidates`（升级为 memory item 主数据前的评审暂存），落实 D4，round-2 P2-1）
 - `docs/prompts/companion/extraction.md`（新，提取 prompt 结构化输出契约 + 隐私边界 directive 登记；与既有 `system.md` 并列，round-2 P2-2）
-- `docs/plans/active/2026-06-25-docs-lm03-companion-decomposition.md`（S2→S2a/S2b 拆分标注）
-- `docs/plans/active/2026-06-11-00-docs-series-progress.md`（仪表盘）
+- `docs/plans/done/2026-06-25-docs-lm03-companion-decomposition.md`（S2→S2a/S2b 拆分标注）
+- `docs/plans/done/2026-06-11-00-docs-series-progress.md`（仪表盘）
 
 ## 实施方案（按 Phase，TDD 先失败）
 

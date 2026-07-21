@@ -68,7 +68,7 @@ Style 的产品价值（idea-01 §13.4 / §13.5）：让 AI 输出（材料 / �
 ## 6. 证据与决策依据
 
 - ADR 证据：[ADR-006](../../decisions/006-system-level-three-layer-learner-model.md) §2（Style 层：表面写作风格 = 本地 v1，认知风格 = AI 校准后置）、§3（Style 系统级跨空间、全局共享冷启动红利）、§4（证据红线：源语言干净信号、目标语打折，同型闭环纪律）、§5/§6（隐私重定义：本地分析非「收集」、零外发不触发决策 #10 可先行）、§8（可重建性梯度：Style 准原始——但见 §12.4 v1 表层 reconcile）、§9（provenance 一等公民：Ability/Style 证据是分布非单 FK）、§10（不展示降级、不打击信心）。
-- idea 证据：`docs/idea/01-learner-model.md` §13.1（三层定义 + Style 系统级）、§13.4（Style 定义 / 两档推断 / 隐式用不下判决 / 源语言干净信号）、§13.5（Style↔Ability 下投影——**消费者**侧，S2 不做）、§13.7（可重建性梯度）、§13.9（待决点：命名 / 下投影档位映射；**不含「是否展示」**——见 decomposition §35③）、§14.3（provenance 粒度：Style 证据集 + 权重）；`docs/plans/active/2026-06-25-docs-lm02-remaining-slices-decomposition.md`（S2 边界 / 硬前置 / 待决 / 风险 / 排序）。
+- idea 证据：`docs/idea/01-learner-model.md` §13.1（三层定义 + Style 系统级）、§13.4（Style 定义 / 两档推断 / 隐式用不下判决 / 源语言干净信号）、§13.5（Style↔Ability 下投影——**消费者**侧，S2 不做）、§13.7（可重建性梯度）、§13.9（待决点：命名 / 下投影档位映射；**不含「是否展示」**——见 decomposition §35③）、§14.3（provenance 粒度：Style 证据集 + 权重）；`docs/plans/done/2026-06-25-docs-lm02-remaining-slices-decomposition.md`（S2 边界 / 硬前置 / 待决 / 风险 / 排序）。
 - 代码证据：见第 2 节逐条核实（entries.source 区分键、native/target language_code、NL 已可用、LM01 compute-on-read 镜像、reader-only）。
 - workflow 引用：本方案**不命中** add-storage-migration（无新表 / 无 migration / 无 writer）、不命中 AI Provider / TTS / Prompt（零外发、无 prompt）；若启用展示，**轻度命中** [`add-platform-screen`](../../workflows/add-platform-screen.md)（扩展 S1 既有总览页一个分区，非新页面 / 新入口）。
 
@@ -172,8 +172,8 @@ Style 的产品价值（idea-01 §13.4 / §13.5）：让 AI 输出（材料 / �
 - `docs/spec/007-data-storage-migration-export-and-attachments.md`（P1-B：登记 Style v1 表层 compute-on-read 不持久不备份 / 准原始适用 v2，与 S1 拟登记 Ability 条目并列）。
 - `docs/idea/01-learner-model.md` §13.9（收口命名 / 持久化待决点）+ §13.4 / decomposition §35③（展示默认），作方案内决策回指。
 - **新增 `docs/architecture/notes/`**（实施时建）：Style v1 表层 compute-on-read 不持久 + 准原始 / 备份仅 v2 的跨任务硬接缝（P1-2）。
-- `docs/plans/active/2026-06-25-docs-lm02-remaining-slices-decomposition.md`（S2 标注「→ 已拆 active plan」）。
-- `docs/plans/active/2026-06-11-00-docs-series-progress.md`（状态总表登记 S2）。
+- `docs/plans/done/2026-06-25-docs-lm02-remaining-slices-decomposition.md`（S2 标注「→ 已拆 active plan」）。
+- `docs/plans/done/2026-06-11-00-docs-series-progress.md`（状态总表登记 S2）。
 
 ## 11. bug 分析
 

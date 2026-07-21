@@ -15,7 +15,7 @@ CLAUDE.md / `docs/README.md` 第 3 节北极星明确「**产品不是 AI 聊天
 - `product-main-reference.md` §9.13（语伴）、§27（个人语言画像）、§11（外发边界）已把语伴定位、隐私边界写进产品参考。
 - ADR-006（系统级三层学习者模型）§17 明确「『语伴』是本模型的消费者，依赖链最长，单独排在最后，本 ADR 不替其定边界」——边界留给本 ADR。
 
-本 ADR 把上述已收敛的判断升格为正式决策，并固化 2026-06-25 会话确认的三处定夺（定位 ADR 落地、入口位置、Provider 扩容范围中与定位相关者）。它是语伴系列（ADR-006 影响节的 LM03）落地前的两份前置之一；另一份是 Provider 多轮 + 流式扩容方案 `docs/plans/active/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md`。
+本 ADR 把上述已收敛的判断升格为正式决策，并固化 2026-06-25 会话确认的三处定夺（定位 ADR 落地、入口位置、Provider 扩容范围中与定位相关者）。它是语伴系列（ADR-006 影响节的 LM03）落地前的两份前置之一；另一份是 Provider 多轮 + 流式扩容方案 `docs/plans/done/2026-06-25-feature-ai-provider-multi-turn-and-streaming.md`。
 
 ## 决策
 

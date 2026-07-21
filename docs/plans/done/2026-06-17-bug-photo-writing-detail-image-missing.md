@@ -148,7 +148,7 @@
 - 本方案。
 - `docs/spec/learning-content/impl.md`：补充照片详情降级态和保存原子性事实。
 - `docs/platform-page-inventory.md`：记录照片详情加载失败时的可见状态。
-- `docs/plans/active/2026-06-11-00-docs-series-progress.md`：可选，在完成本 bug 后登记“E2 follow-up fixed”并恢复 E3 指针。
+- `docs/plans/done/2026-06-11-00-docs-series-progress.md`：可选，在完成本 bug 后登记“E2 follow-up fixed”并恢复 E3 指针。
 - `docs/plans/done/2026-06-11-04-feature-entry-photo-attachment-and-photo-writing.md`：历史 done plan 默认不改；如需要只追加变更记录，不重写历史实施记录。
 
 ## 11. bug 分析
@@ -284,7 +284,7 @@ git status --short
 - `docs/spec/005-ai-provider-prompt-and-privacy.md`：预计不需要更新；照片仍不发送 AI Provider。
 - `docs/spec/007-data-storage-migration-export-and-attachments.md`：预计不需要更新；无 schema 或存储策略变化。
 - `docs/review/`：本任务是 E2 follow-up bug，不触发数据库 schema 专项审查；完成后做日常文档影响检查即可。
-- `docs/plans/active/2026-06-11-00-docs-series-progress.md`：完成后可登记 E2 follow-up 已修复，再恢复 E3 指针。
+- `docs/plans/done/2026-06-11-00-docs-series-progress.md`：完成后可登记 E2 follow-up 已修复，再恢复 E3 指针。
 
 ## 18. 实施记录
 

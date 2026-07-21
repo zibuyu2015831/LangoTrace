@@ -62,7 +62,7 @@ ADR-006 影响节把「盲点 / 常犯错误」归 Ability 层（按语言）；
 ## 6. 证据与决策依据
 
 - ADR 证据：[ADR-006](../../decisions/006-system-level-three-layer-learner-model.md) §2（Ability：常犯错误属能力层、用户产出证据）、§3（常犯错误 / 语法盲点按 language code）、§4（证据红线：用户产出 / 行为，AI 判定禁用——dictation diff 是机械 diff 非 AI 判定，合规；observations 是 AI 判定，禁用）、§8（Ability 真派生不持久）、§9（provenance 证据集）、§10（不展示降级——盲点展示自己的错误，非降级判决）。
-- idea 证据：`docs/idea/02-dynamic-proficiency-assessment.md` §4（有效证据 = 用户产出 / 行为）、§7.1（盲点页）、§13.1（闭环红线）、§14.2（盲点是总览页 v1 高价值项）；`docs/plans/active/2026-06-25-docs-lm02-remaining-slices-decomposition.md`（S3 边界 / 既有信号发现 / 待决 / 风险）；S1 §6（盲点张力 reconcile：依赖未就绪而预留分区——S3 现兑现）。
+- idea 证据：`docs/idea/02-dynamic-proficiency-assessment.md` §4（有效证据 = 用户产出 / 行为）、§7.1（盲点页）、§13.1（闭环红线）、§14.2（盲点是总览页 v1 高价值项）；`docs/plans/done/2026-06-25-docs-lm02-remaining-slices-decomposition.md`（S3 边界 / 既有信号发现 / 待决 / 风险）；S1 §6（盲点张力 reconcile：依赖未就绪而预留分区——S3 现兑现）。
 - 代码证据：见第 2 节逐条核实（practice_text_attempts 字段、dictation-only diff、observations 禁读、LM01 compute-on-read 镜像、复习队列就绪）。
 - workflow 引用：**v1 不命中** add-storage-migration（已砍 deposit、无新表 / 无 migration / 无 writer，P0-1）；不命中 AI Provider / TTS / Prompt（零外发）；**轻度命中** [`add-platform-screen`](../../workflows/add-platform-screen.md)（填充 S1 总览页盲点分区纯展示，非新页面）。**注**：deposit 子增量（后续）将命中 add-storage-migration。
 
@@ -165,8 +165,8 @@ ADR-006 影响节把「盲点 / 常犯错误」归 Ability 层（按语言）；
 - `docs/architecture/002-system-map.md`（盲点子系统 compute-on-read 数据流）。
 - `docs/platform-page-inventory.md`（总览页盲点分区填充 + 行动闭环）。
 - `docs/idea/02-dynamic-proficiency-assessment.md` §7.1（盲点页落地回指）。
-- `docs/plans/active/2026-06-25-docs-lm02-remaining-slices-decomposition.md`（S3 标注「→ 已拆 active plan」）。
-- `docs/plans/active/2026-06-11-00-docs-series-progress.md`（状态总表登记 S3）。
+- `docs/plans/done/2026-06-25-docs-lm02-remaining-slices-decomposition.md`（S3 标注「→ 已拆 active plan」）。
+- `docs/plans/done/2026-06-11-00-docs-series-progress.md`（状态总表登记 S3）。
 
 ## 11. bug 分析
 

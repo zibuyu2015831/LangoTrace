@@ -6,7 +6,7 @@
 
 ## 适用范围
 
-LM03 语伴系列（[ADR-008](../../decisions/008-language-companion-as-grounded-practice-modality.md) 定位、[LM03 拆解](../../plans/active/2026-06-25-docs-lm03-companion-decomposition.md)、[LM03-S1 active plan](../../plans/active/2026-06-25-feature-lm03-s1-companion-mvp.md)）。本备忘录服务于 LM03-S1（MVP 单线程文本对话引擎）之后的语音、隐私与包边界扩展，**不替代** ADR-008、LM03 各子片 active plan、spec 或 architecture 根文档。
+LM03 语伴系列（[ADR-008](../../decisions/008-language-companion-as-grounded-practice-modality.md) 定位、[LM03 拆解](../../plans/done/2026-06-25-docs-lm03-companion-decomposition.md)、[LM03-S1 active plan](../../plans/done/2026-06-25-feature-lm03-s1-companion-mvp.md)）。本备忘录服务于 LM03-S1（MVP 单线程文本对话引擎）之后的语音、隐私与包边界扩展，**不替代** ADR-008、LM03 各子片 active plan、spec 或 architecture 根文档。
 
 ## 目的
 

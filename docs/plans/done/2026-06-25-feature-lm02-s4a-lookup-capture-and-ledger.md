@@ -124,8 +124,8 @@ S4a 把这两块地基建对、可回归，使 S4b 只需消费既有信号 + �
 - `docs/architecture/002-system-map.md`（账本子系统 + 查词信号数据流，**接在 S1 LM01/Memory 基线之后**）。
 - `docs/architecture/notes/2026-06-25-learner-memory-persistence-and-security-notes.md`（P1-4：查词事件 FileProtection 接缝登记 + 检查触发点）。
 - `docs/idea/02-dynamic-proficiency-assessment.md` §4（查词信号落地回指）。
-- `docs/plans/active/2026-06-25-feature-lm02-s4-band-reestimation.md`（拆解边界母文件，S4a 回指）。
-- `docs/plans/active/2026-06-25-docs-lm02-remaining-slices-decomposition.md` / `2026-06-11-00-docs-series-progress.md`（登记 S4a）。
+- `docs/plans/done/2026-06-25-feature-lm02-s4-band-reestimation.md`（拆解边界母文件，S4a 回指）。
+- `docs/plans/done/2026-06-25-docs-lm02-remaining-slices-decomposition.md` / `2026-06-11-00-docs-series-progress.md`（登记 S4a）。
 
 ## 11. bug 分析
 

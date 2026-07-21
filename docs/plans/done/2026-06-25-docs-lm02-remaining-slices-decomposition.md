@@ -1,10 +1,10 @@
 # 任务方案：LM02 后续切片拆解与排序（盲点 / Style / band 重估）
 
-状态：In Progress（拆解 / 排序导航文档，非实现方案；不含生产代码变更）
+状态：Done
 自审核状态：N/A（决策 / 排序导航文档；各切片进入实现前各自按 plan-review-protocol 自审核）
 类型：docs
 创建日期：2026-06-25
-最后更新日期：2026-06-25
+最后更新日期：2026-07-22（**收口归档**：LM02 全系列切片〔S1/S2/S3/S4a/S4b + enabler〕均已 Done 移 `done/`；本文件「未来切片登记」两项孤儿与 AI 校准 v2 已承接至 `docs/idea/README.md`「未来切片登记」节。收口任务见 `docs/plans/done/2026-07-22-docs-lm-series-closure-and-entry-alignment.md`）
 
 ## 这份文档是什么
 

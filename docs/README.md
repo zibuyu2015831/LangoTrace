@@ -89,9 +89,9 @@ AI 在协助设计、评审、调试或验证时创建的一切产物——原�
 3. 不把仓库当临时草稿桶：无保留价值的中间产物（截图、playwright 缓存等）用完即删，不提交进 Git；需要保留的评审证据配一份 README 说明用途与对应 active plan。
 4. 若历史上已有产物落在仓库外，应在发现时迁回对应目录并删除原件，不留双份。
 
-当前仓库已经完成 SwiftUI Multiplatform 工程初始化，并从纯 App Shell 推进到产品体验骨架和首批真实学习内容基础设施阶段。现有实现可以展示 Welcome / Onboarding / Main 启动路由、真实语言空间 SQLite / GRDB 持久化、iPhone 语言空间管理页、iPhone / iPad / macOS 分平台主界面、文本记录写入 GRDB learning content repository、显式触发的学习材料生成 / 重新分析、逐句 TTS 播放、单句跟读录音完成闭环、隐私状态图标、iPad 侧栏折叠和边缘手势。
+当前仓库已经完成 SwiftUI Multiplatform 工程初始化，并从纯 App Shell 推进到真实学习闭环的中期阶段。现有实现覆盖 Welcome / Onboarding / Main 启动路由、真实语言空间 SQLite / GRDB 持久化、三端分平台主界面、GRDB learning content 主路径、显式触发的学习材料生成 / 重新分析、逐句 TTS 播放、跟读录音 / 听写 / 回译练习、FTS 全文搜索、照片附件与照片写作、双语沉浸阅读、AI 请求预览与请求日志、学习者模型子系统（ADR-006）、学习画像总览页和语伴（Language Companion，ADR-008）。
 
-当前仍处于完整生活记录时间线、跟读评分、听写、回译、真实同步和 StoreKit 之前的早期阶段。已有真实数据 / AI / TTS / 练习录音路径均限定在用户显式触发、Provider 自带配置和本地优先边界内；现有页面和状态用于验证产品方向、平台结构和工程边界，不代表完整学习闭环、同步或发布能力已经可用。
+当前仍处于时间线场景标签筛选、跟读发音评分、真实同步通道、可恢复备份和 StoreKit 之前的阶段。已有真实数据 / AI / TTS / 练习录音路径均限定在用户显式触发、Provider 自带配置和本地优先边界内；同步引擎与导入导出只有纯逻辑 / 明文主数据切片，真实通道、附件打包和加密备份仍 defer；现有实现不代表同步或发布能力已经可用。
 
 已完成：
 
@@ -105,7 +105,7 @@ AI 在协助设计、评审、调试或验证时创建的一切产物——原�
 - 统一任务方案目录和模板。
 - SwiftUI Multiplatform App Shell。
 - XcodeGen `project.yml` 和生成的 `LangoTrace.xcodeproj`。
-- Core / UI / Data / AI / Speech / Sync 初始本地 Swift Package 边界。
+- Core / UI / Data / AI / Speech / Sync / LearnerModel 七个本地 Swift Package 边界。
 - `LangoTraceApp` 中的 `AppEnvironment` 和 `AppSessionState`。
 - Welcome / Onboarding / Main 三段启动状态。
 - `LaunchRoute` 缺少语言空间时回到 onboarding 的路由保护。
@@ -125,20 +125,32 @@ AI 在协助设计、评审、调试或验证时创建的一切产物——原�
 - 三端记录详情共享真实 `生成学习材料` / `重新分析` action seam，取消会终止当前 store 启动的生成 / 分析任务并保持取消状态。
 - 逐句 `听` 按钮通过 `SentenceAudioPlaybackActions` 接入 TTS 生成、local artifact cache 和播放 coordinator；页面展示、滚动和进入详情不会自动触发 TTS。
 - 练习 Tab 已从任务类型 mock 改为记录卡片 -> 句子列表 -> 单句跟读录音完成闭环；三端共享 `PracticeSessionRouteSeed`、`PracticeActions`、GRDB practice session / recording metadata、麦克风权限配置和本地媒体资产写入。练习录音默认本机保存，不自动发送 AI Provider、不默认导出、不同步。
-- Core、Data、AI、Speech、Sync 和 UI package 的首批单元测试；UI package 已开始按功能子目录组织 AI Provider 测试。
-- 统一验证脚本 `scripts/verify.sh`。
+- 听写练习闭环：`practice_text_attempts` 持久化与本地 grapheme 级 diff 对照。
+- 回译练习 Slice 1：AI critique 观察反馈，刻意不判对错、不打分。
+- FTS5 trigram 全文搜索：`search_index` 派生表、应用层 `SearchIndexWriter`、搜索面板；定位为本地可重建派生数据，不同步、非必需导出。
+- 照片附件主数据与照片写作路径：`EntryPhotoAttachment`、`PhotoImportPipeline`、缩略图与 `media_artifacts` join。
+- 双语沉浸阅读页与阅读内 AI 解释、查词捕获。
+- AI 请求预览投影与请求日志：`AIRequestPreviewProjection` 只暴露内容类别不暴露内容，`ai_request_logs` 结构化落库（语伴会话级日志仍 defer）。
+- AI Provider 多轮对话 + 文本流式基础设施（OpenAI 兼容族），以及 Anthropic Messages 文本适配器（多轮 + 流式；结构化严格模式与图片理解后置）。
+- LearnerModel 包与 ADR-006 学习者模型子系统：Ability 知识覆盖 compute-on-read、Memory 层（v27 `learner_memory_facts`）、Style 表层印记 seam、盲点 dictation diff 派生、band 动态重估 + derive 迟滞、查词捕获与分析账本（v28/v29）。
+- 三端学习画像总览页。
+- 语伴 Language Companion（ADR-008 有界练习模态）：文本对话引擎（v30）、聊天反哺候选提取（v31）、Memory / Style 受控注入与两层隐私 + PII scrubbing（v32）、主动找话题、文本流式 UX 与温和复述、滚动摘要对话记忆（v33）、对话小结批量 deposit 闭合「对话 → 记忆」。
+- 导入导出 Slice 1：明文主数据导出引擎；文件面板、附件打包、加密备份 defer（恢复入口见 `docs/archive/plans/` 与架构备忘录）。
+- 同步引擎纯逻辑切片：`SyncRecord` / `SyncAdapter` 协议 / LWW 冲突解决 / tombstone 收敛；真实通道、变更跟踪 schema、对象存储配置 defer。
+- Core、Data、AI、Speech、Sync、LearnerModel 和 UI package 的密集单元测试（约 250 个测试文件、约 1600 个测试用例），UI package 按功能子目录组织。
+- 统一验证脚本 `scripts/verify.sh` 与 GitHub Actions `Build & Test` CI。
 
 尚未完成：
 
-- 完整生活记录时间线、跨端筛选和本地记录闭环。
-- 照片 / 音频附件主数据、FTS、导出和可恢复备份。
-- AI Provider 请求预览、请求日志、Prompt Preset 执行链路，以及 Anthropic / Gemini 学习内容请求和图片 probe。
-- 跟读评分、听写、回译完成态、Embedding / 向量化处理、对象存储等真实配置和敏感凭证安全存储。
-- Prompt Preset 的真实渲染和执行链路。
-- Speech Recognition、OCR、照片、相机和完整权限接入。
-- 同步引擎。
-- Sync Adapter、冲突处理和对象存储配置。
-- StoreKit 配置。
+- 时间线场景标签筛选与搜索联动（`scene` 字段已有 schema 与展示位，但无输入路径与筛选维度）。
+- Entry 音频附件主数据；照片 / 音频附件导出打包与可恢复备份。
+- Gemini 文本学习内容适配（`geminiGenerateContent` 目前仅 TTS / 枚举层存在）。
+- Prompt Preset 的真实渲染和执行链路（用户可配置 Preset；各能力 Prompt Registry 已存在但不可配置）。
+- 跟读发音评分（当前跟读只做录音留存与回放，无评分；依赖 Speech Recognition 与产品决策）。
+- Embedding 真实向量索引与语义检索（配置 probe 已有，向量化处理 defer）。
+- Speech Recognition、OCR、相机和完整权限接入。
+- 真实同步通道：CloudKit / WebDAV / S3 Sync Adapter、变更跟踪 schema（`sync_metadata` / tombstones 写路径）、对象存储配置与双设备验证。
+- StoreKit 配置（买断制，零地基）。
 - TestFlight / App Store 发布材料和隐私标签。
 
 ## 3. 项目北极星

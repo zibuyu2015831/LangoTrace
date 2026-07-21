@@ -1,10 +1,10 @@
 # 任务方案：语伴（LM03）切片拆解与决策收口（完整聊天引擎）
 
-状态：In Progress（拆解 / 排序 / 决策导航文档，非实现方案；不含生产代码变更）
+状态：Done
 自审核状态：N/A（决策 / 排序导航文档；各子片进入实现前各自按 plan-review-protocol 双轮自审核）
 类型：docs
 创建日期：2026-06-25
-最后更新日期：2026-06-25
+最后更新日期：2026-07-22（**收口归档**：LM03 语伴系列 S1→S2a→S2b-1→S2b-2→S3a→S3b-1→S3b-2→S4b→S4a 全部 Done 移 `done/`；「仍须用户定的少数项」已在实现批次逐一收口〔Style v2 时机=§9 方案 A、salience=时近性+种类配额、模糊输入=directive+人工验证、入口英文名=Language Companion〕；远期候选〔语音对话/场景模式/向量检索〕已登记至 `docs/idea/README.md`。收口任务见 `docs/plans/done/2026-07-22-docs-lm-series-closure-and-entry-alignment.md`）
 
 ## 这份文档是什么
 

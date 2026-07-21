@@ -1,10 +1,10 @@
 # 任务方案：开发系列进度仪表盘（跨会话恢复指针）
 
-状态：In Progress
+状态：Done
 自审核状态：N/A（导航/指针文档，不含生产代码变更）
 类型：docs
 创建日期：2026-06-15
-最后更新日期：2026-06-25（系列收尾后转为学习者模型系列 LM02/LM03 的实施指针；已删除 01–15 + 原型/infra 的历史 Phase 明细，仅保留前向可执行内容）
+最后更新日期：2026-07-22（**收口归档**：LM02 + LM03 全系列已 Done，本仪表盘按自身维护约定随系列收尾移入 `done/`。前向内容 sweep 结论：五个登记孤儿与语伴远期候选已承接至 `docs/idea/README.md`「未来切片登记」节；「待用户决策」各项已在后续实现批次逐一收口（Style v2 时机 §9=A、salience=时近性+种类配额、模糊输入=directive+人工验证、入口英文名=Language Companion）；E10/E11 硬接缝仍由架构备忘录 `2026-06-25-learner-memory-persistence-and-security-notes.md` 托管。收口任务见 `docs/plans/done/2026-07-22-docs-lm-series-closure-and-entry-alignment.md`）
 
 ## 这份文档是什么
 
