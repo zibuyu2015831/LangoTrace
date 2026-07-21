@@ -1,6 +1,6 @@
 # 任务方案：记录场景标签（scene）输入、展示与时间线筛选
 
-状态：In Progress
+状态：Verified
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-07-22
@@ -146,7 +146,12 @@
 
 ## 实施记录
 
-（待实施后写回）
+2026-07-22 实施完成（自主运行，FABLE-MISSION 授权）：
+
+- 提交序列：`0a5ecae`（主批 30 文件 +1007/-40：Core `EntryScenePreset` + 契约测试；协议 `createEntry` 扩 scene、三实现同步〔InMemory 由写死「今天」改 trim 透传〕、store 默认参数、GRDB round-trip 测试；`EntrySceneFacet` 纯函数层 + 五用例；`displayScene` 三态 + `EntrySceneDisplay`；共享 `EntrySceneChipsRow`/`SceneChipButton`；三端编辑器 chips + onSave 扩参 + Mac 守卫同步；iPhone 场景 Menu、iPad 侧栏场景 pill 分区〔`FilterPill` 增 text 入口〕；三端行换 `displayScene`；xcstrings 10 键 + 本地化守卫 + source-boundary 断言；README / 页面清单 / 演进备忘录同批）→ `9473a7e`（fix：5 处多行 createEntry 测试调用补 scene 参数）→ `7e7eb3a`（fix：`EntryCreationFailureSurfaceTests` 守卫同步新签名）→ `1a96a97`（style：#expect 闭包内 scene 参数缩进）。
+- CI 证据：run 29860493887 红（多行调用点漏补）→ 29860981794 红（UI 守卫钉旧签名）→ 29861889669 红（SwiftFormat 单点缩进）→ **run 29864585392 `Build & Test` conclusion=success（完整绿：三端构建 + macOS AppTests + 全包测试 + lint + check-docs，与批次④合并验证）**。
+- 红→绿：行为红测试（facet 五用例 / displayScene 三态 / 本地化守卫 / source-boundary / bridge round-trip）全部与实现同批入库并经 run 29864585392 实证。
+- 实施期教训（回写 worklog）：签名扩参后的调用点勘查必须用多行感知扫描；source-boundary 守卫在签名变更时属「守卫更新」需主动同步；regex 批量补参需按作用域层级处理缩进。
 
 ## 完成标准
 

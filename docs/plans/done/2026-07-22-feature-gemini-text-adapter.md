@@ -1,6 +1,6 @@
 # 任务方案：Gemini generateContent 文本适配（多轮 + 流式，图片后置）
 
-状态：In Progress
+状态：Verified
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-07-22
@@ -150,7 +150,12 @@
 
 ## 实施记录
 
-（待实施后写回）
+2026-07-22 实施完成（自主运行，FABLE-MISSION 授权）：
+
+- 提交序列：`36c22a2`（主批 21 文件 +719/-103：makeRequest 升协议要求 + 显式 model/streaming 参数、六调用点机械补参；`GeminiGenerateContentTextAdapter` 三件套；工厂放行〔穷举 switch，`unsupportedProvider` 留作未来 kind 词汇表〕；UI capabilityPolicy 放行 text/structuredJSON；七处 reserved fixture 逐处处置——流式用例改 mimo fixture、LearningMaterial/Backtranslation/Reading 三处 unsupported 用例删除留理由、probe 重写为 gemini 正向用例、photo-writing 保留 gemini〔structuredImagePromptBody 仍 nil〕、factoryRejectsReservedKinds 删除；Gemini 套件 13 例 + 流式端到端 SSE fixture + UI policy 断言；spec/005 / architecture/002 §1+§4.9 / README / multimodal 备忘录 / 四处 stale 注释同批回写）→ `835349c`（fix：正向探针图片状态断言 `.unsupported`→`.notEnabled`——服务判定顺序为未启用先于 adapter 不支持）。
+- CI 证据：run 29862700137 仅一处红（上述断言）→ **run 29864585392 `Build & Test` conclusion=success（完整绿，与批次③合并验证）**。
+- 红→绿：Gemini 全部行为红测试（鉴权头 / model-in-path URL / alt=sse / 反代 path join / model 归一 / body 形状 / 角色映射 / 解析 / 流式 delta / 图片仍禁 / probe 正向 / UI policy）与实现同批入库并经 run 29864585392 实证；其余四 adapter 既有测试零变化全绿（makeRequest 升格无行为回归的守护证据）。
+- deferred 项按计划落备忘录：图片/多模态请求体（禁令继续有效）、responseSchema 严格模式升级路径（multimodal 备忘录 2026-07-22 更新节）。
 
 ## 完成标准
 

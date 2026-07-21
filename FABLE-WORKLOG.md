@@ -67,3 +67,21 @@
 - 动作（本地已完成，待 CI 绿后推送）：Core `EntryScenePreset` 六预设 + slug/顺序契约测试；协议 `createEntry` 扩 scene、三实现同步（InMemory 改 trim 透传）、store 默认参数保照片写作零改动、GRDB round-trip 测试；`EntrySceneFacet` 纯函数层（预设序 + 码点序、全量计数、切空间重置、stale 回退）+ 五用例；`displayScene` 三态升级 + `EntrySceneDisplay`；共享 `EntrySceneChipsRow`/`SceneChipButton`；三端编辑器接 chips 且 onSave 扩参（含 Mac #else stub 与 MacEntryEditorSheetTests:49 守卫同步）；iPhone 场景 Menu、iPad 侧栏场景 pill 分区（`FilterPill` 增 text 入口守住 spec/006 用户内容不进 key 查找）；三端行换 `displayScene` 修尾部「· 」；xcstrings 增 10 键（保持原格式最小 diff，曾误重排全文件已回滚重做）+ 本地化守卫测试 + source-boundary 断言。
 - 文档同批：README 已完成/尚未完成口径、页面清单 4 行 + 变更记录、新建 `2026-07-22-entry-scene-taxonomy-extension-notes.md`（场景编辑/Mac 筛选/搜索联动/多标签/AI 上下文五项后续登记）。
 - 下一步：CI（e9c2e06）绿 → 收口批次② plan 移 done/ → 场景批独立提交带 `[ci]` 推送。
+
+### 2026-07-22 — 批次②收口 + 批次③推送与 CI 一轮红修复
+- 批次②收口：CI run 29858671734 `Build & Test` success（四提交链 40643c8→4070f6f→8cdaf6e→e9c2e06 的完整绿），plan 补实施记录移 `done/`（`d9cf78b`）。
+- 批次③推送：`0a5ecae` feat(timeline) 30 文件 +1007/-40，带 `[ci]`。
+- 批次③ CI 红一轮（run 29860493887）：Data 测试 5 处**多行书写**的 `createEntry` 调用缺 scene 参数——实施前用单行 grep 勘查调用点，漏掉多行调用形态。修复 `9473a7e`（带 `[ci]`），并用多行感知 python 扫描全仓复核清零。教训沉淀：**签名扩参后的调用点勘查必须用多行感知扫描，不能只靠单行 grep**。
+- 批次③ CI 二轮红（run 29860981794）：Data 绿，UI 两条 `EntryCreationFailureSurfaceTests` source-boundary 守卫仍钉旧 onSave/saveEntry 签名 → 守卫断言同步（`7e7eb3a`，语义不变）。三轮红（run 29861889669）：测试全绿、SwiftFormat 单点缩进（regex 补参写死 8 空格、#expect 闭包内需 12）→ `1a96a97` 修正。
+- 结果：与批次④合并推送（HEAD `36c22a2` 带 `[ci]`），等待结论。
+
+### 2026-07-22 — 批次④实施：Gemini generateContent 文本适配（feature）
+- 方案：`docs/plans/active/2026-07-22-feature-gemini-text-adapter.md`——接缝勘查 + 隔离双轮自审（P0=0，P1×2：流式 fallback 假命题改 mimo fixture、四服务测试处置当场钉死 + probe 重写正向用例；P2 定案 makeRequest 显式参数而非 in-band 标记、结构化忽略 schema 参数防未登记外发）后 Reviewed 实施。
+- 动作（`36c22a2`，21 文件 +719/-103）：makeRequest 升协议要求 + 显式 model/streaming 参数（六调用点机械补参、其余四 adapter 零改动）；Gemini adapter 三件套（x-goog-api-key、model-in-path、流式 :streamGenerateContent?alt=sse、assistant→model 角色映射、SSE EOF 终止、model 前缀归一）；工厂与 UI policy 放行；七处 reserved fixture 逐处处置（流式改 mimo、三服务用例删除留理由、probe 重写正向、photo-writing 保留）；13 例 Gemini 套件 + 流式端到端 fixture；spec/005 / 002 §1+§4.9 / README / multimodal 备忘录 / 四处 stale 注释同批回写。
+- 下一步：CI 结论 → 绿则收口批次③④两 plan 移 done/；红则诊断。
+- CI run 29862700137（`36c22a2`）：仅一处红——Gemini 正向探针用例把未启用图片的状态误断为 `.unsupported`，实际服务判定顺序是「未启用（notEnabled）先于 adapter 不支持（unsupported）」。修正断言（`835349c`，带 `[ci]`）。本轮 Core/Data/AI 其余全绿；UI 与三端构建待下轮首验。
+
+### 2026-07-22 — 批次③④收口：CI 全绿，双 plan 移 done/
+- 结果：**CI run 29864585392（HEAD `835349c`）`Build & Test` conclusion=success**——完整绿覆盖批次③（场景标签：Core/Data/UI + 三端构建 + 本地化 + source-boundary 守卫）与批次④（Gemini 适配：makeRequest 升格零回归 + Gemini 13 例 + 流式 SSE + probe 正向 + UI policy）+ 全部 lint + check-docs。
+- 动作：两份 active plan 补实施记录（提交序列、CI run 证据链、红→绿实证、教训）后移 `done/`；`docs/plans/active/` 再次清空。
+- 本次运行至此的交付总览：①LM 系列收口 + 入口文档对齐（docs）②代码健康度修复（chore）③场景标签闭环（feature）④Gemini 文本适配（feature），全部 CI 绿、plan 归档、文档控制面同批更新。
