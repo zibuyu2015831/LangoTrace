@@ -460,7 +460,8 @@ func grdbBridgeExposesPersistedLearningContent() throws {
         spaceID: "space-1",
         title: "咖啡馆",
         body: "我今天在咖啡馆写了一页日记。",
-        source: .typedText
+        source: .typedText,
+        scene: ""
     )
     _ = try repository.saveGeneratedMaterial(
         sampleGenerationResult(
@@ -492,7 +493,8 @@ func grdbBridgeDoesNotSynthesizeLocalPreviewMaterial() throws {
         spaceID: "space-1",
         title: "散步",
         body: "晚饭后我散步。",
-        source: .typedText
+        source: .typedText,
+        scene: ""
     )
 
     let preview = bridge.generateLocalPreview(for: entry.id, spaceID: "space-1")
@@ -511,7 +513,8 @@ func grdbBridgeSurfacesCreateFailures() throws {
             spaceID: "missing-space",
             title: "Missing",
             body: "This should not become an unsaved entry.",
-            source: .typedText
+            source: .typedText,
+        scene: ""
         )
     }
 }

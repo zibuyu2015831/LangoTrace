@@ -21,7 +21,8 @@ func creatingEntryStoresItWithoutGeneratedLearningMaterial() throws {
         spaceID: "en",
         title: "晚饭散步",
         body: "晚饭后我绕着小区走了一圈。",
-        source: .typedText
+        source: .typedText,
+        scene: ""
     )
 
     #expect(repository.entries(for: "en").map(\.id) == [entry.id])
@@ -39,7 +40,8 @@ func updatingInMemoryEntryBodyKeepsSelection() throws {
         spaceID: "en",
         title: "晚饭散步",
         body: "晚饭后我绕着小区走了一圈。",
-        source: .typedText
+        source: .typedText,
+        scene: ""
     )
 
     let updated = try repository.updateEntryBody(
@@ -180,7 +182,8 @@ func createdEntriesReceiveLocalPreviewOnlyAfterExplicitGeneration() throws {
         spaceID: "en",
         title: "晚饭散步",
         body: "晚饭后我绕着小区走了一圈。",
-        source: .typedText
+        source: .typedText,
+        scene: ""
     )
     #expect(repository.rendering(for: entry.id) == nil)
 
