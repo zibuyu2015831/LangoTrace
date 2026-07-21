@@ -40,6 +40,48 @@ enum EntryTimelineFilter: CaseIterable, Equatable, Hashable {
     }
 }
 
+// MARK: - Scene facet
+
+/// Scene tags form a facet orthogonal to `EntryTimelineFilter`: both apply
+/// with AND semantics. `nil` means "all scenes".
+enum EntrySceneFacet {
+    /// Distinct non-empty scene values present in `entries`: presets first in
+    /// `EntryScenePreset.allCases` order, then free-form values (importable
+    /// via the E10 plaintext package) in Unicode code-point order — a
+    /// locale-independent, deterministic ordering.
+    static func availableScenes(in entries: [LearningEntry]) -> [String] {
+        let present = Set(entries.map(\.scene).filter { !$0.isEmpty })
+        let presets = EntryScenePreset.allCases.map(\.rawValue).filter(present.contains)
+        let freeForm = present
+            .filter { EntryScenePreset(rawValue: $0) == nil }
+            .sorted { $0.unicodeScalars.lexicographicallyPrecedes($1.unicodeScalars) }
+        return presets + freeForm
+    }
+
+    static func entriesMatching(scene: String?, in entries: [LearningEntry]) -> [LearningEntry] {
+        guard let scene else { return entries }
+        return entries.filter { $0.scene == scene }
+    }
+
+    /// Per-scene match counts over the *full* entry list — mirroring the iPad
+    /// sidebar `matchCount` precedent, each facet reports its standalone hit
+    /// count and does not shrink when the other facet narrows the timeline.
+    static func counts(in entries: [LearningEntry]) -> [String: Int] {
+        entries.reduce(into: [:]) { counts, entry in
+            guard !entry.scene.isEmpty else { return }
+            counts[entry.scene, default: 0] += 1
+        }
+    }
+
+    /// Keeps a selection valid against the current entry set: a stale scene
+    /// (deleted last entry, switched space) falls back to nil instead of
+    /// leaving an unexplained empty timeline.
+    static func normalizedSelection(_ selection: String?, in entries: [LearningEntry]) -> String? {
+        guard let selection else { return nil }
+        return availableScenes(in: entries).contains(selection) ? selection : nil
+    }
+}
+
 // MARK: - Day grouping
 
 struct EntryDayGroup: Identifiable {

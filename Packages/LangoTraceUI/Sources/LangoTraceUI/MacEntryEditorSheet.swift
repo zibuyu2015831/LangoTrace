@@ -6,10 +6,11 @@ import SwiftUI
         let languageSpace: LanguageSpacePreview
         @Binding var hasDraftContent: Bool
         let onCancel: () -> Void
-        let onSave: (String, String) throws -> Void
+        let onSave: (String, String, String) throws -> Void
 
         @State private var title = ""
         @State private var bodyText = ""
+        @State private var selectedScene: EntryScenePreset?
         @State private var saveErrorKey: String?
         @FocusState private var focusedField: Field?
 
@@ -106,6 +107,10 @@ import SwiftUI
                     }
                 }
 
+                fieldGroup(titleKey: "entryEditor.scene.section") {
+                    EntrySceneChipsRow(selection: $selectedScene)
+                }
+
                 privacyCallout
             }
             .padding(22)
@@ -159,7 +164,7 @@ import SwiftUI
 
                 Button {
                     do {
-                        try onSave(title, bodyText)
+                        try onSave(title, bodyText, selectedScene?.rawValue ?? "")
                         saveErrorKey = nil
                     } catch {
                         // Keep the draft on screen and surface the failure instead of closing.
@@ -225,7 +230,7 @@ import SwiftUI
         let languageSpace: LanguageSpacePreview
         @Binding var hasDraftContent: Bool
         let onCancel: () -> Void
-        let onSave: (String, String) throws -> Void
+        let onSave: (String, String, String) throws -> Void
 
         var body: some View {
             EmptyView()

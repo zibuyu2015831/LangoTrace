@@ -54,3 +54,16 @@
 - 动作：按 `docs/plans/active/2026-07-22-chore-code-health-remediation.md`（隔离双轮自审 Reviewed，P1×2 修正后放行）实施：新建 `SettingsCapabilityCatalog` 单一持有 capability 顺序与元数据，bridge/InMemory 仅注入 status；bridge `interfaceLanguage` `.mockOnly`→`.ready`；Pad spaceSettings 行与 MemoryLayerSummaryView 非空态 `.mockOnly`→`.ready`；AppEnvironment 2 处空 catch 改 `generationLogger.error`（区分 blocked/cancel 语义）；TTS probe 删 3 处 NSLog + errorBody 死绑定（spec/008 §113 纠偏，不再向系统日志明文输出 provider 错误体）；播放 assembly 空 catch 补注释；verify.sh 模拟器目的地环境变量化（默认值不变，CI 不受影响）；页面清单记忆页行 + 变更记录同步；M3/L1/L4 defer 落 `docs/architecture/notes/2026-07-22-test-support-target-and-concurrency-cleanup-notes.md`。
 - TDD：新增红测试 `bridgeReportsInterfaceLanguageAsReady`（旧值 .mockOnly 必红）、`bridgeExposesNoMockOnlyCapability`、UI source-boundary 断言（挂进既有 PhoneIOSConvergenceTests，复用 helper）；守护测试 `bridgeAndMockCatalogShareMetadata`（顺序+元数据一致、排除 status，旧代码即绿，如实标注）。红相位在本环境（无 Swift 工具链）以逻辑成立，绿相位待 CI 实证。
 - 结果：与批次①合并推送，HEAD 带 `[ci]`；等待 CI `Build & Test` 结论后收口该 plan 移 done/。
+
+### 2026-07-22 — 批次② CI 红一轮：同名歧义编译错误，已修复重触发
+- 问题：CI run 29856344239（`40643c8`）在 `Test LangoTraceData` 步骤失败。经 `.gh-token`（仓库内既有凭证，记忆索引提示）拉取 job 日志定位：测试文件里 `GRDBLearningContentRepositoryBridge.settingsCapabilities` 被编译器解析为未应用的实例方法引用——静态属性与实例方法 `settingsCapabilities(for:)` 同名歧义，449 条诊断同一根因。
+- 修复：静态属性改名 `realPathSettingsCapabilities`（`4070f6f`，带 `[ci]` 重触发）。教训：本机无 Swift 工具链，同名歧义这类编译期错误只能靠 CI 首轮捕获；命名新成员时主动避开与既有方法的裸名冲突。
+- 二轮（run 29856938870 仍红）：真正根因是该静态属性位于 `private extension`（成员 fileprivate）对测试不可见——首轮的「歧义」实为可见性问题的伪装。移入 internal extension（`8cdaf6e`）。
+- 三轮（run 29857721868）：**全部测试已绿**（红测试转绿、守护测试过），仅剩 SwiftFormat `docComments` 规则拦截（声明前注释须 `///`）。修两文件四处注释（`e9c2e06`，带 `[ci]`）。教训沉淀：新增声明前注释一律用 doc comments。
+- 结果：等待 run 29858671734 结论。
+
+### 2026-07-22 — 批次③实施：记录场景标签输入、展示与时间线筛选（feature）
+- 方案：`docs/plans/active/2026-07-22-feature-entry-scene-tags-and-timeline-filter.md`——接缝勘查子代理 + 隔离双轮自审（P0=0，P1×5 全部写回：Mac 守卫测试落点、InMemory 写死「今天」的事实修正、E10 导入路径证伪「库里只有空串」并确立三态 displayScene 必要性、筛选三状态语义钉死、chips key/text 双通道）后 Reviewed 进入实施。
+- 动作（本地已完成，待 CI 绿后推送）：Core `EntryScenePreset` 六预设 + slug/顺序契约测试；协议 `createEntry` 扩 scene、三实现同步（InMemory 改 trim 透传）、store 默认参数保照片写作零改动、GRDB round-trip 测试；`EntrySceneFacet` 纯函数层（预设序 + 码点序、全量计数、切空间重置、stale 回退）+ 五用例；`displayScene` 三态升级 + `EntrySceneDisplay`；共享 `EntrySceneChipsRow`/`SceneChipButton`；三端编辑器接 chips 且 onSave 扩参（含 Mac #else stub 与 MacEntryEditorSheetTests:49 守卫同步）；iPhone 场景 Menu、iPad 侧栏场景 pill 分区（`FilterPill` 增 text 入口守住 spec/006 用户内容不进 key 查找）；三端行换 `displayScene` 修尾部「· 」；xcstrings 增 10 键（保持原格式最小 diff，曾误重排全文件已回滚重做）+ 本地化守卫测试 + source-boundary 断言。
+- 文档同批：README 已完成/尚未完成口径、页面清单 4 行 + 变更记录、新建 `2026-07-22-entry-scene-taxonomy-extension-notes.md`（场景编辑/Mac 筛选/搜索联动/多标签/AI 上下文五项后续登记）。
+- 下一步：CI（e9c2e06）绿 → 收口批次② plan 移 done/ → 场景批独立提交带 `[ci]` 推送。

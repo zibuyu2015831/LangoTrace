@@ -57,7 +57,7 @@ func updatingInMemoryEntryBodyKeepsSelection() throws {
 @Test("Updating an in-memory entry body rejects empty or foreign entries")
 func updatingInMemoryEntryBodyRejectsInvalidInputs() throws {
     let repository = InMemoryLearningContentRepository(seedEntries: [])
-    let entry = try repository.createEntry(spaceID: "en", title: "记录", body: "原始内容", source: .typedText)
+    let entry = try repository.createEntry(spaceID: "en", title: "记录", body: "原始内容", source: .typedText, scene: "")
 
     #expect(throws: LearningContentRepositoryError.emptyEntryBody) {
         _ = try repository.updateEntryBody(entryID: entry.id, spaceID: "en", body: " \n ")

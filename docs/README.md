@@ -137,12 +137,13 @@ AI 在协助设计、评审、调试或验证时创建的一切产物——原�
 - 语伴 Language Companion（ADR-008 有界练习模态）：文本对话引擎（v30）、聊天反哺候选提取（v31）、Memory / Style 受控注入与两层隐私 + PII scrubbing（v32）、主动找话题、文本流式 UX 与温和复述、滚动摘要对话记忆（v33）、对话小结批量 deposit 闭合「对话 → 记忆」。
 - 导入导出 Slice 1：明文主数据导出引擎；文件面板、附件打包、加密备份 defer（恢复入口见 `docs/archive/plans/` 与架构备忘录）。
 - 同步引擎纯逻辑切片：`SyncRecord` / `SyncAdapter` 协议 / LWW 冲突解决 / tombstone 收敛；真实通道、变更跟踪 schema、对象存储配置 defer。
+- 记录场景标签：`EntryScenePreset` 六预设（slug 入库、展示本地化）、三端编辑器场景 chips、iPhone 场景筛选 Menu、iPad 侧栏场景 pill 分区、`EntrySceneFacet` 正交筛选（与状态筛选 AND）、三端行展示 `displayScene` 三态（自由文本经 E10 导入可引入，原样显示）。
 - Core、Data、AI、Speech、Sync、LearnerModel 和 UI package 的密集单元测试（约 250 个测试文件、约 1600 个测试用例），UI package 按功能子目录组织。
 - 统一验证脚本 `scripts/verify.sh` 与 GitHub Actions `Build & Test` CI。
 
 尚未完成：
 
-- 时间线场景标签筛选与搜索联动（`scene` 字段已有 schema 与展示位，但无输入路径与筛选维度）。
+- 时间线与搜索联动（场景标签筛选已落地；SearchPalette 场景维度、SQL 级过滤与 macOS 时间线筛选 UI 未接）。
 - Entry 音频附件主数据；照片 / 音频附件导出打包与可恢复备份。
 - Gemini 文本学习内容适配（`geminiGenerateContent` 目前仅 TTS / 枚举层存在）。
 - Prompt Preset 的真实渲染和执行链路（用户可配置 Preset；各能力 Prompt Registry 已存在但不可配置）。

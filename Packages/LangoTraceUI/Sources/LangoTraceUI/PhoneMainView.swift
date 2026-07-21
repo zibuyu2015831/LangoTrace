@@ -119,11 +119,12 @@ struct PhoneMainView: View {
         .sheet(item: $presentedSheet) { sheet in
             switch sheet {
             case .entryEditor:
-                EntryEditorView(languageSpace: languageSpace) { title, body in
+                EntryEditorView(languageSpace: languageSpace) { title, body, scene in
                     let entry = try contentStore.createEntry(
                         title: title,
                         body: body,
-                        source: .typedText
+                        source: .typedText,
+                        scene: scene
                     )
                     presentedSheet = nil
                     navModel.push(.entryDetail(entry.id), on: .entries)

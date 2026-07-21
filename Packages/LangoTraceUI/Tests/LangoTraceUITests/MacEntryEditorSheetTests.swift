@@ -46,7 +46,7 @@ struct MacEntryEditorSheetTests {
 
         #expect(!macSource.contains("Form {"))
         #expect(macSource.contains("TextEditor(text: $bodyText)"))
-        #expect(macSource.contains("onSave(title, bodyText)"))
+        #expect(macSource.contains("onSave(title, bodyText, selectedScene?.rawValue ?? \"\")"))
         #expect(macSource.contains("onCancel()"))
     }
 

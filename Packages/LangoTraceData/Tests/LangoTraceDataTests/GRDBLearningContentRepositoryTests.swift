@@ -160,7 +160,8 @@ func updatingEntryBodyRejectsCrossSpaceRequestsWithoutWriting() throws {
         spaceID: "space-1",
         title: "原始记录",
         body: "原始内容",
-        source: .typedText
+        source: .typedText,
+        scene: ""
     )
 
     #expect(throws: LearningContentRepositoryError.spaceMismatch) {
@@ -168,6 +169,31 @@ func updatingEntryBodyRejectsCrossSpaceRequestsWithoutWriting() throws {
     }
 
     #expect(try repository.entry(id: entry.id)?.body == "原始内容")
+}
+
+@Test("Bridge createEntry persists the scene slug through to GRDB")
+func bridgeCreateEntryPersistsSceneSlug() throws {
+    let repository = try makeRepository()
+    let bridge = GRDBLearningContentRepositoryBridge(repository: repository)
+
+    let tagged = try bridge.createEntry(
+        spaceID: "space-1",
+        title: "工作记录",
+        body: "今天开了一个项目会。",
+        source: .typedText,
+        scene: "work"
+    )
+    let untagged = try bridge.createEntry(
+        spaceID: "space-1",
+        title: "随手记",
+        body: "没有场景的记录。",
+        source: .typedText,
+        scene: ""
+    )
+
+    let entries = bridge.entries(for: "space-1")
+    #expect(entries.first { $0.id == tagged.id }?.scene == "work")
+    #expect(entries.first { $0.id == untagged.id }?.scene == "")
 }
 
 @Test("Saving generated material can persist succeeded operation in the same repository write")

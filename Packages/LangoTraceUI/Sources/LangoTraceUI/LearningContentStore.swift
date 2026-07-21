@@ -75,12 +75,13 @@ final class LearningContentStore: ObservableObject {
     }
 
     @discardableResult
-    func createEntry(title: String, body: String, source: EntrySource) throws -> LearningEntry {
+    func createEntry(title: String, body: String, source: EntrySource, scene: String = "") throws -> LearningEntry {
         let entry = try repository.createEntry(
             spaceID: spaceID,
             title: title,
             body: body,
-            source: source
+            source: source,
+            scene: scene
         )
         reload()
         return entry

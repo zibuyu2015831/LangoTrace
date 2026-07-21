@@ -15,16 +15,48 @@ struct SidebarSectionTitle: View {
 }
 
 struct FilterPill: View {
-    let titleKey: String
+    /// Pills either localize a String Catalog key (status filters) or render
+    /// already-resolved display text (scene facet: preset labels localize
+    /// upstream, free-form scene text is user content shown verbatim and must
+    /// never be routed through a localization lookup).
+    private enum TitleSource {
+        case key(String)
+        case text(String)
+    }
+
+    private let title: TitleSource
     let count: String
     let active: Bool
     let action: () -> Void
     @State private var isHovered = false
 
+    init(titleKey: String, count: String, active: Bool, action: @escaping () -> Void) {
+        title = .key(titleKey)
+        self.count = count
+        self.active = active
+        self.action = action
+    }
+
+    init(text: String, count: String, active: Bool, action: @escaping () -> Void) {
+        title = .text(text)
+        self.count = count
+        self.active = active
+        self.action = action
+    }
+
+    private var titleView: Text {
+        switch title {
+        case let .key(titleKey):
+            localizedText(titleKey)
+        case let .text(text):
+            Text(text)
+        }
+    }
+
     var body: some View {
         Button(action: action) {
             HStack {
-                localizedText(titleKey)
+                titleView
                 Spacer()
                 Text(count)
                     .font(.caption.weight(.semibold))
@@ -47,10 +79,10 @@ struct FilterPill: View {
         .onHover { isHovered = $0 }
         .contextMenu {
             Button(action: action) {
-                localizedText(titleKey)
+                titleView
             }
         }
-        .accessibilityLabel(localizedText(titleKey))
+        .accessibilityLabel(titleView)
         .accessibilityValue(
             active
                 ? localizedString("accessibility.selectedCount", count)

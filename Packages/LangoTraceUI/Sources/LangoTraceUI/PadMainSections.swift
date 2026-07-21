@@ -11,11 +11,13 @@ struct PadSidebarView: View {
     let renderingForEntry: (LearningEntry) -> LearningRendering?
     let selectedEntry: LearningEntry?
     let activeFilter: EntryTimelineFilter
+    let activeScene: String?
     let route: PadWorkspaceRoute
     var aiStatus: AIProviderStatus = .notConfigured
     var syncStatus: SyncProviderStatus = .off
     let onSelectEntry: (LearningEntry) -> Void
     let onSelectFilter: (EntryTimelineFilter) -> Void
+    let onSelectScene: (String?) -> Void
     let onRoute: (PadWorkspaceRoute) -> Void
 
     private var visibleFilters: [EntryTimelineFilter] {
@@ -54,6 +56,23 @@ struct PadSidebarView: View {
                                 active: activeFilter == filter
                             ) {
                                 onSelectFilter(filter)
+                            }
+                        }
+                    }
+
+                    if !availableScenes.isEmpty {
+                        SidebarSectionTitle("pad.sidebar.scenes")
+                            .padding(.top, 4)
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(availableScenes, id: \.self) { scene in
+                                FilterPill(
+                                    text: EntrySceneDisplay.label(forStoredScene: scene),
+                                    count: "\(sceneCounts[scene, default: 0])",
+                                    active: activeScene == scene
+                                ) {
+                                    // Tapping the active scene pill clears the facet.
+                                    onSelectScene(activeScene == scene ? nil : scene)
+                                }
                             }
                         }
                     }
@@ -110,6 +129,15 @@ struct PadSidebarView: View {
 
     private var dayGroups: [EntryDayGroup] {
         groupEntriesByDay(filteredEntries)
+    }
+
+    private var availableScenes: [String] {
+        EntrySceneFacet.availableScenes(in: entries)
+    }
+
+    private var sceneCounts: [String: Int] {
+        // Standalone hit counts over the full entry list, mirroring matchCount.
+        EntrySceneFacet.counts(in: entries)
     }
 
     private func matchCount(for filter: EntryTimelineFilter) -> Int {

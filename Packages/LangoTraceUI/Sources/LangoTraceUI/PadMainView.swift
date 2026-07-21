@@ -28,6 +28,7 @@ struct PadMainView: View {
     @State private var route: PadWorkspaceRoute = .workspace
     @State private var presentedSheet: PadSheet?
     @State private var activeFilter: EntryTimelineFilter = .all
+    @State private var activeScene: String?
     @Environment(\.memoryDepositActions) private var memoryDepositActions
     @State private var depositedEntryIDs: Set<String> = []
 
@@ -93,11 +94,12 @@ struct PadMainView: View {
         .sheet(item: $presentedSheet) { sheet in
             switch sheet {
             case .entryEditor:
-                EntryEditorView(languageSpace: languageSpace) { title, body in
+                EntryEditorView(languageSpace: languageSpace) { title, body, scene in
                     let entry = try contentStore.createEntry(
                         title: title,
                         body: body,
-                        source: .typedText
+                        source: .typedText,
+                        scene: scene
                     )
                     selectedEntryID = entry.id
                     setRoute(.entryDetail(entry.id))
@@ -123,6 +125,8 @@ struct PadMainView: View {
             applyAdaptivePanelVisibility()
         }
         .task(id: languageSpace.id) {
+            // Facet selections are per-space UI state.
+            activeScene = nil
             depositedEntryIDs = await memoryDepositActions.depositedEntryIDs(languageSpace.id)
         }
         .onChange(of: horizontalSizeClass) {
@@ -139,7 +143,11 @@ struct PadMainView: View {
     }
 
     private var filteredEntries: [LearningEntry] {
-        entries.filter { entry in
+        let sceneNarrowed = EntrySceneFacet.entriesMatching(
+            scene: EntrySceneFacet.normalizedSelection(activeScene, in: entries),
+            in: entries
+        )
+        return sceneNarrowed.filter { entry in
             activeFilter.includes(
                 entry: entry,
                 hasMaterialWithoutRecording: contentStore.practiceReadiness[entry.id] == false,
@@ -245,11 +253,13 @@ struct PadMainView: View {
             renderingForEntry: { contentStore.rendering(for: $0) },
             selectedEntry: selectedEntry,
             activeFilter: activeFilter,
+            activeScene: activeScene,
             route: route,
             aiStatus: contentStore.settingsStatus.aiProvider.footerStatus,
             syncStatus: contentStore.settingsStatus.sync.footerStatus,
             onSelectEntry: selectEntry,
             onSelectFilter: selectFilter,
+            onSelectScene: selectScene,
             onRoute: setRoute
         )
         .task { await contentStore.refreshSettingsStatus() }
@@ -302,6 +312,11 @@ struct PadMainView: View {
 
     private func selectFilter(_ filter: EntryTimelineFilter) {
         activeFilter = filter
+        setRoute(.workspace)
+    }
+
+    private func selectScene(_ scene: String?) {
+        activeScene = scene
         setRoute(.workspace)
     }
 

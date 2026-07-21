@@ -6,10 +6,11 @@ struct EntryEditorView: View {
     @Environment(\.dismiss) private var dismiss
 
     let languageSpace: LanguageSpacePreview
-    let onSave: (String, String) throws -> Void
+    let onSave: (String, String, String) throws -> Void
 
     @State private var title = ""
     @State private var bodyText = ""
+    @State private var selectedScene: EntryScenePreset?
     @State private var saveErrorKey: String?
 
     var body: some View {
@@ -50,6 +51,12 @@ struct EntryEditorView: View {
                         .stroke(LangoTraceDesign.ColorToken.hairline, lineWidth: 1)
                 }
 
+                localizedText("entryEditor.scene.section")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+
+                EntrySceneChipsRow(selection: $selectedScene)
+
                 if let saveErrorKey {
                     localizedText(saveErrorKey)
                         .font(.footnote)
@@ -74,7 +81,7 @@ struct EntryEditorView: View {
                     ToolbarItem(placement: .confirmationAction) {
                         Button {
                             do {
-                                try onSave(title, bodyText)
+                                try onSave(title, bodyText, selectedScene?.rawValue ?? "")
                                 saveErrorKey = nil
                                 dismiss()
                             } catch {
@@ -1070,7 +1077,7 @@ struct EntryCard: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(entry.title)
                             .font(.headline)
-                        Text("\(entry.displaySourceTitle) · \(targetLanguage) · \(entry.scene)")
+                        Text("\(entry.displaySourceTitle) · \(targetLanguage) · \(entry.displayScene)")
                             .font(.footnote.weight(.medium))
                             .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     }

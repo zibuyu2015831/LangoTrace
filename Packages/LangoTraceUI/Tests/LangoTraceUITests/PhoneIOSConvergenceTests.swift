@@ -412,6 +412,33 @@ struct PhoneIOSConvergenceTests {
         #expect(!components.contains("Spacer()\n            HStack(spacing: 8)"))
     }
 
+    @Test("Timeline rows render displayScene, never the raw scene value")
+    func timelineRowsRenderDisplayScene() throws {
+        let supportingViews = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
+            encoding: .utf8
+        )
+        let components = try String(
+            contentsOf: sourceFileURL(named: "LearningContentComponents.swift"),
+            encoding: .utf8
+        )
+        let phoneSections = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSections.swift"),
+            encoding: .utf8
+        )
+
+        // Raw `entry.scene` renders a trailing separator for untagged entries
+        // and would bypass slug localization; rows must go through displayScene.
+        #expect(!supportingViews.contains("entry.scene)"))
+        #expect(!components.contains("entry.scene)"))
+        #expect(supportingViews.contains("entry.displayScene"))
+        #expect(components.contains("entry.displayScene"))
+
+        // Scene facet labels resolve upstream — free-form scene text is user
+        // content and must never be routed through a localization key lookup.
+        #expect(phoneSections.contains("EntrySceneDisplay.label(forStoredScene: scene)"))
+    }
+
     @Test("Real-backed capability rows no longer render the mockOnly badge")
     func realBackedCapabilityRowsDropMockOnlyBadge() throws {
         let padLearningPanel = try String(

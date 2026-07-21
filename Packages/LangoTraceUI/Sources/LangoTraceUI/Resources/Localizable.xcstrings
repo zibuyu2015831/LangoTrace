@@ -23998,6 +23998,176 @@
           }
         }
       }
+    },
+    "entryScene.daily": {
+      "comment": "Preset scene tag label shown on entry rows and scene pickers.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily life"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日常生活"
+          }
+        }
+      }
+    },
+    "entryScene.work": {
+      "comment": "Preset scene tag label shown on entry rows and scene pickers.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Work"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工作"
+          }
+        }
+      }
+    },
+    "entryScene.travel": {
+      "comment": "Preset scene tag label shown on entry rows and scene pickers.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Travel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旅行"
+          }
+        }
+      }
+    },
+    "entryScene.mood": {
+      "comment": "Preset scene tag label shown on entry rows and scene pickers.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mood"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情绪"
+          }
+        }
+      }
+    },
+    "entryScene.meeting": {
+      "comment": "Preset scene tag label shown on entry rows and scene pickers.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meetings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会议"
+          }
+        }
+      }
+    },
+    "entryScene.email": {
+      "comment": "Preset scene tag label shown on entry rows and scene pickers.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邮件"
+          }
+        }
+      }
+    },
+    "filter.scene.all": {
+      "comment": "Scene facet reset option in the timeline scene filter.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All scenes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部场景"
+          }
+        }
+      }
+    },
+    "pad.sidebar.scenes": {
+      "comment": "iPad sidebar section title for the scene facet pills.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scenes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场景"
+          }
+        }
+      }
+    },
+    "phone.sceneFilter.label": {
+      "comment": "iPhone timeline scene filter menu accessibility/label text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scene"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场景"
+          }
+        }
+      }
+    },
+    "entryEditor.scene.section": {
+      "comment": "Section label above the preset scene chips in the entry editors.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scene tag"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场景标签"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

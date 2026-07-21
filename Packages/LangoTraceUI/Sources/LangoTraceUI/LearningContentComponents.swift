@@ -21,7 +21,7 @@ struct EntryTimelineRow: View {
                     Text(entry.title)
                         .font(.headline)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                    Text("\(entry.displaySourceTitle) · \(targetLanguage) · \(entry.scene)")
+                    Text("\(entry.displaySourceTitle) · \(targetLanguage) · \(entry.displayScene)")
                         .font(.footnote)
                         .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
                     EntryMaterialStatusPill(entry: entry, rendering: rendering)

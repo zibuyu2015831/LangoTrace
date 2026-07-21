@@ -14,7 +14,7 @@ public protocol LearningContentRepository: AnyObject {
     func selectedEntry(for spaceID: String) -> LearningEntry?
     func selectEntry(id: String, spaceID: String)
     @discardableResult
-    func createEntry(spaceID: String, title: String, body: String, source: EntrySource) throws -> LearningEntry
+    func createEntry(spaceID: String, title: String, body: String, source: EntrySource, scene: String) throws -> LearningEntry
     func deleteEntry(id: String) throws
     @discardableResult
     func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry
@@ -108,10 +108,12 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
         spaceID: String,
         title: String,
         body: String,
-        source: EntrySource
+        source: EntrySource,
+        scene: String
     ) throws -> LearningEntry {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedScene = scene.trimmingCharacters(in: .whitespacesAndNewlines)
         let entryID = "entry-\(nextEntryNumber)-\(spaceID)"
         nextEntryNumber += 1
 
@@ -121,7 +123,7 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
             title: trimmedTitle,
             body: trimmedBody,
             source: source,
-            scene: "今天",
+            scene: trimmedScene,
             createdAt: Date(timeIntervalSince1970: TimeInterval(1_800_000_000 + nextEntryNumber)),
             practiceStatus: .practiced(sessionCount: 1)
         )
@@ -314,7 +316,7 @@ public final class UnavailableLearningContentRepository: LearningContentReposito
 
     public func selectEntry(id _: String, spaceID _: String) {}
 
-    public func createEntry(spaceID _: String, title _: String, body _: String, source _: EntrySource) throws -> LearningEntry {
+    public func createEntry(spaceID _: String, title _: String, body _: String, source _: EntrySource, scene _: String) throws -> LearningEntry {
         throw LearningContentRepositoryError.databaseUnavailable
     }
 

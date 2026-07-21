@@ -14,6 +14,7 @@ struct PhoneRecordWorkspaceView: View {
     let onSelectEntry: (LearningEntry) -> Void
 
     @State private var selectedFilter: EntryTimelineFilter = .all
+    @State private var selectedScene: String?
     @Environment(\.memoryDepositActions) private var memoryDepositActions
     @State private var depositedEntryIDs: Set<String> = []
 
@@ -29,7 +30,15 @@ struct PhoneRecordWorkspaceView: View {
                 onNewEntry: onNewEntry,
                 onPhotoWriting: onPhotoWriting
             )
-            FilterChipRow(selectedFilter: $selectedFilter)
+            HStack(spacing: 8) {
+                FilterChipRow(selectedFilter: $selectedFilter)
+                if !availableScenes.isEmpty {
+                    SceneFilterMenu(
+                        availableScenes: availableScenes,
+                        selectedScene: $selectedScene
+                    )
+                }
+            }
             if entries.isEmpty {
                 LocalizedCompactPanel(
                     titleKey: "timeline.empty.title",
@@ -65,12 +74,23 @@ struct PhoneRecordWorkspaceView: View {
             }
         }
         .task(id: languageSpace.id) {
+            // Facet selections are per-space UI state: switching the language
+            // space resets the scene facet instead of carrying a stale value.
+            selectedScene = nil
             depositedEntryIDs = await memoryDepositActions.depositedEntryIDs(languageSpace.id)
         }
     }
 
+    private var availableScenes: [String] {
+        EntrySceneFacet.availableScenes(in: entries)
+    }
+
     private var filteredEntries: [LearningEntry] {
-        entries.filter { entry in
+        let sceneNarrowed = EntrySceneFacet.entriesMatching(
+            scene: EntrySceneFacet.normalizedSelection(selectedScene, in: entries),
+            in: entries
+        )
+        return sceneNarrowed.filter { entry in
             selectedFilter.includes(
                 entry: entry,
                 hasMaterialWithoutRecording: practiceReadiness[entry.id] == false,
@@ -116,6 +136,60 @@ private struct FilterChipRow: View {
             }
             .padding(.horizontal, 1)
         }
+    }
+}
+
+private struct SceneFilterMenu: View {
+    let availableScenes: [String]
+    @Binding var selectedScene: String?
+
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        Menu {
+            Button {
+                selectedScene = nil
+            } label: {
+                if selectedScene == nil {
+                    Label(localizedString("filter.scene.all", locale: locale), systemImage: "checkmark")
+                } else {
+                    Text(localizedString("filter.scene.all", locale: locale))
+                }
+            }
+            Divider()
+            ForEach(availableScenes, id: \.self) { scene in
+                Button {
+                    selectedScene = scene
+                } label: {
+                    // Scene labels resolve upstream: preset slugs localize,
+                    // free-form scene text is user content shown verbatim.
+                    if selectedScene == scene {
+                        Label(EntrySceneDisplay.label(forStoredScene: scene), systemImage: "checkmark")
+                    } else {
+                        Text(EntrySceneDisplay.label(forStoredScene: scene))
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: selectedScene == nil ? "tag" : "tag.fill")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(
+                    selectedScene == nil
+                        ? LangoTraceDesign.ColorToken.ink
+                        : LangoTraceDesign.ColorToken.whiteInk
+                )
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(
+                    selectedScene == nil
+                        ? LangoTraceDesign.ColorToken.surfaceBase
+                        : LangoTraceDesign.ColorToken.accent
+                )
+                .clipShape(Capsule())
+        }
+        .frame(minHeight: LangoTraceDesign.Density.minimumTouchTarget)
+        .contentShape(Rectangle())
+        .accessibilityLabel(Text(localizedString("phone.sceneFilter.label", locale: locale)))
     }
 }
 

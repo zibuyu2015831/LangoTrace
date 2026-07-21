@@ -358,11 +358,12 @@ private extension MacMainView {
         isEntryEditorPresented = false
     }
 
-    func saveEntry(title: String, body: String) throws {
+    func saveEntry(title: String, body: String, scene: String) throws {
         let entry = try contentStore.createEntry(
             title: title,
             body: body,
-            source: .typedText
+            source: .typedText,
+            scene: scene
         )
         selectedEntryID = entry.id
         selectedSection = .entries
@@ -374,7 +375,7 @@ private extension MacMainView {
 private struct MacEntryEditorOverlay: View {
     let languageSpace: LanguageSpacePreview
     let onCancel: () -> Void
-    let onSave: (String, String) throws -> Void
+    let onSave: (String, String, String) throws -> Void
 
     @State private var hasDraftContent = false
 
