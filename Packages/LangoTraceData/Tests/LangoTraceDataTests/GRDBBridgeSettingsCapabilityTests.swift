@@ -3,7 +3,7 @@ import Testing
 
 @Test("GRDB bridge reports interface language as ready on the real path")
 func bridgeReportsInterfaceLanguageAsReady() {
-    let capabilities = GRDBLearningContentRepositoryBridge.settingsCapabilities
+    let capabilities = GRDBLearningContentRepositoryBridge.realPathSettingsCapabilities
 
     let interfaceLanguage = capabilities.first { $0.kind == .interfaceLanguage }
 
@@ -13,7 +13,7 @@ func bridgeReportsInterfaceLanguageAsReady() {
 
 @Test("GRDB bridge reserves mockOnly for capabilities without a real backend")
 func bridgeExposesNoMockOnlyCapability() {
-    let capabilities = GRDBLearningContentRepositoryBridge.settingsCapabilities
+    let capabilities = GRDBLearningContentRepositoryBridge.realPathSettingsCapabilities
 
     #expect(capabilities.allSatisfy { $0.status != .mockOnly })
 }
@@ -24,7 +24,7 @@ func bridgeExposesNoMockOnlyCapability() {
 // excluded — the two repositories legitimately differ there.
 @Test("Bridge and in-memory capability lists share ordering and metadata")
 func bridgeAndMockCatalogShareMetadata() {
-    let bridge = GRDBLearningContentRepositoryBridge.settingsCapabilities
+    let bridge = GRDBLearningContentRepositoryBridge.realPathSettingsCapabilities
     let mock = InMemoryLearningContentRepository.seeded(spaceID: "en")
         .settingsCapabilities(for: "en")
 

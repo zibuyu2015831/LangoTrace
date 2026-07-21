@@ -130,7 +130,7 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
     }
 
     public func settingsCapabilities(for _: String) -> [SettingsCapability] {
-        Self.settingsCapabilities
+        Self.realPathSettingsCapabilities
     }
 
     public func practiceSession(for entryID: String) -> PracticeSessionState? {
@@ -207,8 +207,9 @@ private extension GRDBLearningContentRepositoryBridge {
     /// Real-path capability statuses. Metadata and ordering come from
     /// `SettingsCapabilityCatalog`; only the status per kind lives here.
     /// `.mockOnly` is reserved for capabilities that are truly not backed by
-    /// a real implementation yet.
-    static var settingsCapabilities: [SettingsCapability] {
+    /// a real implementation yet. (Named distinctly from the instance method
+    /// `settingsCapabilities(for:)` so unqualified references stay unambiguous.)
+    static var realPathSettingsCapabilities: [SettingsCapability] {
         SettingsCapabilityCatalog.capabilities(statuses: [
             .companion: .ready,
             .languageSpace: .ready,
