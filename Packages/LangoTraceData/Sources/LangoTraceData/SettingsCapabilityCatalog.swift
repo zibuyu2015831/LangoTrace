@@ -33,8 +33,8 @@ public enum SettingsCapabilityCatalog {
         let nextRequirement: String
     }
 
-    // Localization keys stay literal (not derived from rawValue) so they
-    // remain greppable against the UI string catalog.
+    /// Localization keys stay literal (not derived from rawValue) so they
+    /// remain greppable against the UI string catalog.
     private static func metadata(for kind: SettingsCapability.Kind) -> Metadata {
         switch kind {
         case .companion:

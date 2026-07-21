@@ -18,10 +18,10 @@ func bridgeExposesNoMockOnlyCapability() {
     #expect(capabilities.allSatisfy { $0.status != .mockOnly })
 }
 
-// Guard test (green before and after the fix): ordering and metadata must come
-// from the single `SettingsCapabilityCatalog` so the real bridge and the
-// in-memory fixture can never drift apart again. Status is deliberately
-// excluded — the two repositories legitimately differ there.
+/// Guard test (green before and after the fix): ordering and metadata must come
+/// from the single `SettingsCapabilityCatalog` so the real bridge and the
+/// in-memory fixture can never drift apart again. Status is deliberately
+/// excluded — the two repositories legitimately differ there.
 @Test("Bridge and in-memory capability lists share ordering and metadata")
 func bridgeAndMockCatalogShareMetadata() {
     let bridge = GRDBLearningContentRepositoryBridge.realPathSettingsCapabilities
