@@ -305,7 +305,9 @@ private final class IDSequence: @unchecked Sendable {
     func next() -> String {
         lock.lock()
         defer { lock.unlock() }
-        if !ids.isEmpty { return ids.removeFirst() }
+        if !ids.isEmpty {
+            return ids.removeFirst()
+        }
         return UUID().uuidString
     }
 }
@@ -383,8 +385,13 @@ private func imagePropertiesAtIndex0(_ data: Data) -> [String: Any]? {
 
 private func exifOrientationValue(of data: Data) -> Int? {
     guard let props = imagePropertiesAtIndex0(data) else { return nil }
-    if let v = props[kCGImagePropertyOrientation as String] as? Int { return v }
+    if let v = props[kCGImagePropertyOrientation as String] as? Int {
+        return v
+    }
     if let tiff = props[kCGImagePropertyTIFFDictionary as String] as? [String: Any],
-       let v = tiff[kCGImagePropertyTIFFOrientation as String] as? Int { return v }
+       let v = tiff[kCGImagePropertyTIFFOrientation as String] as? Int
+    {
+        return v
+    }
     return nil
 }

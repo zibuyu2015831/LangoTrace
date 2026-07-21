@@ -246,7 +246,9 @@ public struct CompanionConversationEngine: Sendable {
 
     static func failure(from error: Error) -> CompanionReplyFailure {
         guard let streamingError = error as? AIChatStreamingError else {
-            if error is CancellationError { return .cancelled }
+            if error is CancellationError {
+                return .cancelled
+            }
             return .other
         }
         switch streamingError {

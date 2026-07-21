@@ -103,10 +103,14 @@ final class SearchPaletteStore: ObservableObject {
             if debounceMilliseconds > 0 {
                 try? await Task.sleep(nanoseconds: UInt64(debounceMilliseconds) * 1_000_000)
             }
-            if Task.isCancelled { return }
+            if Task.isCancelled {
+                return
+            }
             guard let self else { return }
             let fetched = await actions.search(newValue, spaceID)
-            if Task.isCancelled { return }
+            if Task.isCancelled {
+                return
+            }
             // Only the latest query's result is applied (stale results dropped).
             guard newValue == query else { return }
             results = fetched

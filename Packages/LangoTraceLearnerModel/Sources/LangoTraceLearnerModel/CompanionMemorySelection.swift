@@ -22,7 +22,9 @@ public enum CompanionMemorySelection {
         let ranked = facts
             .filter { $0.softDeletedAt == nil && $0.visibility == .global }
             .sorted { lhs, rhs in
-                if lhs.createdAt != rhs.createdAt { return lhs.createdAt > rhs.createdAt }
+                if lhs.createdAt != rhs.createdAt {
+                    return lhs.createdAt > rhs.createdAt
+                }
                 return lhs.id > rhs.id
             }
 
@@ -40,10 +42,14 @@ public enum CompanionMemorySelection {
             let heads = MemoryFactKind.allCases
                 .compactMap { buckets[$0]?.first }
                 .sorted { lhs, rhs in
-                    if lhs.createdAt != rhs.createdAt { return lhs.createdAt > rhs.createdAt }
+                    if lhs.createdAt != rhs.createdAt {
+                        return lhs.createdAt > rhs.createdAt
+                    }
                     return lhs.id > rhs.id
                 }
-            if heads.isEmpty { break }
+            if heads.isEmpty {
+                break
+            }
             for head in heads where result.count < limit {
                 buckets[head.kind]?.removeFirst()
                 result.append(head)

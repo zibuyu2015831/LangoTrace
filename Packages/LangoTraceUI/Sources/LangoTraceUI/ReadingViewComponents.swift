@@ -576,7 +576,9 @@ private struct ReadingActionPill: View {
     }
 
     private var foregroundColor: Color {
-        if isPrimary { return LangoTraceDesign.ColorToken.primaryActionForeground }
+        if isPrimary {
+            return LangoTraceDesign.ColorToken.primaryActionForeground
+        }
         return LangoTraceDesign.ColorToken.accent
     }
 
@@ -932,68 +934,66 @@ struct ReadingExplanationResultView: View {
     var cardBackground: Color = LangoTraceDesign.ColorToken.surfacePanel
 
     var body: some View {
-        Group {
-            if state == .loading {
-                HStack(spacing: 10) {
-                    ProgressView()
-                    Text(localizedString("reading.panel.loading"))
-                        .font(.callout)
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            } else if state == .failed {
-                Text(localizedString("reading.panel.failed"))
+        if state == .loading {
+            HStack(spacing: 10) {
+                ProgressView()
+                Text(localizedString("reading.panel.loading"))
                     .font(.callout)
                     .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            } else if let result {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(result.shortExplanation)
-                        .font(.body)
-                        .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else if state == .failed {
+            Text(localizedString("reading.panel.failed"))
+                .font(.callout)
+                .foregroundStyle(LangoTraceDesign.ColorToken.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else if let result {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(result.shortExplanation)
+                    .font(.body)
+                    .foregroundStyle(LangoTraceDesign.ColorToken.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                    let hasMetadata = !result.meaningInNativeLanguage.isEmpty
-                        || result.grammaticalNote?.isEmpty == false
-                        || !result.usageNote.isEmpty
-                        || !result.exampleSentence.isEmpty
-                    if hasMetadata {
-                        Divider()
+                let hasMetadata = !result.meaningInNativeLanguage.isEmpty
+                    || result.grammaticalNote?.isEmpty == false
+                    || !result.usageNote.isEmpty
+                    || !result.exampleSentence.isEmpty
+                if hasMetadata {
+                    Divider()
 
-                        VStack(alignment: .leading, spacing: 6) {
-                            if !result.meaningInNativeLanguage.isEmpty {
-                                ReadingResultRow(
-                                    label: localizedString("reading.result.translation"),
-                                    value: result.meaningInNativeLanguage
-                                )
-                            }
-                            if let grammar = result.grammaticalNote, !grammar.isEmpty {
-                                ReadingResultRow(
-                                    label: localizedString("reading.result.grammar"),
-                                    value: grammar
-                                )
-                            }
-                            if !result.usageNote.isEmpty {
-                                ReadingResultRow(
-                                    label: localizedString("reading.result.usage"),
-                                    value: result.usageNote
-                                )
-                            }
-                            if !result.exampleSentence.isEmpty {
-                                ReadingResultRow(
-                                    label: localizedString("reading.result.example"),
-                                    value: result.exampleSentence,
-                                    isItalic: true
-                                )
-                            }
+                    VStack(alignment: .leading, spacing: 6) {
+                        if !result.meaningInNativeLanguage.isEmpty {
+                            ReadingResultRow(
+                                label: localizedString("reading.result.translation"),
+                                value: result.meaningInNativeLanguage
+                            )
+                        }
+                        if let grammar = result.grammaticalNote, !grammar.isEmpty {
+                            ReadingResultRow(
+                                label: localizedString("reading.result.grammar"),
+                                value: grammar
+                            )
+                        }
+                        if !result.usageNote.isEmpty {
+                            ReadingResultRow(
+                                label: localizedString("reading.result.usage"),
+                                value: result.usageNote
+                            )
+                        }
+                        if !result.exampleSentence.isEmpty {
+                            ReadingResultRow(
+                                label: localizedString("reading.result.example"),
+                                value: result.exampleSentence,
+                                isItalic: true
+                            )
                         }
                     }
                 }
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(cardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
     }
 }

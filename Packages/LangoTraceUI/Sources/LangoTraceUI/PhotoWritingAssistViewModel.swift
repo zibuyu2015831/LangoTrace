@@ -92,7 +92,9 @@ final class PhotoWritingAssistViewModel: ObservableObject {
                 state = .result(result)
             } catch is CancellationError {
                 guard let self, generation == myGeneration else { return }
-                if state == .sending { state = .idle }
+                if state == .sending {
+                    state = .idle
+                }
             } catch let failure as PhotoWritingAssistRequestFailure {
                 guard let self, self.generation == myGeneration else { return }
                 self.state = failure.category == .cancelled ? .idle : .failed(failure.category)

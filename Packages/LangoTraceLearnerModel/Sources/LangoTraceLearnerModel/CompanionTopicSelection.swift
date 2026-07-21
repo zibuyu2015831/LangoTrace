@@ -21,7 +21,9 @@ public enum CompanionTopicSelection {
     ) -> [CompanionTopicCandidate] {
         guard limit > 0 else { return [] }
         let ranked = candidates.sorted { lhs, rhs in
-            if lhs.createdAt != rhs.createdAt { return lhs.createdAt > rhs.createdAt }
+            if lhs.createdAt != rhs.createdAt {
+                return lhs.createdAt > rhs.createdAt
+            }
             return lhs.id > rhs.id
         }
         return Array(ranked.prefix(limit))

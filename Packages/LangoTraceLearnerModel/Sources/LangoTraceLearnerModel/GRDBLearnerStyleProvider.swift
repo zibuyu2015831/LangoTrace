@@ -134,7 +134,9 @@ public struct GRDBLearnerStyleProvider: LearnerStyleProvider {
             guard !current.isEmpty else { return }
             accumulator.totalTokens += 1
             accumulator.distinctTokens.insert(current.lowercased())
-            if current.count >= 6 { accumulator.longTokens += 1 }
+            if current.count >= 6 {
+                accumulator.longTokens += 1
+            }
             current = ""
         }
 
@@ -159,7 +161,9 @@ public struct GRDBLearnerStyleProvider: LearnerStyleProvider {
             }
         }
         flushWord()
-        if sentenceHadContent { accumulator.sentenceCount += 1 }
+        if sentenceHadContent {
+            accumulator.sentenceCount += 1
+        }
     }
 
     private static func isSentenceTerminator(_ scalar: Unicode.Scalar) -> Bool {

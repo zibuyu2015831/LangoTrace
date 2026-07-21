@@ -61,8 +61,12 @@ struct GRDBLearnerStyleProviderTests {
     func aggregatesByNativeLanguageSystemLevel() throws {
         // Detector: bodies starting "ZH" → zh-Hans, "JA" → ja.
         let detector = StubDetector { text in
-            if text.hasPrefix("ZH") { return ("zh-Hans", 0.99) }
-            if text.hasPrefix("JA") { return ("ja", 0.99) }
+            if text.hasPrefix("ZH") {
+                return ("zh-Hans", 0.99)
+            }
+            if text.hasPrefix("JA") {
+                return ("ja", 0.99)
+            }
             return nil
         }
         let (provider, queue) = try makeProvider(detector: detector)

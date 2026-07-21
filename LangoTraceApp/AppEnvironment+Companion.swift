@@ -154,7 +154,9 @@ func makeCompanionChatActions(
             var count = 0
             for candidate in candidates {
                 let input = MemoryDepositInput(companionCandidate: candidate, spaceID: spaceID)
-                if await (try? memoryRepository.deposit(input)) != nil { count += 1 }
+                if await (try? memoryRepository.deposit(input)) != nil {
+                    count += 1
+                }
             }
             return count
         },

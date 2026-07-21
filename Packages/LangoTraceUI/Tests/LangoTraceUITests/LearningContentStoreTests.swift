@@ -689,7 +689,9 @@ private actor LearningMaterialGenerationGate {
     }
 
     func waitUntilStarted() async {
-        if started { return }
+        if started {
+            return
+        }
         await withCheckedContinuation { continuation in
             startContinuations.append(continuation)
         }
@@ -699,7 +701,9 @@ private actor LearningMaterialGenerationGate {
         started = true
         startContinuations.forEach { $0.resume() }
         startContinuations.removeAll()
-        if released { return }
+        if released {
+            return
+        }
         await withCheckedContinuation { continuation in
             releaseContinuations.append(continuation)
         }

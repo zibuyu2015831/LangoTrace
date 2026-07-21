@@ -109,8 +109,12 @@ public struct CompanionExtractionEngine: Sendable {
     private static func stripCodeFence(_ text: String) -> String {
         guard text.hasPrefix("```") else { return text }
         var lines = text.split(separator: "\n", omittingEmptySubsequences: false)
-        if lines.first?.hasPrefix("```") == true { lines.removeFirst() }
-        if lines.last?.hasPrefix("```") == true { lines.removeLast() }
+        if lines.first?.hasPrefix("```") == true {
+            lines.removeFirst()
+        }
+        if lines.last?.hasPrefix("```") == true {
+            lines.removeLast()
+        }
         return lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
@@ -121,7 +125,9 @@ public struct CompanionExtractionEngine: Sendable {
     /// extraction-specific `.invalidStructuredOutput` (raised during parsing, not here).
     static func failure(from error: Error) -> CompanionExtractionError {
         guard let streamingError = error as? AIChatStreamingError else {
-            if error is CancellationError { return .cancelled }
+            if error is CancellationError {
+                return .cancelled
+            }
             return .other
         }
         switch streamingError {

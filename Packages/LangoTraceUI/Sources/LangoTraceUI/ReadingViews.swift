@@ -269,34 +269,24 @@ struct ReadingLibraryView: View {
         )
     }
 
+    @ViewBuilder
     private var readerPane: some View {
-        Group {
-            if let document = store.selectedDocument {
-                if let presentation = store.selectedPresentation {
-                    readerContent(document: document, presentation: presentation, includeOuterPadding: true)
-                } else {
-                    ReadingReaderEmptyState()
-                }
+        if let document = store.selectedDocument {
+            if let presentation = store.selectedPresentation {
+                readerContent(document: document, presentation: presentation, includeOuterPadding: true)
             } else {
                 ReadingReaderEmptyState()
             }
+        } else {
+            ReadingReaderEmptyState()
         }
     }
 
+    @ViewBuilder
     private func readerWorkbenchBody(layout: ReadingLayoutModel) -> some View {
-        Group {
-            if let document = store.selectedDocument {
-                if let presentation = store.selectedPresentation {
-                    readerContent(document: document, presentation: presentation, includeOuterPadding: false)
-                } else {
-                    ReadingReaderEmptyState()
-                        .frame(
-                            maxWidth: layout.workspaceStyle == .balancedWorkbench ? 780 : 720,
-                            minHeight: layout.workspaceStyle == .balancedWorkbench ? 460 : 420,
-                            alignment: .center
-                        )
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+        if let document = store.selectedDocument {
+            if let presentation = store.selectedPresentation {
+                readerContent(document: document, presentation: presentation, includeOuterPadding: false)
             } else {
                 ReadingReaderEmptyState()
                     .frame(
@@ -306,6 +296,14 @@ struct ReadingLibraryView: View {
                     )
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
+        } else {
+            ReadingReaderEmptyState()
+                .frame(
+                    maxWidth: layout.workspaceStyle == .balancedWorkbench ? 780 : 720,
+                    minHeight: layout.workspaceStyle == .balancedWorkbench ? 460 : 420,
+                    alignment: .center
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -763,30 +761,29 @@ private struct ReadingPhoneLibraryHomeView: View {
         ReadingLibraryFilterControls(store: store)
     }
 
+    @ViewBuilder
     private var documentList: some View {
-        Group {
-            if store.filteredDocuments.isEmpty {
-                ContentUnavailableView(
-                    localizedString("reading.library.empty.title"),
-                    systemImage: "book.closed",
-                    description: Text(localizedString("reading.library.empty.body"))
-                )
-            } else {
-                LazyVStack(alignment: .leading, spacing: 12) {
-                    ForEach(store.filteredDocuments, id: \.id) { document in
-                        ReadingLibraryDocumentRow(
-                            document: document,
-                            onOpen: { onOpenDocument(document.id) },
-                            onToggleFavorite: {
-                                Task {
-                                    await store.setFavorite(
-                                        documentID: document.id,
-                                        isFavorite: !document.isFavorite
-                                    )
-                                }
+        if store.filteredDocuments.isEmpty {
+            ContentUnavailableView(
+                localizedString("reading.library.empty.title"),
+                systemImage: "book.closed",
+                description: Text(localizedString("reading.library.empty.body"))
+            )
+        } else {
+            LazyVStack(alignment: .leading, spacing: 12) {
+                ForEach(store.filteredDocuments, id: \.id) { document in
+                    ReadingLibraryDocumentRow(
+                        document: document,
+                        onOpen: { onOpenDocument(document.id) },
+                        onToggleFavorite: {
+                            Task {
+                                await store.setFavorite(
+                                    documentID: document.id,
+                                    isFavorite: !document.isFavorite
+                                )
                             }
-                        )
-                    }
+                        }
+                    )
                 }
             }
         }

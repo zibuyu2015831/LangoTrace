@@ -241,7 +241,9 @@ private actor LearningMaterialOperationGate {
     private var releaseContinuations: [CheckedContinuation<Void, Never>] = []
 
     func waitUntilStarted() async {
-        if started { return }
+        if started {
+            return
+        }
         await withCheckedContinuation { continuation in
             startContinuations.append(continuation)
         }
@@ -251,7 +253,9 @@ private actor LearningMaterialOperationGate {
         started = true
         startContinuations.forEach { $0.resume() }
         startContinuations.removeAll()
-        if released { return }
+        if released {
+            return
+        }
         await withCheckedContinuation { continuation in
             releaseContinuations.append(continuation)
         }

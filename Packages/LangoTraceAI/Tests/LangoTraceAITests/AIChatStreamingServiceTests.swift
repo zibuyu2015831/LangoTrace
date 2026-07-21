@@ -152,7 +152,9 @@ struct AIChatStreamingServiceTests {
         var deltas: [String] = []
         await #expect(throws: AIChatStreamingError.cancelled) {
             for try await event in service.stream(request()) {
-                if case let .delta(text) = event { deltas.append(text) }
+                if case let .delta(text) = event {
+                    deltas.append(text)
+                }
             }
         }
         #expect(deltas == ["He"])

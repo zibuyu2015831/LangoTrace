@@ -256,7 +256,9 @@ struct CompanionChatView: View {
 
     private func bubble(text: String, isUser: Bool) -> some View {
         HStack {
-            if isUser { Spacer(minLength: 40) }
+            if isUser {
+                Spacer(minLength: 40)
+            }
             Text(text)
                 .padding(10)
                 .background(
@@ -264,7 +266,9 @@ struct CompanionChatView: View {
                         : LangoTraceDesign.ColorToken.surfaceRaised
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            if !isUser { Spacer(minLength: 40) }
+            if !isUser {
+                Spacer(minLength: 40)
+            }
         }
     }
 
