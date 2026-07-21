@@ -111,3 +111,13 @@
 **教训沉淀（后续会话可复用）**：① 本机无 Swift 工具链，编译期错误只能 CI 首轮捕获——新成员命名避开既有裸名、访问级错误会伪装成重载歧义；② 签名扩参后的调用点/守卫/fake 勘查必须多行感知扫描 + conformance 全列（含测试 fake）；③ 声明前注释一律 doc comments（SwiftFormat 0.62.1）；④ source-boundary 守卫在签名变更时属「守卫更新」，实现前先定案传参形态避免触红；⑤ xcstrings 编辑必须保持原 JSON 格式（json.dumps indent=2 即字节一致），忌重排全文件。
 
 **交接状态**：`docs/plans/active/` 为空；`dev` = `origin/dev`（HEAD 随收尾提交）；CI 绿；文档控制面与代码零未记录偏差（README/002/页面清单/spec/005/备忘录均随代码同批）。**后续候选**（均已登记，未授权）：Mac 时间线筛选整体切片、搜索联动（SearchPalette 场景维度）、Prompt Preset 执行链路、Entry 音频附件、跟读发音评分（需产品决策）、真实同步通道（需付费 capability）、StoreKit（发布期）——入口见 `docs/architecture/notes/2026-07-22-entry-scene-taxonomy-extension-notes.md`、`docs/README.md`「尚未完成」与本 worklog。仓库可见性由用户设回 private。
+
+---
+
+## 运行后全面复核（2026-07-22，用户触发）
+
+用户要求对五批交付做完整性 / 准确性 / 全面性全面检查。执行方式：本地机械检查（git 状态、`check-docs.sh`、`git diff --check`、CI API 结论核对）+ 三个独立审计子代理（新上下文，只读）分别深查场景标签闭环、Gemini 适配、文档与健康度批。
+
+**结论：三份审计合计 0 个 P0、0 个 P1。** 逐项核验通过的关键面：六处 repository conformance（含测试 fake）方法齐全一致；GRDB `updateEntryScene` 三重软删除防护；三端 UI 接线（编辑器 chips / iPhone Menu / iPad pill / 三端共享详情编辑行）；`EntrySceneFacet` 排序与 AND 组合；11 个本地化 key en+zh-Hans 齐全；`makeRequest` 协议要求 + 六服务调用点全量迁移无旁路；Gemini wire 契约与 13 个测试；隐私日志清零（TTS probe / AI 包无响应体或密钥落日志）；docs/README「已完成/尚未完成」与代码事实无虚报漏报；worklog 五批 commit/CI run ID 与 git log 完全吻合。
+
+**复核中修复的 P2**：① 纯文档批 plan 补记自身 commit hash `58f9c38` 与 CI 覆盖 run（追溯缺口）；② `skills-lock.json`（外部 skill 安装锁定文件，工具链在用）加入 `.gitignore`，不再污染 git status。**登记不修复的 P2 观察**（均非缺陷）：InMemory `updateEntryScene` 沿既有 mock 模式不更新 `updatedAt`；GRDB 测试未直接断言 scene 更新后 `updated_at` 变化、未覆盖软删除记录拒改用例（实现防护齐全，测试面留白）；照片写作入口创建的记录恒未打标（切片范围内有意为之，可详情页补标）；Gemini `imagePromptBody` 静默回退（生产不可达，双重门控 + 测试锁定）。

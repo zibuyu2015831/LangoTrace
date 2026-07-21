@@ -4,6 +4,7 @@
 .claude/
 .superpowers/
 /AI-Coding-Context
+/skills-lock.json
 
 # macOS
 .DS_Store

@@ -157,6 +157,7 @@ git status --short
 - 验证：`scripts/check-docs.sh` ok；全量 placeholder rg 零命中；4 个被移动文件名的 `plans/active/` 断链扫描清零；`git diff --check` 干净。
 - 复查（独立 verifier 子代理，新上下文）：叙述段 / 已完成 / 尚未完成逐条对照代码复核通过，无 deferred 被包装成完成、无漏列；唯一数字错误「350+ 测试文件」已按实测改为「约 250 个测试文件、约 1600 个测试用例」；idea §5.1 五项指针全部可解析；001 §5 降权标注措辞确认得当；verifier 顺带发现的 002-system-map §1 滞后已修正（见上）。
 - CI 侧 `check-docs` 步骤随下一个带 `[ci]` 的代码检查点执行（docs-only 不单独触发全量 macOS CI）。
+- 提交：`58f9c38`（docs: LM 系列导航收口归档 + 入口文档与代码对齐）；CI 侧 `check-docs` 实际由后续检查点 run 29858671734（success）连带覆盖。（2026-07-22 全面复核时补记，消除纯文档 plan 无 commit hash 的追溯缺口。）
 
 ## 完成标准
 
