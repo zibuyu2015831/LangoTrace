@@ -203,12 +203,14 @@ private extension GRDBLearningContentRepositoryBridge {
             }
         )
     }
+}
 
+extension GRDBLearningContentRepositoryBridge {
     /// Real-path capability statuses. Metadata and ordering come from
     /// `SettingsCapabilityCatalog`; only the status per kind lives here.
     /// `.mockOnly` is reserved for capabilities that are truly not backed by
-    /// a real implementation yet. (Named distinctly from the instance method
-    /// `settingsCapabilities(for:)` so unqualified references stay unambiguous.)
+    /// a real implementation yet. Internal (not private) so package tests can
+    /// assert the real-path statuses directly.
     static var realPathSettingsCapabilities: [SettingsCapability] {
         SettingsCapabilityCatalog.capabilities(statuses: [
             .companion: .ready,
