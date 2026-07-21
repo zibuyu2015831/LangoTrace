@@ -65,17 +65,24 @@ run_with_heartbeat() {
   fi
 }
 
-run_with_heartbeat "LangoTrace-iOS (iPhone 17) build" \
-  xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPhone 17' build
+# Simulator/arch destinations are overridable so machines without these exact
+# simulators (or on a different arch) can still run the full verify sequence.
+# Defaults match the historical hard-coded values.
+LT_IOS_SIM="${LT_IOS_SIM:-iPhone 17}"
+LT_IPAD_SIM="${LT_IPAD_SIM:-iPad Pro 13-inch (M5)}"
+LT_MAC_ARCH="${LT_MAC_ARCH:-arm64}"
 
-run_with_heartbeat "LangoTrace-iOS (iPad Pro 13-inch (M5)) build" \
-  xcodebuild -scheme LangoTrace-iOS -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5)' build
+run_with_heartbeat "LangoTrace-iOS (${LT_IOS_SIM}) build" \
+  xcodebuild -scheme LangoTrace-iOS -destination "platform=iOS Simulator,name=${LT_IOS_SIM}" build
+
+run_with_heartbeat "LangoTrace-iOS (${LT_IPAD_SIM}) build" \
+  xcodebuild -scheme LangoTrace-iOS -destination "platform=iOS Simulator,name=${LT_IPAD_SIM}" build
 
 run_with_heartbeat "LangoTrace-macOS build" \
-  xcodebuild -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' build
+  xcodebuild -scheme LangoTrace-macOS -destination "platform=macOS,arch=${LT_MAC_ARCH}" build
 
 run_with_heartbeat "LangoTrace-macOS AppTests" \
-  xcodebuild test -scheme LangoTrace-macOS -destination 'platform=macOS,arch=arm64' -only-testing:LangoTraceAppTests
+  xcodebuild test -scheme LangoTrace-macOS -destination "platform=macOS,arch=${LT_MAC_ARCH}" -only-testing:LangoTraceAppTests
 
 run swiftlint --no-cache
 run swiftformat --lint . --exclude .build,build,DerivedData,LangoTrace.xcodeproj --cache ignore

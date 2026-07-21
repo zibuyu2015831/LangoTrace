@@ -959,7 +959,11 @@ private func makeLearningMaterialGenerationActions(
                         promptVersion: LearningMaterialPromptRegistry.promptVersion
                     )
                 )
-            } catch {}
+            } catch {
+                generationLogger.error(
+                    "recordBlockedOperation persist failed: \(String(describing: error), privacy: .public)"
+                )
+            }
         },
         cancelOperation: { operationID, entryID, materialID, kind, bucket in
             do {
@@ -978,7 +982,11 @@ private func makeLearningMaterialGenerationActions(
                         promptVersion: LearningMaterialPromptRegistry.promptVersion
                     )
                 )
-            } catch {}
+            } catch {
+                generationLogger.error(
+                    "cancelOperation persist failed: \(String(describing: error), privacy: .public)"
+                )
+            }
         }
     )
 }

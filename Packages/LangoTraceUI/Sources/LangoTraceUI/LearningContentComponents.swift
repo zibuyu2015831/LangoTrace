@@ -93,14 +93,14 @@ struct MemoryLayerSummaryView: View {
             CapabilityStatusRow(
                 title: localizedString("memory.layer.content.title"),
                 summary: localizedString("memory.layer.content.summary", contentMemoryCount),
-                status: memoryItems.isEmpty ? .unavailable : .mockOnly,
+                status: memoryItems.isEmpty ? .unavailable : .ready,
                 systemImage: "doc.text",
                 action: nil
             )
             CapabilityStatusRow(
                 title: localizedString("memory.layer.language.title"),
                 summary: localizedString("memory.layer.language.summary", memoryItems.count),
-                status: memoryItems.isEmpty ? .unavailable : .mockOnly,
+                status: memoryItems.isEmpty ? .unavailable : .ready,
                 systemImage: "text.book.closed",
                 action: nil
             )

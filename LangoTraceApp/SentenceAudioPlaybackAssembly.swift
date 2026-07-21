@@ -109,7 +109,10 @@ actor SentenceAudioPlaybackCoordinatorBox {
                 do {
                     let coordinator = try await self.coordinatorInstance()
                     await coordinator.stopActivePlayback()
-                } catch {}
+                } catch {
+                    // Stop path intentionally swallows coordinator init failures:
+                    // if the coordinator never existed there is nothing to stop.
+                }
             }
         )
     }

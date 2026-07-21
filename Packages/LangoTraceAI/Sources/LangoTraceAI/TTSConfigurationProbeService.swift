@@ -120,9 +120,6 @@ private extension TTSConfigurationProbeService {
         do {
             let endpoint = try inputEndpoint.normalized()
             let adapter = try adapter(for: settings.adapterKind)
-            NSLog("[LT-TTS-Probe] adapterKind=%@ model=%@ voice=%@",
-                  String(describing: settings.adapterKind), endpoint.modelName,
-                  voiceProfile.voiceID)
             let request = try adapter.makeRequest(
                 input: TTSProviderAdapterRequestInput(
                     endpointID: endpoint.id,
@@ -136,7 +133,6 @@ private extension TTSConfigurationProbeService {
             )
             let response = try await httpClient.send(request)
             let httpStatusCode = response.statusCode
-            NSLog("[LT-TTS-Probe] statusCode=%d bodyBytes=%d", httpStatusCode, response.body.count)
             guard response.body.count <= maxTTSProbeAudioResponseBytes else {
                 return (AIProviderProbeCapabilityResult(
                     capability: .speechSynthesis,
@@ -161,8 +157,6 @@ private extension TTSConfigurationProbeService {
                     ), httpStatusCode)
                 }
             } else {
-                let errorBody = String(data: response.body, encoding: .utf8) ?? "<binary \(response.body.count) bytes>"
-                NSLog("[LT-TTS-Probe] errorBody=%@", errorBody)
                 decodedBody = response.body
             }
 

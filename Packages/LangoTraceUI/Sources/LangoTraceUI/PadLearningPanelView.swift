@@ -154,7 +154,7 @@ struct PadLearningPanelView: View {
             CapabilityStatusRow(
                 localizedTitleKey: "pad.spaceSettings.title",
                 localizedSummaryKey: "pad.spaceSettings.summary",
-                status: .mockOnly,
+                status: .ready,
                 systemImage: "gearshape",
                 action: { onRoute(.settingsList) }
             )

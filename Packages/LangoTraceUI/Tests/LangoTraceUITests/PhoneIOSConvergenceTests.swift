@@ -412,6 +412,23 @@ struct PhoneIOSConvergenceTests {
         #expect(!components.contains("Spacer()\n            HStack(spacing: 8)"))
     }
 
+    @Test("Real-backed capability rows no longer render the mockOnly badge")
+    func realBackedCapabilityRowsDropMockOnlyBadge() throws {
+        let padLearningPanel = try String(
+            contentsOf: sourceFileURL(named: "PadLearningPanelView.swift"),
+            encoding: .utf8
+        )
+        let components = try String(
+            contentsOf: sourceFileURL(named: "LearningContentComponents.swift"),
+            encoding: .utf8
+        )
+
+        // Space settings routes to the real settings list and memory rows
+        // render real GRDB-backed items — neither is a mock-only surface.
+        #expect(!padLearningPanel.contains(".mockOnly"))
+        #expect(!components.contains(".mockOnly"))
+    }
+
     private func sourceFileURL(named fileName: String) -> URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

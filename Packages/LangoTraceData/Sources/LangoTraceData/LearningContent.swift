@@ -213,77 +213,21 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
         memoryItemsBySpace[spaceID, default: []]
     }
 
+    /// In-memory fixture statuses: kinds without a real backend behind this
+    /// mock repository stay `.mockOnly`. Metadata and ordering come from
+    /// `SettingsCapabilityCatalog`.
     public func settingsCapabilities(for _: String) -> [SettingsCapability] {
-        [
-            SettingsCapability(
-                kind: .companion,
-                status: .ready,
-                summary: "settings.companion.summary",
-                detail: "settings.companion.detail",
-                nextRequirement: "settings.companion.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .languageSpace,
-                status: .mockOnly,
-                summary: "settings.languageSpace.summary",
-                detail: "settings.languageSpace.detail",
-                nextRequirement: "settings.languageSpace.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .interfaceLanguage,
-                status: .mockOnly,
-                summary: "settings.interfaceLanguage.summary",
-                detail: "settings.interfaceLanguage.detail",
-                nextRequirement: "settings.interfaceLanguage.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .appearance,
-                status: .ready,
-                summary: "settings.appearance.summary",
-                detail: "settings.appearance.detail",
-                nextRequirement: "settings.appearance.nextRequirement"
-            ),
-        ] + Self.serviceSettingsCapabilities
-    }
-
-    private static var serviceSettingsCapabilities: [SettingsCapability] {
-        [
-            SettingsCapability(
-                kind: .aiProvider,
-                status: .mockOnly,
-                summary: "settings.aiProvider.summary",
-                detail: "settings.aiProvider.detail",
-                nextRequirement: "settings.aiProvider.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .sync,
-                status: .unavailable,
-                summary: "settings.sync.summary",
-                detail: "settings.sync.detail",
-                nextRequirement: "settings.sync.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .localData,
-                status: .mockOnly,
-                summary: "settings.localData.summary",
-                detail: "settings.localData.detail",
-                nextRequirement: "settings.localData.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .privacy,
-                status: .ready,
-                summary: "settings.privacy.summary",
-                detail: "settings.privacy.detail",
-                nextRequirement: "settings.privacy.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .importExport,
-                status: .unavailable,
-                summary: "settings.importExport.summary",
-                detail: "settings.importExport.detail",
-                nextRequirement: "settings.importExport.nextRequirement"
-            ),
-        ]
+        SettingsCapabilityCatalog.capabilities(statuses: [
+            .companion: .ready,
+            .languageSpace: .mockOnly,
+            .interfaceLanguage: .mockOnly,
+            .appearance: .ready,
+            .aiProvider: .mockOnly,
+            .sync: .unavailable,
+            .localData: .mockOnly,
+            .privacy: .ready,
+            .importExport: .unavailable,
+        ])
     }
 
     public func practiceSession(for entryID: String) -> PracticeSessionState? {

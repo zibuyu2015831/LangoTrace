@@ -204,71 +204,21 @@ private extension GRDBLearningContentRepositoryBridge {
         )
     }
 
+    /// Real-path capability statuses. Metadata and ordering come from
+    /// `SettingsCapabilityCatalog`; only the status per kind lives here.
+    /// `.mockOnly` is reserved for capabilities that are truly not backed by
+    /// a real implementation yet.
     static var settingsCapabilities: [SettingsCapability] {
-        [
-            SettingsCapability(
-                kind: .companion,
-                status: .ready,
-                summary: "settings.companion.summary",
-                detail: "settings.companion.detail",
-                nextRequirement: "settings.companion.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .languageSpace,
-                status: .ready,
-                summary: "settings.languageSpace.summary",
-                detail: "settings.languageSpace.detail",
-                nextRequirement: "settings.languageSpace.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .interfaceLanguage,
-                status: .mockOnly,
-                summary: "settings.interfaceLanguage.summary",
-                detail: "settings.interfaceLanguage.detail",
-                nextRequirement: "settings.interfaceLanguage.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .appearance,
-                status: .ready,
-                summary: "settings.appearance.summary",
-                detail: "settings.appearance.detail",
-                nextRequirement: "settings.appearance.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .aiProvider,
-                status: .ready,
-                summary: "settings.aiProvider.summary",
-                detail: "settings.aiProvider.detail",
-                nextRequirement: "settings.aiProvider.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .sync,
-                status: .unavailable,
-                summary: "settings.sync.summary",
-                detail: "settings.sync.detail",
-                nextRequirement: "settings.sync.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .localData,
-                status: .ready,
-                summary: "settings.localData.summary",
-                detail: "settings.localData.detail",
-                nextRequirement: "settings.localData.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .privacy,
-                status: .ready,
-                summary: "settings.privacy.summary",
-                detail: "settings.privacy.detail",
-                nextRequirement: "settings.privacy.nextRequirement"
-            ),
-            SettingsCapability(
-                kind: .importExport,
-                status: .unavailable,
-                summary: "settings.importExport.summary",
-                detail: "settings.importExport.detail",
-                nextRequirement: "settings.importExport.nextRequirement"
-            ),
-        ]
+        SettingsCapabilityCatalog.capabilities(statuses: [
+            .companion: .ready,
+            .languageSpace: .ready,
+            .interfaceLanguage: .ready,
+            .appearance: .ready,
+            .aiProvider: .ready,
+            .sync: .unavailable,
+            .localData: .ready,
+            .privacy: .ready,
+            .importExport: .unavailable,
+        ])
     }
 }
