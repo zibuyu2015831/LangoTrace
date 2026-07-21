@@ -1,6 +1,6 @@
 # 任务方案：记录详情场景标签编辑（场景切片 2）
 
-状态：In Progress
+状态：Verified
 自审核状态：Reviewed
 类型：feature
 创建日期：2026-07-22
@@ -115,7 +115,12 @@
 
 ## 实施记录
 
-（待实施后写回）
+2026-07-22 实施完成（自主运行，FABLE-MISSION 授权）：
+
+- 提交：`bbce0c6`（17 文件 +444/-5，单提交完成全部落点：GRDB `updateEntryScene` + 五处 conformance〔含测试 fake〕、store 方法、`EntrySceneEditOptions` + `EntrySceneEditRow`、共享详情 seam 接线、五组测试、页面清单四行 + 变更记录、备忘录 §2.1 完成标记与 §5.4 结论）。
+- CI 证据：**run 29867642501 `Build & Test` conclusion=success——首轮即绿**（前序批次教训全部生效：fake conformance 提前登记、守卫冲突提前定案 row 传 entry、多行感知扫描、doc comments 纪律、缩进层级）。
+- 红→绿：GRDB round-trip/清除/trim/notFound/spaceMismatch、InMemory 镜像、options 闭集与三态、convergence source-boundary、`entryScene.none` 本地化守卫，全部与实现同批入库并经 run 29867642501 实证。
+- deferred：无新增（Mac 筛选 / 搜索联动 / 多标签仍由演进备忘录承载）。
 
 ## 完成标准
 

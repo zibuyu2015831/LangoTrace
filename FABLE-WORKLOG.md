@@ -90,3 +90,24 @@
 - 方案：`docs/plans/active/2026-07-22-feature-entry-scene-edit.md`——隔离双轮自审（P0=0，P1×3 全部写回：内部协议扩方法击穿测试 fake `FailingReadLearningContentRepository` 的第四 conformance 破坏点、`entry.scene)` 负向守卫与接线写法冲突〔定案 row 接收整个 entry〕、页面清单 :50「不展示场景 metadata」反述矛盾 + macOS/共享组件行遗漏；P2 采纳：删「保留当前」no-op 项、空态用 `entryScene.none` 不走 displayScene 回退、值从 prop 派生防 @State stale、InMemory 按既有语义断言、备忘录 §5.4「暂不合并 updateEntry(fields:)」结论回写）后 Reviewed 实施。
 - 动作：GRDB `updateEntryScene`（镜像 updateEntryBody；空串合法=清除）+ 协议/bridge/InMemory/Unavailable/fake 五处 conformance 同步；store 方法 + reload；`EntrySceneEditOptions` 纯函数 + `EntrySceneEditRow`（三态当前值、Menu 无场景+六预设）；共享详情 seam `onUpdateEntryScene` 接线（三端自动生效，零平台文件改动）；测试：GRDB round-trip/清除/trim/notFound/spaceMismatch、InMemory 镜像、options 闭集与三态、convergence source-boundary、`entryScene.none` 本地化守卫；页面清单四行（含 :50 反述改写）+ 变更记录 + 备忘录 §2.1 完成标记同批。
 - 下一步：`[ci]` 推送 → CI 结论 → 收口。
+- 结果：**CI run 29867642501 success——首轮即绿**（前序批次教训全部生效）。plan 补实施记录移 `done/`，`docs/plans/active/` 清空。
+
+---
+
+## 运行收尾总结（2026-07-22）
+
+本次 Fable 自主运行在 `dev` 上完成 **五个完整检查点**，全部满足 FABLE-MISSION §7 硬性条件（active plan 自批自审归档、TDD 覆盖、文档控制面同批更新、CI `Build & Test` 绿、分批提交推送）：
+
+| 批次 | 类型 | 交付 | 最终 CI |
+|---|---|---|---|
+| ① LM 系列收口 + 入口文档对齐 | docs | 4 份导航文档归档、五孤儿承接 idea/README、docs/README「已完成/尚未完成」重写（补 LearnerModel 第七包/语伴/学习画像等）、002-system-map 元数据 + §1 修正、001 §5 降权、断链修复 | check-docs 本地 + 随②CI 绿 |
+| ② 代码健康度修复 | chore | mockOnly 徽章误导清除（interfaceLanguage/Pad 设置/记忆摘要→ready）、SettingsCapabilityCatalog 单一事实源、空 catch 补日志、TTS probe NSLog 泄漏纠偏（spec/008 §113）、verify.sh 参数化、M3/L1/L4 defer 备忘录 | run 29858671734 ✅ |
+| ③ 场景标签闭环 | feature | EntryScenePreset 六预设、创建链路六接缝透传、三端编辑器 chips、iPhone 场景 Menu + iPad 侧栏 pill、EntrySceneFacet 正交筛选、displayScene 三态修尾部「· 」、10 本地化键 | run 29864585392 ✅ |
+| ④ Gemini 文本适配 | feature | makeRequest 升协议要求 + 显式参数、Gemini adapter 三件套（x-goog-api-key / model-in-path / alt=sse 流式 / 角色映射）、工厂与 UI policy 放行、七处 reserved fixture 处置、spec/005 与 002 回写 | run 29864585392 ✅ |
+| ⑤ 场景编辑（切片 2） | feature | updateEntryScene 全链五 conformance、EntrySceneEditRow 三端共享详情、页面清单反述矛盾改写 | run 29867642501 ✅（首轮即绿） |
+
+**过程质量**：每批均走「接缝勘查（Explore 子代理）→ active plan → 隔离双轮自审（独立 verifier 子代理，累计确认 P1 级问题 15 个全部实现前写回）→ TDD 实施 → CI 实证 → 收口归档」。CI 共红 7 轮，全部当轮诊断修复（凭 `.gh-token` 拉 job 日志定位），无一遗留。
+
+**教训沉淀（后续会话可复用）**：① 本机无 Swift 工具链，编译期错误只能 CI 首轮捕获——新成员命名避开既有裸名、访问级错误会伪装成重载歧义；② 签名扩参后的调用点/守卫/fake 勘查必须多行感知扫描 + conformance 全列（含测试 fake）；③ 声明前注释一律 doc comments（SwiftFormat 0.62.1）；④ source-boundary 守卫在签名变更时属「守卫更新」，实现前先定案传参形态避免触红；⑤ xcstrings 编辑必须保持原 JSON 格式（json.dumps indent=2 即字节一致），忌重排全文件。
+
+**交接状态**：`docs/plans/active/` 为空；`dev` = `origin/dev`（HEAD 随收尾提交）；CI 绿；文档控制面与代码零未记录偏差（README/002/页面清单/spec/005/备忘录均随代码同批）。**后续候选**（均已登记，未授权）：Mac 时间线筛选整体切片、搜索联动（SearchPalette 场景维度）、Prompt Preset 执行链路、Entry 音频附件、跟读发音评分（需产品决策）、真实同步通道（需付费 capability）、StoreKit（发布期）——入口见 `docs/architecture/notes/2026-07-22-entry-scene-taxonomy-extension-notes.md`、`docs/README.md`「尚未完成」与本 worklog。仓库可见性由用户设回 private。
