@@ -514,7 +514,7 @@ func grdbBridgeSurfacesCreateFailures() throws {
             title: "Missing",
             body: "This should not become an unsaved entry.",
             source: .typedText,
-        scene: ""
+            scene: ""
         )
     }
 }
