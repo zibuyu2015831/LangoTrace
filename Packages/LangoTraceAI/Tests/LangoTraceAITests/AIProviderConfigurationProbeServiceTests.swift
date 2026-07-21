@@ -432,22 +432,38 @@ func languageSupportCancellationKeepsOverallProbeStatusCancelled() async throws 
     #expect(await logger.events().map(\.name).contains(.aiProviderConfigurationProbeCancelled))
 }
 
-@Test("Unsupported adapters and placeholder capabilities do not send HTTP")
-func unsupportedAdaptersAndPlaceholderCapabilitiesDoNotSendHTTP() async throws {
-    let httpClient = CapturingProbeHTTPClient(responses: [])
+@Test("Gemini draft probe passes text + structured JSON via x-goog-api-key with the model in the path")
+func geminiDraftProbeSucceedsWithGoogApiKeyHeader() async throws {
+    // Gemini returns model output in `candidates[].content.parts[].text`.
+    let httpClient = CapturingProbeHTTPClient(responses: [
+        .json(#"{"candidates":[{"content":{"parts":[{"text":"OK"}]}}]}"#),
+        .json(#"{"candidates":[{"content":{"parts":[{"text":"{\"ok\":true}"}]}}]}"#),
+    ])
     let service = AIProviderConfigurationProbeService(httpClient: httpClient)
 
     let result = try await service.probeDraftConfiguration(
-        draftInput(adapterKind: .geminiGenerateContent)
+        draftInput(
+            providerPresetID: "gemini",
+            adapterKind: .geminiGenerateContent,
+            baseURL: "https://generativelanguage.googleapis.com/v1beta",
+            modelName: "gemini-2.5-flash",
+            plaintextSecret: "g-secret"
+        )
     )
 
-    #expect(result.overallStatus == .failed)
-    #expect(result.capability(.textReply)?.status == .unsupported)
-    #expect(result.capability(.structuredJSON)?.status == .unsupported)
+    #expect(result.capability(.textReply)?.status == .succeeded)
+    #expect(result.capability(.structuredJSON)?.status == .succeeded)
+    // Image stays structurally unsupported (AIProviderImageSupport) and the
+    // disabled capabilities stay notEnabled.
     #expect(result.capability(.imageUnderstanding)?.status == .unsupported)
     #expect(result.capability(.speechSynthesis)?.status == .notEnabled)
     #expect(result.capability(.embedding)?.status == .notEnabled)
-    #expect(await httpClient.requests.isEmpty)
+    let requests = await httpClient.requests
+    #expect(!requests.isEmpty)
+    // Model rides the URL path; auth is x-goog-api-key, never Bearer.
+    #expect(requests.allSatisfy { $0.url?.absoluteString.contains("models/gemini-2.5-flash:generateContent") == true })
+    #expect(requests.allSatisfy { $0.value(forHTTPHeaderField: "x-goog-api-key") == "g-secret" })
+    #expect(requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
 }
 
 @Test("Local providers can probe without Authorization header")

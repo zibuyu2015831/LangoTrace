@@ -132,7 +132,7 @@ private extension LearningMaterialGenerationService {
     }
 
     /// Resolves the shared text-request adapter for the endpoint kind, mapping
-    /// the reserved (`anthropicMessages` / `geminiGenerateContent`) kinds to the
+    /// any future unimplemented kind to the
     /// service's `unsupportedProvider` category.
     func textAdapter(for endpoint: AIProviderEndpointInput) throws -> any AIProviderTextRequestAdapter {
         do {
@@ -165,7 +165,7 @@ private extension LearningMaterialGenerationService {
         guard endpoint.isEnabled, endpoint.purpose == .textGeneration else {
             throw LearningMaterialGenerationServiceError(category: .providerNotConfigured)
         }
-        // Adapter-kind support (incl. the reserved anthropic / gemini kinds) is
+        // Adapter-kind support is
         // resolved at the single dispatch point in `textAdapter(for:)`.
         return endpoint
     }
@@ -189,6 +189,8 @@ private extension LearningMaterialGenerationService {
                 baseURL: endpoint.baseURL,
                 secret: secret,
                 timeoutSeconds: endpoint.requestTimeoutSeconds,
+                model: endpoint.modelName,
+                streaming: false,
                 body: body
             )
         } catch AIProviderTextRequestAdapterError.invalidEndpointURL {

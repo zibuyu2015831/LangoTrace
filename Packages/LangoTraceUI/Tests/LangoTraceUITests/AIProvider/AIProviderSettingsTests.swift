@@ -543,6 +543,20 @@ struct AIProviderCapabilityResolverTests {
         #expect(!deepSeek.canProbe)
     }
 
+    @Test("Gemini adapter policy allows text and structured-JSON probes only")
+    func geminiAdapterPolicyAllowsTextProbesOnly() {
+        let policy = AIProviderAdapterKind.geminiGenerateContent.capabilityPolicy
+
+        // Wired 2026-07-22: text + best-effort structured JSON dispatch through
+        // the Gemini generateContent adapter; image / TTS / embedding stay
+        // deferred so the image invariants above must hold unchanged.
+        #expect(policy.canProbeText)
+        #expect(policy.canProbeStructuredJSON)
+        #expect(!policy.canProbeImageInput)
+        #expect(!policy.canProbeSpeechSynthesis)
+        #expect(!policy.canProbeEmbedding)
+    }
+
     @Test("Non text endpoints cannot carry image input capability")
     func nonTextEndpointsCannotCarryImageInputCapability() {
         let decision = AIProviderEndpointCapabilityResolver.imageInputDecision(

@@ -336,24 +336,10 @@ func learningMaterialGenerationServiceParsesResponsesOutputWithLeadingReasoningI
     #expect(result.learningText == "I went to a cafe today.")
 }
 
-@Test("Learning material generation service rejects unsupported adapters before HTTP")
-func learningMaterialGenerationServiceRejectsUnsupportedAdaptersBeforeHTTP() async throws {
-    let httpClient = CapturingLearningMaterialHTTPClient(responses: [])
-    let service = LearningMaterialGenerationService(httpClient: httpClient)
-
-    await #expect(throws: LearningMaterialGenerationServiceError(category: .unsupportedProvider)) {
-        try await service.generate(
-            LearningMaterialServiceGenerationRequest(
-                endpoint: endpoint(adapterKind: .geminiGenerateContent),
-                plaintextSecret: "sk-test-secret",
-                input: sampleGenerationInput(sourceText: "我去了。"),
-                operationID: DiagnosticOperationID(rawValue: "op-unsupported"),
-                lengthBucket: .short
-            )
-        )
-    }
-    #expect(await httpClient.requests.isEmpty)
-}
+// Removed 2026-07-22 with the Gemini wiring: every closed-set adapter kind now
+// dispatches, so the "reserved kind maps to unsupportedProvider before HTTP"
+// scenario no longer exists. The mapping code stays as the error vocabulary for
+// future kinds; the safety net is the factory's compile-time-exhaustive switch.
 
 private func sampleAnalysisRequest() -> LearningMaterialServiceAnalysisRequest {
     LearningMaterialServiceAnalysisRequest(

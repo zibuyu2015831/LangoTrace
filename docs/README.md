@@ -131,7 +131,7 @@ AI 在协助设计、评审、调试或验证时创建的一切产物——原�
 - 照片附件主数据与照片写作路径：`EntryPhotoAttachment`、`PhotoImportPipeline`、缩略图与 `media_artifacts` join。
 - 双语沉浸阅读页与阅读内 AI 解释、查词捕获。
 - AI 请求预览投影与请求日志：`AIRequestPreviewProjection` 只暴露内容类别不暴露内容，`ai_request_logs` 结构化落库（语伴会话级日志仍 defer）。
-- AI Provider 多轮对话 + 文本流式基础设施（OpenAI 兼容族），以及 Anthropic Messages 文本适配器（多轮 + 流式；结构化严格模式与图片理解后置）。
+- AI Provider 多轮对话 + 文本流式基础设施（OpenAI 兼容族），以及 Anthropic Messages 与 Gemini generateContent 文本适配器（多轮 + 流式；结构化严格模式与图片理解后置）。
 - LearnerModel 包与 ADR-006 学习者模型子系统：Ability 知识覆盖 compute-on-read、Memory 层（v27 `learner_memory_facts`）、Style 表层印记 seam、盲点 dictation diff 派生、band 动态重估 + derive 迟滞、查词捕获与分析账本（v28/v29）。
 - 三端学习画像总览页。
 - 语伴 Language Companion（ADR-008 有界练习模态）：文本对话引擎（v30）、聊天反哺候选提取（v31）、Memory / Style 受控注入与两层隐私 + PII scrubbing（v32）、主动找话题、文本流式 UX 与温和复述、滚动摘要对话记忆（v33）、对话小结批量 deposit 闭合「对话 → 记忆」。
@@ -145,7 +145,6 @@ AI 在协助设计、评审、调试或验证时创建的一切产物——原�
 
 - 时间线与搜索联动（场景标签筛选已落地；SearchPalette 场景维度、SQL 级过滤与 macOS 时间线筛选 UI 未接）。
 - Entry 音频附件主数据；照片 / 音频附件导出打包与可恢复备份。
-- Gemini 文本学习内容适配（`geminiGenerateContent` 目前仅 TTS / 枚举层存在）。
 - Prompt Preset 的真实渲染和执行链路（用户可配置 Preset；各能力 Prompt Registry 已存在但不可配置）。
 - 跟读发音评分（当前跟读只做录音留存与回放，无评分；依赖 Speech Recognition 与产品决策）。
 - Embedding 真实向量索引与语义检索（配置 probe 已有，向量化处理 defer）。

@@ -25,7 +25,7 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 当前真实能力边界（细节以 §4 与 `platform-page-inventory.md` 为准）：
 
 - 已实现：首次启动路由、语言空间 SQLite / GRDB 持久化、AI Provider 本地配置和 Keychain secret 分离、AI Provider 合成 probe、learning content GRDB 主路径、TTS 配置和逐句播放 coordinator、local media artifact / TTS audio cache、跟读录音 / 听写 / 回译练习、FTS5 trigram 全文搜索、照片附件主数据与照片写作、双语沉浸阅读、AI 请求预览与请求日志、AI Provider 多轮 + 流式与 Anthropic Messages 适配、学习者模型子系统（v27-v29）、学习画像总览页、语伴（v30-v33）、导入导出 Slice 1（明文主数据）。
-- 未完成：时间线场景标签筛选与搜索联动、Entry 音频附件、附件导出打包与可恢复备份、Gemini 文本学习内容适配、Prompt Preset 执行链路、跟读发音评分、Embedding 真实向量索引、Photos / Camera / Speech Recognition / OCR 权限接入、真实同步通道与变更跟踪 schema、StoreKit、发布材料。
+- 未完成：时间线搜索联动（场景标签筛选已落地 2026-07-22）、Entry 音频附件、附件导出打包与可恢复备份、Prompt Preset 执行链路、跟读发音评分、Embedding 真实向量索引、Photos / Camera / Speech Recognition / OCR 权限接入、真实同步通道与变更跟踪 schema、StoreKit、发布材料。
 
 ## 2. App 和 Package 入口点
 
@@ -246,7 +246,7 @@ LangoTrace 当前是 SwiftUI Multiplatform App，使用 XcodeGen 生成 Xcode �
 这是对话级 AI 请求的**传输能力**数据流，目前**只到 Provider seam，无 UI / 会话 store**（消费方语伴 LM03 后续接入）：
 
 1. 调用方构造 `AIChatStreamingServiceRequest`（endpoint + secret + 可选 system + 有序 `[ConversationMessage]`）。
-2. `AIChatStreamingService`（`LangoTraceAI`）经 adapter 的 `streamingChatBody`（chat/completions `messages` + `stream:true`；responses `input` + `stream`；**anthropic 顶层 `system` + 必填 `max_tokens` + `content_block_delta` 流式、无 `[DONE]` 由字节 EOF 终止，LM03-S4b 落地**；mimo 流式未验证暂 `unsupportedProvider`；gemini 仍 `unsupportedProvider`）构造请求。鉴权经可动态派发的协议要求 `providerRequestHeaders`（OpenAI Bearer / anthropic `x-api-key`+`anthropic-version` / mimo `api-key`，修复 mimo 旧 override 潜伏鉴权 bug）。
+2. `AIChatStreamingService`（`LangoTraceAI`）经 adapter 的 `streamingChatBody`（chat/completions `messages` + `stream:true`；responses `input` + `stream`；**anthropic 顶层 `system` + 必填 `max_tokens` + `content_block_delta` 流式、无 `[DONE]` 由字节 EOF 终止，LM03-S4b 落地**；**gemini `contents` 角色映射 assistant→`model` + `systemInstruction`、流式切 `models/{model}:streamGenerateContent?alt=sse`、SSE `data:` 块为完整 JSON、无 `[DONE]` 由字节 EOF 终止，2026-07-22 落地**；mimo 流式未验证暂 `unsupportedProvider`——文本闭集中唯一无流式的 kind）构造请求。鉴权经可动态派发的协议要求 `providerRequestHeaders`（OpenAI Bearer / anthropic `x-api-key`+`anthropic-version` / mimo `api-key` / gemini `x-goog-api-key`）；URL 构建经同为协议要求的 `makeRequest`（默认单 `pathSuffix`；gemini 覆盖为 model-in-path + 流式换方法名，2026-07-22 升格）。
 3. 经 `AIProviderStreamingHTTPClient.streamBytes` → `AsyncThrowingStream<UInt8, Error>` 增量读；`ServerSentEventParser` 字节级解析（仅按 `0x0A` 切分，跨 chunk 半行 + 多字节安全），`OpenAIStreamDeltaExtractor` / `AnthropicStreamDeltaExtractor` 提取 delta。
 4. 服务以 `AsyncThrowingStream<AIChatStreamEvent>`（全仓首个 throwing 异步流）逐 token yield；流终止于 `[DONE]` 或映射后的错误。
 5. **投影就绪不写日志**：`request.projectionMetadata()` 携带 preset / model / lengthBucket / messageCount（无正文 / persona / 密钥）；对话级 `ai_request_logs` 写入由 LM03 在请求终止后经 App-Shell recorder 接线（E6 依赖方向）。

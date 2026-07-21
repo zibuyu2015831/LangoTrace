@@ -10,20 +10,16 @@ struct AIProviderTextRequestAdapterTests {
         return try #require(try JSONSerialization.jsonObject(with: body) as? [String: Any])
     }
 
-    @Test("factory dispatches OpenAI-compatible kinds to concrete adapters")
+    @Test("factory dispatches every closed-set kind to a concrete adapter")
     func factoryDispatchesSupportedKinds() throws {
         #expect(try AIProviderTextRequestAdapterFactory.adapter(for: .openAICompatibleChat).pathSuffix == "chat/completions")
         #expect(try AIProviderTextRequestAdapterFactory.adapter(for: .openAIResponses).pathSuffix == "responses")
-        // LM03-S4b: Anthropic Messages is now wired (path `messages`); only Gemini
-        // remains a reserved/throwing kind.
         #expect(try AIProviderTextRequestAdapterFactory.adapter(for: .anthropicMessages).pathSuffix == "messages")
-    }
-
-    @Test("factory throws unsupportedProvider for the remaining reserved kind")
-    func factoryRejectsReservedKinds() {
-        #expect(throws: AIProviderTextRequestAdapterError.unsupportedProvider) {
-            _ = try AIProviderTextRequestAdapterFactory.adapter(for: .geminiGenerateContent)
-        }
+        // Gemini wired 2026-07-22: the closed set has no reserved/throwing kind
+        // left — the compile-time-exhaustive factory switch is the safety net
+        // for future kinds (the former factoryRejectsReservedKinds test scenario
+        // no longer exists).
+        #expect(try AIProviderTextRequestAdapterFactory.adapter(for: .geminiGenerateContent) is GeminiGenerateContentTextAdapter)
     }
 
     // MARK: - Anthropic Messages adapter (LM03-S4b)
@@ -35,6 +31,8 @@ struct AIProviderTextRequestAdapterTests {
             baseURL: "https://api.anthropic.com/v1",
             secret: "sk-ant-secret",
             timeoutSeconds: 30,
+            model: "test-model",
+            streaming: false,
             body: adapter.plainPromptBody(model: "claude-test", prompt: "hi")
         )
         #expect(request.url?.absoluteString == "https://api.anthropic.com/v1/messages")
@@ -50,6 +48,8 @@ struct AIProviderTextRequestAdapterTests {
             baseURL: "https://api.anthropic.com/v1",
             secret: secret,
             timeoutSeconds: nil,
+            model: "test-model",
+            streaming: false,
             body: adapter.plainPromptBody(model: "claude-test", prompt: "hi")
         )
         #expect(request.value(forHTTPHeaderField: "x-api-key") == nil)
@@ -163,6 +163,8 @@ struct AIProviderTextRequestAdapterTests {
             baseURL: "https://api.test/v1",
             secret: "mimo-secret",
             timeoutSeconds: nil,
+            model: "test-model",
+            streaming: false,
             body: adapter.plainPromptBody(model: "m", prompt: "hi")
         )
         #expect(request.value(forHTTPHeaderField: "api-key") == "mimo-secret")
@@ -176,6 +178,8 @@ struct AIProviderTextRequestAdapterTests {
             baseURL: "https://api.test/v1",
             secret: "sk-secret",
             timeoutSeconds: 42,
+            model: "test-model",
+            streaming: false,
             body: adapter.plainPromptBody(model: "gpt-test", prompt: "hello")
         )
         #expect(request.httpMethod == "POST")
@@ -192,6 +196,8 @@ struct AIProviderTextRequestAdapterTests {
             baseURL: "https://api.test/v1",
             secret: "sk-secret",
             timeoutSeconds: nil,
+            model: "test-model",
+            streaming: false,
             body: adapter.plainPromptBody(model: "gpt-test", prompt: "hello")
         )
         #expect(request.url?.absoluteString == "https://api.test/v1/responses")
@@ -204,6 +210,8 @@ struct AIProviderTextRequestAdapterTests {
             baseURL: "https://api.test/v1",
             secret: secret,
             timeoutSeconds: nil,
+            model: "test-model",
+            streaming: false,
             body: adapter.plainPromptBody(model: "gpt-test", prompt: "hello")
         )
         #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
@@ -370,5 +378,198 @@ struct AIProviderTextRequestAdapterTests {
         #expect(throws: AIProviderTextRequestAdapterError.invalidResponseBody) {
             _ = try adapter.extractText(fromResponseBody: Data(#"{"choices":[]}"#.utf8))
         }
+    }
+}
+
+// MARK: - Gemini generateContent adapter (2026-07-22)
+
+@Suite("Gemini generateContent adapter")
+struct GeminiGenerateContentTextAdapterTests {
+    private let adapter = GeminiGenerateContentTextAdapter()
+
+    @Test("Gemini authorizes with x-goog-api-key, not Bearer")
+    func geminiUsesGoogApiKeyHeader() throws {
+        let request = try adapter.makeRequest(
+            baseURL: "https://generativelanguage.googleapis.com/v1beta",
+            secret: "g-secret",
+            timeoutSeconds: 30,
+            model: "gemini-2.5-flash",
+            streaming: false,
+            body: adapter.plainPromptBody(model: "gemini-2.5-flash", prompt: "hi")
+        )
+        #expect(request.value(forHTTPHeaderField: "x-goog-api-key") == "g-secret")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
+        #expect(request.httpMethod == "POST")
+        #expect(request.timeoutInterval == 30)
+    }
+
+    @Test("Gemini omits the key header without a secret", arguments: [nil, "", "  "])
+    func geminiOmitsKeyWithoutSecret(secret: String?) throws {
+        let request = try adapter.makeRequest(
+            baseURL: "https://generativelanguage.googleapis.com/v1beta",
+            secret: secret,
+            timeoutSeconds: nil,
+            model: "gemini-2.5-flash",
+            streaming: false,
+            body: adapter.plainPromptBody(model: "gemini-2.5-flash", prompt: "hi")
+        )
+        #expect(request.value(forHTTPHeaderField: "x-goog-api-key") == nil)
+    }
+
+    @Test("Gemini puts the model in the path with an unescaped method colon")
+    func geminiModelInPathURL() throws {
+        let request = try adapter.makeRequest(
+            baseURL: "https://generativelanguage.googleapis.com/v1beta",
+            secret: "g",
+            timeoutSeconds: nil,
+            model: "gemini-2.5-flash",
+            streaming: false,
+            body: [:]
+        )
+        #expect(
+            request.url?.absoluteString
+                == "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+        )
+    }
+
+    /// Load-bearing: without `alt=sse` the streaming endpoint returns a JSON
+    /// array the SSE parser cannot consume.
+    @Test("Gemini streaming switches the method name and appends alt=sse")
+    func geminiStreamingURL() throws {
+        let request = try adapter.makeRequest(
+            baseURL: "https://generativelanguage.googleapis.com/v1beta",
+            secret: "g",
+            timeoutSeconds: nil,
+            model: "gemini-2.5-flash",
+            streaming: true,
+            body: [:]
+        )
+        #expect(
+            request.url?.absoluteString
+                == "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse"
+        )
+    }
+
+    @Test("Gemini path join preserves a path-prefixed base URL")
+    func geminiPathJoinPreservesBasePathPrefix() throws {
+        let request = try adapter.makeRequest(
+            baseURL: "https://proxy.example.com/google/v1beta/",
+            secret: "g",
+            timeoutSeconds: nil,
+            model: "gemini-2.5-flash",
+            streaming: false,
+            body: [:]
+        )
+        #expect(
+            request.url?.absoluteString
+                == "https://proxy.example.com/google/v1beta/models/gemini-2.5-flash:generateContent"
+        )
+    }
+
+    @Test("Gemini normalizes a user-typed models/ prefix without doubling")
+    func geminiNormalizesModelsPrefix() throws {
+        let request = try adapter.makeRequest(
+            baseURL: "https://generativelanguage.googleapis.com/v1beta",
+            secret: "g",
+            timeoutSeconds: nil,
+            model: "models/gemini-2.5-flash",
+            streaming: false,
+            body: [:]
+        )
+        #expect(
+            request.url?.absoluteString
+                == "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+        )
+    }
+
+    @Test("Gemini plain prompt body is a single user contents turn without a model key")
+    func geminiPlainPromptBodyShape() throws {
+        let body = adapter.plainPromptBody(model: "gemini-2.5-flash", prompt: "hello")
+
+        #expect(body["model"] == nil)
+        let contents = try #require(body["contents"] as? [[String: Any]])
+        #expect(contents.count == 1)
+        #expect(contents[0]["role"] as? String == "user")
+        let parts = try #require(contents[0]["parts"] as? [[String: Any]])
+        #expect(parts[0]["text"] as? String == "hello")
+    }
+
+    @Test("Gemini structured body pins responseMimeType and system instruction, best effort")
+    func geminiStructuredBodyShape() throws {
+        let body = adapter.structuredCompletionBody(
+            model: "gemini-2.5-flash",
+            system: "sys",
+            user: "usr",
+            temperature: 0.2,
+            structuredOutputName: "ignored",
+            schema: ["type": "object"]
+        )
+
+        let generationConfig = try #require(body["generationConfig"] as? [String: Any])
+        #expect(generationConfig["responseMimeType"] as? String == "application/json")
+        #expect(generationConfig["temperature"] as? Double == 0.2)
+        let systemInstruction = try #require(body["systemInstruction"] as? [String: Any])
+        let systemParts = try #require(systemInstruction["parts"] as? [[String: Any]])
+        #expect(systemParts[0]["text"] as? String == "sys")
+        // Best effort: the schema parameter is deliberately ignored so the
+        // adapter never synthesizes unregistered outbound prompt text.
+        #expect((body.description.contains("ignored")) == false)
+    }
+
+    @Test("Gemini streaming chat body maps assistant turns to the model role")
+    func geminiStreamingChatBodyRoleMapping() throws {
+        let body = try #require(adapter.streamingChatBody(
+            model: "gemini-2.5-flash",
+            system: "be kind",
+            messages: [
+                ConversationMessage(role: .user, content: "hi"),
+                ConversationMessage(role: .assistant, content: "hello"),
+            ]
+        ))
+
+        let contents = try #require(body["contents"] as? [[String: Any]])
+        #expect(contents.map { $0["role"] as? String } == ["user", "model"])
+        let systemInstruction = try #require(body["systemInstruction"] as? [String: Any])
+        let systemParts = try #require(systemInstruction["parts"] as? [[String: Any]])
+        #expect(systemParts[0]["text"] as? String == "be kind")
+        #expect(body["stream"] == nil)
+    }
+
+    @Test("Gemini outputText concatenates candidate parts text")
+    func geminiOutputTextParsesCandidates() throws {
+        let payload = #"{"candidates":[{"content":{"role":"model","parts":[{"text":"Hello "},{"text":"world"}]}}]}"#
+        let text = try adapter.extractText(fromResponseBody: Data(payload.utf8))
+        #expect(text == "Hello world")
+    }
+
+    @Test("Gemini extractText rejects empty candidates")
+    func geminiExtractTextRejectsEmptyCandidates() {
+        #expect(throws: AIProviderTextRequestAdapterError.invalidResponseBody) {
+            _ = try adapter.extractText(fromResponseBody: Data(#"{"candidates":[]}"#.utf8))
+        }
+    }
+
+    @Test("Gemini stream delta extracts text and ignores non-text chunks")
+    func geminiStreamDeltaExtraction() {
+        let textChunk = #"{"candidates":[{"content":{"parts":[{"text":"Hi"}]}}]}"#
+        #expect(GeminiStreamDeltaExtractor.contentDelta(fromDataPayload: textChunk) == "Hi")
+        let metadataChunk = #"{"usageMetadata":{"promptTokenCount":3}}"#
+        #expect(GeminiStreamDeltaExtractor.contentDelta(fromDataPayload: metadataChunk) == nil)
+        #expect(GeminiStreamDeltaExtractor.contentDelta(fromDataPayload: "not json") == nil)
+    }
+
+    @Test("Gemini structured image body stays nil (multimodal deferred)")
+    func geminiStructuredImageBodyStaysNil() {
+        let body = adapter.structuredImagePromptBody(
+            model: "gemini-2.5-flash",
+            system: "s",
+            user: "u",
+            temperature: 0.2,
+            structuredOutputName: "n",
+            schema: [:],
+            imageDataURL: "data:image/png;base64,AAAA",
+            maximumOutputTokens: 64
+        )
+        #expect(body == nil)
     }
 }

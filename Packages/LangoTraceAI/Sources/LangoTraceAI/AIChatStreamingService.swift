@@ -126,6 +126,8 @@ public struct AIChatStreamingService: Sendable {
                         baseURL: request.endpoint.baseURL,
                         secret: request.plaintextSecret,
                         timeoutSeconds: request.endpoint.requestTimeoutSeconds,
+                        model: request.endpoint.modelName,
+                        streaming: true,
                         body: body
                     )
                     var parser = ServerSentEventParser()

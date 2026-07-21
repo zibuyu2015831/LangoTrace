@@ -205,6 +205,8 @@ private extension PracticeBacktranslationReviewService {
                 baseURL: endpoint.baseURL,
                 secret: secret,
                 timeoutSeconds: endpoint.requestTimeoutSeconds,
+                model: endpoint.modelName,
+                streaming: false,
                 body: body
             )
         } catch AIProviderTextRequestAdapterError.invalidEndpointURL {

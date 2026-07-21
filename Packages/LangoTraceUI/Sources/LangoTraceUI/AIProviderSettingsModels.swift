@@ -638,9 +638,11 @@ extension AIProviderAdapterKind {
                 canProbeEmbedding: false
             )
         case .geminiGenerateContent:
+            // Gemini generateContent text + best-effort structured-JSON are
+            // wired (2026-07-22); image / TTS / embedding stay deferred.
             AIProviderAdapterCapabilityPolicy(
-                canProbeText: false,
-                canProbeStructuredJSON: false,
+                canProbeText: true,
+                canProbeStructuredJSON: true,
                 canProbeImageInput: false,
                 canProbeSpeechSynthesis: false,
                 canProbeEmbedding: false

@@ -74,11 +74,13 @@ struct AIChatStreamingServiceTests {
         #expect(input.map { $0["role"] } == ["user"])
     }
 
-    @Test("the remaining reserved provider kind throws unsupportedProvider from the stream")
-    func reservedProviderKindsAreUnsupported() async {
-        // LM03-S4b wired Anthropic; Gemini stays reserved.
+    @Test("an adapter without streaming support throws unsupportedProvider from the stream")
+    func adaptersWithoutStreamingSupportAreUnsupported() async {
+        // Gemini wired streaming on 2026-07-22; mimo streaming remains deferred
+        // (inherits the nil streamingChatBody default), so it now carries this
+        // guard: adapters with no streaming body map to unsupportedProvider.
         let service = AIChatStreamingService(httpClient: ScriptedStreamingHTTPClient(steps: []))
-        let stream = service.stream(request(adapterKind: .geminiGenerateContent))
+        let stream = service.stream(request(adapterKind: .mimoCompatibleChat))
         await #expect(throws: AIChatStreamingError.unsupportedProvider) {
             for try await _ in stream {}
         }
@@ -114,6 +116,35 @@ struct AIChatStreamingServiceTests {
         let service = AIChatStreamingService(httpClient: client)
         var deltas: [String] = []
         for try await event in service.stream(request(adapterKind: .anthropicMessages)) {
+            if case let .delta(text) = event {
+                deltas.append(text)
+            }
+        }
+        #expect(deltas == ["He", "llo"])
+    }
+
+    /// Gemini `alt=sse` bytes emitting "He" + "llo": each `data:` line is a
+    /// complete GenerateContentResponse JSON object, with a trailing
+    /// usage-metadata chunk that carries no text and, like Anthropic, **no**
+    /// `data: [DONE]` — the stream ends on byte EOF.
+    private func geminiHelloStreamBytes() -> [UInt8] {
+        let sse = """
+        data: {"candidates":[{"content":{"role":"model","parts":[{"text":"He"}]}}]}
+
+        data: {"candidates":[{"content":{"role":"model","parts":[{"text":"llo"}]}}]}
+
+        data: {"usageMetadata":{"promptTokenCount":3,"candidatesTokenCount":2}}
+
+        """
+        return Array(sse.utf8)
+    }
+
+    @Test("Gemini stream yields ordered deltas and completes on byte EOF without [DONE]")
+    func geminiStreamYieldsDeltasThenCompletesOnEOF() async throws {
+        let client = ScriptedStreamingHTTPClient(steps: [.bytes(geminiHelloStreamBytes())])
+        let service = AIChatStreamingService(httpClient: client)
+        var deltas: [String] = []
+        for try await event in service.stream(request(adapterKind: .geminiGenerateContent)) {
             if case let .delta(text) = event {
                 deltas.append(text)
             }

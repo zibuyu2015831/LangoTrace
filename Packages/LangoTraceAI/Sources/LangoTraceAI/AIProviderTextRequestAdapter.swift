@@ -7,20 +7,19 @@ import LangoTraceCore
 enum AIProviderTextRequestAdapterError: Error, Equatable {
     /// The endpoint base URL could not be turned into a request URL.
     case invalidEndpointURL
-    /// The adapter kind has no text-provider implementation yet
-    /// (`geminiGenerateContent` is the remaining reserved extension point;
-    /// `anthropicMessages` is wired as of LM03-S4b — real wiring happens via
-    /// `docs/workflows/add-ai-provider.md`).
+    /// The adapter kind has no text-provider implementation. As of the Gemini
+    /// wiring (2026-07-22) every closed-set kind dispatches, so this case has
+    /// no factory producer; it stays as the stable error vocabulary for future
+    /// kinds and the services' catch mappings.
     case unsupportedProvider
     /// The response body could not be decoded into model output text.
     case invalidResponseBody
 }
 
 /// Single dispatch entry mapping an `AIProviderAdapterKind` to its text-request
-/// adapter, or throwing `.unsupportedProvider` for kinds without a
-/// text-provider implementation. All three OpenAI-compatible text services
-/// (learning-material generation, reading-selection explanation, configuration
-/// probe) obtain their adapter here instead of switching on the kind inline.
+/// adapter. The switch is exhaustive with no default, so adding a new kind
+/// forces an implementation decision at compile time. All text services obtain
+/// their adapter here instead of switching on the kind inline.
 enum AIProviderTextRequestAdapterFactory {
     static func adapter(
         for kind: AIProviderAdapterKind
@@ -35,7 +34,7 @@ enum AIProviderTextRequestAdapterFactory {
         case .anthropicMessages:
             AnthropicMessagesTextAdapter()
         case .geminiGenerateContent:
-            throw AIProviderTextRequestAdapterError.unsupportedProvider
+            GeminiGenerateContentTextAdapter()
         }
     }
 }
@@ -111,8 +110,8 @@ protocol AIProviderTextRequestAdapter: Sendable {
     /// optional leading system segment, with `stream: true` baked in.
     ///
     /// Returns `nil` for adapter kinds with no streaming chat implementation
-    /// (`geminiGenerateContent` — rejected by the factory; the default inherits
-    /// `nil`). OpenAI Chat / Responses / mimo and Anthropic override it. The
+    /// (mimo — streaming remains deferred, so it inherits the default `nil`).
+    /// OpenAI Chat / Responses, Anthropic and Gemini override it. The
     /// streaming service treats `nil` as "unsupported provider" so support stays
     /// structural.
     func streamingChatBody(
@@ -125,11 +124,27 @@ protocol AIProviderTextRequestAdapter: Sendable {
     /// this adapter's stream shape (chat/completions vs Responses events), or
     /// `nil` for chunks that carry no text.
     func streamContentDelta(fromDataPayload payload: String) -> String?
+
+    /// Builds the finalized POST `URLRequest`. This is a **protocol
+    /// requirement** — not an extension-only helper — so per-kind URL schemes
+    /// dispatch through the `any AIProviderTextRequestAdapter` existential the
+    /// services hold (Gemini puts the model in the path and switches method
+    /// name for streaming). The default implementation keeps the single
+    /// `pathSuffix` scheme and ignores `model` / `streaming`; services always
+    /// pass both so a kind that needs them can act on them.
+    func makeRequest(
+        baseURL: String,
+        secret: String?,
+        timeoutSeconds: Double?,
+        model: String,
+        streaming: Bool,
+        body: [String: Any]
+    ) throws -> URLRequest
 }
 
 extension AIProviderTextRequestAdapter {
     /// Default: no structured-image support. Kinds that support it (OpenAI Chat /
-    /// Responses) override this; mimo and the reserved kinds inherit `nil`.
+    /// Responses) override this; mimo, Anthropic and Gemini inherit `nil`.
     func structuredImagePromptBody(
         model _: String,
         system _: String,
@@ -143,8 +158,8 @@ extension AIProviderTextRequestAdapter {
         nil
     }
 
-    /// Default: no streaming chat support. OpenAI Chat / Responses / mimo
-    /// override; the reserved kinds inherit `nil`.
+    /// Default: no streaming chat support. OpenAI Chat / Responses, Anthropic
+    /// and Gemini override; mimo inherits `nil` (streaming deferred).
     func streamingChatBody(
         model _: String,
         system _: String?,
@@ -183,12 +198,17 @@ extension AIProviderTextRequestAdapter {
     }
 
     /// Builds a finalized POST `URLRequest`: resolves the URL via the shared
-    /// URL builder, sets JSON content type, injects the Bearer credential when
-    /// present, serializes `body`, and applies the optional timeout.
+    /// URL builder, sets JSON content type, injects the credential headers,
+    /// serializes `body`, and applies the optional timeout. `model` and
+    /// `streaming` are ignored here — the OpenAI-compatible family and
+    /// Anthropic carry the model in the body and switch streaming via a body
+    /// flag; Gemini overrides this requirement to fold both into the URL.
     func makeRequest(
         baseURL: String,
         secret: String?,
         timeoutSeconds: Double?,
+        model _: String,
+        streaming _: Bool,
         body: [String: Any]
     ) throws -> URLRequest {
         guard let url = AIProviderEndpointURLBuilder.endpointURL(baseURL: baseURL, pathSuffix: pathSuffix)

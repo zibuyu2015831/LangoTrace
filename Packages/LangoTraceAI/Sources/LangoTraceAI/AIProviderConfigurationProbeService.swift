@@ -135,7 +135,8 @@ public struct AIProviderConfigurationProbeService: Sendable {
         )
 
         // Single dispatch point: a kind without a text-provider adapter
-        // (anthropic / gemini) yields the unsupported capability result.
+        // yields the unsupported capability result (no closed-set kind hits
+        // this today; it guards future kinds).
         let adapter: any AIProviderTextRequestAdapter
         do {
             adapter = try AIProviderTextRequestAdapterFactory.adapter(for: endpoint.adapterKind)
@@ -493,6 +494,8 @@ private extension AIProviderConfigurationProbeService {
                 baseURL: endpoint.baseURL,
                 secret: secret,
                 timeoutSeconds: endpoint.requestTimeoutSeconds,
+                model: endpoint.modelName,
+                streaming: false,
                 body: body
             )
         } catch AIProviderTextRequestAdapterError.invalidEndpointURL {

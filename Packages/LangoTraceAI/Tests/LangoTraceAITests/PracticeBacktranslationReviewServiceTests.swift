@@ -150,20 +150,11 @@ struct PracticeBacktranslationReviewServiceTests {
         }
     }
 
-    @Test("an unsupported (gemini) adapter maps to unsupportedProvider, not a network error")
-    func serviceMapsUnsupportedProvider() async throws {
-        let httpClient = CapturingBacktranslationReviewHTTPClient(responses: [])
-        let service = PracticeBacktranslationReviewService(httpClient: httpClient)
-        await #expect(throws: PracticeBacktranslationReviewServiceError(category: .unsupportedProvider)) {
-            try await service.review(
-                PracticeBacktranslationReviewServiceRequest(
-                    endpoint: endpoint(adapterKind: .geminiGenerateContent),
-                    plaintextSecret: "sk-test-secret",
-                    input: sampleInput()
-                )
-            )
-        }
-    }
+    // The "unsupported (gemini) adapter maps to unsupportedProvider" test was
+    // removed 2026-07-22 with the Gemini wiring: every closed-set kind now
+    // dispatches, so the scenario no longer exists (mapping code stays as the
+    // error vocabulary for future kinds; the factory's exhaustive switch is
+    // the compile-time safety net).
 
     @Test("the projection fills the reserved capability with the attempt + reference descriptors")
     func projectionFillsReservedCapability() {

@@ -313,28 +313,11 @@ struct ReadingSelectionExplanationServiceTests {
         #expect(result.shortExplanation == "A travel noun in this sentence.")
     }
 
-    @Test("service rejects unsupported adapters before HTTP")
-    func serviceRejectsUnsupportedAdaptersBeforeHTTP() async throws {
-        let httpClient = CapturingReadingExplanationHTTPClient(responses: [])
-        let service = ReadingSelectionExplanationService(httpClient: httpClient)
-
-        await #expect(throws: ReadingSelectionExplanationServiceError(category: .unsupportedProvider)) {
-            try await service.explain(
-                ReadingSelectionExplanationServiceRequest(
-                    endpoint: endpoint(adapterKind: .geminiGenerateContent),
-                    plaintextSecret: "sk-test-secret",
-                    input: sampleInput(
-                        selection: "ticket",
-                        containingSentence: "I bought a ticket.",
-                        contextText: "I bought a ticket.",
-                        selectionScope: .sentence,
-                        contextMode: .currentParagraph
-                    )
-                )
-            )
-        }
-        #expect(await httpClient.requests.isEmpty)
-    }
+    // The "rejects unsupported adapters before HTTP" test was removed
+    // 2026-07-22 with the Gemini wiring: every closed-set kind now dispatches,
+    // so the scenario no longer exists (mapping code stays as the error
+    // vocabulary for future kinds; the factory's exhaustive switch is the
+    // compile-time safety net).
 }
 
 @Suite("Reading selection explanation failure mapping")

@@ -46,3 +46,8 @@
 - 不为 Anthropic / Gemini 提前实现图片或多模态请求体（adapter 现状不支持，且无能力需求驱动）。
 - 不把多模态请求体设计成通用「任意附件」通道；当前只服务受控的图片 + 结构化输出，附件/音频等另行决策。
 - 不在本备忘录阶段定稿统一 API；待 photo-writing-assist 方案进入实现并跑通兼容性 gate 后，再决定是否把本备忘录提升为正式 architecture 文档或 spec 条款。
+
+## 2026-07-22 更新：Gemini 文本适配已落地，图片仍禁
+
+- `GeminiGenerateContentTextAdapter` 已接入文本 / 尽力而为结构化 JSON / 多轮 + 流式（`docs/plans/done/2026-07-22-feature-gemini-text-adapter.md`）；本备忘录「不为 Gemini 提前实现图片或多模态请求体」的约束**继续有效**——`AIProviderImageSupport` 与 `structuredImagePromptBody` 对 gemini 保持不支持，直到有能力需求驱动。
+- 严格结构化升级路径：Gemini 原生 `generationConfig.responseSchema` 为 OpenAPI 子集，与现有 strict JSON Schema 存在键差异（如 `additionalProperties`），接入前需独立验证转换；当前为 `responseMimeType: application/json` 尽力而为 + 服务层非法 JSON 拒收兜底（与 Anthropic 同级）。
