@@ -19,6 +19,7 @@ struct EntrySceneLocalizationTests {
         "pad.sidebar.scenes",
         "phone.sceneFilter.label",
         "entryEditor.scene.section",
+        "entryScene.none",
     ]
 
     @Test("Every new scene key ships non-empty en and zh-Hans values")

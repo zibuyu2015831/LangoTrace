@@ -56,6 +56,24 @@ func updatingInMemoryEntryBodyKeepsSelection() throws {
     #expect(repository.entries(for: "en").first?.body == "晚饭后我走了更远的一圈。")
 }
 
+@Test("Updating an in-memory entry scene persists, trims, clears, and rejects unknown entries")
+func updatingInMemoryEntrySceneMirrorsWriteSemantics() throws {
+    let repository = InMemoryLearningContentRepository(seedEntries: [])
+    let entry = try repository.createEntry(spaceID: "en", title: "记录", body: "内容", source: .typedText, scene: "")
+
+    let tagged = try repository.updateEntryScene(entryID: entry.id, spaceID: "en", scene: "  travel ")
+    #expect(tagged.scene == "travel")
+
+    let cleared = try repository.updateEntryScene(entryID: entry.id, spaceID: "en", scene: "")
+    #expect(cleared.scene == "")
+
+    // InMemory keeps its existing error semantics: a foreign space simply
+    // fails the lookup, so it reports entryNotFound (no spaceMismatch path).
+    #expect(throws: LearningContentRepositoryError.entryNotFound) {
+        _ = try repository.updateEntryScene(entryID: entry.id, spaceID: "ja", scene: "work")
+    }
+}
+
 @Test("Updating an in-memory entry body rejects empty or foreign entries")
 func updatingInMemoryEntryBodyRejectsInvalidInputs() throws {
     let repository = InMemoryLearningContentRepository(seedEntries: [])

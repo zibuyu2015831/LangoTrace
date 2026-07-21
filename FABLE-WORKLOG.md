@@ -85,3 +85,8 @@
 - 结果：**CI run 29864585392（HEAD `835349c`）`Build & Test` conclusion=success**——完整绿覆盖批次③（场景标签：Core/Data/UI + 三端构建 + 本地化 + source-boundary 守卫）与批次④（Gemini 适配：makeRequest 升格零回归 + Gemini 13 例 + 流式 SSE + probe 正向 + UI policy）+ 全部 lint + check-docs。
 - 动作：两份 active plan 补实施记录（提交序列、CI run 证据链、红→绿实证、教训）后移 `done/`；`docs/plans/active/` 再次清空。
 - 本次运行至此的交付总览：①LM 系列收口 + 入口文档对齐（docs）②代码健康度修复（chore）③场景标签闭环（feature）④Gemini 文本适配（feature），全部 CI 绿、plan 归档、文档控制面同批更新。
+
+### 2026-07-22 — 批次⑤实施：记录详情场景标签编辑（feature，场景切片 2）
+- 方案：`docs/plans/active/2026-07-22-feature-entry-scene-edit.md`——隔离双轮自审（P0=0，P1×3 全部写回：内部协议扩方法击穿测试 fake `FailingReadLearningContentRepository` 的第四 conformance 破坏点、`entry.scene)` 负向守卫与接线写法冲突〔定案 row 接收整个 entry〕、页面清单 :50「不展示场景 metadata」反述矛盾 + macOS/共享组件行遗漏；P2 采纳：删「保留当前」no-op 项、空态用 `entryScene.none` 不走 displayScene 回退、值从 prop 派生防 @State stale、InMemory 按既有语义断言、备忘录 §5.4「暂不合并 updateEntry(fields:)」结论回写）后 Reviewed 实施。
+- 动作：GRDB `updateEntryScene`（镜像 updateEntryBody；空串合法=清除）+ 协议/bridge/InMemory/Unavailable/fake 五处 conformance 同步；store 方法 + reload；`EntrySceneEditOptions` 纯函数 + `EntrySceneEditRow`（三态当前值、Menu 无场景+六预设）；共享详情 seam `onUpdateEntryScene` 接线（三端自动生效，零平台文件改动）；测试：GRDB round-trip/清除/trim/notFound/spaceMismatch、InMemory 镜像、options 闭集与三态、convergence source-boundary、`entryScene.none` 本地化守卫；页面清单四行（含 :50 反述改写）+ 变更记录 + 备忘录 §2.1 完成标记同批。
+- 下一步：`[ci]` 推送 → CI 结论 → 收口。

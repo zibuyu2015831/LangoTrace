@@ -19,6 +19,8 @@ public protocol LearningContentRepository: AnyObject {
     @discardableResult
     func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry
     @discardableResult
+    func updateEntryScene(entryID: String, spaceID: String, scene: String) throws -> LearningEntry
+    @discardableResult
     func generateLocalPreview(for entryID: String, spaceID: String) -> LearningRendering?
     func rendering(for entryID: String) -> LearningRendering?
     func practiceItems(for entryID: String) -> [PracticeItem]
@@ -160,6 +162,20 @@ public final class InMemoryLearningContentRepository: LearningContentRepository 
         }
 
         entries[index].body = trimmedBody
+        entriesBySpace[spaceID] = entries
+        return entries[index]
+    }
+
+    @discardableResult
+    public func updateEntryScene(entryID: String, spaceID: String, scene: String) throws -> LearningEntry {
+        let trimmedScene = scene.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard var entries = entriesBySpace[spaceID],
+              let index = entries.firstIndex(where: { $0.id == entryID })
+        else {
+            throw LearningContentRepositoryError.entryNotFound
+        }
+
+        entries[index].scene = trimmedScene
         entriesBySpace[spaceID] = entries
         return entries[index]
     }
@@ -325,6 +341,10 @@ public final class UnavailableLearningContentRepository: LearningContentReposito
     }
 
     public func updateEntryBody(entryID _: String, spaceID _: String, body _: String) throws -> LearningEntry {
+        throw LearningContentRepositoryError.databaseUnavailable
+    }
+
+    public func updateEntryScene(entryID _: String, spaceID _: String, scene _: String) throws -> LearningEntry {
         throw LearningContentRepositoryError.databaseUnavailable
     }
 

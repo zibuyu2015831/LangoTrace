@@ -171,6 +171,44 @@ func updatingEntryBodyRejectsCrossSpaceRequestsWithoutWriting() throws {
     #expect(try repository.entry(id: entry.id)?.body == "原始内容")
 }
 
+@Test("Updating the entry scene persists, trims, and allows clearing back to untagged")
+func updateEntrySceneRoundTrip() throws {
+    let repository = try makeRepository()
+    let entry = try repository.createEntry(sampleDraft(), in: "space-1")
+
+    let tagged = try repository.updateEntryScene(entryID: entry.id, spaceID: "space-1", scene: "  work  ")
+    #expect(tagged.scene == "work")
+    #expect(try repository.entry(id: entry.id)?.scene == "work")
+
+    // An empty (trimmed) scene is legal: it clears the tag back to untagged.
+    let cleared = try repository.updateEntryScene(entryID: entry.id, spaceID: "space-1", scene: " ")
+    #expect(cleared.scene == "")
+    #expect(try repository.entry(id: entry.id)?.scene == "")
+}
+
+@Test("Updating the entry scene rejects missing entries and foreign spaces without writing")
+func updateEntrySceneRejectsMissingEntryAndForeignSpace() throws {
+    let database = try AppDatabase.inMemory()
+    try database.databaseQueue.write { db in
+        try insertLanguageSpace(id: "space-1", db: db)
+        try insertLanguageSpace(id: "space-2", db: db)
+    }
+    let repository = GRDBLearningContentRepository(
+        database: database,
+        clock: { Date(timeIntervalSince1970: 100) },
+        idGenerator: IncrementingIDGenerator().next
+    )
+    let entry = try repository.createEntry(sampleDraft(), in: "space-1")
+
+    #expect(throws: LearningContentRepositoryError.entryNotFound) {
+        _ = try repository.updateEntryScene(entryID: "missing", spaceID: "space-1", scene: "work")
+    }
+    #expect(throws: LearningContentRepositoryError.spaceMismatch) {
+        _ = try repository.updateEntryScene(entryID: entry.id, spaceID: "space-2", scene: "work")
+    }
+    #expect(try repository.entry(id: entry.id)?.scene == "生活记录")
+}
+
 @Test("Bridge createEntry persists the scene slug through to GRDB")
 func bridgeCreateEntryPersistsSceneSlug() throws {
     let repository = try makeRepository()

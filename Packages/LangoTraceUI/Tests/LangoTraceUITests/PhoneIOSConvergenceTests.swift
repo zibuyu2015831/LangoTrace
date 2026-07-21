@@ -412,6 +412,21 @@ struct PhoneIOSConvergenceTests {
         #expect(!components.contains("Spacer()\n            HStack(spacing: 8)"))
     }
 
+    @Test("Entry detail wires scene editing through the store without swallowing errors")
+    func entryDetailWiresSceneEditingThroughStore() throws {
+        let supportingViews = try String(
+            contentsOf: sourceFileURL(named: "PhoneMainSupportingViews.swift"),
+            encoding: .utf8
+        )
+
+        #expect(supportingViews.contains("onUpdateEntryScene: ((String) throws -> Void)?"))
+        #expect(supportingViews.contains("try contentStore.updateEntryScene(entryID: entry.id, scene: scene)"))
+        #expect(!supportingViews.contains("try? contentStore.updateEntryScene"))
+        // The edit row takes the whole entry so the detail file never spells
+        // a raw `entry.scene` interpolation (guarded below).
+        #expect(supportingViews.contains("EntrySceneEditRow(entry: entry, onUpdateScene: onUpdateEntryScene)"))
+    }
+
     @Test("Timeline rows render displayScene, never the raw scene value")
     func timelineRowsRenderDisplayScene() throws {
         let supportingViews = try String(

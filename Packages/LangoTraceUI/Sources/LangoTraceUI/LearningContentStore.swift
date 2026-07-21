@@ -107,6 +107,13 @@ final class LearningContentStore: ObservableObject {
         return entry
     }
 
+    @discardableResult
+    func updateEntryScene(entryID: String, scene: String) throws -> LearningEntry {
+        let entry = try repository.updateEntryScene(entryID: entryID, spaceID: spaceID, scene: scene)
+        reload()
+        return entry
+    }
+
     func sourceEntryIsStale(for entry: LearningEntry) -> Bool {
         guard let rendering = rendering(for: entry) else {
             return false

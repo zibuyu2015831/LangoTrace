@@ -125,6 +125,7 @@ struct EntryDetailView: View {
     var onGenerateLearningMaterial: (() -> Void)?
     var onCancelLearningMaterialGeneration: (() -> Void)?
     var onUpdateEntryBody: ((String) throws -> Void)?
+    var onUpdateEntryScene: ((String) throws -> Void)?
     var onUpdateLearningText: ((String, String) -> Void)?
     var onAnalyzeCurrentLearningText: (() -> Void)?
     var sentenceAudioPlaybackStates: [String: SentenceAudioPresentationState] = [:]
@@ -157,6 +158,9 @@ struct EntryDetailView: View {
                     nativeLanguageName: languageSpace.nativeLanguage,
                     onSave: onUpdateEntryBody
                 )
+                if let onUpdateEntryScene {
+                    EntrySceneEditRow(entry: entry, onUpdateScene: onUpdateEntryScene)
+                }
                 if companionFeatureEnabled, let onCompanion {
                     CompanionEntryDetailButton(action: onCompanion)
                 }
@@ -438,6 +442,9 @@ struct EntryDetailStoreView: View {
                 },
                 onUpdateEntryBody: { body in
                     try contentStore.updateEntryBody(entryID: entry.id, body: body)
+                },
+                onUpdateEntryScene: { scene in
+                    try contentStore.updateEntryScene(entryID: entry.id, scene: scene)
                 },
                 onUpdateLearningText: { materialID, learningText in
                     Task {

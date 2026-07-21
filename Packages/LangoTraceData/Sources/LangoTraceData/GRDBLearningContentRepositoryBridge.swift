@@ -12,6 +12,7 @@ protocol GRDBLearningContentRepositoryProtocol: Sendable {
     func createEntry(_ draft: NewLearningEntryDraft, in spaceID: String) throws -> LearningEntry
     func deleteEntry(id: String) throws
     func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry
+    func updateEntryScene(entryID: String, spaceID: String, scene: String) throws -> LearningEntry
     func learningPracticeReadiness(for spaceID: String) throws -> [String: Bool]
 }
 
@@ -88,6 +89,13 @@ public final class GRDBLearningContentRepositoryBridge: LearningContentRepositor
     @discardableResult
     public func updateEntryBody(entryID: String, spaceID: String, body: String) throws -> LearningEntry {
         let entry = try repository.updateEntryBody(entryID: entryID, spaceID: spaceID, body: body)
+        selectedEntryIDs[spaceID] = entry.id
+        return entry
+    }
+
+    @discardableResult
+    public func updateEntryScene(entryID: String, spaceID: String, scene: String) throws -> LearningEntry {
+        let entry = try repository.updateEntryScene(entryID: entryID, spaceID: spaceID, scene: scene)
         selectedEntryIDs[spaceID] = entry.id
         return entry
     }

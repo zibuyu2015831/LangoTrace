@@ -110,6 +110,36 @@ public struct GRDBLearningContentRepository: @unchecked Sendable {
         }
     }
 
+    /// Updates the scene tag of an active entry. Unlike the body, an empty
+    /// (trimmed) scene is legal — it clears the tag back to "untagged",
+    /// mirroring the create-path semantics where an empty scene means no tag.
+    @discardableResult
+    public func updateEntryScene(entryID: String, spaceID: String, scene: String) throws -> LearningEntry {
+        let trimmed = scene.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return try databaseQueue.write { db in
+            guard let existing = try fetchActiveEntry(id: entryID, db: db) else {
+                throw LearningContentRepositoryError.entryNotFound
+            }
+            guard existing.spaceID == spaceID else {
+                throw LearningContentRepositoryError.spaceMismatch
+            }
+            let now = clock().timeIntervalSince1970
+            try db.execute(
+                sql: """
+                UPDATE entries
+                SET scene = ?, updated_at = ?
+                WHERE id = ? AND space_id = ? AND deleted_at IS NULL
+                """,
+                arguments: [trimmed, now, entryID, spaceID]
+            )
+            guard let entry = try fetchActiveEntry(id: entryID, db: db) else {
+                throw LearningContentRepositoryError.entryNotFound
+            }
+            return entry
+        }
+    }
+
     public func currentMaterial(for entryID: String) throws -> LearningMaterial? {
         try databaseQueue.read { db in
             try fetchCurrentMaterial(entryID: entryID, db: db)

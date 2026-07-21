@@ -15,7 +15,7 @@
 
 ## 2. 登记的后续切片
 
-1. **场景编辑**：已建记录改 scene。需新增 repository update 方法（现仅 `updateEntryBody`；建议届时评估合并为 `updateEntry(fields:)`）+ 三端详情 UI。
+1. **场景编辑**：✅ 已于 2026-07-22 落地（`docs/plans/done/2026-07-22-feature-entry-scene-edit.md`）：`updateEntryScene` 窄方法 + 三端共享详情 `EntrySceneEditRow`。「合并为 `updateEntry(fields:)`」经该 plan 评估**暂不采纳**——仅两个更新维度且语义不同（body 关联材料 stale 判定、scene 是纯标签），窄方法与 `updateEntryBody` 对称更清晰；第三个可更新字段出现时再重估。
 2. **Mac 时间线筛选整体切片**：状态筛选与场景筛选一起补（Mac 当前 entries 未过滤直传）。
 3. **搜索联动**：SearchPalette 加场景维度；若时间线数据量增长，评估 SQL 级 `WHERE scene = ?` 与 repository 查询方法。
 4. **自定义场景 / 多标签**：用户自造标签与一条记录多标签。多标签需 M:N 表 + migration + 标签管理 UX；届时重估「场景是标签」是否升级为一等 tag 体系（涉及 spec/007 与导出 schema，须走 active plan + 可能的 ADR）。产品主参考 §8.1 :185 的「社交媒体」等未纳入 v1 预设，可作自定义场景素材。
