@@ -1,6 +1,6 @@
 # 任务方案：代码健康度修复批（mockOnly 徽章漂移 / 空 catch / NSLog 泄漏 / capability 清单去重）
 
-状态：In Progress
+状态：Verified
 自审核状态：Reviewed
 类型：chore
 创建日期：2026-07-22
@@ -140,7 +140,16 @@ App 层改动（AppEnvironment / SentenceAudioPlaybackAssembly）无独立聚焦
 
 ## 实施记录
 
-（待实施后写回）
+2026-07-22 实施完成（自主运行，FABLE-MISSION 授权）：
+
+- 提交序列：`40643c8`（主批：catalog 抽取 + 三处 `.ready` + 空 catch 日志 + NSLog 删除 + verify.sh 参数化 + 测试 + 页面清单 + defer 备忘录）→ `4070f6f`（fix：静态清单改名 `realPathSettingsCapabilities`）→ `8cdaf6e`（fix：静态清单移出 private extension——**首轮「同名歧义」报错实为可见性问题伪装**，private extension 成员 fileprivate 对测试不可见）→ `e9c2e06`（style：声明前注释改 doc comments 过 SwiftFormat `docComments` 规则）。
+- CI 证据：run 29856344239 红（测试文件编译错）→ run 29856938870 红（fileprivate 不可访问）→ run 29857721868 红（**全部测试已绿**，仅 SwiftFormat 拦截）→ **run 29858671734 `Build & Test` conclusion=success（完整绿：v33 迁移 + 三端构建 + macOS AppTests + 全包测试 + SwiftLint + SwiftFormat + check-docs）**。
+- 红→绿链路：`bridgeReportsInterfaceLanguageAsReady` / `bridgeExposesNoMockOnlyCapability` / UI source-boundary 断言在旧代码逻辑红、与修复同批入库、run 29858671734 实证绿；守护测试 `bridgeAndMockCatalogShareMetadata`（顺序 + 元数据一致、排除 status）过。
+- 实施期教训（写回 worklog）：① 本机无 Swift 工具链，编译期错误只能靠 CI 首轮捕获，新成员命名避开既有方法裸名；② 访问级错误可能伪装成重载歧义——测试可见性问题优先怀疑声明所在 extension 的访问级；③ 声明前注释一律 doc comments（SwiftFormat 0.62.1 `docComments` 规则）。
+
+## 复查方法
+
+后续会话核对：`git show e9c2e06` 前后四提交 + CI run 29858671734 结论；`GRDBBridgeSettingsCapabilityTests` 三断言与 `SettingsCapabilityCatalog` 单一事实源结构；`docs/platform-page-inventory.md` 2026-07-22 变更记录条目。
 
 ## 完成标准
 
